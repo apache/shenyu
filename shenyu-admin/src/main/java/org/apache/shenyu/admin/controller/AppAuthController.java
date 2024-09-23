@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -96,17 +97,21 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
      * @param phone       specific phone
      * @param currentPage current page of list
      * @param pageSize    page size of query
+     * @param namespaceId namespaceId
      * @return the shenyu result
      */
     @GetMapping("/findPageByQuery")
     @RequiresPermissions("system:authen:list")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone,
                                              @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                             @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                             @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize,
+                                             @Valid @Existed(message = "namespaceId is not existed",
+                                                     provider = NamespaceMapper.class) final String namespaceId) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
         query.setPageParameter(new PageParameter(currentPage, pageSize));
+        query.setNamespaceId(namespaceId);
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
