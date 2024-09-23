@@ -233,3 +233,8 @@ ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
 
 UPDATE meta_data SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
+
+UPDATE app_auth SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
