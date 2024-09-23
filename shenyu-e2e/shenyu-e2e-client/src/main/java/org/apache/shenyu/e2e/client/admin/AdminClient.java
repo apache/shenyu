@@ -496,14 +496,15 @@ public class AdminClient extends BaseClient {
      * change plugin status.
      *
      * @param id       id
-     * @param formData formData
+     * @param requestBody requestBody
      */
-    public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/namespacePlugin", id, NamespacePluginDTO.class, formData);
+    public void changePluginStatus(final String id, final Map<String, String> requestBody) {
+        putResource("/namespacePlugin", id, NamespacePluginDTO.class, requestBody);
     }
 
-    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, basicAuth);
+    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, Map<String, String> requestBody) {
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
+        
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();

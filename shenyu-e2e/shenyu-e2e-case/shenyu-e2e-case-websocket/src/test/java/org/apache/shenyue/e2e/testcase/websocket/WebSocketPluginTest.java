@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -66,14 +69,14 @@ public class WebSocketPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start websocket plugin");
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "26");
-        reqBody.add("pluginId", "26");
-        reqBody.add("name", "websocket");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Proxy");
-        reqBody.add("sort", "200");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "26");
+        reqBody.put("pluginId", "26");
+        reqBody.put("name", "websocket");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "200");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("1", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
 

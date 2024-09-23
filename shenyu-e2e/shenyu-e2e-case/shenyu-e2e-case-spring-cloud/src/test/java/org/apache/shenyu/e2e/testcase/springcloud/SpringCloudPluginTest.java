@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Testing spring-cloud plugin.
@@ -75,14 +77,14 @@ public class SpringCloudPluginTest {
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
         LOG.info("start spring cloud  plugin");
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "8");
-        reqBody.add("pluginId", "8");
-        reqBody.add("name", "springCloud");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Proxy");
-        reqBody.add("sort", "200");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "8");
+        reqBody.put("pluginId", "8");
+        reqBody.put("name", "springCloud");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "200");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("8", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 

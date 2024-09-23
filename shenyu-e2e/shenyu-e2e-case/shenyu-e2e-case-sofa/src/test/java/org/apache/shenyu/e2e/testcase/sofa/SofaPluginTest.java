@@ -30,7 +30,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -62,15 +64,15 @@ public class SofaPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
 
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "11");
-        reqBody.add("pluginId", "11");
-        reqBody.add("name", "sofa");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Proxy");
-        reqBody.add("sort", "310");
-        reqBody.add("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "11");
+        reqBody.put("pluginId", "11");
+        reqBody.put("name", "sofa");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "310");
+        reqBody.put("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("11", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }

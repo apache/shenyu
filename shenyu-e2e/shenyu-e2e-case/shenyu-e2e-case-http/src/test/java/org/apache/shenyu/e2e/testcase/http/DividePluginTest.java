@@ -37,14 +37,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31095",
+                        baseUrl = "http://localhost:9095",
                         type = ServiceTypeEnum.SHENYU_ADMIN,
                         parameters = {
                                 @ShenYuTest.Parameter(key = "username", value = "admin"),
@@ -55,7 +57,7 @@ import java.util.Objects;
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-gateway",
                 service = @ShenYuTest.ServiceConfigure(moduleName = "shenyu-e2e",
-                        baseUrl = "http://localhost:31195",
+                        baseUrl = "http://localhost:9195",
                         type = ServiceTypeEnum.SHENYU_GATEWAY
                 )
         )
@@ -102,15 +104,15 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start loggingRocketMQ plugin");
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "29");
-        reqBody.add("pluginId", "29");
-        reqBody.add("name", "loggingRocketMQ");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Logging");
-        reqBody.add("sort", "170");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        reqBody.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "1801816010882822166");
+        reqBody.put("pluginId", "29");
+        reqBody.put("name", "loggingRocketMQ");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Logging");
+        reqBody.put("sort", "170");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("29", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }

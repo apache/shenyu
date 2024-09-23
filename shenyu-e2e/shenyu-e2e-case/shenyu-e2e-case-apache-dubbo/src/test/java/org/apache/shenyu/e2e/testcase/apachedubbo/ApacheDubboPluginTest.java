@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -64,15 +67,15 @@ public class ApacheDubboPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start dubbo plugin");
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "6");
-        reqBody.add("pluginId", "6");
-        reqBody.add("name", "dubbo");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Proxy");
-        reqBody.add("sort", "310");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        reqBody.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "6");
+        reqBody.put("pluginId", "6");
+        reqBody.put("name", "dubbo");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "310");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
         adminClient.changePluginStatus("6", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");

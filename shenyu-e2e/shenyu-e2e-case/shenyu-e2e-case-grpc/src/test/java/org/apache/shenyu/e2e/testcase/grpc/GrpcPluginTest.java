@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @ShenYuTest(environments = {
@@ -64,17 +65,16 @@ public class GrpcPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
-        MultiValueMap<String, String> reqBody = new LinkedMultiValueMap<>();
-        reqBody.add("id", "15");
-        reqBody.add("pluginId", "15");
-        reqBody.add("id", "15");
-        reqBody.add("name", "grpc");
-        reqBody.add("enabled", "true");
-        reqBody.add("role", "Proxy");
-        reqBody.add("sort", "310");
-        reqBody.add("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        reqBody.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
+        
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("id", "15");
+        reqBody.put("pluginId", "15");
+        reqBody.put("name", "grpc");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "310");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
         adminClient.changePluginStatus("15", reqBody);
         Map<String, Integer> plugins = gatewayClient.getPlugins();
         LOGGER.info("shenyu e2e plugin list ={}", plugins);

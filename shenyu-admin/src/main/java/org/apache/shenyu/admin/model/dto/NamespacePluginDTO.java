@@ -18,8 +18,6 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -42,7 +40,6 @@ public class NamespacePluginDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = NamespacePluginRelMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
     @NotBlank
     private String pluginId;
 
