@@ -39,6 +39,8 @@ public class AppAuthData {
 
     private List<AuthPathData> pathDataList;
 
+    private String namespaceId;
+
     /**
      * no args constructor.
      */
@@ -57,6 +59,7 @@ public class AppAuthData {
         this.open = builder.open;
         this.paramDataList = builder.paramDataList;
         this.pathDataList = builder.pathDataList;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -176,6 +179,24 @@ public class AppAuthData {
         this.pathDataList = pathDataList;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -186,12 +207,13 @@ public class AppAuthData {
         }
         AppAuthData that = (AppAuthData) o;
         return Objects.equals(appKey, that.appKey) && Objects.equals(appSecret, that.appSecret) && Objects.equals(enabled, that.enabled)
-                && Objects.equals(open, that.open) && Objects.equals(paramDataList, that.paramDataList) && Objects.equals(pathDataList, that.pathDataList);
+                && Objects.equals(open, that.open) && Objects.equals(paramDataList, that.paramDataList) && Objects.equals(pathDataList, that.pathDataList)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(appKey, appSecret, enabled, open, paramDataList, pathDataList);
+        return Objects.hash(appKey, appSecret, enabled, open, paramDataList, pathDataList, namespaceId);
     }
 
     @Override
@@ -211,6 +233,8 @@ public class AppAuthData {
                 + paramDataList
                 + ", pathDataList="
                 + pathDataList
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -248,6 +272,11 @@ public class AppAuthData {
          * pathDataList.
          */
         private List<AuthPathData> pathDataList;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -327,6 +356,17 @@ public class AppAuthData {
          */
         public Builder pathDataList(final List<AuthPathData> pathDataList) {
             this.pathDataList = pathDataList;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }
