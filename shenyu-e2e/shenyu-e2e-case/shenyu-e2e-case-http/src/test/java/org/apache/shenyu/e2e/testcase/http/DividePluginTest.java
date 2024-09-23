@@ -105,7 +105,7 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start loggingRocketMQ plugin");
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("id", "1801816010882822166");
+        reqBody.put("id", "29");
         reqBody.put("pluginId", "29");
         reqBody.put("name", "loggingRocketMQ");
         reqBody.put("enabled", "true");
