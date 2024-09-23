@@ -2799,3 +2799,6 @@ COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
 
 ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';

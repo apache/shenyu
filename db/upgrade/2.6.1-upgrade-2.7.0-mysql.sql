@@ -190,3 +190,8 @@ SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
 INSERT INTO `plugin` VALUES ('8', 'springCloud', '{"enabled":true,"registerType":"nacos","serverLists":"localhost:8848","props":{ "nacosNameSpace": "ShenyuRegisterCenter"}}', 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
+
+UPDATE app_auth
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;

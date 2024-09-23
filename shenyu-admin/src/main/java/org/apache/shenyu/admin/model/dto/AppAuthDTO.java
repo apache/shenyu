@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.Valid;
@@ -75,6 +76,13 @@ public class AppAuthDTO implements Serializable {
 
     @Valid
     private List<AuthPathDTO> authPathList;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
     
     /**
      * Gets the value of id.
@@ -255,6 +263,24 @@ public class AppAuthDTO implements Serializable {
     public void setAuthPathList(final List<AuthPathDTO> authPathList) {
         this.authPathList = authPathList;
     }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
     @Override
     public boolean equals(final Object o) {
@@ -274,11 +300,12 @@ public class AppAuthDTO implements Serializable {
                 && Objects.equals(open, that.open)
                 && Objects.equals(enabled, that.enabled)
                 && Objects.equals(authParamList, that.authParamList)
-                && Objects.equals(authPathList, that.authPathList);
+                && Objects.equals(authPathList, that.authPathList)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamList, authPathList);
+        return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamList, authPathList, namespaceId);
     }
 }
