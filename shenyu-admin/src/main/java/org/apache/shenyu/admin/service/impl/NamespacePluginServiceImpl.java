@@ -66,13 +66,17 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
+    public NamespacePluginVO findById(final String id) {
+        return namespacePluginRelMapper.selectById(id);
+    }
+    
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final NamespacePluginDTO namespacePluginDTO) {
-        final NamespacePluginVO before = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(namespacePluginDTO.getPluginId(),
-                namespacePluginDTO.getNamespaceId());
-        NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildPluginNsRelDO(namespacePluginDTO);
+        final NamespacePluginVO before = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
+        NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
         if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {
-            final NamespacePluginVO now = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(namespacePluginDTO.getPluginId(), namespacePluginDTO.getNamespaceId());
+            final NamespacePluginVO now = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
             // publish update event.
             namespacePluginEventPublisher.onUpdated(now, before);
         }
@@ -81,23 +85,18 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(final List<String> ids, final String namespaceId) {
+    public String delete(final List<String> ids) {
         // select plugin id.
-        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIdsAndNamespaceId(ids, namespaceId);
+        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(namespacePluginVOS)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         // delete plugins.
-        if (this.namespacePluginRelMapper.deleteByIdsAndNamespaceId(ListUtil.map(namespacePluginVOS, NamespacePluginVO::getId), namespaceId) > 0) {
+        if (this.namespacePluginRelMapper.deleteByIds(ListUtil.map(namespacePluginVOS, NamespacePluginVO::getId)) > 0) {
             // publish deleted event. synchronously delete and link data[selector,rule,condition,resource]
             namespacePluginEventPublisher.onDeleted(namespacePluginVOS);
         }
         return StringUtils.EMPTY;
-    }
-
-    @Override
-    public NamespacePluginVO findByPluginId(final String pluginId, final String namespaceId) {
-        return this.namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
     }
 
     @Override
@@ -137,8 +136,8 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public String enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
-        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectByIdsAndNamespaceId(ids, namespaceId);
+    public String enabled(final List<String> ids, final Boolean enabled) {
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(namespacePluginVOList)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
