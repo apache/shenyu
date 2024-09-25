@@ -107,7 +107,7 @@ public class WebsocketCollector {
             return StringUtils.EMPTY;
         }
         
-        return Optional.ofNullable(userProperties.get("namespaceId"))
+        return Optional.ofNullable(userProperties.get(Constants.SHENYU_NAMESPACE_ID))
                 .map(Object::toString)
                 .orElse(StringUtils.EMPTY);
     }

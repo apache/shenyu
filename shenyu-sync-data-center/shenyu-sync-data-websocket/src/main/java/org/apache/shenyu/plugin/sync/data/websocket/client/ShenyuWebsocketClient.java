@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -116,7 +117,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final String namespaceId) {
         super(serverUri, headers);
         this.namespaceId = namespaceId;
-        this.addHeader("namespaceId", namespaceId);
+        this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
