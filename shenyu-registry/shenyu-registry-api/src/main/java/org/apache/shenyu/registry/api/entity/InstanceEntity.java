@@ -56,6 +56,7 @@ public class InstanceEntity {
         appName = builder.appName;
         host = builder.host;
         port = builder.port;
+        uri = builder.uri;
     }
     
     

@@ -30,7 +30,6 @@ import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
-import com.netflix.discovery.shared.transport.jersey3.Jersey3TransportClientFactories;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
@@ -38,6 +37,9 @@ import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.netflix.eureka.http.DefaultEurekaClientHttpRequestFactorySupplier;
+import org.springframework.cloud.netflix.eureka.http.RestTemplateDiscoveryClientOptionalArgs;
+import org.springframework.cloud.netflix.eureka.http.RestTemplateTransportClientFactories;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -48,15 +50,17 @@ import java.util.stream.Collectors;
 
 @Join
 public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaInstanceRegisterRepository.class);
-    
+
     private EurekaClient eurekaClient;
-    
+
     private DefaultEurekaClientConfig eurekaClientConfig;
-    
+
     private EurekaInstanceConfig eurekaInstanceConfig;
-    
+
+    private RestTemplateDiscoveryClientOptionalArgs restTemplateDiscoveryClientOptionalArgs;
+
     @Override
     public void init(final RegisterConfig config) {
         eurekaInstanceConfig = new MyDataCenterInstanceConfig();
@@ -65,28 +69,31 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             public List<String> getEurekaServerServiceUrls(final String zone) {
                 return Arrays.asList(config.getServerLists().split(","));
             }
-            
+
             @Override
             public boolean shouldFetchRegistry() {
                 return false;
             }
         };
-        
+
         DefaultEurekaClientConfig eurekaClientNotRegisterEurekaConfig = new DefaultEurekaClientConfig() {
             @Override
             public List<String> getEurekaServerServiceUrls(final String zone) {
                 return Arrays.asList(config.getServerLists().split(","));
             }
-            
+
             @Override
             public boolean shouldRegisterWithEureka() {
                 return false;
             }
         };
+        restTemplateDiscoveryClientOptionalArgs
+                = new RestTemplateDiscoveryClientOptionalArgs(new DefaultEurekaClientHttpRequestFactorySupplier());
         eurekaClient = new DiscoveryClient(new ApplicationInfoManager(eurekaInstanceConfig,
-                new EurekaConfigBasedInstanceInfoProvider(eurekaInstanceConfig).get()), eurekaClientNotRegisterEurekaConfig, new Jersey3TransportClientFactories());
+                new EurekaConfigBasedInstanceInfoProvider(eurekaInstanceConfig).get()), eurekaClientNotRegisterEurekaConfig,
+                new RestTemplateTransportClientFactories(restTemplateDiscoveryClientOptionalArgs));
     }
-    
+
     @Override
     public void persistInstance(final InstanceEntity instance) {
         InstanceInfo.Builder instanceInfoBuilder = instanceInfoBuilder();
@@ -102,9 +109,10 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .setDurationInSecs(eurekaInstanceConfig.getLeaseExpirationDurationInSeconds());
         instanceInfo.setLeaseInfo(leaseInfoBuilder.build());
         ApplicationInfoManager applicationInfoManager = new ApplicationInfoManager(eurekaInstanceConfig, instanceInfo);
-        new DiscoveryClient(applicationInfoManager, eurekaClientConfig, new Jersey3TransportClientFactories());
+        new DiscoveryClient(applicationInfoManager, eurekaClientConfig,
+                new RestTemplateTransportClientFactories(restTemplateDiscoveryClientOptionalArgs));
     }
-    
+
     /**
      * Gets the instance information from the config instance and returns it after setting the appropriate status.
      * ref: com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider#get
@@ -114,7 +122,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     public InstanceInfo.Builder instanceInfoBuilder() {
         // Builder the instance information to be registered with eureka server
         final InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder(new Archaius1VipAddressResolver());
-        
+
         // set the appropriate id for the InstanceInfo, falling back to datacenter Id if applicable, else hostname
         String instanceId = eurekaInstanceConfig.getInstanceId();
         if (StringUtils.isEmpty(instanceId)) {
@@ -125,7 +133,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 instanceId = eurekaInstanceConfig.getHostName(false);
             }
         }
-        
+
         String defaultAddress;
         if (eurekaInstanceConfig instanceof RefreshableInstanceConfig) {
             // Refresh AWS data center info, and return up to date address
@@ -133,12 +141,12 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         } else {
             defaultAddress = eurekaInstanceConfig.getHostName(false);
         }
-        
+
         // fail safe
         if (StringUtils.isEmpty(defaultAddress)) {
             defaultAddress = eurekaInstanceConfig.getIpAddress();
         }
-        
+
         builder.setNamespace(eurekaInstanceConfig.getNamespace())
                 .setInstanceId(instanceId)
                 .setAppName(eurekaInstanceConfig.getAppname())
@@ -157,7 +165,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .setASGName(eurekaInstanceConfig.getASGName())
                 .setHealthCheckUrls(eurekaInstanceConfig.getHealthCheckUrlPath(),
                         eurekaInstanceConfig.getHealthCheckUrl(), eurekaInstanceConfig.getSecureHealthCheckUrl());
-        
+
         // Start off with the STARTING state to avoid traffic
         if (!eurekaInstanceConfig.isInstanceEnabledOnit()) {
             InstanceInfo.InstanceStatus initialStatus = InstanceInfo.InstanceStatus.STARTING;
@@ -168,7 +176,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                             + "itself as available. You would instead want to control this via a healthcheck handler.",
                     InstanceInfo.InstanceStatus.UP);
         }
-        
+
         // Add any user-specific metadata information
         for (Map.Entry<String, String> mapEntry : eurekaInstanceConfig.getMetadataMap().entrySet()) {
             String key = mapEntry.getKey();
@@ -180,12 +188,12 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         }
         return builder;
     }
-    
+
     @Override
     public List<InstanceEntity> selectInstances(final String selectKey) {
         return getInstances(selectKey);
     }
-    
+
     private List<InstanceEntity> getInstances(final String selectKey) {
         List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, selectKey, true);
         return instances.stream()
@@ -205,7 +213,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         String uri = String.format("%s://%s:%s", scheme, instance.getIPAddr(), port);
         return URI.create(uri);
     }
-    
+
     @Override
     public void close() {
         Optional.ofNullable(eurekaClient).ifPresent(EurekaClient::shutdown);
