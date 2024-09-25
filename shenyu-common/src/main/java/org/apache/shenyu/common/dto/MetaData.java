@@ -42,6 +42,11 @@ public class MetaData {
     private String rpcExt;
 
     private Boolean enabled;
+    
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
 
     /**
      * no args constructor.
@@ -62,9 +67,10 @@ public class MetaData {
      * @param parameterTypes parameterTypes
      * @param rpcExt         rpcExt
      * @param enabled        enabled
+     * @param namespaceId    namespaceId
      */
     public MetaData(final String id, final String appName, final String contextPath, final String path, final String rpcType, final String serviceName,
-                    final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled) {
+                    final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled, final String namespaceId) {
         this.id = id;
         this.appName = appName;
         this.contextPath = contextPath;
@@ -75,6 +81,7 @@ public class MetaData {
         this.parameterTypes = parameterTypes;
         this.rpcExt = rpcExt;
         this.enabled = enabled;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -93,6 +100,7 @@ public class MetaData {
         this.parameterTypes = builder.parameterTypes;
         this.rpcExt = builder.rpcExt;
         this.enabled = builder.enabled;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -283,7 +291,23 @@ public class MetaData {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
+    /**
+     * get namespaceId.
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+    
+    /**
+     * set namespaceId.
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -296,12 +320,12 @@ public class MetaData {
         return Objects.equals(id, metaData.id) && Objects.equals(appName, metaData.appName) && Objects.equals(contextPath, metaData.contextPath)
                 && Objects.equals(path, metaData.path) && Objects.equals(rpcType, metaData.rpcType) && Objects.equals(serviceName, metaData.serviceName)
                 && Objects.equals(methodName, metaData.methodName) && Objects.equals(parameterTypes, metaData.parameterTypes)
-                && Objects.equals(rpcExt, metaData.rpcExt) && Objects.equals(enabled, metaData.enabled);
+                && Objects.equals(rpcExt, metaData.rpcExt) && Objects.equals(enabled, metaData.enabled) && Objects.equals(namespaceId, metaData.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, appName, contextPath, path, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
+        return Objects.hash(id, appName, contextPath, path, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled, namespaceId);
     }
 
     @Override
@@ -336,6 +360,9 @@ public class MetaData {
                 + '\''
                 + ", enabled="
                 + enabled
+                + '\''
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 
@@ -403,6 +430,11 @@ public class MetaData {
          * enabled.
          */
         private Boolean enabled;
+        
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -526,6 +558,17 @@ public class MetaData {
          */
         public Builder enabled(final Boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

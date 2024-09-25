@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import org.apache.shenyu.common.dto.MetaData.Builder;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -59,6 +61,11 @@ public class RuleData {
      * match restful.
      */
     private Boolean matchRestful;
+    
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
 
     /**
      * no args constructor.
@@ -84,6 +91,7 @@ public class RuleData {
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
         this.matchRestful = builder.matchRestful;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -331,6 +339,22 @@ public class RuleData {
         this.matchRestful = matchRestful;
     }
     
+    /**
+     * get namespaceId.
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+    
+    /**
+     * set namespaceId.
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -351,13 +375,14 @@ public class RuleData {
                 && Objects.equals(handle, ruleData.handle)
                 && Objects.equals(conditionDataList, ruleData.conditionDataList)
                 && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
-                && Objects.equals(matchRestful, ruleData.matchRestful);
+                && Objects.equals(matchRestful, ruleData.matchRestful)
+                && Objects.equals(namespaceId, ruleData.namespaceId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
-                beforeConditionDataList, matchRestful);
+                beforeConditionDataList, matchRestful, namespaceId);
     }
 
     @Override
@@ -421,6 +446,8 @@ public class RuleData {
         private List<ConditionData> beforeConditionDataList;
         
         private Boolean matchRestful;
+        
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -566,6 +593,17 @@ public class RuleData {
          */
         public Builder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
+            return this;
+        }
+        
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }
