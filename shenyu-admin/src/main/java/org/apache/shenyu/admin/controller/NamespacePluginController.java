@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
@@ -129,6 +130,23 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
         namespacePluginDTO.setId(id);
         return ShenyuAdminResult.success(namespacePluginService.update(namespacePluginDTO));
     }
+
+    /**
+     * add plugin of namespace.
+     *
+     * @param namespaceId        namespaceId.
+     * @param pluginId           pluginId.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/{namespaceId}/{pluginId}")
+    @RequiresPermissions("system:plugin:edit")
+    public ShenyuAdminResult addPlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+                                          @PathVariable("namespaceId") final String namespaceId,
+                                       @Existed(message = "plugin is not exist", provider = PluginMapper.class)
+                                       @PathVariable("pluginId") final String pluginId) {
+        return ShenyuAdminResult.success(namespacePluginService.create(namespaceId, pluginId));
+    }
+
 
 
     /**

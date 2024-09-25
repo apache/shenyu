@@ -69,7 +69,16 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     public NamespacePluginVO findById(final String id) {
         return namespacePluginRelMapper.selectById(id);
     }
-    
+
+    @Override
+    public String create(String namespaceId, String pluginId) {
+        NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        if (Objects.isNull(namespacePluginVO)) {
+            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        }
+        return null;
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final NamespacePluginDTO namespacePluginDTO) {
