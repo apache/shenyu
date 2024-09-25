@@ -2030,7 +2030,7 @@ public class ShenyuConfig {
     }
     
     /**
-     * Set shenyu bootstrap namespace, default value is {@link org.apache.shenyu.common.constant.Constants#SYS_DEFAULT_NAMESPACE_ID}
+     * Set shenyu bootstrap namespace, default value is {@link org.apache.shenyu.common.constant.Constants#SYS_DEFAULT_NAMESPACE_ID}.
      *
      * @param namespace namespace id
      */
