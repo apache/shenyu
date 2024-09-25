@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.dto;
 
-import org.apache.shenyu.common.dto.MetaData.Builder;
-
 import java.util.List;
 import java.util.Objects;
 
