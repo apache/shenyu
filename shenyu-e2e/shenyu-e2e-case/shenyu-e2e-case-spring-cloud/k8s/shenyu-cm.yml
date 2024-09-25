@@ -213,6 +213,8 @@ data:
 
     eureka:
       client:
+        registerWithEureka: false
+        fetchRegistry: false
         enabled: true
         serviceUrl:
           defaultZone: http://shenyu-examples-eureka:8761/eureka/
