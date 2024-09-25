@@ -80,7 +80,7 @@ public class SpringCloudPluginTest {
         formData.add("enabled", "true");
         formData.add("role", "Proxy");
         formData.add("sort", "200");
-        formData.add("config", "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://localhost:8761/eureka\",\"props\":{}}");
+        formData.add("config", "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\",\"props\":{}}");
         adminClient.changePluginStatus("8", formData);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 
