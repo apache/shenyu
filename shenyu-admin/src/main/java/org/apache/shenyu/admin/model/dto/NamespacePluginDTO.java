@@ -18,8 +18,6 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -33,13 +31,17 @@ import java.util.Objects;
  * this is plugin from by web front.
  */
 public class NamespacePluginDTO implements Serializable {
+    
+    /**
+     * primary key.
+     */
+    private String id;
 
     /**
      * primary key.
      */
-    @Existed(provider = PluginMapper.class, nullOfIgnore = true, message = "the plugin is not exited")
+    @NotBlank
     private String pluginId;
-
 
     /**
      * plugin name.
@@ -77,6 +79,24 @@ public class NamespacePluginDTO implements Serializable {
      */
     @NotEmpty
     private String namespaceId;
+    
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+    
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
 
     /**
      * Gets the value of name.
@@ -218,7 +238,7 @@ public class NamespacePluginDTO implements Serializable {
             return false;
         }
         NamespacePluginDTO that = (NamespacePluginDTO) o;
-        return Objects.equals(name, that.name) && Objects.equals(config, that.config)
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
                 && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled)
                 && Objects.equals(pluginHandleList, that.pluginHandleList)
                 && Objects.equals(namespaceId, that.namespaceId);
@@ -226,6 +246,6 @@ public class NamespacePluginDTO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(pluginId, name, config, sort, enabled, pluginHandleList, namespaceId);
+        return Objects.hash(id, pluginId, name, config, sort, enabled, pluginHandleList, namespaceId);
     }
 }
