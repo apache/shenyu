@@ -69,6 +69,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     private volatile boolean isConnectedToMaster;
     
+    private final String namespaceId;
+    
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -83,9 +85,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final String namespaceId
     ) {
         super(serverUri);
+        this.namespaceId = namespaceId;
+        this.addHeader("namespaceId", namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
@@ -107,8 +112,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final String namespaceId) {
         super(serverUri, headers);
+        this.namespaceId = namespaceId;
+        this.addHeader("namespaceId", namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();

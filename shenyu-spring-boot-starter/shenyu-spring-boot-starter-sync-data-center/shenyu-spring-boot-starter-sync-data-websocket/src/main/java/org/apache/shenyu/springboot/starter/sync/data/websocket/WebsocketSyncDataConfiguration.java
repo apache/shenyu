@@ -59,8 +59,10 @@ public class WebsocketSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig,
+                                                    final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+                                                    final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                     final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
                                                     final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers) {
         LOGGER.info("you use websocket sync shenyu data.......");

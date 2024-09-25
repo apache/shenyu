@@ -57,6 +57,8 @@ public class WebsocketCollector {
     
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
     
+    private static final Map<String,Session> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
+    
     private static final String SESSION_KEY = "sessionKey";
     
     /**
