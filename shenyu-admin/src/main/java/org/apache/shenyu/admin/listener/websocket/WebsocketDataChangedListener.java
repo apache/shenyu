@@ -43,49 +43,57 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
         WebsocketData<PluginData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData), eventType);
+        // TODO namespaceId should be obtained from the Event object
+        String namespaceId = pluginDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<SelectorData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData), eventType);
+        String namespaceId = selectorDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
         WebsocketData<RuleData> configData =
                 new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+        String namespaceId = ruleDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
     }
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         WebsocketData<AppAuthData> configData =
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+        String namespaceId = appAuthDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
         WebsocketData<MetaData> configData =
                 new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+        String namespaceId = metaDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
     }
 
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> proxySelectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<ProxySelectorData> configData =
                 new WebsocketData<>(ConfigGroupEnum.PROXY_SELECTOR.name(), eventType.name(), proxySelectorDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+        String namespaceId = proxySelectorDataList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
     }
 
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
         WebsocketData<DiscoverySyncData> configData =
                 new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoveryUpstreamList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+        String namespaceId = discoveryUpstreamList.get(0).getNamespaceId();
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
     }
 
 }
