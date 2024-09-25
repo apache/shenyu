@@ -89,14 +89,13 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (StringUtils.isNotBlank(oldConfig)) {
             oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
         }
-
+        RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
+        BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
+        LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
         if (!newRegisterConfig.equals(oldRegisterConfig)) {
-            RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
             if (this.repository != null) {
                 this.repository.close();
             }
-            BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
-            LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
             this.repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
         }
     }
