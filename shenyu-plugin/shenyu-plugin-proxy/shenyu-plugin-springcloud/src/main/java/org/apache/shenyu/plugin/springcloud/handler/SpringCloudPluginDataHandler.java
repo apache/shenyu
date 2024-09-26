@@ -121,6 +121,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
             LOG.info("springCloud handlerPlugin repository is null");
             reNewAndInitShenyuInstanceRegisterRepository(refreshRegisterConfig);
         } else if (!newRegisterConfig.equals(oldRegisterConfig)) {
+            LOG.info("springCloud handlerPlugin repository occur update");
             // the config has been updated
             if (repository != null) {
                 repository.close();
