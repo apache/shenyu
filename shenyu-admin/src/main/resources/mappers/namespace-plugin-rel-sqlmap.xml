@@ -307,49 +307,49 @@
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
             <if test="namespaceId != null">
-                namespace_id = #{namespaceId, jdbcType=VARCHAR},
+                namespace_id,
             </if>
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=TINYINT},
+                plugin_id,
             </if>
             <if test="config != null">
-                config = #{config, jdbcType=VARCHAR},
+                config,
             </if>
             <if test="sort != null">
-                sort = #{sort, jdbcType=INTEGER},
+                sort,
             </if>
             <if test="enabled != null">
-                enabled = #{enabled, jdbcType=TINYINT},
+                enabled,
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+                date_updated,
             </if>
             <if test="dateCreated != null">
-                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                date_created,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
             <if test="namespaceId != null">
-                namespace_id = #{namespaceId, jdbcType=VARCHAR},
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=TINYINT},
+                #{pluginId, jdbcType=VARCHAR},
             </if>
             <if test="config != null">
-                config = #{config, jdbcType=VARCHAR},
+                #{config, jdbcType=VARCHAR},
             </if>
             <if test="sort != null">
-                sort = #{sort, jdbcType=INTEGER},
+                #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                enabled = #{enabled, jdbcType=TINYINT},
+                #{enabled, jdbcType=TINYINT},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateCreated != null">
-                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
         </trim>
     </insert>

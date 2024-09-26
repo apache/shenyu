@@ -202,6 +202,7 @@ public final class NamespacePluginRelDO extends BaseDO {
                     .namespaceId(namespaceId)
                     .pluginId(item.getId())
                     .dateUpdated(currentTime)
+                    .dateCreated(currentTime)
                     .build();
         }).orElse(null);
     }

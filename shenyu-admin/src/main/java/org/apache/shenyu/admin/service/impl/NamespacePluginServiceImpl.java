@@ -63,7 +63,8 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
 
     public NamespacePluginServiceImpl(final NamespacePluginRelMapper namespacePluginRelMapper,
                                       final PluginHandleService pluginHandleService,
-                                      final NamespacePluginEventPublisher namespacePluginEventPublisher, PluginMapper pluginMapper) {
+                                      final NamespacePluginEventPublisher namespacePluginEventPublisher,
+                                      final PluginMapper pluginMapper) {
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginHandleService = pluginHandleService;
         this.namespacePluginEventPublisher = namespacePluginEventPublisher;
@@ -76,7 +77,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public String create(String namespaceId, String pluginId) {
+    public String create(final String namespaceId, final String pluginId) {
         NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
         if (!Objects.isNull(namespacePluginVO)) {
             return AdminConstants.NAMESPACE_PLUGIN_EXIST;

@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
 import org.apache.shenyu.admin.model.query.PluginQuery;
