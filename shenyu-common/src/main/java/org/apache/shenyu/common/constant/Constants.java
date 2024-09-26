@@ -842,6 +842,11 @@ public interface Constants {
     String METRICS_HYSTRIX = "metricsHystrix";
     
     /**
+     * The constant shenyu namespace id.
+     */
+    String SHENYU_NAMESPACE_ID = "namespaceId";
+    
+    /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
      */
     String SYS_DEFAULT_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
