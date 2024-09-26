@@ -233,9 +233,9 @@
         npr.sort AS sort,
         npr.enabled AS enabled,
         npr.date_created AS dateCreated,
-        npr.date_updated AS dateUpdated,
+        npr.date_updated AS dateUpdated
         FROM namespace_plugin_rel npr
-        WHERE npr.id IN
+        WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
@@ -301,4 +301,56 @@
         ) npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
     </select>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.NamespacePluginRelDO">
+        INSERT INTO namespace_plugin_rel
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="namespaceId != null">
+                namespace_id = #{namespaceId, jdbcType=VARCHAR},
+            </if>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId, jdbcType=TINYINT},
+            </if>
+            <if test="config != null">
+                config = #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="namespaceId != null">
+                namespace_id = #{namespaceId, jdbcType=VARCHAR},
+            </if>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId, jdbcType=TINYINT},
+            </if>
+            <if test="config != null">
+                config = #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
 </mapper>

@@ -21,9 +21,11 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
@@ -57,12 +59,15 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
 
     private final NamespacePluginEventPublisher namespacePluginEventPublisher;
 
+    private final PluginMapper pluginMapper;
+
     public NamespacePluginServiceImpl(final NamespacePluginRelMapper namespacePluginRelMapper,
                                       final PluginHandleService pluginHandleService,
-                                      final NamespacePluginEventPublisher namespacePluginEventPublisher) {
+                                      final NamespacePluginEventPublisher namespacePluginEventPublisher, PluginMapper pluginMapper) {
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginHandleService = pluginHandleService;
         this.namespacePluginEventPublisher = namespacePluginEventPublisher;
+        this.pluginMapper = pluginMapper;
     }
 
     @Override
@@ -73,10 +78,13 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Override
     public String create(String namespaceId, String pluginId) {
         NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
-        if (Objects.isNull(namespacePluginVO)) {
-            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        if (!Objects.isNull(namespacePluginVO)) {
+            return AdminConstants.NAMESPACE_PLUGIN_EXIST;
         }
-        return null;
+        PluginDO pluginDO = pluginMapper.selectById(pluginId);
+        NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
+        namespacePluginRelMapper.insertSelective(namespacePluginRelDO);
+        return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
     @Override
