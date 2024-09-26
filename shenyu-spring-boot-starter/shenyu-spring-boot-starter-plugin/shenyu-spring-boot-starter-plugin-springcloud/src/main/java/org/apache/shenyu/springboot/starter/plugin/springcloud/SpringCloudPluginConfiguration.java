@@ -26,9 +26,11 @@ import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDeco
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.listener.SpringCloudHeartBeatListener;
 import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,14 +42,24 @@ import org.springframework.context.annotation.Configuration;
 public class SpringCloudPluginConfiguration {
 
     /**
+     * shenyu registerConfig.
+     * @return {@linkplain ShenyuInstanceRegisterRepositoryFactory}
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.register")
+    public RegisterConfig registerConfig() {
+        return new RegisterConfig();
+    }
+
+    /**
      * shenyu springcloud loadbalancer.
      *
-     * @param discoveryClient discoveryClient
+     * @param registerConfig RegisterConfig
      * @return {@linkplain ShenyuSpringCloudServiceChooser}
      */
     @Bean
-    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient(final ObjectProvider<DiscoveryClient> discoveryClient) {
-        return new ShenyuSpringCloudServiceChooser(discoveryClient.getIfAvailable());
+    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient(final RegisterConfig registerConfig) {
+        return new ShenyuSpringCloudServiceChooser(registerConfig);
     }
 
     /**
@@ -74,28 +86,28 @@ public class SpringCloudPluginConfiguration {
     /**
      * Spring cloud plugin data handler.
      *
-     * @param discoveryClient the discovery client
+     * @param registerConfig RegisterConfig
      * @param shenyuConfig the shenyu config
      *
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler springCloudPluginDataHandler(final ObjectProvider<DiscoveryClient> discoveryClient,
+    public PluginDataHandler springCloudPluginDataHandler(final RegisterConfig registerConfig,
                                                           final ShenyuConfig shenyuConfig) {
-        return new SpringCloudPluginDataHandler(discoveryClient.getIfAvailable(), shenyuConfig.getSpringCloudCache());
+        return new SpringCloudPluginDataHandler(registerConfig, shenyuConfig.getSpringCloudCache());
     }
     
     /**
      * Spring cloud heart beat listener.
      *
-     * @param discoveryClient the discoveryClient
+     * @param registerConfig RegisterConfig
      * @param shenyuConfig the shenyu config
      * @return the spring cloud heartbeat listener {@linkplain SpringCloudHeartBeatListener}
      */
     @Bean
-    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final ObjectProvider<DiscoveryClient> discoveryClient,
+    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final RegisterConfig registerConfig,
                                                                      final ShenyuConfig shenyuConfig) {
-        return new SpringCloudHeartBeatListener(discoveryClient.getIfAvailable(), shenyuConfig.getSpringCloudCache());
+        return new SpringCloudHeartBeatListener(registerConfig, shenyuConfig.getSpringCloudCache());
     }
 
 }

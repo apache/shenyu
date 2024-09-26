@@ -50,8 +50,23 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
     public static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config) {
         return REPOSITORY_MAP.computeIfAbsent(config.getRegisterType(), registerType -> {
             ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(registerType);
-            result.init(config);
+            if (config.getEnabled()) {
+                result.init(config);
+            }
             return result;
         });
+    }
+
+    /**
+     * reNew and init instance shenyu instance register repository.
+     *
+     * @param config the config
+     * @return the shenyu instance register repository
+     */
+    public static ShenyuInstanceRegisterRepository reNewAndInitInstance(final RegisterConfig config) {
+        ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(config.getRegisterType());
+        result.init(config);
+        REPOSITORY_MAP.put(config.getRegisterType(), result);
+        return result;
     }
 }

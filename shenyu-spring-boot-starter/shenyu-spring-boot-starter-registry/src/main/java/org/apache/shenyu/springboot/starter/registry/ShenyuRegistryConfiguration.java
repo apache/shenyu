@@ -51,4 +51,5 @@ public class ShenyuRegistryConfiguration {
     public RegistryListener instanceRegisterListener(final RegisterConfig config) {
         return new RegistryListener(config);
     }
+
 }
