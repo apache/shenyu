@@ -239,11 +239,10 @@ public class WebsocketCollector {
                 if (session.isOpen()) {
                     sendMessageBySession(session, message);
                 } else {
-                    SESSION_SET.remove(session);
+                    NAMESPACE_SESSION_MAP.getOrDefault(sendNamespaceId, Sets.newConcurrentHashSet()).remove(session);
                 }
             }
         } else {
-            SESSION_SET.forEach(session -> sendMessageBySession(session, message));
             NAMESPACE_SESSION_MAP.getOrDefault(sendNamespaceId, Sets.newConcurrentHashSet())
                     .forEach(session -> sendMessageBySession(session, message));
         }
