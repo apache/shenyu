@@ -74,7 +74,7 @@ public class SpringCloudPluginConfiguration {
      * Spring cloud plugin data handler.
      *
      * @param shenyuConfig the shenyu config
-     *
+     * @param env the Environment
      * @return the plugin data handler
      */
     @Bean
