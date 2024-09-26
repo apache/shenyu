@@ -171,4 +171,48 @@ public class RegisterConfig {
 
         return result;
     }
+
+
+    public static class Builder {
+        private boolean enabled;
+        private String registerType;
+        private String serverLists;
+        private Properties props;
+
+        private Builder() {
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Builder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public Builder registerType(String registerType) {
+            this.registerType = registerType;
+            return this;
+        }
+
+        public Builder serverLists(String serverLists) {
+            this.serverLists = serverLists;
+            return this;
+        }
+
+        public Builder props(Properties props) {
+            this.props = props;
+            return this;
+        }
+
+        public RegisterConfig build() {
+            RegisterConfig registerConfig = new RegisterConfig();
+            registerConfig.setEnabled(enabled);
+            registerConfig.setRegisterType(registerType);
+            registerConfig.setServerLists(serverLists);
+            registerConfig.setProps(props);
+            return registerConfig;
+        }
+    }
 }

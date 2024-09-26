@@ -72,15 +72,34 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         this.env = env;
     }
 
+    private void reNewAndInitShenyuInstanceRegisterRepository(RegisterConfig refreshRegisterConfig) {
+        if (refreshRegisterConfig == null) {
+            return;
+        }
+        LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
+        repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
+        LOG.info("springCloud handlerPlugin repository = {}", repository);
+    }
+
+    private void reNewAndInitShenyuInstanceRegisterRepositoryByYml() {
+        boolean enable = Boolean.parseBoolean(env.getProperty("eureka.client.enabled"));
+        String serverLists = env.getProperty("eureka.client.serviceUrl.defaultzone");
+        RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
+        reNewAndInitShenyuInstanceRegisterRepository(builder.build());
+    }
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         LOG.info("pluginData = {}", GsonUtils.getInstance().toJson(pluginData));
         if (pluginData == null || StringUtils.isBlank(pluginData.getConfig())) {
+            // consider yml config, as eureka or nacos
+            reNewAndInitShenyuInstanceRegisterRepositoryByYml();
             return;
         }
         if (!pluginData.getEnabled()) {
             return;
         }
+        // get old pluginData
         PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
         String newConfig = pluginData.getConfig();
         String oldConfig = oldPluginData != null ? oldPluginData.getConfig() : "";
@@ -88,20 +107,25 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (newRegisterConfig == null) {
             return;
         }
-        LOG.info("oldPluginData = {}", GsonUtils.getInstance().toJson(oldPluginData));
+        if (oldPluginData != null) {
+            LOG.info("oldPluginData = {}", GsonUtils.getInstance().toJson(oldPluginData));
+        }
         RegisterConfig oldRegisterConfig = null;
         if (StringUtils.isNotBlank(oldConfig)) {
             oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
         }
+
+        // refresh config
         RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
-        //BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
-        LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
-        if (newRegisterConfig != null) {
+        if (repository == null) {
+            LOG.info("springCloud handlerPlugin repository is null");
+            reNewAndInitShenyuInstanceRegisterRepository(refreshRegisterConfig);
+        } else if (!newRegisterConfig.equals(oldRegisterConfig)) {
+            // the config has been updated
             if (repository != null) {
                 repository.close();
             }
-            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
-            LOG.info("springCloud handlerPlugin repository = {}", repository);
+            reNewAndInitShenyuInstanceRegisterRepository(refreshRegisterConfig);
         }
     }
 
