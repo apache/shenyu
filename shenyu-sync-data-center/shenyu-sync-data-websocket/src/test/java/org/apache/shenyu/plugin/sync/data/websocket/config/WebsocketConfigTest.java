@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,12 +44,14 @@ public class WebsocketConfigTest {
         websocketConfig = new WebsocketConfig();
         websocketConfig.setUrls(URLS);
         websocketConfig.setAllowOrigin(ALLOW_ORIGIN);
+        websocketConfig.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
     public void testGetterSetter() {
         assertEquals(URLS, websocketConfig.getUrls());
         assertEquals(ALLOW_ORIGIN, websocketConfig.getAllowOrigin());
+        assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, websocketConfig.getNamespaceId());
     }
 
     @Test
@@ -56,6 +59,7 @@ public class WebsocketConfigTest {
         WebsocketConfig that = new WebsocketConfig();
         that.setUrls(URLS);
         that.setAllowOrigin(ALLOW_ORIGIN);
+        that.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
@@ -64,13 +68,13 @@ public class WebsocketConfigTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(), websocketConfig.getNamespaceId()), websocketConfig.hashCode());
     }
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s}";
-        String expected = String.format(toString, URLS, ALLOW_ORIGIN);
+        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s, namespaceId='%s}";
+        String expected = String.format(toString, URLS, ALLOW_ORIGIN, Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(expected, websocketConfig.toString());
     }
 }
