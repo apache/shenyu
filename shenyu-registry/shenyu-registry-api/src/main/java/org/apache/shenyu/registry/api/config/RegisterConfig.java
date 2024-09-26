@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.registry.api.config;
 
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -122,5 +123,52 @@ public class RegisterConfig {
      */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        RegisterConfig registerConfig = (RegisterConfig) obj;
+        if (!this.getRegisterType().equals(registerConfig.getRegisterType())) {
+            return false;
+        }
+        if (!this.getServerLists().equals(registerConfig.getServerLists())) {
+            return false;
+        }
+        if (this.getProps() == null && registerConfig.getProps() == null) {
+            return true;
+        }
+        if (this.getProps() == null || registerConfig.getProps() == null) {
+            return false;
+        }
+        if (this.getProps().entrySet().size() != registerConfig.getProps().entrySet().size()) {
+            return false;
+        }
+        for (Map.Entry<Object, Object> entry : this.getProps().entrySet()) {
+            Object newValue = entry.getValue();
+            Object oldValue = registerConfig.getProps().get(entry.getKey());
+            if (!newValue.equals(oldValue)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getRegisterType() != null ? getRegisterType().hashCode() : 0;
+        result = 31 * result + (getServerLists() != null ? getServerLists().hashCode() : 0);
+
+        // 对 Props 进行处理
+        if (getProps() != null) {
+            for (Map.Entry<Object, Object> entry : getProps().entrySet()) {
+                result = 31 * result + (entry.getKey() != null ? entry.getKey().hashCode() : 0);
+                result = 31 * result + (entry.getValue() != null ? entry.getValue().hashCode() : 0);
+            }
+        }
+
+        return result;
     }
 }

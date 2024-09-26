@@ -18,8 +18,10 @@
 package org.apache.shenyu.plugin.springcloud.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
@@ -29,13 +31,18 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,16 +57,48 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     public static final Supplier<CommonHandleCache<String, SpringCloudSelectorHandle>> SELECTOR_CACHED = new BeanHolder<>(CommonHandleCache::new);
     
     public static final Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> RULE_CACHED = new BeanHolder<>(CommonHandleCache::new);
-    
-    private final DiscoveryClient discoveryClient;
-    
+
+    private static ShenyuInstanceRegisterRepository repository;
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
+
     private final SpringCloudCacheConfig springCloudCacheConfig;
     
-    public SpringCloudPluginDataHandler(final DiscoveryClient discoveryClient, final SpringCloudCacheConfig springCloudCacheConfig) {
-        this.discoveryClient = discoveryClient;
+    public SpringCloudPluginDataHandler(final SpringCloudCacheConfig springCloudCacheConfig) {
         this.springCloudCacheConfig = springCloudCacheConfig;
     }
-    
+
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        LOG.info("pluginData = {}", GsonUtils.getInstance().toJson(pluginData));
+        if (pluginData == null || StringUtils.isBlank(pluginData.getConfig())) {
+            return;
+        }
+        if (!pluginData.getEnabled()) {
+            return;
+        }
+        PluginData oldPluginData = BaseDataCache.getInstance().obtainPluginData(pluginData.getName());
+        String newConfig = pluginData.getConfig();
+        String oldConfig = oldPluginData != null ? oldPluginData.getConfig() : "";
+        RegisterConfig newRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
+        if (newRegisterConfig == null) {
+            return;
+        }
+        RegisterConfig oldRegisterConfig = null;
+        if (StringUtils.isNotBlank(oldConfig)) {
+            oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
+        }
+        RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
+        //BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
+        LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
+        if (!newRegisterConfig.equals(oldRegisterConfig)) {
+            if (repository != null) {
+                repository.close();
+            }
+            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
+        }
+    }
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
@@ -69,7 +108,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
             return;
         }
         if (springCloudCacheConfig.getEnabled()) {
-            List<ServiceInstance> serviceInstances = discoveryClient.getInstances(springCloudSelectorHandle.getServiceId());
+            List<InstanceEntity> serviceInstances = repository.selectInstances(springCloudSelectorHandle.getServiceId());
             ServiceInstanceCache.cacheServiceInstance(springCloudSelectorHandle.getServiceId(), serviceInstances);
         }
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(springCloudSelectorHandle.getDivideUpstreams()));
@@ -116,5 +155,9 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
                 .timestamp(u.getTimestamp())
                 .warmup(u.getWarmup())
                 .build()).collect(Collectors.toList());
+    }
+
+    public static ShenyuInstanceRegisterRepository getRepository() {
+        return repository;
     }
 }
