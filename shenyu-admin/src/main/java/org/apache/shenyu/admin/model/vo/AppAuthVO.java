@@ -62,6 +62,8 @@ public class AppAuthVO implements Serializable {
 
     private List<AuthPathVO> authPathList;
 
+    private String namespaceId;
+
     /**
      * updated time.
      */
@@ -272,6 +274,24 @@ public class AppAuthVO implements Serializable {
      */
     public void setAuthPathList(final List<AuthPathVO> authPathList) {
         this.authPathList = authPathList;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 
     /**

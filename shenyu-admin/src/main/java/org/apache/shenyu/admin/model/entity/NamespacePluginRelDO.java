@@ -169,10 +169,11 @@ public final class NamespacePluginRelDO extends BaseDO {
      * @param namespacePluginDTO {@linkplain NamespacePluginDTO}
      * @return {@linkplain NamespacePluginRelDO}
      */
-    public static NamespacePluginRelDO buildPluginNsRelDO(final NamespacePluginDTO namespacePluginDTO) {
+    public static NamespacePluginRelDO buildNamespacePluginRelDO(final NamespacePluginDTO namespacePluginDTO) {
         return Optional.ofNullable(namespacePluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.builder()
+            return NamespacePluginRelDO.builder()
+                    .id(item.getId())
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
@@ -180,7 +181,6 @@ public final class NamespacePluginRelDO extends BaseDO {
                     .pluginId(item.getPluginId())
                     .dateUpdated(currentTime)
                     .build();
-            return namespacePluginRelDO;
         }).orElse(null);
     }
 
