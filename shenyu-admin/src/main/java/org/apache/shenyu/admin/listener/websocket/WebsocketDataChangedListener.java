@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -52,32 +53,40 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<SelectorData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
-        String namespaceId = selectorDataList.get(0).getNamespaceId();
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+        if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            String namespaceId = selectorDataList.get(0).getNamespaceId();
+            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+        }
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
         WebsocketData<RuleData> configData =
                 new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
-        String namespaceId = ruleDataList.get(0).getNamespaceId();
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        if (CollectionUtils.isNotEmpty(ruleDataList)) {
+            String namespaceId = ruleDataList.get(0).getNamespaceId();
+            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
     }
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         WebsocketData<AppAuthData> configData =
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
-        String namespaceId = appAuthDataList.get(0).getNamespaceId();
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        if (CollectionUtils.isNotEmpty(appAuthDataList)) {
+            String namespaceId = appAuthDataList.get(0).getNamespaceId();
+            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
         WebsocketData<MetaData> configData =
                 new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
-        String namespaceId = metaDataList.get(0).getNamespaceId();
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            String namespaceId = metaDataList.get(0).getNamespaceId();
+            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
     }
 
     @Override
@@ -85,8 +94,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         WebsocketData<ProxySelectorData> configData =
                 new WebsocketData<>(ConfigGroupEnum.PROXY_SELECTOR.name(), eventType.name(), proxySelectorDataList);
         // TODO namespaceId should be obtained from the Event object
-//        String namespaceId = proxySelectorDataList.get(0).getNamespaceId();
-//        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
+            //        String namespaceId = proxySelectorDataList.get(0).getNamespaceId();
+            //        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
@@ -94,8 +105,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
         WebsocketData<DiscoverySyncData> configData =
                 new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoveryUpstreamList);
-//        String namespaceId = discoveryUpstreamList.get(0).getNamespaceId();
-//        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            //        String namespaceId = discoveryUpstreamList.get(0).getNamespaceId();
+            //        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
