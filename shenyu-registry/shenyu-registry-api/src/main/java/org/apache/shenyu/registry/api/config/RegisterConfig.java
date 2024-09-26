@@ -172,11 +172,17 @@ public class RegisterConfig {
         return result;
     }
 
+    /**
+     * The type Builder.
+     */
+    public static final class Builder {
 
-    public static class Builder {
         private boolean enabled;
+
         private String registerType;
+
         private String serverLists;
+
         private Properties props;
 
         private Builder() {
@@ -186,26 +192,55 @@ public class RegisterConfig {
             return new Builder();
         }
 
-        public Builder enabled(boolean enabled) {
+        /**
+         * enabled.
+         *
+         * @param enabled enabled
+         * @return Builder builder
+         */
+        public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
 
-        public Builder registerType(String registerType) {
+        /**
+         * registerType.
+         *
+         * @param registerType registerType
+         * @return Builder builder
+         */
+        public Builder registerType(final String registerType) {
             this.registerType = registerType;
             return this;
         }
 
-        public Builder serverLists(String serverLists) {
+        /**
+         * serverLists.
+         *
+         * @param serverLists serverLists
+         * @return Builder builder
+         */
+        public Builder serverLists(final String serverLists) {
             this.serverLists = serverLists;
             return this;
         }
 
-        public Builder props(Properties props) {
+        /**
+         * props.
+         *
+         * @param props props
+         * @return Builder builder
+         */
+        public Builder props(final Properties props) {
             this.props = props;
             return this;
         }
 
+        /**
+         * build.
+         *
+         * @return Builder instance register dto
+         */
         public RegisterConfig build() {
             RegisterConfig registerConfig = new RegisterConfig();
             registerConfig.setEnabled(enabled);

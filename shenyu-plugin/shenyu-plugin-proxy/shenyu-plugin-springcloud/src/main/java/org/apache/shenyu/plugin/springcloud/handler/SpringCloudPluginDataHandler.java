@@ -72,7 +72,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         this.env = env;
     }
 
-    private void reNewAndInitShenyuInstanceRegisterRepository(RegisterConfig refreshRegisterConfig) {
+    private void reNewAndInitShenyuInstanceRegisterRepository(final RegisterConfig refreshRegisterConfig) {
         if (refreshRegisterConfig == null) {
             return;
         }
