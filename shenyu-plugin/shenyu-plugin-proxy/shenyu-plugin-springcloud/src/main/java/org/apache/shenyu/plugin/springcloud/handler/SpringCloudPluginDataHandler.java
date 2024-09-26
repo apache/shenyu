@@ -84,8 +84,19 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     private void reNewAndInitShenyuInstanceRegisterRepositoryByYml() {
         boolean enable = Boolean.parseBoolean(env.getProperty("eureka.client.enabled"));
         String serverLists = env.getProperty("eureka.client.serviceUrl.defaultzone");
-        RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
-        reNewAndInitShenyuInstanceRegisterRepository(builder.build());
+        if (enable) {
+            RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
+            reNewAndInitShenyuInstanceRegisterRepository(builder.build());
+            return;
+        }
+
+        enable = Boolean.parseBoolean(env.getProperty("spring.cloud.nacos.discovery.enabled"));
+        serverLists = env.getProperty("spring.cloud.nacos.discovery.server-addr");
+        if (enable) {
+            RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
+            reNewAndInitShenyuInstanceRegisterRepository(builder.build());
+            return;
+        }
     }
 
     @Override
