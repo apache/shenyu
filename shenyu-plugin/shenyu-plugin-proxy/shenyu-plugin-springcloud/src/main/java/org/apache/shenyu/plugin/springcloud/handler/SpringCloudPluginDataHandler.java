@@ -43,6 +43,7 @@ import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,9 +64,12 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
 
     private final SpringCloudCacheConfig springCloudCacheConfig;
+
+    private final Environment env;
     
-    public SpringCloudPluginDataHandler(final SpringCloudCacheConfig springCloudCacheConfig) {
+    public SpringCloudPluginDataHandler(final SpringCloudCacheConfig springCloudCacheConfig, final Environment env) {
         this.springCloudCacheConfig = springCloudCacheConfig;
+        this.env = env;
     }
 
     @Override
@@ -84,6 +88,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (newRegisterConfig == null) {
             return;
         }
+        LOG.info("oldPluginData = {}", GsonUtils.getInstance().toJson(oldPluginData));
         RegisterConfig oldRegisterConfig = null;
         if (StringUtils.isNotBlank(oldConfig)) {
             oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
@@ -91,11 +96,12 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
         //BaseDataCache.setRegisterType(refreshRegisterConfig.getRegisterType());
         LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
-        if (!newRegisterConfig.equals(oldRegisterConfig)) {
+        if (newRegisterConfig != null) {
             if (repository != null) {
                 repository.close();
             }
             repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
+            LOG.info("springCloud handlerPlugin repository = {}", repository);
         }
     }
 

@@ -30,6 +30,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * The type Spring cloud plugin configuration.
@@ -77,8 +78,8 @@ public class SpringCloudPluginConfiguration {
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler springCloudPluginDataHandler(final ShenyuConfig shenyuConfig) {
-        return new SpringCloudPluginDataHandler(shenyuConfig.getSpringCloudCache());
+    public PluginDataHandler springCloudPluginDataHandler(final ShenyuConfig shenyuConfig, final Environment env) {
+        return new SpringCloudPluginDataHandler(shenyuConfig.getSpringCloudCache(), env);
     }
     
     /**
