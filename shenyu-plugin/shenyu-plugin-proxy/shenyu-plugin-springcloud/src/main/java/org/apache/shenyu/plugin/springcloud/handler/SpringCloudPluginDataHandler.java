@@ -83,7 +83,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     private void reNewAndInitShenyuInstanceRegisterRepositoryByYml() {
         boolean enable = Boolean.parseBoolean(env.getProperty("eureka.client.enabled"));
-        String serverLists = env.getProperty("eureka.client.serviceUrl.defaultzone");
+        String serverLists = env.getProperty("eureka.client.serviceUrl.defaultZone");
         if (enable) {
             RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
             reNewAndInitShenyuInstanceRegisterRepository(builder.build());
