@@ -171,4 +171,83 @@ public class RegisterConfig {
 
         return result;
     }
+
+    /**
+     * The type Builder.
+     */
+    public static final class Builder {
+
+        private boolean enabled;
+
+        private String registerType;
+
+        private String serverLists;
+
+        private Properties props;
+
+        private Builder() {
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * enabled.
+         *
+         * @param enabled enabled
+         * @return Builder builder
+         */
+        public Builder enabled(final boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * registerType.
+         *
+         * @param registerType registerType
+         * @return Builder builder
+         */
+        public Builder registerType(final String registerType) {
+            this.registerType = registerType;
+            return this;
+        }
+
+        /**
+         * serverLists.
+         *
+         * @param serverLists serverLists
+         * @return Builder builder
+         */
+        public Builder serverLists(final String serverLists) {
+            this.serverLists = serverLists;
+            return this;
+        }
+
+        /**
+         * props.
+         *
+         * @param props props
+         * @return Builder builder
+         */
+        public Builder props(final Properties props) {
+            this.props = props;
+            return this;
+        }
+
+        /**
+         * build.
+         *
+         * @return Builder instance register dto
+         */
+        public RegisterConfig build() {
+            RegisterConfig registerConfig = new RegisterConfig();
+            registerConfig.setEnabled(enabled);
+            registerConfig.setRegisterType(registerType);
+            registerConfig.setServerLists(serverLists);
+            registerConfig.setProps(props);
+            return registerConfig;
+        }
+    }
 }
