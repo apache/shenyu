@@ -130,69 +130,69 @@ COMMENT ON COLUMN namespace.date_updated IS 'update time';
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO `namespace` (`id`, `namespace_id`, `name`, `description`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace');
 
 
-CREATE TABLE plugin_ns_rel (
-                               id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               plugin_id NUMBER(11) NOT NULL,
-                               config CLOB COLLATE utf8mb4_unicode_ci,
-                               sort NUMBER(11),
-                               enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
-                               date_created      timestamp(3) default SYSDATE not null,
-                               date_updated      timestamp(3) default SYSDATE not null,
-                               CONSTRAINT pk_plugin_ns_rel PRIMARY KEY (id)
+CREATE TABLE namespace_plugin_rel (
+                                      id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      plugin_id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      config CLOB COLLATE utf8mb4_unicode_ci,
+                                      sort NUMBER(11),
+                                      enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                                      date_created      timestamp(3) default SYSDATE not null,
+                                      date_updated      timestamp(3) default SYSDATE not null,
+                                      CONSTRAINT pk_namespace_plugin_rel PRIMARY KEY (id)
 );
 
-COMMENT ON COLUMN plugin_ns_rel.id IS 'Primary key ID';
-COMMENT ON COLUMN plugin_ns_rel.namespace_id IS 'Namespace ID';
-COMMENT ON COLUMN plugin_ns_rel.plugin_id IS 'Plugin ID';
-COMMENT ON COLUMN plugin_ns_rel.config IS 'Plugin configuration';
-COMMENT ON COLUMN plugin_ns_rel.sort IS 'Sort order';
-COMMENT ON COLUMN plugin_ns_rel.enabled IS 'Whether the plugin is enabled (0 = not open, 1 = open)';
-COMMENT ON COLUMN plugin_ns_rel.date_created IS 'Creation time';
-COMMENT ON COLUMN plugin_ns_rel.date_updated IS 'Update time';
+COMMENT ON COLUMN namespace_plugin_rel.id IS 'Primary key ID';
+COMMENT ON COLUMN namespace_plugin_rel.namespace_id IS 'Namespace ID';
+COMMENT ON COLUMN namespace_plugin_rel.plugin_id IS 'Plugin ID';
+COMMENT ON COLUMN namespace_plugin_rel.config IS 'Plugin configuration';
+COMMENT ON COLUMN namespace_plugin_rel.sort IS 'Sort order';
+COMMENT ON COLUMN namespace_plugin_rel.enabled IS 'Whether the plugin is enabled (0 = not open, 1 = open)';
+COMMENT ON COLUMN namespace_plugin_rel.date_created IS 'Creation time';
+COMMENT ON COLUMN namespace_plugin_rel.date_updated IS 'Update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822145','649330b6-c2d7-4edc-be8e-8a54df9eb385','1', NULL, 20, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822146','649330b6-c2d7-4edc-be8e-8a54df9eb385','10', NULL, 140, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822147','649330b6-c2d7-4edc-be8e-8a54df9eb385','11', '{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822148','649330b6-c2d7-4edc-be8e-8a54df9eb385','12', NULL, 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822149','649330b6-c2d7-4edc-be8e-8a54df9eb385','13', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822150','649330b6-c2d7-4edc-be8e-8a54df9eb385','14', NULL, 80, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822151','649330b6-c2d7-4edc-be8e-8a54df9eb385','15', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822152','649330b6-c2d7-4edc-be8e-8a54df9eb385','16', NULL, 110, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822153','649330b6-c2d7-4edc-be8e-8a54df9eb385','17', '{"registerProtocol":"direct","registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822154','649330b6-c2d7-4edc-be8e-8a54df9eb385','18', NULL, 160, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822155','649330b6-c2d7-4edc-be8e-8a54df9eb385','19', '{"secretKey":"key"}', 30, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822156','649330b6-c2d7-4edc-be8e-8a54df9eb385','2', '{"model":"black"}', 50, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822157','649330b6-c2d7-4edc-be8e-8a54df9eb385','20', NULL, 120, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822158','649330b6-c2d7-4edc-be8e-8a54df9eb385','21', NULL, 40, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822159','649330b6-c2d7-4edc-be8e-8a54df9eb385','22', NULL, 70, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822160','649330b6-c2d7-4edc-be8e-8a54df9eb385','23', NULL, 220, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822161','649330b6-c2d7-4edc-be8e-8a54df9eb385','24', NULL, 100, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822162','649330b6-c2d7-4edc-be8e-8a54df9eb385','25', NULL, 410, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822163','649330b6-c2d7-4edc-be8e-8a54df9eb385','26', '{"multiSelectorHandle":"1"}', 200, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822164','649330b6-c2d7-4edc-be8e-8a54df9eb385','27', NULL, 125, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822165','649330b6-c2d7-4edc-be8e-8a54df9eb385','28', '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', 125, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822166','649330b6-c2d7-4edc-be8e-8a54df9eb385','29', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}', 170, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822167','649330b6-c2d7-4edc-be8e-8a54df9eb385','3', NULL, 90, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822168','649330b6-c2d7-4edc-be8e-8a54df9eb385','30', '{"cacheType":"memory"}', 10, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822169','649330b6-c2d7-4edc-be8e-8a54df9eb385','31', NULL, 1, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822170','649330b6-c2d7-4edc-be8e-8a54df9eb385','32', '{"host":"localhost", "port": "9200"}', 190, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822171','649330b6-c2d7-4edc-be8e-8a54df9eb385','33', '{"host":"localhost", "port": "9092"}', 180, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822172','649330b6-c2d7-4edc-be8e-8a54df9eb385','34', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 175, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822173','649330b6-c2d7-4edc-be8e-8a54df9eb385','35', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 185, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822174','649330b6-c2d7-4edc-be8e-8a54df9eb385','36', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 176, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822175','649330b6-c2d7-4edc-be8e-8a54df9eb385','38', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 195, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822176','649330b6-c2d7-4edc-be8e-8a54df9eb385','39', '{"endpoint":"http://localhost:8000"}', 40, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 60, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822180','649330b6-c2d7-4edc-be8e-8a54df9eb385','43', '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 177, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822181','649330b6-c2d7-4edc-be8e-8a54df9eb385','44', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 150, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', NULL, 200, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (plugin_ns_rel(id)) */ INTO plugin_ns_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822145','649330b6-c2d7-4edc-be8e-8a54df9eb385','1', NULL, 20, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822146','649330b6-c2d7-4edc-be8e-8a54df9eb385','10', NULL, 140, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822147','649330b6-c2d7-4edc-be8e-8a54df9eb385','11', '{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822148','649330b6-c2d7-4edc-be8e-8a54df9eb385','12', NULL, 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822149','649330b6-c2d7-4edc-be8e-8a54df9eb385','13', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822150','649330b6-c2d7-4edc-be8e-8a54df9eb385','14', NULL, 80, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822151','649330b6-c2d7-4edc-be8e-8a54df9eb385','15', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822152','649330b6-c2d7-4edc-be8e-8a54df9eb385','16', NULL, 110, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822153','649330b6-c2d7-4edc-be8e-8a54df9eb385','17', '{"registerProtocol":"direct","registerAddress":"127.0.0.1:2181","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822154','649330b6-c2d7-4edc-be8e-8a54df9eb385','18', NULL, 160, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822155','649330b6-c2d7-4edc-be8e-8a54df9eb385','19', '{"secretKey":"key"}', 30, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822156','649330b6-c2d7-4edc-be8e-8a54df9eb385','2', '{"model":"black"}', 50, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822157','649330b6-c2d7-4edc-be8e-8a54df9eb385','20', NULL, 120, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822158','649330b6-c2d7-4edc-be8e-8a54df9eb385','21', NULL, 40, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822159','649330b6-c2d7-4edc-be8e-8a54df9eb385','22', NULL, 70, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822160','649330b6-c2d7-4edc-be8e-8a54df9eb385','23', NULL, 220, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822161','649330b6-c2d7-4edc-be8e-8a54df9eb385','24', NULL, 100, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822162','649330b6-c2d7-4edc-be8e-8a54df9eb385','25', NULL, 410, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822163','649330b6-c2d7-4edc-be8e-8a54df9eb385','26', '{"multiSelectorHandle":"1"}', 200, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822164','649330b6-c2d7-4edc-be8e-8a54df9eb385','27', NULL, 125, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822165','649330b6-c2d7-4edc-be8e-8a54df9eb385','28', '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', 125, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822166','649330b6-c2d7-4edc-be8e-8a54df9eb385','29', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}', 170, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822167','649330b6-c2d7-4edc-be8e-8a54df9eb385','3', NULL, 90, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822168','649330b6-c2d7-4edc-be8e-8a54df9eb385','30', '{"cacheType":"memory"}', 10, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822169','649330b6-c2d7-4edc-be8e-8a54df9eb385','31', NULL, 1, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822170','649330b6-c2d7-4edc-be8e-8a54df9eb385','32', '{"host":"localhost", "port": "9200"}', 190, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822171','649330b6-c2d7-4edc-be8e-8a54df9eb385','33', '{"host":"localhost", "port": "9092"}', 180, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822172','649330b6-c2d7-4edc-be8e-8a54df9eb385','34', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 175, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822173','649330b6-c2d7-4edc-be8e-8a54df9eb385','35', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 185, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822174','649330b6-c2d7-4edc-be8e-8a54df9eb385','36', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 176, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822175','649330b6-c2d7-4edc-be8e-8a54df9eb385','38', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 195, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822176','649330b6-c2d7-4edc-be8e-8a54df9eb385','39', '{"endpoint":"http://localhost:8000"}', 40, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 60, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822180','649330b6-c2d7-4edc-be8e-8a54df9eb385','43', '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 177, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822181','649330b6-c2d7-4edc-be8e-8a54df9eb385','44', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 150, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', NULL, 200, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0);
 
 
 
@@ -233,6 +233,12 @@ ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
 
 UPDATE meta_data SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
+
+UPDATE app_auth SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
 
 ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN discovery.namespace_id IS 'namespaceId';

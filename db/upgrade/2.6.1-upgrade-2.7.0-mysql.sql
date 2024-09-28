@@ -85,16 +85,16 @@ CREATE TABLE `namespace` (
 INSERT INTO `shenyu`.`namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
 
 
-CREATE TABLE `plugin_ns_rel` (
-                                 `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
-                                 `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
-                                 `plugin_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
-                                 `config` text COLLATE utf8mb4_unicode_ci COMMENT 'plugin configuration',
-                                 `sort` int(11) DEFAULT NULL COMMENT 'sort',
-                                 `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
-                                 `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
-                                 `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-                                 PRIMARY KEY (`id`) USING BTREE
+CREATE TABLE `namespace_plugin_rel` (
+                                        `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+                                        `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
+                                        `plugin_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
+                                        `config` text COLLATE utf8mb4_unicode_ci COMMENT 'plugin configuration',
+                                        `sort` int(11) DEFAULT NULL COMMENT 'sort',
+                                        `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
+                                        `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+                                        `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+                                        PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 
@@ -189,6 +189,11 @@ UPDATE meta_data
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
+ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
+
+UPDATE app_auth
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
 ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
 
 UPDATE discovery
