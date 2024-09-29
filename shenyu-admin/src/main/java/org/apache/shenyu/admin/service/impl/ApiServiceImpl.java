@@ -126,11 +126,6 @@ public class ApiServiceImpl implements ApiService {
                 tagRelationMapper.deleteByApiId(apiDO.getId());
                 tagRelationMapper.batchInsert(tags);
             }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                removeRegister(apiDO);
-            }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
@@ -157,9 +152,6 @@ public class ApiServiceImpl implements ApiService {
                         .dateUpdated(currentTime)
                         .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
-            }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
