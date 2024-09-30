@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.monitor;
+package org.apache.shenyu.admin.scale.monitor.observer;
 
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.scaler.ScaleRuleEvaluator;
 import org.apache.shenyu.admin.scale.scaler.K8sScaler;
 import org.apache.shenyu.admin.scale.scaler.ScaleAction;
 
-public class ScaleController implements Observer{
+public class ScaleController implements Observer {
     private final K8sScaler k8sScaler;
     private final ScaleRuleEvaluator ruleEvaluator;
 

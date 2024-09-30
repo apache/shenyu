@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.monitor;
+package org.apache.shenyu.admin.scale.monitor.subject;
 
 import org.apache.shenyu.admin.scale.collector.K8sMetricsProvider;
 import org.apache.shenyu.admin.scale.collector.ShenYuMetricsProvider;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
+import org.apache.shenyu.admin.scale.monitor.observer.Observer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MetricsMonitor implements Subject{
+public class MetricsMonitor implements Subject {
 
     private final List<Observer> observers = new ArrayList<>();
     private final ShenYuMetricsProvider shenyuMetricsProvider;

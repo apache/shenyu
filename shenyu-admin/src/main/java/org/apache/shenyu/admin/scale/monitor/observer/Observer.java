@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.monitor;
+package org.apache.shenyu.admin.scale.monitor.observer;
 
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 
-public interface Subject {
-    void addObserver(Observer observer);
-    void removeObserver(Observer observer);
-    void notifyObservers(MetricData metricData);
+public interface Observer {
+    void update(MetricData metricData);
 }
