@@ -7,8 +7,8 @@ public class ScaleAction {
         SCALE_DOWN  // 缩容
     }
 
-    private ActionType actionType;   // 扩缩容操作的类型
-    private int replicaCount;        // 目标副本数量
+    private final ActionType actionType;   // 扩缩容操作的类型
+    private final int replicaCount;        // 目标副本数量
 
     // 构造函数
     public ScaleAction(ActionType actionType, int replicaCount) {

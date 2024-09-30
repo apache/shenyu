@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.scale.monitor;
 
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
-import org.apache.shenyu.admin.scale.monitor.helper.ScaleRuleEvaluator;
+import org.apache.shenyu.admin.scale.scaler.ScaleRuleEvaluator;
 import org.apache.shenyu.admin.scale.scaler.K8sScaler;
 import org.apache.shenyu.admin.scale.scaler.ScaleAction;
 

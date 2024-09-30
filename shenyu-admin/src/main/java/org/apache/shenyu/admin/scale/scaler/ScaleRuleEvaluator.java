@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.monitor.helper;
+package org.apache.shenyu.admin.scale.scaler;
 
 import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
-import org.apache.shenyu.admin.scale.scaler.ScaleAction;
 
 public class ScaleRuleEvaluator {
 
