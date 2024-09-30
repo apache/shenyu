@@ -30,25 +30,25 @@ public class ScaleRuleEvaluator {
     }
 
     public ScaleAction evaluate(MetricData metricData) {
-        // 获取当前所有的规则
-        List<ScaleRule> rules = scaleRuleMapper.getAllRules();
-
-        // 逐一评估是否有匹配的规则
-        for (ScaleRule rule : rules) {
-            if (matchesRule(rule, metricData)) {
-                // 返回对应的扩缩容动作
-                return new ScaleAction(rule.getAction(), rule.getReplicaCount());
-            }
-        }
+//        // 获取当前所有的规则
+//        List<ScaleRule> rules = scaleRuleMapper.getAllRules();
+//
+//        // 逐一评估是否有匹配的规则
+//        for (ScaleRule rule : rules) {
+//            if (matchesRule(rule, metricData)) {
+//                // 返回对应的扩缩容动作
+//                return new ScaleAction(rule.getAction(), rule.getReplicaCount());
+//            }
+//        }
         return null; // 如果没有匹配的规则，则返回 null
     }
 
-    private boolean matchesRule(ScaleRule rule, MetricData metricData) {
-        // 判断 Metrics 数据是否符合规则条件
-        // 例如，判断 QPS 是否超过某个阈值
-        if (rule.getMetricName().equals(metricData.getMetricName()) && metricData.getValue() > rule.getThreshold()) {
-            return true;
-        }
-        return false;
-    }
+//    private boolean matchesRule(ScaleRule rule, MetricData metricData) {
+//        // 判断 Metrics 数据是否符合规则条件
+//        // 例如，判断 QPS 是否超过某个阈值
+//        if (rule.getMetricName().equals(metricData.getMetricName()) && metricData.getValue() > rule.getThreshold()) {
+//            return true;
+//        }
+//        return false;
+//    }
 }

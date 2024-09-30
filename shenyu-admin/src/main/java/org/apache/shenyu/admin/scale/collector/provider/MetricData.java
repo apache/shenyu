@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.scale.collector.provider;
 
 public class MetricData {
 
-    private String metricName;
-    private double value;
+    private final String metricName;
+    private final double value;
 
     public MetricData(String metricName, double value) {
         this.metricName = metricName;
