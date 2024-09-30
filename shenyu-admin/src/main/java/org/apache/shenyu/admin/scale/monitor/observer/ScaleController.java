@@ -21,28 +21,32 @@ import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.scaler.ScaleRuleEvaluator;
 import org.apache.shenyu.admin.scale.scaler.K8sScaler;
 import org.apache.shenyu.admin.scale.scaler.ScaleAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScaleController implements Observer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ScaleController.class);
+
     private final K8sScaler k8sScaler;
+
     private final ScaleRuleEvaluator ruleEvaluator;
 
-    public ScaleController(K8sScaler k8sScaler, ScaleRuleEvaluator ruleEvaluator) {
+    public ScaleController(final K8sScaler k8sScaler, final ScaleRuleEvaluator ruleEvaluator) {
         this.k8sScaler = k8sScaler;
         this.ruleEvaluator = ruleEvaluator;
     }
 
     @Override
-    public void update(MetricData metricData) {
+    public void update(final MetricData metricData) {
         try {
-            // 根据最新的 Metrics 数据评估规则并执行扩缩容
             ScaleAction action = ruleEvaluator.evaluate(metricData);
 
             if (action != null) {
                 k8sScaler.scale(action);
             }
         } catch (Exception e) {
-            // 处理异常
-            e.printStackTrace();
+            LOG.error("update observer error. cause: {} ", e.getMessage());
         }
     }
 }

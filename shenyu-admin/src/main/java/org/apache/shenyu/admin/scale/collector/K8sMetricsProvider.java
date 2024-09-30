@@ -27,21 +27,19 @@ public class K8sMetricsProvider implements MetricsProvider {
 
     private final PrometheusMetricsCollector metricsCollector;
 
-    public K8sMetricsProvider(PrometheusMetricsCollector metricsCollector) {
+    public K8sMetricsProvider(final PrometheusMetricsCollector metricsCollector) {
         this.metricsCollector = metricsCollector;
     }
 
     @Override
     public List<MetricData> getMetrics() throws Exception {
-        // 这里定义你需要从 Kubernetes 获取的指标
+
         String cpuUsageQuery = "sum(rate(container_cpu_usage_seconds_total{pod=~\"shenyu-gateway.*\"}[1m])) by (pod)";
         String memoryUsageQuery = "sum(container_memory_usage_bytes{pod=~\"shenyu-gateway.*\"}) by (pod)";
 
-        // 使用 PrometheusMetricsCollector 进行查询
         List<MetricData> cpuMetrics = metricsCollector.queryMetrics(cpuUsageQuery);
         List<MetricData> memoryMetrics = metricsCollector.queryMetrics(memoryUsageQuery);
 
-        // 将所有指标数据整合到一个列表中返回
         List<MetricData> allMetrics = new ArrayList<>();
         allMetrics.addAll(cpuMetrics);
         allMetrics.addAll(memoryMetrics);

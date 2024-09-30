@@ -24,22 +24,19 @@ import io.kubernetes.client.openapi.models.V1Scale;
 import java.util.Objects;
 
 public class K8sScaler {
+
     private final ApiClient apiClient;
+
     private final AppsV1Api appsV1Api;
 
-    public K8sScaler(ApiClient apiClient) {
+    public K8sScaler(final ApiClient apiClient) {
         this.apiClient = apiClient;
         this.appsV1Api = new AppsV1Api(apiClient);
     }
 
-    public void scale(ScaleAction action) throws Exception {
-        // 获取当前 Deployment 的 Scale 对象
+    public void scale(final ScaleAction action) throws Exception {
         V1Scale scale = appsV1Api.readNamespacedDeploymentScale("shenyu-gateway", "default", null);
-
-        // 修改副本数
         Objects.requireNonNull(scale.getSpec()).setReplicas(action.getReplicaCount());
-
-        // 更新 Scale 对象
         appsV1Api.replaceNamespacedDeploymentScale("shenyu-gateway", "default", scale, null, null, null, null);
     }
 }

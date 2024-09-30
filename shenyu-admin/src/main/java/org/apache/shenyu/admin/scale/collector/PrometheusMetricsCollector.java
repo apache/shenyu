@@ -25,40 +25,39 @@ import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class PrometheusMetricsCollector {
-    private final String prometheusUrl;  // Prometheus 的 URL
 
-    public PrometheusMetricsCollector(String prometheusUrl) {
+    private final String prometheusUrl;
+
+    public PrometheusMetricsCollector(final String prometheusUrl) {
         this.prometheusUrl = prometheusUrl;
     }
 
     /**
-     * 从 Prometheus 查询指标数据
-     * @param query 查询字符串，符合 Prometheus 的查询语法
-     * @return 返回解析后的指标数据
+     * query metrics.
+     * @param query query
+     * @return List
      */
-    public List<MetricData> queryMetrics(String query) throws Exception {
-        // 调用 Prometheus API 获取数据
+    public List<MetricData> queryMetrics(final String query) throws Exception {
         String response = executeQuery(query);
-
-        // 解析返回的数据
         return parseResponse(response);
     }
 
     /**
-     * 执行 Prometheus 查询
-     * @param query 查询字符串
-     * @return Prometheus API 的响应数据
+     * execute query.
+     * @param query query
+     * @return String
      */
-    private String executeQuery(String query) throws Exception {
+    private String executeQuery(final String query) throws Exception {
         OkHttpClient client = new OkHttpClient();
 
-        String queryUrl = String.format("%s/api/v1/query?query=%s", prometheusUrl, URLEncoder.encode(query, "UTF-8"));
+        String queryUrl = String.format("%s/api/v1/query?query=%s", prometheusUrl, URLEncoder.encode(query, StandardCharsets.UTF_8));
 
         Request request = new Request.Builder()
                 .url(queryUrl)
@@ -69,16 +68,17 @@ public class PrometheusMetricsCollector {
                 throw new IOException("Unexpected code " + response);
             }
 
+            assert response.body() != null;
             return response.body().string();
         }
     }
 
     /**
-     * 解析 Prometheus API 响应数据
-     * @param response API 的响应数据
-     * @return 返回解析后的 MetricData 列表
+     * parse response.
+     * @param response response
+     * @return List
      */
-    private List<MetricData> parseResponse(String response) throws JsonProcessingException {
+    private List<MetricData> parseResponse(final String response) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(response);
 

@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.admin.scale.collector.provider;
 
+import java.util.Objects;
+
 public class MetricData {
 
     private final String metricName;
+
     private final double value;
 
-    public MetricData(String metricName, double value) {
+    public MetricData(final String metricName, final double value) {
         this.metricName = metricName;
         this.value = value;
     }
@@ -35,5 +38,28 @@ public class MetricData {
         return value;
     }
 
-    // toString, equals, hashCode 等方法可以根据需要添加
+    @Override
+    public String toString() {
+        return "MetricData{"
+                + "metricName='" + metricName + '\''
+                + ", value=" + value
+                + '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MetricData that = (MetricData) o;
+        return Double.compare(value, that.value) == 0 && Objects.equals(metricName, that.metricName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(metricName, value);
+    }
 }

@@ -28,44 +28,45 @@ import java.util.List;
 public class MetricsMonitor implements Subject {
 
     private final List<Observer> observers = new ArrayList<>();
+
     private final ShenYuMetricsProvider shenyuMetricsProvider;
+
     private final K8sMetricsProvider k8sMetricsProvider;
 
-    public MetricsMonitor(ShenYuMetricsProvider shenyuMetricsProvider, K8sMetricsProvider k8sMetricsProvider) {
+    public MetricsMonitor(final ShenYuMetricsProvider shenyuMetricsProvider, final K8sMetricsProvider k8sMetricsProvider) {
         this.shenyuMetricsProvider = shenyuMetricsProvider;
         this.k8sMetricsProvider = k8sMetricsProvider;
     }
 
     @Override
-    public void addObserver(Observer observer) {
+    public void addObserver(final Observer observer) {
         observers.add(observer);
     }
 
     @Override
-    public void removeObserver(Observer observer) {
+    public void removeObserver(final Observer observer) {
         observers.remove(observer);
     }
 
     @Override
-    public void notifyObservers(MetricData metricData) {
+    public void notifyObservers(final MetricData metricData) {
         for (Observer observer : observers) {
             observer.update(metricData);
         }
     }
 
-    // 定期监控 Metrics 数据
+    /**
+     * monitor metrics.
+     */
     public void monitorMetrics() throws Exception {
-        // 获取 ShenYu Metrics
+        // ShenYu Metrics
         List<MetricData> shenyuMetrics = shenyuMetricsProvider.getMetrics();
-        // 获取 K8s Metrics
+        // K8s Metrics
         List<MetricData> k8sMetrics = k8sMetricsProvider.getMetrics();
 
-        // 通知所有观察者 ShenYu Metrics
         for (MetricData metricData : shenyuMetrics) {
             notifyObservers(metricData);
         }
-
-        // 通知所有观察者 K8s Metrics
         for (MetricData metricData : k8sMetrics) {
             notifyObservers(metricData);
         }

@@ -24,11 +24,11 @@ public class ScaleRuleEvaluator {
 
     private final ScaleRuleMapper scaleRuleMapper;
 
-    public ScaleRuleEvaluator(ScaleRuleMapper scaleRuleMapper) {
+    public ScaleRuleEvaluator(final ScaleRuleMapper scaleRuleMapper) {
         this.scaleRuleMapper = scaleRuleMapper;
     }
 
-    public ScaleAction evaluate(MetricData metricData) {
+    public ScaleAction evaluate(final MetricData metricData) {
 //        // 获取当前所有的规则
 //        List<ScaleRule> rules = scaleRuleMapper.getAllRules();
 //
@@ -39,7 +39,7 @@ public class ScaleRuleEvaluator {
 //                return new ScaleAction(rule.getAction(), rule.getReplicaCount());
 //            }
 //        }
-        return null; // 如果没有匹配的规则，则返回 null
+        return null;
     }
 
 //    private boolean matchesRule(ScaleRule rule, MetricData metricData) {

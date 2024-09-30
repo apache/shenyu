@@ -27,21 +27,19 @@ public class ShenYuMetricsProvider implements MetricsProvider {
 
     private final PrometheusMetricsCollector metricsCollector;
 
-    public ShenYuMetricsProvider(PrometheusMetricsCollector metricsCollector) {
+    public ShenYuMetricsProvider(final PrometheusMetricsCollector metricsCollector) {
         this.metricsCollector = metricsCollector;
     }
 
     @Override
     public List<MetricData> getMetrics() throws Exception {
-        // 这里定义你需要从 ShenYu 获取的指标
+
         String qpsQuery = "sum(rate(shenyu_requests_total[1m]))";
         String latencyQuery = "histogram_quantile(0.95, sum(rate(shenyu_request_duration_seconds_bucket[1m])) by (le))";
 
-        // 使用 PrometheusMetricsCollector 进行查询
         List<MetricData> qpsMetrics = metricsCollector.queryMetrics(qpsQuery);
         List<MetricData> latencyMetrics = metricsCollector.queryMetrics(latencyQuery);
 
-        // 将所有指标数据整合到一个列表中返回
         List<MetricData> allMetrics = new ArrayList<>();
         allMetrics.addAll(qpsMetrics);
         allMetrics.addAll(latencyMetrics);
