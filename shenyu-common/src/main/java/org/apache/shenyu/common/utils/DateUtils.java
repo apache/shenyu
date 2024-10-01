@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -125,4 +127,15 @@ public final class DateUtils {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return localDateTime.format(formatter);
     }
+
+    /**
+     * isValidDate.
+     *
+     * @param dateStr dateStr
+     * @return boolean
+     */
+    public static boolean isValidDate(final String dateStr) {
+        return StringUtils.isNotBlank(dateStr);
+    }
+
 }
