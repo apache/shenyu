@@ -97,8 +97,6 @@ public class NamespaceQuery implements Serializable {
         this.pageParameter = pageParameter;
     }
 
-
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
