@@ -234,6 +234,100 @@ COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
 
 UPDATE meta_data SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
+-- ----------------------------
+-- Table structure for scale
+-- ----------------------------
+create table scale_policy
+(
+    id             varchar(128) not null,
+    sort           number not null,
+    status         number not null,
+    num            number,
+    begin_time     timestamp(3),
+    end_time       timestamp(3),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_POLICY.id
+    is 'primary key id';
+comment on column SCALE_POLICY.sort
+    is 'sort';
+comment on column SCALE_POLICY.status
+    is 'status 1:enable 0:disable';
+comment on column SCALE_POLICY.num
+    is 'number of bootstrap';
+comment on column SCALE_POLICY.begin_time
+    is 'begin time';
+comment on column SCALE_POLICY.end_time
+    is 'end time';
+comment on column SCALE_POLICY.date_created
+    is 'create time';
+comment on column SCALE_POLICY.date_updated
+    is 'update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+
+create table scale_rule
+(
+    id             varchar(128) not null,
+    metric_name    varchar(128) not null,
+    type           number not null,
+    sort           number not null,
+    status         number not null,
+    minimum        varchar(128),
+    maximum        varchar(128),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_RULE.id
+    is 'primary key id';
+comment on column SCALE_RULE.metric_name
+    is 'metric name';
+comment on column SCALE_RULE.type
+    is 'type 0:shenyu 1:k8s 2:others';
+comment on column SCALE_RULE.sort
+    is 'sort';
+comment on column SCALE_RULE.status
+    is 'status 1:enable 0:disable';
+comment on column SCALE_RULE.minimum
+    is 'minimum of metric';
+comment on column SCALE_RULE.maximum
+    is 'maximum of metric';
+comment on column SCALE_RULE.date_created
+    is 'create time';
+comment on column SCALE_RULE.date_updated
+    is 'update time';
+
+create table scale_history
+(
+    id             varchar(128) not null,
+    config_id      number not null,
+    num            number not null,
+    action         number not null,
+    msg            clob,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_HISTORY.id
+    is 'primary key id';
+comment on column SCALE_HISTORY.config_id
+    is '0:manual 1:period 2:dynamic';
+comment on column SCALE_HISTORY.num
+    is 'number of bootstrap';
+comment on column SCALE_HISTORY.action
+    is 'status 1:enable 0:disable';
+comment on column SCALE_HISTORY.msg
+    is 'message';
+comment on column SCALE_HISTORY.date_created
+    is 'create time';
+comment on column SCALE_HISTORY.date_updated
+    is 'update time';
+
 ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
 
