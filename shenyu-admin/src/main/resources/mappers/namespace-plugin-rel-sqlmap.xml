@@ -233,7 +233,7 @@
         npr.sort AS sort,
         npr.enabled AS enabled,
         npr.date_created AS dateCreated,
-        npr.date_updated AS dateUpdated,
+        npr.date_updated AS dateUpdated
         FROM namespace_plugin_rel npr
         WHERE npr.id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
