@@ -28,6 +28,41 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.web.server.ServerWebExchange;
 import java.net.URISyntaxException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
+import org.junit.jupiter.api.Assertions;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * The Test Case For {@link SpringCloudPlugin}.
@@ -48,19 +83,20 @@ public final class SpringCloudPluginTest {
 
     @BeforeEach
     public void setUp() {
-//        ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-//        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
-//        SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-//        springBeanUtils.setApplicationContext(applicationContext);
-//        MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
-//        valueMap.put("type", Lists.newArrayList("cloud"));
-//        exchange = MockServerWebExchange.from(
-//                MockServerHttpRequest.get("http://localhost/springcloud").queryParams(valueMap).remoteAddress(new InetSocketAddress(8090)).build());
-//        shenyuContext = mock(ShenyuContext.class);
-//        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-//        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-//        chain = mock(ShenyuPluginChain.class);
-//        selector = SelectorData.builder().id("1").enabled(true).build();
+        ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
+        springBeanUtils.setApplicationContext(applicationContext);
+        MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
+        valueMap.put("type", Lists.newArrayList("cloud"));
+        exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost/springcloud").queryParams(valueMap).remoteAddress(new InetSocketAddress(8090)).build());
+        shenyuContext = mock(ShenyuContext.class);
+        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        chain = mock(ShenyuPluginChain.class);
+        selector = SelectorData.builder().id("1").enabled(true).build();
+
 //        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
 //        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
 //        defaultServiceInstance.setServiceId("serviceId");
@@ -74,141 +110,148 @@ public final class SpringCloudPluginTest {
 //        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
 //        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
 //        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-//        ShenyuSpringCloudServiceChooser loadBalancerClient = new ShenyuSpringCloudServiceChooser(discoveryClient);
-//        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
+        ShenyuSpringCloudServiceChooser loadBalancerClient = mock(ShenyuSpringCloudServiceChooser.class);
+        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
     @Test
     public void doExecute() {
-//        final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
-//        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
-//                .serviceId("serviceId")
-//                .build();
-//        final SelectorData selectorData = SelectorData.builder()
-//                .id("1")
-//                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
-//                .build();
-//        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-//        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
-//        final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
-//        springCloudRuleHandle.setPath("/springcloud");
-//        springCloudRuleHandle.setTimeout(1000L);
-//        final RuleData rule = RuleData.builder()
-//                .id("1")
-//                .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
-//                .build();
-//        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
-//        ShenyuContext shenyuContext = new ShenyuContext();
-//        shenyuContext.setRealUrl("http://localhost/test");
-//        shenyuContext.setHttpMethod(HttpMethod.GET.name());
-//        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-//        assertThrows(NullPointerException.class, () -> StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete());
-//
-//        Mono<Void> complete = springCloudPlugin.doExecute(exchange, chain, selector, rule);
-//        assertThrows(NullPointerException.class, () -> StepVerifier.create(complete).expectSubscription().verifyComplete());
+        final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("serviceId")
+                .build();
+        final SelectorData selectorData = SelectorData.builder()
+                .id("1")
+                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .build();
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
+        final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+        springCloudRuleHandle.setPath("/springcloud");
+        springCloudRuleHandle.setTimeout(1000L);
+        final RuleData rule = RuleData.builder()
+                .id("1")
+                .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
+                .build();
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        ShenyuContext shenyuContext = new ShenyuContext();
+        shenyuContext.setRealUrl("http://localhost/test");
+        shenyuContext.setHttpMethod(HttpMethod.GET.name());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+
+        springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
+
+        MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
+        ServerWebExchange exchangeSelector = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost/springcloud").queryParams(valueMap).remoteAddress(new InetSocketAddress(8090)).build());
+        shenyuContext = mock(ShenyuContext.class);
+        exchangeSelector.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        Mono<Void> complete = springCloudPlugin.doExecute(exchangeSelector, chain, selector, rule);
+        StepVerifier.create(complete).expectSubscription().verifyComplete();
     }
 
     @Test
     public void getOrder() {
-//        final int result = springCloudPlugin.getOrder();
-//        assertEquals(PluginEnum.SPRING_CLOUD.getCode(), result);
+        final int result = springCloudPlugin.getOrder();
+        assertEquals(PluginEnum.SPRING_CLOUD.getCode(), result);
     }
 
     @Test
     public void named() {
-//        final String result = springCloudPlugin.named();
-//        assertEquals(PluginEnum.SPRING_CLOUD.getName(), result);
+        final String result = springCloudPlugin.named();
+        assertEquals(PluginEnum.SPRING_CLOUD.getName(), result);
     }
 
     @Test
     public void skip() {
-//        final boolean result = springCloudPlugin.skip(exchange);
-//        assertFalse(result);
+        final boolean result = springCloudPlugin.skip(exchange);
+        assertFalse(result);
     }
 
     @Test
     public void testSpringCloudPluginRuleEmpty() {
-//        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, null);
-//        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, null);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
-//        final SelectorData selectorData = SelectorData.builder()
-//                .id("springcloud")
-//                .handle("[]")
-//                .build();
-//        final RuleData rule = RuleData.builder()
-//                .id("springcloud")
-//                .selectorId("springcloud")
-//                .handle("{}")
-//                .build();
-//
-//        SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
-//        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-//        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-//        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
-//        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
-//        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle("[]")
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{}")
+                .build();
+
+        SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginErrorServiceId() {
-//        SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
-//        springCloudSelectorHandle.setServiceId("springcloud");
-//        List<DivideUpstream> divideUpstreams = Stream.of(3, 4, 5)
-//                .map(weight -> DivideUpstream.builder()
-//                        .upstreamUrl("divide-upstream-" + weight)
-//                        .build())
-//                .collect(Collectors.toList());
-//        springCloudSelectorHandle.setDivideUpstreams(divideUpstreams);
-//        final SelectorData selectorData = SelectorData.builder()
-//                .id("springcloud")
-//                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
-//                .build();
-//        final RuleData rule = RuleData.builder()
-//                .id("springcloud")
-//                .selectorId("springcloud")
-//                .handle("{\"path\":\"service/\"}")
-//                .build();
-//        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-//        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-//        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
-//        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
-//        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        SpringCloudSelectorHandle springCloudSelectorHandle = new SpringCloudSelectorHandle();
+        springCloudSelectorHandle.setServiceId("springcloud");
+        List<DivideUpstream> divideUpstreams = Stream.of(3, 4, 5)
+                .map(weight -> DivideUpstream.builder()
+                        .upstreamUrl("divide-upstream-" + weight)
+                        .build())
+                .collect(Collectors.toList());
+        springCloudSelectorHandle.setDivideUpstreams(divideUpstreams);
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{\"path\":\"service/\"}")
+                .build();
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
-//        final SelectorData selectorData = SelectorData.builder()
-//                .id("springcloud")
-//                .handle("{\"serviceId\":\"service1\"}")
-//                .build();
-//        final RuleData rule = RuleData.builder()
-//                .id("springcloud")
-//                .selectorId("springcloud")
-//                .handle("{\"path\":\"service1/\"}")
-//                .build();
-//        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
-//                .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
-//        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
-//                .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-//        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
-//        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
-//        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-//        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
-//        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle("{\"serviceId\":\"service1\"}")
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{\"path\":\"service1/\"}")
+                .build();
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
+                .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
+                .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testHandleSelectorIfNull() {
-//        Assertions.assertEquals(springCloudPlugin.handleSelectorIfNull("SpringCloud", exchange, chain).getClass(),
-//                WebFluxResultUtils.noSelectorResult("SpringCloud", exchange).getClass());
+        Assertions.assertEquals(springCloudPlugin.handleSelectorIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noSelectorResult("SpringCloud", exchange).getClass());
     }
 
     @Test
     public void testHandleRuleIfNull() {
-//        Assertions.assertEquals(springCloudPlugin.handleRuleIfNull("SpringCloud", exchange, chain).getClass(),
-//                WebFluxResultUtils.noRuleResult("SpringCloud", exchange).getClass());
+        Assertions.assertEquals(springCloudPlugin.handleRuleIfNull("SpringCloud", exchange, chain).getClass(),
+                WebFluxResultUtils.noRuleResult("SpringCloud", exchange).getClass());
     }
 }

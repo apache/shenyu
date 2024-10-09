@@ -120,7 +120,10 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     private List<InstanceEntity> getServiceInstance(final String serviceId) {
         if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            List<InstanceEntity> instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
+            List<InstanceEntity> instances = null;
+            if (SpringCloudPluginDataHandler.getRepository() != null) {
+                instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
+            }
             LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
             return Optional.ofNullable(instances).orElse(Collections.emptyList());
         }
