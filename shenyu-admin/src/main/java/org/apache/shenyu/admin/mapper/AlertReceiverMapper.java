@@ -53,9 +53,10 @@ public interface AlertReceiverMapper extends ExistProvider {
      * select by primary key.
      *
      * @param id primary key
+     * @param namespaceId namespaceId
      * @return object by primary key
      */
-    AlertReceiverDO selectByPrimaryKey(String id);
+    AlertReceiverDO selectByPrimaryKey(String id, String namespaceId);
     
     /**
      * update record.

@@ -41,11 +41,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -78,7 +80,7 @@ public final class AlertReceiverServiceTest {
     @Test
     public void testDeleteReceiver() {
         given(alertReceiverMapper.deleteByIds(any())).willReturn(1);
-        alertReceiverService.deleteReceiver(Lists.newArrayList("1"));
+        alertReceiverService.deleteByNamespaceId(Lists.newArrayList("1"), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -104,6 +106,7 @@ public final class AlertReceiverServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         AlertReceiverQuery alertReceiverQuery = new AlertReceiverQuery(pageParameter);
+        alertReceiverQuery.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         List<AlertReceiverDO> receiverDOList = IntStream.range(0, 10).mapToObj(i -> buildAlertReceiverDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.alertReceiverMapper.selectByQuery(alertReceiverQuery)).willReturn(receiverDOList);
         final CommonPager<AlertReceiverDTO> commonPager = this.alertReceiverService.listByPage(alertReceiverQuery);
@@ -113,8 +116,8 @@ public final class AlertReceiverServiceTest {
     @Test
     public void testDetail() {
         AlertReceiverDO receiverDO = buildAlertReceiverDO("123");
-        given(this.alertReceiverMapper.selectByPrimaryKey(anyString())).willReturn(receiverDO);
-        AlertReceiverDTO receiverDTO = alertReceiverService.detail("123");
+        given(this.alertReceiverMapper.selectByPrimaryKey(anyString(), eq(SYS_DEFAULT_NAMESPACE_ID))).willReturn(receiverDO);
+        AlertReceiverDTO receiverDTO = alertReceiverService.detail("123", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(receiverDTO);
         assertEquals(receiverDTO.getId(), receiverDO.getId());
     }

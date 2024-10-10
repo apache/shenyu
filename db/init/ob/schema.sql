@@ -2382,3 +2382,5 @@ ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT '
 ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId';
 
 ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
+
+ALTER TABLE `shenyu`.`alert_receiver` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `levels`;

@@ -36,11 +36,12 @@ public interface AlertReceiverService {
     void addReceiver(AlertReceiverDTO alertReceiverDTO);
 
     /**
-     * Delete alert receiver.
+     * Delete alert receiver by ids and namespaceId.
      *
      * @param ids ids
+     * @param namespaceId namespaceId
      */
-    void deleteReceiver(List<String> ids);
+    void deleteByNamespaceId(List<String> ids, String namespaceId);
 
     /**
      * Update alert receiver.
@@ -66,9 +67,10 @@ public interface AlertReceiverService {
     /**
      * receiver detail.
      * @param id id
+     * @param namespaceId namespaceId
      * @return {@link AlertReceiverDTO}
      */
-    AlertReceiverDTO detail(String id);
+    AlertReceiverDTO detail(String id, String namespaceId);
     
     /**
      * send test message.
