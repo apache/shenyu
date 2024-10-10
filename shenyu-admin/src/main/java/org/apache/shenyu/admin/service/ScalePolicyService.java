@@ -17,27 +17,37 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
+import org.apache.shenyu.admin.model.vo.ScalePolicyVO;
+
+import java.util.List;
 
 /**
- * The interface Sync data service.
+ * this is the scale policy service.
  */
-public interface SyncDataService {
+public interface ScalePolicyService {
 
     /**
-     * Sync all boolean.
+     * select all.
      *
-     * @param type the type
-     * @return the boolean
+     * @return List
      */
-    boolean syncAll(DataEventTypeEnum type);
+    List<ScalePolicyVO> selectAll();
 
     /**
-     * Sync plugin data boolean.
+     * find scale policy by id.
      *
-     * @param id    the namespace plugin id
-     * @return the boolean
+     * @param id primary key
+     * @return {@linkplain ScalePolicyVO}
      */
-    boolean syncPluginData(String id);
+    ScalePolicyVO findById(String id);
+
+    /**
+     * create or update scale policy.
+     *
+     * @param scalePolicyDTO {@linkplain ScalePolicyDTO}
+     * @return rows int
+     */
+    int update(ScalePolicyDTO scalePolicyDTO);
 
 }
