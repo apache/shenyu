@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.AuthParamData;
@@ -72,8 +73,8 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnPluginChanged() {
         String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"2\",\"name\":\"waf\","
-                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":\"1\",\"enabled\":true}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.UPDATE);
+                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":\"1\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onPluginChanged(pluginDataList, DataEventTypeEnum.UPDATE);
@@ -95,8 +96,8 @@ public final class WebsocketDataChangedListenerTest {
                 + "{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\",\\\\\\\"protocol\\\\\\\":"
                 + "\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":\\\\\\\"127.0.0.1:8188\\\\\\\","
                 + "\\\\\\\"weight\\\\\\\":\\\\\\\"49\\\\\\\"}]\",\"conditionList\":[{\"paramType\":\"uri\","
-                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}]}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.UPDATE);
+                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.UPDATE);
@@ -114,8 +115,8 @@ public final class WebsocketDataChangedListenerTest {
                 + "\"matchMode\":1,\"sort\":1,\"enabled\":true,\"loged\":true,\"handle\":"
                 + "\"{\\\\\\\"permission\\\\\\\":\\\\\\\"reject\\\\\\\",\\\\\\\"statusCode\\\\\\\":"
                 + "\\\\\\\"503\\\\\\\"}\",\"conditionDataList\":[{\"paramType\":\"header\",\"operator\":"
-                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}]}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.UPDATE);
+                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onRuleChanged(ruleDataList, DataEventTypeEnum.UPDATE);
@@ -131,8 +132,8 @@ public final class WebsocketDataChangedListenerTest {
         String message = "{\"groupType\":\"APP_AUTH\",\"eventType\":\"UPDATE\",\"data\":[{\"appKey\":"
                 + "\"D9FD95F496C9495DB5604778A13C3D08\",\"appSecret\":\"02D25048AA1E466F8920E68B08E668DE\","
                 + "\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}]"
-                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}]}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.UPDATE);
+                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onAppAuthChanged(appAuthDataList, DataEventTypeEnum.UPDATE);
@@ -147,8 +148,8 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnMetaDataChanged() {
         String message = "{\"groupType\":\"META_DATA\",\"eventType\":\"CREATE\",\"data\":[{\"appName\":\"axiba\","
                 + "\"path\":\"/test/execute\",\"rpcType\":\"http\",\"serviceName\":\"execute\",\"methodName\":"
-                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(message, DataEventTypeEnum.CREATE);
+                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onMetaDataChanged(metaDataList, DataEventTypeEnum.CREATE);
@@ -166,6 +167,7 @@ public final class WebsocketDataChangedListenerTest {
         metaData.setRpcExt("{}");
         metaData.setRpcType("http");
         metaData.setServiceName("execute");
+        metaData.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         metaDataList.add(metaData);
     }
 
@@ -176,6 +178,7 @@ public final class WebsocketDataChangedListenerTest {
         appAuthData.setEnabled(true);
         appAuthData.setParamDataList(buildAuthParamDataList("axiba", "123"));
         appAuthData.setPathDataList(buildAuthPathDataList("alibaba", "/1"));
+        appAuthData.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         appAuthDataList.add(appAuthData);
     }
 
@@ -186,6 +189,7 @@ public final class WebsocketDataChangedListenerTest {
         pluginData.setId("2");
         pluginData.setName("waf");
         pluginData.setRole("1");
+        pluginData.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         pluginDataList.add(pluginData);
     }
 
@@ -200,6 +204,7 @@ public final class WebsocketDataChangedListenerTest {
         ruleData.setPluginName("waf");
         ruleData.setSelectorId("1336349806465064960");
         ruleData.setSort(1);
+        ruleData.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         ruleData.setConditionDataList(buildConditionDataList("=", "test", "header", "a"));
         ruleDataList.add(ruleData);
     }
@@ -218,6 +223,7 @@ public final class WebsocketDataChangedListenerTest {
         selectorData.setPluginName("divide");
         selectorData.setSort(1);
         selectorData.setType(1);
+        selectorData.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         selectorData.setConditionList(buildConditionDataList("match", "/", "uri", "/http/**"));
         selectorDataList.add(selectorData);
     }
