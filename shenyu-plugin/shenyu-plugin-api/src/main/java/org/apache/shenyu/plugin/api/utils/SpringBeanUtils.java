@@ -150,4 +150,8 @@ public final class SpringBeanUtils {
     public void setApplicationContext(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
+
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
 }
