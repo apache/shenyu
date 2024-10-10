@@ -18,6 +18,9 @@
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507020', '14', 'rewriteContextPath', 'rewriteContextPath', 2, 2, 2, '{"required":"0","defaultValue":""}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507021', '14', 'percentage', 'percentage', 1, 2, 3, '{"required":"1","defaultValue":"100"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507022', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507024', '8', 'registerType', 'registerType', 3, 3, 1, NULL, '2024-08-24 09:40:03.293', '2024-08-24 21:52:27.920');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507025', '8', 'serverLists', 'serverLists', 3, 3, 2, NULL, '2024-08-24 21:52:51.179', '2024-08-24 21:53:27.483');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507026', '8', 'props', 'props', 3, 3, 3, NULL, '2024-08-24 21:53:25.764', '2024-08-24 21:53:30.255');
 
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
@@ -165,7 +168,7 @@ INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822181','64933
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', NULL, 200, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', '{"enabled":false,"registerType":"eureka","serverLists":"http://localhost:8761/eureka","props":{}}', 200, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 
@@ -206,6 +209,76 @@ ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."meta_data" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+-- ----------------------------
+-- Table structure for scale
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."scale_policy";
+CREATE TABLE IF NOT EXISTS "public"."scale_policy"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "sort"           int4           NOT NULL,
+    "status"         int2           NOT NULL,
+    "num"            int4           ,
+    "begin_time"     timestamp(6)   ,
+    "end_time"       timestamp(6)   ,
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    );
+COMMENT ON COLUMN "public"."scale_policy"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_policy"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."scale_policy"."status" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_policy"."num" IS 'number of bootstrap';
+COMMENT ON COLUMN "public"."scale_policy"."begin_time" IS 'begin time';
+COMMENT ON COLUMN "public"."scale_policy"."end_time" IS 'end time';
+COMMENT ON COLUMN "public"."scale_policy"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_policy"."date_updated" IS 'update time';
+
+INSERT INTO "public"."scale_policy" VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+
+DROP TABLE IF EXISTS "public"."scale_rule";
+CREATE TABLE "public"."scale_rule"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "metric_name"    varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "type"           int4           NOT NULL,
+    "sort"           int4           NOT NULL,
+    "status"         int2           NOT NULL,
+    "minimum"        varchar(128)   COLLATE "pg_catalog"."default",
+    "maximum"        varchar(128)   COLLATE "pg_catalog"."default",
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."scale_rule"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_rule"."metric_name" IS 'metric name';
+COMMENT ON COLUMN "public"."scale_rule"."type" IS 'type 0:shenyu 1:k8s 2:others';
+COMMENT ON COLUMN "public"."scale_rule"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."scale_rule"."status" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_rule"."minimum" IS 'minimum of metric';
+COMMENT ON COLUMN "public"."scale_rule"."maximum" IS 'maximum of metric';
+COMMENT ON COLUMN "public"."scale_rule"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_rule"."date_updated" IS 'update time';
+
+DROP TABLE IF EXISTS "public"."scale_history";
+CREATE TABLE "public"."scale_history"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "config_id"      int4           NOT NULL,
+    "num"            int4           NOT NULL,
+    "action"         int4           NOT NULL,
+    "msg"            text           COLLATE "pg_catalog"."default",
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."scale_history"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."scale_history"."config_id" IS '0:manual 1:period 2:dynamic';
+COMMENT ON COLUMN "public"."scale_history"."num" IS 'number of bootstrap';
+COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disable';
+COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
+COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
 
 ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
