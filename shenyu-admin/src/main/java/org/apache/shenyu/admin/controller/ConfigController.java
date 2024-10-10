@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
@@ -68,7 +69,8 @@ public class ConfigController {
     @GetMapping("/fetch")
     public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys, final String namespaceIdParams) {
         String namespaceId = namespaceIdParams;
-        if (StringUtils.isNotEmpty(namespaceId) && ObjectUtils.isEmpty(namespaceService.findById(namespaceId))) {
+        NamespaceVO existNamespace = namespaceService.findById(namespaceId);
+        if (StringUtils.isNotEmpty(namespaceId) && ObjectUtils.isEmpty(existNamespace)) {
             throw new ShenyuAdminException("namespaceId is not exist");
         }
         if (StringUtils.isEmpty(namespaceId)) {

@@ -116,7 +116,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
         ConfigDataCache config = CACHE.get(groupKey.name());
         if (groupKey.equals(ConfigGroupEnum.PLUGIN)) {
-            config = CACHE.get(namespaceId + groupKey.name());
+            config = CACHE.get(namespaceId + "_" + groupKey.name());
         }
         switch (groupKey) {
             case APP_AUTH:

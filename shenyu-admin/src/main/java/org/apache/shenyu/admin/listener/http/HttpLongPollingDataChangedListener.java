@@ -197,7 +197,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
             ConfigDataCache serverCache = CACHE.get(group.name());
             if (group.equals(ConfigGroupEnum.PLUGIN)) {
-                serverCache = CACHE.get(namespaceId + group.name());
+                serverCache = CACHE.get(namespaceId + "_" + group.name());
             }
             // do check.
             if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
