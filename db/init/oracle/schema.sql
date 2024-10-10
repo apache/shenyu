@@ -2155,6 +2155,15 @@ values ('1722804548510507022', '14', 'percentage', 'percentage', 1, 2, 3, '{"req
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1722804548510507023', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}');
 
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1722804548510507024', '8', 'registerType', 'registerType', 3, 3, 1, NULL);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1722804548510507025', '8', 'serverLists', 'serverLists', 3, 3, 2, NULL);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1722804548510507026', '8', 'props', 'props', 3, 3, 3, NULL);
+
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 VALUES ('1529402613195784272', 'securityProtocol', 'SECURITY_PROTOCOL', 'PLAINTEXT', 'PLAINTEXT', '', 1, 1);
 
@@ -2834,7 +2843,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespa
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', '{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\",\"props\":{}}', 200, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', '{"enabled":false,"registerType":"eureka","serverLists":"http://localhost:8761/eureka","props":{}}', 200, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0);
 
 
@@ -2859,8 +2868,104 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1792779493541343267', '1346358560427216896', '1792749362445840486');
 
 
+-- ----------------------------
+-- Table structure for scale
+-- ----------------------------
+create table scale_policy
+(
+    id             varchar(128) not null,
+    sort           number not null,
+    status         number not null,
+    num            number,
+    begin_time     timestamp(3),
+    end_time       timestamp(3),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_POLICY.id
+    is 'primary key id';
+comment on column SCALE_POLICY.sort
+    is 'sort';
+comment on column SCALE_POLICY.status
+    is 'status 1:enable 0:disable';
+comment on column SCALE_POLICY.num
+    is 'number of bootstrap';
+comment on column SCALE_POLICY.begin_time
+    is 'begin time';
+comment on column SCALE_POLICY.end_time
+    is 'end time';
+comment on column SCALE_POLICY.date_created
+    is 'create time';
+comment on column SCALE_POLICY.date_updated
+    is 'update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+
+create table scale_rule
+(
+    id             varchar(128) not null,
+    metric_name    varchar(128) not null,
+    type           number not null,
+    sort           number not null,
+    status         number not null,
+    minimum        varchar(128),
+    maximum        varchar(128),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_RULE.id
+    is 'primary key id';
+comment on column SCALE_RULE.metric_name
+    is 'metric name';
+comment on column SCALE_RULE.type
+    is 'type 0:shenyu 1:k8s 2:others';
+comment on column SCALE_RULE.sort
+    is 'sort';
+comment on column SCALE_RULE.status
+    is 'status 1:enable 0:disable';
+comment on column SCALE_RULE.minimum
+    is 'minimum of metric';
+comment on column SCALE_RULE.maximum
+    is 'maximum of metric';
+comment on column SCALE_RULE.date_created
+    is 'create time';
+comment on column SCALE_RULE.date_updated
+    is 'update time';
+
+create table scale_history
+(
+    id             varchar(128) not null,
+    config_id      number not null,
+    num            number not null,
+    action         number not null,
+    msg            clob,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column SCALE_HISTORY.id
+    is 'primary key id';
+comment on column SCALE_HISTORY.config_id
+    is '0:manual 1:period 2:dynamic';
+comment on column SCALE_HISTORY.num
+    is 'number of bootstrap';
+comment on column SCALE_HISTORY.action
+    is 'status 1:enable 0:disable';
+comment on column SCALE_HISTORY.msg
+    is 'message';
+comment on column SCALE_HISTORY.date_created
+    is 'create time';
+comment on column SCALE_HISTORY.date_updated
+    is 'update time';
+
+
 ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
+
 
 ALTER TABLE rule ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN rule.namespace_id IS 'namespaceId';

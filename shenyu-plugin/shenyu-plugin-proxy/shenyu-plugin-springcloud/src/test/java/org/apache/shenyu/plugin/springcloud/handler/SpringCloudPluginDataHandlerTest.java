@@ -17,10 +17,32 @@
 
 package org.apache.shenyu.plugin.springcloud.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For SpringCloudPluginDataHandler.
@@ -35,82 +57,83 @@ public final class SpringCloudPluginDataHandlerTest {
 
     @BeforeEach
     public void setUp() {
-//        this.mockSpringCloudConfig();
+        this.mockSpringCloudConfig();
 //        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
 //        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-//        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-//        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
-//        this.selectorData = new SelectorData();
+        ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+        ConfigurableApplicationContext context = (ConfigurableApplicationContext) SpringBeanUtils.getInstance().getApplicationContext();
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig, context.getEnvironment());
+        this.selectorData = new SelectorData();
     }
 
     @Test
     public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
-//        List<DivideUpstream> divideUpstreams = new ArrayList<>();
-//        divideUpstreams.add(new DivideUpstream());
-//        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
-//                .serviceId("serviceId")
-//                .divideUpstreams(divideUpstreams)
-//                .build();
-//        selectorData = SelectorData.builder()
-//                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
-//                .id("1")
-//                .build();
-//        springCloudPluginDataHandler.handlerSelector(selectorData);
-//        UpstreamCacheManager instance = UpstreamCacheManager.getInstance();
-//        Field field = instance.getClass().getDeclaredField("UPSTREAM_MAP");
-//        field.setAccessible(true);
-//        Map<String, List<Upstream>> map = (Map<String, List<Upstream>>) field.get(instance);
-//        Assertions.assertNotNull(map.get("1"));
+        List<DivideUpstream> divideUpstreams = new ArrayList<>();
+        divideUpstreams.add(new DivideUpstream());
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("serviceId")
+                .divideUpstreams(divideUpstreams)
+                .build();
+        selectorData = SelectorData.builder()
+                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .id("1")
+                .build();
+        springCloudPluginDataHandler.handlerSelector(selectorData);
+        UpstreamCacheManager instance = UpstreamCacheManager.getInstance();
+        Field field = instance.getClass().getDeclaredField("UPSTREAM_MAP");
+        field.setAccessible(true);
+        Map<String, List<Upstream>> map = (Map<String, List<Upstream>>) field.get(instance);
+        Assertions.assertNotNull(map.get("1"));
     }
 
     @Test
     public void testRemoveSelector() throws NoSuchFieldException, IllegalAccessException {
-//        selectorData.setId("1");
-//        List<Upstream> upstreamList = Stream.of(3)
-//                .map(weight -> Upstream.builder()
-//                        .url("mock-" + weight)
-//                        .build())
-//                .collect(Collectors.toList());
-//        UpstreamCacheManager instance = UpstreamCacheManager.getInstance();
-//        instance.submit("1", upstreamList);
-//        Field field = instance.getClass().getDeclaredField("UPSTREAM_MAP");
-//        field.setAccessible(true);
-//        Map<String, List<Upstream>> map = (Map<String, List<Upstream>>) field.get(instance);
-//        Assertions.assertNotNull(map.get("1"));
-//        springCloudPluginDataHandler.removeSelector(selectorData);
-//        Assertions.assertNull(map.get("1"));
+        selectorData.setId("1");
+        List<Upstream> upstreamList = Stream.of(3)
+                .map(weight -> Upstream.builder()
+                        .url("mock-" + weight)
+                        .build())
+                .collect(Collectors.toList());
+        UpstreamCacheManager instance = UpstreamCacheManager.getInstance();
+        instance.submit("1", upstreamList);
+        Field field = instance.getClass().getDeclaredField("UPSTREAM_MAP");
+        field.setAccessible(true);
+        Map<String, List<Upstream>> map = (Map<String, List<Upstream>>) field.get(instance);
+        Assertions.assertNotNull(map.get("1"));
+        springCloudPluginDataHandler.removeSelector(selectorData);
+        Assertions.assertNull(map.get("1"));
     }
 
     @Test
     public void testHandlerRule() {
-//        ruleData.setSelectorId("1");
-//        ruleData.setHandle("{\"urlPath\":\"test\"}");
-//        ruleData.setId("test");
-//        springCloudPluginDataHandler.handlerRule(ruleData);
-//        Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
-//        Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
+        ruleData.setSelectorId("1");
+        ruleData.setHandle("{\"urlPath\":\"test\"}");
+        ruleData.setId("test");
+        springCloudPluginDataHandler.handlerRule(ruleData);
+        Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
+        Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
     }
 
     @Test
     public void testRemoveRule() {
-//        ruleData.setSelectorId("1");
-//        ruleData.setHandle("{\"urlPath\":\"test\"}");
-//        ruleData.setId("test");
-//        Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
-//        cache.get().cachedHandle("1_test", new SpringCloudRuleHandle());
-//        Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
-//        springCloudPluginDataHandler.removeRule(ruleData);
-//        Assertions.assertNull(cache.get().obtainHandle("1_test"));
+        ruleData.setSelectorId("1");
+        ruleData.setHandle("{\"urlPath\":\"test\"}");
+        ruleData.setId("test");
+        Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
+        cache.get().cachedHandle("1_test", new SpringCloudRuleHandle());
+        Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
+        springCloudPluginDataHandler.removeRule(ruleData);
+        Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }
 
     @Test
     public void testPluginNamed() {
-//        Assertions.assertEquals(springCloudPluginDataHandler.pluginNamed(), "springCloud");
+        Assertions.assertEquals(springCloudPluginDataHandler.pluginNamed(), "springCloud");
     }
     
     private void mockSpringCloudConfig() {
-//        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-//        when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
-//        SpringBeanUtils.getInstance().setApplicationContext(context);
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }
