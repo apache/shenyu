@@ -378,6 +378,7 @@ public class AdminClient extends BaseClient {
      * @param bindingData bindingData
      */
     public void bindingData(final BindingData bindingData) {
+        bindingData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
