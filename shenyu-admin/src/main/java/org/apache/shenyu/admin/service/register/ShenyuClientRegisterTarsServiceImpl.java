@@ -98,7 +98,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     }
 
     private List<TarsUpstream> buildTarsUpstreamList(final List<URIRegisterDTO> uriList) {
-        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort()))
+        return uriList.stream().map(dto -> CommonUpstreamUtils.buildDefaultTarsUpstream(dto.getHost(), dto.getPort(), dto.getNamespaceId()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 }

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -43,6 +44,13 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     @NotBlank(message = "discoveryHandlerId不能为空")
     private String discoveryHandlerId;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
      * protocol.
@@ -83,7 +91,6 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * updated time.
      */
     private Timestamp dateUpdated;
-
 
     /**
      * getId.
@@ -258,5 +265,23 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

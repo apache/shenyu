@@ -2761,3 +2761,13 @@ COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
 
 ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
+

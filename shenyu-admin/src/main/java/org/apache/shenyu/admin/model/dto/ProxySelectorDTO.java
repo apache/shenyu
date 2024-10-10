@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -66,6 +67,13 @@ public class ProxySelectorDTO implements Serializable {
      */
     @NotBlank
     private String props;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
      * getId.
@@ -173,5 +181,23 @@ public class ProxySelectorDTO implements Serializable {
      */
     public void setProps(final String props) {
         this.props = props;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

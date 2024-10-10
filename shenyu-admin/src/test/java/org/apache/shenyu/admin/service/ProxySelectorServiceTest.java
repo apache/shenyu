@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,7 +92,7 @@ class ProxySelectorServiceTest {
     @Test
     void testListByPage() {
 
-        final ProxySelectorQuery proxySelectorQuery = new ProxySelectorQuery("test", new PageParameter());
+        final ProxySelectorQuery proxySelectorQuery = new ProxySelectorQuery("test", new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         final List<ProxySelectorDO> list = new ArrayList<>();
         ProxySelectorDO proxySelectorDO = new ProxySelectorDO();
         proxySelectorDO.setId("123");

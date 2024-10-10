@@ -39,6 +39,11 @@ public class ProxySelectorQuery implements Serializable {
     private PageParameter pageParameter;
 
     /**
+     * namespace id.
+     */
+    private String namespaceId;
+
+    /**
      * ProxySelectorQuery.
      */
     public ProxySelectorQuery() {
@@ -51,10 +56,11 @@ public class ProxySelectorQuery implements Serializable {
      * @param name          name
      * @param pageParameter pageParameter
      */
-    public ProxySelectorQuery(final String name, final PageParameter pageParameter) {
+    public ProxySelectorQuery(final String name, final PageParameter pageParameter, final String namespaceId) {
 
         this.name = name;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -75,5 +81,23 @@ public class ProxySelectorQuery implements Serializable {
     public PageParameter getPageParameter() {
 
         return pageParameter;
+    }
+
+    /**
+     * Gets the value of name.
+     *
+     * @return the value of name
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

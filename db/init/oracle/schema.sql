@@ -2975,3 +2975,13 @@ COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
 
 ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
+
+ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN discovery.namespace_id IS 'namespaceId';
+
+ALTER TABLE discovery_upstream ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN discovery_upstream.namespace_id IS 'namespaceId';
+
+ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN proxy_selector.namespace_id IS 'namespaceId';
+

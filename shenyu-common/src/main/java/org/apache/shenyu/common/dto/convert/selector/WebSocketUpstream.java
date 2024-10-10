@@ -59,6 +59,7 @@ public final class WebSocketUpstream extends CommonUpstream {
         setStatus(builder.status);
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
+        setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -141,7 +142,7 @@ public final class WebSocketUpstream extends CommonUpstream {
     public void setWarmup(final int warmup) {
         this.warmup = warmup;
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -151,12 +152,12 @@ public final class WebSocketUpstream extends CommonUpstream {
             return false;
         }
         WebSocketUpstream that = (WebSocketUpstream) o;
-        return Objects.equals(host, that.host) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(url, that.url);
+        return Objects.equals(host, that.host) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(url, that.url) && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(host, getProtocol(), url);
+        return Objects.hash(host, getProtocol(), url, getNamespaceId());
     }
 
     @Override
@@ -179,9 +180,11 @@ public final class WebSocketUpstream extends CommonUpstream {
                 + getTimestamp()
                 + ", warmup="
                 + warmup
+                + ", namespaceId="
+                + getNamespaceId()
                 + '}';
     }
-    
+
 
     /**
      * class builder.
@@ -212,7 +215,7 @@ public final class WebSocketUpstream extends CommonUpstream {
          * status.
          */
         private boolean status;
-        
+
 
         /**
          * timestamp.
@@ -223,6 +226,11 @@ public final class WebSocketUpstream extends CommonUpstream {
          * warmup.
          */
         private int warmup;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -313,6 +321,17 @@ public final class WebSocketUpstream extends CommonUpstream {
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

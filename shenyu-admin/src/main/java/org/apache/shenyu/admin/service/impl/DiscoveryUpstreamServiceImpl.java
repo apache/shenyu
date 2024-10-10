@@ -290,6 +290,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             proxySelectorDTO.setId(selectorDO.getId());
             proxySelectorDTO.setPluginName(pluginMapper.selectById(selectorDO.getPluginId()).getName());
             proxySelectorDTO.setName(selectorDO.getName());
+            proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         } else {
             proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);
         }

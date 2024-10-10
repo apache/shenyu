@@ -29,6 +29,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
@@ -97,6 +98,7 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
         discoveryUpstreamDO.setProps("test");
         discoveryUpstreamDO.setUrl("test");
         discoveryUpstreamDO.setProtocol("test");
+        discoveryUpstreamDO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
         discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return discoveryUpstreamDO;

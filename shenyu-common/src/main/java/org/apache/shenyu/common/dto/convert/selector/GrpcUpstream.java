@@ -45,6 +45,7 @@ public final class GrpcUpstream extends CommonUpstream {
         this.weight = builder.weight;
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
+        setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -83,12 +84,15 @@ public final class GrpcUpstream extends CommonUpstream {
             return false;
         }
         GrpcUpstream that = (GrpcUpstream) o;
-        return Objects.equals(getUpstreamHost(), that.getUpstreamHost()) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl());
+        return Objects.equals(getUpstreamHost(), that.getUpstreamHost())
+                && Objects.equals(getProtocol(), that.getProtocol())
+                && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl())
+                && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl());
+        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl(), getNamespaceId());
     }
 
     @Override
@@ -109,6 +113,8 @@ public final class GrpcUpstream extends CommonUpstream {
                 + isStatus()
                 + ", timestamp="
                 + getTimestamp()
+                + ", namespaceId="
+                + getNamespaceId()
                 + '}';
     }
 
@@ -151,6 +157,11 @@ public final class GrpcUpstream extends CommonUpstream {
          * timestamp.
          */
         private long timestamp;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -231,6 +242,17 @@ public final class GrpcUpstream extends CommonUpstream {
          */
         public Builder timestamp(final long timestamp) {
             this.timestamp = timestamp;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

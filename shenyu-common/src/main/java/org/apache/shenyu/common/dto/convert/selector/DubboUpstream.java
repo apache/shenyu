@@ -81,6 +81,7 @@ public final class DubboUpstream extends CommonUpstream {
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
+        setNamespaceId(builder.namespaceId);
     }
     
     /**
@@ -322,6 +323,11 @@ public final class DubboUpstream extends CommonUpstream {
          * warmup.
          */
         private int warmup;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
         
         /**
          * no args constructor.
@@ -413,6 +419,17 @@ public final class DubboUpstream extends CommonUpstream {
          */
         public DubboUpstream.Builder warmup(final int warmup) {
             this.warmup = warmup;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public DubboUpstream.Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

@@ -110,7 +110,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort()))
+                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort(), dto.getNamespaceId()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 
@@ -144,7 +144,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         for (DivideUpstream divideUpstream : needToRemove) {
             removeDiscoveryUpstream(selectorDO.getId(), divideUpstream.getUpstreamUrl());
         }
-        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
         getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
