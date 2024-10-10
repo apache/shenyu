@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
@@ -41,42 +42,41 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         weights[0] = firstUpstreamWeight;
         // init the totalWeight
         int totalWeight = firstUpstreamWeight;
-        int halfLengthTotalWeight = 0;
         for (int i = 1; i < length; i++) {
             int currentUpstreamWeight = getWeight(upstreamList.get(i));
-            if (i <= (length + 1) / 2) {
-                halfLengthTotalWeight = totalWeight;
-            }
-            weights[i] = currentUpstreamWeight;
             totalWeight += currentUpstreamWeight;
+            weights[i] = totalWeight;
             if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
                 sameWeight = false;
             }
         }
         if (totalWeight > 0 && !sameWeight) {
-            return random(totalWeight, halfLengthTotalWeight, weights, upstreamList);
+            return random(totalWeight, weights, upstreamList, length);
         }
         return random(upstreamList);
     }
 
-    private Upstream random(final int totalWeight, final int halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
+    private Upstream random(final int totalWeight, final int[] weights, final List<Upstream> upstreamList, final int length) {
         // If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
         int offset = RANDOM.nextInt(totalWeight);
-        int index = 0;
-        int end = weights.length;
-        if (offset >= halfLengthTotalWeight) {
-            index = (weights.length + 1) / 2;
-            offset -= halfLengthTotalWeight;
-        } else {
-            end = (weights.length + 1) / 2;
-        }
-        // Determine which segment the random value falls on
-        for (; index < end; index++) {
-            offset -= weights[index];
-            if (offset < 0) {
-                return upstreamList.get(index);
+        if (length <= 4) {
+            for (int i = 0; i < length; i++) {
+                if (offset < weights[i]) {
+                    return upstreamList.get(i);
+                }
             }
+        } else {
+            int i = Arrays.binarySearch(weights, offset);
+            if (i < 0) {
+                i = -i - 1;
+            } else {
+                while (weights[i + 1] == offset) {
+                    i++;
+                }
+                i++;
+            }
+            return upstreamList.get(i);
         }
         return random(upstreamList);
     }
