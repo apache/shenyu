@@ -226,16 +226,8 @@
 
     <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
-        npr.id AS id,
-        npr.namespace_id AS namespaceId,
-        npr.plugin_id AS pluginId,
-        npr.config AS config,
-        npr.sort AS sort,
-        npr.enabled AS enabled,
-        npr.date_created AS dateCreated,
-        npr.date_updated AS dateUpdated
-        FROM namespace_plugin_rel npr
-        WHERE npr.id IN
+        <include refid="Base_Column_List"/>
+        WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
