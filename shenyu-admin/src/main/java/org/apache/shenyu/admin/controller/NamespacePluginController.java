@@ -43,11 +43,11 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -76,12 +76,14 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
-    public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
+    @GetMapping
+    public ShenyuAdminResult queryPlugins(@RequestParam(name = "name", required = false) final String name,
+                                          @RequestParam(name = "enabled", required = false) final Integer enabled,
                                           @Existed(message = "namespace is not existed",
-                                                  provider = NamespaceMapper.class) final String namespaceId,
-                                          @NotNull final Integer currentPage,
-                                          @NotNull final Integer pageSize) {
+                                                  provider = NamespaceMapper.class)
+                                          @RequestParam(name = "namespaceId") final String namespaceId,
+                                          @NotNull @RequestParam(name = "currentPage") final Integer currentPage,
+                                          @NotNull @RequestParam(name = "pageSize") final Integer pageSize) {
         CommonPager<NamespacePluginVO> commonPager = namespacePluginService.listByPage(new NamespacePluginQuery(name, enabled, new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
@@ -93,8 +95,8 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{namespaceId}")
-    public ShenyuAdminResult queryAllPlugins(@PathVariable("namespaceId")
-                                             @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId) {
+    public ShenyuAdminResult queryAllNamespacePlugins(@Existed(message = "namespace is not existed", provider = NamespaceMapper.class)
+                                             @PathVariable("namespaceId") final String namespaceId) {
         List<PluginData> pluginDataList = namespacePluginService.listAll(namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
     }
@@ -102,52 +104,49 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * detail plugin of namespace.
      *
-     * @param namespaceId namespace id.
-     * @param pluginId    pluginId.
+     * @param id namespace plugin relation id.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{pluginId}/{namespaceId}")
+    @GetMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult detailPlugin(@PathVariable("namespaceId")
-                                          @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                          @PathVariable("pluginId")
-                                          @Existed(message = "pluginId is not existed", provider = NamespacePluginRelMapper.class) final String pluginId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
+    public ShenyuAdminResult detailNamespacePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+                                                   @PathVariable("id") final String id) {
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
     }
-
-//    /**
-//     * create plugin.
-//     *
-//     * @param pluginDTO plugin.
-//     * @return {@linkplain ShenyuAdminResult}
-//     */
-//    @PostMapping("")
-//    @RequiresPermissions("system:plugin:add")
-//    public ShenyuAdminResult createPlugin(@Valid @ModelAttribute final PluginDTO pluginDTO) {
-//        return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
-//    }
-
 
     /**
      * update plugin of namespace.
      *
-     * @param namespaceId        namespace id.
-     * @param pluginId           primary key.
+     * @param id                namespace plugin relation id.
      * @param namespacePluginDTO plugin namespace.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/pluginId={pluginId}&namespaceId={namespaceId}")
+    @PutMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult updatePlugin(@PathVariable("namespaceId")
-                                          @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                          @PathVariable("pluginId")
-                                          @Existed(message = "PluginMapper is not existed", provider = PluginMapper.class) final String pluginId,
-                                          @Valid @ModelAttribute final NamespacePluginDTO namespacePluginDTO) {
-        namespacePluginDTO.setPluginId(pluginId);
-        namespacePluginDTO.setNamespaceId(namespaceId);
+    public ShenyuAdminResult updatePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+                                          @PathVariable("id") final String id,
+                                          @Valid @RequestBody final NamespacePluginDTO namespacePluginDTO) {
+        namespacePluginDTO.setId(id);
         return ShenyuAdminResult.success(namespacePluginService.update(namespacePluginDTO));
     }
+
+    /**
+     * add plugin of namespace.
+     *
+     * @param namespaceId        namespaceId.
+     * @param pluginId           pluginId.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/{namespaceId}/{pluginId}")
+    @RequiresPermissions("system:plugin:edit")
+    public ShenyuAdminResult addPlugin(@Existed(message = "namespace is not exist", provider = NamespaceMapper.class)
+                                          @PathVariable("namespaceId") final String namespaceId,
+                                       @Existed(message = "plugin is not exist", provider = PluginMapper.class)
+                                       @PathVariable("pluginId") final String pluginId) {
+        return ShenyuAdminResult.success(namespacePluginService.create(namespaceId, pluginId));
+    }
+
 
 
     /**
@@ -158,8 +157,8 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      */
     @DeleteMapping("/batch")
     @RequiresPermissions("system:plugin:delete")
-    public ShenyuAdminResult deletePlugins(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        final String result = namespacePluginService.delete(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+    public ShenyuAdminResult deleteNamespacePlugin(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
+        final String result = namespacePluginService.delete(batchNamespaceCommonDTO.getIds());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
@@ -175,7 +174,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     @PostMapping("/enabled")
     @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult enabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        final String result = namespacePluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId());
+        final String result = namespacePluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
@@ -202,17 +201,13 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * Sync plugin data of namespace.
      *
-     * @param namespaceId namespace id.
-     * @param id          the id
+     * @param id the id
      * @return the mono
      */
-    @PutMapping("/syncPluginData/id={id}&namespaceId={namespaceId}")
-    public ShenyuAdminResult syncPluginData(@PathVariable("namespaceId")
-                                            @Existed(message = "namespace is not existed", provider = NamespaceMapper.class) final String namespaceId,
-                                            @PathVariable("id")
-                                            @Existed(message = "plugin is not existed",
-                                                    provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id, namespaceId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+    @PutMapping("/syncPluginData")
+    public ShenyuAdminResult syncPluginData(@Existed(message = "namespace plugin is not existed", provider = NamespacePluginRelMapper.class)
+                                            @RequestParam("id") final String id) {
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
 
     /**

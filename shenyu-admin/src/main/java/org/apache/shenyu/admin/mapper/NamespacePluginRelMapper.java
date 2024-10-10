@@ -35,16 +35,23 @@ import java.util.List;
  */
 @Mapper
 public interface NamespacePluginRelMapper extends ExistProvider {
+    
+    /**
+     * select namespace plugin by id.
+     *
+     * @param id primary key
+     * @return NamespacePluginVO
+     */
+    NamespacePluginVO selectById(String id);
 
     /**
      * existed.
      *
-     * @param pluginId pluginId
+     * @param id id
      * @return existed
      */
     @Override
-    Boolean existed(@Param("pluginId") Serializable pluginId);
-
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * Batch save int.
@@ -110,20 +117,18 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * select plugin by ids and namespaceId.
      *
      * @param ids   primary keys.
-     * @param namespaceId namespaceId.
      * @return {@linkplain NamespacePluginRelDO}
      */
-    List<NamespacePluginVO> selectByIdsAndNamespaceId(List<String> ids, String namespaceId);
+    List<NamespacePluginVO> selectByIds(List<String> ids);
 
 
     /**
      * delete plugin by ids and namespaceId.
      *
      * @param ids         primary keys.
-     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
+    int deleteByIds(List<String> ids);
 
     /**
      * select all by namespaceId.
@@ -148,4 +153,12 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return the count of enabled datas
      */
     int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+
+    /**
+     * insert selective plugin.
+     *
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
+     * @return rows int
+     */
+    int insertSelective(NamespacePluginRelDO namespacePluginRelDO);
 }
