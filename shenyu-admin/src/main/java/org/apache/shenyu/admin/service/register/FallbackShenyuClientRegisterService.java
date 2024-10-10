@@ -72,7 +72,12 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         }
         return result;
     }
-
+    
+    @Override
+    public String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+        return doHeartbeat(selectorName, uriList);
+    }
+    
     private void addFallback(final String key, final FallbackHolder holder) {
         FallbackHolder oldObj = fallsRegisters.get(key);
         if (Objects.nonNull(oldObj)) {
@@ -110,6 +115,15 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList);
+
+    /**
+     * Heartbeat.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @return the string
+     */
+    abstract String doHeartbeat(String selectorName, List<URIRegisterDTO> uriList);
 
     /**
      * The type Fall holder.
