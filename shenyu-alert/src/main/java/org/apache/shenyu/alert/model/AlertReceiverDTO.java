@@ -153,6 +153,11 @@ public class AlertReceiverDTO implements Serializable {
      * match alert labels.
      */
     private Map<String, String> labels;
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
     
     /**
      * create time.
@@ -563,7 +568,23 @@ public class AlertReceiverDTO implements Serializable {
     public void setLevels(final List<Byte> levels) {
         this.levels = levels;
     }
-    
+
+    /**
+     * get namespaceId.
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     /**
      * get dateCreated.
      *

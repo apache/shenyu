@@ -17,35 +17,34 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * Alert Receiver Controller.
  */
 @RestApi("/alert/receiver")
 public class AlertReceiverController {
-    
+
     @Autowired
     private AlertReceiverService alertReceiverService;
     
@@ -76,12 +75,12 @@ public class AlertReceiverController {
     /**
      * delete alert receiver.
      *
-     * @param ids primary key.
+     * @param batchNamespaceCommonDTO batchNamespaceCommonDTO.
      * @return result
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteReceiver(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        alertReceiverService.deleteReceiver(ids);
+    public ShenyuAdminResult deleteReceiver(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
+        alertReceiverService.deleteByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
     
@@ -89,11 +88,16 @@ public class AlertReceiverController {
      * delete alert receiver.
      *
      * @param id alertReceiver ID
+     * @param namespaceId namespaceId.
      * @return result
      */
-    @GetMapping("/{id}")
-    public ShenyuAdminResult getReceiverDetail(@PathVariable("id") final String id) {
-        AlertReceiverDTO receiverDTO = alertReceiverService.detail(id);
+    @GetMapping("/{id}/{namespaceId}")
+    public ShenyuAdminResult getReceiverDetail(@PathVariable("id") final String id,
+                                               @PathVariable("namespaceId") @Valid
+                                               @Existed(provider = NamespaceMapper.class,
+                                               message = "namespaceId is not existed")
+        final String namespaceId) {
+        AlertReceiverDTO receiverDTO = alertReceiverService.detail(id, namespaceId);
         return ShenyuAdminResult.success(receiverDTO);
     }
     
@@ -101,12 +105,16 @@ public class AlertReceiverController {
      * query receiver.
      * @param currentPage current page
      * @param pageSize page size
+     * @param namespaceId namespaceId.
      * @return receiver
      */
     @GetMapping
     public ShenyuAdminResult getReceivers(@RequestParam @NotNull final Integer currentPage,
-                                            @RequestParam @NotNull final Integer pageSize) {
-        CommonPager<AlertReceiverDTO> commonPager = alertReceiverService.listByPage(new AlertReceiverQuery(new PageParameter(currentPage, pageSize)));
+                                          @RequestParam @NotNull final Integer pageSize,
+                                          @Valid @Existed(message = "namespaceId is not existed",
+                                                  provider = NamespaceMapper.class) final String namespaceId
+    ) {
+        CommonPager<AlertReceiverDTO> commonPager = alertReceiverService.listByPage(new AlertReceiverQuery(new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(commonPager);
     }
     

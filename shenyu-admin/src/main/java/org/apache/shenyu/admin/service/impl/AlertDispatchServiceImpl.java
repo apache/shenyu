@@ -156,6 +156,12 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                         return true;
                     }
 
+                    if (!Objects.isNull(item.getNamespaceId())) {
+                        boolean namespaceIdMatch = Objects.equals(item.getNamespaceId(), alert.getNamespaceId());
+                        if (!namespaceIdMatch) {
+                            return false;
+                        }
+                    }
                     if (!CollectionUtils.isEmpty(item.getLevels())) {
                         boolean levelMatch = item.getLevels().stream().anyMatch(level -> level == alert.getLevel());
                         if (!levelMatch) {
