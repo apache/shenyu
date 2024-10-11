@@ -106,7 +106,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
-        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level, namespaceId));
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(pluginName, level, namespaceId));
     }
 
     @Override
@@ -145,7 +145,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
-        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
