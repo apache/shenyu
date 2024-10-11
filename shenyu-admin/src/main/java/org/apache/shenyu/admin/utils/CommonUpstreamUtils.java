@@ -150,16 +150,14 @@ public class CommonUpstreamUtils {
      *
      * @param host the host
      * @param port the port
-     * @param namespaceId the namespaceId
      * @return the dubbo upstream
      */
-    public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port, final String namespaceId) {
+    public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port) {
         return DubboUpstream.builder().upstreamHost(LOCALHOST)
                 .protocol("dubbo://").upstreamUrl(buildUrl(host, port))
                 .weight(DEFAULT_WEIGHT).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
-                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -209,15 +207,13 @@ public class CommonUpstreamUtils {
      *
      * @param host the host
      * @param port the port
-     * @param namespaceId the namespaceId
      * @return the tars upstream
      */
-    public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port, final String namespaceId) {
+    public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port) {
         return TarsUpstream.builder().upstreamUrl(buildUrl(host, port))
                 .weight(DEFAULT_WEIGHT).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
-                .namespaceId(namespaceId)
                 .build();
     }
 

@@ -46,12 +46,11 @@ public final class TarsUpstream extends CommonUpstream {
         }
         setUpstreamHost(builder.upstreamHost);
         setProtocol(builder.protocol);
-        setUpstreamUrl(builder.upstreamUrl);
+        setUpstreamUrl(builder.upstreamUrl); 
         this.weight = builder.weight;
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
-        setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -62,7 +61,7 @@ public final class TarsUpstream extends CommonUpstream {
     public static Builder builder() {
         return new Builder();
     }
-
+    
     /**
      * get weight.
      *
@@ -80,7 +79,7 @@ public final class TarsUpstream extends CommonUpstream {
     public void setWeight(final int weight) {
         this.weight = weight;
     }
-
+    
     /**
      * get warmup.
      *
@@ -108,15 +107,12 @@ public final class TarsUpstream extends CommonUpstream {
             return false;
         }
         TarsUpstream that = (TarsUpstream) o;
-        return Objects.equals(getUpstreamHost(), that.getUpstreamHost())
-                && Objects.equals(getProtocol(), that.getProtocol())
-                && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl())
-                && Objects.equals(getNamespaceId(), that.getNamespaceId());
+        return Objects.equals(getUpstreamHost(), that.getUpstreamHost()) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl(), getNamespaceId());
+        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl());
     }
 
     @Override
@@ -139,8 +135,6 @@ public final class TarsUpstream extends CommonUpstream {
                 + getTimestamp()
                 + ", warmup="
                 + warmup
-                + ", namespaceId="
-                + getNamespaceId()
                 + '}';
     }
 
@@ -188,12 +182,7 @@ public final class TarsUpstream extends CommonUpstream {
          * warmup.
          */
         private int warmup;
-
-        /**
-         * namespaceId.
-         */
-        private String namespaceId;
-
+        
         /**
          * no args constructor.
          */
@@ -284,17 +273,6 @@ public final class TarsUpstream extends CommonUpstream {
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;
-            return this;
-        }
-
-        /**
-         * build namespaceId.
-         *
-         * @param namespaceId namespaceId
-         * @return this
-         */
-        public Builder namespaceId(final String namespaceId) {
-            this.namespaceId = namespaceId;
             return this;
         }
     }

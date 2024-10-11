@@ -81,7 +81,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildDefaultDubboUpstream() {
-        DubboUpstream dubboUpstream = CommonUpstreamUtils.buildDefaultDubboUpstream(HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
+        DubboUpstream dubboUpstream = CommonUpstreamUtils.buildDefaultDubboUpstream(HOST, PORT);
         Assert.assertNotNull(dubboUpstream);
         Assert.assertEquals(HOST + ":" + PORT, dubboUpstream.getUpstreamUrl());
         Assert.assertEquals("dubbo://", dubboUpstream.getProtocol());
