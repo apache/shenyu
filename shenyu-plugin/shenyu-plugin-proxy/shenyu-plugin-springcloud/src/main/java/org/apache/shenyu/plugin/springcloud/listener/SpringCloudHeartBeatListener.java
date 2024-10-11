@@ -23,10 +23,11 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import static org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler.SELECTOR_CACHED;
+
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.context.ApplicationListener;
 
@@ -40,12 +41,9 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
     
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudHeartBeatListener.class);
     
-    private final DiscoveryClient discoveryClient;
-    
     private final SpringCloudCacheConfig cacheConfig;
     
-    public SpringCloudHeartBeatListener(final DiscoveryClient discoveryClient, final SpringCloudCacheConfig cacheConfig) {
-        this.discoveryClient = discoveryClient;
+    public SpringCloudHeartBeatListener(final SpringCloudCacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
     }
     
@@ -61,7 +59,7 @@ public class SpringCloudHeartBeatListener implements ApplicationListener<Heartbe
         }
         map.forEach((key, value) -> {
             String serviceId = value.getServiceId();
-            List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances(serviceId);
+            List<InstanceEntity> serviceInstanceList = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
             ServiceInstanceCache.cacheServiceInstance(serviceId, serviceInstanceList);
         });
     }
