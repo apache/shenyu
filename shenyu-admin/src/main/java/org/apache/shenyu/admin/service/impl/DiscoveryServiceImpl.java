@@ -145,8 +145,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
-        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(discoveryConfigRegisterDTO.getPluginName()
-                , DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(discoveryConfigRegisterDTO.getPluginName(),
+                DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
