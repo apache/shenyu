@@ -29,6 +29,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +72,11 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     public List<InstanceEntity> selectInstances(final String selectKey) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
-                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
+                childrenList.values().stream().map(x -> {
+                    InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(x, InstanceEntity.class);
+                    instanceEntity.setUri(getURI(x, instanceEntity.getPort(), instanceEntity.getHost()));
+                    return instanceEntity;
+                }).collect(Collectors.toList());
         if (watcherInstanceRegisterMap.containsKey(selectKey)) {
             return getInstanceRegisterFun.apply(client.getKeysMapByPrefix(watchKey));
         }
@@ -97,6 +102,12 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(serverNodes);
         watcherInstanceRegisterMap.put(selectKey, instanceEntities);
         return instanceEntities;
+    }
+
+    private URI getURI(final String instanceRegisterJsonStr, final int port, final String host) {
+        String scheme = (instanceRegisterJsonStr.contains("https") || instanceRegisterJsonStr.contains("HTTPS")) ? "https" : "http";
+        String uri = String.format("%s://%s:%s", scheme, host, port);
+        return URI.create(uri);
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

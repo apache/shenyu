@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.springcloud.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.springframework.cloud.client.ServiceInstance;
 
 import java.util.Collections;
@@ -31,7 +32,7 @@ import java.util.Optional;
  */
 public class ServiceInstanceCache {
     
-    private static final Map<String, List<ServiceInstance>> SERVICE_INSTANCE_MAP = Maps.newConcurrentMap();
+    private static final Map<String, List<InstanceEntity>> SERVICE_INSTANCE_MAP = Maps.newConcurrentMap();
     
     /**
      * Cache service instance.
@@ -39,7 +40,7 @@ public class ServiceInstanceCache {
      * @param serviceId      service id
      * @param serviceInstances service instance list
      */
-    public static void cacheServiceInstance(final String serviceId, final List<ServiceInstance> serviceInstances) {
+    public static void cacheServiceInstance(final String serviceId, final List<InstanceEntity> serviceInstances) {
         if (StringUtils.isNotBlank(serviceId)) {
             SERVICE_INSTANCE_MAP.put(serviceId, Optional.ofNullable(serviceInstances).orElse(Collections.emptyList()));
         }
@@ -50,7 +51,7 @@ public class ServiceInstanceCache {
      * @param serviceId service id
      * @return the list of {@linkplain ServiceInstance}
      */
-    public static List<ServiceInstance> getServiceInstance(final String serviceId) {
+    public static List<InstanceEntity> getServiceInstance(final String serviceId) {
         if (StringUtils.isBlank(serviceId)) {
             return Collections.emptyList();
         }
