@@ -38,7 +38,25 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-registry</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-eureka</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--            <version>4.1.2</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.springframework.cloud</groupId>-->
+<!--                    <artifactId>spring-cloud-starter-loadbalancer</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 
     </dependencies>
 
