@@ -161,7 +161,6 @@ public class RegisterConfig {
         int result = getRegisterType() != null ? getRegisterType().hashCode() : 0;
         result = 31 * result + (getServerLists() != null ? getServerLists().hashCode() : 0);
 
-        // 对 Props 进行处理
         if (getProps() != null) {
             for (Map.Entry<Object, Object> entry : getProps().entrySet()) {
                 result = 31 * result + (entry.getKey() != null ? entry.getKey().hashCode() : 0);

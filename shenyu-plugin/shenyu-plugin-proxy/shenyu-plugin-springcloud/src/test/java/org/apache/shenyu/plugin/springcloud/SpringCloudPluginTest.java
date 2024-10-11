@@ -17,28 +17,18 @@
 
 package org.apache.shenyu.plugin.springcloud;
 
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.web.server.ServerWebExchange;
-import java.net.URISyntaxException;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -47,22 +37,32 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For {@link SpringCloudPlugin}.
@@ -97,19 +97,6 @@ public final class SpringCloudPluginTest {
         chain = mock(ShenyuPluginChain.class);
         selector = SelectorData.builder().id("1").enabled(true).build();
 
-//        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
-//        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-//        defaultServiceInstance.setServiceId("serviceId");
-//        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
-//        defaultServiceInstance.setInstanceId("serviceId");
-//        defaultServiceInstance.setPort(8080);
-//        defaultServiceInstance.setHost("localhost");
-//        serviceInstanceList.add(defaultServiceInstance);
-//        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-//        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-//        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
-//        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-//        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         ShenyuSpringCloudServiceChooser loadBalancerClient = mock(ShenyuSpringCloudServiceChooser.class);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
