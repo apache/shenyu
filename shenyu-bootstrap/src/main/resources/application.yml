@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 91951
+  port: 9195
   address: 0.0.0.0
   compression:
     enabled: true
