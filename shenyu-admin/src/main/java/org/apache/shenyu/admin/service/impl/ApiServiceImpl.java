@@ -109,7 +109,6 @@ public class ApiServiceImpl implements ApiService {
      * @return update message
      */
     private String update(final ApiDTO apiDTO) {
-        //cdbuild apiDO
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (updateRows > 0) {
