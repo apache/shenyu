@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.ScaleHistoryMapper">
+  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="config_id" jdbcType="INTEGER" property="configId" />
+    <result column="num" jdbcType="INTEGER" property="num" />
+    <result column="action" jdbcType="INTEGER" property="action" />
+    <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
+    <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    <result column="msg" jdbcType="LONGVARCHAR" property="msg" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, config_id, num, `action`, date_created, date_updated
+  </sql>
+  <sql id="Blob_Column_List">
+    msg
+  </sql>
+  <select id="existed" resultType="java.lang.Boolean">
+    SELECT true
+    FROM scale_history
+    WHERE id = #{id}
+    LIMIT 1
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from scale_history
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from scale_history
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into scale_history (config_id, num, `action`, 
+      date_created, date_updated, msg
+      )
+    values (#{configId,jdbcType=INTEGER}, #{num,jdbcType=INTEGER}, #{action,jdbcType=INTEGER}, 
+      #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}, #{msg,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into scale_history
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="configId != null">
+        config_id,
+      </if>
+      <if test="num != null">
+        num,
+      </if>
+      <if test="action != null">
+        `action`,
+      </if>
+      <if test="dateCreated != null">
+        date_created,
+      </if>
+      <if test="dateUpdated != null">
+        date_updated,
+      </if>
+      <if test="msg != null">
+        msg,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="configId != null">
+        #{configId,jdbcType=INTEGER},
+      </if>
+      <if test="num != null">
+        #{num,jdbcType=INTEGER},
+      </if>
+      <if test="action != null">
+        #{action,jdbcType=INTEGER},
+      </if>
+      <if test="dateCreated != null">
+        #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="msg != null">
+        #{msg,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    update scale_history
+    <set>
+      <if test="configId != null">
+        config_id = #{configId,jdbcType=INTEGER},
+      </if>
+      <if test="num != null">
+        num = #{num,jdbcType=INTEGER},
+      </if>
+      <if test="action != null">
+        `action` = #{action,jdbcType=INTEGER},
+      </if>
+      <if test="dateCreated != null">
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="msg != null">
+        msg = #{msg,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    update scale_history
+    set config_id = #{configId,jdbcType=INTEGER},
+      num = #{num,jdbcType=INTEGER},
+      `action` = #{action,jdbcType=INTEGER},
+      date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+      msg = #{msg,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
+    update scale_history
+    set config_id = #{configId,jdbcType=INTEGER},
+      num = #{num,jdbcType=INTEGER},
+      `action` = #{action,jdbcType=INTEGER},
+      date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM scale_history
+  </select>
+</mapper>

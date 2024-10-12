@@ -140,6 +140,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+        discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
         List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
@@ -181,6 +182,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             discoverySyncData.setSelectorName(proxySelectorDTO.getName());
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);
         }
@@ -209,6 +211,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+        discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
                 new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
     }
