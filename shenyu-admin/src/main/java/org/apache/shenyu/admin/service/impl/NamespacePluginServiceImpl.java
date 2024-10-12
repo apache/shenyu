@@ -96,7 +96,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
         if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {
             final NamespacePluginVO now = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
-            // publish update event.
+            // publish update  event.
             namespacePluginEventPublisher.onUpdated(now, before);
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
