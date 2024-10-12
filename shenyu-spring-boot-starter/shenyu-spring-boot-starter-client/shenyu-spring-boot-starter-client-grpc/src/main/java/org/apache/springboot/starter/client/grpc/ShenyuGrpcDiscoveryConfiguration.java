@@ -24,6 +24,7 @@ import org.apache.shenyu.client.core.register.InstanceRegisterListener;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -43,16 +44,20 @@ public class ShenyuGrpcDiscoveryConfiguration {
      *
      * @param clientRegisterConfig  clientRegisterConfig
      * @param shenyuDiscoveryConfig shenyuDiscoveryConfig
+     * @param shenyuClientConfig    shenyuClientConfig
      * @return InstanceRegisterListener
      */
     @Bean("grpcInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig, final ShenyuDiscoveryConfig shenyuDiscoveryConfig) {
+    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,
+                                                             final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
+                                                             final ShenyuClientConfig shenyuClientConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setUrl(clientRegisterConfig.getHost() + ":" + clientRegisterConfig.getPort());
         discoveryUpstreamData.setStatus(0);
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse(ShenyuClientConstants.HTTP));
+        discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 
@@ -62,6 +67,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
      * @param shenyuDiscoveryConfig        shenyuDiscoveryConfig
      * @param httpClientRegisterRepository httpClientRegisterRepository
      * @param clientRegisterConfig         clientRegisterConfig
+     * @param shenyuClientConfig           shenyuClientConfig
      * @return ClientDiscoveryConfigRefreshedEventListener
      */
     @Bean("GrpcClientDiscoveryConfigRefreshedEventListener")
@@ -69,8 +75,9 @@ public class ShenyuGrpcDiscoveryConfiguration {
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository,
-                                                                                                   final ClientRegisterConfig clientRegisterConfig) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.GRPC);
+                                                                                                   final ClientRegisterConfig clientRegisterConfig,
+                                                                                                   final ShenyuClientConfig shenyuClientConfig) {
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.GRPC, shenyuClientConfig);
     }
 
 }

@@ -2434,3 +2434,9 @@ ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMM
 ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
 
 ALTER TABLE `shenyu`.`alert_receiver` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `levels`;
+
+ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+
+ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+
+ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
