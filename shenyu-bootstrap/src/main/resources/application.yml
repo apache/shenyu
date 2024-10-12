@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 9195
+  port: 9095
   address: 0.0.0.0
   compression:
     enabled: true
@@ -233,7 +233,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
+      allowOrigin: ws://localhost:9095
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080

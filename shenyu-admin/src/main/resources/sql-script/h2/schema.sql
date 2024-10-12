@@ -1406,3 +1406,5 @@ ALTER TABLE `discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'name
 ALTER TABLE `discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
 
 ALTER TABLE `proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
+
+ALTER TABLE `alert_receiver` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `levels`;
