@@ -2762,6 +2762,10 @@ COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
 ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> d7587c6b9fc2a92a1274b9234e760d60438e0242
 ALTER TABLE "public"."alert_receiver" ADD COLUMN `namespace_id` VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
 
