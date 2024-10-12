@@ -34,7 +34,8 @@ public class SpringCloudPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.SPRING_CLOUD.getName(), "");
+        String pluginResult = initPlugin(PluginEnum.SPRING_CLOUD.getName(),
+                "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\"}");
         assertThat(pluginResult, is("success"));
     }
 
