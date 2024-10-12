@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
@@ -77,15 +78,15 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
 
     @Override
-    public String create(final String namespaceId, final String pluginId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
-        if (!Objects.isNull(namespacePluginVO)) {
-            return AdminConstants.NAMESPACE_PLUGIN_EXIST;
+    public NamespacePluginVO create(final String namespaceId, final String pluginId) {
+        NamespacePluginVO existNamespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        if (!Objects.isNull(existNamespacePluginVO)) {
+            throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
         namespacePluginRelMapper.insertSelective(namespacePluginRelDO);
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
     }
 
     @Override

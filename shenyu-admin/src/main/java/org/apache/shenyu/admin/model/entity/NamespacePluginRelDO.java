@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
-
+import org.apache.shenyu.common.utils.UUIDUtils;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
@@ -173,7 +173,7 @@ public final class NamespacePluginRelDO extends BaseDO {
         return Optional.ofNullable(namespacePluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             return NamespacePluginRelDO.builder()
-                    .id(item.getId())
+                    .id(UUIDUtils.getInstance().generateShortUuid())
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
@@ -195,7 +195,7 @@ public final class NamespacePluginRelDO extends BaseDO {
         return Optional.ofNullable(pluginDO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             return NamespacePluginRelDO.builder()
-                    .id(item.getId())
+                    .id(UUIDUtils.getInstance().generateShortUuid())
                     .config(item.getConfig())
                     .enabled(item.getEnabled())
                     .sort(item.getSort())
