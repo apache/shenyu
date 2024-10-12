@@ -283,11 +283,7 @@ ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."app_auth" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
-<<<<<<< HEAD
-gi
-=======
 
->>>>>>> d7587c6b9fc2a92a1274b9234e760d60438e0242
 ALTER TABLE "public"."alert_receiver" ADD COLUMN namespace_id VARCHAR(50) NULL;
 COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
 
