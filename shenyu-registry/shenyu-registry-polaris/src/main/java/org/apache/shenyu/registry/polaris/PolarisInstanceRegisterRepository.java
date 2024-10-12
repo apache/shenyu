@@ -28,6 +28,8 @@ import com.tencent.polaris.api.rpc.InstancesResponse;
 import com.tencent.polaris.client.api.SDKContext;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,6 +128,7 @@ public class PolarisInstanceRegisterRepository implements ShenyuInstanceRegister
         instanceEntity.setPort(instance.getPort());
         instanceEntity.setHost(instance.getHost());
         instanceEntity.setAppName(instance.getService());
+        instanceEntity.setUri(URI.create(String.format("%s://%s:%s", instance.getProtocol(), instance.getHost(), instance.getPort())));
         return instanceEntity;
     }
 
