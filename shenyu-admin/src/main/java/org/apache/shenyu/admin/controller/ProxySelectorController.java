@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -26,6 +27,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,14 +57,17 @@ public class ProxySelectorController {
      * @param name        name
      * @param currentPage currentPage
      * @param pageSize    pageSize
+     * @param namespaceId namespaceId
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
     public ShenyuAdminResult queryProxySelector(final String name, @NotNull final Integer currentPage,
-                                                @NotNull final Integer pageSize) {
+                                                @NotNull final Integer pageSize,
+                                                @Existed(message = "namespace is not existed",
+                                                        provider = NamespaceMapper.class) final String namespaceId) {
 
         CommonPager<ProxySelectorVO> commonPager = proxySelectorService
-                .listByPage(new ProxySelectorQuery(name, new PageParameter(currentPage, pageSize)));
+                .listByPage(new ProxySelectorQuery(name, new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 

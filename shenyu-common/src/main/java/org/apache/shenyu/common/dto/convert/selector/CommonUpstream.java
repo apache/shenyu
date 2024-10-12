@@ -50,6 +50,11 @@ public class CommonUpstream {
     private long timestamp;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -172,6 +177,24 @@ public class CommonUpstream {
         return true;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -181,12 +204,15 @@ public class CommonUpstream {
             return false;
         }
         CommonUpstream that = (CommonUpstream) o;
-        return Objects.equals(upstreamHost, that.upstreamHost) && Objects.equals(protocol, that.protocol) && Objects.equals(upstreamUrl, that.upstreamUrl);
+        return Objects.equals(upstreamHost, that.upstreamHost)
+                && Objects.equals(protocol, that.protocol)
+                && Objects.equals(upstreamUrl, that.upstreamUrl)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId);
     }
 
     @Override
@@ -205,6 +231,8 @@ public class CommonUpstream {
                 + status
                 + ", timestamp="
                 + timestamp
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
 }

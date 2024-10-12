@@ -40,6 +40,8 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
 
     private Properties props;
 
+    private String namespaceId;
+
     public DiscoveryConfigRegisterDTO() {
     }
 
@@ -64,6 +66,7 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         pluginName = builder.pluginName;
         listenerNode = builder.listenerNode;
         handler = builder.handler;
+        namespaceId = builder.namespaceId;
     }
 
     @Override
@@ -225,6 +228,24 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         this.listenerNode = listenerNode;
     }
 
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     public static final class Builder {
 
         private String selectorName;
@@ -242,6 +263,8 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
         private String handler;
 
         private Properties props;
+
+        private String namespaceId;
 
         private Builder() {
         }
@@ -334,6 +357,17 @@ public class DiscoveryConfigRegisterDTO implements DataTypeParent {
          */
         public Builder pluginName(final String pluginName) {
             this.pluginName = pluginName;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return SelectorDOBuilder
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
 
