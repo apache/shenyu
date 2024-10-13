@@ -141,7 +141,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         String namespaceId = changed.stream().map(AppAuthData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
         this.updateAppAuthCache(namespaceId);
-        this.afterAppAuthChanged(changed, eventType,namespaceId);
+        this.afterAppAuthChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -160,7 +160,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         String namespaceId = changed.stream().map(MetaData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
         this.updateMetaDataCache(namespaceId);
-        this.afterMetaDataChanged(changed, eventType,namespaceId);
+        this.afterMetaDataChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -218,7 +218,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         String namespaceId = changed.stream().map(SelectorData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
         this.updateSelectorCache(namespaceId);
-        this.afterSelectorChanged(changed, eventType,namespaceId);
+        this.afterSelectorChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -257,7 +257,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         String namespaceId = changed.stream().map(DiscoverySyncData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
         this.updateDiscoveryUpstreamDataCache(namespaceId);
-        this.afterDiscoveryUpstreamDataChanged(changed, eventType,namespaceId);
+        this.afterDiscoveryUpstreamDataChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -295,7 +295,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
         String json = GsonUtils.getInstance().toJson(data);
-        String  configDataCacheKey = namespaceId + "_" + group.name();
+        String configDataCacheKey = namespaceId + "_" + group.name();
         ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
