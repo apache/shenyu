@@ -73,7 +73,7 @@ public final class AbstractDataChangedListenerTest {
     private ProxySelectorService proxySelectorService;
 
     private DiscoveryUpstreamService discoveryUpstreamService;
-    
+
     private NamespaceService namespaceService;
 
     @BeforeEach
@@ -176,10 +176,10 @@ public final class AbstractDataChangedListenerTest {
         List<AppAuthData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onAppAuthChanged(empty, eventType);
-        assertFalse(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
+        assertFalse(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.APP_AUTH.name()));
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         listener.onAppAuthChanged(appAuthDatas, eventType);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.APP_AUTH.name()));
     }
 
     @Test
@@ -187,10 +187,10 @@ public final class AbstractDataChangedListenerTest {
         List<MetaData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onMetaDataChanged(empty, eventType);
-        assertFalse(listener.getCache().containsKey(ConfigGroupEnum.META_DATA.name()));
+        assertFalse(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.META_DATA.name()));
         List<MetaData> metaDatas = Lists.newArrayList(mock(MetaData.class));
         listener.onMetaDataChanged(metaDatas, eventType);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.META_DATA.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.META_DATA.name()));
     }
 
     @Test
@@ -198,13 +198,13 @@ public final class AbstractDataChangedListenerTest {
         List<PluginData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onPluginChanged(empty, eventType);
-        assertFalse(listener.getCache().containsKey(ConfigGroupEnum.PLUGIN.name()));
+        assertFalse(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.PLUGIN.name()));
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
         PluginData pluginData = new PluginData();
         pluginData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         pluginDatas.set(0, pluginData);
         listener.onPluginChanged(pluginDatas, eventType);
-        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + ConfigGroupEnum.PLUGIN.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.PLUGIN.name()));
     }
 
     @Test
@@ -212,10 +212,10 @@ public final class AbstractDataChangedListenerTest {
         List<RuleData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onRuleChanged(empty, eventType);
-        assertFalse(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
+        assertFalse(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.RULE.name()));
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
         listener.onRuleChanged(ruleDatas, eventType);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.RULE.name()));
     }
 
     @Test
@@ -223,27 +223,27 @@ public final class AbstractDataChangedListenerTest {
         List<SelectorData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);
         listener.onSelectorChanged(empty, eventType);
-        assertFalse(listener.getCache().containsKey(ConfigGroupEnum.SELECTOR.name()));
+        assertFalse(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.SELECTOR.name()));
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));
         listener.onSelectorChanged(selectorDatas, eventType);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.SELECTOR.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.SELECTOR.name()));
     }
 
     @Test
     public void testAfterPropertiesSet() {
         listener.afterPropertiesSet();
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
-        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + ConfigGroupEnum.PLUGIN.name()));
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.RULE.name()));
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.SELECTOR.name()));
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.META_DATA.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.APP_AUTH.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.PLUGIN.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.RULE.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.SELECTOR.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.META_DATA.name()));
     }
 
     @Test
     public void testUpdateCache() {
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         listener.updateCache(ConfigGroupEnum.APP_AUTH, appAuthDatas, SYS_DEFAULT_NAMESPACE_ID);
-        assertTrue(listener.getCache().containsKey(ConfigGroupEnum.APP_AUTH.name()));
+        assertTrue(listener.getCache().containsKey(SYS_DEFAULT_NAMESPACE_ID + "_" + ConfigGroupEnum.APP_AUTH.name()));
     }
 
     static class MockAbstractDataChangedListener extends AbstractDataChangedListener {
