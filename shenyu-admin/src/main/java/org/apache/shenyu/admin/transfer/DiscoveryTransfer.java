@@ -59,6 +59,7 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamData).map(data -> DiscoveryUpstreamDO.builder()
             .discoveryHandlerId(data.getDiscoveryHandlerId())
             .id(data.getId())
+            .namespaceId(data.getNamespaceId())
             .protocol(data.getProtocol())
             .status(data.getStatus())
             .weight(data.getWeight())
@@ -133,6 +134,7 @@ public enum DiscoveryTransfer {
             DiscoveryVO discoveryVO = new DiscoveryVO();
             discoveryVO.setId(data.getId());
             discoveryVO.setName(data.getName());
+            discoveryVO.setNamespaceId(data.getNamespaceId());
             discoveryVO.setType(data.getType());
             discoveryVO.setLevel(data.getLevel());
             discoveryVO.setServerList(data.getServerList());
@@ -206,6 +208,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamData.setWeight(data.getWeight());
             discoveryUpstreamData.setProps(data.getProps());
+            discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
             return discoveryUpstreamData;
@@ -269,6 +272,7 @@ public enum DiscoveryTransfer {
             proxySelectorDTO.setProps(data.getProps());
             proxySelectorDTO.setForwardPort(data.getForwardPort());
             proxySelectorDTO.setPluginName(data.getPluginName());
+            proxySelectorDTO.setNamespaceId(data.getNamespaceId());
             return proxySelectorDTO;
         }).orElse(null);
     }
@@ -337,6 +341,6 @@ public enum DiscoveryTransfer {
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
-        return mapToData(CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(commonUpstream.getUpstreamUrl().split(":")[0], Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]), commonUpstream.getProtocol()));
+        return mapToData(CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(commonUpstream.getUpstreamUrl().split(":")[0], Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]), commonUpstream.getProtocol(),commonUpstream.getNamespaceId()));
     }
 }

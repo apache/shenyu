@@ -284,3 +284,19 @@ COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."app_auth" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
+
+
+ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."discovery" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."discovery_upstream" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
+
+UPDATE "public"."proxy_selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
