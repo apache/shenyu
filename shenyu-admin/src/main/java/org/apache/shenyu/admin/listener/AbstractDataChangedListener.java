@@ -140,7 +140,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateAppAuthCache(namespaceId);
         this.afterAppAuthChanged(changed, eventType, namespaceId);
     }
@@ -159,7 +159,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateMetaDataCache(namespaceId);
         this.afterMetaDataChanged(changed, eventType, namespaceId);
     }
@@ -178,7 +178,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updatePluginCache(namespaceId);
         this.afterPluginChanged(changed, eventType, namespaceId);
     }
@@ -198,7 +198,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         LOG.info("onRuleChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateRuleCache(namespaceId);
         this.afterRuleChanged(changed, eventType, namespaceId);
     }
@@ -217,7 +217,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateSelectorCache(namespaceId);
         this.afterSelectorChanged(changed, eventType, namespaceId);
     }
@@ -232,7 +232,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateProxySelectorDataCache(namespaceId);
         this.afterProxySelectorChanged(changed, eventType, namespaceId);
     }
@@ -256,7 +256,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value-> StringUtils.defaultString(value.getNamespaceId(),SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateDiscoveryUpstreamDataCache(namespaceId);
         this.afterDiscoveryUpstreamDataChanged(changed, eventType, namespaceId);
     }
