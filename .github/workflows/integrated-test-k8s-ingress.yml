@@ -63,7 +63,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
@@ -90,7 +90,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
