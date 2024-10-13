@@ -148,13 +148,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     @Override
-    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH, ""));
+    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH, namespaceId));
     }
 
     @Override
-    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA, ""));
+    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA, namespaceId));
     }
 
     @Override
@@ -163,23 +163,23 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     @Override
-    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE, ""));
+    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE, namespaceId));
     }
 
     @Override
-    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR, ""));
+    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR, namespaceId));
     }
 
     @Override
-    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR, ""));
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR, namespaceId));
     }
 
     @Override
-    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM, ""));
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId));
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
@@ -194,11 +194,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
 
-            //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
-            ConfigDataCache serverCache = CACHE.get(group.name());
-            if (group.equals(ConfigGroupEnum.PLUGIN)) {
-                serverCache = CACHE.get(namespaceId + "_" + group.name());
-            }
+            ConfigDataCache serverCache = CACHE.get(namespaceId + "_" + group.name());
             // do check.
             if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
                 changedGroup.add(group);
@@ -230,11 +226,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
 
-        //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
-        String configDataCacheKey = serverCache.getGroup();
-        if (serverCache.getGroup().equals(ConfigGroupEnum.PLUGIN)) {
-            configDataCacheKey = serverCache.getNamespaceId() + serverCache.getGroup();
-        }
+        String configDataCacheKey = serverCache.getNamespaceId() + "_" + serverCache.getGroup();
 
         ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {

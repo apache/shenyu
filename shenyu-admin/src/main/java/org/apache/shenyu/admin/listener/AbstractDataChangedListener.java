@@ -113,11 +113,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @return the configuration data
      */
     public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey, final String namespaceId) {
-        //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
-        ConfigDataCache config = CACHE.get(groupKey.name());
-        if (groupKey.equals(ConfigGroupEnum.PLUGIN)) {
-            config = CACHE.get(namespaceId + "_" + groupKey.name());
-        }
+        ConfigDataCache config = CACHE.get(namespaceId + "_" + groupKey.name());
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);
@@ -143,8 +139,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updateAppAuthCache();
-        this.afterAppAuthChanged(changed, eventType);
+        String namespaceId = changed.stream().map(AppAuthData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateAppAuthCache(namespaceId);
+        this.afterAppAuthChanged(changed, eventType,namespaceId);
     }
 
     /**
@@ -153,7 +150,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
+    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     @Override
@@ -161,8 +158,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updateMetaDataCache();
-        this.afterMetaDataChanged(changed, eventType);
+        String namespaceId = changed.stream().map(MetaData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateMetaDataCache(namespaceId);
+        this.afterMetaDataChanged(changed, eventType,namespaceId);
     }
 
     /**
@@ -171,7 +169,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
+    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     @Override
@@ -199,8 +197,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         LOG.info("onRuleChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
-        this.updateRuleCache();
-        this.afterRuleChanged(changed, eventType);
+        String namespaceId = changed.stream().map(RuleData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateRuleCache(namespaceId);
+        this.afterRuleChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -209,7 +208,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
+    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     @Override
@@ -217,8 +216,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updateSelectorCache();
-        this.afterSelectorChanged(changed, eventType);
+        String namespaceId = changed.stream().map(SelectorData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateSelectorCache(namespaceId);
+        this.afterSelectorChanged(changed, eventType,namespaceId);
     }
 
     /**
@@ -231,8 +231,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updateProxySelectorDataCache();
-        this.afterProxySelectorChanged(changed, eventType);
+        String namespaceId = changed.stream().map(ProxySelectorData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateProxySelectorDataCache(namespaceId);
+        this.afterProxySelectorChanged(changed, eventType, namespaceId);
     }
 
     /**
@@ -241,7 +242,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     /**
@@ -254,8 +255,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        this.updateDiscoveryUpstreamDataCache();
-        this.afterDiscoveryUpstreamDataChanged(changed, eventType);
+        String namespaceId = changed.stream().map(DiscoverySyncData::getNamespaceId).findFirst().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        this.updateDiscoveryUpstreamDataCache(namespaceId);
+        this.afterDiscoveryUpstreamDataChanged(changed, eventType,namespaceId);
     }
 
     /**
@@ -264,7 +266,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     /**
@@ -273,7 +275,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
+    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
     }
 
     @Override
@@ -293,11 +295,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
         String json = GsonUtils.getInstance().toJson(data);
-        //todo:[Namespace] Currently, only plugin data is compatible with namespace, while other data is waiting for modification
-        String configDataCacheKey = group.name();
-        if (group.equals(ConfigGroupEnum.PLUGIN)) {
-            configDataCacheKey = namespaceId + group.name();
-        }
+        String  configDataCacheKey = namespaceId + "_" + group.name();
         ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
@@ -312,27 +310,27 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         for (NamespaceVO namespace : namespaceList) {
             String namespaceId = namespace.getNamespaceId();
             this.updatePluginCache(namespaceId);
+            this.updateAppAuthCache(namespaceId);
+            this.updateRuleCache(namespaceId);
+            this.updateSelectorCache(namespaceId);
+            this.updateMetaDataCache(namespaceId);
+            this.updateProxySelectorDataCache(namespaceId);
+            this.updateDiscoveryUpstreamDataCache(namespaceId);
         }
-        this.updateAppAuthCache();
-        this.updateRuleCache();
-        this.updateSelectorCache();
-        this.updateMetaDataCache();
-        this.updateProxySelectorDataCache();
-        this.updateDiscoveryUpstreamDataCache();
     }
 
     /**
      * Update selector cache.
      */
-    protected void updateSelectorCache() {
-        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), "");
+    protected void updateSelectorCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), namespaceId);
     }
 
     /**
      * Update rule cache.
      */
-    protected void updateRuleCache() {
-        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), "");
+    protected void updateRuleCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), namespaceId);
     }
 
     /**
@@ -345,23 +343,23 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     /**
      * Update app auth cache.
      */
-    protected void updateAppAuthCache() {
-        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), "");
+    protected void updateAppAuthCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), namespaceId);
     }
 
     /**
      * Update meta data cache.
      */
-    protected void updateMetaDataCache() {
-        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), "");
+    protected void updateMetaDataCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), namespaceId);
     }
 
-    protected void updateProxySelectorDataCache() {
-        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), "");
+    protected void updateProxySelectorDataCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), namespaceId);
     }
 
-    protected void updateDiscoveryUpstreamDataCache() {
-        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), "");
+    protected void updateDiscoveryUpstreamDataCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), namespaceId);
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {
