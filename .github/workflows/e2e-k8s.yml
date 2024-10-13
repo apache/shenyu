@@ -34,7 +34,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
       - uses: dorny/paths-filter@v2
@@ -55,12 +57,14 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -124,7 +128,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
@@ -145,7 +151,7 @@ jobs:
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -216,7 +222,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
@@ -237,7 +245,7 @@ jobs:
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
