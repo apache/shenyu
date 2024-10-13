@@ -34,7 +34,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
       -
@@ -61,7 +63,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       -
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
