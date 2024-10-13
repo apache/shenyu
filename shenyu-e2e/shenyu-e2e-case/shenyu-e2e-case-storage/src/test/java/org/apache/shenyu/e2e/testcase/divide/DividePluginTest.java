@@ -38,6 +38,8 @@ import org.junit.jupiter.api.BeforeEach;
 import java.util.List;
 import java.util.Objects;
 
+import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
                 serviceName = "shenyu-e2e-admin",
@@ -83,6 +85,7 @@ public class DividePluginTest {
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
                 bindingData.setSelectorId(dto.getId());
+                bindingData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
                 client.bindingData(bindingData);
             }
         }

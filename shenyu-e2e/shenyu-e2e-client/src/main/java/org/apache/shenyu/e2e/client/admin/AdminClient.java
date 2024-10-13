@@ -335,6 +335,7 @@ public class AdminClient extends BaseClient {
      */
     public RuleDTO create(final RuleData rule) {
         rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
@@ -377,6 +378,7 @@ public class AdminClient extends BaseClient {
      * @param bindingData bindingData
      */
     public void bindingData(final BindingData bindingData) {
+        bindingData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
