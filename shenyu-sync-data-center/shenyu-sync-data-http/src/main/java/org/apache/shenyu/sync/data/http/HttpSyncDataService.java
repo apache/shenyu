@@ -139,7 +139,7 @@ public class HttpSyncDataService implements SyncDataService {
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
         }
-        params.append("namespaceId").append("=").append(shenyuConfig.getNamespaceId());
+        params.append("namespaceId").append("=").append(shenyuConfig.getNamespace());
         String url = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_FETCH + "?" + StringUtils.removeEnd(params.toString(), "&");
         LOG.info("request configs: [{}]", url);
         String json;
@@ -194,7 +194,7 @@ public class HttpSyncDataService implements SyncDataService {
                 params.put(group.name(), Lists.newArrayList(value));
             }
         }
-        params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespaceId()));
+        params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespace()));
         LOG.debug("listener params: [{}]", params);
         Headers headers = new Headers.Builder()
                 .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
