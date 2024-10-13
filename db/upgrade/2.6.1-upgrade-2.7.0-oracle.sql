@@ -341,3 +341,19 @@ ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
 COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
 
 UPDATE app_auth SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+
+ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN discovery.namespace_id IS 'namespaceId';
+
+UPDATE discovery SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE discovery_upstream ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN discovery_upstream.namespace_id IS 'namespaceId';
+
+UPDATE discovery_upstream SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NULL;
+COMMENT ON COLUMN proxy_selector.namespace_id IS 'namespaceId';
+
+UPDATE proxy_selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

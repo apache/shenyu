@@ -28,6 +28,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * Test case for {@link CommonUpstreamUtils}.
  */
@@ -39,7 +41,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildDefaultDivideUpstreamWithHostAndPort() {
-        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDefaultDivideUpstream(HOST, PORT);
+        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDefaultDivideUpstream(HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
         Assert.assertNotNull(divideUpstream);
         Assert.assertEquals(HOST + ":" + PORT, divideUpstream.getUpstreamUrl());
         Assert.assertEquals(divideUpstream.getUpstreamHost(), "localhost");
@@ -55,7 +57,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildDivideUpstream() {
-        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT);
+        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
         Assert.assertNotNull(divideUpstream);
         Assert.assertEquals(HOST + ":" + PORT, divideUpstream.getUpstreamUrl());
         Assert.assertEquals("http", divideUpstream.getProtocol());
@@ -71,7 +73,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildWebSocketUpstream() {
-        WebSocketUpstream webSocketUpstream = CommonUpstreamUtils.buildWebSocketUpstream("tcp", HOST, PORT);
+        WebSocketUpstream webSocketUpstream = CommonUpstreamUtils.buildWebSocketUpstream("tcp", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
         Assert.assertNotNull(webSocketUpstream);
         Assert.assertEquals(HOST + ":" + PORT, webSocketUpstream.getUpstreamUrl());
         Assert.assertEquals("tcp", webSocketUpstream.getProtocol());
@@ -95,7 +97,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildDefaultGrpcUpstream() {
-        GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(HOST, PORT);
+        GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
         Assert.assertNotNull(grpcUpstream);
         Assert.assertEquals(HOST + ":" + PORT, grpcUpstream.getUpstreamUrl());
         Assert.assertNull(grpcUpstream.getProtocol());
@@ -112,7 +114,7 @@ public final class CommonUpstreamUtilsTest {
     @Test
     public void convertCommonUpstreamList() {
         List<DivideUpstream> existDivideUpstreams = new ArrayList<>();
-        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT);
+        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
         existDivideUpstreams.add(divideUpstream);
 
         List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams);
