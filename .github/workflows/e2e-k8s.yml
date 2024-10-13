@@ -34,7 +34,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
       - uses: dorny/paths-filter@v2
@@ -55,7 +57,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
@@ -124,7 +128,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
@@ -216,7 +222,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
