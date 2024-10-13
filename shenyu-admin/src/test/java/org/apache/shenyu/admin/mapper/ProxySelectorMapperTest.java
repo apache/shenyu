@@ -30,6 +30,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -59,7 +60,7 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
         ProxySelectorDO newProxySelectorDO = build();
         newProxySelectorDO.setName("test2");
         proxySelectorMapper.insert(newProxySelectorDO);
-        ProxySelectorQuery query = new ProxySelectorQuery("test2", new PageParameter());
+        ProxySelectorQuery query = new ProxySelectorQuery("test2", new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         List<ProxySelectorDO> list = proxySelectorMapper.selectByQuery(query);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getName(), "test2");
@@ -111,6 +112,7 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
         proxySelectorDO.setForwardPort(8080);
         proxySelectorDO.setType("tcp");
         proxySelectorDO.setProps("test");
+        proxySelectorDO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         proxySelectorDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
         proxySelectorDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return proxySelectorDO;

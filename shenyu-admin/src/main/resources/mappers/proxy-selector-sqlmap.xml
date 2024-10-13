@@ -52,6 +52,7 @@
         <include refid="Base_Column_List"/>
         FROM proxy_selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
@@ -74,6 +75,7 @@
         type,
         forward_port,
         props,
+        namespace_id,
         date_created,
         date_updated)
         VALUES (
@@ -83,6 +85,7 @@
         #{type,jdbcType=VARCHAR},
         #{forwardPort,jdbcType=INTEGER},
         #{props,jdbcType=VARCHAR},
+        #{namespaceId,jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -97,6 +100,7 @@
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id=#{id, jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -117,7 +121,7 @@
     </select>
 
     <select id="selectByHandlerId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
-        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props, ps.namespace_id
         FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         where dr.discovery_handler_id = #{discoveryHandlerId}
     </select>
