@@ -227,6 +227,7 @@
     <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         <include refid="Base_Column_List"/>
+        FROM namespace_plugin_rel
         WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
