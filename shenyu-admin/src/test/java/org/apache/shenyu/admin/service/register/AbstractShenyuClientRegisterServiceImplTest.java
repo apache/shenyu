@@ -215,7 +215,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         }
 
         @Override
-        protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName) {
+        protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName, final String namespaceId) {
             return new DiscoverySyncData();
         }
 
