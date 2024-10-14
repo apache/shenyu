@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -76,7 +77,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnAppAuthChangedCreate() {
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(appAuthPath, appAuthData, CreateMode.PERSISTENT);
@@ -88,7 +89,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnAppAuthChangedUpdate() {
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(appAuthPath, appAuthData, CreateMode.PERSISTENT);
@@ -100,7 +101,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnAppAuthChangedDelete() {
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         when(zkClient.isExist(appAuthPath)).thenReturn(true);
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
@@ -113,7 +114,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedCreate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -125,7 +126,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedUpdate() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -137,7 +138,7 @@ public final class ZookeeperDataChangedListenerTest {
     @Test
     public void testOnMetaDataChangedDelete() throws UnsupportedEncodingException {
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         when(zkClient.isExist(metaDataPath)).thenReturn(true);
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);

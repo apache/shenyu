@@ -46,7 +46,7 @@ public final class DefaultPathConstantsTest {
     @Test
     public void testBuildAppAuthPath() {
         String appKey = RandomStringUtils.randomAlphanumeric(10);
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appKey);
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appKey);
         assertThat(appAuthPath, notNullValue());
         assertThat(String.join(SEPARATOR, APP_AUTH_PARENT, appKey), equalTo(appAuthPath));
     }
@@ -54,7 +54,7 @@ public final class DefaultPathConstantsTest {
     @Test
     public void testBuildMetaDataPath() {
         String metadata = RandomStringUtils.randomAlphanumeric(10);
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(metadata);
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, metadata);
         assertThat(metaDataPath, notNullValue());
         assertThat(String.join(SEPARATOR, META_DATA_PARENT, metadata), equalTo(metaDataPath));
     }

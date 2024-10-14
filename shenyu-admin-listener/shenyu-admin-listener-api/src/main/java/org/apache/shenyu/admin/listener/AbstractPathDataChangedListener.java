@@ -46,7 +46,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         for (AppAuthData data : changed) {
-            String appAuthPath = DefaultPathConstants.buildAppAuthPath(data.getAppKey());
+            String appAuthPath = DefaultPathConstants.buildAppAuthPath(data.getNamespaceId(), data.getAppKey());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(appAuthPath);
@@ -62,7 +62,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            String metaDataPath = DefaultPathConstants.buildMetaDataPath(data.getPath());
+            String metaDataPath = DefaultPathConstants.buildMetaDataPath(data.getNamespaceId(), data.getPath());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(metaDataPath);

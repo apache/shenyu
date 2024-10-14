@@ -64,21 +64,23 @@ public final class DefaultPathConstants implements Constants {
     /**
      * acquire app_auth_path.
      *
+     * @param namespaceId namespaceId
      * @param appKey appKey
      * @return app_auth_path string
      */
-    public static String buildAppAuthPath(final String appKey) {
-        return String.join(PATH_SEPARATOR, APP_AUTH_PARENT, appKey);
+    public static String buildAppAuthPath(final String namespaceId, final String appKey) {
+        return String.join(PATH_SEPARATOR, namespaceId, APP_AUTH_PARENT, appKey);
     }
 
     /**
      * Build meta data path string.
      *
+     * @param namespaceId the namespace id
      * @param path the path
      * @return the string
      */
-    public static String buildMetaDataPath(final String path) {
-        String join = String.join(PATH_SEPARATOR, META_DATA, path);
+    public static String buildMetaDataPath(final String namespaceId,final String path) {
+        String join = String.join(PATH_SEPARATOR, namespaceId, META_DATA, path);
         return join.replaceAll("//", PATH_SEPARATOR);
     }
 
