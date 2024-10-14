@@ -223,12 +223,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String selectorId = selectorDO.getId();
         // change live node status to TRUE
         validUriList.forEach(uriRegisterDTO -> {
-            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol());
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(),
+                    uriRegisterDTO.getProtocol(),
+                    uriRegisterDTO.getNamespaceId());
             LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
         });
         
-        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName);
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, SYS_DEFAULT_NAMESPACE_ID);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         
         return ShenyuResultMessage.SUCCESS;
