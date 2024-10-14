@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -62,14 +63,15 @@ public class ZookeeperSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient,
+    public SyncDataService syncDataService(final ObjectProvider<ShenyuConfig> ShenyuConfig,
+                                           final ObjectProvider<ZookeeperClient> zookeeperClient,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use zookeeper sync shenyu data.......");
-        return new ZookeeperSyncDataService(zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new ZookeeperSyncDataService(ShenyuConfig.getIfAvailable(), zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList));
     }

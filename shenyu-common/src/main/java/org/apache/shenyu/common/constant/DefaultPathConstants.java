@@ -27,7 +27,7 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PRE_FIX = "/shenyu";
+    public static final String PRE_FIX = "/shenyu";
 
     /**
      * The constant PLUGIN_PARENT.
@@ -69,7 +69,7 @@ public final class DefaultPathConstants implements Constants {
      * @return app_auth_path string
      */
     public static String buildAppAuthPath(final String namespaceId, final String appKey) {
-        return String.join(PATH_SEPARATOR, namespaceId, APP_AUTH_PARENT, appKey);
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, APP_AUTH_PARENT, appKey));
     }
 
     /**
@@ -80,8 +80,7 @@ public final class DefaultPathConstants implements Constants {
      * @return the string
      */
     public static String buildMetaDataPath(final String namespaceId,final String path) {
-        String join = String.join(PATH_SEPARATOR, namespaceId, META_DATA, path);
-        return join.replaceAll("//", PATH_SEPARATOR);
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, META_DATA, path));
     }
 
     /**
@@ -90,48 +89,52 @@ public final class DefaultPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginParentPath() {
-        return String.join(PATH_SEPARATOR, PLUGIN_PARENT);
+        return handlePathData(String.join(PATH_SEPARATOR, PLUGIN_PARENT).replaceAll("//", PATH_SEPARATOR));
     }
 
     /**
      * buildPluginRealPath.
      *
+     * @param namespaceId namespaceId
      * @param pluginName pluginName
      * @return zk path for plugin
      */
-    public static String buildPluginPath(final String pluginName) {
-        return String.join(PATH_SEPARATOR, PLUGIN_PARENT, pluginName);
+    public static String buildPluginPath(final String namespaceId, final String pluginName) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, PLUGIN_PARENT, pluginName));
     }
 
     /**
      * buildSelectorParentPath.
      *
+     * @param namespaceId namespaceId
      * @param pluginName pluginName
      * @return zk path for selector
      */
-    public static String buildSelectorParentPath(final String pluginName) {
-        return String.join(PATH_SEPARATOR, SELECTOR_PARENT, pluginName);
+    public static String buildSelectorParentPath(final String namespaceId, final String pluginName) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, SELECTOR_PARENT, pluginName));
     }
 
     /**
      * buildSelectorRealPath.
      *
+     * @param namespaceId namespaceId
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @return zk full path for selector
      */
-    public static String buildSelectorRealPath(final String pluginName, final String selectorId) {
-        return String.join(PATH_SEPARATOR, SELECTOR_PARENT, pluginName, selectorId);
+    public static String buildSelectorRealPath(final String namespaceId, final String pluginName, final String selectorId) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, SELECTOR_PARENT, pluginName, selectorId));
     }
 
     /**
      * buildRuleParentPath.
      *
+     * @param namespaceId namespaceId
      * @param pluginName pluginName
      * @return zk rule parent path.
      */
-    public static String buildRuleParentPath(final String pluginName) {
-        return String.join(PATH_SEPARATOR, RULE_PARENT, pluginName);
+    public static String buildRuleParentPath(final String namespaceId, final String pluginName) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, RULE_PARENT, pluginName));
     }
 
     /**
@@ -142,30 +145,41 @@ public final class DefaultPathConstants implements Constants {
      * @param ruleId     ruleId
      * @return /shenyu/rule/pluginName/selectorId-ruleId
      */
-    public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
-        return String.join(PATH_SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
+    public static String buildRulePath(final String namespaceId, final String pluginName, final String selectorId, final String ruleId) {
+        return handlePathData(String.join(PATH_SEPARATOR, buildRuleParentPath(PATH_SEPARATOR + namespaceId, pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId)));
     }
 
     /**
      * buildProxySelector.
      *
+     * @param namespaceId       namespaceId
      * @param pluginName        pluginName
      * @param proxySelectorName selectorId
-     * @return /shenyu/proxySelectorData/pluginName/proxySelectorName
+     * @return /namespaceId/shenyu/proxySelectorData/pluginName/proxySelectorName
      */
-    public static String buildProxySelectorPath(final String pluginName, final String proxySelectorName) {
-        return String.join(PATH_SEPARATOR, PROXY_SELECTOR, pluginName, proxySelectorName);
+    public static String buildProxySelectorPath(final String namespaceId, final String pluginName, final String proxySelectorName) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, PROXY_SELECTOR, pluginName, proxySelectorName));
     }
 
     /**
      * buildDiscoveryUpstreamPath.
      *
+     * @param namespaceId       namespaceId
      * @param pluginName        pluginName
      * @param proxySelectorName selectorId
-     * @return /shenyu/discoveryUpstream/pluginName/proxySelectorName
+     * @return /namespaceId/shenyu/discoveryUpstream/pluginName/proxySelectorName
      */
-    public static String buildDiscoveryUpstreamPath(final String pluginName, final String proxySelectorName) {
-        return String.join(PATH_SEPARATOR, DISCOVERY_UPSTREAM, pluginName, proxySelectorName);
+    public static String buildDiscoveryUpstreamPath(final String namespaceId, final String pluginName, final String proxySelectorName) {
+        return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, DISCOVERY_UPSTREAM, pluginName, proxySelectorName));
     }
-
+    
+    /**
+     * replace // to /.
+     *
+     * @param path path
+     * @return path
+     */
+    public static String handlePathData(String path) {
+        return path.replaceAll("//", PATH_SEPARATOR);
+    }
 }

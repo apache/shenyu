@@ -161,7 +161,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         final String configKeyPrefix = changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType,
-                configKeyPrefix, ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
+                configKeyPrefix,
+                ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
                 RuleData::getId);
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }

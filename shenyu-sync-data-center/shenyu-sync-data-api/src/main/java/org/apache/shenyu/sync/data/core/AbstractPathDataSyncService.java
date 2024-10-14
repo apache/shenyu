@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.core;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -68,7 +69,6 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
     }
 
-
     /**
      * event.
      *
@@ -77,7 +77,8 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
      * @param registerPath registerPath
      * @param eventType eventType
      */
-    public void event(final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
+    public void event(final String namespaceId, final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
+        String realUpdatePath = StringUtils.substringAfter(updatePath, namespaceId);
         switch (registerPath) {
             case DefaultPathConstants.PLUGIN_PARENT:
                 pluginHandlerEvent(updatePath, updateData, eventType);

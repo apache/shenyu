@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -78,7 +79,8 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         for (ProxySelectorData data : changed) {
-            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getPluginName(), data.getId());
+            // TODO fix this field
+            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getName(), data.getPluginName(), data.getId());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(proxySelectorPath);
@@ -94,7 +96,7 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         for (DiscoverySyncData data : changed) {
-            String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getPluginName(), data.getSelectorId());
+            String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getNamespaceId(), data.getPluginName(), data.getSelectorId());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(upstreamPath);
@@ -110,11 +112,12 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
+            SelectorData firstData = changed.get(0);
+            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(firstData.getNamespaceId(), firstData.getPluginName());
             deletePathRecursive(selectorParentPath);
         }
         for (SelectorData data : changed) {
-            String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
+            String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getNamespaceId(), data.getPluginName(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(selectorRealPath);
                 LOG.debug("[DataChangedListener] delete appKey {}", selectorRealPath);
@@ -131,13 +134,13 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         for (PluginData data : changed) {
-            String pluginPath = DefaultPathConstants.buildPluginPath(data.getName());
+            String pluginPath = DefaultPathConstants.buildPluginPath(data.getNamespaceId(), data.getName());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deletePathRecursive(pluginPath);
-                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getName());
+                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getNamespaceId(), data.getName());
                 deletePathRecursive(selectorParentPath);
-                String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getName());
+                String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getNamespaceId(), data.getName());
                 deletePathRecursive(ruleParentPath);
                 LOG.debug("[DataChangedListener] delete pluginPath {}", pluginPath);
                 continue;
@@ -150,12 +153,13 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
-            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
+        if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
+            RuleData firstData = changed.get(0);
+            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(firstData.getNamespaceId(), firstData.getPluginName());
             deletePathRecursive(selectorParentPath);
         }
         for (RuleData data : changed) {
-            String ruleRealPath = DefaultPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
+            String ruleRealPath = DefaultPathConstants.buildRulePath(data.getNamespaceId(), data.getPluginName(), data.getSelectorId(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(ruleRealPath);
                 continue;
