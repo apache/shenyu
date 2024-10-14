@@ -123,6 +123,7 @@ CREATE TABLE "public"."app_auth" (
   "ext_info" varchar(1024) COLLATE "pg_catalog"."default",
   "open" int2 NOT NULL,
   "enabled" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -135,6 +136,7 @@ COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user app
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
 COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -315,6 +317,7 @@ CREATE TABLE "public"."meta_data" (
   "method_name" varchar(255) COLLATE "pg_catalog"."default",
   "parameter_types" varchar(255) COLLATE "pg_catalog"."default",
   "rpc_ext" varchar(512) COLLATE "pg_catalog"."default",
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "enabled" int2 NOT NULL
@@ -329,6 +332,7 @@ COMMENT ON COLUMN "public"."meta_data"."service_name" IS 'service name';
 COMMENT ON COLUMN "public"."meta_data"."method_name" IS 'method name';
 COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are provided with multiple parameter types separated by commas';
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
 COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
@@ -2003,6 +2007,7 @@ CREATE TABLE "public"."rule" (
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "sort" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
@@ -2016,6 +2021,7 @@ COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
 COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -2069,6 +2075,7 @@ CREATE TABLE "public"."selector" (
   "loged" int2 NOT NULL,
   "continued" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -2084,6 +2091,7 @@ COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 
 COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
 
@@ -2463,6 +2471,7 @@ CREATE TABLE "public"."discovery" (
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "server_list" varchar(255) COLLATE "pg_catalog"."default",
     "props" text COLLATE "pg_catalog"."default",
@@ -2474,6 +2483,7 @@ COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
 COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
+COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
 COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
 COMMENT ON COLUMN "public"."discovery"."props" IS 'the discovery pops (json) ';
@@ -2536,6 +2546,7 @@ CREATE TABLE "public"."proxy_selector"
     "type"         varchar(128) COLLATE "pg_catalog"."default",
     "forward_port" int4 NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
@@ -2545,6 +2556,8 @@ COMMENT ON COLUMN "public"."proxy_selector"."name" IS 'the proxy_selector name';
 COMMENT ON COLUMN "public"."proxy_selector"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'the type ';
 COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the forward port';
+COMMENT ON COLUMN "public"."proxy_selector"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
 
@@ -2556,6 +2569,7 @@ CREATE TABLE "public"."discovery_upstream"
 (
     "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "url"         varchar(128) COLLATE "pg_catalog"."default",
     "status"      int4  NOT NULL,
@@ -2567,6 +2581,7 @@ CREATE TABLE "public"."discovery_upstream"
 ;
 COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
 COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
 COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';

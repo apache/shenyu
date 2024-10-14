@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
+  `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time'
 );
@@ -95,6 +96,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
+  `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
@@ -122,6 +124,7 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
   `method_name` varchar(255) NULL DEFAULT NULL COMMENT 'method name',
   `parameter_types` varchar(255) NULL DEFAULT NULL COMMENT 'parameter types are provided with multiple parameter types separated by commas',
   `rpc_ext` varchar(512) NULL DEFAULT NULL COMMENT 'rpc extended information, json format',
+  `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   `enabled` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'enabled state',
@@ -169,6 +172,7 @@ CREATE TABLE IF NOT EXISTS `app_auth`  (
   `ext_info` varchar(1024) NULL DEFAULT NULL COMMENT 'extended parameter json',
   `open` tinyint(4) NOT NULL COMMENT 'open auth path or not',
   `enabled` tinyint(4) NOT NULL COMMENT 'delete or not',
+  `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`)
@@ -1099,6 +1103,7 @@ CREATE TABLE IF NOT EXISTS `discovery`
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
     `level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
     `plugin_name`  varchar(255)   COMMENT 'the plugin name',
+    `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
     `server_list`  varchar(255)   COMMENT 'register server url (,)',
     `props`     text  COMMENT 'the discovery pops (json) ',
@@ -1131,6 +1136,7 @@ CREATE TABLE IF NOT EXISTS `discovery_upstream`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
+    `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
     `url`          varchar(64)   NOT NULL COMMENT 'ip:port',
     `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
@@ -1153,6 +1159,7 @@ CREATE TABLE IF NOT EXISTS `proxy_selector`
     `type`         varchar(64)   NOT NULL COMMENT 'proxy type for tcp, upd, ws',
     `forward_port` int(0) NOT NULL COMMENT 'the proxy forward port',
     `props`      text  COMMENT 'the other field (json)',
+    `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
