@@ -71,6 +71,26 @@ public class ShenyuConfig {
     
     private AlertConfig alert = new AlertConfig();
     
+    private String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
+    
+    /**
+     * shenyu bootstrap namespace.
+     *
+     * @return namespace id
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+    
+    /**
+     * Set shenyu bootstrap namespace, default value is {@link org.apache.shenyu.common.constant.Constants#SYS_DEFAULT_NAMESPACE_ID}.
+     *
+     * @param namespace namespace id
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
+    }
+    
     /**
      * Gets health.
      *

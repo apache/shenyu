@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.tars.util;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +54,7 @@ public class PrxInfoUtilTest {
     public void testGetPrxName() {
         final MetaData metaData = new MetaData("id", "appName", "contextPath", "/path",
                 "rpcType", "serviceName", "methodName", "parameterTypes",
-                "rpcExt", false);
+                "rpcExt", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
         final String result = PrxInfoUtil.getPrxName(metaData);
         assertEquals("pathmethodNamePrx", result);
     }

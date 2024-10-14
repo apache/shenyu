@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
-import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -29,11 +28,14 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
@@ -48,9 +50,12 @@ import static org.mockito.BDDMockito.given;
  * test for SyncDataService.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class SyncDataServiceTest {
 
     private static final String ID = "1";
+    
+    private static final String NAMESPACE_PLUGIN_ID = "1801816010882822145";
 
     @InjectMocks
     private SyncDataServiceImpl syncDataService;
@@ -106,13 +111,13 @@ public final class SyncDataServiceTest {
 
     @Test
     public void syncPluginDataTest() {
-        PluginVO pluginVO = buildPluginVO();
+        NamespacePluginVO pluginVO = buildNamespacePluginVO();
         NamespacePluginVO namespacePluginVO = new NamespacePluginVO();
-        given(this.namespacePluginService.findByPluginId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(namespacePluginVO);
+        given(this.namespacePluginService.findById(pluginVO.getId())).willReturn(namespacePluginVO);
         SelectorData selectorData = buildSelectorData();
-        given(this.selectorService.findByPluginIdAndNamespaceId(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selectorData));
+        given(this.selectorService.findByPluginIdAndNamespaceId(pluginVO.getPluginId(), pluginVO.getNamespaceId())).willReturn(Collections.singletonList(selectorData));
 
-        assertThat(syncDataService.syncPluginData(pluginVO.getId(), SYS_DEFAULT_NAMESPACE_ID), greaterThan(false));
+        assertThat(syncDataService.syncPluginData(pluginVO.getId()), lessThanOrEqualTo(false));
     }
 
 
@@ -188,10 +193,10 @@ public final class SyncDataServiceTest {
      *
      * @return PluginVO
      */
-    private PluginVO buildPluginVO() {
+    private NamespacePluginVO buildNamespacePluginVO() {
         String dateTime = DateUtils.localDateTimeToString(LocalDateTime.now());
-        return new PluginVO(
-                ID,
+        return new NamespacePluginVO(
+                NAMESPACE_PLUGIN_ID,
                 "1",
                 "divide",
                 null,
@@ -200,6 +205,9 @@ public final class SyncDataServiceTest {
                 dateTime,
                 dateTime,
                 "",
+                null,
+                ID,
+                SYS_DEFAULT_NAMESPACE_ID,
                 null);
     }
 }

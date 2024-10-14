@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
@@ -126,12 +127,16 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncPluginData(final String pluginId, final String namespaceId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
+    public boolean syncPluginData(final String id) {
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id);
+        if (Objects.isNull(namespacePluginVO) || Objects.isNull(namespacePluginVO.getId())) {
+            LOG.error("namespace plugin is not existed");
+            return false;
+        }
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
-        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(pluginId, namespaceId);
+        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
 
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));

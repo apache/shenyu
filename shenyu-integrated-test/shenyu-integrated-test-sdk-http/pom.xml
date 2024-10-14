@@ -38,6 +38,12 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-registry</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-eureka</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

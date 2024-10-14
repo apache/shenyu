@@ -34,9 +34,26 @@ import java.util.List;
  * this is plugin service.
  */
 public interface NamespacePluginService extends PageService<NamespacePluginQueryCondition, NamespacePluginVO> {
+    
+    /**
+     * find by id.
+     *
+     * @param id primary key.
+     * @return {@linkplain PluginVO}
+     */
+    NamespacePluginVO findById(String id);
 
     /**
-     * Create or update string.
+     * Update string.
+     *
+     * @param namespaceId        namespaceId.
+     * @param pluginId           pluginId.
+     * @return the string
+     */
+    String create(String namespaceId, String pluginId);
+
+    /**
+     * Create string.
      *
      * @param namespacePluginDTO the plugin namespace dto
      * @return the string
@@ -44,22 +61,12 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     String update(NamespacePluginDTO namespacePluginDTO);
 
     /**
-     * Delete string.
+     * Delete namespace plugin relations by ids.
      *
      * @param ids         the ids.
-     * @param namespaceId the namespaceId
      * @return the string
      */
-    String delete(List<String> ids, String namespaceId);
-
-    /**
-     * find plugin namespace by pluginId.
-     *
-     * @param pluginId    the pluginId.
-     * @param namespaceId the namespaceId
-     * @return {@linkplain PluginVO}
-     */
-    NamespacePluginVO findByPluginId(String pluginId, String namespaceId);
+    String delete(List<String> ids);
 
     /**
      * find page of plugin namespace by query.
@@ -97,10 +104,9 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      *
      * @param ids         the ids
      * @param enabled     the enabled
-     * @param namespaceId the namespaceId
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled, String namespaceId);
+    String enabled(List<String> ids, Boolean enabled);
 
 
     /**

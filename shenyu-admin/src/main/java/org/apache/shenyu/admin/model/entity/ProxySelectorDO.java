@@ -61,6 +61,11 @@ public class ProxySelectorDO extends BaseDO {
     private String props;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
      * builder.
      *
      * @return ProxySelectorBuilder
@@ -86,6 +91,7 @@ public class ProxySelectorDO extends BaseDO {
                     .forwardPort(item.getForwardPort())
                     .type(item.getType())
                     .props(item.getProps())
+                    .namespaceId(item.getNamespaceId())
                     .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
                 proxySelectorDO.setId(item.getId());
@@ -231,6 +237,24 @@ public class ProxySelectorDO extends BaseDO {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * ProxySelectorBuilder.
      */
     public static final class ProxySelectorBuilder {
@@ -274,6 +298,11 @@ public class ProxySelectorDO extends BaseDO {
          * props.
          */
         private String props;
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * ProxySelectorBuilder.
@@ -379,6 +408,17 @@ public class ProxySelectorDO extends BaseDO {
         }
 
         /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public ProxySelectorBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build.
          *
          * @return ProxySelectorDO
@@ -392,6 +432,7 @@ public class ProxySelectorDO extends BaseDO {
             proxySelectorDO.setForwardPort(this.forwardPort);
             proxySelectorDO.setType(this.type);
             proxySelectorDO.setProps(this.props);
+            proxySelectorDO.setNamespaceId(this.namespaceId);
             proxySelectorDO.setDateCreated(this.dateCreated);
             proxySelectorDO.setDateUpdated(this.dateUpdated);
             return proxySelectorDO;
