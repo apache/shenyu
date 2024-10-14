@@ -51,6 +51,7 @@ import java.util.Optional;
 public class ScaleRlueController {
 
     private final ScaleRuleService scaleRuleService;
+
     private final ScaleRuleMapper scaleRuleMapper;
 
     public ScaleRlueController(final ScaleRuleService scaleRuleService, final ScaleRuleMapper scaleRuleMapper) {
@@ -72,6 +73,8 @@ public class ScaleRlueController {
      * query scale rule.
      *
      * @param metricName  metricName
+     * @param type  type
+     * @param status  status
      * @param currentPage currentPage
      * @param pageSize    pageSize
      * @return org.apache.shenyu.admin.model.result.ShenyuAdminResult

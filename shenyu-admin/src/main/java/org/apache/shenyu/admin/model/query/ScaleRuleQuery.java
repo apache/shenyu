@@ -52,7 +52,7 @@ public class ScaleRuleQuery implements Serializable {
     public ScaleRuleQuery() {
     }
 
-    public ScaleRuleQuery(final String metricName, Integer type, Integer status, final PageParameter pageParameter) {
+    public ScaleRuleQuery(final String metricName, final Integer type, final Integer status, final PageParameter pageParameter) {
         this.metricName = metricName;
         this.pageParameter = pageParameter;
         this.type = type;
