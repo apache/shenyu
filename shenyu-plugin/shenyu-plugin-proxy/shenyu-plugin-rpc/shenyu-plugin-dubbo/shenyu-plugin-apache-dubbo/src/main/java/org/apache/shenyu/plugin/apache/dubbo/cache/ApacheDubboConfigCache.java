@@ -199,6 +199,10 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setRegistry(registryConfig);
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
+        // 该处解决dubbo3.0后实例服务发现时，当默认使用注册中心的地址作为元数据中心时，无法使用到默认的元数据中心获取到接口的提供者，导致rpc失败
+        // 修改此次后当没有配置元数据中心时会使用注册中心的地址作为元数据中心
+        // 2.6.1版本启用dubbo插件时没有配置元数据中心的地址配置，后续应前后端都允许元数据中心的配置
+        reference.getApplicationModel().getApplicationConfigManager().addConfig(registryConfig);
         // default protocol is dubbo
         reference.setProtocol("dubbo");
         reference.setCheck(false);
