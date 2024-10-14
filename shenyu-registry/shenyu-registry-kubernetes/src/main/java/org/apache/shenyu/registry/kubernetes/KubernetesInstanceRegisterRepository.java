@@ -22,8 +22,10 @@ import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.spi.Join;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,19 @@ public class KubernetesInstanceRegisterRepository implements ShenyuInstanceRegis
                 .appName(instance.getServiceId())
                 .host(instance.getHost())
                 .port(instance.getPort())
+                .uri(getURI(instance))
                 .build()).collect(Collectors.toList());
+    }
+
+    private URI getURI(final KubernetesInstance instance) {
+        boolean secure = instance.isSecure();
+        String scheme = secure ? "https" : "http";
+        int port = instance.getPort();
+        if (port <= 0) {
+            port = secure ? 443 : 80;
+        }
+        String uri = String.format("%s://%s:%s", scheme, instance.getHost(), port);
+        return URI.create(uri);
     }
 
     @Override
