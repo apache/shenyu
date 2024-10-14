@@ -140,7 +140,6 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
 
-
         final List<InstanceEntity> serviceInstances = new ArrayList<>();
         InstanceEntity defaultServiceInstance = new InstanceEntity();
         defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
