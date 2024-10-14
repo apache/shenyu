@@ -113,14 +113,15 @@ public class DividePluginTest {
         adminClient.changePluginStatus("1801816010882822166", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
         LOG.info("start loggingKafka plugin");
-        formData.add("id", "33");
-        formData.add("name", "loggingKafka");
-        formData.add("enabled", "true");
-        formData.add("role", "Logging");
-        formData.add("sort", "180");
-        formData.add("config",
+        reqBody.put("pluginId", "33");
+        reqBody.put("name", "loggingKafka");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Logging");
+        reqBody.put("sort", "180");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config",
                 "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
-        adminClient.changePluginStatus("33", formData);
+        adminClient.changePluginStatus("1801816010882822171", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
 
     }
