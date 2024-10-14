@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
 import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -32,13 +33,13 @@ import org.apache.shenyu.admin.model.vo.ScaleRuleVO;
 import org.apache.shenyu.admin.service.ScaleRuleService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,9 +51,11 @@ import java.util.Optional;
 public class ScaleRlueController {
 
     private final ScaleRuleService scaleRuleService;
+    private final ScaleRuleMapper scaleRuleMapper;
 
-    public ScaleRlueController(final ScaleRuleService scaleRuleService) {
+    public ScaleRlueController(final ScaleRuleService scaleRuleService, final ScaleRuleMapper scaleRuleMapper) {
         this.scaleRuleService = scaleRuleService;
+        this.scaleRuleMapper = scaleRuleMapper;
     }
 
     /**
@@ -75,10 +78,12 @@ public class ScaleRlueController {
      */
     @GetMapping
     public ShenyuAdminResult queryRule(final String metricName,
+                                       final Integer type,
+                                       final Integer status,
                                        @RequestParam @NotNull final Integer currentPage,
                                        @RequestParam @NotNull final Integer pageSize) {
         CommonPager<ScaleRuleVO> commonPager =
-                scaleRuleService.listByPage(new ScaleRuleQuery(metricName, new PageParameter(currentPage, pageSize)));
+                scaleRuleService.listByPage(new ScaleRuleQuery(metricName, type, status, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -118,6 +123,9 @@ public class ScaleRlueController {
      */
     @PutMapping
     public ShenyuAdminResult updateRule(@Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
+        if (!scaleRuleMapper.existed(scaleRuleDTO.getId())) {
+            throw new ShenyuAdminException("scale rule is not existed");
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scaleRuleService.createOrUpdate(scaleRuleDTO));
     }
 
