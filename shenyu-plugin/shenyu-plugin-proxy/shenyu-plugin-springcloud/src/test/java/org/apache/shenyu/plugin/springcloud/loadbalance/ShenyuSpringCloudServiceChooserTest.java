@@ -69,8 +69,6 @@ public class ShenyuSpringCloudServiceChooserTest {
         springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig, context.getEnvironment());
 
         shenyuInstanceRegisterRepository = mock(ShenyuInstanceRegisterRepository.class);
-        final MockedStatic<SpringCloudPluginDataHandler> springCloudPluginDataHandlerMockedStatic = mockStatic(SpringCloudPluginDataHandler.class);
-        springCloudPluginDataHandlerMockedStatic.when(SpringCloudPluginDataHandler::getRepository).thenReturn(shenyuInstanceRegisterRepository);
     }
 
     @Test
@@ -153,8 +151,12 @@ public class ShenyuSpringCloudServiceChooserTest {
         serviceInstances.add(defaultServiceInstance);
         serviceInstances.add(defaultServiceInstance2);
         final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser();
+
+        final MockedStatic<SpringCloudPluginDataHandler> springCloudPluginDataHandlerMockedStatic = mockStatic(SpringCloudPluginDataHandler.class);
+        springCloudPluginDataHandlerMockedStatic.when(SpringCloudPluginDataHandler::getRepository).thenReturn(shenyuInstanceRegisterRepository);
         // mock return value
         when(shenyuInstanceRegisterRepository.selectInstances(any())).thenReturn(serviceInstances);
+
         Upstream upstream1 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
         Upstream upstream2 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
         // if roundRobin, upstream1 not equals upstream2
