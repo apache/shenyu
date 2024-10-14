@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.springcloud.handler;
 
-import org.apache.commons.collections4.CollectionUtils;
+
+import com.alibaba.nacos.api.PropertyKeyConst;
+import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -47,6 +49,7 @@ import org.springframework.core.env.Environment;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -63,51 +66,23 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
 
-    private final SpringCloudCacheConfig springCloudCacheConfig;
+    private final ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig;
 
     private final Environment env;
     
-    public SpringCloudPluginDataHandler(final SpringCloudCacheConfig springCloudCacheConfig, final Environment env) {
+    public SpringCloudPluginDataHandler(final ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig, final Environment env) {
         this.springCloudCacheConfig = springCloudCacheConfig;
         this.env = env;
     }
 
-    private void reNewAndInitShenyuInstanceRegisterRepository(final RegisterConfig refreshRegisterConfig) {
-        if (refreshRegisterConfig == null) {
-            return;
-        }
-        LOG.info("springCloud handlerPlugin refreshRegisterConfig = {}", GsonUtils.getInstance().toJson(refreshRegisterConfig));
-        repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(refreshRegisterConfig);
-        LOG.info("springCloud handlerPlugin repository = {}", repository);
-    }
-
-    private void reNewAndInitShenyuInstanceRegisterRepositoryByYml() {
-        boolean enable = Boolean.parseBoolean(env.getProperty("eureka.client.enabled"));
-        String serverLists = env.getProperty("eureka.client.serviceUrl.defaultZone");
-        if (enable) {
-            RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
-            reNewAndInitShenyuInstanceRegisterRepository(builder.build());
-            return;
-        }
-
-        enable = Boolean.parseBoolean(env.getProperty("spring.cloud.nacos.discovery.enabled"));
-        serverLists = env.getProperty("spring.cloud.nacos.discovery.server-addr");
-        if (enable) {
-            RegisterConfig.Builder builder = RegisterConfig.Builder.builder().enabled(enable).registerType("eureka").serverLists(serverLists);
-            reNewAndInitShenyuInstanceRegisterRepository(builder.build());
-            return;
-        }
-    }
-
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("pluginData = {}", GsonUtils.getInstance().toJson(pluginData));
-        if (pluginData == null || StringUtils.isBlank(pluginData.getConfig())) {
-            // consider yml config, as eureka or nacos
-            reNewAndInitShenyuInstanceRegisterRepositoryByYml();
+        if (!pluginData.getEnabled()) {
             return;
         }
-        if (!pluginData.getEnabled()) {
+        if (StringUtils.isBlank(pluginData.getConfig())) {
+            // consider yml config, as eureka or nacos
+            this.readYmlBuildRepository();
             return;
         }
         // get old pluginData
@@ -118,26 +93,22 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (newRegisterConfig == null) {
             return;
         }
-        if (oldPluginData != null) {
-            LOG.info("oldPluginData = {}", GsonUtils.getInstance().toJson(oldPluginData));
-        }
         RegisterConfig oldRegisterConfig = null;
         if (StringUtils.isNotBlank(oldConfig)) {
             oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
         }
 
         // refresh config
-        RegisterConfig refreshRegisterConfig = GsonUtils.getInstance().fromJson(newConfig, RegisterConfig.class);
         if (repository == null) {
             LOG.info("springCloud handlerPlugin repository is null");
-            reNewAndInitShenyuInstanceRegisterRepository(refreshRegisterConfig);
+            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
         } else if (!newRegisterConfig.equals(oldRegisterConfig)) {
             LOG.info("springCloud handlerPlugin repository occur update");
             // the config has been updated
             if (repository != null) {
                 repository.close();
             }
-            reNewAndInitShenyuInstanceRegisterRepository(refreshRegisterConfig);
+            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
         }
     }
 
@@ -202,4 +173,38 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     public static ShenyuInstanceRegisterRepository getRepository() {
         return repository;
     }
+
+    private void readYmlBuildRepository() {
+        // enable cloud discovery
+        if (!Boolean.parseBoolean(env.getProperty("spring.cloud.discovery.enabled"))) {
+            return;
+        }
+
+        if (Boolean.parseBoolean(env.getProperty("eureka.client.enabled"))) {
+            RegisterConfig registerConfig = RegisterConfig.Builder.builder()
+                    .enabled(true)
+                    .registerType("eureka")
+                    .serverLists(env.getProperty("eureka.client.serviceUrl.defaultZone")).build();
+            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(registerConfig);
+            return;
+        }
+        if (Boolean.parseBoolean(env.getProperty("spring.cloud.nacos.discovery.enabled"))) {
+            final String serverLists = env.getProperty("spring.cloud.nacos.discovery.server-addr");
+            final String prefix = "spring.cloud.nacos.discovery.";
+            Properties properties = new Properties();
+            properties.put(PropertyKeyConst.NAMESPACE, env.getProperty(prefix + PropertyKeyConst.NAMESPACE));
+            properties.put(PropertyKeyConst.USERNAME, env.getProperty(prefix + PropertyKeyConst.USERNAME));
+            properties.put(PropertyKeyConst.PASSWORD, env.getProperty(prefix + PropertyKeyConst.PASSWORD));
+            properties.put(PropertyKeyConst.ACCESS_KEY, env.getProperty(prefix + PropertyKeyConst.ACCESS_KEY));
+            properties.put(PropertyKeyConst.SECRET_KEY, env.getProperty(prefix + PropertyKeyConst.SECRET_KEY));
+            RegisterConfig registerConfig = RegisterConfig.Builder.builder()
+                    .enabled(true)
+                    .registerType("nacos")
+                    .serverLists(serverLists)
+                    .props(properties)
+                    .build();
+            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(registerConfig);
+        }
+    }
+
 }
