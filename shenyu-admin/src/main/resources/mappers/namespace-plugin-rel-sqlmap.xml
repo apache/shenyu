@@ -227,6 +227,7 @@
     <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         <include refid="Base_Column_List"/>
+        FROM namespace_plugin_rel
         WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
@@ -293,4 +294,56 @@
         ) npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
     </select>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.NamespacePluginRelDO">
+        INSERT INTO namespace_plugin_rel
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
+            <if test="pluginId != null">
+                plugin_id,
+            </if>
+            <if test="config != null">
+                config,
+            </if>
+            <if test="sort != null">
+                sort,
+            </if>
+            <if test="enabled != null">
+                enabled,
+            </if>
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
+            </if>
+            <if test="pluginId != null">
+                #{pluginId, jdbcType=VARCHAR},
+            </if>
+            <if test="config != null">
+                #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                #{sort, jdbcType=VARCHAR},
+            </if>
+            <if test="enabled != null">
+                #{enabled, jdbcType=BOOLEAN},
+            </if>
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
 </mapper>
