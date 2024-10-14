@@ -1396,20 +1396,3 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
-
-
-ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' ;
-
-ALTER TABLE `app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' ;
-
-ALTER TABLE `discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
-
-ALTER TABLE `discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
-
-ALTER TABLE `proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;

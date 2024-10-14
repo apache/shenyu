@@ -2430,18 +2430,3 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
-
-ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `rpc_ext`;
-
-ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
-
-ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
-
-ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
-
-ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
