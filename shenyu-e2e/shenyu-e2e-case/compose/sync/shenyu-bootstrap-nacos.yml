@@ -1,0 +1,38 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# shenyu-bootstrap
+version: '3.9'
+
+services:
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    ports:
+      - "9195:9195"
+    environment:
+      - TZ=Asia/Beijing
+      - shenyu.sync.nacos.url=http://shenyu-nacos:8848
+      - shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9195/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    networks:
+      - shenyu
