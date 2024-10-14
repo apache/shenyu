@@ -26,9 +26,11 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
@@ -61,21 +63,33 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        AppAuthData appAuthData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("appAuthData is null"));
+        final String configKeyPrefix = appAuthData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, AppAuthData::getAppKey, AppAuthData.class);
         LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        PluginData pluginData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("pluginData is null"));
+        final String configKeyPrefix = pluginData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, PluginData::getName, PluginData.class);
         LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        MetaData metaData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("metaData is null"));
+        final String configKeyPrefix = metaData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, MetaData::getId, MetaData.class);
         LOG.debug("[DataChangedListener] MetaDataChanged {}", changeData.getMetaDataId());
     }
@@ -84,7 +98,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
      * onCommonChanged.
      * save to configuration center common methods.
      * examples data:
-     *  meta.list
+     *  namespaceId.meta.list
      *   -> meta.id
      *   -> meta.id
      *   -> meta.id
@@ -152,14 +166,22 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        SelectorData selectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("selectorData is null"));
+        final String configKeyPrefix = selectorData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
         LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        RuleData firstRuleData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("ruleData is null"));
+        final String configKeyPrefix = firstRuleData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType,
                 configKeyPrefix,
                 ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
@@ -171,11 +193,11 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
      * onCommonMultiChanged.
      * save to configuration center common multi methods.
      * examples data:
-     *  selector.key1
+     *  namespaceId.selector.key1
      *   -> selector.key1.value1
      *   -> selector.key1.value2
      *   -> selector.key1.value3
-     *  selector.key2
+     *  namespaceId.selector.key2
      *   -> selector.key2.value4
      *   -> selector.key2.value5
      *   -> selector.key2.value6
@@ -244,14 +266,23 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        ProxySelectorData proxySelectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("proxySelectorData is null"));
+        // TODO fix namespace id
+        final String configKeyPrefix = proxySelectorData.getName() + DefaultNodeConstants.JOIN_POINT + changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, ProxySelectorData::getPluginName, ProxySelectorData::getName);
         LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
     }
 
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
-        final String configKeyPrefix = changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        DiscoverySyncData discoverySyncData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("discoverySyncData is null"));
+        final String configKeyPrefix = discoverySyncData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, DiscoverySyncData::getPluginName, DiscoverySyncData::getSelectorName);
         LOG.debug("[DataChangedListener] DiscoveryUpstreamChanged {}", changeData.getDiscoveryDataId());
     }
