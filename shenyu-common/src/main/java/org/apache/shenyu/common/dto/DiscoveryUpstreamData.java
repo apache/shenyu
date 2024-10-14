@@ -72,6 +72,11 @@ public class DiscoveryUpstreamData {
      */
     private String props;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
 
     /**
      * getDiscoveryHandlerId.
@@ -235,6 +240,24 @@ public class DiscoveryUpstreamData {
         this.dateUpdated = dateUpdated;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -247,12 +270,13 @@ public class DiscoveryUpstreamData {
         return status == that.status && weight == that.weight && Objects.equals(id, that.id)
                 && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
                 && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
-                && Objects.equals(url, that.url) && Objects.equals(props, that.props);
+                && Objects.equals(url, that.url) && Objects.equals(props, that.props)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props);
+        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props, namespaceId);
     }
 
     /**
@@ -283,6 +307,8 @@ public class DiscoveryUpstreamData {
         private int weight;
 
         private String props;
+
+        private String namespaceId;
 
         private Builder() {
         }
@@ -396,6 +422,17 @@ public class DiscoveryUpstreamData {
         }
 
         /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build new Object.
          *
          * @return DiscoveryUpstreamData
@@ -411,6 +448,7 @@ public class DiscoveryUpstreamData {
             discoveryUpstreamData.setStatus(status);
             discoveryUpstreamData.setWeight(weight);
             discoveryUpstreamData.setProps(props);
+            discoveryUpstreamData.setNamespaceId(namespaceId);
             return discoveryUpstreamData;
         }
     }

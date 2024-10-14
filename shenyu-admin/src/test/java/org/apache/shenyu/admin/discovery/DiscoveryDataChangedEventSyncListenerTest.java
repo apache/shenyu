@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -70,13 +71,15 @@ public class DiscoveryDataChangedEventSyncListenerTest {
 
     @Test
     public void testOnChange() {
-        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = new ArrayList<>();
+        final List<DiscoveryUpstreamData> discoveryUpstreamDTOS = new ArrayList<>();
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
         discoveryUpstreamData.setProtocol("http");
         discoveryUpstreamData.setUrl("1111");
+        discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         discoveryUpstreamDTOS.add(discoveryUpstreamData);
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
         when(keyValueParser.parseValue(anyString())).thenReturn(discoveryUpstreamDTOS);
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
         DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED);
         discoveryDataChangedEventSyncListener.onChange(event);
         verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));

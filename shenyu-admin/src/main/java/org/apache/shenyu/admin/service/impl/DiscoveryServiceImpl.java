@@ -63,8 +63,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
 
@@ -107,8 +105,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DiscoveryVO discovery(final String pluginName, final String level) {
-        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
+    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(pluginName, level, namespaceId));
     }
 
     @Override
@@ -120,14 +118,14 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
-        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName());
+        SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName(), discoveryConfigRegisterDTO.getNamespaceId());
         bindingDiscovery(discoveryConfigRegisterDTO, selectorDO);
     }
 
-    private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName) {
+    private SelectorDO findAndLockOnDB(final String selectorName, final String pluginName, final String namespaceId) {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
-            selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
+            selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
             if (selectorDO != null) {
                 return selectorDO;
             }
@@ -146,7 +144,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setName(selectorDO.getName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
-        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevel(discoveryConfigRegisterDTO.getPluginName(), DiscoveryLevel.PLUGIN.getCode());
+        proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
+        DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(discoveryConfigRegisterDTO.getPluginName(),
+                DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
         if (discoveryDO == null) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
@@ -157,6 +157,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .type(discoveryConfigRegisterDTO.getDiscoveryType())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
+                    .namespaceId(discoveryConfigRegisterDTO.getNamespaceId())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)
                     .build();
@@ -208,6 +209,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .id(discoveryDTO.getId())
                 .name(discoveryDTO.getName())
                 .pluginName(discoveryDTO.getPluginName())
+                .namespaceId(discoveryDTO.getNamespaceId())
                 .level(discoveryDTO.getLevel())
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
@@ -235,6 +237,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
+                .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
         return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
@@ -301,7 +304,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    public String registerDefaultDiscovery(final String selectorId, final String pluginName) {
+    public String registerDefaultDiscovery(final String selectorId, final String pluginName, final String namespaceId) {
         DiscoveryHandlerDO discoveryHandlerDB = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDB)) {
             return discoveryHandlerDB.getId();
@@ -313,6 +316,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         discoveryDO.setPluginName(pluginName);
         discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());
         discoveryDO.setId(discoveryId);
+        discoveryDO.setNamespaceId(namespaceId);
         discoveryMapper.insertSelective(discoveryDO);
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();

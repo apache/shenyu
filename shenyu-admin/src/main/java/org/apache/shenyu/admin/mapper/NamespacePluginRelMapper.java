@@ -153,4 +153,12 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return the count of enabled datas
      */
     int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+
+    /**
+     * insert selective plugin.
+     *
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
+     * @return rows int
+     */
+    int insertSelective(NamespacePluginRelDO namespacePluginRelDO);
 }

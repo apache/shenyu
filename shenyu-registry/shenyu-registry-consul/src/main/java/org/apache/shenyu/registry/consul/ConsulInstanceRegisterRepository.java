@@ -37,6 +37,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -220,5 +221,21 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .host(healthService.getService().getAddress())
                 .port(healthService.getService().getPort())
                 .build()).collect(Collectors.toList());
+    }
+
+    private URI getURI(final Map<String, String> metadata, final HealthService healthService) {
+        String scheme = "http";
+        for (Map.Entry<String, String> entry : metadata.entrySet()) {
+            if (entry.getValue().contains("http") || entry.getValue().contains("HTTPS")) {
+                scheme = "https";
+                break;
+            }
+        }
+        int port = healthService.getService().getPort();
+        if (port <= 0) {
+            port = "https".equals(scheme) ? 443 : 80;
+        }
+        String uri = String.format("%s://%s:%s", scheme, healthService.getService().getAddress(), port);
+        return URI.create(uri);
     }
 }
