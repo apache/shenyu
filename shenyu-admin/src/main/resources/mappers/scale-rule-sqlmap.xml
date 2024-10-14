@@ -70,6 +70,12 @@
         <bind name="nameLike" value="('%' + metricName + '%')"/>
         and metric_name like #{nameLike, jdbcType=VARCHAR}
       </if>
+      <if test="type != null">
+        and type = #{type, jdbcType=INTEGER}
+      </if>
+      <if test="status != null">
+        and status = #{status, jdbcType=INTEGER}
+      </if>
     </where>
     order by sort, date_created
   </select>
@@ -85,10 +91,10 @@
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
     insert into scale_rule (id, metric_name, `type`, sort,
-      `status`, minimum, maximum, 
+      `status`, minimum, maximum,
       date_created, date_updated)
     values (#{id,jdbcType=VARCHAR}, #{metricName,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
-      #{status,jdbcType=INTEGER}, #{minimum,jdbcType=VARCHAR}, #{maximum,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{minimum,jdbcType=VARCHAR}, #{maximum,jdbcType=VARCHAR},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
@@ -192,7 +198,6 @@
       `status` = #{status,jdbcType=INTEGER},
       minimum = #{minimum,jdbcType=VARCHAR},
       maximum = #{maximum,jdbcType=VARCHAR},
-      date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
   </update>
