@@ -27,3 +27,5 @@ wget -O /tmp/shenyu-e2e/driver/mysql/mysql-connector.jar \
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
 
 echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/mysql/schema.sql
+
+cat /tmp/shenyu-e2e/mysql/schema.sql
