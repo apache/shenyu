@@ -28,6 +28,20 @@ services:
     restart: always
     networks:
       - shenyu
+  
+  shenyu-etcd:
+    image: bitnami/etcd:3.5
+    container_name: shenyu-etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://shenyu-etcd:2379
+      - TZ=Asia/Shanghai
+    ports:
+      - "32379:2379"
+      - "2380:2380"
+    restart: always
+    networks:
+      - shenyu
   shenyu-mysql:
     image: mysql:8.0
     container_name: shenyu-mysql
@@ -57,19 +71,6 @@ services:
     networks:
       - shenyu
       
-  shenyu-etcd:
-    image: bitnami/etcd:3.5
-    environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://shenyu-etcd:2379
-      - TZ=Asia/Shanghai
-    ports:
-      - "32379:2379"
-      - "2380:2380"
-    restart: always
-    networks:
-      - shenyu
-      
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
@@ -91,7 +92,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9095/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
     restart: always
     depends_on:
@@ -113,7 +114,7 @@ services:
       test: [ "CMD", "curl", "-f", "http://localhost:9195/actuator/health" ]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
     restart: always
     depends_on:
@@ -130,7 +131,7 @@ services:
       - "8011:8011"
       - "20888:20888"
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
+      test: [ "CMD", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 2s
       retries: 3
