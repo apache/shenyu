@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-docker pull shenyu-examples-apache-dubbo-service:latest
+#docker pull shenyu-examples-apache-dubbo-service:latest
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")

@@ -21,9 +21,9 @@ services:
     image: mysql:8.0
     container_name: shenyu-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: shenyue2e
-      MYSQL_USER: shenyue2e
-      MYSQL_PASSWORD: shenyue2e
+      - MYSQL_ROOT_PASSWORD=shenyue2e
+      - MYSQL_USER=shenyue2e
+      - MYSQL_PASSWORD=shenyue2e
     ports:
       - "30306:3306"
     volumes:
