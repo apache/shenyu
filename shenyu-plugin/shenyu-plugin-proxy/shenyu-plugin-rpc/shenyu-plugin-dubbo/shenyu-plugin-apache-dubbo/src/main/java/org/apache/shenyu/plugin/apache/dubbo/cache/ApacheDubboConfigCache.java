@@ -200,9 +200,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         
-        // When solving the instance service discovery after dubbo3.0, when the default address of the registration center is used as the metadata center, the default metadata center cannot be used to obtain the interface provider, resulting in rpc failure
-        // When no metadata center is configured after this modification, the address of the registry will be used as the metadata center
-        // The address configuration of the metadata center is not configured when the dubbo plug-in is enabled in version 2.6.1, and the configuration of the metadata center should be allowed in both the front-end and back-end in the future
+        // Fix dubbo3.0 cannot get service provider information #5708
         reference.getApplicationModel().getApplicationConfigManager().addConfig(registryConfig);
         // default protocol is dubbo
         reference.setProtocol("dubbo");
