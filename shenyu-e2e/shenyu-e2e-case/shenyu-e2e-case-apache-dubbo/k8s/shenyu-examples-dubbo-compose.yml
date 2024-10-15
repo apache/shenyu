@@ -35,3 +35,8 @@ services:
     restart: always
     networks:
       - shenyu
+
+networks:
+  shenyu:
+    name: shenyu
+    external: true

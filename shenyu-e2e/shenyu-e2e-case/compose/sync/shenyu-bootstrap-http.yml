@@ -37,3 +37,6 @@ services:
     networks:
       - shenyu
 
+networks:
+  shenyu:
+    name: shenyu
