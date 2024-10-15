@@ -25,6 +25,12 @@ services:
       - "2888:2888"  # Server
       - "3888:3888"  # Leader election
       - "8080:8080"  # Website
+    healthcheck:
+      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: always
     networks:
       - shenyu

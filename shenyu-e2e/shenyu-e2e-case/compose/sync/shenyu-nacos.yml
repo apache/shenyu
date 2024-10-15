@@ -25,6 +25,12 @@ services:
       - "2888:2888"  # Server
       - "3888:3888"  # Leader election
       - "8080:8080"  # Website
+    healthcheck:
+      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: always
     networks:
       - shenyu
@@ -73,6 +79,12 @@ services:
       - "8848:8848"  # Client port
       - "9848:9848"  # Server port
       - "9849:9849"  # Raft port
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - shenyu
   shenyu-admin:
