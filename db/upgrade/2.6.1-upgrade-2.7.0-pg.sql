@@ -194,25 +194,25 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343267', '13463585604272
 ALTER TABLE "public"."dashboard_user" ADD COLUMN client_id VARCHAR(32) NULL;
 COMMENT ON COLUMN "public"."dashboard_user".client_id IS 'client id';
 
-ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
 
-ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;

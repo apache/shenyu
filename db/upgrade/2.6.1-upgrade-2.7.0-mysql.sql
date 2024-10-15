@@ -174,19 +174,19 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 ALTER TABLE `shenyu`.`dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
 
 
-ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
 
-ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
 
-ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `rpc_ext`;
+ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `rpc_ext`;
 
-ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
+ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `enabled`;
 
-ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `plugin_name`;
 
-ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
 
-ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
+ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `props`;
 
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
