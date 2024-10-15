@@ -80,7 +80,7 @@
         d.level,
         d.server_list,
         d.plugin_name,
-        d.props
+        d.props,
         d.namespace_id
         FROM discovery d
         INNER JOIN discovery_handler dh on d.id = dh.discovery_id
