@@ -86,8 +86,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9095/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 10
+      start_period: 10s
     restart: always
     depends_on:
       shenyu-mysql:
@@ -110,8 +110,8 @@ services:
       test: [ "CMD", "curl", "-f", "http://localhost:9195/actuator/health" ]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 10
+      start_period: 10s
     restart: always
     depends_on:
       shenyu-admin:

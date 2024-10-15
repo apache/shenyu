@@ -72,10 +72,12 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-dubbo-deployment | awk '{print $1}')"
 #    docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml logs
-#    echo "shenyu-admin log:"
+    echo "shenyu-admin log:"
 #    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs shenyu-admin
+    echo "shenyu-bootstrap log:"
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs shenyu-bootstrap
 #    echo "shenyu-bootstrap log:"
 #    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
@@ -85,6 +87,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
 #  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
+docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml stop
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
 #  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml rm -f
