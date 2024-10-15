@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
@@ -119,16 +118,16 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return {@linkplain ServiceInstance}
      */
     private List<InstanceEntity> getServiceInstance(final String serviceId) {
-        if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            List<InstanceEntity> instances = null;
-            if (SpringCloudPluginDataHandler.getRepository() != null) {
-                instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
-            }
-            LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
-            return Optional.ofNullable(instances).orElse(Collections.emptyList());
+        if (CollectionUtils.isNotEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
+            return ServiceInstanceCache.getServiceInstance(serviceId);
         }
-        LOG.info("ServiceInstanceCache.getServiceInstance(serviceId)");
-        return ServiceInstanceCache.getServiceInstance(serviceId);
+        List<InstanceEntity> instances = null;
+        if (SpringCloudPluginDataHandler.getRepository() != null) {
+            instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
+        }
+        final List<InstanceEntity> instanceEntities = Optional.ofNullable(instances).orElse(Collections.emptyList());
+        LOG.info("ShenyuSpringCloudServiceChooser selectInstance size: {}", instanceEntities.size());
+        return instanceEntities;
     }
 
     /**
