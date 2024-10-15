@@ -129,3 +129,4 @@ services:
 networks:
   shenyu:
     name: shenyu
+    external: true
