@@ -81,8 +81,10 @@ services:
       start_period: 30s
     restart: always
     depends_on:
-      - shenyu-mysql
-      - shenyu-zookeeper
+      shenyu-mysql:
+        condition: service_healthy
+      shenyu-zookeeper:
+        condition: service_healthy
     networks:
       - shenyu
   shenyu-bootstrap:
@@ -102,6 +104,31 @@ services:
       retries: 3
       start_period: 30s
     restart: always
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    networks:
+      - shenyu
+  
+  shenyu-examples-dubbo:
+    image: shenyu-examples-apache-dubbo-service:latest
+    container_name: shenyu-examples-dubbo
+    environment:
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - dubbo.registry.address=zookeeper://shenyu-zookeeper:2181
+    ports:
+      - "8011:8011"
+      - "20888:20888"
+    healthcheck:
+      test: [ "CMD", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+    restart: always
+    depends_on:
+      shenyu-bootstrap:
+        condition: service_healthy
     networks:
       - shenyu
 networks:

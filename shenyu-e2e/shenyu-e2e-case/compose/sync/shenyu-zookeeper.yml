@@ -83,8 +83,10 @@ services:
       start_period: 30s
     restart: always
     depends_on:
-      - shenyu-mysql
-      - shenyu-zookeeper
+      shenyu-mysql:
+        condition: service_healthy
+      shenyu-zookeeper:
+        condition: service_healthy
     networks:
       - shenyu
   
@@ -106,7 +108,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
-      - shenyu-admin
+      shenyu-admin:
+        condition: service_healthy
     networks:
       - shenyu
   
@@ -127,7 +130,8 @@ services:
       start_period: 10s
     restart: always
     depends_on:
-      - shenyu-bootstrap
+      shenyu-bootstrap:
+        condition: service_healthy
     networks:
       - shenyu
 networks:
