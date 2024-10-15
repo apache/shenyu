@@ -30,71 +30,71 @@ PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
 SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 #SYNC_ARRAY=("websocket" "nacos")
-MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
+#MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 
 docker network create -d bridge shenyu
 
 for sync in "${SYNC_ARRAY[@]}"; do
   echo -e "------------------\n"
 #  kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml up -d
+#  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml up -d
 #  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-zookeeper.yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-zookeeper.yml up -d
-  sleep 30s
+#  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-zookeeper.yml up -d
+#  sleep 30s
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   # shellcheck disable=SC2154
-  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
-#    kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-"${sync}".yml up -d
-    sleep 10s
-  fi
+#  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
+##    kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
+#    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-"${sync}".yml up -d
+#    sleep 10s
+#  fi
 #  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-admin-"${sync}".yml up -d
+  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml up -d
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
 #  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml up -d
+#  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml up -d
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
 #  kubectl apply -f "${PRGDIR}"/shenyu-examples-dubbo.yml
-  docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml up -d
+#  docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml up -d
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31187/actuator/health
   sleep 10s
 #  kubectl get pod -o wide
-  docker ps
+  docker ps -a
   echo -e "------------------\n"
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-apache-dubbo -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
-    echo "shenyu-examples-dubbo log:"
+#    echo "shenyu-examples-dubbo log:"
     echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-dubbo-deployment | awk '{print $1}')"
-    docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml logs
-    echo "shenyu-admin log:"
-    echo "------------------"
+#    docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml logs
+#    echo "shenyu-admin log:"
+#    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-admin-"${sync}".yml logs
-    echo "shenyu-bootstrap log:"
-    echo "------------------"
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs
+#    echo "shenyu-bootstrap log:"
+#    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml logs
+#    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml logs
     exit 1
   fi
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml rm -f
+#  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-admin-"${sync}".yml rm -f
+  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml rm -f
+#  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml rm -f
 #  kubectl delete -f "${PRGDIR}"/shenyu-examples-dubbo.yml
-  docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml rm -f
+#  docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml rm -f
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
-  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
-#    kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-"${sync}".yml rm -f
-  fi
+#  if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
+##    kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
+#    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-"${sync}".yml rm -f
+#  fi
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done
