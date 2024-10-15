@@ -77,6 +77,7 @@ services:
       - shenyu
   shenyu-admin:
     image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
     command: ["-Xmx768m", "-Xms768m"]
     ports:
       - "31095:9095"

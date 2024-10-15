@@ -72,6 +72,7 @@ services:
       
   shenyu-admin:
     image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
     command: ["-Xmx768m", "-Xms768m"]
     ports:
       - "31095:9095"
@@ -101,6 +102,7 @@ services:
       - shenyu
   shenyu-bootstrap:
     image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
     ports:
       - "31195:9195"
     environment:
