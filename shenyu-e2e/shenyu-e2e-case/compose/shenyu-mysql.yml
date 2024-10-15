@@ -29,7 +29,7 @@ services:
     volumes:
       - /tmp/shenyu-e2e/mysql/schema:/docker-entrypoint-initdb.d
     healthcheck:
-      test: [ "CMD", "mysql", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1" ]
+      test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
       interval: 10s
       timeout: 5s
       retries: 3
