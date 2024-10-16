@@ -18,6 +18,9 @@
 package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Maps;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
@@ -32,15 +35,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
@@ -62,19 +59,18 @@ public class ConfigController {
     /**
      * Fetch configs shenyu result.
      *
-     * @param groupKeys the group keys
-     * @param namespaceIdParams namespaceIdParams
+     * @param groupKeys   the group keys
+     * @param namespaceId namespaceId
      * @return the shenyu result
      */
     @GetMapping("/fetch")
-    public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys, final String namespaceIdParams) {
-        String namespaceId = namespaceIdParams;
+    public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys, final String namespaceId) {
+        if (StringUtils.isEmpty(namespaceId)) {
+            throw new ShenyuAdminException("namespaceId is null");
+        }
         NamespaceVO existNamespace = namespaceService.findById(namespaceId);
         if (StringUtils.isNotEmpty(namespaceId) && ObjectUtils.isEmpty(existNamespace)) {
-            throw new ShenyuAdminException("namespaceId is not exist");
-        }
-        if (StringUtils.isEmpty(namespaceId)) {
-            namespaceId = SYS_DEFAULT_NAMESPACE_ID;
+            throw new ShenyuAdminException("namespace is not exist");
         }
         Map<String, ConfigData<?>> result = Maps.newHashMap();
         for (String groupKey : groupKeys) {

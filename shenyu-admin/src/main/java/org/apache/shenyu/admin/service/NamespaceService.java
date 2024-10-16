@@ -71,5 +71,5 @@ public interface NamespaceService {
      *
      * @return {@linkplain List}
      */
-    List<NamespaceVO> list();
+    List<NamespaceVO> listAll();
 }

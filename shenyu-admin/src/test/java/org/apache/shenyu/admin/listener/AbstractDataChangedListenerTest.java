@@ -133,7 +133,7 @@ public final class AbstractDataChangedListenerTest {
         NamespaceVO namespaceVO = new NamespaceVO();
         namespaceVO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         list.add(namespaceVO);
-        when(namespaceService.list()).thenReturn(list);
+        when(namespaceService.listAll()).thenReturn(list);
 
         // clear first
         listener.getCache().clear();

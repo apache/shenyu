@@ -307,7 +307,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * refresh local cache.
      */
     protected void refreshLocalCache() {
-        List<NamespaceVO> namespaceList = namespaceService.list();
+        List<NamespaceVO> namespaceList = namespaceService.listAll();
         for (NamespaceVO namespace : namespaceList) {
             String namespaceId = namespace.getNamespaceId();
             this.updatePluginCache(namespaceId);

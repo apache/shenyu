@@ -104,7 +104,7 @@ public class NamespaceServiceImpl implements NamespaceService {
     }
 
     @Override
-    public List<NamespaceVO> list() {
+    public List<NamespaceVO> listAll() {
         List<NamespaceDO> namespaceDOS = namespaceMapper.selectAll();
         return namespaceDOS.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
 

@@ -84,7 +84,7 @@ public final class ConfigControllerTest {
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(get("/configs/fetch")
                         .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
-                        .param("namespaceIdParams", SYS_DEFAULT_NAMESPACE_ID)
+                        .param("namespaceId", SYS_DEFAULT_NAMESPACE_ID)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
