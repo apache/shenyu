@@ -39,5 +39,4 @@ public interface SyncDataService {
      * @return the boolean
      */
     boolean syncPluginData(String id);
-
 }
