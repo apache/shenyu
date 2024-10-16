@@ -47,7 +47,7 @@ services:
     ports:
       - "30306:3306"
     volumes:
-      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
       interval: 10s
