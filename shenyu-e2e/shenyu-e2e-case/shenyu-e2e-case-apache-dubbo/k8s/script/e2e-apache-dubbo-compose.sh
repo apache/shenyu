@@ -38,6 +38,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml up -d
+  sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31187/actuator/health
   sleep 10s
   docker ps -a
