@@ -275,6 +275,12 @@ jobs:
           name: shenyu-images
           path: /tmp/shenyu/
 
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/shenyu/apache-shenyu-admin.tar
+          docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
