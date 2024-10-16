@@ -53,6 +53,9 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
+    echo "shenyu-examples-dubbo log:"
+    echo "------------------"
+    docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml logs shenyu-examples-dubbo
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
