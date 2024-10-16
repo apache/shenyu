@@ -66,7 +66,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
             result = this.doRegisterURI(selectorName, uriList);
             LOG.info("Register success: {},{}", selectorName, uriList);
         } catch (Exception ex) {
-            LOG.error("Register exception: cause:", ex);
+            LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
             this.addFallback(key, new FallbackHolder(selectorName, uriList));
         }

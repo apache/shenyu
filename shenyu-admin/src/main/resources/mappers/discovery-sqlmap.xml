@@ -28,6 +28,7 @@
         <result column="server_list" jdbcType="VARCHAR" property="serverList"/>
         <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
         <result column="props" jdbcType="LONGVARCHAR" property="props"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -39,7 +40,8 @@
         level,
         server_list,
         plugin_name,
-        props
+        props,
+        namespace_id
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -78,7 +80,8 @@
         d.level,
         d.server_list,
         d.plugin_name,
-        d.props
+        d.props,
+        d.namespace_id
         FROM discovery d
         INNER JOIN discovery_handler dh on d.id = dh.discovery_id
         INNER JOIN discovery_rel dr on dh.id = dr.discovery_handler_id
