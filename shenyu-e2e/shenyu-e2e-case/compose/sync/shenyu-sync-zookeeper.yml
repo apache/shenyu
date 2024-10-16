@@ -75,8 +75,6 @@ services:
     depends_on:
       shenyu-mysql:
         condition: service_healthy
-      shenyu-zookeeper:
-        condition: service_healthy
     networks:
       - shenyu
 
