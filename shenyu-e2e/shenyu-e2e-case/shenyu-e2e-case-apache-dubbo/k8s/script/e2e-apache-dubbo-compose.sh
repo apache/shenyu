@@ -51,7 +51,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
 #    sleep 10s
 #  fi
 #  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml up -d
+  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml up -d
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
 #  kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
 #  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml up -d
@@ -75,9 +75,9 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-admin log:"
 #    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs shenyu-admin
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-admin
     echo "shenyu-bootstrap log:"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml logs shenyu-bootstrap
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
 #    echo "shenyu-bootstrap log:"
 #    echo "------------------"
 #    kubectl logs "$(kubectl get pod -o wide | grep shenyu-bootstrap | awk '{print $1}')"
@@ -87,8 +87,8 @@ for sync in "${SYNC_ARRAY[@]}"; do
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
 #  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/shenyu-mysql.yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml stop
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-"${sync}".yml rm -f
+docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml stop
+  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync"${sync}".yml rm -f
 #  kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
 #  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-bootstrap-"${sync}".yml rm -f
 #  kubectl delete -f "${PRGDIR}"/shenyu-examples-dubbo.yml
