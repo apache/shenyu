@@ -21,6 +21,7 @@ import jakarta.annotation.Resource;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
@@ -114,7 +115,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @return the configuration data
      */
     public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey, final String namespaceId) {
-        ConfigDataCache config = CACHE.get(namespaceId + "_" + groupKey.name());
+        ConfigDataCache config = CACHE.get(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name()));
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);
@@ -296,7 +297,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
         String json = GsonUtils.getInstance().toJson(data);
-        String configDataCacheKey = namespaceId + "_" + group.name();
+        String configDataCacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
         ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
