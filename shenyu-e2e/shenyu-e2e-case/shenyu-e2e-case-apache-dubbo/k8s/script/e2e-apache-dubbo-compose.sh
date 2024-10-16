@@ -59,7 +59,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
 #  kubectl apply -f "${PRGDIR}"/shenyu-examples-dubbo.yml
 #  docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml up -d
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31187/actuator/health
-  sleep 10s
+  sleep 30s
 #  kubectl get pod -o wide
   docker ps -a
   echo -e "------------------\n"
