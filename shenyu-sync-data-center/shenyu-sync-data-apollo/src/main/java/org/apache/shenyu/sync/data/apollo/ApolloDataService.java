@@ -22,6 +22,7 @@ import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.enums.PropertyChangeType;
 import com.ctrip.framework.apollo.model.ConfigChange;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
 import org.apache.shenyu.common.constant.DefaultNodeConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -58,7 +59,8 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
                              final List<MetaDataSubscriber> metaDataSubscribers,
                              final List<AuthDataSubscriber> authDataSubscribers,
                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                             final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+                             final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                             final ShenyuConfig shenyuConfig) {
         super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID,
                 ApolloPathConstants.SELECTOR_DATA_ID,
                 ApolloPathConstants.RULE_DATA_ID,
@@ -66,7 +68,12 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
                 ApolloPathConstants.META_DATA_ID,
                 ApolloPathConstants.PROXY_SELECTOR_DATA_ID,
                 ApolloPathConstants.DISCOVERY_DATA_ID),
-                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                shenyuConfig);
         this.configService = configService;
 
         startWatch();
