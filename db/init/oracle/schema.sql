@@ -125,6 +125,7 @@ create table selector
     loged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
     match_restful NUMBER(3) not null,
+    namespace_id VARCHAR2(50) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 );
@@ -151,6 +152,8 @@ comment on column SELECTOR.continued
   is 'whether to continue execution';
 comment on column SELECTOR.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
+comment on column SELECTOR.namespace_id
+  is 'namespace id';
 comment on column SELECTOR.date_created
   is 'create time';
 comment on column SELECTOR.date_updated
@@ -195,6 +198,7 @@ create table rule
     enabled       NUMBER(3) not null,
     loged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
+    namespace_id VARCHAR2(50) not null,
     sort          NUMBER(10) not null,
     handle        VARCHAR2(1024),
     date_created  timestamp(3) default SYSDATE not null,
@@ -215,6 +219,8 @@ comment on column RULE.loged
   is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
+comment on column RULE.namespace_id
+  is 'namespace id';
 comment on column RULE.sort
   is 'sort';
 comment on column RULE.handle
@@ -264,6 +270,7 @@ create table meta_data
     method_name     VARCHAR2(255),
     parameter_types VARCHAR2(255),
     rpc_ext         VARCHAR2(512),
+    namespace_id VARCHAR2(50) not null,
     date_created    timestamp(3) default SYSDATE not null,
     date_updated    timestamp(3) default SYSDATE not null,
     enabled         NUMBER(3) default '0' not null,
@@ -288,6 +295,8 @@ comment on column META_DATA.parameter_types
   is 'parameter types are provided with multiple parameter types separated by commas';
 comment on column META_DATA.rpc_ext
   is 'rpc extended information, json format';
+comment on column META_DATA.namespace_id
+  is 'namespace id';
 comment on column META_DATA.date_created
   is 'create time';
 comment on column META_DATA.date_updated
@@ -483,6 +492,7 @@ create table app_auth
     ext_info     VARCHAR2(1024),
     open         NUMBER(3) not null,
     enabled      NUMBER(3) not null,
+    namespace_id VARCHAR2(50) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -504,6 +514,8 @@ comment on column APP_AUTH.open
   is 'open auth path or not (0 not open, 1 open) ';
 comment on column APP_AUTH.enabled
   is 'delete or not (0 close, 1 open) ';
+comment on column APP_AUTH.namespace_id
+  is 'namespace id';
 comment on column APP_AUTH.date_created
   is 'create time';
 comment on column APP_AUTH.date_updated
@@ -2457,6 +2469,7 @@ create table discovery
     name            VARCHAR2(255) not null,
     level            VARCHAR2(64) not null,
     plugin_name      VARCHAR2(255),
+    namespace_id VARCHAR2(50) not null,
     type            VARCHAR2(64) not null,
     server_list      VARCHAR2(255),
     props            CLOB,
@@ -2473,6 +2486,8 @@ comment on column DISCOVERY.level
   is '0 selector,1 plugin  2 global';
 comment on column DISCOVERY.plugin_name
   is 'the plugin name';
+comment on column DISCOVERY.namespace_id
+  is 'namespace id';
 comment on column DISCOVERY.type
   is 'local,zookeeper,etcd,consul,nacos';
 comment on column DISCOVERY.server_list
@@ -2545,6 +2560,7 @@ create table discovery_upstream
 (
     id                VARCHAR2(128) not null,
     discovery_handler_id   VARCHAR2(128) not null,
+    namespace_id VARCHAR2(50) not null,
     protocol            VARCHAR2(64),
     url      VARCHAR2(64) not null,
     status      NUMBER(10) not null,
@@ -2561,6 +2577,8 @@ comment on column DISCOVERY_UPSTREAM.id
   is 'primary key id';
 comment on column DISCOVERY_UPSTREAM.discovery_handler_id
   is 'the discovery handler id';
+comment on column DISCOVERY_UPSTREAM.namespace_id
+  is 'namespace id';
 comment on column DISCOVERY_UPSTREAM.protocol
   is 'for http, https, tcp, ws';
 comment on column DISCOVERY_UPSTREAM.url
@@ -2585,6 +2603,7 @@ create table proxy_selector
     type      VARCHAR2(64) not null,
     forward_port      NUMBER(10) not null,
     props       CLOB,
+    namespace_id VARCHAR2(50) not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -2602,6 +2621,8 @@ comment on column PROXY_SELECTOR.forward_port
   is 'the proxy forward port';
 comment on column PROXY_SELECTOR.props
   is 'the discovery pops (json)';
+comment on column PROXY_SELECTOR.namespace_id
+  is 'namespace id';
 comment on column PROXY_SELECTOR.date_created
   is 'create time';
 comment on column PROXY_SELECTOR.date_updated
@@ -2974,26 +2995,4 @@ comment on column SCALE_HISTORY.date_created
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
 
-
-ALTER TABLE selector ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
-
-
-ALTER TABLE rule ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN rule.namespace_id IS 'namespaceId';
-
-ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
-
-ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
-
-ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN discovery.namespace_id IS 'namespaceId';
-
-ALTER TABLE discovery_upstream ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN discovery_upstream.namespace_id IS 'namespaceId';
-
-ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NULL;
-COMMENT ON COLUMN proxy_selector.namespace_id IS 'namespaceId';
 

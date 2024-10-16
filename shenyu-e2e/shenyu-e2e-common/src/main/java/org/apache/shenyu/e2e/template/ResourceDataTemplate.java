@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+
 /**
  * Templates for various entity classes.
  */
@@ -82,6 +84,7 @@ public class ResourceDataTemplate {
         discoveryUpstream.setProtocol("http://");
         discoveryUpstream.setStatus(0);
         discoveryUpstream.setWeight(50);
+        discoveryUpstream.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         bindingData.setDiscoveryUpstreams(Collections.singletonList(discoveryUpstream));
         return bindingData;
     }
