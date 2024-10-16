@@ -87,7 +87,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 15
       start_period: 30s
     restart: always
     depends_on:
@@ -112,7 +112,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 15
       start_period: 30s
     restart: always
     depends_on:
