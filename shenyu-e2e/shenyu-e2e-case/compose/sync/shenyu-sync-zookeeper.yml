@@ -92,7 +92,7 @@ services:
     depends_on:
       shenyu-mysql:
         condition: service_healthy
-      shenyu-zookeeper:
+      shenyu-zookeeper-sync:
         condition: service_healthy
     networks:
       - shenyu
