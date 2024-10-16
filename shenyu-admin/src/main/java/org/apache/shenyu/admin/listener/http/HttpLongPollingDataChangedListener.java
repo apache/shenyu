@@ -204,7 +204,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         return changedGroup;
     }
 
-    public static String buildCacheKey(String namespaceId, String group) {
+    public static String buildCacheKey(final String namespaceId, final String group) {
         return namespaceId + "_" + group;
     }
 
@@ -343,7 +343,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
 
         private void doRun(final Collection<LongPollingClient> clients) {
-            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext(); ) {
+            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
                 LongPollingClient client = iter.next();
                 iter.remove();
                 client.sendResponse(Collections.singletonList(groupKey));
