@@ -120,4 +120,5 @@ services:
 networks:
   shenyu:
     name: shenyu
+    driver: bridge
     external: true
