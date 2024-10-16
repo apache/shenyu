@@ -149,6 +149,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(v.getParameterTypes())
                         .rpcExt(v.getRpcExt())
                         .enabled(v.getEnabled())
+                        .namespaceId(v.getNamespaceId())
                         .build())
                 .orElse(null);
     }

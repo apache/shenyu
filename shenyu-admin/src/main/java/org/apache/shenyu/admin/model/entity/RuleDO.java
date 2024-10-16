@@ -329,6 +329,7 @@ public final class RuleDO extends BaseDO {
                 .matchRestful(ruleDO.getMatchRestful())
                 .conditionDataList(conditionDataList)
                 .beforeConditionDataList(beforeConditionDataList)
+                .namespaceId(ruleDO.getNamespaceId())
                 .build();
     }
 
