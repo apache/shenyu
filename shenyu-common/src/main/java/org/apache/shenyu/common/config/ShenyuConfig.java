@@ -70,9 +70,9 @@ public class ShenyuConfig {
     private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
     
     private AlertConfig alert = new AlertConfig();
-    
+
     private String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
-    
+
     /**
      * shenyu bootstrap namespace.
      *
@@ -81,7 +81,7 @@ public class ShenyuConfig {
     public String getNamespace() {
         return namespace;
     }
-    
+
     /**
      * Set shenyu bootstrap namespace, default value is {@link org.apache.shenyu.common.constant.Constants#SYS_DEFAULT_NAMESPACE_ID}.
      *
@@ -90,7 +90,7 @@ public class ShenyuConfig {
     public void setNamespace(final String namespace) {
         this.namespace = namespace;
     }
-    
+
     /**
      * Gets health.
      *
