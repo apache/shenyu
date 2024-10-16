@@ -30,6 +30,7 @@
         <result column="method_name" jdbcType="VARCHAR" property="methodName"/>
         <result column="parameter_types" jdbcType="VARCHAR" property="parameterTypes"/>
         <result column="rpc_ext" jdbcType="VARCHAR" property="rpcExt"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
@@ -45,6 +46,7 @@
         method_name,
         parameter_types,
         rpc_ext,
+        namespace_id,
         enabled,
         namespace_id
     </sql>
