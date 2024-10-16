@@ -17,9 +17,9 @@
 version: '3.9'
 
 services:
-  shenyu-zookeeper:
+  shenyu-zookeeper-sync:
     image: zookeeper:3.5
-    container_name: shenyu-zookeeper
+    container_name: shenyu-zookeeper-sync
     ports:
       - "12181:2181"  # Client
       - "12888:2888"  # Server
@@ -77,7 +77,7 @@ services:
       - spring.datasource.username=shenyue2e
       - spring.datasource.password=shenyue2e
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-      - shenyu.sync.zookeeper.url=shenyu-zookeeper:2181
+      - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
       - shenyu.sync.zookeeper.sessionTimeout=5000
       - shenyu.sync.zookeeper.connectionTimeout=2000
     volumes:
@@ -104,7 +104,7 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
-      - shenyu.sync.zookeeper.url=shenyu-zookeeper:2181
+      - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
       - shenyu.sync.zookeeper.sessionTimeout=5000
       - shenyu.sync.zookeeper.connectionTimeout=2000
     healthcheck:
