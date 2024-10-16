@@ -17,23 +17,6 @@
 version: '3.9'
 
 services:
-  shenyu-zookeeper:
-    image: zookeeper:3.5
-    container_name: shenyu-zookeeper
-    ports:
-      - "2181:2181"  # Client
-      - "2888:2888"  # Server
-      - "3888:3888"  # Leader election
-      - "8080:8080"  # Website
-    healthcheck:
-      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    restart: always
-    networks:
-      - shenyu
   shenyu-etcd:
     image: bitnami/etcd:3.5
     container_name: shenyu-etcd
@@ -45,7 +28,7 @@ services:
       - "32379:2379"
       - "2380:2380"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:2379/health" ]
+      test: ["CMD", "/opt/bitnami/etcd/bin/etcdctl", "endpoint", "health"]
       interval: 10s
       timeout: 5s
       retries: 10

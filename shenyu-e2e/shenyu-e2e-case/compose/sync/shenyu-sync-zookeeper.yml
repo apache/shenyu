@@ -17,24 +17,6 @@
 version: '3.9'
 
 services:
-  shenyu-zookeeper:
-    image: zookeeper:3.5
-    container_name: shenyu-zookeeper
-    ports:
-      - "2181:2181"  # Client
-      - "2888:2888"  # Server
-      - "3888:3888"  # Leader election
-      - "8080:8080"  # Website
-    restart: always
-    healthcheck:
-      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    networks:
-      - shenyu
-
   shenyu-mysql:
     image: mysql:8.0
     container_name: shenyu-mysql
@@ -92,8 +74,6 @@ services:
     restart: always
     depends_on:
       shenyu-mysql:
-        condition: service_healthy
-      shenyu-zookeeper:
         condition: service_healthy
     networks:
       - shenyu
