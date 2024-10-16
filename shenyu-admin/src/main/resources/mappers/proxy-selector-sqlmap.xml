@@ -27,6 +27,7 @@
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="forward_port" jdbcType="INTEGER" property="forwardPort"/>
         <result column="props" jdbcType="VARCHAR" property="props"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -37,7 +38,8 @@
         plugin_name,
         type,
         forward_port,
-        props
+        props,
+        namespace_id
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -130,10 +132,11 @@
         SELECT
         ps.id ,
         ps.name,
-        ps.plugin_name ,
+        ps.plugin_name,
         ps.type,
-        ps.forward_port ,
-        ps.props
+        ps.forward_port,
+        ps.props,
+        ps.namespace_id
         FROM proxy_selector ps
         inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         inner join discovery_handler dh on dh.id = dr.discovery_handler_id

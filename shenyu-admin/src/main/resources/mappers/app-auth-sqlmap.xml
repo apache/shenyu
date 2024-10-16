@@ -27,6 +27,7 @@
         <result column="ext_info" jdbcType="VARCHAR" property="extInfo"/>
         <result column="open" jdbcType="TINYINT" property="open"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -182,6 +183,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
             <if test="userId != null">
                 user_id,
             </if>
@@ -211,6 +215,9 @@
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
             <if test="userId != null">
                 #{userId, jdbcType=VARCHAR},

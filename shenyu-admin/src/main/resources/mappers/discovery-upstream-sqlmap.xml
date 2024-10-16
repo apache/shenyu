@@ -23,6 +23,7 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="discovery_handler_id" jdbcType="VARCHAR" property="discoveryHandlerId"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
         <result column="url" jdbcType="VARCHAR" property="url"/>
         <result column="status" jdbcType="INTEGER" property="status"/>
@@ -35,6 +36,7 @@
         date_created,
         date_updated,
         discovery_handler_id,
+        namespace_id,
         protocol,
         url,
         status,
