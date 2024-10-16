@@ -17,6 +17,23 @@
 version: '3.9'
 
 services:
+  shenyu-zookeeper:
+    image: zookeeper:3.5
+    container_name: shenyu-zookeeper
+    ports:
+      - "12181:2181"  # Client
+      - "12888:2888"  # Server
+      - "13888:3888"  # Leader election
+      - "18080:8080"  # Website
+    healthcheck:
+      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: always
+    networks:
+      - shenyu
   shenyu-mysql:
     image: mysql:8.0
     container_name: shenyu-mysql
@@ -75,6 +92,8 @@ services:
     depends_on:
       shenyu-mysql:
         condition: service_healthy
+      shenyu-zookeeper:
+        condition: service_healthy
     networks:
       - shenyu
 
@@ -85,9 +104,9 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
-      - shenyu.sync.http.url=http://shenyu-admin:9095
-      - shenyu.sync.http.username=admin
-      - shenyu.sync.http.password=123456
+      - shenyu.sync.zookeeper.url=shenyu-zookeeper:2181
+      - shenyu.sync.zookeeper.sessionTimeout=5000
+      - shenyu.sync.zookeeper.connectionTimeout=2000
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s
