@@ -49,10 +49,10 @@
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScalePolicyDO">
     insert into scale_policy (id, sort, `status`, num,
-      begin_time, end_time, date_created, 
+      begin_time, end_time, date_created,
       date_updated)
     values (#{id,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{num,jdbcType=INTEGER},
-      #{beginTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{dateCreated,jdbcType=TIMESTAMP}, 
+      #{beginTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{dateCreated,jdbcType=TIMESTAMP},
       #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScalePolicyDO">
@@ -140,7 +140,6 @@
       num = #{num,jdbcType=INTEGER},
       begin_time = #{beginTime,jdbcType=TIMESTAMP},
       end_time = #{endTime,jdbcType=TIMESTAMP},
-      date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
   </update>

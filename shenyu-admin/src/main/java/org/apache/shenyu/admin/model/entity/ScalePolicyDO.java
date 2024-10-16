@@ -236,10 +236,10 @@ public final class ScalePolicyDO extends BaseDO {
                                 .sort(item.getSort())
                                 .status(item.getStatus())
                                 .num(item.getNum())
-                                .beginTime(DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getBeginTime()))
-                                        ? new SimpleDateFormat("yyyy-MM-dd").parse(DateUtils.localDateTimeToString(item.getBeginTime())) : null)
-                                .endTime(DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getEndTime()))
-                                        ? new SimpleDateFormat("yyyy-MM-dd").parse(DateUtils.localDateTimeToString(item.getEndTime())) : null)
+                                .beginTime(item.getBeginTime() != null && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getBeginTime()))
+                                        ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(DateUtils.localDateTimeToString(item.getBeginTime())) : null)
+                                .endTime(item.getEndTime() != null && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getEndTime()))
+                                        ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(DateUtils.localDateTimeToString(item.getEndTime())) : null)
                                 .dateUpdated(currentTime)
                                 .build();
                 if (StringUtils.isEmpty(item.getId())) {
