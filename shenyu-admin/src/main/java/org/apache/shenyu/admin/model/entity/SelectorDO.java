@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
@@ -390,6 +391,9 @@ public final class SelectorDO extends BaseDO {
                 selectorDO.setMatchMode(MatchModeEnum.AND.getCode());
             } else {
                 selectorDO.setMatchMode(item.getMatchMode());
+            }
+            if (StringUtils.isEmpty(selectorDO.getNamespaceId())) {
+                selectorDO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
             }
             return selectorDO;
         }).orElse(null);
