@@ -42,11 +42,11 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import vlsi.utils.CompactHashMap;
 
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -98,7 +99,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
-        this.clientsMap = new CompactHashMap<>();
+        this.clientsMap = new ConcurrentHashMap<>();
         this.scheduler = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
@@ -194,13 +195,17 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
 
-            ConfigDataCache serverCache = CACHE.get(namespaceId + "_" + group.name());
+            ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
             // do check.
             if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
                 changedGroup.add(group);
             }
         }
         return changedGroup;
+    }
+
+    public static String buildCacheKey(String namespaceId, String group) {
+        return namespaceId + "_" + group;
     }
 
     /**
@@ -226,7 +231,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
 
-        String configDataCacheKey = serverCache.getNamespaceId() + "_" + serverCache.getGroup();
+        String configDataCacheKey = buildCacheKey(serverCache.getNamespaceId(), serverCache.getGroup());
 
         ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {
@@ -338,7 +343,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
 
         private void doRun(final Collection<LongPollingClient> clients) {
-            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
+            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext(); ) {
                 LongPollingClient client = iter.next();
                 iter.remove();
                 client.sendResponse(Collections.singletonList(groupKey));
