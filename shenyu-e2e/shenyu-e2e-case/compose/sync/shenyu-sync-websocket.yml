@@ -27,7 +27,7 @@ services:
     ports:
       - "30306:3306"
     volumes:
-      - /tmp/shenyu-e2e/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
       interval: 10s
@@ -69,7 +69,7 @@ services:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 15
       start_period: 30s
     restart: always
     depends_on:
