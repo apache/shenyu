@@ -29,6 +29,7 @@
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
