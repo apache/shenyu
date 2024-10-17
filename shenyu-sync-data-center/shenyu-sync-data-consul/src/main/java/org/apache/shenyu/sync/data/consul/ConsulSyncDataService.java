@@ -74,6 +74,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
     /**
      * Instantiates a new Consul sync data service.
      *
+     * @param shenyuConfig the plugin data shenyuConfig
      * @param consulClient the plugin data consulClient
      * @param consulConfig the plugin data consulConfig
      * @param pluginDataSubscriber the plugin data subscriber

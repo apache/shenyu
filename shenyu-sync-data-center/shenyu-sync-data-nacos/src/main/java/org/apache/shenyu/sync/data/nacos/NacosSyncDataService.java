@@ -57,6 +57,9 @@ public class NacosSyncDataService extends AbstractNodeDataSyncService implements
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxy selector data subscribers
+     * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
+     * @param shenyuConfig          the shenyu config
      */
     public NacosSyncDataService(final ConfigService configService, final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,

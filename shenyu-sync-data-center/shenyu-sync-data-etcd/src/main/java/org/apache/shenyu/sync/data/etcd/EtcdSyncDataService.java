@@ -48,6 +48,7 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
     /**
      * Instantiates a new Zookeeper cache manager.
      *
+     * @param shenyuConfig          shenyuConfig
      * @param etcdClient           etcdClient
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers

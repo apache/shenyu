@@ -54,6 +54,9 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxy selector data subscribers
+     * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
+     * @param shenyuConfig          the shenyu config
      */
     public ApolloDataService(final Config configService, final PluginDataSubscriber pluginDataSubscriber,
                              final List<MetaDataSubscriber> metaDataSubscribers,

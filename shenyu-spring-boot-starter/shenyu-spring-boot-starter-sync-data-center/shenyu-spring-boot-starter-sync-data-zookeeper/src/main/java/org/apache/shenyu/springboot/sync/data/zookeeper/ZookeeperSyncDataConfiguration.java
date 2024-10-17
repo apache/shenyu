@@ -54,6 +54,7 @@ public class ZookeeperSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param ShenyuConfig                 the shenyu config
      * @param zookeeperClient              the zk client
      * @param pluginSubscriber             the plugin subscriber
      * @param metaSubscribers              the meta subscribers
