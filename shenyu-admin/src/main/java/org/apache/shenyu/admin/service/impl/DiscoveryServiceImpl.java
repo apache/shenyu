@@ -262,6 +262,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 proxySelectorDTO.setPluginName(d.getPluginName());
                 proxySelectorDTO.setName(selectorDO.getName());
                 proxySelectorDTO.setId(selectorDO.getId());
+                proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
                 discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
                 discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
