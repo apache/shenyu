@@ -25,11 +25,6 @@ services:
       - "31876:9876"
     environment:
       - TZ=Asia/Shanghai
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:9876 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     restart: always
     networks:
       - shenyu
@@ -45,15 +40,7 @@ services:
     environment:
       - NAMESRV_ADDR=rocketmq-dialevoneid:9876
       - TZ=Asia/Shanghai
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:10909 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     restart: always
-    depends_on:
-      rocketmq-dialevoneid:
-        condition: service_healthy
     networks:
       - shenyu
 
