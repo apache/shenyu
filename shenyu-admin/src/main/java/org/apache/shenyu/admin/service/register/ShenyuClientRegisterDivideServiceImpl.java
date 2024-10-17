@@ -86,6 +86,10 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (isEventDeleted) {
             addList.get(0).setStatus(false);
         }
+        boolean isEventHeartbeat = uriList.size() == 1 && EventType.HEARTBEAT.equals(uriList.get(0).getEventType());
+        if (isEventHeartbeat) {
+            addList.get(0).setStatus(true);
+        }
         List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
