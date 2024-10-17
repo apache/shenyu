@@ -333,10 +333,10 @@
                 #{config, jdbcType=VARCHAR},
             </if>
             <if test="sort != null">
-                #{sort, jdbcType=VARCHAR},
+                #{sort, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                #{enabled, jdbcType=BOOLEAN},
+                #{enabled, jdbcType=INTEGER},
             </if>
             <if test="dateCreated != null">
                 #{dateCreated, jdbcType=TIMESTAMP},
