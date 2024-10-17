@@ -108,6 +108,10 @@ services:
       - shenyu.sync.http.url=http://shenyu-admin:9095
       - shenyu.sync.http.username=admin
       - shenyu.sync.http.password=123456
+      - spring.cloud.discovery.enabled=true
+      - eureka.client.enabled=true
+      - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
+      - eureka.instance.prefer-ip-address=true
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s
