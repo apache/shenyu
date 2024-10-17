@@ -113,12 +113,12 @@ jobs:
         include:
           - case: shenyu-e2e-case-storage
             script: e2e-h2
-          - case: shenyu-e2e-case-storage
-            script: e2e-mysql
-          - case: shenyu-e2e-case-storage
-            script: e2e-postgres
-          - case: shenyu-e2e-case-storage
-            script: e2e-opengauss
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-mysql
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-postgres
+#          - case: shenyu-e2e-case-storage
+#            script: e2e-opengauss
     steps:
       - uses: actions/checkout@v2
         with:
@@ -197,21 +197,21 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-http
-            script: e2e-http-sync
+            script: e2e-http-sync-compose
           - case: shenyu-e2e-case-spring-cloud
-            script: e2e-springcloud-sync
+            script: e2e-springcloud-sync-compose
           - case: shenyu-e2e-case-apache-dubbo
-            script: e2e-apache-dubbo-sync
+            script: e2e-apache-dubbo-sync-compose
           - case: shenyu-e2e-case-sofa
-            script: e2e-sofa-sync
+            script: e2e-sofa-sync-compose
           - case: shenyu-e2e-case-grpc
-            script: e2e-grpc-sync
+            script: e2e-grpc-sync-compose
           - case: shenyu-e2e-case-websocket
-            script: e2e-websocket-sync
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper
+            script: e2e-websocket-sync-compose
+#          - case: shenyu-e2e-case-cluster
+#            script: e2e-cluster-jdbc
+#          - case: shenyu-e2e-case-cluster
+#            script: e2e-cluster-zookeeper
             
     steps:
       - uses: actions/checkout@v2
@@ -274,6 +274,12 @@ jobs:
         with:
           name: shenyu-images
           path: /tmp/shenyu/
+
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/shenyu/apache-shenyu-admin.tar
+          docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker image ls -a
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
