@@ -88,6 +88,7 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
+        discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
         DiscoveryStreamUpdatedEvent discoveryStreamUpdatedEvent = new DiscoveryStreamUpdatedEvent(discoverySyncData, LOCAL_DISCOVERY_UPSTREAM_UPDATE);
@@ -108,6 +109,7 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         List<DiscoveryUpstreamData> upstreamDataList = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
+        discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
