@@ -60,7 +60,9 @@ services:
       - spring.datasource.username=shenyue2e
       - spring.datasource.password=shenyue2e
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-      - shenyu.sync.http.enabled=true
+      - shenyu.sync.websocket.enabled=true
+      - shenyu.sync.websocket.messageMaxSize=10240
+      - shenyu.sync.websocket.allowOrigins=ws://localhost:9095;ws://localhost:9195;
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
@@ -83,9 +85,12 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
-      - shenyu.sync.http.url=http://shenyu-admin:9095
-      - shenyu.sync.http.username=admin
-      - shenyu.sync.http.password=123456
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.sync.websocket.allowOrigin=ws://localhost:9195
+      - spring.cloud.discovery.enabled=true
+      - eureka.client.enabled=true
+      - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/
+      - eureka.instance.prefer-ip-address=true
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s

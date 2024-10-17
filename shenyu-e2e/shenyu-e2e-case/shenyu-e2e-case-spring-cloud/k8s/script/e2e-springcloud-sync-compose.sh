@@ -33,11 +33,11 @@ docker network create -d bridge shenyu
 for sync in "${SYNC_ARRAY[@]}"; do
   echo -e "------------------\n"
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml up -d --quiet-pull
+  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}"-eureka.yml up -d --quiet-pull
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
-  docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml up -d
+  docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml up -d --quiet-pull
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
   sleep 10s

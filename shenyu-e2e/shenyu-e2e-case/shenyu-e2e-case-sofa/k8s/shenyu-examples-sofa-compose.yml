@@ -41,7 +41,7 @@ services:
       - shenyu.register.serverLists=http://shenyu-admin:9095
       - sofa.boot.rpc.registry.address=zookeeper://shenyu-zookeeper:2181
     ports:
-      - "8011:8011"
+      - "30811:8011"
       - "20888:20888"
     restart: always
     depends_on:
