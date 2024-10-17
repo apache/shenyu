@@ -36,6 +36,7 @@ services:
       - shenyu
   shenyu-examples-sofa:
     image: shenyu-examples-sofa:latest
+    container_name: shenyu-examples-sofa
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
       - sofa.boot.rpc.registry.address=zookeeper://shenyu-zookeeper:2181
