@@ -177,7 +177,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         // todo:[To be refactored with namespace] Temporarily hardcode
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
         if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("doRegister Failed to execute,wait to retry.");
+            throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
