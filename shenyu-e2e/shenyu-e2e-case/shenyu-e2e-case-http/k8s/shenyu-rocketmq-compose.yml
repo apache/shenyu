@@ -17,9 +17,9 @@
 version: '3.9'
 
 services:
-  rocketmq-namesrv:
+  rocketmq-dialevoneid:
     image: rocketmqinc/rocketmq:4.4.0
-    container_name: rocketmq-namesrv
+    container_name: rocketmq-dialevoneid
     command: [ "/bin/sh", "mqnamesrv" ]
     ports:
       - "31876:9876"
@@ -43,7 +43,7 @@ services:
       - "10911:10911"
       - "10912:10912"
     environment:
-      - NAMESRV_ADDR=rocketmq-namesrv:9876
+      - NAMESRV_ADDR=rocketmq-dialevoneid:9876
       - TZ=Asia/Shanghai
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:10909 || exit 1" ]
@@ -52,7 +52,7 @@ services:
       retries: 3
     restart: always
     depends_on:
-      rocketmq-namesrv:
+      rocketmq-dialevoneid:
         condition: service_healthy
     networks:
       - shenyu
