@@ -126,9 +126,8 @@ public abstract class AbstractNodeDataSyncService {
             final String pluginData = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
                     + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
             cachePluginData(pluginData);
-
-            final List<String> selectorIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
-                    + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST, updateData -> {
+            final String pluginPath = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST;
+            final List<String> selectorIds = getConfigListOnWatch(pluginPath, updateData -> {
                 List<String> changedSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
                 watcherSelector(pluginName, changedSelectorIds, namespaceId);
             });
