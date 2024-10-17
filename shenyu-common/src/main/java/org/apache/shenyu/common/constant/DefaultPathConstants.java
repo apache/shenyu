@@ -79,7 +79,7 @@ public final class DefaultPathConstants implements Constants {
      * @param path the path
      * @return the string
      */
-    public static String buildMetaDataPath(final String namespaceId,final String path) {
+    public static String buildMetaDataPath(final String namespaceId, final String path) {
         return handlePathData(String.join(PATH_SEPARATOR, PATH_SEPARATOR + namespaceId, META_DATA, path));
     }
 
@@ -140,6 +140,7 @@ public final class DefaultPathConstants implements Constants {
     /**
      * buildRulePath.
      *
+     * @param namespaceId namespaceId
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @param ruleId     ruleId
@@ -179,7 +180,7 @@ public final class DefaultPathConstants implements Constants {
      * @param path path
      * @return path
      */
-    public static String handlePathData(String path) {
+    public static String handlePathData(final String path) {
         return path.replaceAll("//", PATH_SEPARATOR);
     }
 }
