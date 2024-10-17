@@ -72,6 +72,7 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     /**
      * event.
      *
+     * @param namespaceId namespaceId
      * @param updatePath updatePath
      * @param updateData updateData
      * @param registerPath registerPath

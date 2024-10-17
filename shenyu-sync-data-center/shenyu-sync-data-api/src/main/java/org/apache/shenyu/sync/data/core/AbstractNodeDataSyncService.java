@@ -123,10 +123,12 @@ public abstract class AbstractNodeDataSyncService {
             return;
         }
         pluginNames.forEach(pluginName -> {
-            final String pluginData = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
+            final String pluginData = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                    + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
             cachePluginData(pluginData);
 
-            final List<String> selectorIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST, updateData -> {
+            final List<String> selectorIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                    + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST, updateData -> {
                 List<String> changedSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
                 watcherSelector(pluginName, changedSelectorIds, namespaceId);
             });
@@ -183,7 +185,8 @@ public abstract class AbstractNodeDataSyncService {
 
             cacheSelectorData(selectorData);
 
-            final List<String> ruleIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
+            final List<String> ruleIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                            + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
                             + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
                 updateData -> {
                     List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
@@ -199,7 +202,8 @@ public abstract class AbstractNodeDataSyncService {
             return;
         }
         ruleIds.forEach(ruleId -> {
-            final String ruleDataStr = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName
+            final String ruleDataStr = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                            + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName
                             + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.JOIN_POINT + ruleId,
                     this::cacheRuleData, this::unCacheRuleData);
             cacheRuleData(ruleDataStr);
