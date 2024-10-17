@@ -207,7 +207,7 @@ jobs:
 #          - case: shenyu-e2e-case-grpc
 #            script: e2e-grpc-sync
           - case: shenyu-e2e-case-websocket
-            script: e2e-websocket-sync
+            script: e2e-websocket-sync-compose
 #          - case: shenyu-e2e-case-cluster
 #            script: e2e-cluster-jdbc
 #          - case: shenyu-e2e-case-cluster
