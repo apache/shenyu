@@ -35,6 +35,16 @@ public class ScaleRuleQuery implements Serializable {
     private String metricName;
 
     /**
+     * type 0:shenyu 1:k8s 2:others.
+     */
+    private Integer type;
+
+    /**
+     * status 1:enable 0:disable.
+     */
+    private Integer status;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;
@@ -42,9 +52,11 @@ public class ScaleRuleQuery implements Serializable {
     public ScaleRuleQuery() {
     }
 
-    public ScaleRuleQuery(final String metricName, final PageParameter pageParameter) {
+    public ScaleRuleQuery(final String metricName, final Integer type, final Integer status, final PageParameter pageParameter) {
         this.metricName = metricName;
         this.pageParameter = pageParameter;
+        this.type = type;
+        this.status = status;
     }
 
     /**
@@ -63,6 +75,42 @@ public class ScaleRuleQuery implements Serializable {
      */
     public void setMetricName(final String metricName) {
         this.metricName = metricName;
+    }
+
+    /**
+     * Gets the value of type.
+     *
+     * @return the value of type
+     */
+    public Integer getType() {
+        return type;
+    }
+
+    /**
+     * Sets the type.
+     *
+     * @param type type
+     */
+    public void setType(final Integer type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets the value of status.
+     *
+     * @return the value of status
+     */
+    public Integer getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the status.
+     *
+     * @param status status
+     */
+    public void setStatus(final Integer status) {
+        this.status = status;
     }
 
     /**
