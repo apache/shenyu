@@ -42,5 +42,4 @@ public class HttpLongPollingSyncConfiguration {
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
-
 }

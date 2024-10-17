@@ -229,6 +229,7 @@ public enum DiscoveryTransfer {
             proxySelectorData.setPluginName(data.getPluginName());
             proxySelectorData.setType(data.getType());
             proxySelectorData.setForwardPort(data.getForwardPort());
+            proxySelectorData.setNamespaceId(data.getNamespaceId());
             String props = data.getProps();
             Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
             proxySelectorData.setProps(properties);
