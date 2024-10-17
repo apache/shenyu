@@ -109,7 +109,7 @@ public final class DefaultPathConstantsTest {
         String ruleId = RandomStringUtils.randomAlphanumeric(10);
         String rulePath = handlePathData(DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginName, selectorId, ruleId));
         assertThat(rulePath, notNullValue());
-        assertThat(handlePathData(String.join(SEPARATOR,PATH_SEPARATOR + Constants.SYS_DEFAULT_NAMESPACE_ID, RULE_PARENT, pluginName,
+        assertThat(handlePathData(String.join(SEPARATOR, PATH_SEPARATOR + Constants.SYS_DEFAULT_NAMESPACE_ID, RULE_PARENT, pluginName,
                 String.join(SELECTOR_JOIN_RULE, selectorId, ruleId))), equalTo(rulePath));
         assertThat(handlePathData(String.join(SEPARATOR,
                 handlePathData(DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginName)),
