@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.core;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.DefaultNodeConstants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -62,32 +63,37 @@ public abstract class AbstractNodeDataSyncService {
 
     private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
 
+    private final ShenyuConfig shenyuConfig;
+
     public AbstractNodeDataSyncService(final ChangeData changeData,
                                        final PluginDataSubscriber pluginDataSubscriber,
                                        final List<MetaDataSubscriber> metaDataSubscribers,
                                        final List<AuthDataSubscriber> authDataSubscribers,
                                        final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                                       final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+                                       final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                       final ShenyuConfig shenyuConfig) {
         this.changeData = changeData;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
+        this.shenyuConfig = shenyuConfig;
     }
 
     protected void startWatch() {
         try {
-            final List<String> pluginNames = getConfigListOnWatch(changeData.getPluginDataId() + DefaultNodeConstants.POINT_LIST, updateData -> {
+            final String namespaceId = shenyuConfig.getNamespace();
+            final List<String> pluginNames = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.POINT_LIST, updateData -> {
                 List<String> changedPluginNames = GsonUtils.getInstance().fromList(updateData, String.class);
-                watcherPlugin(changedPluginNames);
+                watcherPlugin(changedPluginNames, namespaceId);
             });
 
-            watcherPlugin(pluginNames);
+            watcherPlugin(pluginNames, namespaceId);
 
-            watchCommonList(changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheAuthData, this::unCacheAuthData);
+            watchCommonList(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheAuthData, this::unCacheAuthData);
 
-            watchCommonList(changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheMetaData, this::unCacheMetaData);
+            watchCommonList(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT, this::cacheMetaData, this::unCacheMetaData);
 
         } catch (Exception e) {
             throw new ShenyuException(e);
@@ -112,24 +118,25 @@ public abstract class AbstractNodeDataSyncService {
 
     protected abstract void doRemoveListener(String removeKey);
 
-    private void watcherPlugin(final List<String> pluginNames) {
+    private void watcherPlugin(final List<String> pluginNames, final String namespaceId) {
         if (ObjectUtils.isEmpty(pluginNames)) {
             return;
         }
         pluginNames.forEach(pluginName -> {
-            final String pluginData = this.getConfigOnWatch(changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
+            final String pluginData = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                    + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT + pluginName, this::cachePluginData, this::unCachePluginData);
             cachePluginData(pluginData);
-
-            final List<String> selectorIds = getConfigListOnWatch(changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST, updateData -> {
+            final String pluginPath = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST;
+            final List<String> selectorIds = getConfigListOnWatch(pluginPath, updateData -> {
                 List<String> changedSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
-                watcherSelector(pluginName, changedSelectorIds);
+                watcherSelector(pluginName, changedSelectorIds, namespaceId);
             });
 
-            watcherSelector(pluginName, selectorIds);
+            watcherSelector(pluginName, selectorIds, namespaceId);
 
-            watchCommonList(NacosPathConstants.PROXY_SELECTOR_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
+            watchCommonList(namespaceId + DefaultNodeConstants.JOIN_POINT + NacosPathConstants.PROXY_SELECTOR_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
                     this::cacheProxySelectorData, this::unCacheProxySelectorData);
-            watchCommonList(NacosPathConstants.DISCOVERY_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
+            watchCommonList(namespaceId + DefaultNodeConstants.JOIN_POINT + NacosPathConstants.DISCOVERY_DATA_ID + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT,
                     this::cacheDiscoveryUpstreamData, this::unCacheDiscoveryUpstreamData);
         });
     }
@@ -166,34 +173,36 @@ public abstract class AbstractNodeDataSyncService {
         });
     }
 
-    private void watcherSelector(final String pluginName, final List<String> selectorIds) {
+    private void watcherSelector(final String pluginName, final List<String> selectorIds, final String namespaceId) {
         if (ObjectUtils.isEmpty(selectorIds)) {
             return;
         }
         selectorIds.forEach(selectorId -> {
-            final String selectorData = this.getConfigOnWatch(changeData.getSelectorDataId()
+            final String selectorData = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId()
                             + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId,
                     this::cacheSelectorData, this::unCacheSelectorData);
 
             cacheSelectorData(selectorData);
 
-            final List<String> ruleIds = getConfigListOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
+            final List<String> ruleIds = getConfigListOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                            + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT
                             + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.POINT_LIST,
                 updateData -> {
                     List<String> upSelectorIds = GsonUtils.getInstance().fromList(updateData, String.class);
-                    watcherRule(selectorId, upSelectorIds, pluginName);
+                    watcherRule(selectorId, upSelectorIds, pluginName, namespaceId);
                 });
 
-            watcherRule(selectorId, ruleIds, pluginName);
+            watcherRule(selectorId, ruleIds, pluginName, namespaceId);
         });
     }
 
-    private void watcherRule(final String selectorId, final List<String> ruleIds, final String pluginName) {
+    private void watcherRule(final String selectorId, final List<String> ruleIds, final String pluginName, final String namespaceId) {
         if (ObjectUtils.isEmpty(ruleIds)) {
             return;
         }
         ruleIds.forEach(ruleId -> {
-            final String ruleDataStr = this.getConfigOnWatch(changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName
+            final String ruleDataStr = this.getConfigOnWatch(namespaceId + DefaultNodeConstants.JOIN_POINT
+                            + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT + pluginName
                             + DefaultNodeConstants.JOIN_POINT + selectorId + DefaultNodeConstants.JOIN_POINT + ruleId,
                     this::cacheRuleData, this::unCacheRuleData);
             cacheRuleData(ruleDataStr);
