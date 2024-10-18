@@ -82,25 +82,25 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         String realUpdatePath = StringUtils.substringAfter(updatePath, namespaceId);
         switch (registerPath) {
             case DefaultPathConstants.PLUGIN_PARENT:
-                pluginHandlerEvent(updatePath, updateData, eventType);
+                pluginHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.SELECTOR_PARENT:
-                selectorHandlerEvent(updatePath, updateData, eventType);
+                selectorHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.META_DATA:
-                metaDataHandlerEvent(updatePath, updateData, eventType);
+                metaDataHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.APP_AUTH_PARENT:
-                appAuthHandlerEvent(updatePath, updateData, eventType);
+                appAuthHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.RULE_PARENT:
-                ruleHandlerEvent(updatePath, updateData, eventType);
+                ruleHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.DISCOVERY_UPSTREAM:
-                discoveryUpstreamHandlerEvent(updatePath, updateData, eventType);
+                discoveryUpstreamHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             case DefaultPathConstants.PROXY_SELECTOR:
-                proxyHandlerEvent(updatePath, updateData, eventType);
+                proxyHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
             default:
                 break;
