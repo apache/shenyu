@@ -21,7 +21,7 @@ services:
     image: shenyu-examples-http:latest
     container_name: shenyu-examples-http
     environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu.register.serverLists=http://shenyu-admin-1:9095
     ports:
       - "31189:8189"
     healthcheck:

@@ -67,7 +67,7 @@ services:
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin-1:9095/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -99,7 +99,7 @@ services:
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin-2:9095/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 15
