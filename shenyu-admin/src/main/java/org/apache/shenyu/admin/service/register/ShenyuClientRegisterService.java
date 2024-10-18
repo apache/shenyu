@@ -63,6 +63,17 @@ public interface ShenyuClientRegisterService {
     }
     
     /**
+     * Register heartbeat.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @return the string
+     */
+    default String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+        return Constants.SUCCESS;
+    }
+    
+    /**
      * offline.
      *
      * @param selectorName the selector name
