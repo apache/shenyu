@@ -199,6 +199,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setRegistry(registryConfig);
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
+        
+        // Fix dubbo3.0 cannot get service provider information #5708
+        reference.getApplicationModel().getApplicationConfigManager().addConfig(registryConfig);
         // default protocol is dubbo
         reference.setProtocol("dubbo");
         reference.setCheck(false);
