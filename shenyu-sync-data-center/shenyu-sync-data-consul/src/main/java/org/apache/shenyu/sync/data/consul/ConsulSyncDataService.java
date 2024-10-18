@@ -29,7 +29,6 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import static org.apache.shenyu.common.constant.DefaultPathConstants.handlePathData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -49,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.DefaultPathConstants.handlePathData;
 
 /**
  * Consul sync data service.
@@ -81,7 +82,8 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
      */
-    public ConsulSyncDataService(final ShenyuConfig shenyuConfig, final ConsulClient consulClient,
+    public ConsulSyncDataService(final ShenyuConfig shenyuConfig,
+                                 final ConsulClient consulClient,
                                  final ConsulConfig consulConfig,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
@@ -99,7 +101,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
     }
 
     private void watcherData() {
-        String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
+        String configNamespace = Constants.PATH_SEPARATOR + this.shenyuConfig.getNamespace();
         watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.PLUGIN_PARENT)));
         watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.SELECTOR_PARENT)));
         watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.RULE_PARENT)));
