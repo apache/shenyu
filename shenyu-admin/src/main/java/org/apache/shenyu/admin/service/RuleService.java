@@ -121,6 +121,14 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     List<RuleData> listAll();
 
     /**
+     * List all list by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<RuleData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * List all rule vo list.
      *
      * @return the rule vo list

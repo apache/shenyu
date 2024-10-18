@@ -121,6 +121,13 @@ public interface MetaDataService {
     void syncData();
 
     /**
+     * Sync data by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     */
+    void syncDataByNamespaceId(String namespaceId);
+
+    /**
      * find meta data by path and namespaceId.
      *
      * @param path the path of meta data

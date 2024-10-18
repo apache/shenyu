@@ -137,6 +137,13 @@
           FROM rule
     </select>
 
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <select id="existed" resultType="java.lang.Boolean">
         SELECT TRUE
           FROM rule

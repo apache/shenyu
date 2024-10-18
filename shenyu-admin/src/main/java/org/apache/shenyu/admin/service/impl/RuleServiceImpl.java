@@ -222,6 +222,11 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
+    public List<RuleData> listAllByNamespaceId(final String namespaceId) {
+        return this.buildRuleDataList(ruleMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    @Override
     public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }

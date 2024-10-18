@@ -78,6 +78,13 @@ public interface DiscoveryService {
     void syncData();
 
     /**
+     * Sync data by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     */
+    void syncDataByNamespaceId(String namespaceId);
+
+    /**
      * list all vo.
      * @return discovery vo
      */
