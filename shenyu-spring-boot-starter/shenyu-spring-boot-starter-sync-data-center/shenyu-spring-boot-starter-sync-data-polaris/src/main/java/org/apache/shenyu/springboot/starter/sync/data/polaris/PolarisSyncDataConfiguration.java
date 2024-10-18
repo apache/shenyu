@@ -61,6 +61,7 @@ public class PolarisSyncDataConfiguration {
      * @param authSubscribers  the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
+     * @param shenyuConfig the shenyu config
      * @return the sync data service
      */
     @Bean

@@ -56,6 +56,7 @@ public class ConsulSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param shenyuConfig     the shenyu config
      * @param consulClient     the consul client
      * @param consulConfig     the consul config
      * @param pluginSubscriber the plugin subscriber

@@ -53,6 +53,7 @@ public class EtcdSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param shenyuConfig the shenyu config
      * @param etcdClients the etcd client
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers the meta subscribers
