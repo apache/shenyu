@@ -20,6 +20,8 @@ package org.apache.shenyu.sync.data.consul;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -62,6 +64,9 @@ public final class ConsulSyncDataServiceTest {
     @Mock
     private ConsulConfig consulConfig;
 
+    @Mock
+    private ShenyuConfig shenyuConfig;
+
     @InjectMocks
     private ConsulSyncDataService consulSyncDataService;
 
@@ -91,6 +96,11 @@ public final class ConsulSyncDataServiceTest {
         executorField.setAccessible(true);
         executorField.set(consulSyncDataService, mock(ScheduledThreadPoolExecutor.class));
 
+        final Field shenyuConfigField = ConsulSyncDataService.class.getDeclaredField("shenyuConfig");
+        shenyuConfigField.setAccessible(true);
+        final ShenyuConfig shenyuConfig = mock(ShenyuConfig.class);
+        shenyuConfigField.set(consulSyncDataService, shenyuConfig);
+
         final Response<List<GetValue>> response = mock(Response.class);
 
         when(consulClient.getKVValues(any(), any(), any())).thenReturn(response);
@@ -101,7 +111,7 @@ public final class ConsulSyncDataServiceTest {
         Consumer<String> deleteHandler = removeKey -> {
 
         };
-        String watchPathRoot = "/shenyu";
+        String watchPathRoot = "/" + Constants.SYS_DEFAULT_NAMESPACE_ID + "/shenyu";
         Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService, watchPathRoot, updateHandler, deleteHandler));
 
         List<GetValue> getValues = new ArrayList<>(1);

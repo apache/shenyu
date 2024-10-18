@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -67,18 +68,22 @@ public class ApolloSyncDataConfiguration {
      * @param authSubscribers the auth subscribers
      * @param proxySelectorDataSubscriber the proxySelector subscribers
      * @param discoveryUpstreamDataSubscribers the discoveryUpstream subscribers
+     * @param shenyuConfig the shenyu config
+     *
      * @return the apollo config
      */
     @Bean
-    public ApolloDataService apolloSyncDataService(final ObjectProvider<Config> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+    public ApolloDataService apolloSyncDataService(final ObjectProvider<Config> configService,
+                                                   final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                    final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                    final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscriber,
-                                                   final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+                                                   final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers,
+                                                   final ObjectProvider<ShenyuConfig> shenyuConfig) {
         LOGGER.info("you use apollo sync shenyu data.......");
         return new ApolloDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList), proxySelectorDataSubscriber.getIfAvailable(Collections::emptyList),
-                discoveryUpstreamDataSubscribers.getIfAvailable());
+                discoveryUpstreamDataSubscribers.getIfAvailable(), shenyuConfig.getIfAvailable());
     }
 
     /**

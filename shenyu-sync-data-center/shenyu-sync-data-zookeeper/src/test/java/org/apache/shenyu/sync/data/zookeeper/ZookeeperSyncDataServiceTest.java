@@ -21,6 +21,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -55,23 +57,26 @@ public final class ZookeeperSyncDataServiceTest {
         final MetaDataSubscriber metaDataSubscriber = mock(MetaDataSubscriber.class);
         final ProxySelectorDataSubscriber proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
         final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
-        final ZookeeperSyncDataService zookeeperSyncDataService = new ZookeeperSyncDataService(zkClient,
+        final ShenyuConfig shenyuConfig = mock(ShenyuConfig.class);
+        when(shenyuConfig.getNamespace()).thenReturn(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final ZookeeperSyncDataService zookeeperSyncDataService = new ZookeeperSyncDataService(shenyuConfig, zkClient,
                 pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber),
                 Collections.singletonList(proxySelectorDataSubscriber), Collections.singletonList(discoveryUpstreamDataSubscriber));
 
         List<TreeCacheEvent> treeCacheEvents = new ArrayList<>();
+        String defaultNameSpaceId = Constants.PATH_SEPARATOR + Constants.SYS_DEFAULT_NAMESPACE_ID;
         // register uri
-        treeCacheEvents.add(treeCacheEvent("/shenyu/uri/test/test/test", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/uri/test/test/test", TreeCacheEvent.Type.NODE_REMOVED));
         // register metadata
-        treeCacheEvents.add(treeCacheEvent("/shenyu/metaData/test", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/metaData/test", TreeCacheEvent.Type.NODE_REMOVED));
         // register auth
-        treeCacheEvents.add(treeCacheEvent("/shenyu/auth/test", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/auth/test", TreeCacheEvent.Type.NODE_REMOVED));
         // register rule
-        treeCacheEvents.add(treeCacheEvent("/shenyu/rule/test/test-1", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/rule/test/test-1", TreeCacheEvent.Type.NODE_REMOVED));
         // register plugin
-        treeCacheEvents.add(treeCacheEvent("/shenyu/plugin/test", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/plugin/test", TreeCacheEvent.Type.NODE_REMOVED));
         // register selector
-        treeCacheEvents.add(treeCacheEvent("/shenyu/selector/test/test", TreeCacheEvent.Type.NODE_REMOVED));
+        treeCacheEvents.add(treeCacheEvent(defaultNameSpaceId + "/shenyu/selector/test/test", TreeCacheEvent.Type.NODE_REMOVED));
 
         final CuratorFramework curatorFramework = mock(CuratorFramework.class);
         for (TreeCacheListener treeCacheListener : treeCacheListeners) {

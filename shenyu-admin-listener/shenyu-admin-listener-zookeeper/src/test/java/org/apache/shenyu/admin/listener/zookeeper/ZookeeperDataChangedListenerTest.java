@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -75,8 +76,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnAppAuthChangedCreate() {
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(appAuthPath, appAuthData, CreateMode.PERSISTENT);
@@ -87,8 +88,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnAppAuthChangedUpdate() {
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(appAuthPath, appAuthData, CreateMode.PERSISTENT);
@@ -99,8 +100,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnAppAuthChangedDelete() {
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
-        String appAuthPath = DefaultPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String appAuthPath = DefaultPathConstants.buildAppAuthPath(Constants.SYS_DEFAULT_NAMESPACE_ID, appAuthData.getAppKey());
 
         when(zkClient.isExist(appAuthPath)).thenReturn(true);
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.DELETE);
@@ -112,8 +113,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnMetaDataChangedCreate() throws UnsupportedEncodingException {
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -124,8 +125,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnMetaDataChangedUpdate() throws UnsupportedEncodingException {
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(metaDataPath, metaData, CreateMode.PERSISTENT);
@@ -136,8 +137,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnMetaDataChangedDelete() throws UnsupportedEncodingException {
-        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
-        String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
+        MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String metaDataPath = DefaultPathConstants.buildMetaDataPath(Constants.SYS_DEFAULT_NAMESPACE_ID, URLEncoder.encode(metaData.getPath(), StandardCharsets.UTF_8));
 
         when(zkClient.isExist(metaDataPath)).thenReturn(true);
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.DELETE);
@@ -149,8 +150,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChangedCreate() {
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-        String pluginPath = DefaultPathConstants.buildPluginPath(pluginData.getName());
+        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).config(MOCK_CONFIG).build();
+        String pluginPath = DefaultPathConstants.buildPluginPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginData.getName());
 
         zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(pluginPath, pluginData, CreateMode.PERSISTENT);
@@ -161,8 +162,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChangedUpdate() {
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-        String pluginPath = DefaultPathConstants.buildPluginPath(pluginData.getName());
+        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).config(MOCK_CONFIG).build();
+        String pluginPath = DefaultPathConstants.buildPluginPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginData.getName());
 
         zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(pluginPath, pluginData, CreateMode.PERSISTENT);
@@ -173,10 +174,10 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChangedDelete() {
-        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
-        String pluginPath = DefaultPathConstants.buildPluginPath(pluginData.getName());
-        String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(pluginData.getName());
-        String ruleParentPath = DefaultPathConstants.buildRuleParentPath(pluginData.getName());
+        PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).config(MOCK_CONFIG).build();
+        String pluginPath = DefaultPathConstants.buildPluginPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginData.getName());
+        String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginData.getName());
+        String ruleParentPath = DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, pluginData.getName());
 
         when(zkClient.isExist(pluginPath)).thenReturn(true);
         when(zkClient.isExist(selectorParentPath)).thenReturn(true);
@@ -193,9 +194,9 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChangedCreate() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).pluginName(MOCK_PLUGIN_NAME).build();
 
-        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
+        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName(), selectorData.getId());
 
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(selectorRealPath, selectorData, CreateMode.PERSISTENT);
@@ -206,9 +207,9 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChangedUpdate() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).pluginName(MOCK_PLUGIN_NAME).build();
 
-        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
+        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName(), selectorData.getId());
 
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
         verify(zkClient, times(1)).createOrUpdate(selectorRealPath, selectorData, CreateMode.PERSISTENT);
@@ -219,8 +220,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChangedRefresh() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-        String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(selectorData.getPluginName());
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).pluginName(MOCK_PLUGIN_NAME).build();
+        String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName());
 
         when(zkClient.isExist(selectorParentPath)).thenReturn(true);
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
@@ -232,8 +233,8 @@ public final class ZookeeperDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChangedDelete() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
-        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).pluginName(MOCK_PLUGIN_NAME).build();
+        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName(), selectorData.getId());
 
         when(zkClient.isExist(selectorRealPath)).thenReturn(true);
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
@@ -250,8 +251,9 @@ public final class ZookeeperDataChangedListenerTest {
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        String ruleRealPath = DefaultPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
+        String ruleRealPath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
 
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createOrUpdate(ruleRealPath, ruleData, CreateMode.PERSISTENT);
@@ -267,8 +269,9 @@ public final class ZookeeperDataChangedListenerTest {
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        String ruleRealPath = DefaultPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(),
+        String ruleRealPath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName(), ruleData.getSelectorId(),
                 ruleData.getId());
 
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.UPDATE);
@@ -285,8 +288,9 @@ public final class ZookeeperDataChangedListenerTest {
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        String ruleParentPath = DefaultPathConstants.buildRuleParentPath(ruleData.getPluginName());
+        String ruleParentPath = DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName());
 
         when(zkClient.isExist(ruleParentPath)).thenReturn(true);
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
@@ -303,8 +307,9 @@ public final class ZookeeperDataChangedListenerTest {
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        String ruleRealPath = DefaultPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
+        String ruleRealPath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
 
         when(zkClient.isExist(ruleRealPath)).thenReturn(true);
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);

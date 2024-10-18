@@ -21,6 +21,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -56,16 +57,21 @@ public class NacosSyncDataService extends AbstractNodeDataSyncService implements
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxy selector data subscribers
+     * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
+     * @param shenyuConfig          the shenyu config
      */
     public NacosSyncDataService(final ConfigService configService, final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers,
                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                final ShenyuConfig shenyuConfig) {
         super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
                 NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID,
                 NacosPathConstants.PROXY_SELECTOR_DATA_ID, NacosPathConstants.DISCOVERY_DATA_ID),
-                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+                pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers, shenyuConfig);
         this.configService = configService;
         startWatch();
     }

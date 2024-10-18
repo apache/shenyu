@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.sync.data.etcd;
 
 import io.etcd.jetcd.Client;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -52,6 +53,7 @@ public class EtcdSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param shenyuConfig the shenyu config
      * @param etcdClients the etcd client
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers the meta subscribers
@@ -61,14 +63,16 @@ public class EtcdSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<EtcdClient> etcdClients,
+    public SyncDataService syncDataService(final ObjectProvider<ShenyuConfig> shenyuConfig,
+                                           final ObjectProvider<EtcdClient> etcdClients,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
         LOGGER.info("you use etcd sync shenyu data.......");
-        return new EtcdSyncDataService(etcdClients.getIfAvailable(),
+        return new EtcdSyncDataService(shenyuConfig.getIfAvailable(),
+                etcdClients.getIfAvailable(),
                 pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList),
                 authSubscribers.getIfAvailable(Collections::emptyList),
