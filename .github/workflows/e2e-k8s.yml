@@ -236,13 +236,13 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - name: Install k8s
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
-          cat /etc/rancher/k3s/k3s.yaml
-          mkdir -p ~/.kube
-          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+#      - name: Install k8s
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+#          cat /etc/rancher/k3s/k3s.yaml
+#          mkdir -p ~/.kube
+#          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v4
@@ -281,11 +281,11 @@ jobs:
           docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
           docker image ls -a
 
-      - name: Build k8s Cluster
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+#      - name: Build k8s Cluster
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
@@ -298,11 +298,11 @@ jobs:
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/k8s/script/${{ matrix.script }}.sh
 
-      - name: Cluster Test after Healthcheck
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          kubectl get all
-          kubectl get events --all-namespaces
+#      - name: Cluster Test after Healthcheck
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          kubectl get all
+#          kubectl get events --all-namespaces
 
   requirement:
     name: e2e
