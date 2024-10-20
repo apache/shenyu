@@ -18,9 +18,10 @@
 
 # init kubernetes for h2
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
+bash "${SHENYU_TESTCASE_DIR}"/k8s/script/init/opengauss_container_init.sh
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml up -d --quiet-pull
+docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-opengauss.yml up -d --quiet-pull
 sleep 30s
 
 # execute healthcheck.sh
@@ -33,7 +34,7 @@ sleep 60s
 
 echo "shenyu-admin log:"
 echo "------------------"
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml logs shenyu-admin
+docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-opengauss.yml logs shenyu-admin
 echo "shenyu-bootstrap log:"
 echo "------------------"
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml logs shenyu-bootstrap
+docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-opengauss.yml logs shenyu-bootstrap
