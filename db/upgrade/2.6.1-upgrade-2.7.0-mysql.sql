@@ -174,22 +174,45 @@ INSERT INTO `shenyu`.`permission` (`id`, `object_id`, `resource_id`, `date_creat
 ALTER TABLE `shenyu`.`dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
 
 
-ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
+ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
+
+ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `rpc_ext`;
+
+ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `enabled`;
+
+ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+
+ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+
+ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `props`;
 
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
-
-ALTER TABLE `shenyu`.`rule` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
 UPDATE rule
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
-ALTER TABLE `shenyu`.`meta_data` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId';
-
 UPDATE meta_data
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+UPDATE app_auth
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+UPDATE discovery
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+UPDATE discovery_upstream
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+UPDATE proxy_selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
@@ -238,37 +261,3 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
-
-ALTER TABLE `shenyu`.`selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `match_restful`;
-
-ALTER TABLE `shenyu`.`app_auth` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `enabled`;
-
-UPDATE app_auth
-SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
-WHERE namespace_id IS NULL;
-
-ALTER TABLE `shenyu`.`alert_receiver` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `levels`;
-
-UPDATE alert_receiver
-SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
-WHERE namespace_id IS NULL;
-
-ALTER TABLE `shenyu`.`discovery` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `plugin_name`;
-
-UPDATE discovery
-SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
-WHERE namespace_id IS NULL;
-
-ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
-
-UPDATE discovery_upstream
-SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
-WHERE namespace_id IS NULL;
-
-
-ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NULL COMMENT 'namespaceId' AFTER `props`;
-
-UPDATE proxy_selector
-SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
-WHERE namespace_id IS NULL;

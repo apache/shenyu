@@ -50,7 +50,7 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @param pluginId           pluginId.
      * @return the string
      */
-    String create(String namespaceId, String pluginId);
+    NamespacePluginVO create(String namespaceId, String pluginId);
 
     /**
      * Create string.

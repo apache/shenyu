@@ -123,6 +123,7 @@ CREATE TABLE "public"."app_auth" (
   "ext_info" varchar(1024) COLLATE "pg_catalog"."default",
   "open" int2 NOT NULL,
   "enabled" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -135,6 +136,7 @@ COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user app
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
 COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -315,6 +317,7 @@ CREATE TABLE "public"."meta_data" (
   "method_name" varchar(255) COLLATE "pg_catalog"."default",
   "parameter_types" varchar(255) COLLATE "pg_catalog"."default",
   "rpc_ext" varchar(512) COLLATE "pg_catalog"."default",
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "enabled" int2 NOT NULL
@@ -329,6 +332,7 @@ COMMENT ON COLUMN "public"."meta_data"."service_name" IS 'service name';
 COMMENT ON COLUMN "public"."meta_data"."method_name" IS 'method name';
 COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are provided with multiple parameter types separated by commas';
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
 COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
@@ -907,6 +911,12 @@ INSERT INTO "public"."permission" VALUES ('1697145808239693824','134635856042721
 INSERT INTO "public"."permission" VALUES ('1697146375754190848','1346358560427216896','1697146375729025024', '2023-08-31 15:16:42', '2023-08-31 07:16:42');
 INSERT INTO "public"."permission" VALUES ('1697146617543233536','1346358560427216896','1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
 INSERT INTO "public"."permission" VALUES ('1697146860569595904','1346358560427216896','1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO "public"."permission" VALUES ('1697141926281381720','1346358560427216896','1844015648095666176', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697145808239621836','1346358560427216896','1844025735425183744', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146375754129471','1346358560427216896','1844025850382667776', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146617543248162','1346358560427216896','1844025989214130176', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146860569542740','1346358560427216896','1844026099075534848', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
 -- ----------------------------
 -- Table structure for plugin
@@ -1839,6 +1849,12 @@ INSERT INTO "public"."resource" VALUES ('1697145808210333696','16971419262477639
 INSERT INTO "public"."resource" VALUES ('1697146617513873408','1697141926247763968','SHENYU.BUTTON.SYSTEM.DELETE','','','',2,0,'delete',1,0,'system:alert:delete',1,'2023-08-31 15:17:39.731','2023-08-31 07:22:07.675');
 INSERT INTO "public"."resource" VALUES ('1697146860540235776','1697141926247763968','SHENYU.BUTTON.SYSTEM.EDIT','','','',2,0,'edit',1,0,'system:alert:edit',1,'2023-08-31 15:18:37.673','2023-08-31 07:18:37.675');
 
+INSERT INTO "public"."resource" VALUES ('1844015648095666176', '1346776175553376256', 'SHENYU.MENU.SYSTEM.MANAGMENT.SCALE', '', '/system/scale', '', 1, 4, 'sliders', 0, 0, '', 1, '2024-10-09 22:02:45.317000', '2024-10-10 14:33:43.897017');
+INSERT INTO "public"."resource" VALUES ('1844025735425183744', '1844015648095666176', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, 'unordered-list', 1, 0, 'system:scale:list', 1, '2024-10-09 22:42:50.322000', '2024-10-09 22:42:50.325462');
+INSERT INTO "public"."resource" VALUES ('1844025850382667776', '1844015648095666176', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, 'plus', 1, 0, 'system:scale:add', 1, '2024-10-09 22:43:17.731000', '2024-10-09 22:43:17.731661');
+INSERT INTO "public"."resource" VALUES ('1844025989214130176', '1844015648095666176', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 0, 'delete', 1, 0, 'system:scale:delete', 1, '2024-10-09 22:43:50.831000', '2024-10-09 22:43:50.831705');
+INSERT INTO "public"."resource" VALUES ('1844026099075534848', '1844015648095666176', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 0, 'edit', 1, 0, 'system:scale:edit', 1, '2024-10-09 22:44:17.024000', '2024-10-09 22:44:17.024555');
+
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
@@ -1876,6 +1892,7 @@ CREATE TABLE "public"."rule" (
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "sort" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
@@ -1889,6 +1906,7 @@ COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
 COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -1942,6 +1960,7 @@ CREATE TABLE "public"."selector" (
   "loged" int2 NOT NULL,
   "continued" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -1957,6 +1976,7 @@ COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 
 COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
+COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
 
@@ -2339,6 +2359,7 @@ CREATE TABLE "public"."discovery" (
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "server_list" varchar(255) COLLATE "pg_catalog"."default",
     "props" text COLLATE "pg_catalog"."default",
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -2350,6 +2371,7 @@ COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
 COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
 COMMENT ON COLUMN "public"."discovery"."props" IS 'the discovery pops (json) ';
+COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."discovery"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery"."date_updated" IS 'update time';
 
@@ -2409,6 +2431,7 @@ CREATE TABLE "public"."proxy_selector"
     "type"         varchar(128) COLLATE "pg_catalog"."default",
     "forward_port" int4 NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
@@ -2431,6 +2454,7 @@ CREATE TABLE "public"."discovery_upstream"
 (
     "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "url"         varchar(128) COLLATE "pg_catalog"."default",
     "status"      int4  NOT NULL,
@@ -2442,6 +2466,7 @@ CREATE TABLE "public"."discovery_upstream"
 ;
 COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
 COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
 COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
@@ -2748,28 +2773,3 @@ COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
 COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
 
-
-ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
-
-
-ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."alert_receiver" ADD COLUMN `namespace_id` VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
-
-ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
