@@ -18,7 +18,7 @@
 
 # init kubernetes for h2
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
-bash "${SHENYU_TESTCASE_DIR}"/k8s/script/init/opengauss_container_init.sh
+bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_opengauss.sh
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-opengauss.yml up -d --quiet-pull
