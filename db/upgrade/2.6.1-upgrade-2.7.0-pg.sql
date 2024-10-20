@@ -18,9 +18,9 @@
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507020', '14', 'rewriteContextPath', 'rewriteContextPath', 2, 2, 2, '{"required":"0","defaultValue":""}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507021', '14', 'percentage', 'percentage', 1, 2, 3, '{"required":"1","defaultValue":"100"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507022', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507024', '8', 'registerType', 'registerType', 3, 3, 1, NULL, '2024-08-24 09:40:03.293', '2024-08-24 21:52:27.920');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507025', '8', 'serverLists', 'serverLists', 3, 3, 2, NULL, '2024-08-24 21:52:51.179', '2024-08-24 21:53:27.483');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507026', '8', 'props', 'props', 3, 3, 3, NULL, '2024-08-24 21:53:25.764', '2024-08-24 21:53:30.255');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507024', '8', 'registerType', 'registerType', 2, 3, 1, NULL, '2024-08-24 09:40:03.293', '2024-08-24 21:52:27.920');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507025', '8', 'serverLists', 'serverLists', 2, 3, 2, NULL, '2024-08-24 21:52:51.179', '2024-08-24 21:53:27.483');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507026', '8', 'props', 'props', 4, 3, 3, NULL, '2024-08-24 21:53:25.764', '2024-08-24 21:53:30.255');
 
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737478', 'rewriteMetaData', 'REWRITE_META_DATA', 'true', 'true', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737479', 'rewriteMetaData', 'REWRITE_META_DATA', 'false', 'false', '', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
@@ -194,20 +194,45 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343267', '13463585604272
 ALTER TABLE "public"."dashboard_user" ADD COLUMN client_id VARCHAR(32) NULL;
 COMMENT ON COLUMN "public"."dashboard_user".client_id IS 'client id';
 
-ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
+ALTER TABLE "public"."selector" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
+
+ALTER TABLE "public"."alert_receiver" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
 
 UPDATE "public"."selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
-ALTER TABLE "public"."rule" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespaceId';
-
 UPDATE "public"."rule" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
-ALTER TABLE "public"."meta_data" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."meta_data"."namespace_id" IS 'namespaceId';
-
 UPDATE "public"."meta_data" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."app_auth" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."discovery" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."discovery_upstream" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."proxy_selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."alert_receiver" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 -- ----------------------------
 -- Table structure for scale
@@ -278,28 +303,3 @@ COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disabl
 COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
 COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
-
-ALTER TABLE "public"."app_auth" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."app_auth"."namespace_id" IS 'namespaceId';
-
-UPDATE "public"."app_auth" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
-
-ALTER TABLE "public"."alert_receiver" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
-
-UPDATE "public"."alert_receiver" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
-
-ALTER TABLE "public"."discovery" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'namespaceId';
-
-UPDATE "public"."discovery" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
-
-ALTER TABLE "public"."discovery_upstream" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
-
-UPDATE "public"."discovery_upstream" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
-
-ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NULL;
-COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
-
-UPDATE "public"."proxy_selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
