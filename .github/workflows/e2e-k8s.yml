@@ -185,7 +185,7 @@ jobs:
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/k8s/script/${{ matrix.script }}.sh
+          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
 #      - name: Cluster Test after Healthcheck
 #        if: steps.filter.outputs.changed == 'true'
@@ -307,7 +307,7 @@ jobs:
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/k8s/script/${{ matrix.script }}.sh
+          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
 #      - name: Cluster Test after Healthcheck
 #        if: steps.filter.outputs.changed == 'true'
