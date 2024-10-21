@@ -51,6 +51,10 @@ public final class ExtensionLoader<T> {
     private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
     
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
+
+    private static final Comparator<Holder<Object>> HOLDER_COMPARATOR = Comparator.comparing(Holder::getOrder);
+
+    private static final Comparator<ClassEntity> CLASS_ENTITY_COMPARATOR = Comparator.comparing(ClassEntity::getOrder);
     
     private final Class<T> clazz;
     
@@ -63,10 +67,6 @@ public final class ExtensionLoader<T> {
     private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
     
     private String cachedDefaultName;
-    
-    private final Comparator<Holder<Object>> holderComparator = Comparator.comparing(Holder::getOrder);
-    
-    private final Comparator<ClassEntity> classEntityComparator = Comparator.comparing(ClassEntity::getOrder);
     
     /**
      * Instantiates a new Extension loader.
@@ -141,6 +141,13 @@ public final class ExtensionLoader<T> {
         if (StringUtils.isBlank(name)) {
             throw new NullPointerException("get join name is null");
         }
+        ClassEntity classEntity = getExtensionClassesEntity().get(name);
+        if (Objects.isNull(classEntity)) {
+            throw new IllegalArgumentException(name + " name is error");
+        }
+        if (!classEntity.isSingleton()) {
+            return (T) createExtension(classEntity);
+        }
         Holder<Object> objectHolder = cachedInstances.get(name);
         if (Objects.isNull(objectHolder)) {
             cachedInstances.putIfAbsent(name, new Holder<>());
@@ -148,15 +155,11 @@ public final class ExtensionLoader<T> {
         }
         Object value = objectHolder.getValue();
         if (Objects.isNull(value)) {
-            synchronized (cachedInstances) {
+            synchronized (objectHolder) {
                 value = objectHolder.getValue();
                 if (Objects.isNull(value)) {
                     createExtension(name, objectHolder);
                     value = objectHolder.getValue();
-                    if (!objectHolder.isSingleton()) {
-                        Holder<Object> removeObj = cachedInstances.remove(name);
-                        removeObj = null;
-                    }
                 }
             }
         }
@@ -175,19 +178,31 @@ public final class ExtensionLoader<T> {
         }
         if (Objects.equals(extensionClassesEntity.size(), cachedInstances.size())) {
             return (List<T>) this.cachedInstances.values().stream()
-                    .sorted(holderComparator)
+                    .sorted(HOLDER_COMPARATOR)
                     .map(e -> {
                         return e.getValue();
                     }).collect(Collectors.toList());
         }
         List<T> joins = new ArrayList<>();
         List<ClassEntity> classEntities = extensionClassesEntity.values().stream()
-                .sorted(classEntityComparator).collect(Collectors.toList());
+                .sorted(CLASS_ENTITY_COMPARATOR).collect(Collectors.toList());
         classEntities.forEach(v -> {
             T join = this.getJoin(v.getName());
             joins.add(join);
         });
         return joins;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object createExtension(final ClassEntity classEntity) {
+        Class<?> aClass = classEntity.getClazz();
+        try {
+            return aClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Extension instance(name: " + classEntity.getName() + ", class: "
+                    + aClass + ")  could not be instantiated: " + e.getMessage(), e);
+
+        }
     }
     
     @SuppressWarnings("unchecked")
@@ -199,22 +214,14 @@ public final class ExtensionLoader<T> {
         Class<?> aClass = classEntity.getClazz();
         Object o = joinInstances.get(aClass);
         if (Objects.isNull(o)) {
-            try {
-                if (classEntity.isSingleton()) {
-                    joinInstances.putIfAbsent(aClass, aClass.newInstance());
-                    o = joinInstances.get(aClass);
-                } else {
-                    o = aClass.newInstance();
-                }
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalStateException("Extension instance(name: " + name + ", class: "
-                        + aClass + ")  could not be instantiated: " + e.getMessage(), e);
-                
+            o = createExtension(classEntity);
+            if (classEntity.isSingleton()) {
+                joinInstances.putIfAbsent(aClass, o);
+                o = joinInstances.get(aClass);
             }
         }
         holder.setOrder(classEntity.getOrder());
         holder.setValue(o);
-        holder.setSingleton(classEntity.isSingleton());
     }
     
     /**
@@ -324,9 +331,7 @@ public final class ExtensionLoader<T> {
         private volatile T value;
         
         private Integer order;
-        
-        private boolean isSingleton;
-        
+
         /**
          * Gets value.
          *
@@ -361,24 +366,6 @@ public final class ExtensionLoader<T> {
          */
         public Integer getOrder() {
             return order;
-        }
-        
-        /**
-         * Is it a singleton object.
-         *
-         * @return true or false.
-         */
-        public boolean isSingleton() {
-            return isSingleton;
-        }
-        
-        /**
-         * Is it a singleton object.
-         *
-         * @param singleton true or false.
-         */
-        public void setSingleton(final boolean singleton) {
-            isSingleton = singleton;
         }
     }
     
