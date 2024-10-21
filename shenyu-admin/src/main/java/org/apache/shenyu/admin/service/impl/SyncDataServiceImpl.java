@@ -124,8 +124,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     @Override
     public boolean syncAllByNamespaceId(final DataEventTypeEnum type, final String namespaceId) {
-        //todo:[Namespace] Temporarily only synchronize plugin data for the default namespace
-        appAuthService.syncData();
+        appAuthService.syncDataByNamespaceId(namespaceId);
 
         List<PluginData> pluginDataList = namespacePluginService.listAll(namespaceId);
 
