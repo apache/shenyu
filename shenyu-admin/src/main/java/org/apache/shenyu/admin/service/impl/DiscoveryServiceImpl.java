@@ -243,11 +243,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void syncData() {
-        LOG.info("shenyu DiscoveryService sync db ");
-        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
+    public void syncData(final List<DiscoveryDO> discoveryDOS) {
         discoveryDOS.forEach(d -> {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
             discoveryProcessor.createDiscovery(d);
@@ -268,6 +264,22 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 discoveryProcessor.fetchAll(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
             }
         });
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void syncData() {
+        LOG.info("shenyu DiscoveryService sync db ");
+        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
+        syncData(discoveryDOS);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void syncDataByNamespaceId(final String namespaceId) {
+        LOG.info("shenyu DiscoveryService sync db ");
+        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAllByNamespaceId(namespaceId);
+        syncData(discoveryDOS);
     }
 
     @Override
