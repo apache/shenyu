@@ -224,6 +224,15 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      */
     List<SelectorData> listAll();
 
+
+    /**
+     * List all by namespaceId list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<SelectorData> listAllByNamespaceId(String namespaceId);
+
     /**
      * List all export vo list.
      *

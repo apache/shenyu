@@ -82,6 +82,14 @@ public interface AppAuthMapper extends ExistProvider {
     List<AppAuthDO> selectAll();
 
     /**
+     * select all by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     * @return {@linkplain List}
+     */
+    List<AppAuthDO> selectAllByNamespaceId(String namespaceId);
+
+    /**
      * count application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}

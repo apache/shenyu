@@ -120,6 +120,13 @@
           FROM app_auth
     </select>
 
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.AppAuthDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM app_auth
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
           FROM app_auth
