@@ -67,7 +67,6 @@ public class NamespaceServiceImpl implements NamespaceService {
     @Transactional(rollbackFor = Exception.class)
     public NamespaceVO createOrUpdate(final NamespaceDTO namespaceDTO) {
         return StringUtils.isBlank(namespaceDTO.getId())
-                && StringUtils.isBlank(namespaceDTO.getNamespaceId())
                 ? this.create(namespaceDTO) : this.update(namespaceDTO);
     }
 
@@ -113,7 +112,7 @@ public class NamespaceServiceImpl implements NamespaceService {
     private NamespaceVO create(final NamespaceDTO namespaceDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
-        String namespaceId = NamespaceIDUtils.getInstance().generateNamespaceID();
+        String namespaceId = StringUtils.defaultString(namespaceDTO.getNamespaceId(), NamespaceIDUtils.getInstance().generateNamespaceID());
         NamespaceDO namespaceDO = NamespaceDO.builder()
                 .id(id)
                 .namespaceId(namespaceId)
