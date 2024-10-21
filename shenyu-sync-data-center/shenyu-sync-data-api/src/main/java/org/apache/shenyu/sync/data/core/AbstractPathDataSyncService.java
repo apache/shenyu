@@ -80,7 +80,8 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
      */
     public void event(final String namespaceId, final String updatePath, final String updateData, final String registerPath, final EventType eventType) {
         String realUpdatePath = StringUtils.substringAfter(updatePath, namespaceId);
-        switch (registerPath) {
+        String realRegisterPath = StringUtils.substringAfter(registerPath, namespaceId);
+        switch (realRegisterPath) {
             case DefaultPathConstants.PLUGIN_PARENT:
                 pluginHandlerEvent(realUpdatePath, updateData, eventType);
                 break;
