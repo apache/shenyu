@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.sync.data.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -55,6 +56,7 @@ public class ConsulSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param shenyuConfig     the shenyu config
      * @param consulClient     the consul client
      * @param consulConfig     the consul config
      * @param pluginSubscriber the plugin subscriber
@@ -65,7 +67,8 @@ public class ConsulSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ConsulClient> consulClient,
+    public SyncDataService syncDataService(final ObjectProvider<ShenyuConfig> shenyuConfig,
+                                           final ObjectProvider<ConsulClient> consulClient,
                                            final ObjectProvider<ConsulConfig> consulConfig,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
@@ -73,7 +76,7 @@ public class ConsulSyncDataConfiguration {
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers) {
         LOGGER.info("you use consul sync shenyu data.......");
-        return new ConsulSyncDataService(consulClient.getIfAvailable(), consulConfig.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new ConsulSyncDataService(shenyuConfig.getIfAvailable(), consulClient.getIfAvailable(), consulConfig.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList));
     }
