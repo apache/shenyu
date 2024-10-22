@@ -143,6 +143,14 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public void syncDataByNamespaceId(final String namespaceId) {
+        List<MetaDataDO> all = metaDataMapper.findAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isNotEmpty(all)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
+        }
+    }
+
+    @Override
     public MetaDataVO findByIdAndNamespaceId(final String id, final String namespaceId) {
         return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectByIdAndNamespaceId(id, namespaceId))).orElseGet(MetaDataVO::new);
     }
