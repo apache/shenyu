@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
+import org.apache.shenyu.admin.model.dto.NamespaceSyncDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
@@ -184,13 +185,13 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * sync plugins of namespace.
      *
+     * @param namespaceSyncDTO the namespaceSync dto
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/syncPluginAll")
     @RequiresPermissions("system:plugin:modify")
-    public ShenyuAdminResult syncPluginAll() {
-        //todo:[Namespace] Synchronize based on namespaceId
-        boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
+    public ShenyuAdminResult syncPluginAll(@Valid @RequestBody final NamespaceSyncDTO namespaceSyncDTO) {
+        boolean success = syncDataService.syncAllByNamespaceId(DataEventTypeEnum.REFRESH, namespaceSyncDTO.getNamespaceId());
         if (success) {
             return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
         } else {
