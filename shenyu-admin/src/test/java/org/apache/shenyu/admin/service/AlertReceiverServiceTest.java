@@ -80,7 +80,7 @@ public final class AlertReceiverServiceTest {
     @Test
     public void testDeleteReceiver() {
         given(alertReceiverMapper.deleteByIds(any())).willReturn(1);
-        alertReceiverService.deleteByNamespaceId(Lists.newArrayList("1"), SYS_DEFAULT_NAMESPACE_ID);
+        alertReceiverService.deleteReceiverByNamespaceId(Lists.newArrayList("1"), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test

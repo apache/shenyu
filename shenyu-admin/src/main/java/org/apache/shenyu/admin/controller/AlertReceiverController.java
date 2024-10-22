@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -32,12 +30,15 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PathVariable;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Alert Receiver Controller.
@@ -80,7 +81,7 @@ public class AlertReceiverController {
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteReceiver(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        alertReceiverService.deleteByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+        alertReceiverService.deleteReceiverByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
     

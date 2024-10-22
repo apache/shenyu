@@ -24,7 +24,6 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import java.util.Date;
 import java.util.Map;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * The alarm data sender.
@@ -53,12 +52,19 @@ public class AlarmSender {
     private static AlarmService alarmService;
     
     private static Boolean enabled;
+
+    private static String namespaceId;
     
     /**
      * Send alarm content.
      * @param alarmContent alarm content
      */
     public static void alarm(final AlarmContent alarmContent) {
+        if (alarmContent.getNamespaceId() == null) {
+            ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
+            namespaceId = shenyuConfig.getNamespace();
+            alarmContent.setNamespaceId(namespaceId);
+        }
         if (alarmService == null) {
             alarmService = SpringBeanUtils.getInstance().getBean(AlarmService.class);
         }
@@ -77,18 +83,6 @@ public class AlarmSender {
      * @param labels Alarm labels
      */
     public static void alarm(final byte level, final String title, final String content, final Map<String, String> labels) {
-        alarm(level, title, content, labels, SYS_DEFAULT_NAMESPACE_ID);
-    }
-
-    /**
-     * Send alarm content.
-     * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
-     * @param title Alarm title
-     * @param content Alarm content
-     * @param labels Alarm labels
-     * @param namespaceId namespaceId
-     */
-    public static void alarm(final byte level, final String title, final String content, final Map<String, String> labels, final String namespaceId) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title).content(content)
                                             .labels(labels).namespaceId(namespaceId)
@@ -103,17 +97,6 @@ public class AlarmSender {
      * @param content Alarm content
      */
     public static void alarm(final byte level, final String title, final String content) {
-        alarm(level, title, content, SYS_DEFAULT_NAMESPACE_ID);
-    }
-
-    /**
-     * Send alarm content.
-     * @param level Alarm level. 0: high-emergency-critical 1: medium-critical-critical 2: low-warning-warning
-     * @param title Alarm title
-     * @param content Alarm content
-     * @param namespaceId namespaceId
-     */
-    public static void alarm(final byte level, final String title, final String content, final String namespaceId) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level(level).title(title)
                                             .content(content).namespaceId(namespaceId)
@@ -128,17 +111,6 @@ public class AlarmSender {
      * @param labels Alarm labels
      */
     public static void alarmHighEmergency(final String title, final String content, final Map<String, String> labels) {
-        alarmHighEmergency(title, content, labels, SYS_DEFAULT_NAMESPACE_ID);
-    }
-
-    /**
-     * Send high emergency level alarm content.
-     * @param title Alarm title
-     * @param content Alarm content
-     * @param labels Alarm labels
-     * @param namespaceId namespaceId
-     */
-    public static void alarmHighEmergency(final String title, final String content, final Map<String, String> labels, final String namespaceId) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 0).title(title).content(content)
                                             .labels(labels).namespaceId(namespaceId)
@@ -153,17 +125,6 @@ public class AlarmSender {
      * @param labels Alarm labels
      */
     public static void alarmMediumCritical(final String title, final String content, final Map<String, String> labels) {
-        alarmMediumCritical(title, content, labels, SYS_DEFAULT_NAMESPACE_ID);
-    }
-
-    /**
-     * Send medium critical level alarm content.
-     * @param title Alarm title
-     * @param content Alarm content
-     * @param labels Alarm labels
-     * @param namespaceId namespaceId
-     */
-    public static void alarmMediumCritical(final String title, final String content, final Map<String, String> labels, final String namespaceId) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 1).title(title).content(content)
                                             .labels(labels).namespaceId(namespaceId)
@@ -178,17 +139,6 @@ public class AlarmSender {
      * @param labels Alarm labels
      */
     public static void alarmLowWarning(final String title, final String content, final Map<String, String> labels) {
-        alarmLowWarning(title, content, labels, SYS_DEFAULT_NAMESPACE_ID);
-    }
-
-    /**
-     * Send low warning level alarm content.
-     * @param title Alarm title
-     * @param content Alarm content
-     * @param labels Alarm labels
-     * @param namespaceId namespaceId
-     */
-    public static void alarmLowWarning(final String title, final String content, final Map<String, String> labels, final String namespaceId) {
         AlarmContent alarmContent = new AlarmContent.Builder()
                                             .level((byte) 2).title(title).content(content)
                                             .labels(labels).namespaceId(namespaceId)

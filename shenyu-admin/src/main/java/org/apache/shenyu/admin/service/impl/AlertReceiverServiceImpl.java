@@ -68,7 +68,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     }
 
     @Override
-    public void deleteByNamespaceId(final List<String> ids, final String namespaceId) {
+    public void deleteReceiverByNamespaceId(final List<String> ids, final String namespaceId) {
         alertDispatchService.clearCache();
         alertReceiverMapper.deleteByIds(ids);
     }

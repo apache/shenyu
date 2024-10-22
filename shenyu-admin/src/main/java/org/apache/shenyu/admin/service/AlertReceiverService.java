@@ -41,7 +41,7 @@ public interface AlertReceiverService {
      * @param ids ids
      * @param namespaceId namespaceId
      */
-    void deleteByNamespaceId(List<String> ids, String namespaceId);
+    void deleteReceiverByNamespaceId(List<String> ids, String namespaceId);
 
     /**
      * Update alert receiver.

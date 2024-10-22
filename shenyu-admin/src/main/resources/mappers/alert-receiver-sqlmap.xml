@@ -46,6 +46,7 @@
         <result column="match_all" jdbcType="TINYINT" property="matchAll"/>
         <result column="labels" jdbcType="VARCHAR" property="labels" javaType="java.util.Map" typeHandler="org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler"/>
         <result column="levels" jdbcType="VARCHAR" property="levels" javaType="java.util.List"  typeHandler="org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -72,7 +73,7 @@
         #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
         #{smnSk,jdbcType=VARCHAR}, #{smnProjectId,jdbcType=VARCHAR}, #{smnRegion,jdbcType=VARCHAR},
         #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR,javaType=java.util.Map,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
-        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{namespaceId,jdbcType=VARCHAR}
+        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{namespaceId,jdbcType=VARCHAR},
         #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">

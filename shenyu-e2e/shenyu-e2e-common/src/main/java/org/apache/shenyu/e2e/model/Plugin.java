@@ -34,9 +34,6 @@ import java.util.stream.Collectors;
  * Plugin enum.
  */
 public enum Plugin {
-
-    CASDOOR("casdoor", 39),
-    KEY_AUTH("keyAuth", 40),
     
     SIGN("sign", 1),
     WAF("waf", 2),
