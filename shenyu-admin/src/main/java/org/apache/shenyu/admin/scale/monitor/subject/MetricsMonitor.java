@@ -17,25 +17,30 @@
 
 package org.apache.shenyu.admin.scale.monitor.subject;
 
-import org.apache.shenyu.admin.scale.collector.K8sMetricsProvider;
-import org.apache.shenyu.admin.scale.collector.ShenYuMetricsProvider;
+import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
+import org.apache.shenyu.admin.scale.collector.PrometheusMetricsProvider;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.monitor.observer.Observer;
+import org.apache.shenyu.admin.scale.monitor.subject.cache.ScaleRuleCache;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
+@Component
 public class MetricsMonitor implements Subject {
 
     private final List<Observer> observers = new ArrayList<>();
 
-    private final ShenYuMetricsProvider shenyuMetricsProvider;
+    private final PrometheusMetricsProvider metricsProvider;
 
-    private final K8sMetricsProvider k8sMetricsProvider;
+    private final ScaleRuleCache scaleRuleCache;
 
-    public MetricsMonitor(final ShenYuMetricsProvider shenyuMetricsProvider, final K8sMetricsProvider k8sMetricsProvider) {
-        this.shenyuMetricsProvider = shenyuMetricsProvider;
-        this.k8sMetricsProvider = k8sMetricsProvider;
+    public MetricsMonitor(final PrometheusMetricsProvider metricsProvider,
+                          final ScaleRuleCache scaleRuleCache) {
+        this.metricsProvider = metricsProvider;
+        this.scaleRuleCache = scaleRuleCache;
     }
 
     @Override
@@ -49,26 +54,27 @@ public class MetricsMonitor implements Subject {
     }
 
     @Override
-    public void notifyObservers(final MetricData metricData) {
+    public void notifyObservers(final MetricData metricData, final ScaleRuleDO rule) {
         for (Observer observer : observers) {
-            observer.update(metricData);
+            observer.update(metricData, rule);
         }
     }
 
     /**
      * monitor metrics.
      */
-    public void monitorMetrics() throws Exception {
-        // ShenYu Metrics
-        List<MetricData> shenyuMetrics = shenyuMetricsProvider.getMetrics();
-        // K8s Metrics
-        List<MetricData> k8sMetrics = k8sMetricsProvider.getMetrics();
+    public void monitorMetrics() {
+        List<ScaleRuleDO> sortedRules = scaleRuleCache.getAllRules().stream()
+                .filter(rule -> rule.getStatus() == 1)
+                .sorted(Comparator.comparingInt(ScaleRuleDO::getSort))
+                .toList();
 
-        for (MetricData metricData : shenyuMetrics) {
-            notifyObservers(metricData);
-        }
-        for (MetricData metricData : k8sMetrics) {
-            notifyObservers(metricData);
+        for (ScaleRuleDO rule : sortedRules) {
+            MetricData metricData = metricsProvider.getMetricData(rule.getMetricName());
+
+            if (metricData != null) {
+                notifyObservers(metricData, rule);
+            }
         }
     }
 }

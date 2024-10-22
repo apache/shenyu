@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.monitor.observer;
+package org.apache.shenyu.admin.scale.config;
 
-import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
-import org.apache.shenyu.admin.scale.collector.provider.MetricData;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.util.Config;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface Observer {
+import java.io.IOException;
 
-    void update(MetricData metricData, ScaleRuleDO rule);
+@Configuration
+public class KubernetesConfig {
 
+    @Bean
+    public ApiClient apiClient() throws IOException {
+        return Config.defaultClient();
+    }
 }

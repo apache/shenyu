@@ -18,6 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
+  application:
+    name: shenyu-admin
   profiles:
     active: h2
   thymeleaf:
@@ -205,6 +207,19 @@ shenyu:
         - system:resource:editMenu
         - system:resource:deleteButton
         - system:resource:deleteMenu
+  k8s:
+    scale:
+      monitor-interval: 10000
+      pool-size: 6
+    prometheus:
+      url: http://localhost:9090
+      queries:
+        cpu_usage: "sum(rate(container_cpu_usage_seconds_total[5m]))"
+        memory_usage: "sum(container_memory_usage_bytes)"
+        request_count: "sum(rate(http_requests_total[1m]))"
+    deployment:
+      name: "shenyu-gateway"
+      namespace: "default"
 
 springdoc:
   api-docs:

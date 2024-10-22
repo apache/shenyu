@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.scaler;
+package org.apache.shenyu.admin.scale.scaler.dynamic;
+
+import java.util.Objects;
 
 public class ScaleAction {
     public enum ActionType {
@@ -25,23 +27,35 @@ public class ScaleAction {
 
     private final ActionType actionType;
 
-    private final int replicaCount;
-
-    public ScaleAction(final ActionType actionType, final int replicaCount) {
+    public ScaleAction(final ActionType actionType) {
         this.actionType = actionType;
-        this.replicaCount = replicaCount;
     }
 
     public ActionType getActionType() {
         return actionType;
     }
 
-    public int getReplicaCount() {
-        return replicaCount;
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ScaleAction action = (ScaleAction) o;
+        return actionType == action.actionType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(actionType);
     }
 
     @Override
     public String toString() {
-        return String.format("Action: %s, Target Replicas: %d", actionType, replicaCount);
+        return "ScaleAction{"
+                + "actionType=" + actionType
+                + '}';
     }
 }

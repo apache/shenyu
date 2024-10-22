@@ -15,13 +15,54 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.collector.provider;
+package org.apache.shenyu.admin.scale.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-public interface MetricsProvider {
+@ConfigurationProperties(prefix = "shenyu.k8s.prometheus")
+public class PrometheusProperties {
 
-    MetricData getMetricData(String metricName) throws Exception;
+    private String url;
 
+    private Map<String, String> queries;
+
+    /**
+     * getUrl.
+     *
+     * @return String
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * setUrl.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    /**
+     * getQueries.
+     *
+     * @return Map
+     */
+    public Map<String, String> getQueries() {
+        return queries;
+    }
+
+    /**
+     * setQueries.
+     *
+     * @param queries queries
+     */
+    public void setQueries(final Map<String, String> queries) {
+        this.queries = queries;
+    }
 }

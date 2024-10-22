@@ -15,13 +15,52 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.collector.provider;
+package org.apache.shenyu.admin.scale.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-public interface MetricsProvider {
+@ConfigurationProperties(prefix = "shenyu.k8s.deployment")
+public class DeploymentProperties {
 
-    MetricData getMetricData(String metricName) throws Exception;
+    private String name;
 
+    private String namespace;
+
+    /**
+     * getName.
+     *
+     * @return String
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * setName.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * getNamespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * setNamespace.
+     *
+     * @param namespace namespace
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
+    }
 }

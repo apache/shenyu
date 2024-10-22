@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.scale.monitor.subject;
 
+import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.monitor.observer.Observer;
 
@@ -26,5 +27,5 @@ public interface Subject {
 
     void removeObserver(Observer observer);
 
-    void notifyObservers(MetricData metricData);
+    void notifyObservers(MetricData metricData, ScaleRuleDO rule);
 }

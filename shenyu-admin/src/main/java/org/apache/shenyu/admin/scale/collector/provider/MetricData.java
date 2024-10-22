@@ -19,24 +19,7 @@ package org.apache.shenyu.admin.scale.collector.provider;
 
 import java.util.Objects;
 
-public class MetricData {
-
-    private final String metricName;
-
-    private final double value;
-
-    public MetricData(final String metricName, final double value) {
-        this.metricName = metricName;
-        this.value = value;
-    }
-
-    public String getMetricName() {
-        return metricName;
-    }
-
-    public double getValue() {
-        return value;
-    }
+public record MetricData(String metricName, double value) {
 
     @Override
     public String toString() {
