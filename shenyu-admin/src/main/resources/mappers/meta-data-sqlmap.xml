@@ -96,6 +96,13 @@
         FROM meta_data
     </select>
 
+    <select id="findAllByNamespaceId" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM meta_data
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery"
             resultMap="BaseResultMap">

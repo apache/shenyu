@@ -434,6 +434,11 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    public List<SelectorData> listAllByNamespaceId(final String namespaceId) {
+        return this.buildSelectorDataList(selectorMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    @Override
     public List<SelectorVO> listAllData() {
         return this.buildSelectorExportVOList(selectorMapper.selectAll());
     }

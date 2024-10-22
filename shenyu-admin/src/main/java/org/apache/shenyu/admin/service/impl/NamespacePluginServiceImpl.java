@@ -171,7 +171,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
 
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
-        //todo:Not yet implemented
+        //todo:Not yet  implemented
         return null;
     }
 
