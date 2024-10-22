@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.sync.data.apollo;
 
 import com.ctrip.framework.apollo.ConfigService;
+
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.apollo.ApolloDataService;
 import org.apache.shenyu.sync.data.apollo.config.ApolloConfig;
@@ -33,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Answers.CALLS_REAL_METHODS;
 
 @ExtendWith(SpringExtension.class)
 @MockBean(ConfigService.class)
@@ -50,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
                 "shenyu.sync.apollo.namespace=application"
 
         })
+@MockBean(name = "shenyuConfig", value = ShenyuConfig.class, answer = CALLS_REAL_METHODS)
 class ApolloSyncDataConfigurationTest {
 
     @Autowired
