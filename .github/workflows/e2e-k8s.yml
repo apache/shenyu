@@ -112,13 +112,13 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-storage
-            script: e2e-storage-compose
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-mysql-compose
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-postgres-compose
-#          - case: shenyu-e2e-case-storage
-#            script: e2e-opengauss-compose
+            script: e2e-h2-compose
+          - case: shenyu-e2e-case-storage
+            script: e2e-mysql-compose
+          - case: shenyu-e2e-case-storage
+            script: e2e-postgres-compose
+          - case: shenyu-e2e-case-storage
+            script: e2e-opengauss-compose
     steps:
       - uses: actions/checkout@v2
         with:
