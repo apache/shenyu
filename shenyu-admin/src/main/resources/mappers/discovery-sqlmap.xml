@@ -70,6 +70,13 @@
         FROM discovery
     </select>
 
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <select id="selectBySelectorNameAndPluginName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         SELECT
         d.id,

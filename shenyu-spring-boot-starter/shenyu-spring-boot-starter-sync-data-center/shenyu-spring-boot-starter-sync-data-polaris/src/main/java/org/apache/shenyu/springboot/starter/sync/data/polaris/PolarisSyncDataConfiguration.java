@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.sync.data.polaris;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -60,6 +61,7 @@ public class PolarisSyncDataConfiguration {
      * @param authSubscribers  the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
+     * @param shenyuConfig the shenyu config
      * @return the sync data service
      */
     @Bean
@@ -68,11 +70,13 @@ public class PolarisSyncDataConfiguration {
                                                   final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                   final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                   final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
-                                                  final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+                                                  final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers,
+                                                  final ObjectProvider<ShenyuConfig> shenyuConfig) {
         LOGGER.info("you use polaris sync shenyu data.......");
         return new PolarisSyncDataService(polarisConfig.getIfAvailable(), configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable());
+                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable(),
+                shenyuConfig.getIfAvailable());
     }
 
     /**
