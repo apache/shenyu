@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.sync.data.nacos;
 
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.nacos.config.NacosACMConfig;
 import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.mockStatic;
         })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
+@MockBean(name = "shenyuConfig", value = ShenyuConfig.class, answer = CALLS_REAL_METHODS)
 public final class NacosSyncDataConfigurationTest {
 
     @Autowired
