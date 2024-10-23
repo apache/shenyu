@@ -15,37 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import jakarta.validation.constraints.NotBlank;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 
-/**
- * The interface Sync data service.
- */
-public interface SyncDataService {
+import java.io.Serializable;
+
+public class NamespaceSyncDTO implements Serializable {
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
-     * Sync all boolean.
+     * Gets the value of namespaceId.
      *
-     * @param type the type
-     * @return the boolean
+     * @return the value of namespaceId
      */
-    boolean syncAll(DataEventTypeEnum type);
+    public String getNamespaceId() {
+        return namespaceId;
+    }
 
     /**
-     * Sync all by namespaceId boolean.
+     * Sets the namespaceId.
      *
-     * @param type the type
-     * @param namespaceId the namespaceId
-     * @return the boolean
+     * @param namespaceId namespaceId
      */
-    boolean syncAllByNamespaceId(DataEventTypeEnum type, String namespaceId);
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
 
-    /**
-     * Sync plugin data boolean.
-     *
-     * @param id    the namespace plugin id
-     * @return the boolean
-     */
-    boolean syncPluginData(String id);
 }
