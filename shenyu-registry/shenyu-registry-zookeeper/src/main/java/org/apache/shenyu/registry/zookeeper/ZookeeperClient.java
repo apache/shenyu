@@ -48,7 +48,8 @@ public class ZookeeperClient {
     private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(zookeeperConfig.getBaseSleepTimeMilliseconds(), zookeeperConfig.getMaxRetries(), zookeeperConfig.getMaxSleepTimeMilliseconds());
+        ExponentialBackoffRetry retryPolicy =
+                new ExponentialBackoffRetry(zookeeperConfig.getBaseSleepTimeMilliseconds(), zookeeperConfig.getMaxRetries(), zookeeperConfig.getMaxSleepTimeMilliseconds());
 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(zookeeperConfig.getServerLists())
