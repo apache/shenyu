@@ -34,6 +34,6 @@ if [ "$status" -eq 200 ]; then
   exit 0
 fi
 echo -e "\n-------------------"
-echo -e "Failed to send request from shenyu-admin : $status"
+echo -e "Failed to send request from ${1} : $status"
 echo -e "\n-------------------"
 exit 1

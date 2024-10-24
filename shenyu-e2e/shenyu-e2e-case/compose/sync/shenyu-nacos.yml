@@ -1,0 +1,171 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '3.9'
+
+services:
+  shenyu-zookeeper:
+    image: zookeeper:3.5
+    container_name: shenyu-zookeeper
+    ports:
+      - "2181:2181"  # Client
+      - "2888:2888"  # Server
+      - "3888:3888"  # Leader election
+      - "8080:8080"  # Website
+    healthcheck:
+      test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: always
+    networks:
+      - shenyu
+  shenyu-mysql:
+    image: mysql:8.0
+    container_name: shenyu-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=shenyue2e
+      - MYSQL_USER=shenyue2e
+      - MYSQL_PASSWORD=shenyue2e
+    ports:
+      - "30306:3306"
+    volumes:
+      - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: always
+    networks:
+      - shenyu
+  shenyu-nacos:
+    image: nacos/nacos-server:v2.2.3
+    restart: always
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=Asia/Shanghai
+      - SERVICE_NAME=shenyu-nacos
+      - NACOS_SERVER_PORT=8848
+      - NACOS_APPLICATION_PORT=8848
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+    ports:
+      - "8848:8848"  # Client port
+      - "9848:9848"  # Server port
+      - "9849:9849"  # Raft port
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - shenyu
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    command: ["-Xmx768m", "-Xms768m"]
+    ports:
+      - "31095:9095"
+    environment:
+      - TZ=Asia/Beijing
+      - SPRING_PROFILES_ACTIVE=mysql
+      - shenyu.database.dialect=mysql
+      - shenyu.database.init_enable=true
+      - spring.datasource.username=shenyue2e
+      - spring.datasource.password=shenyue2e
+      - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+      - shenyu.sync.nacos.url=http://shenyu-nacos:8848
+      - shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c
+    volumes:
+      - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9095/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    depends_on:
+      shenyu-mysql:
+        condition: service_healthy
+      shenyu-nacos:
+        condition: service_healthy
+      shenyu-zookeeper:
+        condition: service_healthy
+    networks:
+      - shenyu
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    ports:
+      - "9195:9195"
+    environment:
+      - TZ=Asia/Beijing
+      - shenyu.sync.nacos.url=http://shenyu-nacos:8848
+      - shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9195/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    networks:
+      - shenyu
+  
+  shenyu-examples-dubbo:
+    image: shenyu-examples-apache-dubbo-service:latest
+    container_name: shenyu-examples-dubbo
+    environment:
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - dubbo.registry.address=zookeeper://shenyu-zookeeper:2181
+    ports:
+      - "8011:8011"
+      - "20888:20888"
+    healthcheck:
+      test: [ "CMD", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+    restart: always
+    depends_on:
+      shenyu-bootstrap:
+        condition: service_healthy
+    networks:
+      - shenyu
+
+networks:
+  shenyu:
+    name: shenyu
+    external: true
