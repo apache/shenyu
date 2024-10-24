@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
+import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -33,10 +35,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSpringWebSocketDiscoveryConfiguration {
+
+    @Resource
+    Environment environment;
 
     /**
      * clientDiscoveryConfigRefreshedEventListener.
@@ -76,6 +82,9 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name"))) {
+            shenyuDiscoveryConfig.getProps().put("name", environment.getProperty("spring.application.name"));
+        }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

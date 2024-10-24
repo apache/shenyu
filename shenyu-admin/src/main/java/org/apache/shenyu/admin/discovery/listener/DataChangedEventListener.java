@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.api.listener;
+package org.apache.shenyu.admin.discovery.listener;
 
 /**
  * Data changed listener.
  */
 public interface DataChangedEventListener {
-    
+
     /**
      * when data changed, fire this event.
-     * 
+     *
      * @param event data changed event
      */
     void onChange(DiscoveryDataChangedEvent event);

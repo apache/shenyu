@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.listener.DataChangedEventListener;
+import org.apache.shenyu.admin.discovery.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -29,8 +31,6 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

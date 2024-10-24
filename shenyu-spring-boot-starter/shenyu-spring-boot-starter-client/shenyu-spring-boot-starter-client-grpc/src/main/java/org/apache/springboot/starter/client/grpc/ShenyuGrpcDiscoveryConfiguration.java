@@ -17,6 +17,8 @@
 
 package org.apache.springboot.starter.client.grpc;
 
+import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -32,12 +34,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.Optional;
 
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuGrpcDiscoveryConfiguration {
+
+    @Resource
+    Environment environment;
 
     /**
      * InstanceRegisterListener.
@@ -58,6 +64,9 @@ public class ShenyuGrpcDiscoveryConfiguration {
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse(ShenyuClientConstants.HTTP));
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name"))) {
+            shenyuDiscoveryConfig.getProps().put("name", environment.getProperty("spring.application.name"));
+        }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

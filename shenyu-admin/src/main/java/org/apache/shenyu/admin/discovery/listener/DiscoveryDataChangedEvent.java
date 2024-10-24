@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -15,19 +16,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.api.listener;
+package org.apache.shenyu.admin.discovery.listener;
 
 /**
  * Data changed event.
  */
 public final class DiscoveryDataChangedEvent {
-    
+
     private final String key;
-    
+
     private final String value;
-    
+
     private final Event event;
-    
+
     /**
      * Instantiates a new Data changed event.
      *
@@ -40,7 +41,7 @@ public final class DiscoveryDataChangedEvent {
         this.value = value;
         this.event = event;
     }
-    
+
     /**
      * Gets key.
      *
@@ -49,7 +50,7 @@ public final class DiscoveryDataChangedEvent {
     public String getKey() {
         return key;
     }
-    
+
     /**
      * Gets value.
      *
@@ -58,7 +59,7 @@ public final class DiscoveryDataChangedEvent {
     public String getValue() {
         return value;
     }
-    
+
     /**
      * Gets event.
      *
@@ -67,12 +68,12 @@ public final class DiscoveryDataChangedEvent {
     public Event getEvent() {
         return event;
     }
-    
+
     /**
      * Data changed event.
      */
     public enum Event {
-    
+
         /**
          * Added event.
          */
