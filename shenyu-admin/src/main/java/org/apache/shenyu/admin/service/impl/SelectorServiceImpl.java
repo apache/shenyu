@@ -166,6 +166,7 @@ public class SelectorServiceImpl implements SelectorService {
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         if (StringUtils.isEmpty(selectorDTO.getId())) {
+            LOG.info("register default selector :{}", GsonUtils.getInstance().toJson(selectorDTO));
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         }
