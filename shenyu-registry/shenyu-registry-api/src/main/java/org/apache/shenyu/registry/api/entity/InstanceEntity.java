@@ -159,7 +159,7 @@ public class InstanceEntity {
      *
      * @param status status
      */
-    public void setStatus(int status) {
+    public void setStatus(final int status) {
         this.status = status;
     }
 
@@ -177,7 +177,7 @@ public class InstanceEntity {
      *
      * @param weight weight
      */
-    public void setWeight(int weight) {
+    public void setWeight(final int weight) {
         this.weight = weight;
     }
 
