@@ -45,7 +45,7 @@ import java.util.Optional;
 public class ShenyuSpringMvcDiscoveryConfiguration {
 
     @Resource
-    Environment environment;
+    private Environment environment;
 
     /**
      * clientDiscoveryConfigRefreshedEventListener Bean.
