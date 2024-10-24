@@ -32,11 +32,6 @@ public class WebsocketConfig {
      * allowOrigin.
      */
     private String allowOrigin;
-    
-    /**
-     * namespaceId.
-     */
-    private String namespaceId;
 
     /**
      * get urls.
@@ -72,22 +67,6 @@ public class WebsocketConfig {
         this.allowOrigin = allowOrigin;
     }
     
-    /**
-     * get namespaceId.
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-    
-    /**
-     * set namespaceId.
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -98,13 +77,12 @@ public class WebsocketConfig {
         }
         WebsocketConfig that = (WebsocketConfig) o;
         return Objects.equals(urls, that.urls)
-                && Objects.equals(allowOrigin, that.allowOrigin)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(allowOrigin, that.allowOrigin);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, namespaceId);
+        return Objects.hash(urls, allowOrigin);
     }
 
     @Override
@@ -114,8 +92,6 @@ public class WebsocketConfig {
                 + urls
                 + ", allowOrigin='"
                 + allowOrigin
-                + ", namespaceId='"
-                + namespaceId
                 + '}';
     }
 }
