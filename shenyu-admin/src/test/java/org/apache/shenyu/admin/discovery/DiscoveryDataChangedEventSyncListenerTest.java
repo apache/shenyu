@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.discovery;
 
+import org.apache.shenyu.admin.discovery.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

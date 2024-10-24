@@ -55,6 +55,10 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
         if (Objects.isNull(shenyuInstanceRegisterRepository)) {
             throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
         }
+
+        if (!shenyuInstanceRegisterRepository.serviceExists(key)) {
+            throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
+        }
         Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             LOG.info("shenyu discovery has watcher key = {}", key);

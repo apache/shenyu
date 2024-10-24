@@ -132,6 +132,16 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
+    public boolean serviceExists(String key) {
+        try {
+            List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
+            return !instances.isEmpty();
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
     public void watchInstances(String key, ChangedEventListener listener) {
         try {
             List<InstanceInfo> initialInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);

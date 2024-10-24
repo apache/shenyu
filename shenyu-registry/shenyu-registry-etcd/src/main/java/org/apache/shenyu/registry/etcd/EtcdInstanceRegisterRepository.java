@@ -114,6 +114,15 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
+    public boolean serviceExists(String key) {
+        try {
+            return !selectInstances(key).isEmpty();
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
     public void watchInstances(String watchKey, ChangedEventListener listener) {
         try {
             Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);

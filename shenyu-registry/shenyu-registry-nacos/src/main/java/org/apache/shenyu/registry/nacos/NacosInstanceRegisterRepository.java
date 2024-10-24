@@ -108,6 +108,17 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
+    public boolean serviceExists(String key) {
+        try {
+            List<Instance> instances = namingService.selectInstances(key, groupName, true);
+            return !instances.isEmpty();
+        } catch (NacosException e) {
+            LOGGER.error("nacos registry Error checking Nacos service existence: {}", e.getMessage(), e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
     public void watchInstances(String key, ChangedEventListener listener) {
         try {
             List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);

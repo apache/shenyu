@@ -205,6 +205,22 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         }
     }
 
+    @Override
+    public void unWatchInstances(final String key) {
+        if (cacheMap.containsKey(key)) {
+            cacheMap.remove(key).close();
+        }
+    }
+
+    @Override
+    public boolean serviceExists(String key) {
+        try {
+            return null != client.get(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
     private URI getURI(final String instanceRegisterJsonStr, final Integer port, final String host) {
         if (port == null || host == null) {
             return null;

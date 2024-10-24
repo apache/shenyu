@@ -57,6 +57,16 @@ public interface ShenyuInstanceRegisterRepository {
     }
 
     /**
+     * serviceExists.
+     *
+     * @param key key
+     * @return {@link boolean}
+     */
+    default boolean serviceExists(String key) {
+        return true;
+    }
+
+    /**
      * watchInstances.
      *
      * @param key key
