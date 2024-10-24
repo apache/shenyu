@@ -73,6 +73,9 @@
                 <exclude>**/*</exclude>
             </excludes>
         </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../db</directory>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
