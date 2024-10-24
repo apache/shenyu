@@ -6,7 +6,7 @@ public interface ChangedEventListener {
     /**
      * Data changed event.
      */
-    public enum Event {
+    enum Event {
 
         /**
          * Added event.
@@ -31,5 +31,5 @@ public interface ChangedEventListener {
      *
      * @param event the event
      */
-    void onEvent(final String key, final String value, final Event event);
+    void onEvent(String key, String value, Event event);
 }
