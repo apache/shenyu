@@ -236,6 +236,10 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult syncData() {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
+        return syncData(appAuthDOList);
+    }
+
+    public ShenyuAdminResult syncData(final List<AppAuthDO> appAuthDOList) {
         if (CollectionUtils.isEmpty(appAuthDOList)) {
             return ShenyuAdminResult.success();
         }
@@ -256,6 +260,12 @@ public class AppAuthServiceImpl implements AppAuthService {
                 dataList));
 
         return ShenyuAdminResult.success();
+    }
+
+    @Override
+    public ShenyuAdminResult syncDataByNamespaceId(final String namespaceId) {
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespaceId);
+        return syncData(appAuthDOList);
     }
 
     @Override
@@ -487,11 +497,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
-            () -> appAuthMapper.countByQuery(appAuthQuery),
-            () -> appAuthMapper.selectByQuery(appAuthQuery)
-                .stream()
-                .map(AppAuthTransfer.INSTANCE::mapToVO)
-                .collect(Collectors.toList()));
+                () -> appAuthMapper.countByQuery(appAuthQuery),
+                () -> appAuthMapper.selectByQuery(appAuthQuery)
+                        .stream()
+                        .map(AppAuthTransfer.INSTANCE::mapToVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override
@@ -600,9 +610,9 @@ public class AppAuthServiceImpl implements AppAuthService {
                     dataList.add(new AuthParamData(data.getAppName(), data.getAppParam()));
                     return dataList;
                 }, (List<AuthParamData> dataList1, List<AuthParamData> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                    dataList1.addAll(dataList2);
+                    return dataList1;
+                }));
     }
 
     /**
@@ -616,14 +626,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
-                    data -> {
-                        List<AuthPathData> dataList = new ArrayList<>();
-                        dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
-                        return dataList;
-                    }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                        data -> {
+                            List<AuthPathData> dataList = new ArrayList<>();
+                            dataList.add(new AuthPathData(data.getAppName(), data.getPath(), data.getEnabled()));
+                            return dataList;
+                        }, (List<AuthPathData> dataList1, List<AuthPathData> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
     /**
@@ -638,15 +648,15 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthParamDO::getAuthId,
-                    data -> {
-                        List<AuthParamVO> dataList = new ArrayList<>();
-                        AuthParamVO authParamVO = AppAuthTransfer.INSTANCE.mapToVO(data);
-                        dataList.add(authParamVO);
-                        return dataList;
-                    }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                        data -> {
+                            List<AuthParamVO> dataList = new ArrayList<>();
+                            AuthParamVO authParamVO = AppAuthTransfer.INSTANCE.mapToVO(data);
+                            dataList.add(authParamVO);
+                            return dataList;
+                        }, (List<AuthParamVO> dataList1, List<AuthParamVO> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
     /**
@@ -660,15 +670,15 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdList(authIds);
         return Optional.ofNullable(authPathDOList).orElseGet(ArrayList::new)
                 .stream().collect(Collectors.toMap(AuthPathDO::getAuthId,
-                    data -> {
-                        List<AuthPathVO> dataList = new ArrayList<>();
-                        AuthPathVO authPathVO = AppAuthTransfer.INSTANCE.mapToVO(data);
-                        dataList.add(authPathVO);
-                        return dataList;
-                    }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {
-                        dataList1.addAll(dataList2);
-                        return dataList1;
-                    }));
+                        data -> {
+                            List<AuthPathVO> dataList = new ArrayList<>();
+                            AuthPathVO authPathVO = AppAuthTransfer.INSTANCE.mapToVO(data);
+                            dataList.add(authPathVO);
+                            return dataList;
+                        }, (List<AuthPathVO> dataList1, List<AuthPathVO> dataList2) -> {
+                            dataList1.addAll(dataList2);
+                            return dataList1;
+                        }));
     }
 
 }

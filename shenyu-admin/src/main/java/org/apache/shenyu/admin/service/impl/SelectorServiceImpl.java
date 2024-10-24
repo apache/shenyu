@@ -70,6 +70,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -165,6 +166,7 @@ public class SelectorServiceImpl implements SelectorService {
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         if (StringUtils.isEmpty(selectorDTO.getId())) {
+            LOG.info("register default selector :{}", GsonUtils.getInstance().toJson(selectorDTO));
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         }
@@ -429,6 +431,11 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorData> listAll() {
         return this.buildSelectorDataList(selectorMapper.selectAll());
+    }
+
+    @Override
+    public List<SelectorData> listAllByNamespaceId(final String namespaceId) {
+        return this.buildSelectorDataList(selectorMapper.selectAllByNamespaceId(namespaceId));
     }
 
     @Override
