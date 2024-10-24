@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.nacos.handler.NacosMockConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,9 @@ public final class NacosSyncDataServiceTest {
     @BeforeEach
     public void setup() {
         ConfigService configService = new NacosMockConfigService();
+        ShenyuConfig shenyuConfig = new ShenyuConfig();
         nacosSyncDataService = new NacosSyncDataService(configService, null,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), shenyuConfig);
     }
 
     @Test

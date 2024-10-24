@@ -187,6 +187,12 @@
               <include refid="Base_Column_List"/>
          FROM selector
     </select>
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
 
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true

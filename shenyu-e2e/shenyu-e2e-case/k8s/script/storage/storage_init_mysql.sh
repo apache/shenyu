@@ -25,3 +25,5 @@ wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
     https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
+
+echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/mysql/schema/schema.sql
