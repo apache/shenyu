@@ -1,0 +1,106 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '3.9'
+
+services:
+  shenyu-opengauss:
+    image: enmotech/opengauss:5.0.0
+    container_name: shenyu-opengauss
+    environment:
+      - GS_PASSWORD=ShenYuE2E@123
+      - GS_DB=shenyu
+    ports:
+      - "30432:5432"
+    volumes:
+      - /tmp/shenyu-e2e/opengauss/schema/create-table.sql:/docker-entrypoint-initdb.d
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: [ "CMD-SHELL", "gsql -U gaussdb -h127.0.0.1 -p5432 -dshenyu -WShenYuE2E@123 -c \"SELECT 1\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    networks:
+      - shenyu
+
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    command: [ "-Xmx768m", "-Xms768m" ]
+    ports:
+      - "31095:9095"
+    environment:
+      - TZ=Asia/Beijing
+      - SPRING_PROFILES_ACTIVE=mysql
+      - shenyu.database.dialect=mysql
+      - shenyu.database.init_enable=true
+      - spring.datasource.username=gaussdb
+      - spring.datasource.password=ShenYuE2E@123
+      - spring.datasource.url=jdbc:opengauss://shenyu-opengauss:5432/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      - shenyu.sync.websocket.enabled=true
+      - shenyu.sync.websocket.messageMaxSize=10240
+      - shenyu.sync.websocket.allowOrigins=ws://localhost:9095;ws://localhost:9195;
+    volumes:
+      - /tmp/shenyu-e2e/opengauss/driver:/opt/shenyu-admin/ext-lib
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: always
+    depends_on:
+      shenyu-opengauss:
+        condition: service_healthy
+    networks:
+      - shenyu
+
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    ports:
+      - "31195:9195"
+    environment:
+      - TZ=Asia/Beijing
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.sync.websocket.allowOrigin=ws://localhost:9195
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: always
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    networks:
+      - shenyu
+
+networks:
+  shenyu:
+    name: shenyu
+    driver: bridge
+    external: true
