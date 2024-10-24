@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
@@ -83,11 +84,15 @@ public class WebsocketSyncDataService implements SyncDataService {
      * Instantiates a new Websocket sync cache.
      *
      * @param websocketConfig the websocket config
+     * @param shenyuConfig the shenyu config
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers the meta data subscribers
      * @param authDataSubscribers the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxy selector data subscribers
+     * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
      */
     public WebsocketSyncDataService(final WebsocketConfig websocketConfig,
+                                    final ShenyuConfig shenyuConfig,
                                     final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers,
                                     final List<AuthDataSubscriber> authDataSubscribers,
@@ -101,7 +106,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.authDataSubscribers = authDataSubscribers;
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
-        this.namespaceId = websocketConfig.getNamespaceId();
+        this.namespaceId = shenyuConfig.getNamespace();
         LOG.info("start init connecting...");
         List<String> urls = websocketConfig.getUrls();
         for (String url : urls) {

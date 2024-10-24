@@ -30,6 +30,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,10 +101,12 @@ public class WebsocketCollector {
     
     private static String getNamespaceId(final Session session) {
         if (!session.isOpen()) {
+            LOG.warn("websocket session is closed, can not get namespaceId");
             return StringUtils.EMPTY;
         }
         Map<String, Object> userProperties = session.getUserProperties();
         if (MapUtils.isEmpty(userProperties)) {
+            LOG.warn("websocket session userProperties is empty, can not get namespaceId");
             return StringUtils.EMPTY;
         }
         
@@ -227,23 +230,21 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(message)) {
             return;
         }
-        
-        String sendNamespaceId = namespaceId;
-        if (StringUtils.isBlank(sendNamespaceId)) {
-            sendNamespaceId = Constants.SYS_DEFAULT_NAMESPACE_ID;
+        if (StringUtils.isBlank(namespaceId)) {
+            throw new ShenyuException("namespaceId can not be null");
         }
-        LOG.info("websocket send message to namespaceId: {}, message: {}", sendNamespaceId, message);
+        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, message);
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
                 if (session.isOpen()) {
                     sendMessageBySession(session, message);
                 } else {
-                    NAMESPACE_SESSION_MAP.getOrDefault(sendNamespaceId, Sets.newConcurrentHashSet()).remove(session);
+                    NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
                 }
             }
         } else {
-            NAMESPACE_SESSION_MAP.getOrDefault(sendNamespaceId, Sets.newConcurrentHashSet())
+            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet())
                     .forEach(session -> sendMessageBySession(session, message));
         }
         
