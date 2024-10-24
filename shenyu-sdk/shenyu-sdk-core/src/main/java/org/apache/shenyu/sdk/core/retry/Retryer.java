@@ -97,6 +97,7 @@ public interface Retryer extends Cloneable {
             this.attempt = 1;
         }
 
+        @Override
         public void continueOrPropagate(final RetryableException e) {
             if (attempt++ >= maxAttempts) {
                 throw e;
