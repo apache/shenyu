@@ -184,11 +184,11 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 }
                 String currentPath = data.getPath();
                 String currentData = new String(data.getData(), StandardCharsets.UTF_8);
-                LOGGER.info("shenyu find resultData ={}", currentData);
+                LOGGER.info("zookeeper registry watch find resultData ={}", currentData);
                 Stat stat = data.getStat();
                 boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                 if (!isEphemeral) {
-                    LOGGER.info("shenyu Ignore non-ephemeral node changes path {}", currentPath);
+                    LOGGER.info("zookeeper registry watch Ignore non-ephemeral node changes path {}", currentPath);
                     return;
                 }
                 switch (type) {
