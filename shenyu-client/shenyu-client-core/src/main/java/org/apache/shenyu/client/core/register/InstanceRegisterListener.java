@@ -20,7 +20,6 @@ package org.apache.shenyu.client.core.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
@@ -90,8 +89,8 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
             discoveryService.persistInstance(instance);
             LOGGER.info("shenyu register into ShenyuDiscoveryService {} success", discoveryConfig.getRegisterType());
         } catch (Exception e) {
-            LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getType(), e);
-            throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getType()));
+            LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getRegisterType(), e);
+            throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getRegisterType()));
         }
     }
 
