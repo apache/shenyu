@@ -80,7 +80,7 @@ public final class ConfigControllerTest {
         final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
         final NamespaceVO namespaceVO = new NamespaceVO();
         doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH, SYS_DEFAULT_NAMESPACE_ID);
-        doReturn(namespaceVO).when(namespaceService).findById(SYS_DEFAULT_NAMESPACE_ID);
+        doReturn(namespaceVO).when(namespaceService).findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(get("/configs/fetch")
                         .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})

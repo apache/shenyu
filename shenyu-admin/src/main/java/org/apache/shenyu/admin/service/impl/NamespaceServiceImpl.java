@@ -92,8 +92,13 @@ public class NamespaceServiceImpl implements NamespaceService {
     }
 
     @Override
-    public NamespaceVO findById(final String namespaceId) {
-        return NamespaceTransfer.INSTANCE.mapToVo(namespaceMapper.selectById(namespaceId));
+    public NamespaceVO findById(final String id) {
+        return NamespaceTransfer.INSTANCE.mapToVo(namespaceMapper.selectById(id));
+    }
+
+    @Override
+    public NamespaceVO findByNamespaceId(String namespaceId) {
+        return NamespaceTransfer.INSTANCE.mapToVo(namespaceMapper.selectByNamespaceId(namespaceId));
     }
 
     @Override
