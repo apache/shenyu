@@ -117,7 +117,7 @@ public class ShenyuClientHttpRegistryController {
         return ShenyuResultMessage.SUCCESS;
     }
 
-    private void checkClientNamespaceExist(final String namespaceId) {
+    public void checkClientNamespaceExist(final String namespaceId) {
         NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
         if (Objects.isNull(namespaceVO)) {
             throw new IllegalArgumentException("namespaceId is not exist");
