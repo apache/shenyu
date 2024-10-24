@@ -108,7 +108,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public boolean serviceExists(String key) {
+    public boolean serviceExists(final String key) {
         try {
             List<Instance> instances = namingService.selectInstances(key, groupName, true);
             return !instances.isEmpty();
@@ -119,7 +119,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public void watchInstances(String key, ChangedEventListener listener) {
+    public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
             List<Instance> initialInstances = namingService.selectInstances(key, groupName, true);
             instanceListMap.put(key, initialInstances);
@@ -148,7 +148,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public void unWatchInstances(String key) {
+    public void unWatchInstances(final String key) {
         try {
             EventListener nacosListener = listenerMap.get(key);
             if (Objects.nonNull(nacosListener)) {

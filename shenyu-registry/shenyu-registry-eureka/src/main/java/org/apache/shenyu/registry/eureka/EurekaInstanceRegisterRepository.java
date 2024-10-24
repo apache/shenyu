@@ -132,7 +132,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public boolean serviceExists(String key) {
+    public boolean serviceExists(final String key) {
         try {
             List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             return !instances.isEmpty();
@@ -142,7 +142,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public void watchInstances(String key, ChangedEventListener listener) {
+    public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
             List<InstanceInfo> initialInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
             instanceListMap.put(key, initialInstances);
@@ -169,7 +169,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public void unWatchInstances(String key) {
+    public void unWatchInstances(final String key) {
         try {
             ScheduledFuture<?> scheduledFuture = listenerThreadsMap.get(key);
             if (Objects.nonNull(scheduledFuture)) {

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.registry.zookeeper;
 
-import org.apache.commons.collections4.MapUtils;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
@@ -121,16 +121,16 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public List<InstanceEntity> selectInstances(final String selectKey) {
         try {
-            final String watchKey = StringUtils.isNotBlank(watchPath) ?
-                    InstancePathConstants.buildRealNode(watchPath, selectKey) : InstancePathConstants.buildInstanceParentPath(selectKey);
+            final String watchKey = StringUtils.isNotBlank(watchPath)
+                    ? InstancePathConstants.buildRealNode(watchPath, selectKey) : InstancePathConstants.buildInstanceParentPath(selectKey);
             final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
                 String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
                 InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
                 instanceEntity.setUri(getURI(instanceRegisterJsonStr, instanceEntity.getPort(), instanceEntity.getHost()));
                 if (instanceEntity.getUri() == null) {
-                    final HashMap hashMap = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, HashMap.class);
-                    final String address = MapUtils.getString(hashMap, "address", null);
-                    final Integer port = MapUtils.getInteger(hashMap, "port", null);
+                    final JsonObject hashMap = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, JsonObject.class);
+                    final String address = hashMap.get("address").getAsString();
+                    final Integer port = hashMap.get("port").getAsInt();
                     instanceEntity.setUri(getURI(instanceRegisterJsonStr, port, address));
                 }
                 return instanceEntity;
@@ -167,7 +167,16 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     }
 
     @Override
-    public void watchInstances(String key, ChangedEventListener listener) {
+    public boolean serviceExists(final String key) {
+        try {
+            return null != client.get(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
+    public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
             CuratorCache treeCache = client.addCache(key, (type, oldData, data) -> {
                 if (!Objects.nonNull(data) || !Objects.nonNull(data.getData())) {
@@ -209,15 +218,6 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     public void unWatchInstances(final String key) {
         if (cacheMap.containsKey(key)) {
             cacheMap.remove(key).close();
-        }
-    }
-
-    @Override
-    public boolean serviceExists(String key) {
-        try {
-            return null != client.get(key);
-        } catch (Exception e) {
-            throw new ShenyuException(e);
         }
     }
 

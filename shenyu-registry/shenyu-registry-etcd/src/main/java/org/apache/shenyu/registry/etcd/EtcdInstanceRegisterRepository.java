@@ -114,7 +114,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public boolean serviceExists(String key) {
+    public boolean serviceExists(final String key) {
         try {
             return !selectInstances(key).isEmpty();
         } catch (Exception e) {
@@ -123,7 +123,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public void watchInstances(String watchKey, ChangedEventListener listener) {
+    public void watchInstances(final String watchKey, final ChangedEventListener listener) {
         try {
             Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
             serverNodes.forEach((k, v) -> listener.onEvent(k, v, ChangedEventListener.Event.ADDED));
@@ -157,7 +157,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public void unWatchInstances(String key) {
+    public void unWatchInstances(final String key) {
         if (watchCache.containsKey(key)) {
             watchCache.remove(key).close();
             LOGGER.info("etcd Unwatched etcd key: {}", key);
