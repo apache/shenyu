@@ -42,7 +42,7 @@ import org.springframework.core.env.Environment;
 public class ShenyuSpringWebSocketDiscoveryConfiguration {
 
     @Resource
-    Environment environment;
+    private Environment environment;
 
     /**
      * clientDiscoveryConfigRefreshedEventListener.

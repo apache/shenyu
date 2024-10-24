@@ -43,7 +43,7 @@ import java.util.Optional;
 public class ShenyuGrpcDiscoveryConfiguration {
 
     @Resource
-    Environment environment;
+    private Environment environment;
 
     /**
      * InstanceRegisterListener.
