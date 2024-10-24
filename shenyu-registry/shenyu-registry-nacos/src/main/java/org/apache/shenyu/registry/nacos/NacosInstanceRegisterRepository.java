@@ -55,11 +55,11 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosInstanceRegisterRepository.class);
 
+    private static final String NAMESPACE = "nacosNameSpace";
+
     private final ConcurrentMap<String, EventListener> listenerMap = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<String, List<Instance>> instanceListMap = new ConcurrentHashMap<>();
-
-    private static final String NAMESPACE = "nacosNameSpace";
 
     private NamingService namingService;
 
