@@ -39,7 +39,7 @@ public class K8sScaler {
 
     private final DeploymentProperties deploymentProperties;
 
-        public K8sScaler(final ApiClient apiClient,
+    public K8sScaler(final ApiClient apiClient,
                      final DeploymentProperties deploymentProperties) {
         this.appsV1Api = new AppsV1Api(apiClient);
         this.deploymentProperties = deploymentProperties;
