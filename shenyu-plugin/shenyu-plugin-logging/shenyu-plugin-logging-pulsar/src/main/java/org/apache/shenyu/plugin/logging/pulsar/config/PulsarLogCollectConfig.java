@@ -150,6 +150,7 @@ public class PulsarLogCollectConfig {
          *
          * @return sample rate
          */
+        @Override
         public String getSampleRate() {
             return sampleRate;
         }
@@ -159,6 +160,7 @@ public class PulsarLogCollectConfig {
          *
          * @param sampleRate sample rate
          */
+        @Override
         public void setSampleRate(final String sampleRate) {
             this.sampleRate = sampleRate;
         }
@@ -168,6 +170,7 @@ public class PulsarLogCollectConfig {
          *
          * @return mq topic
          */
+        @Override
         public String getTopic() {
             return topic;
         }
@@ -177,6 +180,7 @@ public class PulsarLogCollectConfig {
          *
          * @param topic mq topic
          */
+        @Override
         public void setTopic(final String topic) {
             this.topic = topic;
         }
