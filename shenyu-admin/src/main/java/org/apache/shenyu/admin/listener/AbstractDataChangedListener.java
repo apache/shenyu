@@ -229,6 +229,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
+    @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
@@ -253,6 +254,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
+    @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
