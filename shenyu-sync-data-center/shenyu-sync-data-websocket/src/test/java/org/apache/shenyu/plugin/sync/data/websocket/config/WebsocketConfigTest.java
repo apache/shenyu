@@ -44,14 +44,12 @@ public class WebsocketConfigTest {
         websocketConfig = new WebsocketConfig();
         websocketConfig.setUrls(URLS);
         websocketConfig.setAllowOrigin(ALLOW_ORIGIN);
-        websocketConfig.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
     public void testGetterSetter() {
         assertEquals(URLS, websocketConfig.getUrls());
         assertEquals(ALLOW_ORIGIN, websocketConfig.getAllowOrigin());
-        assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, websocketConfig.getNamespaceId());
     }
 
     @Test
@@ -59,7 +57,6 @@ public class WebsocketConfigTest {
         WebsocketConfig that = new WebsocketConfig();
         that.setUrls(URLS);
         that.setAllowOrigin(ALLOW_ORIGIN);
-        that.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
@@ -68,7 +65,7 @@ public class WebsocketConfigTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(), websocketConfig.getNamespaceId()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin()), websocketConfig.hashCode());
     }
 
     @Test
