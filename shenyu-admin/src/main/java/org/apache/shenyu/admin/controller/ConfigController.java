@@ -68,7 +68,7 @@ public class ConfigController {
         if (StringUtils.isEmpty(namespaceId)) {
             throw new ShenyuAdminException("namespaceId is null");
         }
-        NamespaceVO existNamespace = namespaceService.findById(namespaceId);
+        NamespaceVO existNamespace = namespaceService.findByNamespaceId(namespaceId);
         if (StringUtils.isNotEmpty(namespaceId) && ObjectUtils.isEmpty(existNamespace)) {
             throw new ShenyuAdminException("namespace is not exist");
         }
