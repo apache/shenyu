@@ -72,6 +72,7 @@ public class PolarisSyncDataService extends AbstractNodeDataSyncService implemen
         startWatch();
     }
 
+    @Override
     protected String getServiceConfig(final String key, final Consumer<String> updateHandler, final Consumer<String> deleteHandler) {
         if (watchCache.containsKey(key)) {
             return null;
