@@ -47,7 +47,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -80,7 +79,7 @@ public final class AlertReceiverServiceTest {
     @Test
     public void testDeleteReceiver() {
         given(alertReceiverMapper.deleteByIds(any())).willReturn(1);
-        alertReceiverService.deleteReceiverByNamespaceId(Lists.newArrayList("1"), SYS_DEFAULT_NAMESPACE_ID);
+        alertReceiverService.deleteReceiver(Lists.newArrayList("1"));
     }
 
     @Test
@@ -116,8 +115,8 @@ public final class AlertReceiverServiceTest {
     @Test
     public void testDetail() {
         AlertReceiverDO receiverDO = buildAlertReceiverDO("123");
-        given(this.alertReceiverMapper.selectByPrimaryKey(anyString(), eq(SYS_DEFAULT_NAMESPACE_ID))).willReturn(receiverDO);
-        AlertReceiverDTO receiverDTO = alertReceiverService.detail("123", SYS_DEFAULT_NAMESPACE_ID);
+        given(this.alertReceiverMapper.selectByPrimaryKey(anyString())).willReturn(receiverDO);
+        AlertReceiverDTO receiverDTO = alertReceiverService.detail("123");
         assertNotNull(receiverDTO);
         assertEquals(receiverDTO.getId(), receiverDO.getId());
     }

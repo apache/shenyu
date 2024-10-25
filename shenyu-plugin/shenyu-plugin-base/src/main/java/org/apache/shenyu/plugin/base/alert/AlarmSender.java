@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.alert;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -60,7 +61,7 @@ public class AlarmSender {
      * @param alarmContent alarm content
      */
     public static void alarm(final AlarmContent alarmContent) {
-        if (alarmContent.getNamespaceId() == null) {
+        if (StringUtils.isNotEmpty(alarmContent.getNamespaceId())) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             namespaceId = shenyuConfig.getNamespace();
             alarmContent.setNamespaceId(namespaceId);

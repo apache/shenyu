@@ -124,9 +124,6 @@
         <include refid="Base_Column_List"/>
         FROM alert_receiver
         WHERE id = #{id, jdbcType=VARCHAR}
-        <if test="namespaceId != null">
-            AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-        </if>
     </select>
     <select id="existed" resultType="java.lang.Boolean">
         select true from alert_receiver where id = #{id} limit 1

@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
@@ -39,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 /**
  * Alert Receiver Controller.
@@ -76,29 +79,24 @@ public class AlertReceiverController {
     /**
      * delete alert receiver.
      *
-     * @param batchNamespaceCommonDTO batchNamespaceCommonDTO.
+     * @param ids primary key.
      * @return result
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteReceiver(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        alertReceiverService.deleteReceiverByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
+    public ShenyuAdminResult deleteReceiver(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
+        alertReceiverService.deleteReceiver(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
-    
+
     /**
      * delete alert receiver.
      *
      * @param id alertReceiver ID
-     * @param namespaceId namespaceId.
      * @return result
      */
-    @GetMapping("/{id}/{namespaceId}")
-    public ShenyuAdminResult getReceiverDetail(@PathVariable("id") final String id,
-                                               @PathVariable("namespaceId") @Valid
-                                               @Existed(provider = NamespaceMapper.class,
-                                               message = "namespaceId is not existed")
-        final String namespaceId) {
-        AlertReceiverDTO receiverDTO = alertReceiverService.detail(id, namespaceId);
+    @GetMapping("/{id}")
+    public ShenyuAdminResult getReceiverDetail(@PathVariable("id") final String id) {
+        AlertReceiverDTO receiverDTO = alertReceiverService.detail(id);
         return ShenyuAdminResult.success(receiverDTO);
     }
     

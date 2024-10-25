@@ -68,7 +68,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     }
 
     @Override
-    public void deleteReceiverByNamespaceId(final List<String> ids, final String namespaceId) {
+    public void deleteReceiver(final List<String> ids) {
         alertDispatchService.clearCache();
         alertReceiverMapper.deleteByIds(ids);
     }
@@ -96,8 +96,8 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     }
     
     @Override
-    public AlertReceiverDTO detail(final String id, final String namespaceId) {
-        AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id, namespaceId);
+    public AlertReceiverDTO detail(final String id) {
+        AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id);
         if (receiverDO != null) {
             return AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiverDO);
         } else {
