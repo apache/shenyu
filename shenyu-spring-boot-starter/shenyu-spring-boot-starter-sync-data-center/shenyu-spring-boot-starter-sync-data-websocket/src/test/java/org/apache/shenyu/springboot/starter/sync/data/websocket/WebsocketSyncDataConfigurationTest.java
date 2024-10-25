@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.websocket;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = {
+                ShenyuConfig.class,
                 WebsocketSyncDataConfiguration.class
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
