@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.common.constant.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
