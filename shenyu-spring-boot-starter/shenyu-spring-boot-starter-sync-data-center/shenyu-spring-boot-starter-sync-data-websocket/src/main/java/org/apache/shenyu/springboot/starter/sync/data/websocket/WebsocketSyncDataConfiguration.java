@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.sync.data.websocket;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -51,6 +52,7 @@ public class WebsocketSyncDataConfiguration {
      * Websocket sync data service.
      *
      * @param websocketConfig              the websocket config
+     * @param shenyuConfig                 the shenyu config
      * @param pluginSubscriber             the plugin subscriber
      * @param metaSubscribers              the meta subscribers
      * @param authSubscribers              the auth subscribers
@@ -59,12 +61,16 @@ public class WebsocketSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig,
+                                                    final ShenyuConfig shenyuConfig,
+                                                    final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+                                                    final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                     final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
-                                                    final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers) {
+                                                    final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers
+                                                    ) {
         LOGGER.info("you use websocket sync shenyu data.......");
-        return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
+        return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), shenyuConfig, pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList));
     }
