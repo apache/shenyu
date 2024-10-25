@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
 import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
 import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.apache.shenyu.admin.model.vo.ScalePolicyVO;
+import org.apache.shenyu.admin.scale.scaler.ScaleService;
+import org.apache.shenyu.admin.scale.scaler.cache.ScalePolicyCache;
 import org.apache.shenyu.admin.service.ScalePolicyService;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
@@ -35,8 +37,16 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
 
     private final ScalePolicyMapper scalePolicyMapper;
 
-    public ScalePolicyServiceImpl(final ScalePolicyMapper scalePolicyMapper) {
+    private final ScalePolicyCache scalePolicyCache;
+
+    private final ScaleService scaleService;
+
+    public ScalePolicyServiceImpl(final ScalePolicyMapper scalePolicyMapper,
+                                  final ScalePolicyCache scalePolicyCache,
+                                  final ScaleService scaleService) {
         this.scalePolicyMapper = scalePolicyMapper;
+        this.scalePolicyCache = scalePolicyCache;
+        this.scaleService = scaleService;
     }
 
     /**
@@ -69,6 +79,11 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
     @Override
     public int update(final ScalePolicyDTO scalePolicyDTO) {
         final ScalePolicyDO scalePolicy = ScalePolicyDO.buildScalePolicyDO(scalePolicyDTO);
-        return scalePolicyMapper.updateByPrimaryKey(scalePolicy);
+        int rows = scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
+        if (rows > 0) {
+            scalePolicyCache.updatePolicy(scalePolicy);
+            scaleService.executeScaling();
+        }
+        return rows;
     }
 }

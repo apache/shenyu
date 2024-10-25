@@ -416,6 +416,7 @@ The text of each license is the standard Apache 2.0 license.
     xercesImpl 2.11.0: https://xerces.apache.org/xerces2-j/, Apache 2.0
     xml-apis 1.4.01: http://xml.apache.org/commons/components/external/, Apache 2.0
     error_prone_annotations 2.18.0: https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotations, Apache 2.0
+    kubernetes.io 17.0.2: https://github.com/kubernetes/k8s.io/blob/main/LICENSE, Apache 2.0
 
 ========================================================================
 BSD licenses

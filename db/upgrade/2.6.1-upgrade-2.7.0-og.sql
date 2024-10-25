@@ -254,9 +254,9 @@ COMMENT ON COLUMN "public"."scale_policy"."end_time" IS 'end time';
 COMMENT ON COLUMN "public"."scale_policy"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_policy"."date_updated" IS 'update time';
 
-INSERT INTO "public"."scale_policy" VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('1', 3, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 INSERT INTO "public"."scale_policy" VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT INTO "public"."scale_policy" VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('3', 1, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 
 DROP TABLE IF EXISTS "public"."scale_rule";
 CREATE TABLE "public"."scale_rule"

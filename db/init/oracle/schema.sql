@@ -2933,9 +2933,9 @@ comment on column SCALE_POLICY.date_created
 comment on column SCALE_POLICY.date_updated
     is 'update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 3, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 1, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 
 create table scale_rule
 (

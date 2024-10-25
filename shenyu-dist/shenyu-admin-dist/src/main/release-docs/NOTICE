@@ -544,3 +544,10 @@ This product contains the Maven wrapper scripts from 'Maven Wrapper', that provi
     * license/LICENSE.mvn-wrapper.txt (Apache License 2.0)
   * HOMEPAGE:
     * https://github.com/takari/maven-wrapper
+
+This product contains components from ‘Kubernetes Java Client’, a Java library that provides utilities to interact with the Kubernetes API, which can be obtained at:
+
+  * LICENSE:
+    * license/LICENSE.k8sio.txt (Apache License 2.0)
+  * HOMEPAGE:
+    * https://github.com/kubernetes/k8s.io/blob/main/LICENSE

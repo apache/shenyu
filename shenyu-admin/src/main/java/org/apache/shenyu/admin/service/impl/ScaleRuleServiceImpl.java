@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ScaleRuleQuery;
 import org.apache.shenyu.admin.model.vo.ScaleRuleVO;
+import org.apache.shenyu.admin.scale.monitor.subject.cache.ScaleRuleCache;
 import org.apache.shenyu.admin.service.ScaleRuleService;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
@@ -41,8 +42,11 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
 
     private final ScaleRuleMapper scaleRuleMapper;
 
-    public ScaleRuleServiceImpl(final ScaleRuleMapper scaleRuleMapper) {
+    private final ScaleRuleCache scaleRuleCache;
+
+    public ScaleRuleServiceImpl(final ScaleRuleMapper scaleRuleMapper, final ScaleRuleCache scaleRuleCache) {
         this.scaleRuleMapper = scaleRuleMapper;
+        this.scaleRuleCache = scaleRuleCache;
     }
 
 
@@ -103,7 +107,11 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     @Override
     public int create(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO scaleRuleDO = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        return scaleRuleMapper.insertSelective(scaleRuleDO);
+        int rows = scaleRuleMapper.insertSelective(scaleRuleDO);
+        if (rows > 0) {
+            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+        }
+        return rows;
     }
 
     /**
@@ -115,7 +123,11 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        return scaleRuleMapper.updateByPrimaryKey(after);
+        int rows = scaleRuleMapper.updateByPrimaryKey(after);
+        if (rows > 0) {
+            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+        }
+        return rows;
     }
 
     /**
@@ -126,6 +138,10 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public int delete(final List<String> ids) {
-        return scaleRuleMapper.delete(ids);
+        int rows = scaleRuleMapper.delete(ids);
+        if (rows > 0) {
+            scaleRuleCache.removeRulesFromCache(ids);
+        }
+        return rows;
     }
 }
