@@ -105,7 +105,7 @@ public class ShenyuDictController {
      * @param shenyuDictDTO {@link ShenyuDictDTO}
      * @return {@link ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions(value = {"system:dict:add", "system:dict:edit"}, logical = Logical.OR)
     public ShenyuAdminResult createShenyuDict(@Valid @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, shenyuDictService.createOrUpdate(shenyuDictDTO));

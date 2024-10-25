@@ -232,8 +232,7 @@ public final class RuleControllerTest {
         given(this.ruleService.deleteByIdsAndNamespaceId(Collections.singletonList("111"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(GsonUtils.getGson().toJson(batchNamespaceCommonDTO))
-                )
+                        .content(GsonUtils.getGson().toJson(batchNamespaceCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
