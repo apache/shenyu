@@ -79,7 +79,6 @@ public class WebsocketCollector {
         
         String namespaceId = getNamespaceId(session);
         if (StringUtils.isBlank(namespaceId)) {
-            LOG.warn("websocket on client[{}] open failed, namespaceId is null", clientIp);
             throw new ShenyuException("websocket on client open failed, namespaceId is null");
         }
         LOG.info("websocket on client[{}] open successful, namespaceId: {}", clientIp, namespaceId);
