@@ -70,8 +70,8 @@ public class WebsocketConfigTest {
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s, namespaceId='%s}";
-        String expected = String.format(toString, URLS, ALLOW_ORIGIN, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s}";
+        String expected = String.format(toString, URLS, ALLOW_ORIGIN);
         assertEquals(expected, websocketConfig.toString());
     }
 }
