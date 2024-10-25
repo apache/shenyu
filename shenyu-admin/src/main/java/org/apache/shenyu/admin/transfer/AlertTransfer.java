@@ -67,6 +67,7 @@ public enum AlertTransfer {
                     alertReceiverDO.setPhone(alertReceiverDTO.getPhone());
                     alertReceiverDO.setMatchAll(alertReceiverDTO.isMatchAll());
                     alertReceiverDO.setSlackWebHookUrl(alertReceiverDTO.getSlackWebHookUrl());
+                    alertReceiverDO.setNamespaceId(alertReceiverDTO.getNamespaceId());
                     alertReceiverDO.setDateCreated(alertReceiverDTO.getDateCreated());
                     alertReceiverDO.setDateUpdated(alertReceiverDTO.getDateUpdated());
                     return alertReceiverDO;

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
@@ -156,6 +157,12 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                         return true;
                     }
 
+                    if (StringUtils.isNotBlank(item.getNamespaceId())) {
+                        boolean namespaceIdMatch = Objects.equals(item.getNamespaceId(), alert.getNamespaceId());
+                        if (!namespaceIdMatch) {
+                            return false;
+                        }
+                    }
                     if (!CollectionUtils.isEmpty(item.getLevels())) {
                         boolean levelMatch = item.getLevels().stream().anyMatch(level -> level == alert.getLevel());
                         if (!levelMatch) {

@@ -2655,6 +2655,7 @@ CREATE TABLE "public"."alert_receiver"
     "match_all"            int4      NOT NULL,
     "labels"               varchar(255) COLLATE "pg_catalog"."default",
     "levels"               varchar(255) COLLATE "pg_catalog"."default",
+    "namespace_id"         varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -2664,6 +2665,7 @@ COMMENT ON COLUMN "public"."alert_receiver"."name" IS 'alarm receiver name';
 COMMENT ON COLUMN "public"."alert_receiver"."enable" IS 'enable or not';
 COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat';
 COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
+COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
@@ -2892,4 +2894,3 @@ COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disabl
 COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
 COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
-
