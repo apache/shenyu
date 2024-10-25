@@ -18,7 +18,10 @@
 package org.apache.shenyu.admin.controller;
 
 import jakarta.annotation.Resource;
+
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
@@ -30,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 /**
  * The type shenyu client controller.
  */
@@ -39,7 +44,9 @@ public class ShenyuClientHttpRegistryController {
 
     @Resource
     private ShenyuClientServerRegisterPublisher publisher;
-    
+
+    @Resource
+    private NamespaceService namespaceService;
 
     /**
      * Register metadata string.
@@ -50,6 +57,7 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping("/register-metadata")
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
+        checkClientNamespaceExist(metaDataRegisterDTO.getNamespaceId());
         publisher.publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
@@ -63,6 +71,7 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping("/register-uri")
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
+        checkClientNamespaceExist(uriRegisterDTO.getNamespaceId());
         publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
@@ -89,6 +98,7 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping("/register-discoveryConfig")
     @ResponseBody
     public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
+        checkClientNamespaceExist(discoveryConfigRegisterDTO.getNamespaceId());
         publisher.publish(discoveryConfigRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
@@ -102,7 +112,15 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping("/offline")
     @ResponseBody
     public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
+        checkClientNamespaceExist(offlineDTO.getNamespaceId());
         publisher.publish(offlineDTO);
         return ShenyuResultMessage.SUCCESS;
+    }
+
+    public void checkClientNamespaceExist(final String namespaceId) {
+        NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
+        if (Objects.isNull(namespaceVO)) {
+            throw new IllegalArgumentException("namespaceId is not exist");
+        }
     }
 }
