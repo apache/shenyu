@@ -72,6 +72,9 @@ public class NacosSyncConfiguration {
             if (StringUtils.isNotBlank(nacosProp.getPassword())) {
                 properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
             }
+            if (StringUtils.isNotBlank(nacosProp.getContextPath())) {
+                properties.put(PropertyKeyConst.CONTEXT_PATH, nacosProp.getContextPath());
+            }
         }
         return NacosFactory.createConfigService(properties);
     }

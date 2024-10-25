@@ -29,6 +29,8 @@ public class NacosConfig {
 
     private String password;
 
+    private String contextPath;
+
     private NacosACMConfig acm;
 
     /**
@@ -104,6 +106,24 @@ public class NacosConfig {
     }
 
     /**
+     * Gets the value of contextPath.
+     *
+     * @return the value of contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * Sets the contextPath.
+     *
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    /**
      * get acm.
      *
      * @return acm
@@ -134,12 +154,13 @@ public class NacosConfig {
                 && Objects.equals(namespace, that.namespace)
                 && Objects.equals(username, that.username)
                 && Objects.equals(password, that.password)
+                && Objects.equals(contextPath, that.contextPath)
                 && Objects.equals(acm, that.acm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url, namespace, username, password, acm);
+        return Objects.hash(url, namespace, username, password, contextPath, acm);
     }
 
     @Override
@@ -156,6 +177,9 @@ public class NacosConfig {
                 + '\''
                 + ", password='"
                 + password
+                + '\''
+                + ", contextPath='"
+                + contextPath
                 + '\''
                 + ", acm="
                 + acm

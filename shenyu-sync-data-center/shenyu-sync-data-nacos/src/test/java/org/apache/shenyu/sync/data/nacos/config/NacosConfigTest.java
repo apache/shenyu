@@ -38,6 +38,8 @@ public final class NacosConfigTest {
 
     private static final String USERNAME = "username";
 
+    private static final String CONTEXT_PATH = "nacos";
+
     private static final NacosACMConfig ACM = new NacosACMConfig();
 
     private NacosConfig nacosConfig;
@@ -51,12 +53,14 @@ public final class NacosConfigTest {
         nacosConfig.setNamespace(NAMESPACE);
         nacosConfig.setPassword(PASSWORD);
         nacosConfig.setUsername(USERNAME);
+        nacosConfig.setContextPath(CONTEXT_PATH);
         nacosConfig.setAcm(ACM);
         that = new NacosConfig();
         that.setUrl(URL);
         that.setNamespace(NAMESPACE);
         that.setPassword(PASSWORD);
         that.setUsername(USERNAME);
+        that.setContextPath(CONTEXT_PATH);
         that.setAcm(ACM);
     }
 
@@ -66,6 +70,7 @@ public final class NacosConfigTest {
         assertEquals(NAMESPACE, nacosConfig.getNamespace());
         assertEquals(PASSWORD, nacosConfig.getPassword());
         assertEquals(USERNAME, nacosConfig.getUsername());
+        assertEquals(CONTEXT_PATH, nacosConfig.getContextPath());
         assertEquals(ACM, nacosConfig.getAcm());
     }
 
@@ -80,7 +85,7 @@ public final class NacosConfigTest {
     @Test
     public void testHashCode() {
         assertEquals(Objects.hash(nacosConfig.getUrl(), nacosConfig.getNamespace(),
-                        nacosConfig.getUsername(), nacosConfig.getPassword(), nacosConfig.getAcm()),
+                        nacosConfig.getUsername(), nacosConfig.getPassword(), nacosConfig.getContextPath(), nacosConfig.getAcm()),
                 nacosConfig.hashCode());
     }
 }
