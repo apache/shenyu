@@ -79,7 +79,8 @@ public class WebsocketCollector {
         
         String namespaceId = getNamespaceId(session);
         if (StringUtils.isBlank(namespaceId)) {
-            namespaceId = Constants.SYS_DEFAULT_NAMESPACE_ID;
+            LOG.warn("websocket on client[{}] open failed, namespaceId is null", clientIp);
+            throw new ShenyuException("websocket on client open failed, namespaceId is null");
         }
         LOG.info("websocket on client[{}] open successful, namespaceId: {}", clientIp, namespaceId);
         NAMESPACE_SESSION_MAP.computeIfAbsent(namespaceId, k -> Sets.newConcurrentHashSet()).add(session);
@@ -102,17 +103,17 @@ public class WebsocketCollector {
     private static String getNamespaceId(final Session session) {
         if (!session.isOpen()) {
             LOG.warn("websocket session is closed, can not get namespaceId");
-            return StringUtils.EMPTY;
+            return null;
         }
         Map<String, Object> userProperties = session.getUserProperties();
         if (MapUtils.isEmpty(userProperties)) {
             LOG.warn("websocket session userProperties is empty, can not get namespaceId");
-            return StringUtils.EMPTY;
+            return null;
         }
         
         return Optional.ofNullable(userProperties.get(Constants.SHENYU_NAMESPACE_ID))
                 .map(Object::toString)
-                .orElse(StringUtils.EMPTY);
+                .orElse(null);
     }
     
     /**
