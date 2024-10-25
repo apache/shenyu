@@ -39,6 +39,7 @@
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
         FROM namespace
+
         WHERE namespace_id = #{namespaceId} limit 1
     </select>
 
@@ -46,7 +47,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM namespace
-        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
