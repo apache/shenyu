@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.websocket;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
     public void modifyHandshake(final ServerEndpointConfig sec, final HandshakeRequest request, final HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
+        sec.getUserProperties().put(Constants.SHENYU_NAMESPACE_ID, httpSession.getAttribute(Constants.SHENYU_NAMESPACE_ID));
         super.modifyHandshake(sec, request, response);
     }
 
