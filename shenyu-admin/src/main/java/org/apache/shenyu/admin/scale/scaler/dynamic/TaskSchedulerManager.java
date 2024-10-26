@@ -37,7 +37,7 @@ public class TaskSchedulerManager {
 
     public TaskSchedulerManager(final ScaleProperties scaleProperties) {
         this.scheduler = new ThreadPoolTaskScheduler();
-        this.scheduler.setPoolSize(scaleProperties.getPoolSize());
+        this.scheduler.setPoolSize(scaleProperties.getPoolSize() > 0 ? scaleProperties.getPoolSize() : 1);
         this.scheduler.setThreadNamePrefix(THREAD_NAME_PREFIX);
         this.scheduler.initialize();
     }
