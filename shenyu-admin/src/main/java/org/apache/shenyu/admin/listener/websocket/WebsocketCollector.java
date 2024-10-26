@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
@@ -25,9 +26,11 @@ import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,7 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +61,8 @@ public class WebsocketCollector {
     
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
     
+    private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
+    
     private static final String SESSION_KEY = "sessionKey";
     
     /**
@@ -66,9 +72,17 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
+        String clientIp = getClientIp(session);
         LOG.info("websocket on client[{}] open successful, maxTextMessageBufferSize: {}",
-                getClientIp(session), session.getMaxTextMessageBufferSize());
+                clientIp, session.getMaxTextMessageBufferSize());
         SESSION_SET.add(session);
+        
+        String namespaceId = getNamespaceId(session);
+        if (StringUtils.isBlank(namespaceId)) {
+            throw new ShenyuException("websocket on client open failed, namespaceId is null");
+        }
+        LOG.info("websocket on client[{}] open successful, namespaceId: {}", clientIp, namespaceId);
+        NAMESPACE_SESSION_MAP.computeIfAbsent(namespaceId, k -> Sets.newConcurrentHashSet()).add(session);
     }
     
     private static String getClientIp(final Session session) {
@@ -83,6 +97,22 @@ public class WebsocketCollector {
         return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_IP_NAME))
                 .map(Object::toString)
                 .orElse(StringUtils.EMPTY);
+    }
+    
+    private static String getNamespaceId(final Session session) {
+        if (!session.isOpen()) {
+            LOG.warn("websocket session is closed, can not get namespaceId");
+            return null;
+        }
+        Map<String, Object> userProperties = session.getUserProperties();
+        if (MapUtils.isEmpty(userProperties)) {
+            LOG.warn("websocket session userProperties is empty, can not get namespaceId");
+            return null;
+        }
+        
+        return Optional.ofNullable(userProperties.get(Constants.SHENYU_NAMESPACE_ID))
+                .map(Object::toString)
+                .orElse(null);
     }
     
     /**
@@ -124,7 +154,7 @@ public class WebsocketCollector {
             if (isMaster) {
                 ThreadLocalUtils.put(SESSION_KEY, session);
             }
-
+            
             sendMessageBySession(session, JsonUtils.toJson(map));
             return;
         }
@@ -185,6 +215,37 @@ public class WebsocketCollector {
             }
         } else {
             SESSION_SET.forEach(session -> sendMessageBySession(session, message));
+        }
+        
+    }
+    
+    /**
+     * Send.
+     *
+     * @param namespaceId the namespaceId
+     * @param message the message
+     * @param type the type
+     */
+    public static void send(final String namespaceId, final String message, final DataEventTypeEnum type) {
+        if (StringUtils.isBlank(message)) {
+            return;
+        }
+        if (StringUtils.isBlank(namespaceId)) {
+            throw new ShenyuException("namespaceId can not be null");
+        }
+        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, message);
+        if (DataEventTypeEnum.MYSELF == type) {
+            Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
+            if (Objects.nonNull(session)) {
+                if (session.isOpen()) {
+                    sendMessageBySession(session, message);
+                } else {
+                    NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
+                }
+            }
+        } else {
+            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet())
+                    .forEach(session -> sendMessageBySession(session, message));
         }
         
     }

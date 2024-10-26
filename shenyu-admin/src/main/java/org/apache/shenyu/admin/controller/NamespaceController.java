@@ -118,7 +118,7 @@ public class NamespaceController {
     public ShenyuAdminResult detailPlugin(@PathVariable("id")
                                           @Existed(message = "namespaceId is not existed",
                                                   provider = NamespaceMapper.class) final String namespaceId) {
-        NamespaceVO namespaceVO = namespaceService.findById(namespaceId);
+        NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespaceVO);
     }
 }
