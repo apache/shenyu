@@ -82,11 +82,11 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        boolean isEventDeleted = !uriList.isEmpty() && EventType.DELETED.equals(uriList.get(0).getEventType());
         if (isEventDeleted) {
             addList.get(0).setStatus(false);
         }
-        boolean isEventHeartbeat = uriList.size() == 1 && EventType.HEARTBEAT.equals(uriList.get(0).getEventType());
+        boolean isEventHeartbeat = !uriList.isEmpty() && EventType.HEARTBEAT.equals(uriList.get(0).getEventType());
         if (isEventHeartbeat) {
             addList.get(0).setStatus(true);
         }
