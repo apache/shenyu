@@ -1376,8 +1376,8 @@ CREATE TABLE IF NOT EXISTS `scale_policy`
     `num`            int            COMMENT 'number of bootstrap',
     `begin_time`     datetime    COMMENT 'begin time',
     `end_time`       datetime  COMMENT 'end time',
-    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
-    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
 
@@ -1394,8 +1394,8 @@ CREATE TABLE IF NOT EXISTS `scale_rule`
     `status`         int         NOT NULL COMMENT 'status 1:enable 0:disable',
     `minimum`        varchar(128)   COMMENT 'minimum of metric',
     `maximum`        varchar(128)   COMMENT 'maximum of metric',
-    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
-    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
 
@@ -1406,7 +1406,7 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `num`            int            NOT NULL COMMENT 'number of bootstrap',
     `action`         int         NOT NULL COMMENT 'status 1:enable 0:disable',
     `msg`            text           COMMENT 'message',
-    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
-    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    `date_created`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
