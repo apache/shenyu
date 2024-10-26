@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * AbstractPathDataChangedListener.
@@ -111,9 +112,12 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            SelectorData firstData = changed.get(0);
-            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(firstData.getNamespaceId(), firstData.getPluginName());
-            deletePathRecursive(selectorParentPath);
+            Optional<SelectorData> selectorDataOptional = changed.stream().findFirst();
+            if (selectorDataOptional.isPresent()) {
+                SelectorData firstData = selectorDataOptional.get();
+                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(firstData.getNamespaceId(), firstData.getPluginName());
+                deletePathRecursive(selectorParentPath);
+            }
         }
         for (SelectorData data : changed) {
             String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getNamespaceId(), data.getPluginName(), data.getId());
@@ -153,9 +157,12 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            RuleData firstData = changed.get(0);
-            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(firstData.getNamespaceId(), firstData.getPluginName());
-            deletePathRecursive(selectorParentPath);
+            Optional<RuleData> ruleDataOptional = changed.stream().findFirst();
+            if (ruleDataOptional.isPresent()) {
+                RuleData firstData = ruleDataOptional.get();
+                String selectorParentPath = DefaultPathConstants.buildRuleParentPath(firstData.getNamespaceId(), firstData.getPluginName());
+                deletePathRecursive(selectorParentPath);
+            }
         }
         for (RuleData data : changed) {
             String ruleRealPath = DefaultPathConstants.buildRulePath(data.getNamespaceId(), data.getPluginName(), data.getSelectorId(), data.getId());
