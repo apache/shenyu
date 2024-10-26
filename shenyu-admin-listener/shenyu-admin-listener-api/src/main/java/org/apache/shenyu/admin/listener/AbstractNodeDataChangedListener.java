@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.DefaultNodeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -40,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * AbstractNodeDataChangedListener.
@@ -66,8 +69,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        AppAuthData appAuthData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("appAuthData is null"));
-        final String configKeyPrefix = appAuthData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, AppAuthData::getAppKey, AppAuthData.class);
         LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
@@ -77,8 +80,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        PluginData pluginData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("pluginData is null"));
-        final String configKeyPrefix = pluginData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, PluginData::getName, PluginData.class);
         LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
     }
@@ -88,8 +91,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        MetaData metaData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("metaData is null"));
-        final String configKeyPrefix = metaData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getMetaDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, MetaData::getId, MetaData.class);
         LOG.debug("[DataChangedListener] MetaDataChanged {}", changeData.getMetaDataId());
     }
@@ -180,8 +183,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        RuleData firstRuleData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("ruleData is null"));
-        final String configKeyPrefix = firstRuleData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType,
                 configKeyPrefix,
                 ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
@@ -269,9 +272,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        ProxySelectorData proxySelectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("proxySelectorData is null"));
-        // TODO fix namespace id
-        final String configKeyPrefix = proxySelectorData.getName() + DefaultNodeConstants.JOIN_POINT + changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, ProxySelectorData::getPluginName, ProxySelectorData::getName);
         LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
     }
@@ -281,8 +283,8 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        DiscoverySyncData discoverySyncData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("discoverySyncData is null"));
-        final String configKeyPrefix = discoverySyncData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, DiscoverySyncData::getPluginName, DiscoverySyncData::getSelectorName);
         LOG.debug("[DataChangedListener] DiscoveryUpstreamChanged {}", changeData.getDiscoveryDataId());
     }
