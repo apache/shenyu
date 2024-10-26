@@ -218,8 +218,8 @@ shenyu:
         memory_usage: "sum(container_memory_usage_bytes)"
         request_count: "sum(rate(http_requests_total[1m]))"
     deployment:
-      name: "shenyu-gateway"
-      namespace: "default"
+      name: "shenyu-bootstrap"
+      namespace: "shenyu"
 
 springdoc:
   api-docs:
