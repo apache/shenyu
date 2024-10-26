@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.collector.provider.MetricsProvider;
+import org.apache.shenyu.admin.scale.config.DeploymentProperties;
 import org.apache.shenyu.admin.scale.config.PrometheusProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +39,16 @@ public class PrometheusMetricsProvider implements MetricsProvider {
 
     private final PrometheusProperties prometheusProperties;
 
+    private final DeploymentProperties deploymentProperties;
+
     private final OkHttpClient httpClient;
 
     private final ObjectMapper objectMapper;
 
-    public PrometheusMetricsProvider(final PrometheusProperties prometheusProperties) {
+    public PrometheusMetricsProvider(final PrometheusProperties prometheusProperties,
+                                     final DeploymentProperties deploymentProperties) {
         this.prometheusProperties = prometheusProperties;
+        this.deploymentProperties = deploymentProperties;
         this.httpClient = new OkHttpClient();
         this.objectMapper = new ObjectMapper();
     }
@@ -51,12 +56,14 @@ public class PrometheusMetricsProvider implements MetricsProvider {
     @Override
     public MetricData getMetricData(final String metricName) {
 
-        String query = prometheusProperties.getQueries().get(metricName);
-        if (query == null) {
-            LOG.error("No query found for metric: {}", metricName);
+        String queryTemplate = prometheusProperties.getQueries().get(metricName);
+        if (queryTemplate == null) {
+            LOG.error("No query template found for metric: {}", metricName);
             return null;
         }
-        String queryUrl = String.format("%s/api/v1/query?query=%s", prometheusProperties.getUrl(), metricName);
+
+        String query = String.format(queryTemplate, deploymentProperties.getNamespace(), deploymentProperties.getName());
+        String queryUrl = String.format("%s/api/v1/query?query=%s", prometheusProperties.getUrl(), query);
 
         Request request = new Request.Builder()
                 .url(queryUrl)
