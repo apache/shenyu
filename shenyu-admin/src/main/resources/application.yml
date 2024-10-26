@@ -220,6 +220,9 @@ shenyu:
     deployment:
       name: "shenyu-bootstrap"
       namespace: "shenyu"
+      apiServer: "https://127.0.0.1:6443"
+      token: "token"
+      caCertPath: "/etc/kubernetes/pki/ca.crt"
 
 springdoc:
   api-docs:

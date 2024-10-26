@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.scale.scaler;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1Scale;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Objects;
 
 @Component
@@ -39,9 +39,9 @@ public class K8sScaler {
 
     private final DeploymentProperties deploymentProperties;
 
-    public K8sScaler(final ApiClient apiClient,
-                     final DeploymentProperties deploymentProperties) {
-        this.appsV1Api = new AppsV1Api(apiClient);
+    public K8sScaler(final K8sApiClientProvider k8sApiClientProvider,
+                     final DeploymentProperties deploymentProperties) throws IOException {
+        this.appsV1Api = new AppsV1Api(k8sApiClientProvider.createApiClient());
         this.deploymentProperties = deploymentProperties;
     }
 

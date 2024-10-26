@@ -28,6 +28,12 @@ public class DeploymentProperties {
 
     private String namespace;
 
+    private String apiServer;
+
+    private String token;
+
+    private String caCertPath;
+
     /**
      * getName.
      *
@@ -63,4 +69,59 @@ public class DeploymentProperties {
     public void setNamespace(final String namespace) {
         this.namespace = namespace;
     }
+
+    /**
+     * getApiServer.
+     *
+     * @return String
+     */
+    public String getApiServer() {
+        return apiServer;
+    }
+
+    /**
+     * setApiServer.
+     *
+     * @param apiServer apiServer
+     */
+    public void setApiServer(final String apiServer) {
+        this.apiServer = apiServer;
+    }
+
+    /**
+     * getToken.
+     *
+     * @return String
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * setToken.
+     *
+     * @param token token
+     */
+    public void setToken(final String token) {
+        this.token = token;
+    }
+
+    /**
+     * getCaCertPath.
+     *
+     * @return String
+     */
+    public String getCaCertPath() {
+        return caCertPath;
+    }
+
+    /**
+     * setCaCertPath.
+     *
+     * @param caCertPath caCertPath
+     */
+    public void setCaCertPath(final String caCertPath) {
+        this.caCertPath = caCertPath;
+    }
+
 }
