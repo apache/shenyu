@@ -201,6 +201,8 @@ ALTER TABLE `shenyu`.`discovery_upstream` ADD COLUMN `namespace_id` varchar(50) 
 
 ALTER TABLE `shenyu`.`proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `props`;
 
+ALTER TABLE `shenyu`.`alert_receiver` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `levels`;
+
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
@@ -226,6 +228,10 @@ SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
 UPDATE proxy_selector
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
+UPDATE alert_receiver
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
 
@@ -274,7 +280,3 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
-
-
-

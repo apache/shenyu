@@ -227,6 +227,9 @@ COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespaceId';
 ALTER TABLE "public"."proxy_selector" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
 COMMENT ON COLUMN "public"."proxy_selector"."namespace_id" IS 'namespaceId';
 
+ALTER TABLE "public"."alert_receiver" ADD COLUMN namespace_id VARCHAR(50) NOT NULL;
+COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespaceId';
+
 UPDATE "public"."selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 UPDATE "public"."rule" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
@@ -240,6 +243,8 @@ UPDATE "public"."discovery" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9e
 UPDATE "public"."discovery_upstream" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 UPDATE "public"."proxy_selector" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE "public"."alert_receiver" SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 -- ----------------------------
 -- Table structure for scale
@@ -310,4 +315,3 @@ COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disabl
 COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
 COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
-

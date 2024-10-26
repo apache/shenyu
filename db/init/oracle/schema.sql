@@ -2689,6 +2689,7 @@ create table alert_receiver
     match_all            NUMBER(10),
     labels               varchar(255),
     levels               varchar(255),
+    namespace_id         varchar(50)    not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -2716,6 +2717,9 @@ on column alert_receiver.labels
 comment
 on column alert_receiver.levels
   is 'alarm levels';
+comment
+on column lert_receiver.namespace_id
+  is 'namespace id';
 comment
 on column alert_receiver.date_created
   is 'create time';
@@ -2994,5 +2998,3 @@ comment on column SCALE_HISTORY.date_created
     is 'create time';
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
-
-

@@ -2253,6 +2253,7 @@ CREATE TABLE IF NOT EXISTS `alert_receiver`
     `match_all`            tinyint(4)     NOT NULL COMMENT 'match all or not',
     `labels`               varchar(255)   COMMENT 'labels',
     `levels`               varchar(255)   COMMENT 'levels',
+    `namespace_id`         varchar(50)    COMMENT 'namespace id',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
