@@ -181,7 +181,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("doRegister Failed to execute,wait to retry.");
+            throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();

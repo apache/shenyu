@@ -384,7 +384,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
             throw new ShenyuException(annotations + " is is missing.");
         }
         MetaData metaData = new MetaData();
-        metaData.builder()
+        MetaData.builder()
                 .appName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_APP_NAME))
                 .path(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH))
                 .rpcType(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_TYPE))
