@@ -109,7 +109,11 @@ public class CommonUpstreamUtils {
                 .protocol(protocol).upstreamUrl(buildUrl(host, port))
                 .weight(50).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
-                .status(!EventType.DELETED.equals(eventType) && Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .status(!EventType.DELETED.equals(eventType)
+                        && !EventType.OFFLINE.equals(eventType)
+                        && !EventType.IGNORED.equals(eventType)
+                        && Objects.nonNull(port)
+                        && StringUtils.isNotBlank(host))
                 .namespaceId(namespaceId)
                 .build();
     }
