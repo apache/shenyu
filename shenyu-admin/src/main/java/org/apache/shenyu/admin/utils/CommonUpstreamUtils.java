@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
+import org.apache.shenyu.register.common.enums.EventType;
 
 import java.util.Collections;
 import java.util.List;
@@ -100,14 +101,15 @@ public class CommonUpstreamUtils {
      * @param host     the host
      * @param port     the port
      * @param namespaceId the namespaceId
+     * @param eventType the eventType
      * @return the divide upstream
      */
-    public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port, final String namespaceId) {
+    public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port, final String namespaceId, final EventType eventType) {
         return DivideUpstream.builder().upstreamHost(LOCALHOST)
                 .protocol(protocol).upstreamUrl(buildUrl(host, port))
                 .weight(50).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
-                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .status(!EventType.DELETED.equals(eventType) && Objects.nonNull(port) && StringUtils.isNotBlank(host))
                 .namespaceId(namespaceId)
                 .build();
     }
