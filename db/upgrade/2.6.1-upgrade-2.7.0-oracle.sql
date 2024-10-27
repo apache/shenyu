@@ -249,6 +249,9 @@ COMMENT ON COLUMN discovery_upstream.namespace_id IS 'namespaceId';
 ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NOT NULL;
 COMMENT ON COLUMN proxy_selector.namespace_id IS 'namespaceId';
 
+ALTER TABLE alert_receiver ADD namespace_id VARCHAR2(50) NOT NULL;
+COMMENT ON COLUMN alert_receiver.namespace_id IS 'namespaceId';
+
 UPDATE selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 UPDATE rule SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
@@ -262,6 +265,8 @@ UPDATE discovery SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE
 UPDATE discovery_upstream SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 UPDATE proxy_selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
+
+UPDATE alert_receiver SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL;
 
 -- ----------------------------
 -- Table structure for scale
@@ -356,4 +361,3 @@ comment on column SCALE_HISTORY.date_created
     is 'create time';
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
-
