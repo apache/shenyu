@@ -60,7 +60,7 @@ shenyu:
   client:
     springCloud:
       props:
-        contextPath: /springcloud6
+        contextPath: /springcloud
         addPrefixed: false
 #        port: 8884
 
