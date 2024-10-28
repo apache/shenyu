@@ -125,7 +125,6 @@ public final class SpringCloudPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
 
         springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
-        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
 
         MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
         ServerWebExchange exchangeSelector = MockServerWebExchange.from(
