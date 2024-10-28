@@ -83,10 +83,12 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                                 }
                             }
                             if (CollectionUtils.isNotEmpty(register)) {
-                                service.registerURI(selectorName, register);
+                                // TODO need to optimize require namespaceId
+                                service.registerURI(selectorName, register, register.get(0).getNamespaceId());
                             }
                             if (CollectionUtils.isNotEmpty(offline)) {
-                                service.offline(selectorName, offline);
+                                // TODO need to optimize require namespaceId
+                                service.offline(selectorName, offline, offline.get(0).getNamespaceId());
                             }
                         });
                     });

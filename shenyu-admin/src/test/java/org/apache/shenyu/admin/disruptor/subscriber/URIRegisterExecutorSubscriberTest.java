@@ -71,7 +71,7 @@ public class URIRegisterExecutorSubscriberTest {
         ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
         when(shenyuClientRegisterService.get(any())).thenReturn(service);
         uriRegisterExecutorSubscriber.executor(list);
-        verify(service).registerURI(any(), any());
+        verify(service).registerURI(any(), any(), any());
     }
     
     @Test
