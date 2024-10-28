@@ -319,7 +319,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return {@link SelectorVO}
      */
     @Override
-    public SelectorVO findById(final String id, final String namespaceId) {
+    public SelectorVO findById(final String id) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
         SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
