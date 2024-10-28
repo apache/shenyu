@@ -120,7 +120,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return {@linkplain SelectorVO}
      */
-    SelectorVO findByIdAndNamespaceId(String id, String namespaceId);
+    SelectorVO findById(String id);
 
     /**
      * find selector by name and namespaceId.

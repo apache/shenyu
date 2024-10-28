@@ -199,7 +199,7 @@ public final class SelectorServiceTest {
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
         given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
-        SelectorVO selectorVO = this.selectorService.findByIdAndNamespaceId("123", any());
+        SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
 
