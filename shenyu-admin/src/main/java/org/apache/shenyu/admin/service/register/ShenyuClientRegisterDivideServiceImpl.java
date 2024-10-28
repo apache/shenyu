@@ -118,7 +118,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     public String offline(final String selectorName, final List<URIRegisterDTO> uriList, String namespaceId) {
         final SelectorService selectorService = getSelectorService();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        // todo:[To be refactored with namespace] Temporarily hardcode
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;

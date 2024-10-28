@@ -174,7 +174,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        // todo:[To be refactored with namespace] Temporarily hardcode
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute, wait to retry.");
@@ -186,7 +185,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
-            // todo:[To be refactored with namespace] Temporarily hardcode
             SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
             selectorData.setHandle(handler);
             // update db
