@@ -82,7 +82,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         }
         if (StringUtils.isBlank(pluginData.getConfig())) {
             // consider yml config, as eureka or nacos
-            this.readYmlBuildRepository();
+//            this.readYmlBuildRepository();
             return;
         }
         // get old pluginData
@@ -93,23 +93,23 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (newRegisterConfig == null) {
             return;
         }
-        RegisterConfig oldRegisterConfig = null;
-        if (StringUtils.isNotBlank(oldConfig)) {
-            oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
-        }
+//        RegisterConfig oldRegisterConfig = null;
+//        if (StringUtils.isNotBlank(oldConfig)) {
+//            oldRegisterConfig = GsonUtils.getInstance().fromJson(oldConfig, RegisterConfig.class);
+//        }
 
         // refresh config
-        if (repository == null) {
-            LOG.info("springCloud handlerPlugin repository is null");
-            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
-        } else if (!newRegisterConfig.equals(oldRegisterConfig)) {
-            LOG.info("springCloud handlerPlugin repository occur update");
-            // the config has been updated
-            if (repository != null) {
-                repository.close();
-            }
-            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
-        }
+//        if (repository == null) {
+//            LOG.info("springCloud handlerPlugin repository is null");
+//            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
+//        } else if (!newRegisterConfig.equals(oldRegisterConfig)) {
+//            LOG.info("springCloud handlerPlugin repository occur update");
+//            // the config has been updated
+//            if (repository != null) {
+//                repository.close();
+//            }
+//            repository = ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(newRegisterConfig);
+//        }
     }
 
     @Override

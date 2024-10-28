@@ -55,10 +55,13 @@ public class APDiscoveryProcessor extends AbstractDiscoveryProcessor {
         Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             LOG.info("shenyu discovery has watcher key = {}", key);
+            super.addDiscoverySyncDataListener(discoveryHandlerDTO, proxySelectorDTO);
             return;
         }
+        LOG.info("shenyu discovery id {} watch key = {}", discoveryHandlerDTO.getId(), key);
         final DataChangedEventListener discoveryDataChangedEventListener = getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO);
         shenyuDiscoveryService.watchInstances(key, (selectKey, selectValue, event) -> {
+            LOG.info("shenyu discovery receive watch discovery id {} key = {}, value = {}, event = {}", discoveryHandlerDTO.getId(), selectKey, selectValue, event);
             if (event.equals(ChangedEventListener.Event.ADDED)) {
                 discoveryDataChangedEventListener.onChange(new DiscoveryDataChangedEvent(selectKey, selectValue, DiscoveryDataChangedEvent.Event.ADDED));
             } else if (event.equals(ChangedEventListener.Event.UPDATED)) {
@@ -70,6 +73,7 @@ public class APDiscoveryProcessor extends AbstractDiscoveryProcessor {
             }
         });
         cacheKey.add(key);
+        super.addChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), discoveryDataChangedEventListener);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         publishEvent(dataChangedEvent);

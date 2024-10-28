@@ -86,8 +86,9 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse(ShenyuClientConstants.HTTP));
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
-        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name"))) {
-            shenyuDiscoveryConfig.getProps().put("name", environment.getProperty("spring.application.name"));
+        final String appName = environment.getProperty("spring.application.name");
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && appName != null) {
+            shenyuDiscoveryConfig.getProps().put("name", appName);
         }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }

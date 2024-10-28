@@ -46,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,8 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     private final Map<String, ShenyuInstanceRegisterRepository> discoveryServiceCache;
 
     private final Map<String, Set<String>> dataChangedEventListenerCache;
+
+    private final Map<String, DataChangedEventListener> dataChangedEventListenerMap = new HashMap<>();
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -217,15 +220,36 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param proxySelectorDTO    proxySelectorDTO
      * @return DataChangedEventListener
      */
-    public DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+    public DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO,
+                                                                         final ProxySelectorDTO proxySelectorDTO) {
         final Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
         discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+        discoverySyncData.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
+                new CustomDiscoveryUpstreamParser(customMap), discoverySyncData, discoveryHandlerDTO.getDiscoveryId());
+    }
+
+    /**
+     * addDiscoverySyncDataListener.
+     *
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO proxySelectorDTO
+     */
+    public void addDiscoverySyncDataListener(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO) {
+        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
+        if (changedEventListener != null) {
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
+            discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+            discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+            discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+            discoverySyncData.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
+            changedEventListener.addListener(discoverySyncData);
+        }
     }
 
     @Override
@@ -251,6 +275,26 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     public Set<String> getCacheKey(final String discoveryId) {
         return dataChangedEventListenerCache.get(discoveryId);
+    }
+
+    /**
+     * addChangedEventListener.
+     *
+     * @param discoveryId discoveryId
+     * @param dataChangedEventListener dataChangedEventListener
+     */
+    public void addChangedEventListener(final String discoveryId, final DataChangedEventListener dataChangedEventListener) {
+        this.dataChangedEventListenerMap.put(discoveryId, dataChangedEventListener);
+    }
+
+    /**
+     * getChangedEventListener.
+     *
+     * @param discoveryId discoveryId
+     * @return {@link DataChangedEventListener}
+     */
+    public DataChangedEventListener getChangedEventListener(final String discoveryId) {
+        return this.dataChangedEventListenerMap.get(discoveryId);
     }
 
     /**

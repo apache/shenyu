@@ -326,14 +326,13 @@
             <artifactId>shenyu-admin-listener-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- shenyu-admin-listener end-->
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- shenyu-admin-listener end-->
-    
     </dependencies>
 
     <profiles>

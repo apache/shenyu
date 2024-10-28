@@ -35,7 +35,6 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
-import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,8 +96,7 @@ public final class SpringCloudPluginTest {
         chain = mock(ShenyuPluginChain.class);
         selector = SelectorData.builder().id("1").enabled(true).build();
 
-        ShenyuSpringCloudServiceChooser loadBalancerClient = mock(ShenyuSpringCloudServiceChooser.class);
-        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
+        springCloudPlugin = new SpringCloudPlugin();
     }
 
     @Test

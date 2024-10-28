@@ -24,9 +24,9 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.handler.SpringCloudUpstreamDataHandler;
 import org.apache.shenyu.plugin.springcloud.listener.SpringCloudHeartBeatListener;
 import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,12 +52,11 @@ public class SpringCloudPluginConfiguration {
     /**
      * init springCloud plugin.
      *
-     * @param serviceChooser service chooser
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public ShenyuPlugin springCloudPlugin(final ObjectProvider<ShenyuSpringCloudServiceChooser> serviceChooser) {
-        return new SpringCloudPlugin(serviceChooser.getIfAvailable());
+    public ShenyuPlugin springCloudPlugin() {
+        return new SpringCloudPlugin();
     }
 
     /**
@@ -80,6 +79,16 @@ public class SpringCloudPluginConfiguration {
     @Bean
     public PluginDataHandler springCloudPluginDataHandler(final ShenyuConfig shenyuConfig, final Environment env) {
         return new SpringCloudPluginDataHandler(shenyuConfig.getSpringCloudCache(), env);
+    }
+
+    /**
+     * Spring cloud upstream data handler.
+     *
+     * @return the discovery upstream data handler
+     */
+    @Bean
+    public SpringCloudUpstreamDataHandler divideUpstreamDataHandler() {
+        return new SpringCloudUpstreamDataHandler();
     }
     
     /**

@@ -45,6 +45,11 @@ springCloud-test:
   ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
 
 shenyu:
+  discovery:
+    enable: true
+    type: eureka
+    serverList: ${eureka.client.serviceUrl.defaultZone}
+    registerPath: ${spring.application.name}
   register:
     registerType: http
     serverLists: http://localhost:9095
@@ -55,7 +60,7 @@ shenyu:
   client:
     springCloud:
       props:
-        contextPath: /springcloud
+        contextPath: /springcloud6
         addPrefixed: false
 #        port: 8884
 

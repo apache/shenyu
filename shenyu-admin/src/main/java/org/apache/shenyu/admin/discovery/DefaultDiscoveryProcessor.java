@@ -62,6 +62,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
         Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             LOG.info("shenyu discovery has watcher key = {}", key);
+            super.addDiscoverySyncDataListener(discoveryHandlerDTO, proxySelectorDTO);
             return;
         }
         final DataChangedEventListener discoveryDataChangedEventListener = getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO);
@@ -77,6 +78,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
             }
         });
         cacheKey.add(key);
+        super.addChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), discoveryDataChangedEventListener);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         publishEvent(dataChangedEvent);

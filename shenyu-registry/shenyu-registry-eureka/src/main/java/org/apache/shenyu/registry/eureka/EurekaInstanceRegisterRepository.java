@@ -31,6 +31,7 @@ import com.netflix.appinfo.providers.EurekaConfigBasedInstanceInfoProvider;
 import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.shared.transport.jersey3.Jersey3TransportClientFactories;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -42,15 +43,13 @@ import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.netflix.eureka.http.DefaultEurekaClientHttpRequestFactorySupplier;
-import org.springframework.cloud.netflix.eureka.http.RestTemplateDiscoveryClientOptionalArgs;
-import org.springframework.cloud.netflix.eureka.http.RestTemplateTransportClientFactories;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -76,8 +75,6 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private final ConcurrentMap<String, ScheduledFuture<?>> listenerThreadsMap = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<String, List<InstanceInfo>> instanceListMap = new ConcurrentHashMap<>();
-
-    private RestTemplateDiscoveryClientOptionalArgs restTemplateDiscoveryClientOptionalArgs;
 
     @Override
     public void init(final RegisterConfig config) {
@@ -106,11 +103,9 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             }
         };
         LOGGER.info("eureka registry init...");
-        restTemplateDiscoveryClientOptionalArgs
-                = new RestTemplateDiscoveryClientOptionalArgs(new DefaultEurekaClientHttpRequestFactorySupplier());
         eurekaClient = new DiscoveryClient(new ApplicationInfoManager(eurekaInstanceConfig,
                 new EurekaConfigBasedInstanceInfoProvider(eurekaInstanceConfig).get()), eurekaClientNotRegisterEurekaConfig,
-                new RestTemplateTransportClientFactories(restTemplateDiscoveryClientOptionalArgs));
+                new Jersey3TransportClientFactories());
     }
 
     @Override
@@ -128,8 +123,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .setDurationInSecs(eurekaInstanceConfig.getLeaseExpirationDurationInSeconds());
         instanceInfo.setLeaseInfo(leaseInfoBuilder.build());
         ApplicationInfoManager applicationInfoManager = new ApplicationInfoManager(eurekaInstanceConfig, instanceInfo);
-        new DiscoveryClient(applicationInfoManager, eurekaClientConfig,
-                new RestTemplateTransportClientFactories(restTemplateDiscoveryClientOptionalArgs));
+        new DiscoveryClient(applicationInfoManager, eurekaClientConfig, new Jersey3TransportClientFactories());
         LOGGER.info("eureka registry persistInstance success: {}", instanceInfo);
     }
 
@@ -225,7 +219,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         JsonObject upstreamJson = new JsonObject();
         upstreamJson.addProperty("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
         upstreamJson.addProperty("weight", instanceInfo.getMetadata().get("weight"));
-        upstreamJson.addProperty("protocol", instanceInfo.getMetadata().get("protocol"));
+        upstreamJson.addProperty("protocol", Optional.ofNullable(instanceInfo.getMetadata().get("protocol")).orElse("http://"));
         upstreamJson.addProperty("props", instanceInfo.getMetadata().get("props"));
         if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.UP) {
             upstreamJson.addProperty("status", 0);

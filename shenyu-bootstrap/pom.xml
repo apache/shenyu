@@ -479,11 +479,7 @@
         </dependency>
 
         <!--shenyu instance start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-registry</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <!--shenyu registry end-->
 
         <!--shenyu logging-rocketmq plugin start-->

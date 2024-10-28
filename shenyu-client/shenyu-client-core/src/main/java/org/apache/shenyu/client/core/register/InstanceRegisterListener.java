@@ -23,15 +23,12 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
-import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
 
-import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -76,18 +73,18 @@ public class InstanceRegisterListener implements ApplicationListener<ContextRefr
             if (StringUtils.isBlank(discoveryConfig.getRegisterType()) || StringUtils.equalsIgnoreCase(discoveryConfig.getRegisterType(), "local")) {
                 return;
             }
-            this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(discoveryConfig.getRegisterType());
-            discoveryConfig.getProps().put("watchPath", path);
-            discoveryService.init(discoveryConfig);
-            InstanceEntity instance = new InstanceEntity();
-            instance.setStatus(currentInstanceUpstream.getStatus());
-            instance.setWeight(currentInstanceUpstream.getWeight());
-            final URI uri = URI.create(currentInstanceUpstream.getProtocol() + currentInstanceUpstream.getUrl());
-            instance.setPort(uri.getPort());
-            instance.setHost(uri.getHost());
-            instance.setAppName(discoveryConfig.getProps().getProperty("name"));
-            discoveryService.persistInstance(instance);
-            LOGGER.info("shenyu register into ShenyuDiscoveryService {} success", discoveryConfig.getRegisterType());
+//            this.discoveryService = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(discoveryConfig.getRegisterType());
+//            discoveryConfig.getProps().put("watchPath", path);
+//            discoveryService.init(discoveryConfig);
+//            InstanceEntity instance = new InstanceEntity();
+//            instance.setStatus(currentInstanceUpstream.getStatus());
+//            instance.setWeight(currentInstanceUpstream.getWeight());
+//            final URI uri = URI.create(currentInstanceUpstream.getProtocol() + currentInstanceUpstream.getUrl());
+//            instance.setPort(uri.getPort());
+//            instance.setHost(uri.getHost());
+//            instance.setAppName(discoveryConfig.getProps().getProperty("name"));
+//            discoveryService.persistInstance(instance);
+//            LOGGER.info("shenyu register into ShenyuDiscoveryService {} success", discoveryConfig.getRegisterType());
         } catch (Exception e) {
             LOGGER.error("shenyu register into ShenyuDiscoveryService  {} type find error", discoveryConfig.getRegisterType(), e);
             throw new ShenyuException(String.format("shenyu register into ShenyuDiscoveryService %s type find error", discoveryConfig.getRegisterType()));

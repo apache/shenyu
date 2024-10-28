@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.discovery.listener;
 
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+
 /**
  * Data changed listener.
  */
@@ -28,4 +30,11 @@ public interface DataChangedEventListener {
      * @param event data changed event
      */
     void onChange(DiscoveryDataChangedEvent event);
+
+    /**
+     * addListener.
+     *
+     * @param discoverySyncData discoverySyncData
+     */
+    void addListener(DiscoverySyncData discoverySyncData);
 }

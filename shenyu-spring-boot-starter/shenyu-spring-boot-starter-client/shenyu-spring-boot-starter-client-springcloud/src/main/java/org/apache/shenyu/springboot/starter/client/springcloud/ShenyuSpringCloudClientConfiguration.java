@@ -18,13 +18,17 @@
 package org.apache.shenyu.springboot.starter.client.springcloud;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
 import org.apache.shenyu.client.springcloud.init.SpringCloudClientEventListener;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -56,5 +60,20 @@ public class ShenyuSpringCloudClientConfiguration {
                                                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                         final Environment env) {
         return new SpringCloudClientEventListener(clientConfig, shenyuClientRegisterRepository, env);
+    }
+
+    /**
+     * ClientRegisterConfig Bean.
+     *
+     * @param shenyuClientConfig shenyuClientConfig
+     * @param applicationContext applicationContext
+     * @param env                env
+     * @return clientRegisterConfig
+     */
+    @Bean
+    public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
+                                                     final ApplicationContext applicationContext,
+                                                     final Environment env) {
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.SPRING_CLOUD, applicationContext, env);
     }
 }

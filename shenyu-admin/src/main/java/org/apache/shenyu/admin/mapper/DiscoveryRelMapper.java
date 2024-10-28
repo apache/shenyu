@@ -107,4 +107,12 @@ public interface DiscoveryRelMapper {
      * @return rows
      */
     int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
+    /**
+     * selectByDiscoveryHandlerIdList.
+     *
+     * @return List DiscoveryRelDO
+     */
+    List<DiscoveryRelDO> selectByDiscoveryHandlerIdList(@Param("discoveryHandlerId") String discoveryHandlerId);
+
 }
