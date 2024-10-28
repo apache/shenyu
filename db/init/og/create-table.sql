@@ -2531,6 +2531,7 @@ CREATE TABLE "public"."alert_receiver"
     "match_all"            int4      NOT NULL,
     "labels"               varchar(255) COLLATE "pg_catalog"."default",
     "levels"               varchar(255) COLLATE "pg_catalog"."default",
+    "namespace_id"         varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -2540,6 +2541,7 @@ COMMENT ON COLUMN "public"."alert_receiver"."name" IS 'alarm receiver name';
 COMMENT ON COLUMN "public"."alert_receiver"."enable" IS 'enable or not';
 COMMENT ON COLUMN "public"."alert_receiver"."type" IS 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat';
 COMMENT ON COLUMN "public"."alert_receiver"."match_all" IS 'match all or not';
+COMMENT ON COLUMN "public"."alert_receiver"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."alert_receiver"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."alert_receiver"."date_updated" IS 'update time';
 
@@ -2727,9 +2729,9 @@ COMMENT ON COLUMN "public"."scale_policy"."end_time" IS 'end time';
 COMMENT ON COLUMN "public"."scale_policy"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_policy"."date_updated" IS 'update time';
 
-INSERT INTO "public"."scale_policy" VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('1', 3, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 INSERT INTO "public"."scale_policy" VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT INTO "public"."scale_policy" VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT INTO "public"."scale_policy" VALUES ('3', 1, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 
 DROP TABLE IF EXISTS "public"."scale_rule";
 CREATE TABLE "public"."scale_rule"

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -104,6 +105,7 @@ public final class AlertReceiverServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         AlertReceiverQuery alertReceiverQuery = new AlertReceiverQuery(pageParameter);
+        alertReceiverQuery.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         List<AlertReceiverDO> receiverDOList = IntStream.range(0, 10).mapToObj(i -> buildAlertReceiverDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.alertReceiverMapper.selectByQuery(alertReceiverQuery)).willReturn(receiverDOList);
         final CommonPager<AlertReceiverDTO> commonPager = this.alertReceiverService.listByPage(alertReceiverQuery);

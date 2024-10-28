@@ -2689,6 +2689,7 @@ create table alert_receiver
     match_all            NUMBER(10),
     labels               varchar(255),
     levels               varchar(255),
+    namespace_id         varchar(50)    not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -2716,6 +2717,9 @@ on column alert_receiver.labels
 comment
 on column alert_receiver.levels
   is 'alarm levels';
+comment
+on column lert_receiver.namespace_id
+  is 'namespace id';
 comment
 on column alert_receiver.date_created
   is 'create time';
@@ -2933,9 +2937,9 @@ comment on column SCALE_POLICY.date_created
 comment on column SCALE_POLICY.date_updated
     is 'update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 3, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 1, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
 
 create table scale_rule
 (
@@ -2994,5 +2998,3 @@ comment on column SCALE_HISTORY.date_created
     is 'create time';
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
-
-
