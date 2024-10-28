@@ -164,7 +164,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     @Override
-    public void addListener(DiscoverySyncData discoverySyncData) {
+    public void addListener(final DiscoverySyncData discoverySyncData) {
         if (discoverySyncDataList.stream().noneMatch(data -> data.getSelectorId().equals(discoverySyncData.getSelectorId())
                 && data.getDiscoveryHandlerId().equals(discoverySyncData.getDiscoveryHandlerId()))) {
             discoverySyncDataList.add(discoverySyncData);

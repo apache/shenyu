@@ -64,13 +64,6 @@
         from discovery_rel where discovery_handler_id = #{discoveryHandlerId}
     </select>
 
-    <select id="selectByDiscoveryHandlerIdList" resultType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
-        select
-        discovery_rel.*
-        from discovery_rel
-        where discovery_rel.discovery_handler_id = #{discoveryHandlerId}
-    </select>
-
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
         INSERT INTO discovery_rel
         (id,

@@ -239,7 +239,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param discoveryHandlerDTO discoveryHandlerDTO
      * @param proxySelectorDTO proxySelectorDTO
      */
-    public void addDiscoverySyncDataListener(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO) {
+    public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
         if (changedEventListener != null) {
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
