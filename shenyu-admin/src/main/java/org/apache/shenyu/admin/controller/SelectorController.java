@@ -89,7 +89,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}/{namespaceId}")
+    @GetMapping("/{id}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);

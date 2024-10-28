@@ -67,7 +67,7 @@ public interface MetaDataService {
      * @param namespaceId namespaceId
      * @return the meta data vo
      */
-    MetaDataVO findByIdAndNamespaceId(String id, String namespaceId);
+    MetaDataVO findById(String id);
 
     /**
      * List by page common pager.

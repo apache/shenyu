@@ -51,7 +51,7 @@
         namespace_id
     </sql>
 
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
