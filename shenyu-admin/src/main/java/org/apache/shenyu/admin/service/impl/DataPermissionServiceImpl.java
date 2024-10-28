@@ -220,7 +220,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @Transactional(rollbackFor = Exception.class)
     public int createRule(final DataPermissionDTO dataPermissionDTO) {
         // todo:[To be refactored with namespace]  Temporarily  hardcode
-        RuleDO ruleDO = ruleMapper.selectByIdAndNamespaceId(dataPermissionDTO.getDataId(), SYS_DEFAULT_NAMESPACE_ID);
+        RuleDO ruleDO = ruleMapper.selectById(dataPermissionDTO.getDataId());
         if (Objects.isNull(ruleDO)) {
             return 0;
         }
