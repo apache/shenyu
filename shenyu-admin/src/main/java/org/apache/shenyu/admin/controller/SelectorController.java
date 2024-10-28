@@ -86,7 +86,6 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * detail selector.
      *
      * @param id selector id.
-     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")

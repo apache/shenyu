@@ -100,7 +100,6 @@ public class MetaDataController {
      * Get detail of metadata.
      *
      * @param id the id
-     * @param namespaceId namespaceId.
      * @return the shenyu result
      */
     @GetMapping("/{id}")

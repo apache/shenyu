@@ -194,7 +194,6 @@ public class RuleServiceImpl implements RuleService {
      * find rule by id and namespaceId.
      *
      * @param id primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
     @Override

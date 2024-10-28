@@ -85,7 +85,6 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * detail rule.
      *
      * @param id rule id.
-     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")

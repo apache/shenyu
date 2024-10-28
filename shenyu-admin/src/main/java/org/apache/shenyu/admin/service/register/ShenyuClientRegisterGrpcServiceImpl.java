@@ -46,8 +46,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * grpc service register.
  */

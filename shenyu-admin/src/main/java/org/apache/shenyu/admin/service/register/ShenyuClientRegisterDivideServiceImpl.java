@@ -46,8 +46,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * spring mvc http service register.
  */
@@ -115,7 +113,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     }
 
     @Override
-    public String offline(final String selectorName, final List<URIRegisterDTO> uriList, String namespaceId) {
+    public String offline(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         final SelectorService selectorService = getSelectorService();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);

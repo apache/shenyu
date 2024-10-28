@@ -45,7 +45,6 @@ public interface MetaDataMapper extends ExistProvider {
      * Select meta data do by id and namespaceId.
      *
      * @param id the id
-     * @param namespaceId namespaceId
      * @return the meta data do
      */
     MetaDataDO selectById(String id);

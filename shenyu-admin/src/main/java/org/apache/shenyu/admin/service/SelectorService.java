@@ -117,7 +117,6 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * find selector by id and namespaceId.
      *
      * @param id          primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain SelectorVO}
      */
     SelectorVO findById(String id);

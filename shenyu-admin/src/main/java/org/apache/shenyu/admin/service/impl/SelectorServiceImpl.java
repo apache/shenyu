@@ -314,7 +314,6 @@ public class SelectorServiceImpl implements SelectorService {
      * find selector by id and namespaceId.
      *
      * @param id primary key.
-     * @param namespaceId namespaceId.
      * @return {@link SelectorVO}
      */
     @Override
