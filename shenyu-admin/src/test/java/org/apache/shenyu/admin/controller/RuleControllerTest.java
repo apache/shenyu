@@ -127,7 +127,7 @@ public final class RuleControllerTest {
     @Test
     public void testDetailRule() throws Exception {
         given(this.ruleService.findById("666")).willReturn(ruleVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}/{namespaceId}", "666", SYS_DEFAULT_NAMESPACE_ID))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}", "666"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(ruleVO.getId())))

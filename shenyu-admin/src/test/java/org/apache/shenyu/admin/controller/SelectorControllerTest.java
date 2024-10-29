@@ -203,7 +203,7 @@ public final class SelectorControllerTest {
         when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.findById("1")).willReturn(selectorVO);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/{namespaceId}", "1", SYS_DEFAULT_NAMESPACE_ID))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
