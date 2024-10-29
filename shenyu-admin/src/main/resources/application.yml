@@ -18,6 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
+  application:
+    name: shenyu-admin
   profiles:
     active: h2
   thymeleaf:
@@ -206,6 +208,22 @@ shenyu:
         - system:resource:editMenu
         - system:resource:deleteButton
         - system:resource:deleteMenu
+#  k8s:
+#    scale:
+#      monitor-interval: 10000
+#      pool-size: 6
+#    prometheus:
+#      url: http://localhost:9090
+#      queries:
+#        cpu_usage: "sum(rate(container_cpu_usage_seconds_total{namespace='%s', pod=~'%s.*'}[5m]))"
+#        memory_usage: "sum(container_memory_usage_bytes{namespace='%s', pod=~'%s.*'})"
+#        request_count: "sum(rate(http_requests_total{namespace='%s', pod=~'%s.*'}[1m]))"
+#    deployment:
+#      name: "shenyu-bootstrap"
+#      namespace: "shenyu"
+#      apiServer: "https://127.0.0.1:6443"
+#      token: "token"
+#      caCertPath: "/etc/kubernetes/pki/ca.crt"
 
 springdoc:
   api-docs:
