@@ -154,7 +154,7 @@ public final class SelectorServiceTest {
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
-                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, namespacePluginRelMapper);
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
     }
 
     @Test

@@ -123,8 +123,6 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
-    private final NamespacePluginRelMapper namespacePluginRelMapper;
-
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -134,7 +132,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
-                               final SelectorEventPublisher selectorEventPublisher, NamespacePluginRelMapper namespacePluginRelMapper) {
+                               final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -145,7 +143,6 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
-        this.namespacePluginRelMapper = namespacePluginRelMapper;
     }
 
     @Override
