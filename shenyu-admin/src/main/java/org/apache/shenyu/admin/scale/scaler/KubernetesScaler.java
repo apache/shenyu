@@ -21,27 +21,26 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1Scale;
 import io.kubernetes.client.openapi.models.V1ScaleSpec;
-import org.apache.shenyu.admin.scale.config.DeploymentProperties;
+import org.apache.shenyu.admin.config.properties.DeploymentProperties;
 import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Objects;
 
 @Component
-public class K8sScaler {
+public class KubernetesScaler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(K8sScaler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KubernetesScaler.class);
 
     private final AppsV1Api appsV1Api;
 
+
     private final DeploymentProperties deploymentProperties;
 
-    public K8sScaler(final K8sApiClientProvider k8sApiClientProvider,
-                     final DeploymentProperties deploymentProperties) throws IOException {
-        this.appsV1Api = new AppsV1Api(k8sApiClientProvider.createApiClient());
+    public KubernetesScaler(final AppsV1Api appsV1Api, final DeploymentProperties deploymentProperties) {
+        this.appsV1Api = appsV1Api;
         this.deploymentProperties = deploymentProperties;
     }
 

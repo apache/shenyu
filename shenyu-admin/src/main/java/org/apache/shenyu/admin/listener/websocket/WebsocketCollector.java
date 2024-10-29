@@ -260,6 +260,10 @@ public class WebsocketCollector {
     
     private void clearSession(final Session session) {
         SESSION_SET.remove(session);
+        String namespaceId = getNamespaceId(session);
+        if (StringUtils.isNotBlank(namespaceId)) {
+            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
+        }
         ThreadLocalUtils.clear();
     }
 }
