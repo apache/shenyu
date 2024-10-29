@@ -53,7 +53,6 @@
                <include refid="Base_Column_List"/>
           FROM rule
          WHERE id = #{id, jdbcType=VARCHAR}
-         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
