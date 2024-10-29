@@ -31,6 +31,8 @@ spring:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
         namespace: ShenyuRegisterCenter
+        username: nacos
+        password: nacos
 
 eureka:
   client:
@@ -50,6 +52,8 @@ shenyu:
     type: eureka
     serverList: ${eureka.client.serviceUrl.defaultZone}
     registerPath: ${spring.application.name}
+    props:
+      nacosNameSpace: ShenyuRegisterCenter
   register:
     registerType: http
     serverLists: http://localhost:9095
