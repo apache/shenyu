@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -122,6 +123,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final NamespacePluginRelMapper namespacePluginRelMapper;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -131,7 +134,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
-                               final SelectorEventPublisher selectorEventPublisher) {
+                               final SelectorEventPublisher selectorEventPublisher, NamespacePluginRelMapper namespacePluginRelMapper) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -142,6 +145,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
+        this.namespacePluginRelMapper = namespacePluginRelMapper;
     }
 
     @Override
