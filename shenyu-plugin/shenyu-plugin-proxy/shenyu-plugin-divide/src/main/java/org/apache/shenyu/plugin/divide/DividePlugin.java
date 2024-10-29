@@ -92,6 +92,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        LOG.info("DividePlugin rule :{}, upstream list :{}", ruleHandle, upstreamList);
         if (CollectionUtils.isEmpty(upstreamList)) {
             LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
@@ -111,6 +112,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         // set domain
         String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
+        LOG.info("DividePlugin domain {}", domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
