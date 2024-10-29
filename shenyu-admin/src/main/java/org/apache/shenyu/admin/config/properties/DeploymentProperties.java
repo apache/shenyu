@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.scale.config;
+package org.apache.shenyu.admin.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @ConfigurationProperties(prefix = "shenyu.k8s.deployment")
 public class DeploymentProperties {
 
