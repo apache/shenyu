@@ -393,6 +393,6 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                 .parameterTypes(annotations.getOrDefault(IngressConstants.PLUGIN_SPRING_CLOUD_PARAMENT_TYPE, ""))
                 .enabled(true)
                 .build();
-        return new IngressConfiguration(selectorData, Arrays.asList(ruleData), Arrays.asList(metaData));
+        return new IngressConfiguration(selectorData, Collections.singletonList(ruleData), Collections.singletonList(metaData));
     }
 }
