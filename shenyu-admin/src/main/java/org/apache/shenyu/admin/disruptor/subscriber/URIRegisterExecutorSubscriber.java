@@ -84,11 +84,13 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                             }
                             if (CollectionUtils.isNotEmpty(register)) {
                                 register.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
                                         .findFirst()
                                         .ifPresent(namespaceId -> service.registerURI(selectorName, register, namespaceId));
                             }
                             if (CollectionUtils.isNotEmpty(offline)) {
                                 offline.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
                                         .findFirst()
                                         .ifPresent(namespaceId -> service.offline(selectorName, offline, namespaceId));
                             }
