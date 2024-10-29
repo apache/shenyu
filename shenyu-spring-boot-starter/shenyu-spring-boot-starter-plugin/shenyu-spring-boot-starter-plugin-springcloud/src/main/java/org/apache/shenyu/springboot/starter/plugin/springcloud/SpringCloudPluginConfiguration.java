@@ -87,7 +87,7 @@ public class SpringCloudPluginConfiguration {
      * @return the discovery upstream data handler
      */
     @Bean
-    public SpringCloudUpstreamDataHandler divideUpstreamDataHandler() {
+    public SpringCloudUpstreamDataHandler springCloudUpstreamDataHandler() {
         return new SpringCloudUpstreamDataHandler();
     }
     
