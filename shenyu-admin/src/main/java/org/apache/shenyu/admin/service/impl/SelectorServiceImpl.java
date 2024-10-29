@@ -364,7 +364,6 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(final String name, final String pluginName, final String namespaceId) {
         PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
-        // todo:[To be refactored with namespace] Temporarily hardcode
         return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
