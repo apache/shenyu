@@ -45,18 +45,18 @@ public class ScaleService {
 
     private final ScaleProperties scaleProperties;
 
-    private final K8sScaler k8sScaler;
+    private final KubernetesScaler kubernetesScaler;
 
     public ScaleService(final MetricsMonitor metricsMonitor,
                         final TaskSchedulerManager schedulerManager,
                         final ScalePolicyCache scalePolicyCache,
                         final ScaleProperties scaleProperties,
-                        final K8sScaler k8sScaler) {
+                        final KubernetesScaler kubernetesScaler) {
         this.schedulerManager = schedulerManager;
         this.metricsMonitor = metricsMonitor;
         this.scalePolicyCache = scalePolicyCache;
         this.scaleProperties = scaleProperties;
-        this.k8sScaler = k8sScaler;
+        this.kubernetesScaler = kubernetesScaler;
     }
 
     /**
@@ -68,12 +68,12 @@ public class ScaleService {
             switch (activePolicy.getId()) {
                 case "1":
                     stopDynamicTask();
-                    k8sScaler.scaleByNum(activePolicy.getNum());
+                    kubernetesScaler.scaleByNum(activePolicy.getNum());
                     break;
                 case "2":
                     stopDynamicTask();
                     if (isWithinTimeRange(activePolicy)) {
-                        k8sScaler.scaleByNum(activePolicy.getNum());
+                        kubernetesScaler.scaleByNum(activePolicy.getNum());
                     }
                     break;
                 case "3":

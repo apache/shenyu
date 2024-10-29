@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.collector.provider.MetricsProvider;
-import org.apache.shenyu.admin.scale.config.DeploymentProperties;
+import org.apache.shenyu.admin.config.properties.DeploymentProperties;
 import org.apache.shenyu.admin.scale.config.PrometheusProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
