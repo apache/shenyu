@@ -36,6 +36,8 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -47,6 +49,8 @@ import java.util.Objects;
  * this is springCloud proxy impl.
  */
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPlugin.class);
     
     /**
      * Instantiates a new Spring cloud plugin.
@@ -68,6 +72,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         final SpringCloudRuleHandle ruleHandle = buildRuleHandle(rule);
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        LOG.info("spring cloud selector rule :{}, upstream list :{}", ruleHandle, upstreamList);
         if (CollectionUtils.isEmpty(upstreamList)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
@@ -85,6 +90,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         // set domain
         final String domain = upstream.buildDomain();
         setDomain(URI.create(domain + shenyuContext.getRealUrl()), exchange);
+        LOG.info("spring cloud selector rule :{}, choose url :{}", ruleHandle, exchange.getAttributes().get(Constants.HTTP_DOMAIN));
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);
