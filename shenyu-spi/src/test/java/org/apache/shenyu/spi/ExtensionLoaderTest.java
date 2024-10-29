@@ -36,9 +36,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -296,7 +298,31 @@ public final class ExtensionLoaderTest {
             assertThat(expect.getTargetException().getMessage(), containsString("load extension resources error"));
         }
     }
-    
+
+    @Test
+    public void testMultiThreadNonSingleton() throws InterruptedException {
+        int threadNum = Runtime.getRuntime().availableProcessors();
+        if (threadNum <= 1) {
+            threadNum = 2;
+        }
+        int loop = 10000;
+        ConcurrentHashMap<ListSPI, Boolean> cache = new ConcurrentHashMap<>();
+        List<Thread> threads = new ArrayList<>(threadNum);
+        for (int i = 0; i < threadNum; i++) {
+            Thread arrayList = new Thread(() -> {
+                for (int j = 0; j < loop; j++) {
+                    cache.put(ExtensionLoader.getExtensionLoader(ListSPI.class).getJoin("arrayList"), true);
+                }
+            });
+            arrayList.start();
+            threads.add(arrayList);
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        assertEquals(threadNum * loop, cache.size());
+    }
+
     /**
      * get private loadClass method.
      */
