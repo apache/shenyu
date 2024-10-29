@@ -136,6 +136,7 @@ jobs:
           echo "----------kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1----------"
           kubectl logs -l app=shenyu-ingress-controller -n shenyu-ingress --tail=-1
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
+            kubectl logs -l app=shenyu-examples-springcloud -n shenyu-ingress --tail=-1
             echo "Test Failed"
             exit 1
           else
