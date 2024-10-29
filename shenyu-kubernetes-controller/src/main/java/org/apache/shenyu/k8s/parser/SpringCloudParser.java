@@ -383,8 +383,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
             LOG.error("spring cloud metadata is error, please check spring cloud service. annotations: [{}]", annotations);
             throw new ShenyuException(annotations + " is is missing.");
         }
-        MetaData metaData = new MetaData();
-        MetaData.builder()
+        MetaData metaData = MetaData.builder()
                 .appName(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_APP_NAME))
                 .path(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_PATH))
                 .rpcType(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_RPC_TYPE))
