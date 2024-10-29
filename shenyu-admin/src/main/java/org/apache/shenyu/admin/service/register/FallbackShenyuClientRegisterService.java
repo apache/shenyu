@@ -64,7 +64,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         try {
             this.removeFallBack(key);
             result = this.doRegisterURI(selectorName, uriList, namespaceId);
-            LOG.info("Register success: {},{}", selectorName, uriList);
+            LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
             LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
