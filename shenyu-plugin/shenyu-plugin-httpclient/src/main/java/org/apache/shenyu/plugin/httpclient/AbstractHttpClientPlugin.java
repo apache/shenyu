@@ -77,6 +77,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        LOG.info("AbstractHttpClientPlugin uri {}", uri.toASCIIString());
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
