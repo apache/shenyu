@@ -166,11 +166,9 @@ public class SelectorServiceImpl implements SelectorService {
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         if (StringUtils.isEmpty(selectorDTO.getId())) {
-            LOG.info("register default selector :{}", GsonUtils.getInstance().toJson(selectorDTO));
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         }
-        LOG.info("publish selector register event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         return selectorDO.getId();
     }
@@ -208,7 +206,6 @@ public class SelectorServiceImpl implements SelectorService {
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         selectorDTO.setId(selectorDO.getId());
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        LOG.info("publish selector create event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         if (selectorCount > 0) {
             selectorEventPublisher.onCreated(selectorDO);
@@ -248,7 +245,6 @@ public class SelectorServiceImpl implements SelectorService {
         //delete rule condition then add
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        LOG.info("publish selector update event: {}", GsonUtils.getInstance().toJson(selectorDO));
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), beforeSelectorConditionList);
         if (selectorCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);

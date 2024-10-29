@@ -211,9 +211,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doHeartbeat Failed to execute,wait to retry.");
         }
-        // fetch UPSTREAM_MAP data from db
-        //upstreamCheckService.fetchUpstreamData();
-        //update upstream
+        // update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).toList();
         if (CollectionUtils.isEmpty(validUriList)) {
             return null;
@@ -230,7 +228,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
         });
         DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, namespaceId);
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.REFRESH, Collections.singletonList(discoverySyncData)));
         
         return ShenyuResultMessage.SUCCESS;
     }
