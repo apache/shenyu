@@ -53,7 +53,7 @@ spec:
             - name: eureka.client.serviceUrl.defaultZone
               value: http://shenyu-examples-eureka:8761/eureka/
             - name: shenyu.discovery.enable
-              value: false
+              value: 'false'
           ports:
             - containerPort: 8884
           imagePullPolicy: IfNotPresent
