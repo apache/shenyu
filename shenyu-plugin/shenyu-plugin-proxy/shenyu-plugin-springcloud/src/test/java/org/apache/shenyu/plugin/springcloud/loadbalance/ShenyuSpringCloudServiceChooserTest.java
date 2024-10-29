@@ -64,9 +64,8 @@ public class ShenyuSpringCloudServiceChooserTest {
     public void setup() {
         this.mockSpringCloudConfig();
         ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        ConfigurableApplicationContext context = (ConfigurableApplicationContext) SpringBeanUtils.getInstance().getApplicationContext();
 
-        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig, context.getEnvironment());
+        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig);
 
         shenyuInstanceRegisterRepository = mock(ShenyuInstanceRegisterRepository.class);
     }

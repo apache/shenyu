@@ -59,8 +59,7 @@ public final class SpringCloudPluginDataHandlerTest {
     public void setUp() {
         this.mockSpringCloudConfig();
         ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        ConfigurableApplicationContext context = (ConfigurableApplicationContext) SpringBeanUtils.getInstance().getApplicationContext();
-        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig, context.getEnvironment());
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 
