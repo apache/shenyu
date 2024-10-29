@@ -61,10 +61,9 @@ public interface MetaDataService {
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * Find meta data vo by id and namespaceId.
+     * Find meta data vo by id.
      *
      * @param id the id
-     * @param namespaceId namespaceId
      * @return the meta data vo
      */
     MetaDataVO findById(String id);

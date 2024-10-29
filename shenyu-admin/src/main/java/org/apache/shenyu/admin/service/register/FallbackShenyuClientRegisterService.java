@@ -109,7 +109,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, final String namespaceId);
+    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.
