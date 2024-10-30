@@ -61,13 +61,12 @@ public interface MetaDataService {
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * Find meta data vo by id and namespaceId.
+     * Find meta data vo by id.
      *
      * @param id the id
-     * @param namespaceId namespaceId
      * @return the meta data vo
      */
-    MetaDataVO findByIdAndNamespaceId(String id, String namespaceId);
+    MetaDataVO findById(String id);
 
     /**
      * List by page common pager.
