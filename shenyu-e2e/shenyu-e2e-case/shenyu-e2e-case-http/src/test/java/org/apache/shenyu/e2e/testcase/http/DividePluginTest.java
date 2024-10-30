@@ -24,12 +24,14 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -91,12 +93,12 @@ public class DividePluginTest {
         spec.getWaiting().waitFor(gateway);
     }
 
-//    @AfterEach
-//    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-//        spec.getDeleter().delete(client, selectorIds);
-//        spec.deleteWaiting().waitFor(gateway);
-//        selectorIds = Lists.newArrayList();
-//    }
+    @AfterEach
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+        spec.getDeleter().delete(client, selectorIds);
+        spec.deleteWaiting().waitFor(gateway);
+        selectorIds = Lists.newArrayList();
+    }
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
@@ -115,17 +117,17 @@ public class DividePluginTest {
         reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("1801816010882822166", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
-//        LOG.info("start loggingKafka plugin");
-//        reqBody.put("pluginId", "33");
-//        reqBody.put("name", "loggingKafka");
-//        reqBody.put("enabled", "true");
-//        reqBody.put("role", "Logging");
-//        reqBody.put("sort", "180");
-//        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-//        reqBody.put("config",
-//                "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
-//        adminClient.changePluginStatus("1801816010882822171", reqBody);
-//        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
+        LOG.info("start loggingKafka plugin");
+        reqBody.put("pluginId", "33");
+        reqBody.put("name", "loggingKafka");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Logging");
+        reqBody.put("sort", "180");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config",
+                "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
+        adminClient.changePluginStatus("1801816010882822171", reqBody);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
 
     }
 
