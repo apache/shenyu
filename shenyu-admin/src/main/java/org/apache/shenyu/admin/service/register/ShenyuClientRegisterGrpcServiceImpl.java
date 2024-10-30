@@ -46,8 +46,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * grpc service register.
  */
@@ -124,11 +122,10 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     }
 
     @Override
-    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
+    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList, final String namespaceId) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
-        // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
