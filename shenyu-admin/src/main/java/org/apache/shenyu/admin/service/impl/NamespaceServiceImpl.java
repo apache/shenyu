@@ -17,17 +17,27 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
+import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.PluginService;
@@ -44,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,12 +66,32 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private PluginService pluginService;
 
+    private SelectorMapper selectorMapper;
+
+    private RuleMapper ruleMapper;
+
+    private AuthPathMapper authPathMapper;
+
+    private MetaDataMapper metaDataMapper;
+
+    private DiscoveryMapper discoveryMapper;
+
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
-                                final PluginService pluginService) {
+                                final PluginService pluginService,
+                                final SelectorMapper selectorMapper,
+                                final RuleMapper ruleMapper,
+                                final AuthPathMapper authPathMapper,
+                                final MetaDataMapper metaDataMapper,
+                                final DiscoveryMapper discoveryMapper) {
         this.namespaceMapper = namespaceMapper;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginService = pluginService;
+        this.selectorMapper = selectorMapper;
+        this.ruleMapper = ruleMapper;
+        this.authPathMapper = authPathMapper;
+        this.metaDataMapper = metaDataMapper;
+        this.discoveryMapper = discoveryMapper;
     }
 
     @Override
@@ -83,9 +114,34 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (ids.contains(Constants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
             return AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE;
         }
-        List<NamespaceDO> namespaceDOS = namespaceMapper.selectByIds(ids);
-        if (CollectionUtils.isEmpty(namespaceDOS)) {
+        Optional<NamespaceDO> namespaceDOS = namespaceMapper.selectByIds(ids).stream().findFirst();
+        if (namespaceDOS.isEmpty()) {
             return AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST;
+        }
+        final String namespaceId = namespaceDOS.get().getNamespaceId();
+        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceId(namespaceId);
+        if (!namespacePluginVOS.isEmpty()) {
+            return "Plugins exist under this namespace!";
+        }
+        List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceId(namespaceId);
+        if (!selectorDOS.isEmpty()) {
+            return "selector exist under this namespace!";
+        }
+        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceId(namespaceId);
+        if (!ruleDOList.isEmpty()) {
+            return "rule exist under this namespace!";
+        }
+        List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceId(namespaceId);
+        if (!metaDataDOList.isEmpty()) {
+            return "metaData exist under this namespace!";
+        }
+        List<AuthPathDO> authPathDOList = authPathMapper.findByNamespaceId(namespaceId);
+        if (!authPathDOList.isEmpty()) {
+            return "authPath exist under this namespace!";
+        }
+        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceId(namespaceId);
+        if (!discoveryDOList.isEmpty()) {
+            return "discovery exist under this namespace!";
         }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;

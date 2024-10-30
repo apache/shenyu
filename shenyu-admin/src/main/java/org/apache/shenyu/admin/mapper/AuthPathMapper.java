@@ -79,6 +79,14 @@ public interface AuthPathMapper extends ExistProvider {
      * @return the list
      */
     List<AuthPathDO> findByAuthId(String authId);
+
+    /**
+     * Find by namespace id list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<AuthPathDO> findByNamespaceId(String namespaceId);
     
     /**
      * find all the {@link AuthPathDO} by authIdList.
