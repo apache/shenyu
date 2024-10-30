@@ -25,8 +25,6 @@ import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudUpstreamDataHandler;
-import org.apache.shenyu.plugin.springcloud.listener.SpringCloudHeartBeatListener;
-import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,16 +35,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(value = {"shenyu.plugins.spring-cloud.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SpringCloudPluginConfiguration {
-
-    /**
-     * shenyu springcloud loadbalancer.
-     *
-     * @return {@linkplain ShenyuSpringCloudServiceChooser}
-     */
-    @Bean
-    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient() {
-        return new ShenyuSpringCloudServiceChooser();
-    }
 
     /**
      * init springCloud plugin.
@@ -87,17 +75,6 @@ public class SpringCloudPluginConfiguration {
     @Bean
     public SpringCloudUpstreamDataHandler springCloudUpstreamDataHandler() {
         return new SpringCloudUpstreamDataHandler();
-    }
-    
-    /**
-     * Spring cloud heart beat listener.
-     *
-     * @param shenyuConfig the shenyu config
-     * @return the spring cloud heartbeat listener {@linkplain SpringCloudHeartBeatListener}
-     */
-    @Bean
-    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final ShenyuConfig shenyuConfig) {
-        return new SpringCloudHeartBeatListener(shenyuConfig.getSpringCloudCache());
     }
 
 }
