@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -201,7 +202,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         upstreamJson.addProperty("weight", instance.getWeight());
         Map<String, String> metadata = instance.getMetadata();
         upstreamJson.addProperty("props", metadata.get("props"));
-        upstreamJson.addProperty("protocol", metadata.get("protocol"));
+        upstreamJson.addProperty("protocol", Optional.ofNullable(metadata.get("protocol")).orElse("http://"));
         return GsonUtils.getInstance().toJson(upstreamJson);
     }
 
