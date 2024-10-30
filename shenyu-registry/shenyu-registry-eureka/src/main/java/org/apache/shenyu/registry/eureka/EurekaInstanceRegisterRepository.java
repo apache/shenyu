@@ -66,6 +66,8 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private EurekaClient eurekaClient;
 
+    private EurekaClient registerDiscoveryClient;
+
     private DefaultEurekaClientConfig eurekaClientConfig;
 
     private EurekaInstanceConfig eurekaInstanceConfig;
@@ -110,12 +112,14 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public void persistInstance(final InstanceEntity instance) {
+
         InstanceInfo.Builder instanceInfoBuilder = instanceInfoBuilder();
         InstanceInfo instanceInfo = instanceInfoBuilder
                 .setAppName(instance.getAppName())
                 .setIPAddr(instance.getHost())
                 .setHostName(instance.getHost())
                 .setPort(instance.getPort())
+                .setLastDirtyTimestamp(System.currentTimeMillis())
                 .setStatus(InstanceInfo.InstanceStatus.UP)
                 .build();
         LeaseInfo.Builder leaseInfoBuilder = LeaseInfo.Builder.newBuilder()
@@ -123,7 +127,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .setDurationInSecs(eurekaInstanceConfig.getLeaseExpirationDurationInSeconds());
         instanceInfo.setLeaseInfo(leaseInfoBuilder.build());
         ApplicationInfoManager applicationInfoManager = new ApplicationInfoManager(eurekaInstanceConfig, instanceInfo);
-        new DiscoveryClient(applicationInfoManager, eurekaClientConfig, new Jersey3TransportClientFactories());
+        registerDiscoveryClient = new DiscoveryClient(applicationInfoManager, eurekaClientConfig, new Jersey3TransportClientFactories());
         LOGGER.info("eureka registry persistInstance success: {}", instanceInfo);
     }
 
@@ -219,7 +223,9 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         JsonObject upstreamJson = new JsonObject();
         upstreamJson.addProperty("url", instanceInfo.getIPAddr() + ":" + instanceInfo.getPort());
         upstreamJson.addProperty("weight", instanceInfo.getMetadata().get("weight"));
-        upstreamJson.addProperty("protocol", Optional.ofNullable(instanceInfo.getMetadata().get("protocol")).orElse("http://"));
+        boolean secure = instanceInfo.isPortEnabled(InstanceInfo.PortType.SECURE);
+        String scheme = secure ? "https://" : "http://";
+        upstreamJson.addProperty("protocol", Optional.ofNullable(instanceInfo.getMetadata().get("protocol")).orElse(scheme));
         upstreamJson.addProperty("props", instanceInfo.getMetadata().get("props"));
         if (instanceInfo.getStatus() == InstanceInfo.InstanceStatus.UP) {
             upstreamJson.addProperty("status", 0);
@@ -259,6 +265,10 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             if (Objects.nonNull(eurekaClient)) {
                 eurekaClient.getApplicationInfoManager().setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
                 eurekaClient.shutdown();
+            }
+            if (Objects.nonNull(registerDiscoveryClient)) {
+                registerDiscoveryClient.getApplicationInfoManager().setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
+                registerDiscoveryClient.shutdown();
             }
             LOGGER.info("eureka registry shutting down...");
         } catch (Exception e) {

@@ -202,7 +202,12 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         upstreamJson.addProperty("weight", instance.getWeight());
         Map<String, String> metadata = instance.getMetadata();
         upstreamJson.addProperty("props", metadata.get("props"));
-        upstreamJson.addProperty("protocol", Optional.ofNullable(metadata.get("protocol")).orElse("http://"));
+        boolean secure = false;
+        if (metadata.containsKey("secure")) {
+            secure = Boolean.parseBoolean(metadata.get("secure"));
+        }
+        String scheme = secure ? "https://" : "http://";
+        upstreamJson.addProperty("protocol", Optional.ofNullable(metadata.get("protocol")).orElse(scheme));
         return GsonUtils.getInstance().toJson(upstreamJson);
     }
 
