@@ -44,13 +44,12 @@ public interface RuleMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * select rule by id and namespaceId.
+     * select rule by id.
      *
      * @param id primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain RuleDO}
      */
-    RuleDO selectByIdAndNamespaceId(String id, String namespaceId);
+    RuleDO selectById(String id);
 
     /**
      * select rule by query.
