@@ -75,6 +75,7 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
      * @return InstanceRegisterListener
      */
     @Bean("springmvcInstanceRegisterListener")
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     @Primary
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,

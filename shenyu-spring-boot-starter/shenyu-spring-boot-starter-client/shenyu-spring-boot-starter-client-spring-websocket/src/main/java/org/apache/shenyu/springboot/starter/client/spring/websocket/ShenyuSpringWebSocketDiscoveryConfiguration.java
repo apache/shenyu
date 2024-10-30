@@ -73,6 +73,7 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
      */
     @Bean("websocketInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener,
                                                              final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                              final ShenyuClientConfig shenyuClientConfig) {

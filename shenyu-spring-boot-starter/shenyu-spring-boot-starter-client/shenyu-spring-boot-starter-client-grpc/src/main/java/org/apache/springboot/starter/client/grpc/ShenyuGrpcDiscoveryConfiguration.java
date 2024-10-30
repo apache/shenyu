@@ -54,6 +54,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
      * @return InstanceRegisterListener
      */
     @Bean("grpcInstanceRegisterListener")
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,
                                                              final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
