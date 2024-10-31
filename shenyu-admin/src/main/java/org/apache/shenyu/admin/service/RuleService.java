@@ -100,10 +100,9 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * find rule by id and namespaceId.
      *
      * @param id primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
-    RuleVO findByIdAndNamespaceId(String id, String namespaceId);
+    RuleVO findById(String id);
 
     /**
      * find page of rule by query.

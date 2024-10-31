@@ -85,16 +85,12 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * detail rule.
      *
      * @param id rule id.
-     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}/{namespaceId}")
-    public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
-                                        @Existed(provider = RuleMapper.class,
-                                                message = "rule is not existed") final String id,
-                                        @PathVariable("namespaceId") @Valid
-                                        @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
-        RuleVO ruleVO = ruleService.findByIdAndNamespaceId(id, namespaceId);
+    @GetMapping("/{id}")
+    public ShenyuAdminResult detailRule(@Valid @PathVariable("id")
+                                        @Existed(provider = RuleMapper.class, message = "rule is not existed") final String id) {
+        RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
 

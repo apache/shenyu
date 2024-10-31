@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -37,16 +38,16 @@ class FallbackShenyuClientRegisterServiceTest {
     @Test
     public void testRegisterURI() {
         MockFallbackShenyuClientRegisterService mockFallbackShenyuClientRegisterService = new MockFallbackShenyuClientRegisterService();
-        assertEquals("doRegisterURI", mockFallbackShenyuClientRegisterService.registerURI("Selector_Name", new ArrayList<>()));
+        assertEquals("doRegisterURI", mockFallbackShenyuClientRegisterService.registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
 
         MockFallbackShenyuClientRegisterServiceException mockFallbackShenyuClientRegisterServiceException = new MockFallbackShenyuClientRegisterServiceException();
-        assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name", new ArrayList<>()));
+        assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     static class MockFallbackShenyuClientRegisterService extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             return "doRegisterURI";
         }
         
@@ -74,7 +75,7 @@ class FallbackShenyuClientRegisterServiceTest {
     static class MockFallbackShenyuClientRegisterServiceException extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         
