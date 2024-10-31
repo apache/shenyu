@@ -45,15 +45,6 @@ public interface SelectorMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
 
     /**
-     * select selector by id and namespaceId.
-     *
-     * @param id          primary key.
-     * @param namespaceId namespaceId.
-     * @return {@linkplain SelectorDO}
-     */
-    SelectorDO selectByIdAndNamespaceId(String id, String namespaceId);
-
-    /**
      * select selector by id.
      *
      * @param id primary key.

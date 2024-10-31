@@ -33,6 +33,8 @@ public class NacosProperties {
 
     private String password;
 
+    private String contextPath;
+
     private NacosACMProperties acm;
 
     /**
@@ -105,6 +107,24 @@ public class NacosProperties {
      */
     public void setPassword(final String password) {
         this.password = password;
+    }
+
+    /**
+     * Gets the value of contextPath.
+     *
+     * @return the value of contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * Sets the contextPath.
+     *
+     * @param contextPath contextPath
+     */
+    public void setContextPath(final String contextPath) {
+        this.contextPath = contextPath;
     }
 
     /**

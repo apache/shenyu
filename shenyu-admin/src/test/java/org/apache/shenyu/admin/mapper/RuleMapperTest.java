@@ -45,7 +45,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int insert = ruleMapper.insert(ruleDO);
         assertThat(insert, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
         assertThat(ruleDO, equalTo(resultRuleDO));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -140,7 +140,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int update = ruleMapper.update(ruleDO);
         assertThat(update, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
         assertThat(ruleDO, equalTo(resultRuleDO));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -157,7 +157,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int update = ruleMapper.update(ruleDO);
         assertThat(update, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
         assertThat(ruleDO.getHandle(), equalTo(resultRuleDO.getHandle()));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -173,7 +173,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int delete = ruleMapper.delete(ruleDO.getId());
         assertThat(delete, equalTo(1));
 
-        RuleDO resultRuleDO = ruleMapper.selectByIdAndNamespaceId(ruleDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        RuleDO resultRuleDO = ruleMapper.selectById(ruleDO.getId());
         assertThat(resultRuleDO, equalTo(null));
     }
 

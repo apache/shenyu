@@ -51,12 +51,11 @@
         namespace_id
     </sql>
 
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
         WHERE id = #{id,jdbcType=VARCHAR}
-        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIdListAndNamespaceId" resultMap="BaseResultMap">

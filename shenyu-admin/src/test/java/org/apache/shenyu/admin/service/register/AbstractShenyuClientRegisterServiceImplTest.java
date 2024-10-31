@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -136,18 +137,18 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Test
     public void testDoRegisterURI() {
-        assertEquals(StringUtils.EMPTY, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", new ArrayList<>()));
+        assertEquals(StringUtils.EMPTY, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
 
         URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().build();
         uriRegisterDTO.setPort(8080);
         uriRegisterDTO.setHost("Host");
-        assertThrows(ShenyuException.class, () -> abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));
+        assertThrows(ShenyuException.class, () -> abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
 
         SelectorDO selectorDO = mock(SelectorDO.class);
         when(selectorService.findByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorDO);
         SelectorData selectorData = new SelectorData();
         when(selectorService.buildByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorData);
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));
+        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
