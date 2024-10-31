@@ -175,15 +175,15 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testFindById() {
-        when(metaDataMapper.selectByIdAndNamespaceId(anyString(), anyString())).thenReturn(null);
-        MetaDataVO dataVo = metaDataService.findByIdAndNamespaceId(anyString(), anyString());
+        when(metaDataMapper.selectById(anyString())).thenReturn(null);
+        MetaDataVO dataVo = metaDataService.findById(anyString());
         Assertions.assertEquals(new MetaDataVO(), dataVo);
 
         final String appName = "appName";
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         metaDataDO.setAppName(appName);
-        when(metaDataMapper.selectByIdAndNamespaceId(anyString(), anyString())).thenReturn(metaDataDO);
-        dataVo = metaDataService.findByIdAndNamespaceId(anyString(), anyString());
+        when(metaDataMapper.selectById(anyString())).thenReturn(metaDataDO);
+        dataVo = metaDataService.findById(anyString());
         assertEquals(appName, dataVo.getAppName());
     }
 
@@ -339,7 +339,7 @@ public final class MetaDataServiceTest {
         when(metaDataDTO.getPath()).thenReturn("path");
         when(metaDataDTO.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
         when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
-        when(metaDataMapper.selectByIdAndNamespaceId("id", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metaDataDO);
+        when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
 
         String msg = metaDataService.createOrUpdate(metaDataDTO);

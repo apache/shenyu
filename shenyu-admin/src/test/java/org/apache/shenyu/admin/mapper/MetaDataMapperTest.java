@@ -62,7 +62,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
         String id = metaDataDO.getId();
-        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(id, SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO result = metaDataMapper.selectById(id);
         assertThat(result.getId(), comparesEqualTo(id));
     }
 
@@ -176,7 +176,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         metaDataDO.setAppName("testAppName_update");
         metaDataMapper.update(metaDataDO);
 
-        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(metaDataDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO result = metaDataMapper.selectById(metaDataDO.getId());
         assertThat(result.getAppName(), comparesEqualTo("testAppName_update"));
     }
 
@@ -189,7 +189,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         metaDataDO.setEnabled(true);
         metaDataMapper.updateEnable(metaDataDO);
 
-        MetaDataDO result = metaDataMapper.selectByIdAndNamespaceId(metaDataDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO result = metaDataMapper.selectById(metaDataDO.getId());
         assertTrue(result.getEnabled());
     }
 

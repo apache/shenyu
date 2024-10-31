@@ -58,17 +58,17 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     @Override
-    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String result;
         String key = key(selectorName);
         try {
             this.removeFallBack(key);
-            result = this.doRegisterURI(selectorName, uriList);
-            LOG.info("Register success: {},{}", selectorName, uriList);
+            result = this.doRegisterURI(selectorName, uriList, namespaceId);
+            LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
             LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
-            this.addFallback(key, new FallbackHolder(selectorName, uriList));
+            this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
         }
         return result;
     }
@@ -81,7 +81,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         FallbackRegisterTask registryTask = new FallbackRegisterTask(key, this);
         fallsRegisters.put(key, holder);
         timer.add(registryTask);
-        LOG.info("Add to Fallback and wait for execution, {}:{}", holder.getSelectorName(), holder.getUriList());
+        LOG.info("Add to Fallback and wait for execution, {}:{}:{}", holder.getNamespaceId(), holder.getSelectorName(), holder.getUriList());
     }
 
     private void removeFallBack(final String key) {
@@ -93,7 +93,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         if (Objects.nonNull(fallbackHolder)) {
             List<URIRegisterDTO> uriList = fallbackHolder.getUriList();
             String selectorName = fallbackHolder.getSelectorName();
-            this.doRegisterURI(selectorName, uriList);
+            this.doRegisterURI(selectorName, uriList, fallbackHolder.getNamespaceId());
             LOG.info("Register success: {},{}", selectorName, uriList);
         }
     }
@@ -109,7 +109,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList);
+    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.
@@ -120,15 +120,18 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
 
         private final List<URIRegisterDTO> uriList;
 
+        private final String namespaceId;
+
         /**
          * Instantiates a new Fall holder.
          *
          * @param selectorName the selector name
          * @param uriList      the uri list
          */
-        FallbackHolder(final String selectorName, final List<URIRegisterDTO> uriList) {
+        FallbackHolder(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             this.selectorName = selectorName;
             this.uriList = uriList;
+            this.namespaceId = namespaceId;
         }
 
         /**
@@ -147,6 +150,15 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          */
         public List<URIRegisterDTO> getUriList() {
             return uriList;
+        }
+
+        /**
+         * Gets namespace id.
+         *
+         * @return the namespace id
+         */
+        public String getNamespaceId() {
+            return namespaceId;
         }
     }
 
