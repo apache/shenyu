@@ -187,6 +187,14 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectAllByNamespaceId(String namespaceId);
 
     /**
+     * list all by namespaceId list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectAllByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * select by condition.
      *
      * @param condition condition

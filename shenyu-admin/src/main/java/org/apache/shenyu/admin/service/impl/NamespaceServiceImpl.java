@@ -54,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -114,34 +113,33 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (ids.contains(Constants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
             return AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE;
         }
-        Optional<NamespaceDO> namespaceDOS = namespaceMapper.selectByIds(ids).stream().findFirst();
-        if (namespaceDOS.isEmpty()) {
+        List<String> namespaceIdList = namespaceMapper.selectByIds(ids).stream().map(NamespaceDO::getNamespaceId).collect(Collectors.toList());
+        if (namespaceIdList.isEmpty()) {
             return AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST;
         }
-        final String namespaceId = namespaceDOS.get().getNamespaceId();
-        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceId(namespaceId);
+        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
         if (!namespacePluginVOS.isEmpty()) {
-            return "Plugins exist under this namespace!";
+            return "Plugins exist under those namespace!";
         }
-        List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceId(namespaceId);
+        List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceIds(namespaceIdList);
         if (!selectorDOS.isEmpty()) {
-            return "selector exist under this namespace!";
+            return "selector exist under those namespace!";
         }
-        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceId(namespaceId);
+        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
         if (!ruleDOList.isEmpty()) {
-            return "rule exist under this namespace!";
+            return "rule exist under those namespace!";
         }
-        List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceId(namespaceId);
+        List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceIds(namespaceIdList);
         if (!metaDataDOList.isEmpty()) {
-            return "metaData exist under this namespace!";
+            return "metaData exist under those namespace!";
         }
-        List<AuthPathDO> authPathDOList = authPathMapper.findByNamespaceId(namespaceId);
+        List<AuthPathDO> authPathDOList = authPathMapper.findByNamespaceIds(namespaceIdList);
         if (!authPathDOList.isEmpty()) {
-            return "authPath exist under this namespace!";
+            return "authPath exist under those namespace!";
         }
-        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceId(namespaceId);
+        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
         if (!discoveryDOList.isEmpty()) {
-            return "discovery exist under this namespace!";
+            return "discovery exist under those namespace!";
         }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;

@@ -130,7 +130,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
 
     @Override
     public List<PluginData> listAll() {
-        return ListUtil.map(namespacePluginRelMapper.selectAllByNamespaceId(), PluginTransfer.INSTANCE::mapToData);
+        return ListUtil.map(namespacePluginRelMapper.selectAll(), PluginTransfer.INSTANCE::mapToData);
     }
 
     @Override
