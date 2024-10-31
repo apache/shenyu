@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
@@ -136,6 +137,9 @@ public final class SelectorServiceTest {
     @Mock
     private SelectorEventPublisher selectorEventPublisher;
 
+    @Mock
+    private NamespacePluginRelMapper namespacePluginRelMapper;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
@@ -198,8 +202,8 @@ public final class SelectorServiceTest {
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectByIdAndNamespaceId(eq("123"), any())).willReturn(selectorDO);
-        SelectorVO selectorVO = this.selectorService.findByIdAndNamespaceId("123", any());
+        given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
+        SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
 

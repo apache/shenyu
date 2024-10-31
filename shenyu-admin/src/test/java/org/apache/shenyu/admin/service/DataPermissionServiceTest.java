@@ -144,7 +144,7 @@ public final class DataPermissionServiceTest {
 
     @Test
     public void assertCreateRule() {
-        given(ruleMapper.selectByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(RuleDO.buildRuleDO(ruleDTO));
+        given(ruleMapper.selectById("1")).willReturn(RuleDO.buildRuleDO(ruleDTO));
         given(dataPermissionMapper.insertSelective(any(DataPermissionDO.class))).willReturn(1);
         assertThat(dataPermissionService.createRule(dataPermissionDTO), is(2));
     }
