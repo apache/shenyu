@@ -39,17 +39,13 @@ import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public class MotanServiceEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuMotanClient> {
 
-    private static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
+    protected static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
 
     private final StandardReflectionParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new StandardReflectionParameterNameDiscoverer();
 
@@ -128,7 +124,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
-                                                   final ShenyuMotanClient shenyuMotanClient,
+                                                   @NonNull final ShenyuMotanClient shenyuMotanClient,
                                                    final String path,
                                                    final Class<?> clazz,
                                                    final Method method,
@@ -142,17 +138,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        String serviceName;
-        if (void.class.equals(service.interfaceClass())) {
-            if (clazz.getInterfaces().length > 0) {
-                serviceName = clazz.getInterfaces()[0].getName();
-            } else {
-                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
-                        + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
-            }
-        } else {
-            serviceName = service.interfaceClass().getName();
-        }
+        String serviceName = getServiceName(clazz, service);
         String protocol = StringUtils.isNotEmpty(service.protocol()) ? service.protocol() : (getProtocolFromExport());
         return MetaDataRegisterDTO.builder()
                 .appName(this.getAppName())
@@ -224,5 +210,20 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
             return export.split(":")[0];
         }
         return "motan2";
+    }
+
+    private String getServiceName(final Class<?> clazz, @Nullable final MotanService service) {
+        String serviceName;
+        if (void.class.equals(service.interfaceClass())) {
+            if (clazz.getInterfaces().length > 0) {
+                serviceName = clazz.getInterfaces()[0].getName();
+            } else {
+                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
+                        + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+            }
+        } else {
+            serviceName = service.interfaceClass().getName();
+        }
+        return serviceName;
     }
 }
