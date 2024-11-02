@@ -178,6 +178,12 @@
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
         </where>
     </select>
 
@@ -191,6 +197,12 @@
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
             </if>
         </where>
     </select>

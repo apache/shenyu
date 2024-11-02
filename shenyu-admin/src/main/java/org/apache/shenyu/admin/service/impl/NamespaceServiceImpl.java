@@ -85,6 +85,11 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public CommonPager<NamespaceVO> listByPage(final NamespaceQuery namespaceQuery) {
+        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        if (CollectionUtils.isEmpty(namespaceIds)) {
+            return new CommonPager<>();
+        }
+        namespaceQuery.setNamespaceIds(namespaceIds);
         return PageResultUtils.result(namespaceQuery.getPageParameter(), () -> namespaceMapper.countByQuery(namespaceQuery), () -> namespaceMapper.selectByQuery(namespaceQuery)
                 .stream()
                 .map(NamespaceTransfer.INSTANCE::mapToVo)
