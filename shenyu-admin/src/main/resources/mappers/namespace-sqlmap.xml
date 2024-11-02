@@ -205,6 +205,19 @@
         </foreach>
     </select>
 
+    <select id="selectByNamespaceIdsAndName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+        <if test="name != null and name != ''">
+            AND name = #{name, jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>

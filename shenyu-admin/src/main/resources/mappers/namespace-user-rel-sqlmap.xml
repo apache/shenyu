@@ -43,6 +43,14 @@
         AND user_id = #{userId, jdbcType=VARCHAR}
     </select>
     
+    <select id="selectListByUserId" parameterType="java.lang.String"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_user_rel
+        WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+    
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.NamespaceUserRelDO">
         INSERT INTO namespace_user_rel
         <trim prefix="(" suffix=")" suffixOverrides=",">

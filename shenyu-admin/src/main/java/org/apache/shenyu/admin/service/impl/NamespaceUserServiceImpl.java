@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceUserRelMapper;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
@@ -32,7 +33,9 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class NamespaceUserServiceImpl implements NamespaceUserService {
@@ -62,6 +65,15 @@ public class NamespaceUserServiceImpl implements NamespaceUserService {
                 .namespaceId(namespaceId)
                 .userId(userId)
                 .build();
+    }
+    
+    @Override
+    public List<String> listNamespaceIdByUserId(final String userId) {
+        List<NamespaceUserRelDO> namespaceUserRelDOS = namespaceUserRelMapper.selectListByUserId(userId);
+        if (Objects.isNull(namespaceUserRelDOS)) {
+            return Lists.newArrayList();
+        }
+        return namespaceUserRelDOS.stream().map(NamespaceUserRelDO::getNamespaceId).collect(Collectors.toList());
     }
     
     @EventListener(value = UserCreatedEvent.class)

@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
 
+import java.util.List;
+
 /**
  * NamespaceUserRelMapper.
  */
@@ -34,6 +36,14 @@ public interface NamespaceUserRelMapper {
      * @return {@linkplain NamespaceUserRelDO}
      */
     NamespaceUserRelDO selectByNamespaceIdAndUserId(String namespaceId, String userId);
+
+    /**
+     * select list by userId.
+     *
+     * @param userId userId
+     * @return {@linkplain List}
+     */
+    List<NamespaceUserRelDO> selectListByUserId(String userId);
     
     /**
      * insert.

@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.query.NamespaceUserQuery;
 import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 
+import java.util.List;
+
 /**
  * this is namespace user service.
  */
@@ -33,5 +35,13 @@ public interface NamespaceUserService extends PageService<NamespaceUserQuery, Na
      * @return namespaceUserVO
      */
     NamespaceUserRelVO create(String namespaceId, String userId);
+    
+    /**
+     * list namespace id by user id.
+     *
+     * @param userId userId.
+     * @return namespace id list.
+     */
+    List<String> listNamespaceIdByUserId(String userId);
 
 }
