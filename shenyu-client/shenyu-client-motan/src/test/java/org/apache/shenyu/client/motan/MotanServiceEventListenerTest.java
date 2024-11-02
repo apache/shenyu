@@ -19,6 +19,13 @@ package org.apache.shenyu.client.motan;
 
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.common.constant.Constants;
@@ -30,22 +37,19 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.BDDMockito.given;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 /**
  * Test for {@link MotanServiceEventListener}.
@@ -121,7 +125,7 @@ public final class MotanServiceEventListenerTest {
                 .port(Integer.parseInt(PORT))
                 .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        Map<String,Object> beans = new HashMap<>();
+        Map<String, Object> beans = new HashMap<>();
         URIRegisterDTO realURIRegisterDTO = motanServiceEventListener.buildURIRegisterDTO(applicationContext, beans, Constants.SYS_DEFAULT_NAMESPACE_ID);
 
         assertEquals(expectedURIRegisterDTO, realURIRegisterDTO);
@@ -172,7 +176,9 @@ public final class MotanServiceEventListenerTest {
         given(applicationContext.getBean(MotanServiceEventListener.BASE_SERVICE_CONFIG)).willReturn(basicServiceConfigBean);
 
         final String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map,java.lang.String";
-        final String expectedRpcExt ="{\"methodInfo\":[{\"methodName\":\"buildURIRegisterDTO\",\"params\":[{\"left\":\"org.springframework.context.ApplicationContext\",\"right\":\"context\"},{\"left\":\"java.util.Map\",\"right\":\"beans\"},{\"left\":\"java.lang.String\",\"right\":\"namespaceId\"}]}],\"timeout\":1000,\"rpcProtocol\":\"motan2\"}";
+        final String expectedRpcExt = "{\"methodInfo\":[{\"methodName\":\"buildURIRegisterDTO\","
+                + "\"params\":[{\"left\":\"org.springframework.context.ApplicationContext\",\"right\":\"context\"},"
+                + "{\"left\":\"java.util.Map\",\"right\":\"beans\"},{\"left\":\"java.lang.String\",\"right\":\"namespaceId\"}]}],\"timeout\":1000,\"rpcProtocol\":\"motan2\"}";
         Method method = MotanServiceEventListener.class.getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class, String.class);
 
         MetaDataRegisterDTO realMetaDataRegisterDTO = motanServiceEventListener.buildMetaDataDTO(
@@ -208,7 +214,7 @@ public final class MotanServiceEventListenerTest {
     @Test
     public void testBuildApiPathSuperPathContainsStar() {
         given(method.getName()).willReturn(METHOD_NAME);
-        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_CONTAINS_STAR,  shenyuMotanClient);
+        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_CONTAINS_STAR, shenyuMotanClient);
         String expectedApiPath = "/motan/demo/buildURIRegisterDTO";
 
         assertEquals(expectedApiPath, realApiPath);
@@ -216,8 +222,8 @@ public final class MotanServiceEventListenerTest {
 
     @Test
     public void testBuildApiPathSuperPathNotContainsStar() {
-        given( shenyuMotanClient.path()).willReturn(PATH);
-        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR,  shenyuMotanClient);
+        given(shenyuMotanClient.path()).willReturn(PATH);
+        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR, shenyuMotanClient);
         String expectedApiPath = "/motan/findByIdsAndName/path";
 
         assertEquals(expectedApiPath, realApiPath);
@@ -256,14 +262,16 @@ public final class MotanServiceEventListenerTest {
 
     @ShenyuMotanClient
     private static class MockShenyuMotanClientClass {
-        public void mockMethod() {}
+        public void mockMethod() {
+
+        }
     }
 
 
-    @MotanService( interfaceClass= Comparable.class)
+    @MotanService(interfaceClass = Comparable.class)
     private class MockMotanServiceClass implements Comparable {
         @Override
-        public int compareTo(@NotNull Object o) {
+        public int compareTo(@NotNull final Object o) {
             return 0;
         }
     }
