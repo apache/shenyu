@@ -25,13 +25,16 @@ import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
+import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
@@ -49,18 +52,22 @@ import java.util.stream.Collectors;
 @Service
 public class NamespaceServiceImpl implements NamespaceService {
 
-    private NamespaceMapper namespaceMapper;
+    private final NamespaceMapper namespaceMapper;
 
-    private NamespacePluginRelMapper namespacePluginRelMapper;
+    private final NamespacePluginRelMapper namespacePluginRelMapper;
 
-    private PluginService pluginService;
+    private final PluginService pluginService;
+    
+    private final NamespaceEventPublisher namespaceEventPublisher;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
-                                final PluginService pluginService) {
+                                final PluginService pluginService,
+                                final NamespaceEventPublisher namespaceEventPublisher) {
         this.namespaceMapper = namespaceMapper;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginService = pluginService;
+        this.namespaceEventPublisher = namespaceEventPublisher;
     }
 
     @Override
@@ -139,6 +146,10 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
         namespacePluginRelMapper.batchSave(pluginNsRelList);
+        
+        // publish event
+        namespaceEventPublisher.publish(new NamespaceCreatedEvent(namespaceDO, SessionUtil.visitorId()));
+        
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 

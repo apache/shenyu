@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceUserRelMapper;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
+import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
+import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.event.user.UserCreatedEvent;
 import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 import org.apache.shenyu.admin.service.NamespaceUserService;
@@ -69,5 +71,14 @@ public class NamespaceUserServiceImpl implements NamespaceUserService {
             return;
         }
         create(Constants.SYS_DEFAULT_NAMESPACE_ID, dashboardUserDO.getId());
+    }
+    
+    @EventListener(value = NamespaceCreatedEvent.class)
+    public void onNamespaceCreated(final NamespaceCreatedEvent event) {
+        NamespaceDO namespaceDO = (NamespaceDO) event.getSource();
+        if (Objects.isNull(namespaceDO)) {
+            return;
+        }
+        create(namespaceDO.getNamespaceId(), event.getUserId());
     }
 }

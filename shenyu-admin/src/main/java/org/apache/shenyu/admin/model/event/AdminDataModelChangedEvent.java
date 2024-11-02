@@ -49,6 +49,11 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
     private final String operator;
     
     /**
+     * userId.
+     */
+    private final String userId;
+    
+    /**
      * consumed.
      */
     private boolean consumed;
@@ -78,6 +83,19 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
      * @param operator operator,default is unknown
      */
     public AdminDataModelChangedEvent(final Object source, final Object before, final EventTypeEnum type, final String operator) {
+        this(source, before, type, operator, null);
+    }
+    
+    /**
+     * Create a new {@code ApplicationEvent}.
+     *
+     * @param source   Current data state
+     * @param before   Before the change data state
+     * @param type     event type
+     * @param operator operator,default is unknown
+     * @param userId   user id
+     */
+    public AdminDataModelChangedEvent(final Object source, final Object before, final EventTypeEnum type, final String operator, final String userId) {
         super(source);
         this.type = type;
         this.before = before;
@@ -85,6 +103,7 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
         this.operator = Objects.isNull(operator) ? "unknown" : operator;
         this.consumed = false;
         this.date = new Date();
+        this.userId = userId;
     }
     
     
@@ -122,6 +141,15 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
      */
     public String getOperator() {
         return operator;
+    }
+    
+    /**
+     * get userId.
+     *
+     * @return userId
+     */
+    public String getUserId() {
+        return userId;
     }
     
     /**
