@@ -60,7 +60,7 @@ public class PermissionControllerTest {
                         new Meta("icon", "title"), Collections.emptyList(), 0)),
                 Collections.singletonList(new AuthPerm("perms1", "description1", "icon")),
                 Collections.singletonList(new AuthPerm("perms2", "description2", "icon")));
-        when(mockPermissionService.getPermissionMenu("token")).thenReturn(permissionMenuVO);
+        when(mockPermissionService.getPermissionMenu("namespaceId")).thenReturn(permissionMenuVO);
         final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token", "namespaceId");
         assertThat(result.getCode(), is(CommonErrorCode.SUCCESSFUL));
         assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_SUCCESS));
@@ -69,7 +69,7 @@ public class PermissionControllerTest {
 
     @Test
     public void testGetUserPermissionByTokenNull() {
-        when(mockPermissionService.getPermissionMenu("token")).thenReturn(null);
+        when(mockPermissionService.getPermissionMenu("namespaceId")).thenReturn(null);
         final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token", "namespaceId");
         assertThat(result.getCode(), is(CommonErrorCode.ERROR));
         assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_FAILED));
