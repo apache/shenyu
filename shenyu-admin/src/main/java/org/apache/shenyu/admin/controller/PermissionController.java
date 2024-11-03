@@ -43,6 +43,7 @@ public class PermissionController {
      * get menu by token.
      *
      * @param token login success ack token
+     * @param namespaceId namespace id
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/getUserPermissionByToken")
