@@ -18,38 +18,44 @@
 package org.apache.shenyu.client.motan;
 
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
+import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.BDDMockito.given;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
-
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.mockito.BDDMockito.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Test for {@link MotanServiceEventListener}.
  */
 @ExtendWith(MockitoExtension.class)
-public class MotanServiceEventListenerTest {
+public final class MotanServiceEventListenerTest {
 
     private static final String CONTEXT_PATH = "/motan";
 
@@ -77,12 +83,6 @@ public class MotanServiceEventListenerTest {
 
     private static final String CONFIG_RULE_NAME = "configRuleName";
 
-    private static final String LOAD_BALANCE = "loadBalance";
-
-    private static final int RETRY_TIME = 0;
-
-    private static final int TIME_OUT = 0;
-
     private static final boolean ENABLED = true;
 
     @InjectMocks
@@ -98,16 +98,20 @@ public class MotanServiceEventListenerTest {
     private Method method;
 
     @Mock
-    private ServiceFactoryBean serviceFactoryBean;
-
-    @Mock
-    private ContextRefreshedEvent contextRefreshedEvent;
+    private BasicServiceConfigBean basicServiceConfigBean;
 
     @Test
     public void testGetBeans() {
-        motanServiceEventListener.getBeans(applicationContext);
+        given(applicationContext.getBean(MotanServiceEventListener.BASE_SERVICE_CONFIG)).willReturn(basicServiceConfigBean);
+        given(basicServiceConfigBean.getGroup()).willReturn("testGroup");
+        Map<String, Object> mockBeans = new HashMap<>();
+        mockBeans.put("bean1", new Object());
+        given(applicationContext.getBeansWithAnnotation(ShenyuMotanClient.class)).willReturn(mockBeans);
+        Map<String, Object> result = motanServiceEventListener.getBeans(applicationContext);
 
-        verify(applicationContext, times(1)).getBeansOfType(ShenyuMotanclient.class);
+        assertEquals(mockBeans, result);
+        verify(applicationContext, times(1)).getBean(MotanServiceEventListener.BASE_SERVICE_CONFIG);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(ShenyuMotanClient.class);
     }
 
     @Test
@@ -119,9 +123,10 @@ public class MotanServiceEventListenerTest {
                 .eventType(EventType.REGISTER)
                 .host(HOST)
                 .port(Integer.parseInt(PORT))
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
-        Map<String,Object> beans = new HashMap<>();
-        URIRegisterDTO realURIRegisterDTO = motanServiceEventListener.buildURIRegisterDTO(applicationContext, beans);
+        Map<String, Object> beans = new HashMap<>();
+        URIRegisterDTO realURIRegisterDTO = motanServiceEventListener.buildURIRegisterDTO(applicationContext, beans, Constants.SYS_DEFAULT_NAMESPACE_ID);
 
         assertEquals(expectedURIRegisterDTO, realURIRegisterDTO);
     }
@@ -164,41 +169,32 @@ public class MotanServiceEventListenerTest {
 
     @Test
     public void testBuildMetaDataDTOForMotan() throws NoSuchMethodException {
- 
-        Method method = MotanServiceEventListener.class.getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class);
-    
-       
         given(shenyuMotanClient.desc()).willReturn(DESC);
         given(shenyuMotanClient.ruleName()).willReturn(CONFIG_RULE_NAME);
         given(shenyuMotanClient.enabled()).willReturn(ENABLED);
-        given(shenyuMotanClient.loadBalance()).willReturn(LOAD_BALANCE);
-        given(shenyuMotanClient.retries()).willReturn(RETRY_TIME);
-        given(shenyuMotanClient.timeout()).willReturn(TIME_OUT);
-    
-      
-        BasicServiceConfigBean basicServiceConfigBean = mock(BasicServiceConfigBean.class);
         given(basicServiceConfigBean.getRequestTimeout()).willReturn(1000);
-        given(applicationContext.getBean(BASE_SERVICE_CONFIG)).willReturn(basicServiceConfigBean);
-    
-        
-        String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map,com.alipay.motan.runtime.spring.factory.Object";
-        String expectedPath = "/motan/findByIdsAndName/path";
-        String expectedRpcExt ="{\"loadbalance\":\"loadBalance\",\"retries\":0,\"timeout\":0}";
-    
-        
+        given(applicationContext.getBean(MotanServiceEventListener.BASE_SERVICE_CONFIG)).willReturn(basicServiceConfigBean);
+
+        final String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map,java.lang.String";
+        final String expectedRpcExt = "{\"methodInfo\":[{\"methodName\":\"buildURIRegisterDTO\","
+                + "\"params\":[{\"left\":\"org.springframework.context.ApplicationContext\",\"right\":\"context\"},"
+                + "{\"left\":\"java.util.Map\",\"right\":\"beans\"},{\"left\":\"java.lang.String\",\"right\":\"namespaceId\"}]}],\"timeout\":1000,\"rpcProtocol\":\"motan2\"}";
+        Method method = MotanServiceEventListener.class.getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class, String.class);
+
         MetaDataRegisterDTO realMetaDataRegisterDTO = motanServiceEventListener.buildMetaDataDTO(
-                Object,
+                null,
                 shenyuMotanClient,
                 SUPER_PATH_NOT_CONTAINS_STAR,
-                MotanServiceEventListener.class,
-                method);
+                MockMotanServiceClass.class,
+                method,
+                Constants.SYS_DEFAULT_NAMESPACE_ID);
     
         MetaDataRegisterDTO expectedMetaDataRegisterDTO = MetaDataRegisterDTO.builder()
             .appName(APP_NAME)
             .serviceName(SERVICE_NAME)
             .methodName(METHOD_NAME)
             .contextPath(CONTEXT_PATH)
-            .path(expectedPath)
+            .path(SUPER_PATH_NOT_CONTAINS_STAR)
             .port(Integer.parseInt(PORT))
             .host(HOST)
             .ruleName(CONFIG_RULE_NAME)
@@ -207,6 +203,7 @@ public class MotanServiceEventListenerTest {
             .rpcType(RpcTypeEnum.MOTAN.getName())
             .rpcExt(expectedRpcExt)
             .enabled(ENABLED)
+            .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
             .build();
     
         assertEquals(expectedMetaDataRegisterDTO, realMetaDataRegisterDTO);
@@ -217,7 +214,7 @@ public class MotanServiceEventListenerTest {
     @Test
     public void testBuildApiPathSuperPathContainsStar() {
         given(method.getName()).willReturn(METHOD_NAME);
-        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_CONTAINS_STAR,  methodShenyuClient);
+        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_CONTAINS_STAR, shenyuMotanClient);
         String expectedApiPath = "/motan/demo/buildURIRegisterDTO";
 
         assertEquals(expectedApiPath, realApiPath);
@@ -225,8 +222,8 @@ public class MotanServiceEventListenerTest {
 
     @Test
     public void testBuildApiPathSuperPathNotContainsStar() {
-        given( methodShenyuClient.path()).willReturn(PATH);
-        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR,  methodShenyuClient);
+        given(shenyuMotanClient.path()).willReturn(PATH);
+        String realApiPath = motanServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR, shenyuMotanClient);
         String expectedApiPath = "/motan/findByIdsAndName/path";
 
         assertEquals(expectedApiPath, realApiPath);
@@ -242,15 +239,40 @@ public class MotanServiceEventListenerTest {
         properties.setProperty("username", USERNAME);
         properties.setProperty("password", PASSWORD);
         properties.setProperty("appName", APP_NAME);
-        PropertiesConfig config = new PropertiesConfig();
+        ClientPropertiesConfig config = new ClientPropertiesConfig();
         config.setProps(properties);
 
-        ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
-        mockRegisterCenter.setServerLists("http://localhost:58080");
-        mockRegisterCenter.setRegisterType("http");
-        mockRegisterCenter.setProps(properties);
-
-        return new MotanServiceEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
+        shenyuRegisterCenterConfig.setServerLists("http://localhost:58080");
+        shenyuRegisterCenterConfig.setRegisterType("http");
+        shenyuRegisterCenterConfig.setProps(properties);
+        ShenyuClientConfig clientConfig = new ShenyuClientConfig();
+        Map<String, ShenyuClientConfig.ClientPropertiesConfig> client = new LinkedHashMap<>();
+        client.put(RpcTypeEnum.MOTAN.getName(), config);
+        clientConfig.setClient(client);
+        return new MotanServiceEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(shenyuRegisterCenterConfig));
     }
 
+    @Test
+    public void testBuildApiDocSextet() throws NoSuchMethodException {
+        Method method = MockShenyuMotanClientClass.class.getDeclaredMethod("mockMethod");
+        ReflectionUtils.makeAccessible(method);
+        assertNull(motanServiceEventListener.buildApiDocSextet(method, mock(Annotation.class), Collections.emptyMap()));
+    }
+
+    @ShenyuMotanClient
+    private static class MockShenyuMotanClientClass {
+        public void mockMethod() {
+
+        }
+    }
+
+
+    @MotanService(interfaceClass = Comparable.class)
+    private class MockMotanServiceClass implements Comparable {
+        @Override
+        public int compareTo(@NotNull final Object o) {
+            return 0;
+        }
+    }
 }
