@@ -271,6 +271,27 @@
         npr.id ASC
     </select>
 
+    <select id="selectByNamespaceId" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
+        SELECT
+        npr.id as id,
+        npr.namespace_id AS namespaceId,
+        npr.plugin_id AS pluginId,
+        npr.config AS config,
+        npr.sort AS sort,
+        npr.enabled AS enabled,
+        npr.date_created AS dateCreated,
+        npr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.name AS name,
+        p.plugin_jar AS pluginJar
+        FROM namespace_plugin_rel npr
+        LEFT JOIN plugin p ON p.id = npr.plugin_id
+        WHERE npr.namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        ORDER BY
+        sort,
+        npr.id ASC
+    </select>
+
 
     <update id="updateEnableByIdList">
         UPDATE namespace_plugin_rel
