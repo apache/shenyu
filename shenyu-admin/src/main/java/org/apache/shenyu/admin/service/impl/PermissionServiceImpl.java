@@ -74,11 +74,11 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * get user permission menu by token.
      *
-     * @param token logon ack token.
+     * @param namespaceId namespace id.
      * @return {@linkplain PermissionMenuVO}
      */
     @Override
-    public PermissionMenuVO getPermissionMenu(final String token) {
+    public PermissionMenuVO getPermissionMenu(final String namespaceId) {
         UserInfo userInfo = JwtUtils.getUserInfo();
         if (Objects.isNull(userInfo)) {
             return null;
