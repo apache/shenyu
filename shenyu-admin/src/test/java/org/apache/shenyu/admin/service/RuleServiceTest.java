@@ -126,7 +126,7 @@ public final class RuleServiceTest {
     public void testDelete() {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
+        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
         given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
@@ -135,12 +135,12 @@ public final class RuleServiceTest {
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleDO);
+        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleVO ruleVO = buildRuleVO();
-        final RuleVO ruleVOById = this.ruleService.findByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID);
+        final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
     }
@@ -202,7 +202,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindSelectorIsNull() {
-        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_ID)).willReturn(null);
+        given(this.selectorMapper.selectById("456")).willReturn(null);
         given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
     }
 
@@ -213,7 +213,7 @@ public final class RuleServiceTest {
     }
 
     private void mockFindPluginIsNull() {
-        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_ID)).willReturn(buildSelectorDO());
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
         given(this.pluginMapper.selectById("789")).willReturn(null);
     }
 
@@ -260,7 +260,7 @@ public final class RuleServiceTest {
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectByIdAndNamespaceId("456", SYS_DEFAULT_NAMESPACE_ID)).willReturn(selectorDO);
+        given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
         given(this.pluginMapper.selectById("789")).willReturn(pluginDO);
         given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));
@@ -294,7 +294,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        given(this.ruleMapper.selectByIdAndNamespaceId("123", SYS_DEFAULT_NAMESPACE_ID)).willReturn(RuleDO.builder().id("123").build());
+        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }

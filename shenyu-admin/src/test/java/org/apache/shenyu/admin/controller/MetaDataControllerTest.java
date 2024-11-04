@@ -145,8 +145,8 @@ public final class MetaDataControllerTest {
 
     @Test
     public void testEditor() throws Exception {
-        given(this.metaDataService.findByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(metaDataVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}/{namespaceId}", "1", SYS_DEFAULT_NAMESPACE_ID))
+        given(this.metaDataService.findById("1")).willReturn(metaDataVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.appName", is(metaDataVO.getAppName())))
