@@ -122,7 +122,11 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                     .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)
                     ).orElse(topic);
             try {
-                producer.send(toProducerRecord(logTopic, log));
+                producer.send(toProducerRecord(logTopic, log), (metadata, exception) -> {
+                    if (Objects.nonNull(exception)) {
+                        LOG.error("kafka push logs error", exception);
+                    }
+                });
             } catch (Exception e) {
                 LOG.error("kafka push logs error", e);
             }
