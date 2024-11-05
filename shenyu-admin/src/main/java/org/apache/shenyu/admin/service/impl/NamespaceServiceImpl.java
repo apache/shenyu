@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -114,31 +115,31 @@ public class NamespaceServiceImpl implements NamespaceService {
             return AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE;
         }
         List<String> namespaceIdList = namespaceMapper.selectByIds(ids).stream().map(NamespaceDO::getNamespaceId).collect(Collectors.toList());
-        if (namespaceIdList.isEmpty()) {
+        if (CollectionUtils.isEmpty(namespaceIdList)) {
             return AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST;
         }
         List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (!namespacePluginVOS.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(namespacePluginVOS)) {
             return "Plugins exist under those namespace!";
         }
         List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (!selectorDOS.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(selectorDOS)) {
             return "selector exist under those namespace!";
         }
         List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (!ruleDOList.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(ruleDOList)) {
             return "rule exist under those namespace!";
         }
         List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceIds(namespaceIdList);
-        if (!metaDataDOList.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(metaDataDOList)) {
             return "metaData exist under those namespace!";
         }
         List<AuthPathDO> authPathDOList = authPathMapper.findByNamespaceIds(namespaceIdList);
-        if (!authPathDOList.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(authPathDOList)) {
             return "authPath exist under those namespace!";
         }
         List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (!discoveryDOList.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(discoveryDOList)) {
             return "discovery exist under those namespace!";
         }
         namespaceMapper.deleteByIds(ids);
