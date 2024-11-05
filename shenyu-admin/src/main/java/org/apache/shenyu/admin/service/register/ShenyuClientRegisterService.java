@@ -68,6 +68,7 @@ public interface ShenyuClientRegisterService {
      *
      * @param selectorName the selector name
      * @param uriList the uri list
+     * @param namespaceId the namespace id
      * @return the string
      */
     default String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
