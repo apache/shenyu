@@ -126,19 +126,7 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        List<PluginData> pluginData = pluginService.listAll();
-        List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .pluginId(s.getId())
-                .config(s.getConfig())
-                .sort(s.getSort())
-                .enabled(s.getEnabled())
-                .namespaceId(namespaceId)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
-        namespacePluginRelMapper.batchSave(pluginNsRelList);
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 
