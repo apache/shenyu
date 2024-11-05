@@ -18,13 +18,13 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://code.alibabatech.com/schema/dubbo
-       https://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+       http://dubbo.apache.org/schema/dubbo
+       https://dubbo.apache.org/schema/dubbo/dubbo.xsd">
 
-    <dubbo:application name="test-dubbo-service"/>
+    <dubbo:application name="test-dubbo-service" serialize-check-status="DISABLE"/>
     <dubbo:registry address="${dubbo.registry.address}"/>
     <dubbo:protocol name="dubbo" port="20888"/>
 
