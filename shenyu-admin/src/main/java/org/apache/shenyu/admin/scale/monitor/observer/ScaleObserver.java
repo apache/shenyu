@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.scale.monitor.observer;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleRuleEvaluator;
-import org.apache.shenyu.admin.scale.scaler.K8sScaler;
+import org.apache.shenyu.admin.scale.scaler.KubernetesScaler;
 import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +29,12 @@ public class ScaleObserver implements Observer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScaleObserver.class);
 
-    private final K8sScaler k8sScaler;
+    private final KubernetesScaler kubernetesScaler;
 
     private final ScaleRuleEvaluator ruleEvaluator;
 
-    public ScaleObserver(final K8sScaler k8sScaler, final ScaleRuleEvaluator ruleEvaluator) {
-        this.k8sScaler = k8sScaler;
+    public ScaleObserver(final KubernetesScaler kubernetesScaler, final ScaleRuleEvaluator ruleEvaluator) {
+        this.kubernetesScaler = kubernetesScaler;
         this.ruleEvaluator = ruleEvaluator;
     }
 
@@ -43,7 +43,7 @@ public class ScaleObserver implements Observer {
         try {
             ScaleAction action = ruleEvaluator.evaluate(metricData, rule);
             if (action != null) {
-                k8sScaler.scaleByAction(action);
+                kubernetesScaler.scaleByAction(action);
             }
         } catch (Exception e) {
             LOG.error("update observer error. cause: {} ", e.getMessage());

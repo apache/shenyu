@@ -100,15 +100,12 @@ public class MetaDataController {
      * Get detail of metadata.
      *
      * @param id the id
-     * @param namespaceId namespaceId.
      * @return the shenyu result
      */
-    @GetMapping("/{id}/{namespaceId}")
+    @GetMapping("/{id}")
     @RequiresPermissions("system:meta:edit")
-    public ShenyuAdminResult detail(@PathVariable("id") final String id,
-                                    @PathVariable("namespaceId") @Valid
-                                    @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findByIdAndNamespaceId(id, namespaceId));
+    public ShenyuAdminResult detail(@PathVariable("id") final String id) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findById(id));
     }
 
     /**

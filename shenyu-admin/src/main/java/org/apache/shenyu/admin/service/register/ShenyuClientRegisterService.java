@@ -56,9 +56,10 @@ public interface ShenyuClientRegisterService {
      *
      * @param selectorName the selector name
      * @param uriList the uri list
+     * @param namespaceId the namespace id
      * @return the string
      */
-    default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return Constants.SUCCESS;
     }
     
@@ -78,9 +79,10 @@ public interface ShenyuClientRegisterService {
      *
      * @param selectorName the selector name
      * @param uriList the uri list
+     * @param namespaceId the namespace id
      * @return the string
      */
-    default String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
+    default String offline(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return Constants.SUCCESS;
     }
     
