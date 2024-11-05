@@ -74,8 +74,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     }
     
     @Override
-    public String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
-        return doHeartbeat(selectorName, uriList);
+    public String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doHeartbeat(selectorName, uriList, namespaceId);
     }
     
     private void addFallback(final String key, final FallbackHolder holder) {
@@ -123,7 +123,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String doHeartbeat(String selectorName, List<URIRegisterDTO> uriList);
+    abstract String doHeartbeat(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.

@@ -177,7 +177,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
-        String namespaceId = uriList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
@@ -201,11 +200,10 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     }
     
     @Override
-    public String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
-        String namespaceId = uriList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {

@@ -92,7 +92,10 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                                         .ifPresent(namespaceId -> service.registerURI(selectorName, register, namespaceId));
                             }
                             if (CollectionUtils.isNotEmpty(heartbeat)) {
-                                service.heartbeat(selectorName, heartbeat);
+                                heartbeat.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
+                                        .findFirst()
+                                        .ifPresent(namespaceId -> service.heartbeat(selectorName, register, namespaceId));
                             }
                             if (CollectionUtils.isNotEmpty(offline)) {
                                 offline.stream().map(URIRegisterDTO::getNamespaceId)

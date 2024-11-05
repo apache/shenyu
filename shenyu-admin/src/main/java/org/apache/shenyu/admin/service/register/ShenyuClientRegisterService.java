@@ -70,7 +70,7 @@ public interface ShenyuClientRegisterService {
      * @param uriList the uri list
      * @return the string
      */
-    default String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+    default String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return Constants.SUCCESS;
     }
     

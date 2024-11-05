@@ -52,7 +52,7 @@ class FallbackShenyuClientRegisterServiceTest {
         }
         
         @Override
-        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             return "doHeartbeat";
         }
         
@@ -80,7 +80,7 @@ class FallbackShenyuClientRegisterServiceTest {
         }
         
         @Override
-        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList) {
+        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         
