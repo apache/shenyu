@@ -173,7 +173,8 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
@@ -193,7 +194,8 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
@@ -226,7 +228,8 @@
             #{namespaceId, jdbcType=VARCHAR}
         </foreach>
         <if test="name != null and name != ''">
-            AND name = #{name, jdbcType=VARCHAR}
+            <bind name="nameLike" value="('%' + name + '%')"/>
+            AND name LIKE #{nameLike, jdbcType=VARCHAR}
         </if>
     </select>
 
