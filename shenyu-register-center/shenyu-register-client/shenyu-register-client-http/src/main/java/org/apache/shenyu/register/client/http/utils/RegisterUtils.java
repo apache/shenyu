@@ -65,6 +65,23 @@ public final class RegisterUtils {
             LOGGER.error("{} client register error: {} ", type, json);
         }
     }
+    
+    /**
+     * Do register.
+     *
+     * @param json the json
+     * @param url  the url
+     * @param type the type
+     * @throws IOException the io exception
+     */
+    public static void doRegister(final String json, final String url, final String type) throws IOException {
+        String result = OkHttpTools.getInstance().post(url, json);
+        if (Objects.equals(SUCCESS, result)) {
+            LOGGER.info("{} client register success: {} ", type, json);
+        } else {
+            LOGGER.error("{} client register error: {} ", type, json);
+        }
+    }
 
     /**
      * Do heartbeat.
@@ -86,23 +103,6 @@ public final class RegisterUtils {
             LOGGER.info("{} success: {} ", type, json);
         } else {
             LOGGER.error("{} error: {} ", type, json);
-        }
-    }
-    
-    /**
-     * Do register.
-     *
-     * @param json the json
-     * @param url  the url
-     * @param type the type
-     * @throws IOException the io exception
-     */
-    public static void doRegister(final String json, final String url, final String type) throws IOException {
-        String result = OkHttpTools.getInstance().post(url, json);
-        if (Objects.equals(SUCCESS, result)) {
-            LOGGER.info("{} client register success: {} ", type, json);
-        } else {
-            LOGGER.error("{} client register error: {} ", type, json);
         }
     }
     
