@@ -38,6 +38,7 @@ shenyu:
 dubbo:
   application:
     name: test-dubbo-service
+    serialize-check-status: DISABLE
   registry:
     address: nacos://127.0.0.1:8848
   protocol:
