@@ -153,6 +153,16 @@
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE plugin_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
             resultType="java.lang.Integer">
         SELECT COUNT(1)
