@@ -103,7 +103,6 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
-    //todo:[Namespace] Synchronize based on namespaceId
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
