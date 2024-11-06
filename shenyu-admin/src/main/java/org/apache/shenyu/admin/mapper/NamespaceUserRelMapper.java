@@ -15,30 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.mapper;
 
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * this is permission service.
+ * NamespaceUserRelMapper.
  */
-public interface PermissionService {
+@Mapper
+public interface NamespaceUserRelMapper {
+    
+    /**
+     * select by namespaceId and userId.
+     *
+     * @param namespaceId namespaceId
+     * @param userId userId
+     * @return {@linkplain NamespaceUserRelDO}
+     */
+    NamespaceUserRelDO selectByNamespaceIdAndUserId(String namespaceId, String userId);
 
     /**
-     * get user permission menu by token.
+     * select list by userId.
      *
-     * @param namespaceId namespace id.
-     * @return {@linkplain PermissionMenuVO}
+     * @param userId userId
+     * @return {@linkplain List}
      */
-    PermissionMenuVO getPermissionMenu(String namespaceId);
-
+    List<NamespaceUserRelDO> selectListByUserId(String userId);
+    
     /**
-     * get AuthPerm By UserName.
+     * insert.
      *
-     * @param userName user name.
-     * @return {@linkplain Set}
+     * @param namespaceUserRelDO {@linkplain NamespaceUserRelDO}
      */
-    Set<String> getAuthPermByUserName(String userName);
+    void insertSelective(NamespaceUserRelDO namespaceUserRelDO);
 }

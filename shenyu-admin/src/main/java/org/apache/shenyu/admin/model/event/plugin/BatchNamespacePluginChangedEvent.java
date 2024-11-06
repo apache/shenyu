@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -58,6 +59,6 @@ public class BatchNamespacePluginChangedEvent extends BatchChangedEvent {
 
     @Override
     public String eventName() {
-        return "namespacePlugin";
+        return Constants.EVENT_NAME_NAMESPACE_PLUGIN;
     }
 }

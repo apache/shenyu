@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -72,6 +73,6 @@ public class RoleChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "role";
+        return Constants.EVENT_NAME_ROLE;
     }
 }

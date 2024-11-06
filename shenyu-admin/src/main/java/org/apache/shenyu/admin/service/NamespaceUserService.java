@@ -17,28 +17,31 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
+import org.apache.shenyu.admin.model.query.NamespaceUserQuery;
+import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * this is permission service.
+ * this is namespace user service.
  */
-public interface PermissionService {
+public interface NamespaceUserService extends PageService<NamespaceUserQuery, NamespaceUserRelVO> {
 
     /**
-     * get user permission menu by token.
+     * create namespace user rel.
      *
-     * @param namespaceId namespace id.
-     * @return {@linkplain PermissionMenuVO}
+     * @param namespaceId        namespaceId.
+     * @param userId           userId.
+     * @return namespaceUserVO
      */
-    PermissionMenuVO getPermissionMenu(String namespaceId);
-
+    NamespaceUserRelVO create(String namespaceId, String userId);
+    
     /**
-     * get AuthPerm By UserName.
+     * list namespace id by user id.
      *
-     * @param userName user name.
-     * @return {@linkplain Set}
+     * @param userId userId.
+     * @return namespace id list.
      */
-    Set<String> getAuthPermByUserName(String userName);
+    List<String> listNamespaceIdByUserId(String userId);
+
 }
