@@ -80,7 +80,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Override
     public NamespacePluginVO create(final String namespaceId, final String pluginId) {
         NamespacePluginVO existNamespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
-        if (!Objects.isNull(existNamespacePluginVO)) {
+        if (Objects.nonNull(existNamespacePluginVO)) {
             throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
