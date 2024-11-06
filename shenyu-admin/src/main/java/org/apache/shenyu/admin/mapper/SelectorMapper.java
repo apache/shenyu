@@ -87,6 +87,14 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
+     * Find list by plugin id.
+     *
+     * @param pluginIds   the plugin ids
+     * @return the list
+     */
+    List<SelectorDO> findByPluginIds(@Param("list") List<String> pluginIds);
+
+    /**
      * select list by name and namespaceId.
      *
      * @param name        the name
