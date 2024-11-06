@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
-import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
@@ -35,7 +34,6 @@ import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
@@ -126,19 +124,7 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        List<PluginData> pluginData = pluginService.listAll();
-        List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .pluginId(s.getId())
-                .config(s.getConfig())
-                .sort(s.getSort())
-                .enabled(s.getEnabled())
-                .namespaceId(namespaceId)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
-        namespacePluginRelMapper.batchSave(pluginNsRelList);
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 
