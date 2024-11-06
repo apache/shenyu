@@ -153,10 +153,6 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateUpdated(currentTime)
                 .build();
         namespaceMapper.insert(namespaceDO);
-        namespacePluginRelMapper.batchSave(pluginNsRelList);
-        
-        // publish event
-        namespaceEventPublisher.publish(new NamespaceCreatedEvent(namespaceDO, SessionUtil.visitorId()));
         
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
