@@ -24,12 +24,14 @@ import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
+import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -51,11 +53,15 @@ public class NamespaceServiceImpl implements NamespaceService {
     private final NamespaceMapper namespaceMapper;
     
     private final NamespaceUserService namespaceUserService;
+    
+    private final NamespaceEventPublisher namespaceEventPublisher;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
-                                final NamespaceUserService namespaceUserService) {
+                                final NamespaceUserService namespaceUserService,
+                                final NamespaceEventPublisher namespaceEventPublisher) {
         this.namespaceMapper = namespaceMapper;
         this.namespaceUserService = namespaceUserService;
+        this.namespaceEventPublisher = namespaceEventPublisher;
     }
 
     @Override
@@ -136,6 +142,8 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateUpdated(currentTime)
                 .build();
         namespaceMapper.insert(namespaceDO);
+        
+        namespaceEventPublisher.publish(new NamespaceCreatedEvent(namespaceDO, SessionUtil.visitorId()));
         
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
