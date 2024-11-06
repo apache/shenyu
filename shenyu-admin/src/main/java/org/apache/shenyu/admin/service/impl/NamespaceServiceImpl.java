@@ -22,19 +22,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
-import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
-import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
-import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -54,24 +49,12 @@ import java.util.stream.Collectors;
 public class NamespaceServiceImpl implements NamespaceService {
 
     private final NamespaceMapper namespaceMapper;
-
-    private final NamespacePluginRelMapper namespacePluginRelMapper;
-
-    private final PluginService pluginService;
-    
-    private final NamespaceEventPublisher namespaceEventPublisher;
     
     private final NamespaceUserService namespaceUserService;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
-                                final NamespacePluginRelMapper namespacePluginRelMapper,
-                                final PluginService pluginService,
-                                final NamespaceEventPublisher namespaceEventPublisher,
                                 final NamespaceUserService namespaceUserService) {
         this.namespaceMapper = namespaceMapper;
-        this.namespacePluginRelMapper = namespacePluginRelMapper;
-        this.pluginService = pluginService;
-        this.namespaceEventPublisher = namespaceEventPublisher;
         this.namespaceUserService = namespaceUserService;
     }
 
