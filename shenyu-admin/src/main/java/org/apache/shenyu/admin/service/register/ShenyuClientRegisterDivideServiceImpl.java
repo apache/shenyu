@@ -37,7 +37,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -80,10 +79,6 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
-        if (isEventDeleted) {
-            addList.get(0).setStatus(false);
-        }
         List<DivideUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
@@ -108,7 +103,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort(), dto.getNamespaceId()))
+                .map(dto -> CommonUpstreamUtils.buildDivideUpstream(dto.getProtocol(), dto.getHost(), dto.getPort(), dto.getNamespaceId(), dto.getEventType()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 

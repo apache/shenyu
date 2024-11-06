@@ -78,9 +78,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 LOG.info("received DataChangedEvent, not master, pass");
                 return;
             }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("received DataChangedEvent, dispatching, event:{}", JsonUtils.toJson(event));
-            }
+            LOG.info("received DataChangedEvent, dispatching, event:{}", JsonUtils.toJson(event));
             switch (event.getGroupKey()) {
                 case APP_AUTH:
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
