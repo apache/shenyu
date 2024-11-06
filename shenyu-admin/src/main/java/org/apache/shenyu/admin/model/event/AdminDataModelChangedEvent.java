@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.event;
 
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.common.constant.Constants;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.Date;
@@ -211,6 +212,6 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
      * @return name
      */
     public String eventName() {
-        return "data";
+        return Constants.EVENT_NAME_DATA;
     }
 }

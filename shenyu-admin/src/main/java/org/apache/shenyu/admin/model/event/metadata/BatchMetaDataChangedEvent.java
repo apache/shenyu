@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -61,6 +62,6 @@ public class BatchMetaDataChangedEvent extends BatchChangedEvent {
 
     @Override
     public String eventName() {
-        return "meta data";
+        return Constants.EVENT_NAME_META_DATA;
     }
 }

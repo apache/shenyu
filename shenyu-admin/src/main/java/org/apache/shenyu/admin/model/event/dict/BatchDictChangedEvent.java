@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -54,6 +55,6 @@ public class BatchDictChangedEvent extends BatchChangedEvent {
     
     @Override
     public String eventName() {
-        return "dict";
+        return Constants.EVENT_NAME_DICT;
     }
 }

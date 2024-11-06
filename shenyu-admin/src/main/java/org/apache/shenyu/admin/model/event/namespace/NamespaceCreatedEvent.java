@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.event.namespace;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 /**
  * NamespaceCreatedEvent.
@@ -39,7 +40,7 @@ public class NamespaceCreatedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "namespace";
+        return Constants.EVENT_NAME_NAMESPACE;
     }
     
 }
