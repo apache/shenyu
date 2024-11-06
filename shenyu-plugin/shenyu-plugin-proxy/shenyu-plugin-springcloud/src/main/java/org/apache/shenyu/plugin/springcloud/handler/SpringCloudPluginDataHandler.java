@@ -43,11 +43,8 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     public static final Supplier<CommonHandleCache<String, SpringCloudSelectorHandle>> SELECTOR_CACHED = new BeanHolder<>(CommonHandleCache::new);
     
     public static final Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> RULE_CACHED = new BeanHolder<>(CommonHandleCache::new);
-
-    private final ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig;
     
     public SpringCloudPluginDataHandler(final ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig) {
-        this.springCloudCacheConfig = springCloudCacheConfig;
     }
 
     @Override
