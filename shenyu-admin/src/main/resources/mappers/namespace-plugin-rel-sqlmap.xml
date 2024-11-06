@@ -129,8 +129,7 @@
         FROM namespace_plugin_rel
         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
         and namespace_id =  #{namespaceId, jdbcType=VARCHAR}
-        )
-        npr
+        ) npr
         LEFT JOIN plugin p ON npr.plugin_id = p.id
     </select>
 
