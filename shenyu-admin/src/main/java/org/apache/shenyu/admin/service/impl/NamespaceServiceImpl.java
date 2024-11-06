@@ -40,7 +40,6 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
@@ -153,17 +152,6 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        List<PluginData> pluginData = pluginService.listAll();
-        List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .pluginId(s.getId())
-                .config(s.getConfig())
-                .sort(s.getSort())
-                .enabled(s.getEnabled())
-                .namespaceId(namespaceId)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
         namespacePluginRelMapper.batchSave(pluginNsRelList);
         
