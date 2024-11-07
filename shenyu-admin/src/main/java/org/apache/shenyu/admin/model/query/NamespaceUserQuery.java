@@ -20,35 +20,81 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * this is application authority query.
+ * this is namespace user query.
  */
-public class NamespaceQuery implements Serializable {
-
-
+public class NamespaceUserQuery implements Serializable {
+    
+    private static final long serialVersionUID = -5132173077287355936L;
+    
+    /**
+     * id.
+     */
+    private String id;
+    
+    /**
+     * user id.
+     */
+    private String userId;
+    
     /**
      * namespace id.
      */
     private String namespaceId;
-
-    /**
-     * namespace ids.
-     */
-    private List<String> namespaceIds;
-
-    /**
-     * name.
-     */
-    private String name;
-
+    
     /**
      * page parameter.
      */
     private PageParameter pageParameter;
-
+    
+    public NamespaceUserQuery() {
+    }
+    
+    public NamespaceUserQuery(final String id, final String userId, final String namespaceId, final PageParameter pageParameter) {
+        this.id = id;
+        this.userId = userId;
+        this.namespaceId = namespaceId;
+        this.pageParameter = pageParameter;
+    }
+    
+    /**
+     * Gets the value of id.
+     *
+     * @return the value of id
+     */
+    public String getId() {
+        return id;
+    }
+    
+    /**
+     * Sets the id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+    
+    /**
+     * Gets the value of userId.
+     *
+     * @return the value of userId
+     */
+    public String getUserId() {
+        return userId;
+    }
+    
+    /**
+     * Sets the userId.
+     *
+     * @param userId userId
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+    
     /**
      * Gets the value of namespaceId.
      *
@@ -57,7 +103,7 @@ public class NamespaceQuery implements Serializable {
     public String getNamespaceId() {
         return namespaceId;
     }
-
+    
     /**
      * Sets the namespaceId.
      *
@@ -68,50 +114,14 @@ public class NamespaceQuery implements Serializable {
     }
     
     /**
-     * Gets the value of namespaceIds.
+     * Gets the value of pageParameter.
      *
-     * @return the value of namespaceIds
-     */
-    public List<String> getNamespaceIds() {
-        return namespaceIds;
-    }
-    
-    /**
-     * Sets the namespaceIds.
-     *
-     * @param namespaceIds namespaceIds
-     */
-    public void setNamespaceIds(final List<String> namespaceIds) {
-        this.namespaceIds = namespaceIds;
-    }
-    
-    /**
-     * Gets the value of name.
-     *
-     * @return the value of name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * Gets the value of getPageParameter.
-     *
-     * @return the value of getPageParameter
+     * @return the value of pageParameter
      */
     public PageParameter getPageParameter() {
         return pageParameter;
     }
-
+    
     /**
      * Sets the pageParameter.
      *
@@ -120,7 +130,7 @@ public class NamespaceQuery implements Serializable {
     public void setPageParameter(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -129,13 +139,16 @@ public class NamespaceQuery implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        NamespaceQuery that = (NamespaceQuery) o;
-        return Objects.equals(namespaceId, that.namespaceId) && Objects.equals(name, that.name)
+        NamespaceUserQuery that = (NamespaceUserQuery) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(userId, that.userId)
+                && Objects.equals(namespaceId, that.namespaceId)
                 && Objects.equals(pageParameter, that.pageParameter);
     }
-
+    
     @Override
     public int hashCode() {
-        return Objects.hash(namespaceId, name, pageParameter);
+        return Objects.hash(id, userId, namespaceId, pageParameter);
     }
+    
 }

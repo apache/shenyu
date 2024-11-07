@@ -17,20 +17,23 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
+import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
-import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
@@ -47,18 +50,18 @@ import java.util.stream.Collectors;
 @Service
 public class NamespaceServiceImpl implements NamespaceService {
 
-    private NamespaceMapper namespaceMapper;
-
-    private NamespacePluginRelMapper namespacePluginRelMapper;
-
-    private PluginService pluginService;
+    private final NamespaceMapper namespaceMapper;
+    
+    private final NamespaceUserService namespaceUserService;
+    
+    private final NamespaceEventPublisher namespaceEventPublisher;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
-                                final NamespacePluginRelMapper namespacePluginRelMapper,
-                                final PluginService pluginService) {
+                                final NamespaceUserService namespaceUserService,
+                                final NamespaceEventPublisher namespaceEventPublisher) {
         this.namespaceMapper = namespaceMapper;
-        this.namespacePluginRelMapper = namespacePluginRelMapper;
-        this.pluginService = pluginService;
+        this.namespaceUserService = namespaceUserService;
+        this.namespaceEventPublisher = namespaceEventPublisher;
     }
 
     @Override
@@ -70,6 +73,11 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public CommonPager<NamespaceVO> listByPage(final NamespaceQuery namespaceQuery) {
+        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        if (CollectionUtils.isEmpty(namespaceIds)) {
+            return new CommonPager<>();
+        }
+        namespaceQuery.setNamespaceIds(namespaceIds);
         return PageResultUtils.result(namespaceQuery.getPageParameter(), () -> namespaceMapper.countByQuery(namespaceQuery), () -> namespaceMapper.selectByQuery(namespaceQuery)
                 .stream()
                 .map(NamespaceTransfer.INSTANCE::mapToVo)
@@ -101,7 +109,16 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public List<NamespaceVO> list(final String name) {
-        List<NamespaceDO> namespaceDOS = namespaceMapper.selectAllByName(name);
+        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        
+        if (CollectionUtils.isEmpty(namespaceIds)) {
+            return Lists.newArrayList();
+        }
+        
+        List<NamespaceDO> namespaceDOS = namespaceMapper.selectByNamespaceIdsAndName(namespaceIds, name);
+        if (CollectionUtils.isEmpty(namespaceDOS)) {
+            return Lists.newArrayList();
+        }
         return namespaceDOS.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
     }
 
@@ -125,6 +142,9 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateUpdated(currentTime)
                 .build();
         namespaceMapper.insert(namespaceDO);
+        
+        namespaceEventPublisher.publish(new NamespaceCreatedEvent(namespaceDO, SessionUtil.visitorId()));
+        
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 
