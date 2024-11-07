@@ -15,30 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.model.event.namespace;
 
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
-
-import java.util.Set;
+import org.apache.shenyu.admin.model.entity.NamespaceDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 /**
- * this is permission service.
+ * NamespaceCreatedEvent.
  */
-public interface PermissionService {
-
+public class NamespaceCreatedEvent extends AdminDataModelChangedEvent {
+    
     /**
-     * get user permission menu by token.
+     * Create a new {@code NamespaceCreatedEvent}.operator is unknown.
      *
-     * @param namespaceId namespace id.
-     * @return {@linkplain PermissionMenuVO}
+     * @param source   Current namespace state
+     * @param userId operator
      */
-    PermissionMenuVO getPermissionMenu(String namespaceId);
-
-    /**
-     * get AuthPerm By UserName.
-     *
-     * @param userName user name.
-     * @return {@linkplain Set}
-     */
-    Set<String> getAuthPermByUserName(String userName);
+    public NamespaceCreatedEvent(final NamespaceDO source, final String userId) {
+        super(source, null, EventTypeEnum.NAMESPACE_CREATE, null, userId);
+    }
+    
+    
+    @Override
+    public String eventName() {
+        return Constants.EVENT_NAME_NAMESPACE;
+    }
+    
 }

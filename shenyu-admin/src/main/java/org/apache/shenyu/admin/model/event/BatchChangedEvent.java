@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.event;
 
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -64,6 +65,6 @@ public class BatchChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "plugin";
+        return Constants.EVENT_NAME_PLUGIN;
     }
 }
