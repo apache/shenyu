@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.http;
+package org.apache.shenyu.e2e.testcase.kafka;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
@@ -48,15 +48,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.*;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
-
-    private static final String NAMESERVER = "http://localhost:31876";
-
-    private static final String CONSUMERGROUP = "shenyu-plugin-logging-rocketmq";
 
     private static final String TOPIC = "shenyu-access-logging";
 
@@ -68,7 +62,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
                 testDivideHello(),
-                testRocketMQHello()
+                testKafkaHello()
         );
     }
 
@@ -84,19 +78,19 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-    private ShenYuScenarioSpec testRocketMQHello() {
+    private ShenYuScenarioSpec testKafkaHello() {
         return ShenYuScenarioSpec.builder()
-                .name("testRocketMQHello")
+                .name("testKafkaHello")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
                                 .addSelectorAndRule(
-                                        newSelectorBuilder("selector", Plugin.LOGGING_ROCKETMQ)
-                                                .name("1")
+                                        newSelectorBuilder("selector", Plugin.LOGGING_KAFKA)
+                                                .name("2")
                                                 .matchMode(MatchMode.OR)
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
                                                 .build(),
                                         newRuleBuilder("rule")
-                                                .name("1")
+                                                .name("2")
                                                 .matchMode(MatchMode.OR)
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
                                                 .build()
@@ -111,34 +105,36 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try {
                                         Thread.sleep(1000 * 30);
                                         request.request(Method.GET, "/http/order/findById?id=23");
-                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
-                                        consumer.setNamesrvAddr(NAMESERVER);
-                                        consumer.subscribe(TOPIC, "*");
-                                        consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
-                                            LOG.info("Msg:{}", msgs);
-                                            if (CollectionUtils.isNotEmpty(msgs)) {
-                                                msgs.forEach(e -> {
-                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
-                                                        isLog.set(true);
-                                                    }
-                                                });
+                                        Properties props = new Properties();
+                                        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                                                StringDeserializer.class.getName());
+                                        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                                                StringDeserializer.class.getName());
+                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:31877");
+                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+                                        consumer.subscribe(Arrays.asList(TOPIC));
+                                        AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
+                                        Instant start = Instant.now();
+                                        while (keepCosuming.get()) {
+                                            if (Duration.between(start, Instant.now()).toMillis() > 60000) {
+                                                keepCosuming.set(false);
                                             }
-                                            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                                        });
-                                        LOG.info("consumer.start ; isLog.get():{}", isLog.get());
-                                        consumer.start();
-                                        Thread.sleep(1000 * 30);
+                                            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+                                            records.forEach(record -> {
+                                                String message = record.value();
+                                                if (message.contains("/http/order/findById?id=23")) {
+                                                    isLog.set(true);
+                                                    keepCosuming.set(false);
+                                                }
+                                            });
+                                        }
+                                        Assertions.assertTrue(isLog.get());
+                                    } catch (InterruptedException e) {
                                         LOG.info("isLog.get():{}", isLog.get());
-                                        Assertions.assertTrue(isLog.get());
-                                    } catch (Exception e) {
                                         LOG.error("error", e);
-                                        Assertions.assertTrue(isLog.get());
+                                        throw new RuntimeException(e);
                                     }
-                                })
-                                .build()
-                )
-//                .afterEachSpec(ShenYuAfterEachSpec.builder()
-//                        .deleteWaiting(notExists(TEST)).build())
-                .build();
+                                }).build()
+                ).build();
     }
 }

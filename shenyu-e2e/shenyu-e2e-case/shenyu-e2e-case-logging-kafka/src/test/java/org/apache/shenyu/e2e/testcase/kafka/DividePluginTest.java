@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.http;
+package org.apache.shenyu.e2e.testcase.kafka;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
@@ -106,17 +106,19 @@ public class DividePluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start loggingRocketMQ plugin");
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("pluginId", "29");
-        reqBody.put("name", "loggingRocketMQ");
+        LOG.info("start loggingKafka plugin");
+        reqBody.put("pluginId", "33");
+        reqBody.put("name", "loggingKafka");
         reqBody.put("enabled", "true");
         reqBody.put("role", "Logging");
-        reqBody.put("sort", "170");
+        reqBody.put("sort", "180");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-        adminClient.changePluginStatus("1801816010882822166", reqBody);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
+        reqBody.put("config",
+                "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
+        adminClient.changePluginStatus("1801816010882822171", reqBody);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
+
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)
