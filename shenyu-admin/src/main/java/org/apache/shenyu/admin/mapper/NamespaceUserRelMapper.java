@@ -15,40 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.admin.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
+
+import java.util.List;
 
 /**
- * The enum Event type.
+ * NamespaceUserRelMapper.
  */
-public enum EventType {
+@Mapper
+public interface NamespaceUserRelMapper {
     
     /**
-     * Register event type.
+     * select by namespaceId and userId.
+     *
+     * @param namespaceId namespaceId
+     * @param userId userId
+     * @return {@linkplain NamespaceUserRelDO}
      */
-    REGISTER,
+    NamespaceUserRelDO selectByNamespaceIdAndUserId(String namespaceId, String userId);
 
     /**
-     * Updated event type.
+     * select list by userId.
+     *
+     * @param userId userId
+     * @return {@linkplain List}
      */
-    UPDATED,
-
+    List<NamespaceUserRelDO> selectListByUserId(String userId);
+    
     /**
-     * Deleted event type.
+     * insert.
+     *
+     * @param namespaceUserRelDO {@linkplain NamespaceUserRelDO}
      */
-    DELETED,
-
-    /**
-     * Ignored event type.
-     */
-    IGNORED,
-
-    /**
-     * offline event type.
-     */
-    OFFLINE,
-
-    /**
-     * heartbeat event type.
-     */
-    HEARTBEAT
+    void insertSelective(NamespaceUserRelDO namespaceUserRelDO);
 }

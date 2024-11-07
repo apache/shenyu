@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -84,6 +85,6 @@ public class DictChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "dict";
+        return Constants.EVENT_NAME_DICT;
     }
 }

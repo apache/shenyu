@@ -50,6 +50,8 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
@@ -63,6 +65,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  * Abstract strategy.
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
     
     /**
      * The Event publisher.
@@ -166,6 +170,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      *
      * @param selectorName the selector name
      * @param uriList      the uri list
+     * @param namespaceId  the namespace id
      * @return the string
      */
     @Override
@@ -194,7 +199,39 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         return ShenyuResultMessage.SUCCESS;
     }
-
+    
+    @Override
+    public String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        if (CollectionUtils.isEmpty(uriList)) {
+            return "";
+        }
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        if (Objects.isNull(selectorDO)) {
+            throw new ShenyuException("doHeartbeat Failed to execute,wait to retry.");
+        }
+        // update upstream
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).toList();
+        if (CollectionUtils.isEmpty(validUriList)) {
+            return null;
+        }
+        // discovery publish change event.
+        String selectorId = selectorDO.getId();
+        // change live node status to TRUE
+        validUriList.forEach(uriRegisterDTO -> {
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(),
+                    uriRegisterDTO.getProtocol(),
+                    uriRegisterDTO.getNamespaceId());
+            LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
+            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
+        });
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.REFRESH, Collections.singletonList(discoverySyncData)));
+        
+        return ShenyuResultMessage.SUCCESS;
+    }
+    
     protected void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
         String discoveryHandlerId = discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName, selectorDO.getNamespaceId());
         for (URIRegisterDTO uriRegisterDTO : uriList) {
@@ -271,7 +308,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return true;
         }
         return commonUpstreamList.stream().map(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream))
-                .collect(Collectors.toList()).stream().findAny().orElse(false);
+                .toList().stream().findAny().orElse(false);
     }
 
     /**

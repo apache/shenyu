@@ -42,7 +42,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -198,7 +197,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        LOG.info("onRuleChanged, changed:{}, eventType:{}", JsonUtils.toJson(changed), JsonUtils.toJson(eventType));
         String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         this.updateRuleCache(namespaceId);
         this.afterRuleChanged(changed, eventType, namespaceId);
@@ -303,7 +301,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
-        LOG.info("update config json: {}", json);
     }
 
     /**
