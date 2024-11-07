@@ -15,30 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service;
+package org.apache.shenyu.admin.service.publish;
 
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
-
-import java.util.Set;
+import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
- * this is permission service.
+ * NamespaceEventPublisher.
  */
-public interface PermissionService {
+@Component
+public class NamespaceEventPublisher implements AdminDataModelChangedEventPublisher<NamespaceVO> {
 
-    /**
-     * get user permission menu by token.
-     *
-     * @param namespaceId namespace id.
-     * @return {@linkplain PermissionMenuVO}
-     */
-    PermissionMenuVO getPermissionMenu(String namespaceId);
+    private final ApplicationEventPublisher publisher;
 
-    /**
-     * get AuthPerm By UserName.
-     *
-     * @param userName user name.
-     * @return {@linkplain Set}
-     */
-    Set<String> getAuthPermByUserName(String userName);
+    public NamespaceEventPublisher(final ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    @Override
+    public void publish(final AdminDataModelChangedEvent event) {
+        publisher.publishEvent(event);
+    }
 }

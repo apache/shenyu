@@ -63,6 +63,11 @@ public final class AdminConstants {
     public static final String NAMESPACE_PLUGIN_EXIST = "The plugin of namespace is exist！";
 
     /**
+     * The constant NAMESPACE_USER_EXIST.
+     */
+    public static final String NAMESPACE_USER_EXIST = "The user namespace rel is exist！";
+
+    /**
      * The constant SYS_NAMESPACE_ID_NOT_EXIST.
      */
     public static final String SYS_NAMESPACE_ID_NOT_EXIST = "The namespace(s) does not exist！";
