@@ -52,6 +52,15 @@ public final class SessionUtil {
      *
      * @return default is unknown
      */
+    public static String visitorId() {
+        return visitor().getUserId();
+    }
+    
+    /**
+     * visitor is login user[admin or other] / app /bootstrap.
+     *
+     * @return default is unknown
+     */
     public static UserInfo visitor() {
         try {
             final UserInfo userInfo = LOCAL_VISITOR.get();
