@@ -181,7 +181,6 @@ public class HttpSyncDataService implements SyncDataService {
      */
     private boolean updateCacheWithJson(final String json) {
         JsonObject jsonObject = GsonUtils.getGson().fromJson(json, JsonObject.class);
-        LOG.error("jsonObject: [{}]", jsonObject.toString());
         // if the config cache will be updated?
         return factory.executor(jsonObject.getAsJsonObject("data"));
     }
