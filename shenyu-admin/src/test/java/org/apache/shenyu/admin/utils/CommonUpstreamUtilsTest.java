@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -57,7 +58,7 @@ public final class CommonUpstreamUtilsTest {
 
     @Test
     public void buildDivideUpstream() {
-        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
+        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.REGISTER);
         Assert.assertNotNull(divideUpstream);
         Assert.assertEquals(HOST + ":" + PORT, divideUpstream.getUpstreamUrl());
         Assert.assertEquals("http", divideUpstream.getProtocol());
@@ -114,7 +115,7 @@ public final class CommonUpstreamUtilsTest {
     @Test
     public void convertCommonUpstreamList() {
         List<DivideUpstream> existDivideUpstreams = new ArrayList<>();
-        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
+        DivideUpstream divideUpstream = CommonUpstreamUtils.buildDivideUpstream("http", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.REGISTER);
         existDivideUpstreams.add(divideUpstream);
 
         List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams);

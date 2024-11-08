@@ -15,40 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.admin.service.publish;
+
+import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
- * The enum Event type.
+ * NamespaceEventPublisher.
  */
-public enum EventType {
-    
-    /**
-     * Register event type.
-     */
-    REGISTER,
+@Component
+public class NamespaceEventPublisher implements AdminDataModelChangedEventPublisher<NamespaceVO> {
 
-    /**
-     * Updated event type.
-     */
-    UPDATED,
+    private final ApplicationEventPublisher publisher;
 
-    /**
-     * Deleted event type.
-     */
-    DELETED,
+    public NamespaceEventPublisher(final ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
 
-    /**
-     * Ignored event type.
-     */
-    IGNORED,
-
-    /**
-     * offline event type.
-     */
-    OFFLINE,
-
-    /**
-     * heartbeat event type.
-     */
-    HEARTBEAT
+    @Override
+    public void publish(final AdminDataModelChangedEvent event) {
+        publisher.publishEvent(event);
+    }
 }
