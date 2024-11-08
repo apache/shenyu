@@ -55,7 +55,6 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      *
      * @param selectorName the selector name
      * @param uriList      the uri list
-     * @return the string
      */
     @Override
     public void registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
@@ -65,7 +64,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
             this.doRegisterURI(selectorName, uriList, namespaceId);
             LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
-            LOG.error("Register exception: cause: {}", ex);
+            LOG.error("Register exception: ", ex);
             this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
         }
     }

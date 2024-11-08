@@ -183,7 +183,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      * @param selectorName the selector name
      * @param uriList      the uri list
      * @param namespaceId  the namespace id
-     * @return the string
      */
     @Override
     public void doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
