@@ -21,10 +21,14 @@ import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -101,6 +105,12 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     @Resource
     private DiscoveryUpstreamService discoveryUpstreamService;
 
+    @Resource
+    private PluginMapper pluginMapper;
+
+    @Resource
+    private NamespacePluginRelMapper namespacePluginRelMapper;
+
     /**
      * Selector handler string.
      *
@@ -141,6 +151,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     @Override
     public String register(final MetaDataRegisterDTO dto) {
         String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        this.checkNamespacePluginRel(namespaceId, pluginName);
         dto.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
@@ -183,10 +195,13 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
+        this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
-        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        List<URIRegisterDTO> validUriList = uriList.stream()
+                .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
+                .collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
@@ -198,6 +213,16 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             doDiscoveryLocal(selectorDO, pluginName, validUriList);
         }
         return ShenyuResultMessage.SUCCESS;
+    }
+
+    @Override
+    public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+        PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        NamespacePluginVO namespacePluginRelation = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), namespaceId);
+        if (Objects.isNull(namespacePluginRelation)) {
+            String errorMsg = String.format("%s plugin not enabled for current namespace or plugin not exist for namespaceId: %s", pluginName, namespaceId);
+            throw new IllegalArgumentException(errorMsg);
+        }
     }
     
     @Override
