@@ -217,7 +217,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     }
 
     @Override
-    public void checkNamespacePluginRel(String namespaceId, String pluginName) {
+    public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
         NamespacePluginVO contextRel = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), namespaceId);
         if (Objects.isNull(contextRel) || !contextRel.getEnabled()) {
