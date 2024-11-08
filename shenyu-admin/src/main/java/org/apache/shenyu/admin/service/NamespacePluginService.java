@@ -42,6 +42,16 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return {@linkplain PluginVO}
      */
     NamespacePluginVO findById(String id);
+    
+    
+    /**
+     * find by namespaceId and pluginId.
+     *
+     * @param namespaceId namespaceId.
+     * @param pluginId    pluginId.
+     * @return {@linkplain NamespacePluginVO}
+     */
+    NamespacePluginVO findByNamespaceIdAndPluginId(String namespaceId, String pluginId);
 
     /**
      * Update string.
