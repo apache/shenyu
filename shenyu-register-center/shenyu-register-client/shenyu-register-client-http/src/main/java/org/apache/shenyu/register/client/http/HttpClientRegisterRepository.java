@@ -130,6 +130,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         doUnregister(offlineDTO);
     }
     
+    @Override
+    public void sendHeartbeat(final URIRegisterDTO heartbeatDTO) {
+        if (RuntimeUtils.listenByOther(heartbeatDTO.getPort())) {
+            return;
+        }
+        heartbeatDTO.setEventType(EventType.HEARTBEAT);
+        doHeartbeat(heartbeatDTO, Constants.URI_PATH);
+    }
+    
     /**
      * doPersistApiDoc.
      *
@@ -181,6 +190,26 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
+                if (i == serverList.size()) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    private <T> void doHeartbeat(final T t, final String path) {
+        int i = 0;
+        for (String server : serverList) {
+            i++;
+            String concat = server.concat(path);
+            try {
+                String accessToken = this.accessToken.get(server);
+                if (StringUtils.isBlank(accessToken)) {
+                    throw new NullPointerException("accessToken is null");
+                }
+                RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(t), concat, Constants.HEARTBEAT, accessToken);
+            } catch (Exception e) {
+                LOGGER.error("HeartBeat admin url :{} is fail, will retry.", server, e);
                 if (i == serverList.size()) {
                     throw new RuntimeException(e);
                 }

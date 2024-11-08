@@ -82,6 +82,29 @@ public final class RegisterUtils {
             LOGGER.error("{} client register error: {} ", type, json);
         }
     }
+
+    /**
+     * Do heartbeat.
+     *
+     * @param json        the json
+     * @param url         the url
+     * @param type        the type
+     * @param accessToken the token
+     * @throws IOException the io exception
+     */
+    public static void doHeartBeat(final String json, final String url, final String type, final String accessToken) throws IOException {
+        if (StringUtils.isBlank(accessToken)) {
+            LOGGER.error("{} client heartbeat error accessToken is null, please check the config : {} ", type, json);
+            return;
+        }
+        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        String result = OkHttpTools.getInstance().post(url, json, headers);
+        if (Objects.equals(SUCCESS, result)) {
+            LOGGER.info("{} success: {} ", type, json);
+        } else {
+            LOGGER.error("{} error: {} ", type, json);
+        }
+    }
     
     /**
      * Do unregister.

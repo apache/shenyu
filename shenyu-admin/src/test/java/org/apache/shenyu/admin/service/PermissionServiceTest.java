@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shiro.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,6 +88,9 @@ public final class PermissionServiceTest {
     @Mock
     private DashboardProperties dashboardProperties;
     
+    @Mock
+    private NamespacePluginService namespacePluginService;
+    
     @BeforeEach
     public void setUp() throws Exception {
         SecurityUtils.setSecurityManager(securityManager);
@@ -131,7 +135,7 @@ public final class PermissionServiceTest {
 //        when(mockResourceMapper.selectAllByNamespaceId()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
         when(mockResourceMapper.selectByUserName("admin")).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
         when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
-        permissionServiceImplUnderTest = new PermissionServiceImpl(mockPermissionMapper, mockResourceMapper, dashboardProperties);
+        permissionServiceImplUnderTest = new PermissionServiceImpl(mockPermissionMapper, mockResourceMapper, dashboardProperties, namespacePluginService);
     }
     
     @Test
@@ -150,8 +154,7 @@ public final class PermissionServiceTest {
             ),
                     Collections.singletonList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)),
                     Collections.singletonList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)));
-            String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
-            final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
+            final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(Constants.SYS_DEFAULT_NAMESPACE_ID);
             assertThat(result.getCurrentAuth(), containsInAnyOrder(expectedResult.getCurrentAuth().toArray()));
             assertThat(result.getAllAuth(), containsInAnyOrder(expectedResult.getAllAuth().toArray()));
             assertThat(result.getMenu(), containsInAnyOrder(expectedResult.getMenu().toArray()));

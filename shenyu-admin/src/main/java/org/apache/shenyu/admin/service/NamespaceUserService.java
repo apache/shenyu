@@ -15,40 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.admin.service;
+
+import org.apache.shenyu.admin.model.query.NamespaceUserQuery;
+import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
+
+import java.util.List;
 
 /**
- * The enum Event type.
+ * this is namespace user service.
  */
-public enum EventType {
+public interface NamespaceUserService extends PageService<NamespaceUserQuery, NamespaceUserRelVO> {
+
+    /**
+     * create namespace user rel.
+     *
+     * @param namespaceId        namespaceId.
+     * @param userId           userId.
+     * @return namespaceUserVO
+     */
+    NamespaceUserRelVO create(String namespaceId, String userId);
     
     /**
-     * Register event type.
+     * list namespace id by user id.
+     *
+     * @param userId userId.
+     * @return namespace id list.
      */
-    REGISTER,
+    List<String> listNamespaceIdByUserId(String userId);
 
-    /**
-     * Updated event type.
-     */
-    UPDATED,
-
-    /**
-     * Deleted event type.
-     */
-    DELETED,
-
-    /**
-     * Ignored event type.
-     */
-    IGNORED,
-
-    /**
-     * offline event type.
-     */
-    OFFLINE,
-
-    /**
-     * heartbeat event type.
-     */
-    HEARTBEAT
 }

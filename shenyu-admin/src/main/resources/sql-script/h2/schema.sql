@@ -1410,3 +1410,16 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     `date_updated`   timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
+
+
+CREATE TABLE IF NOT EXISTS `namespace_user_rel`
+(
+    `id`             varchar(128)  NOT NULL COMMENT 'primary key',
+    `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
+    `user_id`        varchar(128)  NOT NULL COMMENT 'user_id',
+    `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
+    PRIMARY KEY (`id`)
+);
+
+INSERT INTO `namespace_user_rel` (`id`, `namespace_id`, `user_id`) VALUES ('1852580590991884288', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '1');
