@@ -48,7 +48,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
@@ -196,7 +195,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
-        this.checkNamespacePluginRel(namespaceId, PluginEnum.CONTEXT_PATH.getName());
+        this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
