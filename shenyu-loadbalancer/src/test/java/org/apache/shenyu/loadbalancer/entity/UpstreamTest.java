@@ -33,6 +33,7 @@ public class UpstreamTest {
                 .timestamp(1)
                 .warmup(1)
                 .version("version")
+                .gray(false)
                 .weight(1)
                 .status(true)
                 .build();
