@@ -70,6 +70,11 @@ class FallbackShenyuClientRegisterServiceTest {
         public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
             return null;
         }
+
+        @Override
+        public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+
+        }
     }
 
     static class MockFallbackShenyuClientRegisterServiceException extends FallbackShenyuClientRegisterService {
@@ -97,6 +102,11 @@ class FallbackShenyuClientRegisterServiceTest {
         @Override
         public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
             return null;
+        }
+
+        @Override
+        public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+
         }
     }
 }
