@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.spring;
 
 import com.google.common.base.Splitter;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -59,7 +60,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if (bean instanceof DataSourceProperties && Boolean.TRUE.equals(dataBaseProperties.getInitEnable())) {
+        if (bean instanceof DataSourceProperties && Objects.equals(Boolean.TRUE, dataBaseProperties.getInitEnable())) {
             this.init((DataSourceProperties) bean);
         }
         return bean;

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -61,8 +62,8 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
             ruleConditions.stream()
-                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                    .filter(conditionData -> OperatorEnum.PATH_PATTERN.getAlias().equals(conditionData.getOperator()))
+                    .filter(conditionData -> Objects.equals(ParamTypeEnum.URI.getName(), conditionData.getParamType()))
+                    .filter(conditionData -> Objects.equals(OperatorEnum.PATH_PATTERN.getAlias(), conditionData.getOperator()))
                     .map(RuleConditionDTO::getParamValue)
                     .forEach(PathPatternParser.defaultInstance::parse);
         } catch (Exception e) {

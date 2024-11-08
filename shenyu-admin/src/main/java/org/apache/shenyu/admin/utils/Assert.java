@@ -80,7 +80,7 @@ public final class Assert {
      * @param message error message
      */
     public static void isTrue(final Boolean test, final String message) {
-        if (!Boolean.TRUE.equals(test)) {
+        if (!Objects.equals(Boolean.TRUE, test)) {
             throw new ValidFailException(message);
         }
     }

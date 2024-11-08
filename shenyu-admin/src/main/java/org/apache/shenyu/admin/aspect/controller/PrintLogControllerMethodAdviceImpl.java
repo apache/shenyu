@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.aspect.controller;
 
 import com.google.common.base.Stopwatch;
+import java.util.Objects;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +45,14 @@ public class PrintLogControllerMethodAdviceImpl implements ControllerMethodAdvic
     
     @Override
     public void doPreProcess(final Object bean, final Method method, final Stopwatch stopwatch) {
-        if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
+        if (Objects.equals(Boolean.TRUE, properties.getEnablePrintApiLog())) {
             LOG.info("{} exec: method [{}.{}]", visitorName(), bean.getClass().getSimpleName(), method.getName());
         }
     }
     
     @Override
     public void doFinally(final Object bean, final Method method, final Stopwatch stopwatch) {
-        if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
+        if (Objects.equals(Boolean.TRUE, properties.getEnablePrintApiLog())) {
             LOG.info("{} exec: method [{}.{}] over, time cost: {}", visitorName(),
                     bean.getClass().getSimpleName(), method.getName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }

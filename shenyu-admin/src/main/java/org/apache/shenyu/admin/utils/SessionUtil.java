@@ -106,7 +106,7 @@ public final class SessionUtil {
      * @return boolean
      */
     public static boolean isAdmin() {
-        return AdminConstants.ADMIN_NAME.equals(visitorName());
+        return Objects.equals(AdminConstants.ADMIN_NAME, visitorName());
     }
     
     private static UserInfo defaultUser() {

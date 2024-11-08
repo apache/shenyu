@@ -122,7 +122,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .build();
 
         // save authPath
-        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
+        if (Objects.equals(Boolean.TRUE, appAuthDO.getOpen())) {
             List<AuthPathDO> collect = authApplyDTO.getPathList()
                     .stream()
                     .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
@@ -156,7 +156,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             authParamMapper.save(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
 
-        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
+        if (Objects.equals(Boolean.TRUE, appAuthDO.getOpen())) {
             List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
             if (CollectionUtils.isNotEmpty(existList)) {
                 authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());

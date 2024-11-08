@@ -52,11 +52,11 @@ public class SuperAdminPasswordSafeAdvice implements ControllerMethodAdvice {
     @Override
     public void doPreProcess(final Object bean, final Method method, final Stopwatch stopwatch) {
         // If the Super Administrator privilege attribute is not enabled
-        if (!Boolean.TRUE.equals(properties.getEnableOnlySuperAdminPermission())) {
+        if (!Objects.equals(Boolean.TRUE, properties.getEnableOnlySuperAdminPermission())) {
             // skip
             return;
         }
-        if (!Boolean.TRUE.equals(properties.getEnableSuperAdminPasswordSafe())) {
+        if (!Objects.equals(Boolean.TRUE, properties.getEnableSuperAdminPasswordSafe())) {
             return;
         }
         // if not supper admin

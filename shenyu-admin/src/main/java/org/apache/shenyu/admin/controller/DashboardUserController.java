@@ -164,7 +164,7 @@ public class DashboardUserController {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
         }
         dashboardUserModifyPasswordDTO.setId(id);
-        if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserModifyPasswordDTO.getUserName())) {
+        if (!Objects.equals(userInfo.getUserId(), id) && !Objects.equals(userInfo.getUserName(), dashboardUserModifyPasswordDTO.getUserName())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
         }
         dashboardUserModifyPasswordDTO.setPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getPassword()));

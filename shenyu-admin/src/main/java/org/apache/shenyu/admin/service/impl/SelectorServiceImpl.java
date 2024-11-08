@@ -299,7 +299,7 @@ public class SelectorServiceImpl implements SelectorService {
                 proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (Objects.equals(DiscoveryLevel.SELECTOR.getCode(), discoveryDO.getLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryMapper.delete(discoveryDO.getId());
                 }

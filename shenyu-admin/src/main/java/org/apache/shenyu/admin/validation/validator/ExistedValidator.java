@@ -73,9 +73,9 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
     private Boolean doValid(final Serializable value) {
         Object provider = getExistProvider();
         // custom providerMethod
-        if (!Existed.EXISTED.equals(annotation.providerMethodName())) {
-            return Boolean.TRUE.equals(ReflectUtils.invokeMethod(provider, annotation.providerMethodName(), Assert::throwException, value));
+        if (!Objects.equals(Existed.EXISTED, annotation.providerMethodName())) {
+            return Objects.equals(Boolean.TRUE, ReflectUtils.invokeMethod(provider, annotation.providerMethodName(), Assert::throwException, value));
         }
-        return Boolean.TRUE.equals(getExistProvider().existed(value));
+        return Objects.equals(Boolean.TRUE, getExistProvider().existed(value));
     }
 }

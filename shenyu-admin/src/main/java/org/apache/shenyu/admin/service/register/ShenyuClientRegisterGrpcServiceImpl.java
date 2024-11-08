@@ -90,7 +90,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<GrpcUpstream> addList = buildGrpcUpstreamList(uriList);
         List<GrpcUpstream> canAddList = new CopyOnWriteArrayList<>();
-        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        boolean isEventDeleted = uriList.size() == 1 && Objects.equals(EventType.DELETED, uriList.get(0).getEventType());
         if (isEventDeleted) {
             addList.get(0).setStatus(false);
         }
@@ -104,7 +104,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 existList.addAll(diffList);
             }
             List<GrpcUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+                    || existList.stream().anyMatch(e -> Objects.equals(e, upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
             }

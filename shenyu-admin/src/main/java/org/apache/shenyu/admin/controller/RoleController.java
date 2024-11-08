@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.Objects;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
@@ -113,7 +114,7 @@ public class RoleController {
     @PostMapping("")
     @RequiresPermissions("system:role:add")
     public ShenyuAdminResult createRole(@Valid @RequestBody final RoleDTO roleDTO) {
-        if (SUPER.equals(roleDTO.getRoleName())) {
+        if (Objects.equals(SUPER, roleDTO.getRoleName())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, roleService.createOrUpdate(roleDTO));

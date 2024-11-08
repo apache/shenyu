@@ -148,13 +148,13 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (Objects.equals(dashboardUserDO.getUserName(), SessionUtil.visitorName())) {
-            Assert.isTrue(Boolean.TRUE.equals(dashboardUserDO.getEnabled()), "You cannot disable yourself");
+            Assert.isTrue(Objects.equals(Boolean.TRUE, dashboardUserDO.getEnabled()), "You cannot disable yourself");
         } else {
             Assert.isTrue(!Objects.equals(dashboardUserDO.getId(), SessionUtil.visitor().getUserId()), "Super administrator name is not allowed to be modified");
         }
         // update old user
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
-            if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
+            if (!Objects.equals(AdminConstants.ADMIN_NAME, dashboardUserDTO.getUserName())) {
                 userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
             }
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
@@ -290,7 +290,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
         return Optional.ofNullable(loginDashboardUserVO)
                 .map(loginUser -> {
-                    if (Boolean.FALSE.equals(loginUser.getEnabled())) {
+                    if (Objects.equals(Boolean.FALSE, loginUser.getEnabled())) {
                         return loginUser;
                     }
                     if (clientId != null) {
@@ -315,7 +315,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public int modifyPassword(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserModifyPasswordDTO.getId());
         Assert.notNull(before, "current user is not found");
-        Assert.isTrue(Boolean.TRUE.equals(before.getEnabled()), "current user is locked");
+        Assert.isTrue(Objects.equals(Boolean.TRUE, before.getEnabled()), "current user is locked");
         Assert.isTrue(Objects.equals(before.getPassword(), dashboardUserModifyPasswordDTO.getOldPassword()), "old password is error");
 
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);

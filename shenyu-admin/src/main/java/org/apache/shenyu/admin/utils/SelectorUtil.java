@@ -54,12 +54,12 @@ public final class SelectorUtil {
      * @return default is empty list.
      */
     public static List<DivideUpstream> buildDivideUpstream(final SelectorDO selectorDO, final String pluginName) {
-        if (PluginEnum.SPRING_CLOUD.getName().equals(pluginName) && Objects.nonNull(selectorDO.getHandle())) {
+        if (Objects.equals(PluginEnum.SPRING_CLOUD.getName(), pluginName) && Objects.nonNull(selectorDO.getHandle())) {
             return GsonUtils.getInstance()
                     .fromJson(selectorDO.getHandle(), SpringCloudSelectorHandle.class)
                     .getDivideUpstreams();
         }
-        if (PluginEnum.DIVIDE.getName().equals(pluginName) && StringUtils.isNotBlank(selectorDO.getHandle())) {
+        if (Objects.equals(PluginEnum.DIVIDE.getName(), pluginName) && StringUtils.isNotBlank(selectorDO.getHandle())) {
             return GsonUtils.getInstance()
                     .fromList(selectorDO.getHandle(), DivideUpstream.class);
         }

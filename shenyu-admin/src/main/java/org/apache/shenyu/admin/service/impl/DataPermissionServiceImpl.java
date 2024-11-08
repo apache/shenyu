@@ -258,7 +258,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @EventListener(SelectorCreatedEvent.class)
     public void onSelectorCreated(final SelectorCreatedEvent event) {
         // check selector add
-        if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
+        if (Objects.equals(Boolean.TRUE, dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
             DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getSelector().getId());
@@ -275,7 +275,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @EventListener(RuleCreatedEvent.class)
     public void onRuleCreated(final RuleCreatedEvent event) {
         // check rule add
-        if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
+        if (Objects.equals(Boolean.TRUE, dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
             DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getRule().getId());

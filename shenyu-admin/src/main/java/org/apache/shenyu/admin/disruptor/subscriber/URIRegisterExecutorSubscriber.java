@@ -76,12 +76,12 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                             final List<URIRegisterDTO> offline = new LinkedList<>();
                             for (URIRegisterDTO d : uriList) {
                                 final EventType eventType = d.getEventType();
-                                if (Objects.isNull(eventType) || EventType.REGISTER.equals(eventType)) {
+                                if (Objects.isNull(eventType) || Objects.equals(EventType.REGISTER, eventType)) {
                                     // eventType is null, should be old versions
                                     register.add(d);
-                                } else if (EventType.OFFLINE.equals(eventType)) {
+                                } else if (Objects.equals(EventType.OFFLINE, eventType)) {
                                     offline.add(d);
-                                } else if (EventType.HEARTBEAT.equals(eventType)) {
+                                } else if (Objects.equals(EventType.HEARTBEAT, eventType)) {
                                     heartbeat.add(d);
                                 }
                             }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.publish;
 
+import java.util.Objects;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -96,7 +97,7 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
         List<SelectorData> selectorDataList = selectors.stream()
                 .map(selectorDO -> {
                     String pluginName = pluginMap.get(selectorDO.getPluginId());
-                    if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
+                    if (Objects.equals(pluginName, PluginEnum.DIVIDE.getName())) {
                         UpstreamCheckService.removeByKey(selectorDO.getId());
                     }
                     return SelectorDO.transFrom(selectorDO, pluginName, null);

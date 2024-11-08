@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.discovery;
 
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -110,7 +111,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         if (shenyuDiscoveryService == null) {
             return;
         }
-        if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
+        if (discoveryServiceCache.values().stream().noneMatch(p -> Objects.equals(p, shenyuDiscoveryService))) {
             shenyuDiscoveryService.shutdown();
             LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
         }

@@ -111,7 +111,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
                         AdminConstants.DICT_TABLE_FLAG_DICTNAME);
         String id = null;
         if (Objects.nonNull(shenyuInitData)) {
-            if (Boolean.TRUE.toString().equals(shenyuInitData.getDictValue())) {
+            if (Objects.equals(Boolean.TRUE.toString(), shenyuInitData.getDictValue())) {
                 return;
             }
             // for reset (update)

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,7 +52,7 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
 
     @Override
     public void registerApiDocument(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
+        if (Objects.equals(apiDocRegisterDTO.getEventType(), EventType.REGISTER)) {
             ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
             apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
             List<String> tagsIds = new ArrayList<>();
@@ -75,7 +76,7 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
             }
             apiDTO.setTagIds(tagsIds);
             apiService.createOrUpdate(apiDTO);
-        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
+        } else if (Objects.equals(apiDocRegisterDTO.getEventType(), EventType.OFFLINE)) {
             String contextPath = apiDocRegisterDTO.getContextPath();
             apiService.offlineByContextPath(contextPath);
         }

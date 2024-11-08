@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.Objects;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
@@ -60,7 +61,7 @@ public class PlatformController {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password, clientId);
         return Optional.ofNullable(loginVO)
                 .map(loginStatus -> {
-                    if (Boolean.TRUE.equals(loginStatus.getEnabled())) {
+                    if (Objects.equals(Boolean.TRUE, loginStatus.getEnabled())) {
                         return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
                     }
                     return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);

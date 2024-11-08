@@ -248,7 +248,7 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<AuthPerm> getAuthPerm(final List<ResourceVO> resourceVOList) {
         return resourceVOList.stream()
-                .filter(item -> item.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2))
+                .filter(item -> Objects.equals(item.getResourceType(), ResourceTypeConstants.MENU_TYPE_2))
                 .map(AuthPerm::buildAuthPerm)
                 .collect(Collectors.toList());
     }

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
@@ -252,7 +253,7 @@ public class ApiServiceImpl implements ApiService {
                 tagVOs = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             ApiVO apiVO = ApiVO.buildApiVO(item, tagVOs);
-            if (apiVO.getApiSource().equals(ApiSourceEnum.SWAGGER.getValue())) {
+            if (Objects.equals(apiVO.getApiSource(), ApiSourceEnum.SWAGGER.getValue())) {
                 DocItem docItem = JsonUtils.jsonToObject(apiVO.getDocument(), DocItem.class);
                 apiVO.setRequestHeaders(docItem.getRequestHeaders());
                 apiVO.setRequestParameters(docItem.getRequestParameters());

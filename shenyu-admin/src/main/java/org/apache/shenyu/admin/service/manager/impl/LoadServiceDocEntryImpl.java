@@ -121,7 +121,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private boolean isEnabledLoad() {
         ShenyuDictVO shenyuInitData = shenyuDictService.findByDictCodeName(AdminConstants.DICT_API_DOC_FLAG_DICTCODE, AdminConstants.DICT_API_DOC_FLAG_DICTNAME);
-        if (Objects.nonNull(shenyuInitData) && Boolean.TRUE.toString().equals(shenyuInitData.getDictValue())) {
+        if (Objects.nonNull(shenyuInitData) && Objects.equals(Boolean.TRUE.toString(), shenyuInitData.getDictValue())) {
             return true;
         }
         LOG.info("load api document global switch is close.");

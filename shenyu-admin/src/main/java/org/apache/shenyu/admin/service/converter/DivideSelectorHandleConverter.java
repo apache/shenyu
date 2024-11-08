@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.converter;
 
+import java.util.Objects;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
@@ -52,7 +53,7 @@ public class DivideSelectorHandleConverter extends AbstractSelectorHandleConvert
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
         List<DivideUpstream> existList = updateStatusAndFilter(convert(handle), aliveList);
-        aliveList.stream().filter(alive -> existList.stream().noneMatch(valid -> valid.getUpstreamUrl().equals(alive.getUpstreamUrl())))
+        aliveList.stream().filter(alive -> existList.stream().noneMatch(valid -> Objects.equals(valid.getUpstreamUrl(), alive.getUpstreamUrl())))
                 .forEach(alive -> existList.add(CommonUpstreamUtils.buildAliveDivideUpstream(alive.getProtocol(), alive.getUpstreamUrl())));
         return existList;
     }

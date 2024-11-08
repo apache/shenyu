@@ -178,7 +178,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
                 DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (Objects.equals(DiscoveryLevel.SELECTOR.getCode(), discoveryDO.getLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryMapper.delete(discoveryDO.getId());
                 }

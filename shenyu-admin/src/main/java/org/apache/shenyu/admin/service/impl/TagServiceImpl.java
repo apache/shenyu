@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -68,7 +69,7 @@ public class TagServiceImpl implements TagService {
         Assert.notNull(tagDTO, "tagDTO is not allowed null");
         Assert.notNull(tagDTO.getParentTagId(), "parent tag id is not allowed null");
         String ext = "";
-        if (!tagDTO.getParentTagId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
+        if (!Objects.equals(tagDTO.getParentTagId(), AdminConstants.TAG_ROOT_PARENT_ID)) {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
             ext = buildExtParamByParentTag(tagDO);
         } else {
@@ -198,7 +199,7 @@ public class TagServiceImpl implements TagService {
      */
     private String buildExtParamByParentTag(final TagDO parentTagDO) {
         String ext = "";
-        if (parentTagDO.getId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
+        if (Objects.equals(parentTagDO.getId(), AdminConstants.TAG_ROOT_PARENT_ID)) {
             final TagDO.TagExt parent = new TagDO.TagExt();
             TagDO.TagExt tagExt = new TagDO.TagExt();
             tagExt.setDesc(parentTagDO.getTagDesc());

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -73,7 +74,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<DivideUpstream> addList = buildDivideUpstreamList(uriList);
         List<DivideUpstream> canAddList = new CopyOnWriteArrayList<>();
-        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        boolean isEventDeleted = uriList.size() == 1 && Objects.equals(EventType.DELETED, uriList.get(0).getEventType());
         if (isEventDeleted) {
             addList.get(0).setStatus(false);
         }
@@ -89,7 +90,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
                 existList.addAll(diffList);
             }
             List<DivideUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+                    || existList.stream().anyMatch(e -> Objects.equals(e, upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
             }

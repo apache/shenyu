@@ -78,7 +78,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     @Transactional(rollbackFor = Exception.class)
     public void onChange(final DiscoveryDataChangedEvent event) {
         DiscoveryDataChangedEvent.Event currentEvent = event.getEvent();
-        if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
+        if (Objects.equals(DiscoveryDataChangedEvent.Event.IGNORED, currentEvent)) {
             return;
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
@@ -142,7 +142,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             }
         });
         discoveryUpstreamDTOS = discoveryUpstreamDTOS.stream()
-                .filter(upstreamData -> contextInfo.getNamespaceId().equals(upstreamData.getNamespaceId()))
+                .filter(upstreamData -> Objects.equals(contextInfo.getNamespaceId(), upstreamData.getNamespaceId()))
                 .collect(Collectors.toList());
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
             discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);

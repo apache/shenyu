@@ -85,7 +85,7 @@ public final class WebI18nAssert {
      * @param objects objects
      */
     public static void isTrue(final Boolean test, final String message, final Object... objects) {
-        if (!Boolean.TRUE.equals(test)) {
+        if (!Objects.equals(Boolean.TRUE, test)) {
             fail(message, objects);
         }
     }

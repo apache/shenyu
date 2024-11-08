@@ -78,7 +78,7 @@ public class ShiroRealm extends AuthorizingRealm {
     @Override
     protected boolean isPermitted(final Permission permission, final AuthorizationInfo info) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
-        if (Objects.nonNull(userInfo) && ADMIN_NAME.equals(userInfo.getUserName())) {
+        if (Objects.nonNull(userInfo) && Objects.equals(ADMIN_NAME, userInfo.getUserName())) {
             return true;
         }
         return super.isPermitted(permission, info);

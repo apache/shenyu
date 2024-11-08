@@ -190,7 +190,7 @@ public class SwaggerDocParser implements DocParser {
             } else {
                 DocParameter docParameter = GsonUtils.getInstance().fromJson(fieldJson, DocParameter.class);
                 JsonElement inElement = fieldJson.get("in");
-                if (Objects.nonNull(inElement) && "header".equals(inElement.getAsString())) {
+                if (Objects.nonNull(inElement) && Objects.equals("header", inElement.getAsString())) {
                     docHeaderParameterList.add(docParameter);
                 } else {
                     docRequestParameterList.add(docParameter);
@@ -314,7 +314,7 @@ public class SwaggerDocParser implements DocParser {
 
     private RefInfo getRefInfo(final JsonObject jsonObject) {
         JsonElement refElement;
-        boolean isArray = Objects.nonNull(jsonObject.get("type")) && "array".equals(jsonObject.get("type").getAsString());
+        boolean isArray = Objects.nonNull(jsonObject.get("type")) && Objects.equals("array", jsonObject.get("type").getAsString());
         if (isArray) {
             refElement = jsonObject.getAsJsonObject("items").get("$ref");
         } else {

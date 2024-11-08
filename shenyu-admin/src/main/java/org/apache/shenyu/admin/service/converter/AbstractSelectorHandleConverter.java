@@ -54,7 +54,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      */
     @Override
     public String handler(final String handle, final List<CommonUpstream> aliveList) {
-        if ((StringUtils.isEmpty(handle) || EMPTY_LIST_JSON.equals(handle)) && CollectionUtils.isEmpty(aliveList)) {
+        if ((StringUtils.isEmpty(handle) || Objects.equals(EMPTY_LIST_JSON, handle)) && CollectionUtils.isEmpty(aliveList)) {
             return EMPTY_LIST_JSON;
         }
         return GsonUtils.getInstance().toJson(doHandle(StringUtils.isEmpty(handle) ? EMPTY_LIST_JSON : handle, aliveList));
@@ -75,16 +75,16 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
         long currentTimeMillis = System.currentTimeMillis();
         List<T> validExistList = existList.stream()
                 .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(UpstreamCheckService.getZombieRemovalTimes())
-                        || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))
+                        || aliveList.stream().anyMatch(alive -> Objects.equals(alive.getUpstreamUrl(), e.getUpstreamUrl())))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
         validExistList.stream()
-                .filter(upstream -> !upstream.isStatus() && aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .filter(upstream -> !upstream.isStatus() && aliveList.stream().anyMatch(alive -> Objects.equals(alive.getUpstreamUrl(), upstream.getUpstreamUrl())))
                 .forEach(upstream -> {
                     upstream.setStatus(true);
                     upstream.setTimestamp(currentTimeMillis);
                 });
         validExistList.stream()
-                .filter(upstream -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .filter(upstream -> aliveList.stream().noneMatch(alive -> Objects.equals(alive.getUpstreamUrl(), upstream.getUpstreamUrl())))
                 .forEach(upstream -> {
                     upstream.setStatus(false);
                     upstream.setTimestamp(currentTimeMillis);

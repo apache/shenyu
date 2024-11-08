@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.scale.collector;
 
+import java.util.Objects;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -100,7 +101,7 @@ public class PrometheusMetricsProvider implements MetricsProvider {
      */
     private MetricData parseMetricData(final String metricName, final JsonNode jsonNode) {
         JsonNode statusNode = jsonNode.get("status");
-        if (statusNode == null || !"success".equals(statusNode.asText())) {
+        if (statusNode == null || !Objects.equals("success", statusNode.asText())) {
             LOG.error("Failed to fetch metric: {} ", metricName);
             return null;
         }

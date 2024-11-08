@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
@@ -197,7 +198,7 @@ public class ResourceServiceImpl implements ResourceService {
     public List<ResourceVO> findByParentId(final String id) {
         return resourceMapper.selectByParentId(id)
                 .stream()
-                .filter(item -> item.getResourceType().equals(AdminResourceEnum.THREE_MENU.getCode()))
+                .filter(item -> Objects.equals(item.getResourceType(), AdminResourceEnum.THREE_MENU.getCode()))
                 .map(ResourceVO::buildResourceVO)
                 .collect(Collectors.toList());
     }

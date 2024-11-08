@@ -218,7 +218,7 @@ public class UpstreamCheckService {
         List<CommonUpstream> upstreams = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> new CopyOnWriteArrayList<>());
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
-                    && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
+                    && Objects.equals(item.getUpstreamUrl(), commonUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
                 upstreams.add(commonUpstream);
             } else {
@@ -413,7 +413,7 @@ public class UpstreamCheckService {
         
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
-                if (alive.getUpstreamUrl().equals(u.getUrl())) {
+                if (Objects.equals(alive.getUpstreamUrl(), u.getUrl())) {
                     return false;
                 }
             }
@@ -477,7 +477,7 @@ public class UpstreamCheckService {
     public void onDiscoveryUpstreamUpdated(final DiscoveryStreamUpdatedEvent event) {
         DiscoverySyncData discoverySyncData = event.getDiscoverySyncData();
         LOG.info("onDiscoveryUpstreamUpdated plugin={}|list={}", discoverySyncData.getPluginName(), discoverySyncData.getUpstreamDataList());
-        if (PluginEnum.DIVIDE.getName().equals(discoverySyncData.getPluginName())) {
+        if (Objects.equals(PluginEnum.DIVIDE.getName(), discoverySyncData.getPluginName())) {
             List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
             List<CommonUpstream> collect = upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream).collect(Collectors.toList());
             List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(collect);

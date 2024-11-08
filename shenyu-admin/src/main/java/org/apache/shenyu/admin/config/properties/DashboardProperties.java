@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.beans.factory.InitializingBean;
@@ -208,7 +209,7 @@ public class DashboardProperties implements InitializingBean {
     
     @Override
     public void afterPropertiesSet() {
-        if (!Boolean.TRUE.equals(enableOnlySuperAdminPermission)) {
+        if (!Objects.equals(Boolean.TRUE, enableOnlySuperAdminPermission)) {
             onlySuperAdminPermission = new ArrayList<>();
             return;
         }
