@@ -196,7 +196,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
-        this.checkNamespacePluginRel(namespaceId, PluginEnum.CONTEXT_PATH.getName());
+        this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
