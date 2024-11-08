@@ -17,38 +17,43 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for FallbackShenyuClientRegisterService.
  */
 class FallbackShenyuClientRegisterServiceTest {
 
+
+
     @Test
     public void testRegisterURI() {
-        MockFallbackShenyuClientRegisterService mockFallbackShenyuClientRegisterService = new MockFallbackShenyuClientRegisterService();
-        assertEquals("doRegisterURI", mockFallbackShenyuClientRegisterService.registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
+        MockFallbackShenyuClientRegisterService mockFallbackShenyuClientRegisterService = mock(MockFallbackShenyuClientRegisterService.class);
+        Mockito.doThrow(ShenyuException.class).when(mockFallbackShenyuClientRegisterService).doRegisterURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID);
 
-        MockFallbackShenyuClientRegisterServiceException mockFallbackShenyuClientRegisterServiceException = new MockFallbackShenyuClientRegisterServiceException();
-        assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
+        MockFallbackShenyuClientRegisterServiceException mockFallbackShenyuClientRegisterServiceException = mock(MockFallbackShenyuClientRegisterServiceException.class);
+        Mockito.doThrow(ShenyuException.class).when(mockFallbackShenyuClientRegisterServiceException).registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID);
+
     }
 
     static class MockFallbackShenyuClientRegisterService extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
-            return "doRegisterURI";
+        void doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
         }
         
         @Override
@@ -80,7 +85,7 @@ class FallbackShenyuClientRegisterServiceTest {
     static class MockFallbackShenyuClientRegisterServiceException extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        void doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         

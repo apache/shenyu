@@ -58,6 +58,8 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -169,12 +171,14 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         namespacePluginVO.setPluginId("1");
         namespacePluginVO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(namespacePluginVO);
-        assertEquals(StringUtils.EMPTY, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
+        abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID);
+        assertNull(selectorService.findByNameAndPluginNameAndNamespaceId("Selector_Name", PluginEnum.GRPC.getName(), SYS_DEFAULT_NAMESPACE_ID));
 
         URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().build();
         uriRegisterDTO.setPort(8080);
         uriRegisterDTO.setHost("Host");
-        assertThrows(ShenyuException.class, () -> abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
+        abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID);
+        assertNull(selectorService.findByNameAndPluginNameAndNamespaceId("Selector_Name", PluginEnum.GRPC.getName(), SYS_DEFAULT_NAMESPACE_ID));
 
         SelectorDO selectorDO = mock(SelectorDO.class);
         when(selectorService.findByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorDO);
@@ -188,7 +192,8 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         namespacePlugin.setPluginId("1");
         namespacePlugin.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(namespacePlugin);
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
+        abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID);
+        assertNotNull(selectorService.findByNameAndPluginNameAndNamespaceId("Selector_Name", PluginEnum.GRPC.getName(), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test

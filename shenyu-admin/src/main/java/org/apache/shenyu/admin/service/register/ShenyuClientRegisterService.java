@@ -67,8 +67,7 @@ public interface ShenyuClientRegisterService {
      * @param namespaceId the namespace id
      * @return the string
      */
-    default String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
-        return Constants.SUCCESS;
+    default void registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
     }
     
     /**

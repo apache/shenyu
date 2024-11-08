@@ -186,14 +186,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      * @return the string
      */
     @Override
-    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+    public void doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         if (CollectionUtils.isEmpty(uriList)) {
-            return "";
+            return;
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("doRegister Failed to execute, wait to retry.");
+            LOG.warn("doRegister Failed to execute, wait to retry.");
+            return;
         }
         this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
@@ -212,7 +213,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             // publish change event.
             doDiscoveryLocal(selectorDO, pluginName, validUriList);
         }
-        return ShenyuResultMessage.SUCCESS;
     }
 
     @Override

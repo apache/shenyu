@@ -58,19 +58,16 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     @Override
-    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
-        String result;
+    public void registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String key = key(selectorName);
         try {
             this.removeFallBack(key);
-            result = this.doRegisterURI(selectorName, uriList, namespaceId);
+            this.doRegisterURI(selectorName, uriList, namespaceId);
             LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
-            LOG.error("Register exception: cause: {}", ex.getMessage());
-            result = "";
+            LOG.error("Register exception: cause: {}", ex);
             this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
         }
-        return result;
     }
     
     @Override
@@ -114,7 +111,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+    abstract void doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * Heartbeat.
