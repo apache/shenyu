@@ -1418,7 +1418,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel`
     `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
     `user_id`        varchar(128)  NOT NULL COMMENT 'user_id',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
-    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
     PRIMARY KEY (`id`)
 );
 
