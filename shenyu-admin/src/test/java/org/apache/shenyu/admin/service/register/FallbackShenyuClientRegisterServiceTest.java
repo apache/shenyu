@@ -72,7 +72,7 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
-        public void checkNamespacePluginRel(String namespaceId, String pluginName) {
+        public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
 
         }
     }
@@ -105,7 +105,7 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
-        public void checkNamespacePluginRel(String namespaceId, String pluginName) {
+        public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
 
         }
     }
