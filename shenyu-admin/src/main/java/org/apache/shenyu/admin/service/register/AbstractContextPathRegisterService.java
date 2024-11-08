@@ -41,6 +41,7 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
 
     @Override
     public void registerContextPath(final MetaDataRegisterDTO dto) {
+        this.checkNamespacePluginRel(dto.getNamespaceId(), PluginEnum.CONTEXT_PATH.getName());
         String name = PluginEnum.CONTEXT_PATH.getName();
         String contextPath = PathUtils.decoratorContextPath(dto.getContextPath());
         String key = LOCK_KEY_PREFIX + contextPath;

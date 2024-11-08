@@ -50,6 +50,14 @@ public interface ShenyuClientRegisterService {
      * @return String
      */
     String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
+
+    /**
+     * check whether the namespace and plugin relation exists.
+     *
+     * @param namespaceId namespaceId
+     * @param pluginName plugin name
+     */
+    void checkNamespacePluginRel(String namespaceId, String pluginName);
     
     /**
      * Register uri string.
