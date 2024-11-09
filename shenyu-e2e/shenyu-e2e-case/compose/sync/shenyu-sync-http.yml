@@ -54,13 +54,13 @@ services:
       - "31095:9095"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.sync.http.enabled=true
       - SPRING_PROFILES_ACTIVE=mysql
       - shenyu.database.dialect=mysql
       - shenyu.database.init_enable=true
       - spring.datasource.username=shenyue2e
       - spring.datasource.password=shenyue2e
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-      - shenyu.sync.http.enabled=true
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
