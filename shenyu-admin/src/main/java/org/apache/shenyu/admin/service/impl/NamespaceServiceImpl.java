@@ -25,11 +25,16 @@ import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -38,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
@@ -63,19 +69,23 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private final NamespaceEventPublisher namespaceEventPublisher;
 
-    private SelectorMapper selectorMapper;
+    private final SelectorMapper selectorMapper;
 
-    private RuleMapper ruleMapper;
+    private final RuleMapper ruleMapper;
 
-    private AuthPathMapper authPathMapper;
+    private final AuthPathMapper authPathMapper;
 
-    private MetaDataMapper metaDataMapper;
+    private final MetaDataMapper metaDataMapper;
 
-    private DiscoveryMapper discoveryMapper;
+    private final DiscoveryMapper discoveryMapper;
+
+    private final NamespacePluginRelMapper namespacePluginRelMapper;
+
+    private final PluginService pluginService;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
                                 final NamespaceUserService namespaceUserService,
-                                final NamespaceEventPublisher namespaceEventPublisher) {
+                                final NamespaceEventPublisher namespaceEventPublisher,
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
                                 final PluginService pluginService,
                                 final SelectorMapper selectorMapper,

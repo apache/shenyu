@@ -135,7 +135,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     public List<NamespacePluginVO> listByNamespaceId(final String namespaceId) {
-        return namespacePluginRelMapper.selectByNamespaceId(namespaceId);
+        return namespacePluginRelMapper.selectAllByNamespaceId(namespaceId);
     }
 
     @Override
