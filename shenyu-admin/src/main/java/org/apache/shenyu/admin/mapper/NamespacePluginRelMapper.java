@@ -146,13 +146,6 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      */
     List<NamespacePluginVO> selectAllByNamespaceIds(List<String> namespaceIds);
 
-    /**
-     * select all.
-     *
-     * @return {@linkplain List}
-     */
-    List<NamespacePluginVO> selectAllByNamespaceId();
-
     List<NamespacePluginVO> selectAll();
 
     /**

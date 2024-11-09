@@ -43,7 +43,6 @@ import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
-import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
@@ -81,13 +80,11 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
-    private final PluginService pluginService;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
                                 final NamespaceUserService namespaceUserService,
                                 final NamespaceEventPublisher namespaceEventPublisher,
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
-                                final PluginService pluginService,
                                 final SelectorMapper selectorMapper,
                                 final RuleMapper ruleMapper,
                                 final AuthPathMapper authPathMapper,
@@ -97,7 +94,6 @@ public class NamespaceServiceImpl implements NamespaceService {
         this.namespaceUserService = namespaceUserService;
         this.namespaceEventPublisher = namespaceEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
-        this.pluginService = pluginService;
         this.selectorMapper = selectorMapper;
         this.ruleMapper = ruleMapper;
         this.authPathMapper = authPathMapper;
