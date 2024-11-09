@@ -151,6 +151,8 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      *
      * @return {@linkplain List}
      */
+    List<NamespacePluginVO> selectAllByNamespaceId();
+
     List<NamespacePluginVO> selectAll();
 
     /**

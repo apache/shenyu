@@ -30,7 +30,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.dto.PluginData;
@@ -57,11 +56,8 @@ public class PluginController implements PagedController<PluginQueryCondition, P
 
     private final PluginService pluginService;
     
-    private final SyncDataService syncDataService;
-    
-    public PluginController(final PluginService pluginService, final SyncDataService syncDataService) {
+    public PluginController(final PluginService pluginService) {
         this.pluginService = pluginService;
-        this.syncDataService = syncDataService;
     }
     
     /**

@@ -17,36 +17,33 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
-import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
-import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.transfer.NamespaceTransfer;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
@@ -60,11 +57,11 @@ import java.util.stream.Collectors;
 @Service
 public class NamespaceServiceImpl implements NamespaceService {
 
-    private NamespaceMapper namespaceMapper;
+    private final NamespaceMapper namespaceMapper;
 
-    private NamespacePluginRelMapper namespacePluginRelMapper;
+    private final NamespaceUserService namespaceUserService;
 
-    private PluginService pluginService;
+    private final NamespaceEventPublisher namespaceEventPublisher;
 
     private SelectorMapper selectorMapper;
 
@@ -77,6 +74,8 @@ public class NamespaceServiceImpl implements NamespaceService {
     private DiscoveryMapper discoveryMapper;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
+                                final NamespaceUserService namespaceUserService,
+                                final NamespaceEventPublisher namespaceEventPublisher) {
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
                                 final PluginService pluginService,
                                 final SelectorMapper selectorMapper,
@@ -85,6 +84,8 @@ public class NamespaceServiceImpl implements NamespaceService {
                                 final MetaDataMapper metaDataMapper,
                                 final DiscoveryMapper discoveryMapper) {
         this.namespaceMapper = namespaceMapper;
+        this.namespaceUserService = namespaceUserService;
+        this.namespaceEventPublisher = namespaceEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.pluginService = pluginService;
         this.selectorMapper = selectorMapper;
@@ -103,6 +104,11 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public CommonPager<NamespaceVO> listByPage(final NamespaceQuery namespaceQuery) {
+        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        if (CollectionUtils.isEmpty(namespaceIds)) {
+            return new CommonPager<>();
+        }
+        namespaceQuery.setNamespaceIds(namespaceIds);
         return PageResultUtils.result(namespaceQuery.getPageParameter(), () -> namespaceMapper.countByQuery(namespaceQuery), () -> namespaceMapper.selectByQuery(namespaceQuery)
                 .stream()
                 .map(NamespaceTransfer.INSTANCE::mapToVo)
@@ -158,7 +164,16 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public List<NamespaceVO> list(final String name) {
-        List<NamespaceDO> namespaceDOS = namespaceMapper.selectAllByName(name);
+        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+
+        if (CollectionUtils.isEmpty(namespaceIds)) {
+            return Lists.newArrayList();
+        }
+
+        List<NamespaceDO> namespaceDOS = namespaceMapper.selectByNamespaceIdsAndName(namespaceIds, name);
+        if (CollectionUtils.isEmpty(namespaceDOS)) {
+            return Lists.newArrayList();
+        }
         return namespaceDOS.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
     }
 
@@ -181,19 +196,10 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        List<PluginData> pluginData = pluginService.listAll();
-        List<NamespacePluginRelDO> pluginNsRelList = pluginData.stream().map(s -> NamespacePluginRelDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .pluginId(s.getId())
-                .config(s.getConfig())
-                .sort(s.getSort())
-                .enabled(s.getEnabled())
-                .namespaceId(namespaceId)
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build()).collect(Collectors.toList());
         namespaceMapper.insert(namespaceDO);
-        namespacePluginRelMapper.batchSave(pluginNsRelList);
+
+        namespaceEventPublisher.publish(new NamespaceCreatedEvent(namespaceDO, SessionUtil.visitorId()));
+
         return NamespaceTransfer.INSTANCE.mapToVo(namespaceDO);
     }
 
