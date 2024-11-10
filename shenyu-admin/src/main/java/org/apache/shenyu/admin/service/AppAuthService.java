@@ -182,9 +182,20 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
 
     /**
      * Import shenyu auth data.
+     *
      * @param authDataList app auth list
      * @return the config import result
      */
     ConfigImportResult importData(List<AppAuthDTO> authDataList);
+
+
+    /**
+     * Import shenyu auth data.
+     *
+     * @param namespace     the namespace
+     * @param authDataList app auth list
+     * @return the config import result
+     */
+    ConfigImportResult importData(String namespace, List<AppAuthDTO> authDataList);
 
 }

@@ -405,4 +405,61 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         }
         return ConfigImportResult.success(successCount);
     }
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<DiscoveryDTO> discoveryList) {
+        if (CollectionUtils.isEmpty(discoveryList)) {
+            return ConfigImportResult.success();
+        }
+        
+        Map<String, List<DiscoveryDO>> pluginDiscoveryMap = discoveryMapper
+                .selectAllByNamespaceId(namespace)
+                .stream()
+                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (DiscoveryDTO discoveryDTO : discoveryList) {
+            String pluginName = discoveryDTO.getPluginName();
+            String discoveryName = discoveryDTO.getName();
+            Set<String> existDiscoveryNameSet = pluginDiscoveryMap
+                    .getOrDefault(pluginName, Lists.newArrayList())
+                    .stream()
+                    .map(DiscoveryDO::getName)
+                    .collect(Collectors.toSet());
+            if (existDiscoveryNameSet.contains(discoveryName)) {
+                errorMsgBuilder
+                        .append(discoveryName)
+                        .append(",");
+                continue;
+            }
+            String discoveryId = UUIDUtils.getInstance().generateShortUuid();
+            discoveryDTO.setId(discoveryId);
+            create(discoveryDTO);
+            successCount++;
+            
+            // import discovery handler data
+            if (null != discoveryDTO.getDiscoveryHandler()) {
+                DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryHandler());
+                discoveryHandlerDO.setDiscoveryId(discoveryId);
+                discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+            }
+            
+            // import discovery rel data
+            if (null != discoveryDTO.getDiscoveryRel()) {
+                DiscoveryRelDO discoveryRelDO = DiscoveryTransfer
+                        .INSTANCE
+                        .mapToDO(discoveryDTO.getDiscoveryRel());
+                discoveryRelMapper.insertSelective(discoveryRelDO);
+            }
+        }
+        
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail discovery: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
 }

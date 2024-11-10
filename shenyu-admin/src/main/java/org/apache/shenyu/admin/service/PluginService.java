@@ -128,8 +128,18 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
 
     /**
      * import plugin data.
+     *
      * @param pluginList the plugin data
      * @return config import result
      */
     ConfigImportResult importData(List<PluginDTO> pluginList);
+
+    /**
+     * import plugin data.
+     *
+     * @param namespace the namespace
+     * @param pluginList the plugin data
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<PluginDTO> pluginList);
 }

@@ -490,4 +490,44 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<ProxySelectorData> proxySelectorList) {
+        if (CollectionUtils.isEmpty(proxySelectorList)) {
+            return ConfigImportResult.success();
+        }
+        // TODO namespace
+        Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
+                .selectAll()
+                .stream()
+                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName));
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (ProxySelectorData selectorData : proxySelectorList) {
+            String pluginName = selectorData.getPluginName();
+            String proxySelectorName = selectorData.getName();
+            Set<String> existProxySelectorNameSet = pluginProxySelectorMap
+                    .getOrDefault(pluginName, Lists.newArrayList())
+                    .stream()
+                    .map(ProxySelectorDO::getName)
+                    .collect(Collectors.toSet());
+            
+            if (existProxySelectorNameSet.contains(proxySelectorName)) {
+                errorMsgBuilder
+                        .append(proxySelectorName)
+                        .append(",");
+                continue;
+            }
+            ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
+            if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+                successCount++;
+            }
+        }
+        if (StringUtils.hasLength(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail proxy selector: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
 }

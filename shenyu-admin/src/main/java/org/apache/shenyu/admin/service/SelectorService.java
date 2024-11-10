@@ -248,6 +248,15 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     ConfigImportResult importData(List<SelectorDTO> selectorList);
 
     /**
+     * Import the plugin selector list.
+     *
+     * @param namespace    the namespace
+     * @param selectorList the plugin selector list
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<SelectorDTO> selectorList);
+
+    /**
      * Enabled by ids and namespaceId.
      *
      * @param ids         the ids

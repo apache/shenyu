@@ -234,7 +234,41 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         return ConfigImportResult.success(successCount);
     }
-
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<MetaDataDTO> metaDataList) {
+        if (CollectionUtils.isEmpty(metaDataList)) {
+            return ConfigImportResult.success();
+        }
+        Set<String> existMetadataPathSet = Optional
+                .of(metaDataMapper.findAllByNamespaceId(namespace)
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .map(MetaDataDO::getPath)
+                        .collect(Collectors.toSet()))
+                .orElseGet(Sets::newHashSet);
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        for (MetaDataDTO metaDataDTO : metaDataList) {
+            String metaDataPath = metaDataDTO.getPath();
+            if (existMetadataPathSet.contains(metaDataPath)) {
+                LOG.info("import metadata path: {} already exists", metaDataPath);
+                errorMsgBuilder
+                        .append(metaDataPath)
+                        .append(",");
+                continue;
+            }
+            create(metaDataDTO);
+            successCount++;
+        }
+        this.syncData();
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult.fail(successCount, "import fail meta: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+    
     private String create(final MetaDataDTO metaDataDTO) {
         Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath()), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);

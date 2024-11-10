@@ -487,7 +487,57 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
-
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<SelectorDTO> selectorList) {
+        if (CollectionUtils.isEmpty(selectorList)) {
+            return ConfigImportResult.success();
+        }
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+        
+        Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
+                .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
+        
+        for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
+            // the import selector's pluginId
+            String pluginId = selectorEntry.getKey();
+            List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
+            if (CollectionUtils.isNotEmpty(selectorDTOList)) {
+                
+                Set<String> existSelectorSet = Optional
+                        .ofNullable(pluginSelectorMap.get(pluginId))
+                        .orElseGet(Lists::newArrayList)
+                        .stream()
+                        .map(SelectorDO::getName)
+                        .collect(Collectors.toSet());
+                
+                for (SelectorDTO selectorDTO : selectorDTOList) {
+                    // filter by selectorName
+                    String selectorName = selectorDTO.getName();
+                    if (CollectionUtils.isNotEmpty(existSelectorSet)
+                            && existSelectorSet.contains(selectorName)) {
+                        errorMsgBuilder
+                                .append(selectorName)
+                                .append(",");
+                    } else {
+                        create(selectorDTO);
+                        successCount++;
+                    }
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail selector: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {

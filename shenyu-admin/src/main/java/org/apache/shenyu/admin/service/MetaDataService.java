@@ -160,4 +160,13 @@ public interface MetaDataService {
      * @return the config import result
      */
     ConfigImportResult importData(List<MetaDataDTO> metaDataList);
+
+    /**
+     * Import shenyu meta data.
+     *
+     * @param namespace     the namespace
+     * @param metaDataList meta data list
+     * @return the config import result
+     */
+    ConfigImportResult importData(String namespace, List<MetaDataDTO> metaDataList);
 }

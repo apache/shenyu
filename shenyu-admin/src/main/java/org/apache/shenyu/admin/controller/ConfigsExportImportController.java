@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
@@ -96,17 +97,18 @@ public class ConfigsExportImportController {
     /**
      * Import configs.
      *
+     * @param namespace namespace
      * @param file config file
      * @return shenyu admin result
      */
     @PostMapping("/import")
     @RequiresPermissions("system:manager:importConfig")
-    public ShenyuAdminResult importConfigs(final MultipartFile file) {
-        if (Objects.isNull(file)) {
+    public ShenyuAdminResult importConfigs(final String namespace, final MultipartFile file) {
+        if (StringUtils.isBlank(namespace) || Objects.isNull(file)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         try {
-            ShenyuAdminResult importResult = configsService.configsImport(file.getBytes());
+            ShenyuAdminResult importResult = configsService.configsImport(namespace, file.getBytes());
             if (Objects.equals(CommonErrorCode.SUCCESSFUL, importResult.getCode())) {
                 // sync data
                 syncDataService.syncAll(DataEventTypeEnum.REFRESH);

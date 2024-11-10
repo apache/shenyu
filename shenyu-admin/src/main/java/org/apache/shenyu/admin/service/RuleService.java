@@ -169,10 +169,20 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
 
     /**
      * Import data.
+     *
      * @param ruleList rule list
      * @return config import result
      */
     ConfigImportResult importData(List<RuleDTO> ruleList);
+
+    /**
+     * Import data.
+     *
+     * @param namespace namespace
+     * @param ruleList rule list
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<RuleDTO> ruleList);
 
     /**
      * Enabled string by ids and namespaceId.

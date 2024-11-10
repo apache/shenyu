@@ -111,8 +111,18 @@ public interface DiscoveryUpstreamService {
 
     /**
      * Import the discoveryUpstream data list.
+     *
      * @param discoveryUpstreamList the discoveryUpstream data
      * @return config import result
      */
     ConfigImportResult importData(List<DiscoveryUpstreamDTO> discoveryUpstreamList);
+
+    /**
+     * Import the discoveryUpstream data list.
+     *
+     * @param namespace the namespace
+     * @param discoveryUpstreamList the discoveryUpstream data
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<DiscoveryUpstreamDTO> discoveryUpstreamList);
 }

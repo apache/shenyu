@@ -310,9 +310,56 @@ public class PluginServiceImpl implements PluginService {
                     .fail(successCount, "import fail plugin: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
-
     }
-
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<PluginDTO> pluginList) {
+        if (CollectionUtils.isEmpty(pluginList)) {
+            return ConfigImportResult.success();
+        }
+        // TODO namespace
+        Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(PluginDO::getName, x -> x));
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        for (PluginDTO pluginDTO : pluginList) {
+            String pluginName = pluginDTO.getName();
+            String pluginId;
+            // check plugin base info
+            if (existPluginMap.containsKey(pluginName)) {
+                PluginDO existPlugin = existPluginMap.get(pluginName);
+                pluginId = existPlugin.getId();
+                errorMsgBuilder
+                        .append(pluginName)
+                        .append(",");
+            } else {
+                PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+                pluginId = pluginDO.getId();
+                if (pluginMapper.insertSelective(pluginDO) > 0) {
+                    // publish create event. init plugin data
+                    successCount++;
+                }
+            }
+            // check and import plugin handle
+            List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
+            if (CollectionUtils.isNotEmpty(pluginHandleList)) {
+                pluginHandleService
+                        .importData(pluginHandleList
+                                .stream()
+                                .peek(x -> x.setPluginId(pluginId))
+                                .collect(Collectors.toList()));
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+    
     /**
      * create plugin.<br>
      * insert plugin and insert plugin data.

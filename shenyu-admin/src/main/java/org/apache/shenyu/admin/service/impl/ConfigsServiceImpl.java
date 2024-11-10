@@ -265,12 +265,71 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
         return ShenyuAdminResult.success(result);
     }
-
+    
+    @Override
+    public ShenyuAdminResult configsImport(final String namespace, final byte[] source) {
+        ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(source);
+        List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
+        if (CollectionUtils.isEmpty(zipItemList)) {
+            LOG.info("import file is empty");
+            return ShenyuAdminResult.success();
+        }
+        Map<String, Object> result = Maps.newHashMap();
+        for (ZipUtil.ZipItem zipItem : zipItemList) {
+            switch (zipItem.getItemName()) {
+                case ExportImportConstants.AUTH_JSON:
+                    importAuthData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.META_JSON:
+                    importMetaData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.PLUGIN_JSON:
+                    importPluginData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.SELECTOR_JSON:
+                    importSelectorData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.RULE_JSON:
+                    importRuleData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.DICT_JSON:
+                    importDictData(result, zipItem);
+                    break;
+                case ExportImportConstants.PROXY_SELECTOR_JSON:
+                    importProxySelectorData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.DISCOVERY_JSON:
+                    importDiscoveryData(namespace, result, zipItem);
+                    break;
+                case ExportImportConstants.DISCOVERY_UPSTREAM_JSON:
+                    importDiscoveryUpstreamData(namespace, result, zipItem);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return ShenyuAdminResult.success(result);
+    }
+    
     private void importDiscoveryUpstreamData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String discoveryUpstreamJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(discoveryUpstreamJson)) {
             List<DiscoveryUpstreamDTO> discoveryUpstreamList = GsonUtils.getInstance().fromList(discoveryUpstreamJson, DiscoveryUpstreamDTO.class);
             ConfigImportResult configImportResult = discoveryUpstreamService.importData(discoveryUpstreamList);
+            result.put(ExportImportConstants.DISCOVERY_UPSTREAM_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.DISCOVERY_UPSTREAM_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+    
+    private void importDiscoveryUpstreamData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String discoveryUpstreamJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(discoveryUpstreamJson)) {
+            List<DiscoveryUpstreamDTO> discoveryUpstreamList = GsonUtils.getInstance().fromList(discoveryUpstreamJson, DiscoveryUpstreamDTO.class);
+            // set namespaceId
+            discoveryUpstreamList.forEach(discoveryUpstreamDTO -> discoveryUpstreamDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = discoveryUpstreamService.importData(namespace, discoveryUpstreamList);
             result.put(ExportImportConstants.DISCOVERY_UPSTREAM_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.DISCOVERY_UPSTREAM_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
@@ -290,11 +349,39 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void importDiscoveryData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String discoveryJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(discoveryJson)) {
+            List<DiscoveryDTO> discoveryList = GsonUtils.getInstance().fromList(discoveryJson, DiscoveryDTO.class);
+            // set namespaceId
+            discoveryList.forEach(discoveryDTO -> discoveryDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = discoveryService.importData(namespace, discoveryList);
+            result.put(ExportImportConstants.DISCOVERY_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.DISCOVERY_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
     private void importProxySelectorData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String proxySelectorJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(proxySelectorJson)) {
             List<ProxySelectorData> proxySelectorList = GsonUtils.getInstance().fromList(proxySelectorJson, ProxySelectorData.class);
             ConfigImportResult configImportResult = proxySelectorService.importData(proxySelectorList);
+            result.put(ExportImportConstants.PROXY_SELECTOR_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.PROXY_SELECTOR_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
+    private void importProxySelectorData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String proxySelectorJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(proxySelectorJson)) {
+            List<ProxySelectorData> proxySelectorList = GsonUtils.getInstance().fromList(proxySelectorJson, ProxySelectorData.class);
+            // set namespaceId
+            proxySelectorList.forEach(proxySelectorData -> proxySelectorData.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = proxySelectorService.importData(namespace, proxySelectorList);
             result.put(ExportImportConstants.PROXY_SELECTOR_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.PROXY_SELECTOR_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
@@ -326,6 +413,20 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void importRuleData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String ruleJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(ruleJson)) {
+            List<RuleDTO> ruleList = GsonUtils.getInstance().fromList(ruleJson, RuleDTO.class);
+            // set namespaceId
+            ruleList.forEach(ruleDTO -> ruleDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = ruleService.importData(namespace, ruleList);
+            result.put(ExportImportConstants.RULE_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.RULE_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
     private void importSelectorData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String selectorJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(selectorJson)) {
@@ -338,10 +439,38 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void importSelectorData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String selectorJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(selectorJson)) {
+            List<SelectorDTO> selectorList = GsonUtils.getInstance().fromList(selectorJson, SelectorDTO.class);
+            // set namespaceId
+            selectorList.forEach(selectorDTO -> selectorDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = selectorService.importData(namespace, selectorList);
+            result.put(ExportImportConstants.SELECTOR_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.SELECTOR_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
     private void importPluginData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String pluginJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(pluginJson)) {
             List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
+            ConfigImportResult configImportResult = pluginService.importData(pluginList);
+            result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
+    private void importPluginData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String pluginJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(pluginJson)) {
+            List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
+            // set namespaceId
+            pluginList.forEach(pluginDTO -> pluginDTO.setNamespaceId(namespace));
             ConfigImportResult configImportResult = pluginService.importData(pluginList);
             result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
@@ -362,11 +491,39 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void importMetaData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String metaJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(metaJson)) {
+            List<MetaDataDTO> metaDataList = GsonUtils.getInstance().fromList(metaJson, MetaDataDTO.class);
+            // set namespaceId
+            metaDataList.forEach(metaDataDTO -> metaDataDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = metaDataService.importData(namespace, metaDataList);
+            result.put(ExportImportConstants.META_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.META_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
     private void importAuthData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String authJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(authJson)) {
             List<AppAuthDTO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthDTO.class);
             ConfigImportResult configImportResult = appAuthService.importData(authDataList);
+            result.put(ExportImportConstants.AUTH_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.AUTH_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
+    private void importAuthData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String authJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(authJson)) {
+            List<AppAuthDTO> authDataList = GsonUtils.getInstance().fromList(authJson, AppAuthDTO.class);
+            // set namespaceId
+            authDataList.forEach(appAuthDTO -> appAuthDTO.setNamespaceId(namespace));
+            ConfigImportResult configImportResult = appAuthService.importData(namespace, authDataList);
             result.put(ExportImportConstants.AUTH_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.AUTH_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
