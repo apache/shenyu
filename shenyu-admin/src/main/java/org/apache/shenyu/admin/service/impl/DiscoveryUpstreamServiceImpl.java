@@ -177,7 +177,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 .map(DiscoveryTransfer.INSTANCE::mapToVo)
                 .collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<DiscoveryUpstreamVO> listAllDataByNamespaceId(final String namespaceId) {
+        return discoveryUpstreamMapper
+                .selectByNamespaceId(namespaceId)
+                .stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                .collect(Collectors.toList());
+    }
+    
     @Override
     public void refreshBySelectorId(final String selectorId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
@@ -286,9 +295,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
-        // TODO namespace
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
-                .selectAll()
+                .selectByNamespaceId(namespace)
                 .stream()
                 .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {

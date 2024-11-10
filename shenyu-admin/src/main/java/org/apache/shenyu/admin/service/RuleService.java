@@ -135,6 +135,14 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     List<RuleVO> listAllData();
 
     /**
+     * List all rule vo list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the rule vo list
+     */
+    List<RuleVO> listAllDataByNamespaceId(String namespaceId);
+
+    /**
      * Find by selector id list.
      *
      * @param selectorId the selector id

@@ -600,7 +600,28 @@ public class AppAuthServiceImpl implements AppAuthService {
             }
         ).collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<AppAuthVO> listAllDataByNamespace(final String namespace) {
+        
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespace);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return new ArrayList<>();
+        }
+        
+        List<String> idList = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
+        Map<String, List<AuthParamVO>> paramMap = this.prepareAuthParamVO(idList);
+        Map<String, List<AuthPathVO>> pathMap = this.prepareAuthPathVO(idList);
+        
+        return appAuthDOList.stream().map(data -> {
+                AppAuthVO vo = AppAuthTransfer.INSTANCE.mapToVO(data);
+                vo.setAuthParamList(paramMap.get(vo.getId()));
+                vo.setAuthPathList(pathMap.get(vo.getId()));
+                return vo;
+            }
+        ).collect(Collectors.toList());
+    }
+    
     @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
         return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));

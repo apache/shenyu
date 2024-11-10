@@ -163,6 +163,11 @@
         </where>
     </select>
 
+    <select id="selectByNamespaceId" resultMap="BaseResultMap">
+        <include refid="Base_Column_List"/>
+        WHERE namespace_id=#{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <sql id="base_join_discovery_rel">
         SELECT
         du.id,

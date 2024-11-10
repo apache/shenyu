@@ -229,7 +229,12 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }
-
+    
+    @Override
+    public List<RuleVO> listAllDataByNamespaceId(final String namespaceId) {
+        return this.buildRuleVOList(ruleMapper.selectAllByNamespaceId(namespaceId));
+    }
+    
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
         return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));

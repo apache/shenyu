@@ -417,7 +417,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         return proxySelectorMapper.selectAll().stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<ProxySelectorData> listAllByNamespaceId(final String namespaceId) {
+        return proxySelectorMapper.selectByNamespaceId(namespaceId).stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+    }
+    
     @Override
     public List<ProxySelectorVO> listAllData() {
         List<ProxySelectorVO> result = Lists.newArrayList();

@@ -240,6 +240,14 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     List<SelectorVO> listAllData();
 
     /**
+     * List all export vo list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the vo list
+     */
+    List<SelectorVO> listAllDataByNamespaceId(String namespaceId);
+
+    /**
      * Import the plugin selector list.
      *
      * @param selectorList the plugin selector list

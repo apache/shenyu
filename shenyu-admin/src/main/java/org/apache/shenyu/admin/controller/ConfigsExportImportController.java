@@ -85,6 +85,27 @@ public class ConfigsExportImportController {
     }
 
     /**
+     * Export all configs.
+     *
+     * @param namespaceId namespaceId
+     * @param response response
+     * @return the shenyu result
+     */
+    @GetMapping("/exportByNamespace")
+    @RequiresPermissions("system:manager:exportConfig")
+    public ResponseEntity<byte[]> exportConfigsByNamespace(final String namespaceId, final HttpServletResponse response) {
+        ShenyuAdminResult result = configsService.configsExport(namespaceId);
+        if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
+            throw new ShenyuException(result.getMessage());
+        }
+        HttpHeaders headers = new HttpHeaders();
+        String fileName = generateFileName();
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+        headers.add("Content-Disposition", "attachment;filename=" + fileName);
+        return new ResponseEntity<>((byte[]) result.getData(), headers, HttpStatus.OK);
+    }
+
+    /**
      * generate export file name.
      *
      * @return fileName

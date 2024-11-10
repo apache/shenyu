@@ -30,6 +30,14 @@ public interface ConfigsService {
      * @return shenyu admin result
      */
     ShenyuAdminResult configsExport();
+    
+    /**
+     * Export all configs.
+     *
+     * @param namespace namespace
+     * @return shenyu admin result
+     */
+    ShenyuAdminResult configsExport(String namespace);
 
     /**
      * Import configs.

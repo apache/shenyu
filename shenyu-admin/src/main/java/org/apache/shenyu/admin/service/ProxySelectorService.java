@@ -84,6 +84,14 @@ public interface ProxySelectorService {
     List<ProxySelectorData> listAll();
 
     /**
+     * listAll.
+     *
+     * @param namespaceId namespaceId
+     * @return ProxySelectorDTOList
+     */
+    List<ProxySelectorData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * list all data.
      *
      * @return ProxySelectorVOList

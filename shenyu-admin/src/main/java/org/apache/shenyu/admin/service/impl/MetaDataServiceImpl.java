@@ -183,7 +183,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     public List<MetaDataVO> listAllData() {
         return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToVO);
     }
-
+    
+    @Override
+    public List<MetaDataVO> listAllDataByNamespaceId(final String namespaceId) {
+        return ListUtil.map(metaDataMapper.findAllByNamespaceId(namespaceId), MetaDataTransfer.INSTANCE::mapToVO);
+    }
+    
     @Override
     public MetaDataDO findByPathAndNamespaceId(final String path, final String namespaceId) {
         return metaDataMapper.findByPathAndNamespaceId(path, namespaceId);

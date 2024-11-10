@@ -18,13 +18,16 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
+import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -220,7 +223,7 @@ public class PluginServiceImpl implements PluginService {
                 .map(pluginDO -> {
                     PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
                     List<PluginHandleVO> pluginHandleList = Optional
-                            .ofNullable(pluginHandleMap.get(exportVO.getId()))
+                            .ofNullable(pluginHandleMap.getOrDefault(exportVO.getId(), Lists.newArrayList()))
                             .orElse(Lists.newArrayList())
                             .stream()
                             // to make less volume of export data
@@ -230,7 +233,39 @@ public class PluginServiceImpl implements PluginService {
                     return exportVO;
                 }).collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<PluginVO> listAllDataByNamespaceId(final String namespaceId) {
+        List<NamespacePluginRelDO> pluginRelDOList = namespacePluginRelMapper.listByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(pluginRelDOList)) {
+            return Lists.newArrayList();
+        }
+        Set<String> pluginIdSet = pluginRelDOList.stream().map(NamespacePluginRelDO::getPluginId).collect(Collectors.toSet());
+        
+        List<PluginDO> pluginDOList = pluginMapper.selectByIds(Lists.newArrayList(pluginIdSet));
+        
+        // plugin handle
+        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllDataByPluginIds(pluginIdSet)
+                .stream()
+                .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
+        
+        return pluginDOList
+                .stream()
+                .filter(Objects::nonNull)
+                .map(pluginDO -> {
+                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
+                    List<PluginHandleVO> pluginHandleList = Optional
+                            .ofNullable(pluginHandleMap.getOrDefault(exportVO.getId(), Lists.newArrayList()))
+                            .orElse(Lists.newArrayList())
+                            .stream()
+                            // to make less volume of export data
+                            .peek(x -> x.setDictOptions(null))
+                            .collect(Collectors.toList());
+                    exportVO.setPluginHandleList(pluginHandleList);
+                    return exportVO;
+                }).collect(Collectors.toList());
+    }
+    
     @Override
     public List<PluginData> listAllNotInResource() {
         return ListUtil.map(pluginMapper.listAllNotInResource(), PluginTransfer.INSTANCE::mapToData);
@@ -317,18 +352,22 @@ public class PluginServiceImpl implements PluginService {
         if (CollectionUtils.isEmpty(pluginList)) {
             return ConfigImportResult.success();
         }
-        // TODO namespace
-        Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(PluginDO::getName, x -> x));
+        List<NamespacePluginRelDO> pluginRelDOList = namespacePluginRelMapper.listByNamespaceId(namespace);
+        Map<String, PluginDO> existPluginMap = Maps.newHashMap();
+        if (CollectionUtils.isNotEmpty(pluginRelDOList)) {
+            List<String> pluginIds = pluginRelDOList.stream().map(NamespacePluginRelDO::getPluginId).distinct().collect(Collectors.toList());
+            existPluginMap = pluginMapper.selectByIds(pluginIds)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toMap(PluginDO::getName, x -> x));
+        }
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
             String pluginId;
             // check plugin base info
-            if (existPluginMap.containsKey(pluginName)) {
+            if (MapUtils.isNotEmpty(existPluginMap) && existPluginMap.containsKey(pluginName)) {
                 PluginDO existPlugin = existPluginMap.get(pluginName);
                 pluginId = existPlugin.getId();
                 errorMsgBuilder

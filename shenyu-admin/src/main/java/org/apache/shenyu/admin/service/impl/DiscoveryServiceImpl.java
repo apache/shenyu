@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
@@ -309,7 +310,50 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 })
                 .collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<DiscoveryVO> listAllDataByNamespaceId(final String namespaceId) {
+        List<DiscoveryDO> discoveryDOList = discoveryMapper
+                .selectAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(discoveryDOList)) {
+            return Lists.newArrayList();
+        }
+        
+        Set<String> discoveryIdSet = discoveryDOList.stream().map(DiscoveryDO::getId).collect(Collectors.toSet());
+        
+        List<DiscoveryHandlerDO> discoveryHandlerDOList = discoveryHandlerMapper
+                .selectByDiscoveryIds(discoveryIdSet);
+        
+        Map<String, DiscoveryHandlerVO> discoveryHandlerMap = Maps.newHashMap();
+        Map<String, DiscoveryRelVO> discoveryRelMap = Maps.newHashMap();
+        if (CollectionUtils.isNotEmpty(discoveryHandlerDOList)) {
+            discoveryHandlerMap = discoveryHandlerDOList
+                    .stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                    .collect(Collectors.toMap(DiscoveryHandlerVO::getDiscoveryId, x -> x));
+            discoveryRelMap = discoveryRelMapper
+                    .selectAll()
+                    .stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToVo)
+                    .collect(Collectors.toMap(DiscoveryRelVO::getDiscoveryHandlerId, x -> x));
+        }
+        final Map<String, DiscoveryHandlerVO> finalDiscoveryHandlerMap = discoveryHandlerMap;
+        final Map<String, DiscoveryRelVO> finalDiscoveryRelMap = discoveryRelMap;
+        return discoveryDOList
+                .stream()
+                .map(x -> {
+                    DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(x);
+                    DiscoveryHandlerVO discoveryHandlerVO = finalDiscoveryHandlerMap.getOrDefault(discoveryVO.getId(), new DiscoveryHandlerVO());
+                    discoveryVO.setDiscoveryHandler(discoveryHandlerVO);
+                    if (StringUtils.isNotEmpty(discoveryHandlerVO.getId())) {
+                        DiscoveryRelVO discoveryRelVO = finalDiscoveryRelMap.getOrDefault(discoveryHandlerVO.getId(), new DiscoveryRelVO());
+                        discoveryVO.setDiscoveryRel(discoveryRelVO);
+                    }
+                    return discoveryVO;
+                })
+                .collect(Collectors.toList());
+    }
+    
     @Override
     public DiscoveryHandlerDTO findDiscoveryHandlerBySelectorId(final String selectorId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);

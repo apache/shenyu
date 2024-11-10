@@ -291,6 +291,13 @@
         npr.id ASC
     </select>
 
+    <select id="listByNamespaceId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_plugin_rel
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
 
     <update id="updateEnableByIdList">
         UPDATE namespace_plugin_rel
