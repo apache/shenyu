@@ -69,14 +69,6 @@
         ${alis}.namespace_id
     </sql>
 
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        SELECT
-               <include refid="Base_Column_List"/>
-          FROM selector
-          WHERE id = #{id, jdbcType=VARCHAR}
-          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-    </select>
-
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -159,6 +151,16 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE plugin_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
