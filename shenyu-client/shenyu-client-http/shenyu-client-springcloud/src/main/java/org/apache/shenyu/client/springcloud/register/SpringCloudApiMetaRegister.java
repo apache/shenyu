@@ -86,7 +86,7 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
                 .path(apiPath)
                 .pathDesc(annotation.desc())
                 .parameterTypes(null)
-                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(annotation.enabled())
                 .ruleName(StringUtils.defaultIfBlank(annotation.ruleName(), apiPath))
                 .build();
@@ -144,7 +144,7 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
                 .path(apiPath)
                 .pathDesc(pathDesc)
                 .parameterTypes(apiDefinition.getParameterTypes())
-                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(enabled)
                 .ruleName(ruleName)
                 .build());

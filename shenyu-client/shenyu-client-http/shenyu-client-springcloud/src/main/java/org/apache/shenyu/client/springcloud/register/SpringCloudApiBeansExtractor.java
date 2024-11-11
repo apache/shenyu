@@ -36,7 +36,7 @@ public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtracto
     
     @Override
     public String clientName() {
-        return RpcTypeEnum.SPRING_CLOUD.getName();
+        return RpcTypeEnum.HTTP.getName();
     }
     
     /**

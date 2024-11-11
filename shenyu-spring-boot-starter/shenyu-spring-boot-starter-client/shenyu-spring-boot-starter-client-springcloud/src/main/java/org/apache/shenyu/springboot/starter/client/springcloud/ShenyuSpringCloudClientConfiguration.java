@@ -74,6 +74,6 @@ public class ShenyuSpringCloudClientConfiguration {
     public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
                                                      final ApplicationContext applicationContext,
                                                      final Environment env) {
-        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.SPRING_CLOUD, applicationContext, env);
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.HTTP, applicationContext, env);
     }
 }

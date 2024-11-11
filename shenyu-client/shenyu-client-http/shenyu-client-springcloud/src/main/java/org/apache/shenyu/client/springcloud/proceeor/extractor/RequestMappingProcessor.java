@@ -36,7 +36,7 @@ public class RequestMappingProcessor implements ApiAnnotationProcessor<RequestMa
     
     @Override
     public List<String> supportedClient() {
-        return ListUtil.of(RpcTypeEnum.SPRING_CLOUD.getName());
+        return ListUtil.of(RpcTypeEnum.HTTP.getName());
     }
     
     @Override

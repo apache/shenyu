@@ -62,7 +62,7 @@ shenyu:
       password: 123456
       nacosNameSpace: ShenyuRegisterCenter
   client:
-    springCloud:
+    http:
       props:
         contextPath: /springcloud
         addPrefixed: false

@@ -63,7 +63,7 @@ public class ShenyuSpringCloudDiscoveryConfiguration {
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository,
                                                                                                    final ClientRegisterConfig clientRegisterConfig,
                                                                                                    final ShenyuClientConfig shenyuClientConfig) {
-        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.SPRING_CLOUD, shenyuClientConfig);
+        return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.DIVIDE, shenyuClientConfig);
     }
 
     /**

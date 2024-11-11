@@ -118,7 +118,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         List<ApiHttpMethodEnum> collect = Stream.of(requestMethods).map(item -> ApiHttpMethodEnum.of(item.name())).collect(Collectors.toList());
         ApiHttpMethodEnum[] apiHttpMethodEnums = collect.toArray(new ApiHttpMethodEnum[]{});
         String version = "v0.01";
-        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.SPRING_CLOUD, version);
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.HTTP, version);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                         .contextPath(getContextPath())
                         .appName(getAppName())
                         .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
-                        .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                        .rpcType(RpcTypeEnum.HTTP.getName())
                         .enabled(true)
                         .ruleName(getContextPath())
                         .namespaceId(namespaceId)
@@ -152,7 +152,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .appName(getAppName())
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
-                    .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                    .rpcType(RpcTypeEnum.HTTP.getName())
                     .eventType(EventType.REGISTER)
                     .namespaceId(namespaceId)
                     .build();
@@ -163,7 +163,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     
     @Override
     protected String getClientName() {
-        return RpcTypeEnum.SPRING_CLOUD.getName();
+        return RpcTypeEnum.HTTP.getName();
     }
     
     @Override
@@ -262,7 +262,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                                 .map(Class::getName)
                                 .collect(Collectors.joining(","))
                                 ).orElse(null))
-                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(shenyuClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
                 .namespaceId(namespaceId)
