@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(HttpSyncProperties.class)
-@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
 public class HttpLongPollingSyncConfiguration {
     
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingSyncConfiguration.class);
@@ -44,6 +43,7 @@ public class HttpLongPollingSyncConfiguration {
      * @return {@link HttpLongPollingDataChangedListener}
      */
     @Bean
+    @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         LOG.info("support http sync, initing HttpLongPollingDataChangedListener");
