@@ -551,6 +551,18 @@ public class SelectorServiceImpl implements SelectorService {
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {
+                List<SelectorConditionDO> conditionList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()));
+                List<SelectorConditionDTO> selectorConditions = conditionList.stream().map(item -> {
+                    SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
+                    selectorConditionDTO.setId(item.getId());
+                    selectorConditionDTO.setSelectorId(item.getSelectorId());
+                    selectorConditionDTO.setParamType(item.getParamType());
+                    selectorConditionDTO.setOperator(item.getOperator());
+                    selectorConditionDTO.setParamName(item.getParamName());
+                    selectorConditionDTO.setParamValue(item.getParamValue());
+                    return selectorConditionDTO;
+                }).toList();
+                publishEvent(selectorDO, selectorConditions, Collections.emptyList());
                 selectorEventPublisher.onUpdated(selectorDO, before);
             }
         });
