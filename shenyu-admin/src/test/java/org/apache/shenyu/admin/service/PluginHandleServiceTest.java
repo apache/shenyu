@@ -187,7 +187,18 @@ public final class PluginHandleServiceTest {
                 .dateCreated(now)
                 .dateUpdated(now)
                 .build();
-        return Collections.singletonList(result);
+        final ShenyuDictDO disableDict = ShenyuDictDO.builder()
+                .type("burstCapacity")
+                .dictCode("RATE_LIMITER_QPS")
+                .dictName("disable")
+                .dictValue("disable")
+                .desc("disable")
+                .enabled(false)
+                .sort(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
+        return List.of(result, disableDict);
     }
 
     @Test
