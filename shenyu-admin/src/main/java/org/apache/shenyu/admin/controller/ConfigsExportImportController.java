@@ -87,14 +87,14 @@ public class ConfigsExportImportController {
     /**
      * Export all configs.
      *
-     * @param namespaceId namespaceId
+     * @param namespace namespaceId
      * @param response response
      * @return the shenyu result
      */
     @GetMapping("/exportByNamespace")
     @RequiresPermissions("system:manager:exportConfig")
-    public ResponseEntity<byte[]> exportConfigsByNamespace(final String namespaceId, final HttpServletResponse response) {
-        ShenyuAdminResult result = configsService.configsExport(namespaceId);
+    public ResponseEntity<byte[]> exportConfigsByNamespace(final String namespace, final HttpServletResponse response) {
+        ShenyuAdminResult result = configsService.configsExport(namespace);
         if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
             throw new ShenyuException(result.getMessage());
         }

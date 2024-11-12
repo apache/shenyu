@@ -322,7 +322,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         Set<String> discoveryIdSet = discoveryDOList.stream().map(DiscoveryDO::getId).collect(Collectors.toSet());
         
         List<DiscoveryHandlerDO> discoveryHandlerDOList = discoveryHandlerMapper
-                .selectByDiscoveryIds(discoveryIdSet);
+                .selectByDiscoveryIds(Lists.newArrayList(discoveryIdSet));
         
         Map<String, DiscoveryHandlerVO> discoveryHandlerMap = Maps.newHashMap();
         Map<String, DiscoveryRelVO> discoveryRelMap = Maps.newHashMap();

@@ -83,7 +83,7 @@
         where discovery_id IN
         <foreach collection="discoveryIds" item="discoveryId" index="index"
                  open="(" separator="," close=")">
-            #{id}
+            #{discoveryId}
         </foreach>
     </select>
 
