@@ -302,7 +302,17 @@ public class RuleServiceImpl implements RuleService {
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {
-                ruleEventPublisher.onUpdated(ruleDO, before);
+                List<RuleConditionDO> conditionList = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+                List<RuleConditionDTO> conditions = conditionList.stream().map(item ->
+                        RuleConditionDTO.builder()
+                                .ruleId(item.getRuleId())
+                                .id(item.getId())
+                                .operator(item.getOperator())
+                                .paramName(item.getParamName())
+                                .paramValue(item.getParamValue())
+                                .paramType(item.getParamType())
+                                .build()).toList();
+                ruleEventPublisher.onUpdated(ruleDO, before, conditions, Collections.emptyList());
             }
         });
         return Boolean.TRUE;
