@@ -207,6 +207,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportDiscoveryData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<DiscoveryVO> discoveryList = discoveryService.listAllDataByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(discoveryList)) {
+            discoveryList.forEach(discoveryVO -> discoveryVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_JSON, JsonUtils.toJson(discoveryList)));
         }
     }
@@ -221,6 +222,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportProxySelectorData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<ProxySelectorData> proxySelectorDataList = proxySelectorService.listAllByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
+            proxySelectorDataList.forEach(proxySelectorData -> proxySelectorData.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PROXY_SELECTOR_JSON, JsonUtils.toJson(proxySelectorDataList)));
         }
     }
@@ -256,6 +258,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportSelectorData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<SelectorVO> selectorDataList = selectorService.listAllDataByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            selectorDataList.forEach(selectorVO -> selectorVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorDataList)));
         }
     }
@@ -284,6 +287,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportMetadata(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<MetaDataVO> metaDataList = metaDataService.listAllDataByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(metaDataList)) {
+            metaDataList.forEach(metaDataVO -> metaDataVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaDataList)));
         }
     }
@@ -298,6 +302,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportAuthData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<AppAuthVO> authDataList = appAuthService.listAllDataByNamespace(namespace);
         if (CollectionUtils.isNotEmpty(authDataList)) {
+            authDataList.forEach(appAuthVO -> appAuthVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
         }
     }
