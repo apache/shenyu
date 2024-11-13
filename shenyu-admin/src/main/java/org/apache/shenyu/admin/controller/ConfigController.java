@@ -31,6 +31,8 @@ import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +53,8 @@ import java.util.Map;
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 public class ConfigController {
     
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigController.class);
+    
     private final HttpLongPollingDataChangedListener longPollingListener;
 
     private final NamespaceService namespaceService;
@@ -58,6 +62,7 @@ public class ConfigController {
     public ConfigController(final HttpLongPollingDataChangedListener longPollingListener, final NamespaceService namespaceService) {
         this.longPollingListener = longPollingListener;
         this.namespaceService = namespaceService;
+        LOG.info("ConfigController is started");
     }
 
     /**
