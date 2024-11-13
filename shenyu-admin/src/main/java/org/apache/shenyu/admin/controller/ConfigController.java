@@ -50,7 +50,7 @@ import java.util.Map;
 @RestController
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 public class ConfigController {
-    
+
     private final HttpLongPollingDataChangedListener longPollingListener;
 
     private final NamespaceService namespaceService;
