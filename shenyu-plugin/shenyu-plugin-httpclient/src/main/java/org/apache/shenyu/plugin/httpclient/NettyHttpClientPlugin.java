@@ -65,7 +65,6 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                                                  final URI uri, final Flux<DataBuffer> body) {
         return Mono.from(httpClient.headers(headers -> {
             exchange.getRequest().getHeaders().forEach(headers::add);
-            headers.remove(HttpHeaders.HOST);
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
