@@ -67,7 +67,6 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         final WebClient.ResponseSpec responseSpec = webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> {
                     headers.addAll(exchange.getRequest().getHeaders());
-                    headers.remove(HttpHeaders.HOST);
                 })
                 .body((outputMessage, context) -> {
                     MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
