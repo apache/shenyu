@@ -33,10 +33,13 @@ import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -45,8 +48,9 @@ import java.util.Map;
  */
 @ResponseBody
 @RequestMapping("/configs")
-//@RestController
-//@ConditionalOnBean(HttpLongPollingDataChangedListener.class)
+@DependsOn("httpLongPollingDataChangedListener")
+@RestController
+@ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 public class ConfigController {
     
     private static final Logger LOG = LoggerFactory.getLogger(ConfigController.class);
@@ -68,7 +72,6 @@ public class ConfigController {
      * @param namespaceId namespaceId
      * @return the shenyu result
      */
-    @ResponseBody
     @GetMapping("/fetch")
     public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys, final String namespaceId) {
         if (StringUtils.isEmpty(namespaceId)) {
@@ -92,7 +95,6 @@ public class ConfigController {
      * @param request  the request
      * @param response the response
      */
-    @ResponseBody
     @PostMapping(value = "/listener")
     public void listener(final HttpServletRequest request, final HttpServletResponse response) {
         longPollingListener.doLongPolling(request, response);
