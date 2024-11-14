@@ -210,7 +210,7 @@ shenyu:
         - system:resource:deleteMenu
   k8s:
     scale:
-      enabled: true
+      enabled: false
       monitor-interval: 10000
       pool-size: 6
     prometheus:
