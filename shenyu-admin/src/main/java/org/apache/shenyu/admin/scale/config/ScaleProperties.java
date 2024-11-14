@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "shenyu.k8s.scale")
 public class ScaleProperties {
 
-    private boolean enabled;
+    private boolean enabled = false;
 
     private long monitorInterval;
 

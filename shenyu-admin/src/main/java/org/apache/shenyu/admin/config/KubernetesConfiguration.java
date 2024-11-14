@@ -47,7 +47,7 @@ public class KubernetesConfiguration {
      * @return AppsV1Api
      */
     @Bean
-    @ConditionalOnProperty(value = {"shenyu.k8s.scale.enabled"}, havingValue = "true")
+    @ConditionalOnProperty(value = "shenyu.k8s.scale.enabled", havingValue = "true")
     @ConditionalOnMissingBean(DeploymentProperties.class)
     public AppsV1Api apiClient(final DeploymentProperties deploymentProperties) {
         try {
