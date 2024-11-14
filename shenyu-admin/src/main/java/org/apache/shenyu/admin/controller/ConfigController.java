@@ -48,7 +48,7 @@ import java.util.Map;
  */
 @ResponseBody
 @RequestMapping("/configs")
-@DependsOn("httpLongPollingDataChangedListener")
+@DependsOn({"httpLongPollingDataChangedListener", "namespaceServiceImpl"})
 @RestController
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 public class ConfigController {
