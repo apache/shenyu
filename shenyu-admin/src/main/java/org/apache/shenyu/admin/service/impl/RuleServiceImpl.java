@@ -191,9 +191,9 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * find rule by id.
+     * find rule by id and namespaceId.
      *
-     * @param id primary key..
+     * @param id primary key.
      * @return {@linkplain RuleVO}
      */
     @Override
@@ -218,6 +218,11 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public List<RuleData> listAll() {
         return this.buildRuleDataList(ruleMapper.selectAll());
+    }
+
+    @Override
+    public List<RuleData> listAllByNamespaceId(final String namespaceId) {
+        return this.buildRuleDataList(ruleMapper.selectAllByNamespaceId(namespaceId));
     }
 
     @Override
@@ -291,27 +296,37 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean enabled(final List<String> ids, final Boolean enabled) {
+    public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectById(id);
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {
-                ruleEventPublisher.onUpdated(ruleDO, before);
+                List<RuleConditionDO> conditionList = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+                List<RuleConditionDTO> conditions = conditionList.stream().map(item ->
+                        RuleConditionDTO.builder()
+                                .ruleId(item.getRuleId())
+                                .id(item.getId())
+                                .operator(item.getOperator())
+                                .paramName(item.getParamName())
+                                .paramValue(item.getParamValue())
+                                .paramType(item.getParamType())
+                                .build()).toList();
+                ruleEventPublisher.onUpdated(ruleDO, before, conditions, Collections.emptyList());
             }
         });
         return Boolean.TRUE;
     }
 
     /**
-     * delete rules.
+     * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
+    public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
         final int deleteCount = ruleMapper.deleteByIds(ids);
         if (deleteCount > 0) {

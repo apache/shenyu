@@ -39,9 +39,10 @@ public interface DiscoveryService {
      *
      * @param pluginName plugin name
      * @param level      level
+     * @param namespaceId namespaceId
      * @return the discovery
      */
-    DiscoveryVO discovery(String pluginName, String level);
+    DiscoveryVO discovery(String pluginName, String level, String namespaceId);
 
     /**
      * Create or update string.
@@ -77,6 +78,13 @@ public interface DiscoveryService {
     void syncData();
 
     /**
+     * Sync data by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     */
+    void syncDataByNamespaceId(String namespaceId);
+
+    /**
      * list all vo.
      * @return discovery vo
      */
@@ -96,9 +104,10 @@ public interface DiscoveryService {
      *
      * @param selectorId selectorId
      * @param pluginName pluginName
+     * @param namespaceId namespaceId
      * @return discoveryHandlerId
      */
-    String registerDefaultDiscovery(String selectorId, String pluginName);
+    String registerDefaultDiscovery(String selectorId, String pluginName, String namespaceId);
 
     /**
      * Import discovery data list.

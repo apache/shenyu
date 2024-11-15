@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.testcase.apachedubbo;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -27,8 +28,9 @@ import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -63,16 +65,16 @@ public class ApacheDubboPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start dubbo plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "6");
-        formData.add("name", "dubbo");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("pluginId", "6");
+        reqBody.put("name", "dubbo");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "310");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
-        adminClient.changePluginStatus("6", formData);
-        adminClient.changePluginStatus("6", formData);
+        adminClient.changePluginStatus("1801816010882822184", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
         LOG.info("start dubbo plugin success!");
     }

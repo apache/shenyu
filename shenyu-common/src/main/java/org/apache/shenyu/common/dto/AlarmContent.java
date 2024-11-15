@@ -52,6 +52,11 @@ public final class AlarmContent {
      * The actual content of the alarm notification.
      */
     private String content;
+
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
     
     /**
      * create time.
@@ -73,6 +78,7 @@ public final class AlarmContent {
         setContent(builder.content);
         setDateCreated(builder.dateCreated);
         setDateUpdated(builder.dateUpdated);
+        setNamespaceId(builder.namespaceId);
     }
     
     /**
@@ -158,7 +164,25 @@ public final class AlarmContent {
     public void setContent(final String content) {
         this.content = content;
     }
-    
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     /**
      * get dateCreated.
      *
@@ -222,7 +246,12 @@ public final class AlarmContent {
          * The actual content of the alarm notification.
          */
         private String content;
-        
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
+
         /**
          * create time.
          */
@@ -278,7 +307,17 @@ public final class AlarmContent {
             content = val;
             return this;
         }
-        
+
+        /**
+         * builder constructor.
+         * @param val namespaceId
+         * @return builder
+         */
+        public Builder namespaceId(final String val) {
+            namespaceId = val;
+            return this;
+        }
+
         /**
          * builder constructor.
          * @param val date created

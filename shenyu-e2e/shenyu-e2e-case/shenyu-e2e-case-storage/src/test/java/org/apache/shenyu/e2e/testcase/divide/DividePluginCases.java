@@ -75,6 +75,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.EQUAL, ANYTHING))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING))
@@ -112,6 +113,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.PATH_PATTERN, "/anything/xx/**"))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING + "/xx/yyy"))
@@ -152,6 +154,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         newRuleBuilder("rule")
                                                 .handle(newDivideRuleHandle())
                                                 .conditionList(newConditions(ParamType.URI, Operator.STARTS_WITH, ANYTHING + "/xx"))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING + "/xx"))
@@ -238,6 +241,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "GET"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(Method.GET, ANYTHING))
@@ -284,6 +288,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "POST"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(Method.POST, ANYTHING))
@@ -330,6 +335,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "PUT"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(Method.PUT, ANYTHING))
@@ -376,6 +382,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         newCondition(ParamType.METHOD, Operator.EQUAL, "DELETE"),
                                                         newCondition(ParamType.URI, Operator.EQUAL, ANYTHING)
                                                 ))
+                                                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                                                 .build()
                                 )
                                 .checker(notExists(Method.DELETE, ANYTHING))

@@ -54,4 +54,17 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
             return result;
         });
     }
+
+    /**
+     * reNew and init instance shenyu instance register repository.
+     *
+     * @param config the config
+     * @return the shenyu instance register repository
+     */
+    public static ShenyuInstanceRegisterRepository reNewAndInitInstance(final RegisterConfig config) {
+        ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(config.getRegisterType());
+        result.init(config);
+        REPOSITORY_MAP.put(config.getRegisterType(), result);
+        return result;
+    }
 }

@@ -162,10 +162,13 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         if (totalCount > 0) {
             Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
             List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
-            
-            Set<String> hasDataPermissionSelectorIds = new HashSet<>(dataPermissionMapper.selectDataIds(selectorIds,
-                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal()));
-            
+
+            Set<String> hasDataPermissionSelectorIds = new HashSet<>();
+            if (!selectorIds.isEmpty()) {
+                hasDataPermissionSelectorIds.addAll(dataPermissionMapper.selectDataIds(selectorIds,
+                        userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal()));
+            }
+
             selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
                 boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
                 return DataPermissionPageVO.buildPageVOBySelector(selectorDO, isChecked);
@@ -214,7 +217,6 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createRule(final DataPermissionDTO dataPermissionDTO) {
-        
         RuleDO ruleDO = ruleMapper.selectById(dataPermissionDTO.getDataId());
         if (Objects.isNull(ruleDO)) {
             return 0;

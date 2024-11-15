@@ -18,8 +18,10 @@
 package org.apache.shenyu.sync.data.etcd;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import static org.apache.shenyu.common.constant.DefaultPathConstants.handlePathData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -40,41 +42,48 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
     private static final Logger LOG = LoggerFactory.getLogger(EtcdSyncDataService.class);
 
     private final EtcdClient etcdClient;
+    
+    private final ShenyuConfig shenyuConfig;
 
     /**
      * Instantiates a new Zookeeper cache manager.
      *
+     * @param shenyuConfig          shenyuConfig
      * @param etcdClient           etcdClient
      * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers  the meta data subscribers
      * @param authDataSubscribers  the auth data subscribers
      */
-    public EtcdSyncDataService(final EtcdClient etcdClient,
+    public EtcdSyncDataService(final ShenyuConfig shenyuConfig,
+                               final EtcdClient etcdClient,
                                final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
         super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.shenyuConfig = shenyuConfig;
         this.etcdClient = etcdClient;
         watcherData();
     }
 
     private void watcherData() {
-        watcherData0(DefaultPathConstants.PLUGIN_PARENT);
-        watcherData0(DefaultPathConstants.SELECTOR_PARENT);
-        watcherData0(DefaultPathConstants.RULE_PARENT);
-        watcherData0(DefaultPathConstants.PROXY_SELECTOR);
-        watcherData0(DefaultPathConstants.DISCOVERY_UPSTREAM);
-        watcherData0(DefaultPathConstants.APP_AUTH_PARENT);
-        watcherData0(DefaultPathConstants.META_DATA);
+        String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.PLUGIN_PARENT)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.SELECTOR_PARENT)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.RULE_PARENT)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.PROXY_SELECTOR)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.DISCOVERY_UPSTREAM)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.APP_AUTH_PARENT)));
+        watcherData0(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.META_DATA)));
     }
 
     private void watcherData0(final String registerPath) {
+        String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
         etcdClient.watchChildChange(
                 registerPath,
-            (updatePath, updateValue) -> super.event(updatePath, updateValue, registerPath, EventType.PUT),
-            deletePath -> super.event(deletePath, null, registerPath, EventType.DELETE));
+            (updatePath, updateValue) -> super.event(configNamespace, updatePath, updateValue, registerPath, EventType.PUT),
+            deletePath -> super.event(configNamespace, deletePath, null, registerPath, EventType.DELETE));
         try {
             // load all key
             final List<String> childrenKeys = etcdClient.getChildrenKeys(registerPath, "/");
@@ -83,11 +92,13 @@ public class EtcdSyncDataService extends AbstractPathDataSyncService {
                     // fix the update path
                     String updatePath = String.join(Constants.PATH_SEPARATOR, registerPath, nodePath);
                     final String nodeData = etcdClient.get(updatePath);
-                    super.event(updatePath, nodeData, registerPath, EventType.PUT);
+                    super.event(configNamespace, updatePath, nodeData, registerPath, EventType.PUT);
                 });
+            } else {
+                LOG.info("etcd watcher path {} is empty", registerPath);
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("watcherData0 errors", e);
         }
     }
 

@@ -60,12 +60,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -258,7 +257,7 @@ public final class UpstreamCheckServiceTest {
                 .status(0)
                 .build();
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
-        when(selectorMapper.findByPluginIdsAndNamespaceId(anyList(), any())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        when(selectorMapper.findByPluginIds(anyList())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(discoveryUpstreamService.findBySelectorId(anyString())).thenReturn(Lists.newArrayList(discoveryUpstreamData));
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));

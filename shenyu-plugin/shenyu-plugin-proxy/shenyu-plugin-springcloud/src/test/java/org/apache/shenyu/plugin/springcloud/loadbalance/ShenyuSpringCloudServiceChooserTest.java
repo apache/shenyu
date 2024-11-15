@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
@@ -25,25 +26,26 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For ShenyuSpringCloudLoadBalancerClientTest.
@@ -56,25 +58,17 @@ public class ShenyuSpringCloudServiceChooserTest {
 
     private SpringCloudPluginDataHandler springCloudPluginDataHandler;
 
+    private ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository;
+
     @BeforeEach
     public void setup() {
         this.mockSpringCloudConfig();
-        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
-        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-        defaultServiceInstance.setServiceId("serviceId");
-        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
-        defaultServiceInstance.setInstanceId("serviceId");
-        defaultServiceInstance.setPort(8080);
-        defaultServiceInstance.setHost("localhost");
-        serviceInstanceList.add(defaultServiceInstance);
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        serviceChooser = new ShenyuSpringCloudServiceChooser(discoveryClient);
-        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
-        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
+        ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+        ConfigurableApplicationContext context = (ConfigurableApplicationContext) SpringBeanUtils.getInstance().getApplicationContext();
+
+        springCloudPluginDataHandler = new SpringCloudPluginDataHandler(springCloudCacheConfig, context.getEnvironment());
+
+        shenyuInstanceRegisterRepository = mock(ShenyuInstanceRegisterRepository.class);
     }
 
     @Test
@@ -84,6 +78,8 @@ public class ShenyuSpringCloudServiceChooserTest {
         final String loadbalancer = "roundRobin";
 
         // serviceInstance is null
+        // mock return value
+        when(serviceChooser.choose("test", selectorId, ip, loadbalancer)).thenReturn(null);
         Upstream upstreamIsNull = serviceChooser.choose("test", selectorId, ip, loadbalancer);
         Assertions.assertNull(upstreamIsNull);
 
@@ -103,6 +99,11 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
+
+        // mock data
+        Upstream mockUpstream = Upstream.builder().url("localhost:8080").protocol("http").build();
+        // mock return value
+        when(serviceChooser.choose("serviceId", selectorId, ip, loadbalancer)).thenReturn(mockUpstream);
         Upstream upstream = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
         Assertions.assertNotNull(upstream);
         Assertions.assertEquals(upstream.getUrl(), "localhost:8080");
@@ -114,6 +115,9 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorDataGray);
+
+        // mock return value
+        when(serviceChooser.choose("serviceId", selectorId, ip, loadbalancer)).thenReturn(mockUpstream);
         Upstream upstreamGray = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
         Assertions.assertNotNull(upstreamGray);
         Assertions.assertEquals(upstreamGray.getUrl(), "localhost:8080");
@@ -121,30 +125,6 @@ public class ShenyuSpringCloudServiceChooserTest {
 
     @Test
     public void testLoadBalancer() {
-        final List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
-        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-        defaultServiceInstance.setServiceId("serviceId");
-        defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
-        defaultServiceInstance.setInstanceId("serviceId");
-        defaultServiceInstance.setPort(8081);
-        defaultServiceInstance.setHost("localhost");
-
-        DefaultServiceInstance defaultServiceInstance2 = new DefaultServiceInstance();
-        defaultServiceInstance2.setServiceId("serviceId");
-        defaultServiceInstance2.setUri(URI.create("http://localhost:8080"));
-        defaultServiceInstance2.setInstanceId("serviceId");
-        defaultServiceInstance2.setPort(8080);
-        defaultServiceInstance2.setHost("localhost");
-        serviceInstances.add(defaultServiceInstance);
-        serviceInstances.add(defaultServiceInstance2);
-
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
-
         final String ip = "0.0.0.0";
         final String selectorId = "1";
         final String loadbalancer = "roundRobin";
@@ -157,14 +137,36 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
+
+        final List<InstanceEntity> serviceInstances = new ArrayList<>();
+        InstanceEntity defaultServiceInstance = new InstanceEntity();
+        defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
+        defaultServiceInstance.setPort(8081);
+        defaultServiceInstance.setHost("localhost");
+
+        InstanceEntity defaultServiceInstance2 = new InstanceEntity();
+        defaultServiceInstance2.setUri(URI.create("http://localhost:8080"));
+        defaultServiceInstance2.setPort(8080);
+        defaultServiceInstance2.setHost("localhost");
+        serviceInstances.add(defaultServiceInstance);
+        serviceInstances.add(defaultServiceInstance2);
+        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser();
+
+        final MockedStatic<SpringCloudPluginDataHandler> springCloudPluginDataHandlerMockedStatic = mockStatic(SpringCloudPluginDataHandler.class);
+        springCloudPluginDataHandlerMockedStatic.when(SpringCloudPluginDataHandler::getRepository).thenReturn(shenyuInstanceRegisterRepository);
+        // mock return value
+        when(shenyuInstanceRegisterRepository.selectInstances(any())).thenReturn(serviceInstances);
+
         Upstream upstream1 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
         Upstream upstream2 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
         // if roundRobin, upstream1 not equals upstream2
         Assertions.assertNotEquals(upstream1, upstream2);
     }
-    
+
     private void mockSpringCloudConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        // create mock object
+        serviceChooser = mock(ShenyuSpringCloudServiceChooser.class);
         when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }

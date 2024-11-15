@@ -58,7 +58,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
 
     @Override
     public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         receiverDO.setId(UUIDUtils.getInstance().generateShortUuid());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
@@ -66,16 +66,16 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         alertDispatchService.clearCache();
         alertReceiverMapper.insert(receiverDO);
     }
-    
+
     @Override
     public void deleteReceiver(final List<String> ids) {
         alertDispatchService.clearCache();
         alertReceiverMapper.deleteByIds(ids);
     }
-    
+
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         alertDispatchService.clearCache();
         alertReceiverMapper.updateByPrimaryKey(receiverDO);
     }

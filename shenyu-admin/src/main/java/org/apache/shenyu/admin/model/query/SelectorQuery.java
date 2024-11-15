@@ -58,16 +58,18 @@ public class SelectorQuery extends FilterQuery {
     public SelectorQuery() {
     }
 
-    public SelectorQuery(final String pluginId, final String name, final PageParameter pageParameter) {
+    public SelectorQuery(final String pluginId, final String name, final PageParameter pageParameter, final String namespaceId) {
         this.pluginId = pluginId;
         this.name = name;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
-    public SelectorQuery(final List<String> pluginIds, final String name, final PageParameter pageParameter) {
+    public SelectorQuery(final List<String> pluginIds, final String name, final PageParameter pageParameter, final String namespaceId) {
         this.pluginIds = pluginIds;
         this.name = name;
         this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
     }
 
     /**

@@ -781,7 +781,6 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             return this;
         }
 
-
         /**
          * namespaceId.
          *

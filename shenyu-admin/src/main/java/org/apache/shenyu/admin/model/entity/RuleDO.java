@@ -76,6 +76,11 @@ public final class RuleDO extends BaseDO {
      */
     private Boolean matchRestful;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     public RuleDO() {
     }
 
@@ -86,7 +91,8 @@ public final class RuleDO extends BaseDO {
                   final Boolean loged,
                   final Integer sort,
                   final String handle,
-                  final Boolean matchRestful) {
+                  final Boolean matchRestful,
+                  final String namespaceId) {
         this.selectorId = selectorId;
         this.matchMode = matchMode;
         this.name = name;
@@ -95,6 +101,7 @@ public final class RuleDO extends BaseDO {
         this.sort = sort;
         this.handle = handle;
         this.matchRestful = matchRestful;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -240,6 +247,24 @@ public final class RuleDO extends BaseDO {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
     /**
      * builder method.
@@ -269,6 +294,7 @@ public final class RuleDO extends BaseDO {
                     .handle(item.getHandle())
                     .matchRestful(item.getMatchRestful())
                     .dateUpdated(currentTime)
+                    .namespaceId(item.getNamespaceId())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -303,6 +329,7 @@ public final class RuleDO extends BaseDO {
                 .matchRestful(ruleDO.getMatchRestful())
                 .conditionDataList(conditionDataList)
                 .beforeConditionDataList(beforeConditionDataList)
+                .namespaceId(ruleDO.getNamespaceId())
                 .build();
     }
 
@@ -338,12 +365,14 @@ public final class RuleDO extends BaseDO {
                 && Objects.equals(loged, ruleDO.loged)
                 && Objects.equals(sort, ruleDO.sort)
                 && Objects.equals(handle, ruleDO.handle)
-                && Objects.equals(matchRestful, ruleDO.matchRestful);
+                && Objects.equals(matchRestful, ruleDO.matchRestful)
+                && Objects.equals(namespaceId, ruleDO.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful);
+        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful,
+                namespaceId);
     }
 
     public static final class RuleDOBuilder {
@@ -369,6 +398,8 @@ public final class RuleDO extends BaseDO {
         private String handle;
         
         private Boolean matchRestful;
+
+        private String namespaceId;
 
         private RuleDOBuilder() {
         }
@@ -495,6 +526,17 @@ public final class RuleDO extends BaseDO {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return RuleDOBuilder
+         */
+        public RuleDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build method.
          *
          * @return build object.
@@ -512,6 +554,7 @@ public final class RuleDO extends BaseDO {
             ruleDO.setSort(sort);
             ruleDO.setHandle(handle);
             ruleDO.setMatchRestful(matchRestful);
+            ruleDO.setNamespaceId(namespaceId);
             return ruleDO;
         }
     }

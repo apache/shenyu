@@ -34,13 +34,41 @@ public class AlertReceiverQuery implements Serializable {
      */
     private PageParameter pageParameter;
 
+    /**
+     * namespace id.
+     */
+    private String namespaceId;
+
     public AlertReceiverQuery() {
     }
     
     public AlertReceiverQuery(final PageParameter pageParameter) {
         this.pageParameter = pageParameter;
     }
-    
+
+    public AlertReceiverQuery(final PageParameter pageParameter, final String namespaceId) {
+        this.pageParameter = pageParameter;
+        this.namespaceId = namespaceId;
+    }
+
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     /**
      * Gets the value of pageParameter.
      *
