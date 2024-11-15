@@ -76,8 +76,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * This is the upstream check service.
  */
@@ -408,6 +406,11 @@ public class UpstreamCheckService {
 
         // publish discovery change event.
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
+        
+        if (CollectionUtils.isEmpty(discoveryUpstreamDataList)) {
+            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+        }
+        
         discoveryUpstreamDataList.removeIf(u -> {
             for (CommonUpstream alive : aliveList) {
                 if (alive.getUpstreamUrl().equals(u.getUrl())) {
@@ -421,11 +424,14 @@ public class UpstreamCheckService {
             LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
         });
+        
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
         discoverySyncData.setSelectorName(selectorDO.getName());
+        discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
+        LOG.debug("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
@@ -439,8 +445,7 @@ public class UpstreamCheckService {
         }
         Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
-        // todo:[To be refactored with namespace] Temporarily hardcode
-        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIdsAndNamespaceId(new ArrayList<>(pluginMap.keySet()), SYS_DEFAULT_NAMESPACE_ID);
+        final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()));
         long currentTimeMillis = System.currentTimeMillis();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
                 .filter(Objects::nonNull)

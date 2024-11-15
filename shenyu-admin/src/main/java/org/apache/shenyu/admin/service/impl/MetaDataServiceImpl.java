@@ -143,8 +143,16 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataVO findByIdAndNamespaceId(final String id, final String namespaceId) {
-        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectByIdAndNamespaceId(id, namespaceId))).orElseGet(MetaDataVO::new);
+    public void syncDataByNamespaceId(final String namespaceId) {
+        List<MetaDataDO> all = metaDataMapper.findAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isNotEmpty(all)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
+        }
+    }
+
+    @Override
+    public MetaDataVO findById(final String id) {
+        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElseGet(MetaDataVO::new);
     }
 
     @Override
@@ -248,10 +256,10 @@ public class MetaDataServiceImpl implements MetaDataService {
     private String update(final MetaDataDTO metaDataDTO) {
         Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
-        Optional.ofNullable(metaDataMapper.selectByIdAndNamespaceId(metaDataDTO.getId(), metaDataDTO.getNamespaceId()))
+        Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
         metaDataDO.setPathDesc(Optional.ofNullable(metaDataDO.getPathDesc()).orElse(""));
-        final MetaDataDO before = metaDataMapper.selectByIdAndNamespaceId(metaDataDO.getId(), metaDataDTO.getNamespaceId());
+        final MetaDataDO before = metaDataMapper.selectById(metaDataDO.getId());
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
             // update other rpc_ext for the same service

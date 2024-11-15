@@ -30,6 +30,7 @@
         <result column="method_name" jdbcType="VARCHAR" property="methodName"/>
         <result column="parameter_types" jdbcType="VARCHAR" property="parameterTypes"/>
         <result column="rpc_ext" jdbcType="VARCHAR" property="rpcExt"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
@@ -45,16 +46,16 @@
         method_name,
         parameter_types,
         rpc_ext,
+        namespace_id,
         enabled,
         namespace_id
     </sql>
 
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
         WHERE id = #{id,jdbcType=VARCHAR}
-        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByIdListAndNamespaceId" resultMap="BaseResultMap">
@@ -92,6 +93,23 @@
         SElECT
         <include refid="Base_Column_List"/>
         FROM meta_data
+    </select>
+
+    <select id="findAllByNamespaceId" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM meta_data
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findAllByNamespaceIds" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM meta_data
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
 

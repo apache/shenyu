@@ -57,6 +57,14 @@ public interface NamespaceMapper extends ExistProvider {
      */
     NamespaceDO selectByNamespaceId(String namespaceId);
 
+    /**
+     * selectByNamespaceIdsAndName.
+     *
+     * @param namespaceIds namespaceIds.
+     * @param name name.
+     * @return namespaceDOList
+     */
+    List<NamespaceDO> selectByNamespaceIdsAndName(List<String> namespaceIds, String name);
 
     /**
      * selectAllByNamespaceId.
@@ -64,7 +72,14 @@ public interface NamespaceMapper extends ExistProvider {
      * @param name name.
      * @return namespaceDOList
      */
-    List<NamespaceDO> selectAll(String name);
+    List<NamespaceDO> selectAllByName(String name);
+
+    /**
+     * selectAll.
+     *
+     * @return namespaceDOList
+     */
+    List<NamespaceDO> selectAll();
 
     /**
      * insert namespace.

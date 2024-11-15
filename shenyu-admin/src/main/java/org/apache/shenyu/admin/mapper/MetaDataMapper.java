@@ -45,10 +45,9 @@ public interface MetaDataMapper extends ExistProvider {
      * Select meta data do by id and namespaceId.
      *
      * @param id the id
-     * @param namespaceId namespaceId
      * @return the meta data do
      */
-    MetaDataDO selectByIdAndNamespaceId(String id, String namespaceId);
+    MetaDataDO selectById(String id);
     
     /**
      * Select a list of MetaDataDOs by idList and namespaceId.
@@ -65,6 +64,22 @@ public interface MetaDataMapper extends ExistProvider {
      * @return the list
      */
     List<MetaDataDO> findAll();
+
+    /**
+     * Find all list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<MetaDataDO> findAllByNamespaceId(String namespaceId);
+
+    /**
+     * Find all list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<MetaDataDO> findAllByNamespaceIds(List<String> namespaceIds);
     
     /**
      * Find meta data do by path and namespaceId.

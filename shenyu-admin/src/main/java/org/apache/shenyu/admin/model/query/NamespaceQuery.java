@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,6 +33,11 @@ public class NamespaceQuery implements Serializable {
      * namespace id.
      */
     private String namespaceId;
+
+    /**
+     * namespace ids.
+     */
+    private List<String> namespaceIds;
 
     /**
      * name.
@@ -60,7 +66,25 @@ public class NamespaceQuery implements Serializable {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-
+    
+    /**
+     * Gets the value of namespaceIds.
+     *
+     * @return the value of namespaceIds
+     */
+    public List<String> getNamespaceIds() {
+        return namespaceIds;
+    }
+    
+    /**
+     * Sets the namespaceIds.
+     *
+     * @param namespaceIds namespaceIds
+     */
+    public void setNamespaceIds(final List<String> namespaceIds) {
+        this.namespaceIds = namespaceIds;
+    }
+    
     /**
      * Gets the value of name.
      *

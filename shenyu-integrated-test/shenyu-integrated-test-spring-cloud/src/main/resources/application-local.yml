@@ -27,6 +27,14 @@ spring:
 #       discovery:
 #          server-addr: 127.0.0.1:8848
 
+eureka:
+  client:
+    enabled: true
+    serviceUrl:
+      defaultZone: http://shenyu-examples-eureka:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
 management:
   health:
     defaults:

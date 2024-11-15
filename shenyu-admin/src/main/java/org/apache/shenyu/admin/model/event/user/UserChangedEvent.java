@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -88,6 +89,6 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "user";
+        return Constants.EVENT_NAME_USER;
     }
 }

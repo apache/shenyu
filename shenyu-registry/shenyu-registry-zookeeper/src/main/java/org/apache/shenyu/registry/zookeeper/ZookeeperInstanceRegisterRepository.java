@@ -32,6 +32,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +77,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         if (!StringUtils.isEmpty(digest)) {
             zkConfig.setDigest(digest);
         }
-
+        LOGGER.info("zookeeper init");
         this.client = new ZookeeperClient(zkConfig);
         this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
@@ -110,7 +111,9 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
             String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
-            return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
+            InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
+            instanceEntity.setUri(getURI(instanceRegisterJsonStr, instanceEntity.getPort(), instanceEntity.getHost()));
+            return instanceEntity;
         }).collect(Collectors.toList());
 
         if (watcherInstanceRegisterMap.containsKey(selectKey)) {
@@ -137,6 +140,12 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(childrenPathList);
         watcherInstanceRegisterMap.put(selectKey, instanceEntities);
         return instanceEntities;
+    }
+
+    private URI getURI(final String instanceRegisterJsonStr, final int port, final String host) {
+        String scheme = (instanceRegisterJsonStr.contains("https") || instanceRegisterJsonStr.contains("HTTPS")) ? "https" : "http";
+        String uri = String.format("%s://%s:%s", scheme, host, port);
+        return URI.create(uri);
     }
 
     @Override

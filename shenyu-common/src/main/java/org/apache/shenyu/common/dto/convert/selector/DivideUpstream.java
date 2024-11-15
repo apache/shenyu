@@ -57,6 +57,7 @@ public class DivideUpstream extends CommonUpstream {
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
+        setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -113,12 +114,15 @@ public class DivideUpstream extends CommonUpstream {
             return false;
         }
         DivideUpstream that = (DivideUpstream) o;
-        return Objects.equals(getUpstreamHost(), that.getUpstreamHost()) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl());
+        return Objects.equals(getUpstreamHost(), that.getUpstreamHost())
+                && Objects.equals(getProtocol(), that.getProtocol())
+                && Objects.equals(getUpstreamUrl(), that.getUpstreamUrl())
+                && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl());
+        return Objects.hash(getUpstreamHost(), getProtocol(), getUpstreamUrl(), getNamespaceId());
     }
 
     @Override
@@ -141,6 +145,8 @@ public class DivideUpstream extends CommonUpstream {
                 + getTimestamp()
                 + ", warmup="
                 + warmup
+                + ", namespaceId="
+                + getNamespaceId()
                 + '}';
     }
 
@@ -188,7 +194,12 @@ public class DivideUpstream extends CommonUpstream {
          * warmup.
          */
         private int warmup;
-        
+
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
+
         /**
          * no args constructor.
          */
@@ -279,6 +290,17 @@ public class DivideUpstream extends CommonUpstream {
          */
         public Builder warmup(final int warmup) {
             this.warmup = warmup;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

@@ -126,8 +126,8 @@ public final class RuleControllerTest {
 
     @Test
     public void testDetailRule() throws Exception {
-        given(this.ruleService.findByIdAndNamespaceId("666", SYS_DEFAULT_NAMESPACE_ID)).willReturn(ruleVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}/{namespaceId}", "666", SYS_DEFAULT_NAMESPACE_ID))
+        given(this.ruleService.findById("666")).willReturn(ruleVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}", "666"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(ruleVO.getId())))
@@ -232,8 +232,7 @@ public final class RuleControllerTest {
         given(this.ruleService.deleteByIdsAndNamespaceId(Collections.singletonList("111"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(GsonUtils.getGson().toJson(batchNamespaceCommonDTO))
-                )
+                        .content(GsonUtils.getGson().toJson(batchNamespaceCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();

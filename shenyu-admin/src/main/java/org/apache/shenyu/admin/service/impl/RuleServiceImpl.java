@@ -153,7 +153,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int update(final RuleDTO ruleDTO) {
-        final RuleDO before = ruleMapper.selectByIdAndNamespaceId(ruleDTO.getId(), ruleDTO.getNamespaceId());
+        final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
@@ -194,12 +194,11 @@ public class RuleServiceImpl implements RuleService {
      * find rule by id and namespaceId.
      *
      * @param id primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain RuleVO}
      */
     @Override
-    public RuleVO findByIdAndNamespaceId(final String id, final String namespaceId) {
-        return RuleVO.buildRuleVO(ruleMapper.selectByIdAndNamespaceId(id, namespaceId),
+    public RuleVO findById(final String id) {
+        return RuleVO.buildRuleVO(ruleMapper.selectById(id),
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
 
@@ -219,6 +218,11 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public List<RuleData> listAll() {
         return this.buildRuleDataList(ruleMapper.selectAll());
+    }
+
+    @Override
+    public List<RuleData> listAllByNamespaceId(final String namespaceId) {
+        return this.buildRuleDataList(ruleMapper.selectAllByNamespaceId(namespaceId));
     }
 
     @Override
@@ -294,11 +298,21 @@ public class RuleServiceImpl implements RuleService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
-            RuleDO ruleDO = ruleMapper.selectByIdAndNamespaceId(id, namespaceId);
+            RuleDO ruleDO = ruleMapper.selectById(id);
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {
-                ruleEventPublisher.onUpdated(ruleDO, before);
+                List<RuleConditionDO> conditionList = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+                List<RuleConditionDTO> conditions = conditionList.stream().map(item ->
+                        RuleConditionDTO.builder()
+                                .ruleId(item.getRuleId())
+                                .id(item.getId())
+                                .operator(item.getOperator())
+                                .paramName(item.getParamName())
+                                .paramValue(item.getParamValue())
+                                .paramType(item.getParamType())
+                                .build()).toList();
+                ruleEventPublisher.onUpdated(ruleDO, before, conditions, Collections.emptyList());
             }
         });
         return Boolean.TRUE;

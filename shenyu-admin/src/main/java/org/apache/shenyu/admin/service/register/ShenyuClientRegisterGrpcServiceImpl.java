@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.register;
 
-import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -25,7 +24,6 @@ import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.converter.GrpcSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -48,8 +46,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * grpc service register.
  */
@@ -57,9 +53,6 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientRegisterGrpcServiceImpl.class);
-
-    @Resource
-    private GrpcSelectorHandleConverter grpcSelectorHandleConverter;
 
     @Override
     public String rpcType() {
@@ -116,7 +109,6 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 canAddList.addAll(diffStatusList);
             }
         }
-
         if (doSubmit(selectorDO.getId(), canAddList)) {
             return null;
         }
@@ -125,16 +117,15 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
 
     private List<GrpcUpstream> buildGrpcUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort()))
+                .map(dto -> CommonUpstreamUtils.buildDefaultGrpcUpstream(dto.getHost(), dto.getPort(), dto.getNamespaceId()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 
     @Override
-    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList) {
+    public String offline(final String selectorName, final List<URIRegisterDTO> offlineList, final String namespaceId) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
-        // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
@@ -143,10 +134,10 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(validOfflineUrl)) {
             for (URIRegisterDTO offlineUrl : validOfflineUrl) {
-                GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort());
+                GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort(), offlineUrl.getNamespaceId());
                 removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
             }
-            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             }

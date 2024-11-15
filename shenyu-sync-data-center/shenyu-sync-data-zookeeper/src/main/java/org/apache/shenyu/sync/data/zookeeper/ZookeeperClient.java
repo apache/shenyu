@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient implements AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
 
     private final ZookeeperConfig config;
 
@@ -75,7 +75,7 @@ public class ZookeeperClient implements AutoCloseable {
         try {
             this.client.blockUntilConnected();
         } catch (InterruptedException e) {
-            LOGGER.warn("Interrupted during zookeeper client starting.");
+            LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();
         }
     }
@@ -148,7 +148,7 @@ public class ZookeeperClient implements AutoCloseable {
         }
         return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
-
+    
     /**
      * create or update key with value.
      *
@@ -159,8 +159,17 @@ public class ZookeeperClient implements AutoCloseable {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            synchronized (ZookeeperClient.class) {
+                if (Objects.nonNull(client.checkExists()) && Objects.nonNull(client.checkExists().forPath(key))) {
+                    LOG.debug("path exists, update zookeeper key={} with value={}", key, val);
+                    client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                LOG.debug("path not exists, set zookeeper key={} with value={}", key, val);
+                client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
+            LOG.error("create or update key with value error, key:{} value:{}", key, value, e);
             throw new ShenyuException(e);
         }
     }
@@ -204,7 +213,7 @@ public class ZookeeperClient implements AutoCloseable {
         try {
             return client.getChildren().forPath(key);
         } catch (Exception e) {
-            LOGGER.error("zookeeper get child error=", e);
+            LOG.error("zookeeper get child error=", e);
             return Collections.emptyList();
         }
     }

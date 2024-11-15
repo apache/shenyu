@@ -29,6 +29,7 @@
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
@@ -47,12 +48,11 @@
         namespace_id
     </sql>
 
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
          WHERE id = #{id, jdbcType=VARCHAR}
-         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -134,6 +134,23 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
+    </select>
+
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByNamespaceIds" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">

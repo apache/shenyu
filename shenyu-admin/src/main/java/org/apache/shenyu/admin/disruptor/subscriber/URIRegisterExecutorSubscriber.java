@@ -72,6 +72,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                         Map<String, List<URIRegisterDTO>> listMap = buildData(list);
                         listMap.forEach((selectorName, uriList) -> {
                             final List<URIRegisterDTO> register = new LinkedList<>();
+                            final List<URIRegisterDTO> heartbeat = new LinkedList<>();
                             final List<URIRegisterDTO> offline = new LinkedList<>();
                             for (URIRegisterDTO d : uriList) {
                                 final EventType eventType = d.getEventType();
@@ -80,13 +81,27 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                                     register.add(d);
                                 } else if (EventType.OFFLINE.equals(eventType)) {
                                     offline.add(d);
+                                } else if (EventType.HEARTBEAT.equals(eventType)) {
+                                    heartbeat.add(d);
                                 }
                             }
                             if (CollectionUtils.isNotEmpty(register)) {
-                                service.registerURI(selectorName, register);
+                                register.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
+                                        .findFirst()
+                                        .ifPresent(namespaceId -> service.registerURI(selectorName, register, namespaceId));
+                            }
+                            if (CollectionUtils.isNotEmpty(heartbeat)) {
+                                heartbeat.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
+                                        .findFirst()
+                                        .ifPresent(namespaceId -> service.heartbeat(selectorName, register, namespaceId));
                             }
                             if (CollectionUtils.isNotEmpty(offline)) {
-                                service.offline(selectorName, offline);
+                                offline.stream().map(URIRegisterDTO::getNamespaceId)
+                                        .filter(StringUtils::isNotBlank)
+                                        .findFirst()
+                                        .ifPresent(namespaceId -> service.offline(selectorName, offline, namespaceId));
                             }
                         });
                     });

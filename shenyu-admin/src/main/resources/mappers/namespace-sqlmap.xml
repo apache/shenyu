@@ -39,6 +39,7 @@
     <select id="existed" resultType="java.lang.Boolean">
         SELECT true
         FROM namespace
+
         WHERE namespace_id = #{namespaceId} limit 1
     </select>
 
@@ -46,7 +47,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM namespace
-        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -56,7 +57,7 @@
         WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.NamespaceDO">
+    <select id="selectAllByName" resultType="org.apache.shenyu.admin.model.entity.NamespaceDO">
         SELECT
         <include refid="Base_Column_List"/>
         FROM namespace
@@ -65,6 +66,12 @@
                 AND name = #{name, jdbcType=VARCHAR}
             </if>
         </where>
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.NamespaceDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
     </select>
 
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
@@ -166,10 +173,17 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
             </if>
         </where>
     </select>
@@ -180,10 +194,17 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
             </if>
         </where>
     </select>
@@ -196,6 +217,20 @@
         <foreach item="namespaceId" collection="ids" open="(" separator="," close=")">
             #{namespaceId, jdbcType=VARCHAR}
         </foreach>
+    </select>
+
+    <select id="selectByNamespaceIdsAndName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+        <if test="name != null and name != ''">
+            <bind name="nameLike" value="('%' + name + '%')"/>
+            AND name LIKE #{nameLike, jdbcType=VARCHAR}
+        </if>
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">

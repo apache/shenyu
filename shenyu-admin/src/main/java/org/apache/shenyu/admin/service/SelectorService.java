@@ -117,10 +117,9 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * find selector by id and namespaceId.
      *
      * @param id          primary key.
-     * @param namespaceId namespaceId.
      * @return {@linkplain SelectorVO}
      */
-    SelectorVO findByIdAndNamespaceId(String id, String namespaceId);
+    SelectorVO findById(String id);
 
     /**
      * find selector by name and namespaceId.
@@ -223,6 +222,15 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the list
      */
     List<SelectorData> listAll();
+
+
+    /**
+     * List all by namespaceId list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<SelectorData> listAllByNamespaceId(String namespaceId);
 
     /**
      * List all export vo list.

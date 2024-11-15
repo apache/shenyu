@@ -56,6 +56,7 @@ public enum AppAuthTransfer {
                     appAuthDO.userId(v.getUserId());
                     appAuthDO.phone(v.getPhone());
                     appAuthDO.extInfo(v.getExtInfo());
+                    appAuthDO.namespaceId(v.getNamespaceId());
                     return appAuthDO.build();
                 })
                 .orElse(null);
@@ -79,6 +80,7 @@ public enum AppAuthTransfer {
                     appAuthVO.setExtInfo(v.getExtInfo());
                     appAuthVO.setOpen(v.getOpen());
                     appAuthVO.setEnabled(appAuthDO.getEnabled());
+                    appAuthVO.setNamespaceId(appAuthDO.getNamespaceId());
                     appAuthVO.setDateUpdated(Optional.ofNullable(appAuthDO.getDateUpdated())
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
                             .orElse(null));
