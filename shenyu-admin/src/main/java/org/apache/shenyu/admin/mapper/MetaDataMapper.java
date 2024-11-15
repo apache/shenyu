@@ -72,6 +72,14 @@ public interface MetaDataMapper extends ExistProvider {
      * @return the list
      */
     List<MetaDataDO> findAllByNamespaceId(String namespaceId);
+
+    /**
+     * Find all list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<MetaDataDO> findAllByNamespaceIds(List<String> namespaceIds);
     
     /**
      * Find meta data do by path and namespaceId.

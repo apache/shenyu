@@ -45,6 +45,23 @@
          WHERE auth_id = #{authId, jdbcType=VARCHAR}
     </select>
 
+    <select id="findByNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM auth_path
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByNamespaceIds" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM auth_path
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="findByAuthIdList" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
