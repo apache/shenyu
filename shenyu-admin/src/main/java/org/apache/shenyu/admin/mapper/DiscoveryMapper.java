@@ -64,6 +64,14 @@ public interface DiscoveryMapper extends ExistProvider {
     List<DiscoveryDO> selectAllByNamespaceId(String namespaceId);
 
     /**
+     * selectAllByNamespaceIds.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return discoveryDOList
+     */
+    List<DiscoveryDO> selectAllByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * select discovery by plugin name and level.
      *
      * @param pluginName plugin name

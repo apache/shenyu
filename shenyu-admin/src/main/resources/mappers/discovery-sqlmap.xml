@@ -77,6 +77,16 @@
         WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectAllByNamespaceIds" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectBySelectorNameAndPluginName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         SELECT
         d.id,

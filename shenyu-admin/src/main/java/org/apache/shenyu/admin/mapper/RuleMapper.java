@@ -164,6 +164,14 @@ public interface RuleMapper extends ExistProvider {
     List<RuleDO> selectAllByNamespaceId(String namespaceId);
 
     /**
+     * list all.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectAllByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * search by condition.
      *
      * @param condition condition
