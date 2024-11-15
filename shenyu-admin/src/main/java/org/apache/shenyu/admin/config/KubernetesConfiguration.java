@@ -42,7 +42,6 @@ public class KubernetesConfiguration {
 
     /**
      * kubernetes apiClient.
-     *
      * @param deploymentProperties deploymentProperties
      * @return AppsV1Api
      */
