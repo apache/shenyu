@@ -102,6 +102,16 @@
         WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
+    <select id="findAllByNamespaceIds" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM meta_data
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery"
             resultMap="BaseResultMap">
