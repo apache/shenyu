@@ -392,6 +392,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {
+        if (config == null) {
+            return new ConfigData<>(null, 0L, null);
+        }
         return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), GsonUtils.getInstance().fromList(config.getJson(), dataType));
     }
 
