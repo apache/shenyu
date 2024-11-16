@@ -31,10 +31,7 @@ import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,21 +45,17 @@ import java.util.Map;
  */
 @ResponseBody
 @RequestMapping("/configs")
-@DependsOn({"httpLongPollingDataChangedListener", "namespaceServiceImpl"})
 @RestController
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 public class ConfigController {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigController.class);
-
-    private final HttpLongPollingDataChangedListener longPollingListener;
+    private final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener;
 
     private final NamespaceService namespaceService;
 
-    public ConfigController(final HttpLongPollingDataChangedListener longPollingListener, final NamespaceService namespaceService) {
-        this.longPollingListener = longPollingListener;
+    public ConfigController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener, final NamespaceService namespaceService) {
+        this.httpLongPollingDataChangedListener = httpLongPollingDataChangedListener;
         this.namespaceService = namespaceService;
-        LOG.info("ConfigController is started");
     }
 
     /**
@@ -83,7 +76,7 @@ public class ConfigController {
         }
         Map<String, ConfigData<?>> result = Maps.newHashMap();
         for (String groupKey : groupKeys) {
-            ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey), namespaceId);
+            ConfigData<?> data = httpLongPollingDataChangedListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey), namespaceId);
             result.put(groupKey, data);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, result);
@@ -97,7 +90,7 @@ public class ConfigController {
      */
     @PostMapping(value = "/listener")
     public void listener(final HttpServletRequest request, final HttpServletResponse response) {
-        longPollingListener.doLongPolling(request, response);
+        httpLongPollingDataChangedListener.doLongPolling(request, response);
     }
 
 }
