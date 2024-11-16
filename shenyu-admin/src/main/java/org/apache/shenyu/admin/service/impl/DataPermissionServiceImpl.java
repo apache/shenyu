@@ -41,6 +41,8 @@ import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminDataPermissionTypeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,8 @@ import java.util.stream.Stream;
  */
 @Service
 public class DataPermissionServiceImpl implements DataPermissionService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DataPermissionServiceImpl.class);
     
     private final DataPermissionMapper dataPermissionMapper;
     
@@ -267,7 +271,14 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @EventListener(SelectorCreatedEvent.class)
     public void onSelectorCreated(final SelectorCreatedEvent event) {
         // check selector add
-        if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
+        Boolean existed;
+        try {
+            existed = dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId());
+        } catch (Exception e) {
+            LOG.error("check user existed error", e);
+            existed = false;
+        }
+        if (Boolean.TRUE.equals(existed)) {
             DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getSelector().getId());
@@ -299,7 +310,14 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     @EventListener(RuleCreatedEvent.class)
     public void onRuleCreated(final RuleCreatedEvent event) {
         // check rule add
-        if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
+        Boolean existed;
+        try {
+            existed = dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId());
+        } catch (Exception e) {
+            LOG.error("check user existed error", e);
+            existed = false;
+        }
+        if (Boolean.TRUE.equals(existed)) {
             DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getRule().getId());

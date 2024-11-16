@@ -17,34 +17,34 @@
 version: '3.9'
 
 services:
-  shenyu-mysql:
-    image: mysql:8.0
-    container_name: shenyu-mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=shenyue2e
-      - MYSQL_USER=shenyue2e
-      - MYSQL_PASSWORD=shenyue2e
-    ports:
-      - "30306:3306"
-    volumes:
-      - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    healthcheck:
-      test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 768M
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    restart: always
-    networks:
-      - shenyu
+#  shenyu-mysql:
+#    image: mysql:8.0
+#    container_name: shenyu-mysql
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=shenyue2e
+#      - MYSQL_USER=shenyue2e
+#      - MYSQL_PASSWORD=shenyue2e
+#    ports:
+#      - "30306:3306"
+#    volumes:
+#      - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+#    healthcheck:
+#      test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#      start_period: 30s
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '1'
+#          memory: 768M
+#        reservations:
+#          cpus: '0.5'
+#          memory: 512M
+#    restart: always
+#    networks:
+#      - shenyu
 
   shenyu-admin:
     image: apache/shenyu-admin:latest
@@ -54,15 +54,10 @@ services:
       - "31095:9095"
     environment:
       - TZ=Asia/Beijing
-      - SPRING_PROFILES_ACTIVE=mysql
-      - shenyu.database.dialect=mysql
-      - shenyu.database.init_enable=true
-      - spring.datasource.username=shenyue2e
-      - spring.datasource.password=shenyue2e
-      - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+      - DEBUG=true
+      - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.database.dialect=h2
       - shenyu.sync.http.enabled=true
-    volumes:
-      - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
       interval: 10s
@@ -70,9 +65,6 @@ services:
       retries: 15
       start_period: 30s
     restart: always
-    depends_on:
-      shenyu-mysql:
-        condition: service_healthy
     networks:
       - shenyu
 

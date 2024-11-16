@@ -20,13 +20,13 @@ server:
     max-http-form-post-size: 100MB
 
 shenyu:
-  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
+  namespace: 16b116bd-487d-4a0b-9d79-18652ce9ae96
   register:
     registerType: http
     serverLists: http://localhost:9095
     props:
       username: admin
-      password: 123456
+      password: Qwert12345*
   client:
     http:
       props:
