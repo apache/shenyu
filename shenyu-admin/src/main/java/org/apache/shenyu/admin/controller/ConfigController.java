@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +47,7 @@ import java.util.Map;
 @ResponseBody
 @RequestMapping("/configs")
 @RestController
-@ConditionalOnBean(HttpLongPollingDataChangedListener.class)
+@DependsOn({"httpLongPollingDataChangedListener", "namespaceService"})
 public class ConfigController {
     
     private final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener;
