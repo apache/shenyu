@@ -53,7 +53,8 @@ public class ConfigController {
 
     private final NamespaceService namespaceService;
 
-    public ConfigController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener, final NamespaceService namespaceService) {
+    public ConfigController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener,
+                            final NamespaceService namespaceService) {
         this.httpLongPollingDataChangedListener = httpLongPollingDataChangedListener;
         this.namespaceService = namespaceService;
     }

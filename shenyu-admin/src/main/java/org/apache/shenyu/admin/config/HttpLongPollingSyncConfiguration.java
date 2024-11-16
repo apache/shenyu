@@ -49,4 +49,5 @@ public class HttpLongPollingSyncConfiguration {
         LOG.info("you use http long polling sync");
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
+    
 }
