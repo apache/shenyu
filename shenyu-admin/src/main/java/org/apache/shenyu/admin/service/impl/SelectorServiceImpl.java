@@ -73,8 +73,6 @@ import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -98,8 +96,6 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
 
     private final SelectorMapper selectorMapper;
 
@@ -167,6 +163,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (StringUtils.isEmpty(selectorDTO.getId())) {
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
+            selectorEventPublisher.onCreated(selectorDO);
         }
         publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         return selectorDO.getId();
