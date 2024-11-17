@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -125,6 +126,7 @@ public class RuleServiceImpl implements RuleService {
             addCondition(ruleDO, ruleDTO.getRuleConditions());
         }
         ruleEventPublisher.onRegister(ruleDO, ruleDTO.getRuleConditions());
+        ruleEventPublisher.publish(new RuleCreatedEvent(ruleDO, ruleDTO.getNamespaceId()));
         return ruleDO.getId();
     }
 
