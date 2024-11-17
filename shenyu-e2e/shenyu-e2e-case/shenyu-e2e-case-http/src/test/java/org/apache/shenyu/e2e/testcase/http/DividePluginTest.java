@@ -24,14 +24,12 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
-import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -93,12 +91,12 @@ public class DividePluginTest {
         spec.getWaiting().waitFor(gateway);
     }
 
-    @AfterEach
-    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        spec.deleteWaiting().waitFor(gateway);
-        selectorIds = Lists.newArrayList();
-    }
+//    @AfterEach
+//    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+//        spec.getDeleter().delete(client, selectorIds);
+//        spec.deleteWaiting().waitFor(gateway);
+//        selectorIds = Lists.newArrayList();
+//    }
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
