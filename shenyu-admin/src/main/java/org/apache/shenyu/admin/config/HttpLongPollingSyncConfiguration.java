@@ -43,7 +43,7 @@ public class HttpLongPollingSyncConfiguration {
      * @param httpSyncProperties httpSyncProperties
      * @return {@link HttpLongPollingDataChangedListener}
      */
-    @Bean
+    @Bean(name = "httpLongPollingDataChangedListener")
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         LOG.info("you use http long polling sync");
