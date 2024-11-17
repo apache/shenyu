@@ -324,77 +324,46 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update selector cache.
      */
     protected void updateSelectorCache(final String namespaceId) {
-        List<SelectorData> selectorData = selectorService.listAll();
-        if (CollectionUtils.isEmpty(selectorData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.SELECTOR, selectorData, namespaceId);
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), namespaceId);
     }
 
     /**
      * Update rule cache.
      */
     protected void updateRuleCache(final String namespaceId) {
-        List<RuleData> ruleData = ruleService.listAll();
-        if (CollectionUtils.isEmpty(ruleData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.RULE, ruleData, namespaceId);
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), namespaceId);
     }
 
     /**
      * Update plugin cache.
      */
     protected void updatePluginCache(final String namespaceId) {
-        List<PluginData> pluginData = namespacePluginService.listAll(namespaceId);
-        if (CollectionUtils.isEmpty(pluginData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.PLUGIN, pluginData, namespaceId);
+        this.updateCache(ConfigGroupEnum.PLUGIN, namespacePluginService.listAll(namespaceId), namespaceId);
     }
 
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache(final String namespaceId) {
-        List<AppAuthData> appAuthData = appAuthService.listAll();
-        if (CollectionUtils.isEmpty(appAuthData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthData, namespaceId);
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), namespaceId);
     }
 
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache(final String namespaceId) {
-        List<MetaData> metaData = metaDataService.listAll();
-        if (CollectionUtils.isEmpty(metaData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.META_DATA, metaData, namespaceId);
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), namespaceId);
     }
 
     protected void updateProxySelectorDataCache(final String namespaceId) {
-        List<ProxySelectorData> proxySelectorData = proxySelectorService.listAll();
-        if (CollectionUtils.isEmpty(proxySelectorData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorData, namespaceId);
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), namespaceId);
     }
 
     protected void updateDiscoveryUpstreamDataCache(final String namespaceId) {
-        List<DiscoverySyncData> discoverySyncData = discoveryUpstreamService.listAll();
-        if (CollectionUtils.isEmpty(discoverySyncData)) {
-            return;
-        }
-        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoverySyncData, namespaceId);
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), namespaceId);
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {
-        if (config == null) {
-            return new ConfigData<>(null, 0L, null);
-        }
         return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), GsonUtils.getInstance().fromList(config.getJson(), dataType));
     }
 
