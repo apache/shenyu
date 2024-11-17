@@ -2912,4 +2912,3 @@ COMMENT ON COLUMN "public"."namespace_user_rel"."user_id" IS 'user_id';
 COMMENT ON COLUMN "public"."namespace_user_rel"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."namespace_user_rel"."date_updated" IS 'update time';
 
-INSERT INTO "public"."namespace_user_rel" ("id", "namespace_id", "user_id") VALUES ('1852580590991884288', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '1');

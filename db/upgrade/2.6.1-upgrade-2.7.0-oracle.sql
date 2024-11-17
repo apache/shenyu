@@ -396,4 +396,3 @@ comment on column NAMESPACE_USER_REL.date_created
 comment on column NAMESPACE_USER_REL.date_updated
     is 'update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("namespace_user_rel" (id)) */ INTO "namespace_user_rel" (id, namespace_id, user_id) VALUES ('1852580590991884288', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '1');
