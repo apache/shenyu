@@ -60,7 +60,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done
