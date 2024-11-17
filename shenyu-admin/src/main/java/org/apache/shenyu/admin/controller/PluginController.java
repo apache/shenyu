@@ -89,6 +89,17 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     }
     
     /**
+     * query plugins by namespace.
+     *
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/listByNamespace")
+    public ShenyuAdminResult queryPluginsByNamespace(String namespace) {
+        List<PluginData> pluginDataList = pluginService.listByNamespace(namespace);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
+    }
+    
+    /**
      * detail plugin.
      *
      * @param id plugin id.
