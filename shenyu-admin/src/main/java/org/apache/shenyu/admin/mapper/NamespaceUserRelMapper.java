@@ -44,6 +44,14 @@ public interface NamespaceUserRelMapper {
      * @return {@linkplain List}
      */
     List<NamespaceUserRelDO> selectListByUserId(String userId);
+
+    /**
+     * select list by namespaceId.
+     *
+     * @param namespaceId namespaceId
+     * @return {@linkplain List}
+     */
+    List<NamespaceUserRelDO> selectListByNamespaceId(String namespaceId);
     
     /**
      * insert.

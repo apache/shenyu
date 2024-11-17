@@ -200,15 +200,15 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     }
 
     /**
-     * Sync plugin data of namespace.
+     * sync plugin data.
      *
-     * @param id the id
-     * @return the mono
+     * @param pluginId    the plugin id
+     * @param namespaceId the namespace id
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/syncPluginData")
-    public ShenyuAdminResult syncPluginData(@Existed(message = "namespace plugin is not existed", provider = NamespacePluginRelMapper.class)
-                                            @RequestParam("id") final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+    public ShenyuAdminResult syncPluginData(@RequestParam("id") final String pluginId, @RequestParam("namespaceId") final String namespaceId) {
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(namespaceId, pluginId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
 
     /**

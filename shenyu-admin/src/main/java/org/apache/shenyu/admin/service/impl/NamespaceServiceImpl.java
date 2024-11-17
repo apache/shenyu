@@ -170,6 +170,12 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public List<NamespaceVO> list(final String name) {
+        
+        if (SessionUtil.isAdmin()) {
+            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            return allList.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
+        }
+        
         List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
 
         if (CollectionUtils.isEmpty(namespaceIds)) {
