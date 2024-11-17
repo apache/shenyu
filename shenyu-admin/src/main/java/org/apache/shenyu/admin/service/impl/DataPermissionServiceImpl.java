@@ -275,7 +275,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         try {
             existed = dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId());
         } catch (Exception e) {
-            LOG.error("check user existed error", e);
+            LOG.error("check user existed error");
             existed = false;
         }
         if (Boolean.TRUE.equals(existed)) {
@@ -314,7 +314,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         try {
             existed = dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId());
         } catch (Exception e) {
-            LOG.error("check user existed error", e);
+            LOG.error("check user existed error");
             existed = false;
         }
         if (Boolean.TRUE.equals(existed)) {
