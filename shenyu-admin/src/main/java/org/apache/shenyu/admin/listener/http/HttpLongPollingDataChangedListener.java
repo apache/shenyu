@@ -189,6 +189,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
+            LOG.info("group={}, params={}", group, params);
             if (Objects.isNull(params) || params.length != 2) {
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
