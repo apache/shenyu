@@ -80,9 +80,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         ConfigData<T> result = fromJson(jsonObject);
         if (this.updateCacheIfNeed(result)) {
             updated = true;
-            if (Objects.nonNull(result.getData())) {
-                refresh(result.getData());
-            }
+            refresh(result.getData());
         }
 
         return updated;
