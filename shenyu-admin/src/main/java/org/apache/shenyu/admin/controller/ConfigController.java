@@ -31,7 +31,7 @@ import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +46,7 @@ import java.util.Map;
 @ResponseBody
 @RequestMapping("/configs")
 @RestController
-@ConditionalOnBean(HttpLongPollingDataChangedListener.class)
+@ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
 public class ConfigController {
 
     private final HttpLongPollingDataChangedListener longPollingListener;

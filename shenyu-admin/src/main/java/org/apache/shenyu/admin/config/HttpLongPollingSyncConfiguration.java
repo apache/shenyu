@@ -19,18 +19,14 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 /**
  * http long polling.
  */
-@Order(Ordered.HIGHEST_PRECEDENCE)
 @Configuration
 @EnableConfigurationProperties(HttpSyncProperties.class)
 public class HttpLongPollingSyncConfiguration {
@@ -43,7 +39,6 @@ public class HttpLongPollingSyncConfiguration {
      */
     @Bean
     @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
-    @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
