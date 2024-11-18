@@ -17,21 +17,15 @@
 
 package org.apache.shenyu.admin;
 
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
-import org.springframework.core.env.Environment;
 
 /**
  * shenyu admin start.
  */
 @SpringBootApplication(exclude = {LdapAutoConfiguration.class})
 public class ShenyuAdminBootstrap {
-
-    private static final Logger log = LoggerFactory.getLogger(ShenyuAdminBootstrap.class);
 
     /**
      * Main entrance.
@@ -40,8 +34,6 @@ public class ShenyuAdminBootstrap {
      */
     public static void main(final String[] args) {
         SpringApplication.run(ShenyuAdminBootstrap.class, args);
-        final Environment environment = SpringBeanUtils.getInstance().getBean(Environment.class);
-        log.info("ShenyuAdminBootstrap started shenyu.sync.http.enabled {}", environment.getProperty("shenyu.sync.http.enabled"));
     }
 
 }
