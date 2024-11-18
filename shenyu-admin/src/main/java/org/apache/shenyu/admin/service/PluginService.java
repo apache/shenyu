@@ -104,6 +104,16 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
     String enabled(List<String> ids, Boolean enabled);
     
     /**
+     * Enabled string.
+     *
+     * @param namespace the namespace
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return the string
+     */
+    String enabledByNamespace(String namespace, List<String> ids, Boolean enabled);
+    
+    /**
      * select Plugin's id by name.
      *
      * @param name the plugin's name.

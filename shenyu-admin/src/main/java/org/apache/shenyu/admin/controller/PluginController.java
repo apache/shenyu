@@ -181,6 +181,22 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
+    
+    /**
+     * Enable plugins.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the mono
+     */
+    @PostMapping("/enabledByNamespace")
+    @RequiresPermissions("system:plugin:disable")
+    public ShenyuAdminResult enabledByNamespace(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+        final String result = pluginService.enabledByNamespace(batchCommonDTO.getNamespaceId(), batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return ShenyuAdminResult.error(result);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+    }
 
     /**
      * active plugin snapshot.

@@ -32,11 +32,13 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -61,6 +63,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -81,15 +84,19 @@ public class PluginServiceImpl implements PluginService {
     private final PluginHandleService pluginHandleService;
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
+    
+    private final NamespacePluginEventPublisher namespacePluginEventPublisher;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginEventPublisher pluginEventPublisher,
                              final PluginHandleService pluginHandleService,
-                             final NamespacePluginRelMapper namespacePluginRelMapper) {
+                             final NamespacePluginRelMapper namespacePluginRelMapper,
+                             final NamespacePluginEventPublisher namespacePluginEventPublisher) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
         this.pluginHandleService = pluginHandleService;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
+        this.namespacePluginEventPublisher = namespacePluginEventPublisher;
     }
 
     @Override
@@ -170,7 +177,35 @@ public class PluginServiceImpl implements PluginService {
         }
         return StringUtils.EMPTY;
     }
-
+    
+    @Override
+    public String enabledByNamespace(final String namespace, final List<String> ids, final Boolean enabled) {
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectAllByNamespaceId(namespace);
+        
+        if (CollectionUtils.isEmpty(namespacePluginVOList)) {
+            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+        }
+        
+        Map<String, NamespacePluginVO> pluginVOMap = namespacePluginVOList
+                .stream()
+                .collect(Collectors.toMap(NamespacePluginVO::getPluginId, Function.identity()));
+        List<NamespacePluginVO> updateList = Lists.newArrayList();
+        for (String id : ids) {
+            NamespacePluginVO namespacePluginVO = pluginVOMap.get(id);
+            if (Objects.isNull(namespacePluginVO)) {
+                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            }
+            namespacePluginVO.setEnabled(enabled);
+            updateList.add(namespacePluginVO);
+        }
+        // publish change event.
+        if (CollectionUtils.isNotEmpty(updateList)) {
+            namespacePluginRelMapper.updateEnableByIdList(ids, enabled);
+            namespacePluginEventPublisher.onEnabled(updateList);
+        }
+        return StringUtils.EMPTY;
+    }
+    
     /**
      * find plugin by id.
      *
