@@ -18,7 +18,9 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
+import org.apache.shenyu.admin.controller.ConfigController;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,11 +45,24 @@ public class HttpLongPollingSyncConfiguration {
      * @param httpSyncProperties httpSyncProperties
      * @return {@link HttpLongPollingDataChangedListener}
      */
-    @Bean(name = "httpLongPollingDataChangedListener")
+    @Bean
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         LOG.info("you use http long polling sync");
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
+    }
+    
+    /**
+     * ConfigController.
+     *
+     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
+     * @param namespaceService namespaceService
+     * @return {@link ConfigController}
+     */
+    @Bean
+    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener,
+                                             final NamespaceService namespaceService) {
+        return new ConfigController(httpLongPollingDataChangedListener, namespaceService);
     }
     
 }
