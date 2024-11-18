@@ -233,11 +233,11 @@ springdoc:
     tags-sorter: alpha
   packages-to-scan: org.apache.shenyu.admin.controller
   paths-to-match: /**
-
+debug: true
 logging:
   level:
     root: info
-    org.springframework.boot: info
+    org.springframework.boot: debug
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
