@@ -43,7 +43,7 @@ import java.util.Map;
  */
 @ResponseBody
 @RequestMapping("/configs")
-public class ConfigController extends AbstractController {
+public class ConfigController {
     
     private final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener;
 
