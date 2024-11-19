@@ -31,30 +31,35 @@ import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+
 
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
  */
+@RestController
 @ResponseBody
 @RequestMapping("/configs")
-public class ConfigController extends AbstractController {
+@ConditionalOnProperty(prefix = "shenyu.sync.http", name = "enabled", havingValue = "true")
+public class ConfigController {
     
     private final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener;
-
+    
     private final NamespaceService namespaceService;
-
+    
     public ConfigController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener,
                             final NamespaceService namespaceService) {
         this.httpLongPollingDataChangedListener = httpLongPollingDataChangedListener;
         this.namespaceService = namespaceService;
     }
-
+    
     /**
      * Fetch configs shenyu result.
      *
@@ -78,7 +83,7 @@ public class ConfigController extends AbstractController {
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, result);
     }
-
+    
     /**
      * Listener.
      *
@@ -89,5 +94,5 @@ public class ConfigController extends AbstractController {
     public void listener(final HttpServletRequest request, final HttpServletResponse response) {
         httpLongPollingDataChangedListener.doLongPolling(request, response);
     }
-
+    
 }

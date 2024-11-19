@@ -51,19 +51,19 @@ public class HttpLongPollingSyncConfiguration {
         LOG.info("you use http long polling sync");
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
-    
-    /**
-     * ConfigController.
-     *
-     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
-     * @param namespaceService namespaceService
-     * @return {@link ConfigController}
-     */
-    @Bean
-    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener,
-                                             final NamespaceService namespaceService) {
-        ConfigController configController = new ConfigController(httpLongPollingDataChangedListener, namespaceService);
-        return configController;
-    }
+//
+//    /**
+//     * ConfigController.
+//     *
+//     * @param httpLongPollingDataChangedListener httpLongPollingDataChangedListener
+//     * @param namespaceService namespaceService
+//     * @return {@link ConfigController}
+//     */
+//    @Bean
+//    public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener,
+//                                             final NamespaceService namespaceService) {
+//        ConfigController configController = new ConfigController(httpLongPollingDataChangedListener, namespaceService);
+//        return configController;
+//    }
     
 }
