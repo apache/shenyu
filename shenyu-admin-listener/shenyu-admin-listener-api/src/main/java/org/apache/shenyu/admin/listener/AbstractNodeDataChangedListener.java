@@ -274,7 +274,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         }
         final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getProxySelectorDataId() + DefaultNodeConstants.JOIN_POINT;
-        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, ProxySelectorData::getPluginName, ProxySelectorData::getName);
+        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, ProxySelectorData::getPluginName, ProxySelectorData::getId);
         LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
     }
 
@@ -285,7 +285,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         }
         final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
         final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getDiscoveryDataId() + DefaultNodeConstants.JOIN_POINT;
-        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, DiscoverySyncData::getPluginName, DiscoverySyncData::getSelectorName);
+        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, DiscoverySyncData::getPluginName, DiscoverySyncData::getSelectorId);
         LOG.debug("[DataChangedListener] DiscoveryUpstreamChanged {}", changeData.getDiscoveryDataId());
     }
 
