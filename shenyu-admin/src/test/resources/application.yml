@@ -50,7 +50,7 @@ shenyu:
 #        sessionTimeout: 5000
 #        connectionTimeout: 2000
       http:
-        enabled: true
+        enabled: false
 #      nacos:
 #        url: localhost:8848
 #        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
