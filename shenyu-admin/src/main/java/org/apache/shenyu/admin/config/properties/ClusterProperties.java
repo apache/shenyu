@@ -71,7 +71,7 @@ public class ClusterProperties {
     /**
      * cluster master lock time to live.
      */
-    private Long lockTtl = 15L;
+    private Long lockTtl = 30L;
     
     /**
      * Gets the value of enabled.
