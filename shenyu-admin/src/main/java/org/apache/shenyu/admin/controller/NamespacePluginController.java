@@ -183,6 +183,22 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     }
 
     /**
+     * Enable plugins of namespace.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the mono
+     */
+    @PostMapping("/enabledByNamespace")
+    @RequiresPermissions("system:plugin:disable")
+    public ShenyuAdminResult enabledByNamespace(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+        final String result = namespacePluginService.enabled(batchCommonDTO.getNamespaceId(), batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return ShenyuAdminResult.error(result);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+    }
+
+    /**
      * sync plugins of namespace.
      *
      * @param namespaceSyncDTO the namespaceSync dto
