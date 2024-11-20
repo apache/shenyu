@@ -24,9 +24,29 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "shenyu.k8s.scale")
 public class ScaleProperties {
 
+    private boolean enabled = true;
+
     private long monitorInterval;
 
     private int poolSize;
+
+    /**
+     * isEnabled.
+     *
+     * @return boolean
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * setEnabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
 
     /**
      * getMonitorInterval.
