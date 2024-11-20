@@ -99,6 +99,11 @@ public final class Upstream {
     private long lastPicked;
 
     /**
+     * this is gray.
+     */
+    private boolean gray;
+
+    /**
      * Total number of requests being processed.
      */
     private AtomicLong inflight = new AtomicLong(1);
@@ -116,6 +121,7 @@ public final class Upstream {
         this.warmup = builder.warmup;
         this.group = builder.group;
         this.version = builder.version;
+        this.gray = builder.gray;
     }
 
     /**
@@ -349,6 +355,24 @@ public final class Upstream {
     }
 
     /**
+     * gray.
+     *
+     * @return Gray
+     */
+    public boolean isGray() {
+        return gray;
+    }
+
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
      * Gets succeeded.
      * @return the succeeded
      */
@@ -485,6 +509,11 @@ public final class Upstream {
         private String version;
 
         /**
+         * gray.
+         */
+        private Boolean gray = false;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -586,5 +615,18 @@ public final class Upstream {
             this.version = version;
             return this;
         }
+
+
+        /**
+         * build gray.
+         *
+         * @param gray gray
+         * @return this builder
+         */
+        public Builder gray(final Boolean gray) {
+            this.gray = gray;
+            return this;
+        }
+
     }
 }
