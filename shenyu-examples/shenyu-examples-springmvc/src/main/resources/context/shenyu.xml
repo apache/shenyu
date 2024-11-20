@@ -22,8 +22,9 @@
     
     <bean id="springMvcClientEventListener"
           class="org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener">
-        <constructor-arg ref="clientPropertiesConfig"/>
+        <constructor-arg ref="shenyuClientConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
+        <constructor-arg ref="env"/>
     </bean>
 
     <!-- config ShenyuRegisterCenterConfig according to your registerType -->
@@ -35,6 +36,18 @@
                 <entry key="username" value="admin"/>
                 <entry key="password" value="123456"/>
             </map>
+        </property>
+    </bean>
+
+    <bean id="env" class="org.springframework.core.env.StandardEnvironment" />
+
+    <bean id="shenyuClientConfig" class="org.apache.shenyu.register.common.config.ShenyuClientConfig">
+        <property name="client">
+            <map>
+                <entry key="http" value-ref="clientPropertiesConfig"/>
+            </map>
+        </property>
+        <property name="namespace" value="649330b6-c2d7-4edc-be8e-8a54df9eb385">
         </property>
     </bean>
 

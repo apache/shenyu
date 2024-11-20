@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.testcase.springcloud;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -29,10 +30,10 @@ import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Testing spring-cloud plugin.
@@ -74,13 +75,15 @@ public class SpringCloudPluginTest {
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
         LOG.info("start spring cloud  plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "8");
-        formData.add("name", "springCloud");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "200");
-        adminClient.changePluginStatus("8", formData);
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("pluginId", "8");
+        reqBody.put("name", "springCloud");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "200");
+        reqBody.put("config", "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\"}");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        adminClient.changePluginStatus("1801816010882822185", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 
     }

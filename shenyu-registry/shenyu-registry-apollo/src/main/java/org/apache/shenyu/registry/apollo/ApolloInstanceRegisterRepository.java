@@ -32,6 +32,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,11 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
 
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
-                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
+                childrenList.values().stream().map(x -> {
+                    InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(x, InstanceEntity.class);
+                    instanceEntity.setUri(getURI(x, instanceEntity.getPort(), instanceEntity.getHost()));
+                    return instanceEntity;
+                }).collect(Collectors.toList());
         Map<String, String> childrenList = new HashMap<>();
 
         if (watcherInstanceRegisterMap.containsKey(selectKey)) {
@@ -157,6 +162,12 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(childrenList);
         watcherInstanceRegisterMap.put(selectKey, instanceEntities);
         return instanceEntities;
+    }
+
+    private URI getURI(final String instanceRegisterJsonStr, final int port, final String host) {
+        String scheme = (instanceRegisterJsonStr.contains("https") || instanceRegisterJsonStr.contains("HTTPS")) ? "https" : "http";
+        String uri = String.format("%s://%s:%s", scheme, host, port);
+        return URI.create(uri);
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

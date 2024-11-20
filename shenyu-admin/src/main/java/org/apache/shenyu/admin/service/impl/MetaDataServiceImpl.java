@@ -96,7 +96,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
-        // publish MetaData's event
+        // publish MetaData's  event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
@@ -107,12 +107,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public int delete(final List<String> ids) {
-        List<MetaDataDO> deletedMetaData = metaDataMapper.selectByIdList(ids);
+    public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
+        List<MetaDataDO> deletedMetaData = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(deletedMetaData)) {
             return 0;
         }
-        int count = metaDataMapper.deleteByIdList(ids);
+        int count = metaDataMapper.deleteByIdListAndNamespaceId(ids, namespaceId);
         if (count > 0) {
             publisher.onDeleted(deletedMetaData);
         }
@@ -120,8 +120,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public String enabled(final List<String> ids, final Boolean enabled) {
-        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(ids);
+    public String enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
+        List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
             return AdminConstants.ID_NOT_EXIST;
         }
@@ -137,6 +137,14 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public void syncData() {
         List<MetaDataDO> all = metaDataMapper.findAll();
+        if (CollectionUtils.isNotEmpty(all)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
+        }
+    }
+
+    @Override
+    public void syncDataByNamespaceId(final String namespaceId) {
+        List<MetaDataDO> all = metaDataMapper.findAllByNamespaceId(namespaceId);
         if (CollectionUtils.isNotEmpty(all)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
         }
@@ -177,13 +185,13 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataDO findByPath(final String path) {
-        return metaDataMapper.findByPath(path);
+    public MetaDataDO findByPathAndNamespaceId(final String path, final String namespaceId) {
+        return metaDataMapper.findByPathAndNamespaceId(path, namespaceId);
     }
 
     @Override
-    public MetaDataDO findByServiceNameAndMethodName(final String serviceName, final String methodName) {
-        final List<MetaDataDO> metadataList = metaDataMapper.findByServiceNameAndMethod(serviceName, methodName);
+    public MetaDataDO findByServiceNameAndMethodNameAndNamespaceId(final String serviceName, final String methodName, final String namespaceId) {
+        final List<MetaDataDO> metadataList = metaDataMapper.findByServiceNameAndMethodAndNamespaceId(serviceName, methodName, namespaceId);
         return CollectionUtils.isEmpty(metadataList) ? null : metadataList.get(0);
     }
 
@@ -255,8 +263,8 @@ public class MetaDataServiceImpl implements MetaDataService {
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
             // update other rpc_ext for the same service
-            final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethod(
-                    metaDataDO.getServiceName(), null)).orElseGet(LinkedList::new);
+            final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethodAndNamespaceId(
+                    metaDataDO.getServiceName(), null, metaDataDO.getNamespaceId())).orElseGet(LinkedList::new);
             for (MetaDataDO b : befores) {
                 MetaDataDO update = MetaDataTransfer.INSTANCE.copy(b);
                 update.setRpcExt(metaDataDTO.getRpcExt());

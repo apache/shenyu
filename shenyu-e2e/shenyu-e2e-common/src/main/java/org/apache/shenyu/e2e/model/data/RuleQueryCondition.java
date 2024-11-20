@@ -46,6 +46,11 @@ public final class RuleQueryCondition implements QueryCondition {
      * status switch.
      */
     private boolean switchStatus;
+
+    /**
+     * status switch.
+     */
+    private String namespaceId;
     
     /**
      * builder constructor.
@@ -56,6 +61,7 @@ public final class RuleQueryCondition implements QueryCondition {
         this.keyword = builder.keyword;
         this.selectors = builder.selectors;
         this.switchStatus = builder.switchStatus;
+        this.namespaceId = builder.namespaceId;
     }
     
     /**
@@ -151,6 +157,8 @@ public final class RuleQueryCondition implements QueryCondition {
                 + Arrays.toString(selectors)
                 + ", switchStatus="
                 + switchStatus
+                + ", namespaceId="
+                + namespaceId
                 + '}';
     }
     
@@ -166,6 +174,8 @@ public final class RuleQueryCondition implements QueryCondition {
         private String[] selectors;
         
         private boolean switchStatus;
+
+        private String namespaceId;
         
         /**
          * no args constructor.
@@ -224,6 +234,17 @@ public final class RuleQueryCondition implements QueryCondition {
          */
         public Builder switchStatus(final boolean switchStatus) {
             this.switchStatus = switchStatus;
+            return this;
+        }
+
+        /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return SelectorDOBuilder
+         */
+        public Builder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

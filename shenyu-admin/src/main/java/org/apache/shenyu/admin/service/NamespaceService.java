@@ -59,10 +59,25 @@ public interface NamespaceService {
     NamespaceVO findById(String namespaceId);
 
     /**
+     * find namespace by namespace id.
+     *
+     * @param namespaceId pk.
+     * @return {@linkplain NamespaceVO}
+     */
+    NamespaceVO findByNamespaceId(String namespaceId);
+
+    /**
      * find list of namespace.
      *
      * @param name name
      * @return {@linkplain List}
      */
     List<NamespaceVO> list(String name);
+
+    /**
+     * find list of namespace.
+     *
+     * @return {@linkplain List}
+     */
+    List<NamespaceVO> listAll();
 }

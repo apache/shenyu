@@ -84,7 +84,7 @@ public class TarsPluginTest {
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
                 "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
                 + "[{\"left\":\"java.lang.String\",\"right\":\"param1\"},{\"left\":\"java.lang.String\","
-                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
         ApplicationConfigCache.getInstance().initPrx(metaData);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         tarsPluginUnderTest = new TarsPlugin();

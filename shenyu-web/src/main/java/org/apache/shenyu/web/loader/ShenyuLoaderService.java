@@ -76,7 +76,7 @@ public class ShenyuLoaderService {
     public void loadExtOrUploadPlugins(final PluginData uploadedJarResource) {
         try {
             List<ShenyuLoaderResult> plugins = new ArrayList<>();
-            ShenyuPluginClassloaderHolder singleton = ShenyuPluginClassloaderHolder.getSingleton();
+            ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
             if (Objects.isNull(uploadedJarResource)) {
                 List<PluginJarParser.PluginJar> uploadPluginJars = ShenyuExtPathPluginJarLoader.loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
                 for (PluginJarParser.PluginJar extPath : uploadPluginJars) {

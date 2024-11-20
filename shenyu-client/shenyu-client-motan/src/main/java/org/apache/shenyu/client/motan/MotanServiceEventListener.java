@@ -19,6 +19,15 @@ package org.apache.shenyu.client.motan;
 
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
@@ -31,7 +40,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -39,25 +48,16 @@ import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Motan Service Event Listener.
  */
 public class MotanServiceEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuMotanClient> {
 
-    private static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
+    protected static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
 
     private final StandardReflectionParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new StandardReflectionParameterNameDiscoverer();
 
@@ -67,7 +67,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     private String group;
 
-    public MotanServiceEventListener(final PropertiesConfig clientConfig,
+    public MotanServiceEventListener(final ShenyuClientConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
@@ -94,7 +94,9 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, Object> beans,
+                                                 final String namespaceId) {
         return URIRegisterDTO.builder()
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
@@ -102,9 +104,15 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
+                .namespaceId(namespaceId)
                 .build();
     }
-
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.MOTAN.getName();
+    }
+    
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, final ShenyuMotanClient shenyuMotanClient) {
         if (Objects.nonNull(shenyuMotanClient) && !StringUtils.isBlank(shenyuMotanClient.path())) {
@@ -120,10 +128,11 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
-                                                   final ShenyuMotanClient shenyuMotanClient,
+                                                   @NonNull final ShenyuMotanClient shenyuMotanClient,
                                                    final String path,
                                                    final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
         String desc = shenyuMotanClient.desc();
@@ -133,17 +142,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        String serviceName;
-        if (void.class.equals(service.interfaceClass())) {
-            if (clazz.getInterfaces().length > 0) {
-                serviceName = clazz.getInterfaces()[0].getName();
-            } else {
-                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
-                        + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
-            }
-        } else {
-            serviceName = service.interfaceClass().getName();
-        }
+        String serviceName = getServiceName(clazz, service);
         String protocol = StringUtils.isNotEmpty(service.protocol()) ? service.protocol() : (getProtocolFromExport());
         return MetaDataRegisterDTO.builder()
                 .appName(this.getAppName())
@@ -159,6 +158,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .rpcType(RpcTypeEnum.MOTAN.getName())
                 .rpcExt(buildRpcExt(method, timeout, protocol))
                 .enabled(shenyuMotanClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -174,11 +174,14 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuMotanClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                    buildApiPath(method, superPath, null), clazz, method);
-            publisher.publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+        List<String> namespaceIds = super.getNamespace();
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                publisher.publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
 
@@ -211,5 +214,20 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
             return export.split(":")[0];
         }
         return "motan2";
+    }
+
+    private String getServiceName(final Class<?> clazz, @Nullable final MotanService service) {
+        String serviceName;
+        if (void.class.equals(service.interfaceClass())) {
+            if (clazz.getInterfaces().length > 0) {
+                serviceName = clazz.getInterfaces()[0].getName();
+            } else {
+                throw new ShenyuClientIllegalArgumentException("Failed to export remote service class " + clazz.getName()
+                        + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+            }
+        } else {
+            serviceName = service.interfaceClass().getName();
+        }
+        return serviceName;
     }
 }

@@ -20,8 +20,10 @@ package org.apache.shenyu.client.springcloud.init;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,17 +126,22 @@ public final class SpringCloudClientEventListenerTest {
         properties.setProperty("port", "8081");
         properties.setProperty("username", "admin");
         properties.setProperty("password", "123456");
-        PropertiesConfig config = new PropertiesConfig();
+        ClientPropertiesConfig config = new ClientPropertiesConfig();
         config.setProps(properties);
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
+        ShenyuClientConfig clientConfig = new ShenyuClientConfig();
+        Map<String, ClientPropertiesConfig> client = new LinkedHashMap<>();
+        client.put(RpcTypeEnum.SPRING_CLOUD.getName(), config);
+        clientConfig.setClient(client);
         // hit error
         when(env.getProperty("spring.application.name")).thenReturn("");
-        Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new SpringCloudClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env));
+        Assert.assertThrows(ShenyuClientIllegalArgumentException.class,
+                () -> new SpringCloudClientEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env));
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-        return new SpringCloudClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
+        return new SpringCloudClientEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 
     @RestController

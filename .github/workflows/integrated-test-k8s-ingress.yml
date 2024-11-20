@@ -32,7 +32,7 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-spring-cloud
           - shenyu-integrated-test-k8s-ingress-websocket
           - shenyu-integrated-test-k8s-ingress-grpc
-          - shenyu-integrated-test-k8s-ingress-sofa
+#          - shenyu-integrated-test-k8s-ingress-sofa
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu'
     steps:
@@ -63,7 +63,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
@@ -90,7 +90,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17

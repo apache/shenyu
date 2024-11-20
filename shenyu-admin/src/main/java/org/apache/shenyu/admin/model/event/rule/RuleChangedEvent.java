@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -46,9 +47,9 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final RuleDO after = (RuleDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the rule [%s] is %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the namespace [%s] rule [%s] is %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the rule [%s] is %s : %s", after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the namespace [%s] rule [%s] is %s : %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     
@@ -84,6 +85,6 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "selector";
+        return Constants.EVENT_NAME_RULE;
     }
 }

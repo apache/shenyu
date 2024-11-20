@@ -34,7 +34,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
       - uses: dorny/paths-filter@v2
@@ -55,32 +57,28 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
-
       - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
 
       - name: Save ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
 #      - name: Build shenyu-e2e-engine with Maven
 #        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
@@ -114,13 +112,13 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-storage
-            script: e2e-h2
+            script: e2e-h2-compose
           - case: shenyu-e2e-case-storage
-            script: e2e-mysql
+            script: e2e-mysql-compose
           - case: shenyu-e2e-case-storage
-            script: e2e-postgres
+            script: e2e-postgres-compose
           - case: shenyu-e2e-case-storage
-            script: e2e-opengauss
+            script: e2e-opengauss-compose
     steps:
       - uses: actions/checkout@v2
         with:
@@ -130,7 +128,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
@@ -142,16 +142,16 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - name: Install k8s
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
-          cat /etc/rancher/k3s/k3s.yaml
-          mkdir -p ~/.kube
-          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+#      - name: Install k8s
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+#          cat /etc/rancher/k3s/k3s.yaml
+#          mkdir -p ~/.kube
+#          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -169,23 +169,29 @@ jobs:
         with:
           name: shenyu-images
           path: /tmp/shenyu/
-
-      - name: Build k8s Cluster
-        if: steps.filter.outputs.changed == 'true'
+      
+      - name: Load ShenYu Docker Images
         run: |
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker load --input /tmp/shenyu/apache-shenyu-admin.tar
+          docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
+#      - name: Build k8s Cluster
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/k8s/script/${{ matrix.script }}.sh
+          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
-      - name: Cluster Test after Healthcheck
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          kubectl get all
-          kubectl get events --all-namespaces
+#      - name: Cluster Test after Healthcheck
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          kubectl get all
+#          kubectl get events --all-namespaces
 
   e2e-case:
     runs-on: ubuntu-latest
@@ -197,21 +203,21 @@ jobs:
       matrix:
         include:
           - case: shenyu-e2e-case-http
-            script: e2e-http-sync
+            script: e2e-http-sync-compose
           - case: shenyu-e2e-case-spring-cloud
-            script: e2e-springcloud-sync
+            script: e2e-springcloud-sync-compose
           - case: shenyu-e2e-case-apache-dubbo
-            script: e2e-apache-dubbo-sync
+            script: e2e-apache-dubbo-sync-compose
           - case: shenyu-e2e-case-sofa
-            script: e2e-sofa-sync
+            script: e2e-sofa-sync-compose
           - case: shenyu-e2e-case-grpc
-            script: e2e-grpc-sync
+            script: e2e-grpc-sync-compose
           - case: shenyu-e2e-case-websocket
-            script: e2e-websocket-sync
+            script: e2e-websocket-sync-compose
           - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc
+            script: e2e-cluster-jdbc-compose
           - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper
+            script: e2e-cluster-zookeeper-compose
             
     steps:
       - uses: actions/checkout@v2
@@ -222,7 +228,9 @@ jobs:
         run: |
           df --human-readable
           sudo apt clean
-          docker rmi $(docker image ls --all --quiet)
+          for image in $(docker image ls --all --quiet); do
+            docker rmi $image
+          done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
           rm -rf /tmp/shenyu
@@ -234,16 +242,16 @@ jobs:
           filters: '.github/filters.yml'
           list-files: json
 
-      - name: Install k8s
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
-          cat /etc/rancher/k3s/k3s.yaml
-          mkdir -p ~/.kube
-          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+#      - name: Install k8s
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+#          cat /etc/rancher/k3s/k3s.yaml
+#          mkdir -p ~/.kube
+#          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -256,6 +264,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      
+      - uses: actions/download-artifact@v3
+        with:
+          name: shenyu-images
+          path: /tmp/shenyu/
 
 #      - name: Restore ShenYu E2E Maven Repos
 #        uses: actions/cache/restore@v3
@@ -273,11 +286,17 @@ jobs:
           name: shenyu-images
           path: /tmp/shenyu/
 
-      - name: Build k8s Cluster
-        if: steps.filter.outputs.changed == 'true'
+      - name: Load ShenYu Docker Images
         run: |
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
-          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker load --input /tmp/shenyu/apache-shenyu-admin.tar
+          docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
+#      - name: Build k8s Cluster
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
 #      - name: Setup Debug Session
 #        uses: mxschmitt/action-tmate@v3
@@ -288,13 +307,13 @@ jobs:
       - name: Run E2E Tests
         if: steps.filter.outputs.changed == 'true'
         run: |
-          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/k8s/script/${{ matrix.script }}.sh
+          bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
-      - name: Cluster Test after Healthcheck
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          kubectl get all
-          kubectl get events --all-namespaces
+#      - name: Cluster Test after Healthcheck
+#        if: steps.filter.outputs.changed == 'true'
+#        run: |
+#          kubectl get all
+#          kubectl get events --all-namespaces
 
   requirement:
     name: e2e

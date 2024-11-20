@@ -39,6 +39,8 @@ public final class ShenyuClientConfig {
         }
     };
     
+    private String namespace;
+    
     /**
      * Gets client.
      *
@@ -55,6 +57,24 @@ public final class ShenyuClientConfig {
      */
     public void setClient(final Map<String, ClientPropertiesConfig> client) {
         this.client = client;
+    }
+    
+    /**
+     * getNamespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * setNamespace.
+     *
+     * @param namespace namespace identifier
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
     }
 
     /**

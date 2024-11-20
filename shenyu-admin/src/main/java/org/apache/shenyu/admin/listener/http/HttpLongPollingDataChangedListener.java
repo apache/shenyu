@@ -46,19 +46,24 @@ import org.springframework.http.MediaType;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * HTTP long polling, which blocks the client's request thread
@@ -82,7 +87,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     /**
      * Blocked client.
      */
-    private final BlockingQueue<LongPollingClient> clients;
+    private final Map<String, BlockingQueue<LongPollingClient>> clientsMap;
 
     private final ScheduledExecutorService scheduler;
 
@@ -94,7 +99,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
-        this.clients = new ArrayBlockingQueue<>(1024);
+        this.clientsMap = new ConcurrentHashMap<>();
         this.scheduler = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
@@ -126,7 +131,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     public void doLongPolling(final HttpServletRequest request, final HttpServletResponse response) {
         // compare group md5
         List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
-        String clientIp = getRemoteIp(request);
+        final String clientIp = getRemoteIp(request);
+        final String namespaceId = getNamespaceId(request);
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);
@@ -139,46 +145,47 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
         asyncContext.setTimeout(0L);
         // block client's thread.
-        scheduler.execute(new LongPollingClient(asyncContext, clientIp, HttpConstants.SERVER_MAX_HOLD_TIMEOUT));
+        scheduler.execute(new LongPollingClient(asyncContext, clientIp, HttpConstants.SERVER_MAX_HOLD_TIMEOUT, namespaceId));
     }
 
     @Override
-    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH));
+    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH, namespaceId));
     }
 
     @Override
-    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA));
+    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA, namespaceId));
     }
 
     @Override
-    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN));
+    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN, namespaceId));
     }
 
     @Override
-    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE));
+    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE, namespaceId));
     }
 
     @Override
-    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
+    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR, namespaceId));
     }
 
     @Override
-    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR));
+    protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR, namespaceId));
     }
 
     @Override
-    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM));
+    protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId));
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
+        String namespaceId = getNamespaceId(request);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
@@ -187,13 +194,18 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             }
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
-            ConfigDataCache serverCache = CACHE.get(group.name());
+
+            ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
             // do check.
             if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
                 changedGroup.add(group);
             }
         }
         return changedGroup;
+    }
+
+    public static String buildCacheKey(final String namespaceId, final String group) {
+        return namespaceId + "_" + group;
     }
 
     /**
@@ -218,17 +230,20 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // the lastModifyTime before client, then the local cache needs to be updated.
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
-        ConfigDataCache latest = CACHE.get(serverCache.getGroup());
+
+        String configDataCacheKey = buildCacheKey(serverCache.getNamespaceId(), serverCache.getGroup());
+
+        ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
         synchronized (this) {
-            latest = CACHE.get(serverCache.getGroup());
+            latest = CACHE.get(configDataCacheKey);
             if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
             }
             super.refreshLocalCache();
-            latest = CACHE.get(serverCache.getGroup());
+            latest = CACHE.get(configDataCacheKey);
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
     }
@@ -268,6 +283,20 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     /**
+     * get namespaceId.
+     *
+     * @param request the request
+     * @return the namespaceId
+     */
+    private static String getNamespaceId(final HttpServletRequest request) {
+        String namespaceId = SYS_DEFAULT_NAMESPACE_ID;
+        if (StringUtils.isNotEmpty(request.getParameter("namespaceId"))) {
+            namespaceId = request.getParameter("namespaceId");
+        }
+        return namespaceId;
+    }
+
+    /**
      * When a group's data changes, the thread is created to notify the client asynchronously.
      */
     class DataChangeTask implements Runnable {
@@ -283,23 +312,33 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         private final long changeTime = System.currentTimeMillis();
 
         /**
+         * The namespaceId.
+         */
+        private final String namespaceId;
+
+        /**
          * Instantiates a new Data change task.
          *
          * @param groupKey the group key
          */
-        DataChangeTask(final ConfigGroupEnum groupKey) {
+        DataChangeTask(final ConfigGroupEnum groupKey, final String namespaceId) {
             this.groupKey = groupKey;
+            this.namespaceId = namespaceId;
         }
 
         @Override
         public void run() {
-            if (clients.size() > httpSyncProperties.getNotifyBatchSize()) {
-                List<LongPollingClient> targetClients = new ArrayList<>(clients.size());
-                clients.drainTo(targetClients);
+            BlockingQueue<LongPollingClient> namespaceClients = clientsMap.get(namespaceId);
+            if (CollectionUtils.isEmpty(namespaceClients)) {
+                return;
+            }
+            if (namespaceClients.size() > httpSyncProperties.getNotifyBatchSize()) {
+                List<LongPollingClient> targetClients = new ArrayList<>(namespaceClients.size());
+                namespaceClients.drainTo(targetClients);
                 List<List<LongPollingClient>> partitionClients = Lists.partition(targetClients, httpSyncProperties.getNotifyBatchSize());
                 partitionClients.forEach(item -> scheduler.execute(() -> doRun(item)));
             } else {
-                doRun(clients);
+                doRun(namespaceClients);
             }
         }
 
@@ -338,6 +377,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         private final long timeoutTime;
 
         /**
+         * The namespaceId.
+         */
+        private final String namespaceId;
+
+        /**
          * The Async timeout future.
          */
         private Future<?> asyncTimeoutFuture;
@@ -349,22 +393,25 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          * @param ip          the ip
          * @param timeoutTime the timeout time
          */
-        LongPollingClient(final AsyncContext ac, final String ip, final long timeoutTime) {
+        LongPollingClient(final AsyncContext ac, final String ip, final long timeoutTime, final String namespaceId) {
             this.asyncContext = ac;
             this.ip = ip;
             this.timeoutTime = timeoutTime;
+            this.namespaceId = namespaceId;
         }
 
         @Override
         public void run() {
             try {
+                BlockingQueue<LongPollingClient> namespaceClients = clientsMap.getOrDefault(namespaceId, new ArrayBlockingQueue<>(1024));
                 this.asyncTimeoutFuture = scheduler.schedule(() -> {
-                    clients.remove(LongPollingClient.this);
+                    namespaceClients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
                     log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
-                clients.add(this);
+                namespaceClients.add(this);
+                clientsMap.put(namespaceId, namespaceClients);
             } catch (Exception ex) {
                 log.error("add long polling client error", ex);
             }

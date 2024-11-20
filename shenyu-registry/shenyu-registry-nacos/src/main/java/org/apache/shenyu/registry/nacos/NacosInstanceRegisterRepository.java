@@ -31,8 +31,10 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -53,7 +55,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
-        this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
+        this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");
         String serverAddr = config.getServerLists();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE, ""));
@@ -112,7 +114,22 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         instanceEntity.setPort(instance.getPort());
         instanceEntity.setHost(instance.getIp());
         instanceEntity.setAppName(instance.getServiceName());
+        instanceEntity.setUri(getURI(instance.getMetadata(), instance));
         return instanceEntity;
+    }
+
+    private URI getURI(final Map<String, String> metadata, final Instance instance) {
+        boolean secure = false;
+        if (metadata.containsKey("secure")) {
+            secure = Boolean.parseBoolean(metadata.get("secure"));
+        }
+        String scheme = secure ? "https" : "http";
+        int port = instance.getPort();
+        if (port <= 0) {
+            port = secure ? 443 : 80;
+        }
+        String uri = String.format("%s://%s:%s", scheme, instance.getIp(), port);
+        return URI.create(uri);
     }
 
     @Override

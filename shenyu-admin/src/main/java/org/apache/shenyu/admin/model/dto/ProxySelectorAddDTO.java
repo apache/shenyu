@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -89,6 +90,13 @@ public class ProxySelectorAddDTO implements Serializable {
      * discovery upstream list.
      */
     private List<DiscoveryUpstream> discoveryUpstreams;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
      * get id.
@@ -289,6 +297,24 @@ public class ProxySelectorAddDTO implements Serializable {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * get discovery.
      */
     public static class Discovery {
@@ -430,6 +456,11 @@ public class ProxySelectorAddDTO implements Serializable {
         private String startupTime;
 
         /**
+         * namespaceId.
+         */
+        private String namespaceId;
+
+        /**
          * get id.
          *
          * @return id
@@ -557,6 +588,24 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         public void setStartupTime(final String startupTime) {
             this.startupTime = startupTime;
+        }
+
+        /**
+         * get namespaceId.
+         *
+         * @return namespaceId
+         */
+        public String getNamespaceId() {
+            return namespaceId;
+        }
+
+        /**
+         * set namespaceId.
+         *
+         * @param namespaceId namespaceId
+         */
+        public void setNamespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
         }
     }
 }

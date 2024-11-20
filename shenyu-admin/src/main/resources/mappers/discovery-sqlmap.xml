@@ -28,6 +28,7 @@
         <result column="server_list" jdbcType="VARCHAR" property="serverList"/>
         <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
         <result column="props" jdbcType="LONGVARCHAR" property="props"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -39,7 +40,8 @@
         level,
         server_list,
         plugin_name,
-        props
+        props,
+        namespace_id
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -55,17 +57,34 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByPluginNameAndLevel" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByPluginNameAndLevelAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
-        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR}
+        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
+    </select>
+
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByNamespaceIds" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="selectBySelectorNameAndPluginName" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
@@ -78,7 +97,8 @@
         d.level,
         d.server_list,
         d.plugin_name,
-        d.props
+        d.props,
+        d.namespace_id
         FROM discovery d
         INNER JOIN discovery_handler dh on d.id = dh.discovery_id
         INNER JOIN discovery_rel dr on dh.id = dr.discovery_handler_id
@@ -97,7 +117,8 @@
         level,
         server_list,
         plugin_name,
-        props)
+        props,
+        namespace_id)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
@@ -107,7 +128,8 @@
         #{level, jdbcType=VARCHAR},
         #{serverList, jdbcType=VARCHAR},
         #{pluginName, jdbcType=VARCHAR},
-        #{props, jdbcType=LONGVARCHAR})
+        #{props, jdbcType=LONGVARCHAR},
+        #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
@@ -138,6 +160,9 @@
             <if test="props != null">
                 props,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -164,6 +189,9 @@
             </if>
             <if test="props != null">
                 #{props, jdbcType=LONGVARCHAR},
+            </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>

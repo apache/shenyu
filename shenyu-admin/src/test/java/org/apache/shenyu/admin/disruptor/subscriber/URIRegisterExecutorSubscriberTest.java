@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.disruptor.subscriber;
     
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -67,11 +68,11 @@ public class URIRegisterExecutorSubscriberTest {
         uriRegisterExecutorSubscriber.executor(list);
         assertTrue(list.isEmpty());
         list.add(URIRegisterDTO.builder().rpcType(RpcTypeEnum.HTTP.getName())
-                .appName("test").contextPath("/test").build());
+                .appName("test").contextPath("/test").namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build());
         ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
         when(shenyuClientRegisterService.get(any())).thenReturn(service);
         uriRegisterExecutorSubscriber.executor(list);
-        verify(service).registerURI(any(), any());
+        verify(service).registerURI(any(), any(), any());
     }
     
     @Test

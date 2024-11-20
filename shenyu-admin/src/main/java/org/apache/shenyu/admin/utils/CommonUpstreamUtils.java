@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
+import org.apache.shenyu.register.common.enums.EventType;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,14 +48,16 @@ public class CommonUpstreamUtils {
      *
      * @param host the host
      * @param port the port
+     * @param namespaceId the namespaceId
      * @return the divide upstream
      */
-    public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port) {
+    public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port, final String namespaceId) {
         return DivideUpstream.builder().upstreamHost(LOCALHOST)
                 .protocol("http://").upstreamUrl(buildUrl(host, port))
                 .weight(50).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -64,15 +67,17 @@ public class CommonUpstreamUtils {
      * @param host     host
      * @param port     port
      * @param protocol protocol
+     * @param namespaceId namespaceId
      * @return DiscoveryUpstreamDTO
      */
-    public static DiscoveryUpstreamDTO buildDefaultDiscoveryUpstreamDTO(final String host, final Integer port, final String protocol) {
+    public static DiscoveryUpstreamDTO buildDefaultDiscoveryUpstreamDTO(final String host, final Integer port, final String protocol, final String namespaceId) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
         discoveryUpstreamDTO.setProps("{\"warmupTime\":\"10\"}");
         discoveryUpstreamDTO.setUrl(buildUrl(host, port));
         discoveryUpstreamDTO.setProtocol(protocol);
         discoveryUpstreamDTO.setStatus(0);
         discoveryUpstreamDTO.setWeight(DEFAULT_WEIGHT);
+        discoveryUpstreamDTO.setNamespaceId(namespaceId);
         return discoveryUpstreamDTO;
     }
 
@@ -95,14 +100,21 @@ public class CommonUpstreamUtils {
      * @param protocol the protocol
      * @param host     the host
      * @param port     the port
+     * @param namespaceId the namespaceId
+     * @param eventType the eventType
      * @return the divide upstream
      */
-    public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
+    public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port, final String namespaceId, final EventType eventType) {
         return DivideUpstream.builder().upstreamHost(LOCALHOST)
                 .protocol(protocol).upstreamUrl(buildUrl(host, port))
                 .weight(50).warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
-                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .status(!EventType.DELETED.equals(eventType)
+                        && !EventType.OFFLINE.equals(eventType)
+                        && !EventType.IGNORED.equals(eventType)
+                        && Objects.nonNull(port)
+                        && StringUtils.isNotBlank(host))
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -126,14 +138,16 @@ public class CommonUpstreamUtils {
      * @param protocol the protocol
      * @param host     the host
      * @param port     the port
+     * @param namespaceId the namespaceId
      * @return the websocket upstream
      */
-    public static WebSocketUpstream buildWebSocketUpstream(final String protocol, final String host, final Integer port) {
+    public static WebSocketUpstream buildWebSocketUpstream(final String protocol, final String host, final Integer port, final String namespaceId) {
         return WebSocketUpstream.builder().host(LOCALHOST).protocol(protocol)
                 .upstreamUrl(buildUrl(host, port)).weight(DEFAULT_WEIGHT)
                 .warmup(Constants.WARMUP_TIME)
                 .timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .namespaceId(namespaceId)
                 .build();
     }
 
@@ -172,12 +186,14 @@ public class CommonUpstreamUtils {
      *
      * @param host the host
      * @param port the port
+     * @param namespaceId the namespaceId
      * @return the grpc upstream
      */
-    public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port) {
+    public static GrpcUpstream buildDefaultGrpcUpstream(final String host, final Integer port, final String namespaceId) {
         return GrpcUpstream.builder().upstreamUrl(buildUrl(host, port))
                 .weight(DEFAULT_WEIGHT).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
+                .namespaceId(namespaceId)
                 .build();
     }
 

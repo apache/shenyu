@@ -54,7 +54,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -201,9 +201,9 @@ public final class SelectorControllerTest {
 
         when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
         when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
-        given(this.selectorService.findByIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).willReturn(selectorVO);
+        given(this.selectorService.findById("1")).willReturn(selectorVO);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/{namespaceId}", "1", SYS_DEFAULT_NAMESPACE_ID))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))

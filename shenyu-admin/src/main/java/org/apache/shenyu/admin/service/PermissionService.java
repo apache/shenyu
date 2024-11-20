@@ -29,10 +29,10 @@ public interface PermissionService {
     /**
      * get user permission menu by token.
      *
-     * @param token logon ack token.
+     * @param namespaceId namespace id.
      * @return {@linkplain PermissionMenuVO}
      */
-    PermissionMenuVO getPermissionMenu(String token);
+    PermissionMenuVO getPermissionMenu(String namespaceId);
 
     /**
      * get AuthPerm By UserName.

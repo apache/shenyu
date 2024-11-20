@@ -102,7 +102,9 @@ public class ShiroRealm extends AuthorizingRealm {
         }
 
         String clientIdFromToken = JwtUtils.getClientId(token);
-        if (StringUtils.isNotEmpty(dashboardUserVO.getClientId()) && !StringUtils.equals(dashboardUserVO.getClientId(), clientIdFromToken)) {
+        if (StringUtils.isNotEmpty(clientIdFromToken)
+                && StringUtils.isNotEmpty(dashboardUserVO.getClientId())
+                && !StringUtils.equals(dashboardUserVO.getClientId(), clientIdFromToken)) {
             throw new AuthenticationException("clientId is invalid or does not match");
         }
 

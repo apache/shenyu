@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -34,7 +35,7 @@ public class PluginHandleChangedEvent extends AdminDataModelChangedEvent {
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
      * @param source   Current plugin state
-     * @param before   Before the change plugiin state
+     * @param before   Before the change plugin state
      * @param type     event type
      * @param operator operator
      */
@@ -80,6 +81,6 @@ public class PluginHandleChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "plugin-handle";
+        return Constants.EVENT_NAME_PLUGIN_HANDLE;
     }
 }
