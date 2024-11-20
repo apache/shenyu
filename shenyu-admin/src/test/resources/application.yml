@@ -49,8 +49,8 @@ shenyu:
 #        url: localhost:2181
 #        sessionTimeout: 5000
 #        connectionTimeout: 2000
-#      http:
-#        enabled: true
+      http:
+        enabled: false
 #      nacos:
 #        url: localhost:8848
 #        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
@@ -100,6 +100,22 @@ shenyu:
       - /csrf
   swagger:
     enable: true
+  k8s:
+    scale:
+      monitor-interval: 10000
+      pool-size: 6
+    prometheus:
+      url: http://localhost:9090
+      queries:
+        cpu_usage: "sum(rate(container_cpu_usage_seconds_total{namespace='%s', pod=~'%s.*'}[5m]))"
+        memory_usage: "sum(container_memory_usage_bytes{namespace='%s', pod=~'%s.*'})"
+        request_count: "sum(rate(http_requests_total{namespace='%s', pod=~'%s.*'}[1m]))"
+    deployment:
+      name: "shenyu-bootstrap"
+      namespace: "shenyu"
+      apiServer: "https://127.0.0.1:6443"
+      token: "token"
+      caCertPath: "/etc/kubernetes/pki/ca.crt"
 
 logging:
   level:

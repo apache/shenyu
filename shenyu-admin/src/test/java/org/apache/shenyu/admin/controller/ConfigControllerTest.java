@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -36,8 +38,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.Collections;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +66,9 @@ public final class ConfigControllerTest {
     @Mock
     private HttpLongPollingDataChangedListener mockLongPollingListener;
 
+    @Mock
+    private NamespaceService namespaceService;
+
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(configController).build();
@@ -71,12 +78,14 @@ public final class ConfigControllerTest {
     public void testFetchConfigs() throws Exception {
         // Configure HttpLongPollingDataChangedListener.fetchConfig(...).
         final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
-        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH);
-
+        final NamespaceVO namespaceVO = new NamespaceVO();
+        doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH, SYS_DEFAULT_NAMESPACE_ID);
+        doReturn(namespaceVO).when(namespaceService).findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(get("/configs/fetch")
-                .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
-                .accept(MediaType.APPLICATION_JSON))
+                        .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
+                        .param("namespaceId", SYS_DEFAULT_NAMESPACE_ID)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
                 .andExpect(jsonPath("$.data['APP_AUTH'].md5", is("md5-value1")))
@@ -90,7 +99,7 @@ public final class ConfigControllerTest {
     public void testListener() throws Exception {
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(post("/configs/listener")
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
 
         // Verify the results

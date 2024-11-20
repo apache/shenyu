@@ -31,6 +31,12 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-sdk-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-eureka</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

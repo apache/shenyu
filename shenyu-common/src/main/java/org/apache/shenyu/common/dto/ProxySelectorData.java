@@ -36,6 +36,8 @@ public class ProxySelectorData {
 
     private Properties props = new Properties();
 
+    private String namespaceId;
+
     /**
      * getId.
      *
@@ -142,6 +144,24 @@ public class ProxySelectorData {
      */
     public void setProps(final Properties props) {
         this.props = props;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 
 }

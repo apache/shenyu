@@ -22,6 +22,7 @@ server:
     context-path: /http-swagger3 # should be the same as shenyu.client.http.contextPath
 
 shenyu:
+  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   register:
     registerType: http
     serverLists: http://127.0.0.1:9095

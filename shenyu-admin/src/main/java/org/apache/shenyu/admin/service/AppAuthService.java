@@ -171,6 +171,14 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      */
     ShenyuAdminResult syncData();
 
+    /**
+     * Sync data by namespaceId shenyu result.
+     *
+     * @param namespaceId the namespaceId
+     * @return the shenyu result
+     */
+    ShenyuAdminResult syncDataByNamespaceId(String namespaceId);
+
 
     /**
      * Import shenyu auth data.

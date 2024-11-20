@@ -65,7 +65,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
+        MetaDataDO metaDataDO = metaDataService.findByPathAndNamespaceId(metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
 
@@ -104,7 +104,7 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<URIRegisterDTO> uriList) {
         return uriList.stream()
-                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort()))
+                .map(dto -> CommonUpstreamUtils.buildDefaultDivideUpstream(dto.getHost(), dto.getPort(), dto.getNamespaceId()))
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
     }
 

@@ -20,16 +20,15 @@ package org.apache.shenyu.plugin.springcloud.loadbalance;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,10 +44,7 @@ public final class ShenyuSpringCloudServiceChooser {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudServiceChooser.class);
 
-    private final DiscoveryClient discoveryClient;
-
-    public ShenyuSpringCloudServiceChooser(final DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
+    public ShenyuSpringCloudServiceChooser() {
     }
 
     /**
@@ -63,7 +59,7 @@ public final class ShenyuSpringCloudServiceChooser {
     public Upstream choose(final String serviceId, final String selectorId,
                            final String ip, final String loadbalancer) {
         // load service instance by serviceId
-        List<ServiceInstance> available = this.getServiceInstance(serviceId);
+        List<InstanceEntity> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
             LOG.info("choose return 1");
             return null;
@@ -81,7 +77,7 @@ public final class ShenyuSpringCloudServiceChooser {
         }
         // select server from available to choose
         final List<Upstream> choose = new ArrayList<>(available.size());
-        for (ServiceInstance serviceInstance : available) {
+        for (InstanceEntity serviceInstance : available) {
             divideUpstreams.stream()
                     .filter(Upstream::isStatus)
                     .filter(upstream -> Objects.equals(upstream.getUrl(), serviceInstance.getUri().getRawAuthority()))
@@ -121,14 +117,17 @@ public final class ShenyuSpringCloudServiceChooser {
      * @param serviceId serviceId
      * @return {@linkplain ServiceInstance}
      */
-    private List<ServiceInstance> getServiceInstance(final String serviceId) {
-        if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
-            List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-            LOG.info("getServiceInstance: {}", JsonUtils.toJson(instances));
-            return Optional.ofNullable(instances).orElse(Collections.emptyList());
+    private List<InstanceEntity> getServiceInstance(final String serviceId) {
+        if (CollectionUtils.isNotEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
+            return ServiceInstanceCache.getServiceInstance(serviceId);
         }
-        LOG.info("ServiceInstanceCache.getServiceInstance(serviceId)");
-        return ServiceInstanceCache.getServiceInstance(serviceId);
+        List<InstanceEntity> instances = null;
+        if (SpringCloudPluginDataHandler.getRepository() != null) {
+            instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
+        }
+        final List<InstanceEntity> instanceEntities = Optional.ofNullable(instances).orElse(Collections.emptyList());
+        LOG.info("ShenyuSpringCloudServiceChooser selectInstance size: {}", instanceEntities.size());
+        return instanceEntities;
     }
 
     /**
@@ -138,7 +137,7 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return Upstream List
      */
     private List<Upstream> buildUpstream(final String serviceId) {
-        List<ServiceInstance> serviceInstanceList = this.getServiceInstance(serviceId);
+        List<InstanceEntity> serviceInstanceList = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(serviceInstanceList)) {
             return Collections.emptyList();
         }

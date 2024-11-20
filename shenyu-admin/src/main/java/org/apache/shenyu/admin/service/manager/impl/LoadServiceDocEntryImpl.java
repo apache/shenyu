@@ -53,6 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * Load Service Doc Entry.
  */
@@ -178,7 +180,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         }
         supportSwaggerPluginSet = new HashSet<>(pluginNames);
         List<String> pluginIds = pluginDOList.stream().map(PluginDO::getId).collect(Collectors.toList());
-        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginIds, null, new PageParameter(1, Integer.MAX_VALUE)));
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginIds, null, new PageParameter(1, Integer.MAX_VALUE), SYS_DEFAULT_NAMESPACE_ID));
         List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
             LOG.info("getAllClusterLastUpdateInstanceList. Not loaded into available backend services.");

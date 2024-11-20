@@ -23,6 +23,11 @@ package org.apache.shenyu.common.constant;
 public interface Constants {
     
     /**
+     * The constant string separator.
+     */
+    String SEPARATOR_CHARS = ";";
+    
+    /**
      * The constant SUCCESS.
      */
     String SUCCESS = "success";
@@ -246,6 +251,12 @@ public interface Constants {
      * The constant URI.
      */
     String URI = "uri";
+
+    
+    /**
+     * The constant HEARTBEAT.
+     */
+    String HEARTBEAT = "heartbeat";
 
     /**
      * The constant header key of sign plugin version-2.
@@ -829,7 +840,82 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
-
+    
+    /**
+     * The constant shenyu namespace id.
+     */
+    String SHENYU_NAMESPACE_ID = "namespaceId";
+    
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_ID.
+     */
+    String SYS_DEFAULT_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+    
+    /**
+     * The constant DEFAULT_NAMESPACE_PRIMARY_KEY.
+     */
+    String DEFAULT_NAMESPACE_PRIMARY_KEY = "1";
+    
+    /**
+     * The constant EVENT_NAME_DICT.
+     */
+    String EVENT_NAME_DICT = "dict";
+    
+    /**
+     * The constant EVENT_NAME_PLUGIN_HANDLE.
+     */
+    String EVENT_NAME_PLUGIN_HANDLE = "plugin-handle";
+    
+    /**
+     * The constant EVENT_NAME_META_DATA.
+     */
+    String EVENT_NAME_META_DATA = "meta-data";
+    
+    /**
+     * The constant EVENT_NAME_NAMESPACE.
+     */
+    String EVENT_NAME_NAMESPACE = "namespace";
+    
+    /**
+     * The constant EVENT_NAME_PLUGIN.
+     */
+    String EVENT_NAME_PLUGIN = "plugin";
+    
+    /**
+     * The constant EVENT_NAME_NAMESPACE_PLUGIN.
+     */
+    String EVENT_NAME_NAMESPACE_PLUGIN = "namespace-plugin";
+    
+    /**
+     * The constant EVENT_NAME_RESOURCE.
+     */
+    String EVENT_NAME_RESOURCE = "resource";
+    
+    /**
+     * The constant EVENT_NAME_ROLE.
+     */
+    String EVENT_NAME_ROLE = "role";
+    
+    /**
+     * The constant EVENT_NAME_RULE.
+     */
+    String EVENT_NAME_RULE = "rule";
+    
+    /**
+     * The constant EVENT_NAME_SELECTOR.
+     */
+    String EVENT_NAME_SELECTOR = "selector";
+    
+    /**
+     * The constant EVENT_NAME_USER.
+     */
+    String EVENT_NAME_USER = "user";
+    
+    /**
+     * The constant EVENT_NAME_DATA.
+     */
+    String EVENT_NAME_DATA = "data";
+    
     /**
      * String q.
      */

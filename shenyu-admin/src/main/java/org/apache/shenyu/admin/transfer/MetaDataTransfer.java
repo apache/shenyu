@@ -57,6 +57,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(dto.getParameterTypes())
                         .rpcExt(dto.getRpcExt())
                         .enabled(dto.getEnabled())
+                        .namespaceId(metaDataDTO.getNamespaceId())
                         .build())
                 .orElse(null);
     }
@@ -79,6 +80,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(dto.getParameterTypes())
                         .rpcExt(dto.getRpcExt())
                         .enabled(dto.isEnabled())
+                        .namespaceId(dto.getNamespaceId())
                         .build())
                 .orElse(null);
     }
@@ -147,6 +149,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(v.getParameterTypes())
                         .rpcExt(v.getRpcExt())
                         .enabled(v.getEnabled())
+                        .namespaceId(v.getNamespaceId())
                         .build())
                 .orElse(null);
     }

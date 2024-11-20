@@ -21,10 +21,14 @@ import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -50,6 +54,8 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
@@ -57,12 +63,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Abstract strategy.
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
     
     /**
      * The Event publisher.
@@ -96,6 +104,12 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Resource
     private DiscoveryUpstreamService discoveryUpstreamService;
+
+    @Resource
+    private PluginMapper pluginMapper;
+
+    @Resource
+    private NamespacePluginRelMapper namespacePluginRelMapper;
 
     /**
      * Selector handler string.
@@ -136,6 +150,10 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Override
     public String register(final MetaDataRegisterDTO dto) {
+        String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        this.checkNamespacePluginRel(namespaceId, pluginName);
+        dto.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
         String selectorId = selectorService.registerDefault(dto, PluginNameAdapter.rpcTypeAdapter(rpcType()), selectorHandler);
@@ -164,28 +182,30 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      *
      * @param selectorName the selector name
      * @param uriList      the uri list
+     * @param namespaceId  the namespace id
      * @return the string
      */
     @Override
-    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        // todo:[To be refactored with namespace] Temporarily hardcode
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, SYS_DEFAULT_NAMESPACE_ID);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("doRegister Failed to execute,wait to retry.");
+            throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
+        this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
         //update upstream
-        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
+        List<URIRegisterDTO> validUriList = uriList.stream()
+                .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
+                .collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
             selectorDO.setHandle(handler);
-            // todo:[To be refactored with namespace] Temporarily hardcode
-            SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), SYS_DEFAULT_NAMESPACE_ID);
+            SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
             selectorData.setHandle(handler);
             // update db
             selectorService.updateSelective(selectorDO);
@@ -195,24 +215,68 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return ShenyuResultMessage.SUCCESS;
     }
 
+    @Override
+    public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+        PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        NamespacePluginVO namespacePluginRelation = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), namespaceId);
+        if (Objects.isNull(namespacePluginRelation)) {
+            String errorMsg = String.format("%s plugin not enabled for current namespace or plugin not exist for namespaceId: %s", pluginName, namespaceId);
+            throw new IllegalArgumentException(errorMsg);
+        }
+    }
+    
+    @Override
+    public String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        if (CollectionUtils.isEmpty(uriList)) {
+            return "";
+        }
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        if (Objects.isNull(selectorDO)) {
+            throw new ShenyuException("doHeartbeat Failed to execute,wait to retry.");
+        }
+        // update upstream
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).toList();
+        if (CollectionUtils.isEmpty(validUriList)) {
+            return null;
+        }
+        // discovery publish change event.
+        String selectorId = selectorDO.getId();
+        // change live node status to TRUE
+        validUriList.forEach(uriRegisterDTO -> {
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(),
+                    uriRegisterDTO.getProtocol(),
+                    uriRegisterDTO.getNamespaceId());
+            LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
+            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
+        });
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.REFRESH, Collections.singletonList(discoverySyncData)));
+        
+        return ShenyuResultMessage.SUCCESS;
+    }
+    
     protected void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
-        String discoveryHandlerId = discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName);
+        String discoveryHandlerId = discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName, selectorDO.getNamespaceId());
         for (URIRegisterDTO uriRegisterDTO : uriList) {
-            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol());
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), selectorDO.getNamespaceId());
             discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
         }
-        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName);
+        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
-    protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName) {
+    protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName, final String namespaceId) {
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
         discoverySyncData.setSelectorName(selectorName);
+        discoverySyncData.setNamespaceId(namespaceId);
         return discoverySyncData;
     }
 
@@ -269,7 +333,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return true;
         }
         return commonUpstreamList.stream().map(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream))
-                .collect(Collectors.toList()).stream().findAny().orElse(false);
+                .toList().stream().findAny().orElse(false);
     }
 
     /**
@@ -282,14 +346,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected RuleDTO buildContextPathDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         String contextPath = metaDataDTO.getContextPath();
-        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
+        String namespaceId = metaDataDTO.getNamespaceId();
+        return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath), namespaceId);
     }
 
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
-        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath());
+        return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath(), metaDataDTO.getNamespaceId());
     }
 
-    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
+    private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path, final String namespaceId) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
@@ -299,6 +364,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .handle(ruleHandler)
+                .namespaceId(namespaceId)
                 .build();
 
         String conditionPath = this.rewritePath(path);

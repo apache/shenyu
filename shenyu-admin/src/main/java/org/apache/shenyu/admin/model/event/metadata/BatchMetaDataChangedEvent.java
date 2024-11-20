@@ -21,16 +21,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * BatchMetaDataChangedEvent.
  */
 public class BatchMetaDataChangedEvent extends BatchChangedEvent {
-    
-    
+
+
     /**
      * Create a new {@code BatchMetaDataChangedEvent}.operator is unknown.
      *
@@ -42,18 +45,23 @@ public class BatchMetaDataChangedEvent extends BatchChangedEvent {
     public BatchMetaDataChangedEvent(final Collection<MetaDataDO> source, final Collection<MetaDataDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
     }
-    
+
     @Override
     public String buildContext() {
         final String metadata = ((Collection<?>) getSource())
                 .stream()
                 .map(s -> ((MetaDataDO) s).getAppName())
                 .collect(Collectors.joining(","));
-        return String.format("the meta data [%s] is %s", metadata, StringUtils.lowerCase(getType().getType().toString()));
+        final String namespaceId = ((Collection<?>) getSource())
+                .stream()
+                .filter(s -> StringUtils.isNotEmpty(((MetaDataDO) s).getNamespaceId()))
+                .map(s -> ((MetaDataDO) s).getNamespaceId())
+                .findAny().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        return String.format("the namespace [%s] meta data [%s] is %s", namespaceId, metadata, StringUtils.lowerCase(getType().getType().toString()));
     }
-    
+
     @Override
     public String eventName() {
-        return "meta data";
+        return Constants.EVENT_NAME_META_DATA;
     }
 }

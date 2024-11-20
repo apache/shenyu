@@ -43,9 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -57,18 +54,13 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -104,20 +96,8 @@ public final class SpringCloudPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         chain = mock(ShenyuPluginChain.class);
         selector = SelectorData.builder().id("1").enabled(true).build();
-        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
-        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
-        defaultServiceInstance.setServiceId("serviceId");
-        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
-        defaultServiceInstance.setInstanceId("serviceId");
-        defaultServiceInstance.setPort(8080);
-        defaultServiceInstance.setHost("localhost");
-        serviceInstanceList.add(defaultServiceInstance);
-        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
-        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
-        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        ShenyuSpringCloudServiceChooser loadBalancerClient = new ShenyuSpringCloudServiceChooser(discoveryClient);
+
+        ShenyuSpringCloudServiceChooser loadBalancerClient = mock(ShenyuSpringCloudServiceChooser.class);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
@@ -145,10 +125,17 @@ public final class SpringCloudPluginTest {
         shenyuContext.setRealUrl("http://localhost/test");
         shenyuContext.setHttpMethod(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        assertThrows(NullPointerException.class, () -> StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete());
 
-        Mono<Void> complete = springCloudPlugin.doExecute(exchange, chain, selector, rule);
-        assertThrows(NullPointerException.class, () -> StepVerifier.create(complete).expectSubscription().verifyComplete());
+        springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
+
+        MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
+        ServerWebExchange exchangeSelector = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost/springcloud").queryParams(valueMap).remoteAddress(new InetSocketAddress(8090)).build());
+        shenyuContext = mock(ShenyuContext.class);
+        exchangeSelector.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        Mono<Void> complete = springCloudPlugin.doExecute(exchangeSelector, chain, selector, rule);
+        StepVerifier.create(complete).expectSubscription().verifyComplete();
     }
 
     @Test
