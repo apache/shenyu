@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
@@ -209,7 +210,17 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginData> listAll() {
         return ListUtil.map(pluginMapper.selectAll(), PluginTransfer.INSTANCE::mapToData);
     }
-
+    
+    @Override
+    public List<PluginData> listByNamespace(final String namespace) {
+        List<NamespacePluginVO> namespacePluginList = namespacePluginRelMapper.selectAllByNamespaceId(namespace);
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return Lists.newArrayList();
+        }
+        List<String> pluginIds = namespacePluginList.stream().map(NamespacePluginVO::getPluginId).distinct().collect(Collectors.toList());
+        return ListUtil.map(pluginMapper.selectByIds(pluginIds), PluginTransfer.INSTANCE::mapToData);
+    }
+    
     @Override
     public List<PluginVO> listAllData() {
         // plugin handle
