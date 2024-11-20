@@ -46,7 +46,13 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
             return;
         }
         List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
-        UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), convertUpstreamList(upstreamList));
+        final List<Upstream> upstreams = convertUpstreamList(upstreamList);
+        final List<Upstream> grayUpstreamList = upstreams.stream().filter(Upstream::isGray).toList();
+        if (!grayUpstreamList.isEmpty()) {
+            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
+        } else {
+            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
+        }
         MetaDataCache.getInstance().clean();
     }
 
