@@ -25,14 +25,14 @@ services:
       ZOO_SERVERS: server.1=0.0.0.0:2888:3888
     ports:
       - "31878:2181"
+    volumes:
+      - ./zoo.cfg
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:2181/actuator/health | grep UP || exit 1" ]
       interval: 10s
       timeout: 2s
       retries: 3
       start_period: 10s
-    audit:
-
     restart: always
     networks:
       - shenyu
