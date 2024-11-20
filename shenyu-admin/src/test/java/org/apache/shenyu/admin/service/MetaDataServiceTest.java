@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -52,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -90,6 +92,9 @@ public final class MetaDataServiceTest {
 
     @Mock
     private MetaDataQuery metaDataQuery;
+
+    @Mock
+    private NamespaceMapper namespaceMapper;
 
     @BeforeAll
     public static void beforeClass() {
@@ -139,12 +144,12 @@ public final class MetaDataServiceTest {
     @Test
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
-        String msg = metaDataService.enabled(ids, true);
+        String msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
-        when(metaDataMapper.selectByIdList(ids))
+        when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
-        msg = metaDataService.enabled(ids, false);
+        msg = metaDataService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(StringUtils.EMPTY, msg);
     }
 
@@ -267,8 +272,8 @@ public final class MetaDataServiceTest {
                 .appName("appName1")
                 .path("path1")
                 .build();
-        given(this.metaDataMapper.findByPath(any())).willReturn(metaDataDO1);
-        MetaDataDO metaDataDO = metaDataService.findByPath("path1");
+        given(this.metaDataMapper.findByPathAndNamespaceId(any(), any())).willReturn(metaDataDO1);
+        MetaDataDO metaDataDO = metaDataService.findByPathAndNamespaceId("path1", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataDO);
         Assertions.assertEquals(metaDataDO, metaDataDO1);
     }
@@ -282,10 +287,10 @@ public final class MetaDataServiceTest {
                 .serviceName("serviceName1")
                 .methodName("method1")
                 .build();
-        given(this.metaDataMapper.findByServiceNameAndMethod(any(), any()))
+        given(this.metaDataMapper.findByServiceNameAndMethodAndNamespaceId(any(), any(), any()))
                 .willReturn(Collections.singletonList(metaDataDO1));
         MetaDataDO metaDataDO = metaDataService
-                .findByServiceNameAndMethodName("serviceName1", "method1");
+                .findByServiceNameAndMethodNameAndNamespaceId("serviceName1", "method1", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataDO);
         Assertions.assertEquals(metaDataDO, metaDataDO1);
     }
@@ -332,9 +337,11 @@ public final class MetaDataServiceTest {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataDTO.getId()).thenReturn("id");
         when(metaDataDTO.getPath()).thenReturn("path");
+        when(metaDataDTO.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
         when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
         when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
+
         String msg = metaDataService.createOrUpdate(metaDataDTO);
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
     }
@@ -349,7 +356,7 @@ public final class MetaDataServiceTest {
      */
     private void testDeleteForEmptyIds() {
         List<String> ids = Lists.newArrayList();
-        int count = metaDataService.delete(ids);
+        int count = metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID);
         Assertions.assertEquals(0, count,
                 "The count of delete should be 0.");
     }
@@ -359,11 +366,11 @@ public final class MetaDataServiceTest {
      */
     private void testDeleteForNotEmptyIds() {
         List<String> ids = Lists.newArrayList("id1", "id3");
-        int count = metaDataService.delete(ids);
+        int count = metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID);
         Assertions.assertEquals(0, count, "The count of delete should be 0.");
-        when(metaDataMapper.selectByIdList(ids)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
-        when(metaDataMapper.deleteByIdList(ids)).thenReturn(2);
-        count = metaDataService.delete(ids);
+        when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+        when(metaDataMapper.deleteByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(2);
+        count = metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID);
         Assertions.assertEquals(2, count,
                 "The count of delete should be 2.");
     }

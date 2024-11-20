@@ -60,6 +60,11 @@ public class MetaDataVO implements Serializable {
 
     private Boolean enabled;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     public MetaDataVO() {
     }
 
@@ -74,7 +79,8 @@ public class MetaDataVO implements Serializable {
                       final String id,
                       final String dateCreated,
                       final String dateUpdated,
-                      final Boolean enabled) {
+                      final Boolean enabled,
+                      final String namespaceId) {
         this.appName = appName;
         this.path = path;
         this.pathDesc = pathDesc;
@@ -87,6 +93,7 @@ public class MetaDataVO implements Serializable {
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
         this.enabled = enabled;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -305,6 +312,24 @@ public class MetaDataVO implements Serializable {
         this.enabled = enabled;
     }
 
+    /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -325,12 +350,13 @@ public class MetaDataVO implements Serializable {
                 && Objects.equals(id, that.id)
                 && Objects.equals(dateCreated, that.dateCreated)
                 && Objects.equals(dateUpdated, that.dateUpdated)
-                && Objects.equals(enabled, that.enabled);
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, id, dateCreated, dateUpdated, enabled);
+        return Objects.hash(appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, id, dateCreated, dateUpdated, enabled, namespaceId);
     }
 
     @Override
@@ -347,7 +373,8 @@ public class MetaDataVO implements Serializable {
                 + ", id='" + id + '\''
                 + ", dateCreated='" + dateCreated + '\''
                 + ", dateUpdated='" + dateUpdated + '\''
-                + ", enabled=" + enabled
+                + ", enabled=" + enabled + '\''
+                + ", namespaceId=" + namespaceId
                 + '}';
     }
 }

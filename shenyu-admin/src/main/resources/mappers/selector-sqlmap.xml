@@ -31,8 +31,8 @@
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
-        <result column="handle" jdbcType="VARCHAR" property="handle"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
+        <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -68,14 +68,6 @@
         ${alis}.handle,
         ${alis}.namespace_id
     </sql>
-
-    <select id="selectByIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        SELECT
-               <include refid="Base_Column_List"/>
-          FROM selector
-          WHERE id = #{id, jdbcType=VARCHAR}
-          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-    </select>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
@@ -118,8 +110,9 @@
                <include refid="Base_Column_List"/>
           FROM selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="pluginIds != null and pluginIds.size > 0">
                 AND plugin_id IN
@@ -160,6 +153,16 @@
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE plugin_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
             resultType="java.lang.Integer">
         SELECT COUNT(1)
@@ -185,6 +188,22 @@
         SELECT
               <include refid="Base_Column_List"/>
          FROM selector
+    </select>
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByNamespaceIds" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">

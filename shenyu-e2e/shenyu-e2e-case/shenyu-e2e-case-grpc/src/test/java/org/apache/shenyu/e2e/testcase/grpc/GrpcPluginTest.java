@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.testcase.grpc;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -27,9 +28,8 @@ import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @ShenYuTest(environments = {
@@ -63,15 +63,16 @@ public class GrpcPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "15");
-        formData.add("name", "grpc");
-        formData.add("enabled", "true");
-        formData.add("role", "Proxy");
-        formData.add("sort", "310");
-        formData.add("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
-        adminClient.changePluginStatus("15", formData);
+        
+        Map<String, String> reqBody = new HashMap<>();
+        reqBody.put("pluginId", "15");
+        reqBody.put("name", "grpc");
+        reqBody.put("enabled", "true");
+        reqBody.put("role", "Proxy");
+        reqBody.put("sort", "310");
+        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        reqBody.put("config", "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}");
+        adminClient.changePluginStatus("1801816010882822151", reqBody);
         Map<String, Integer> plugins = gatewayClient.getPlugins();
         LOGGER.info("shenyu e2e plugin list ={}", plugins);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.grpc.GrpcPlugin");

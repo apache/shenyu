@@ -27,6 +27,7 @@
         <result column="ext_info" jdbcType="VARCHAR" property="extInfo"/>
         <result column="open" jdbcType="TINYINT" property="open"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -37,7 +38,9 @@
         app_secret,user_id,
         phone,
         ext_info,
-        open,enabled,
+        open,
+        enabled,
+        namespace_id,
         date_created,
         date_updated
     </sql>
@@ -85,6 +88,9 @@
                <include refid="Base_Column_List"/>
           FROM app_auth
         <where>
+            <if test="namespaceId != null and namespaceId != ''">
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
             <if test="appKey != null and appKey != ''">
                 AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
@@ -98,6 +104,7 @@
         SELECT count(1)
           FROM app_auth
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="appKey != null and appKey != ''">
                 AND app_key = #{appKey, jdbcType=VARCHAR}
             </if>
@@ -111,6 +118,13 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM app_auth
+    </select>
+
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.AppAuthDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM app_auth
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -137,6 +151,7 @@
                     ext_info,
                     open,
                     enabled,
+                    namespace_id,
                     date_created,
                     date_updated)
              VALUES
@@ -148,6 +163,7 @@
                     #{extInfo, jdbcType=VARCHAR},
                     #{open, jdbcType=TINYINT},
                     #{enabled, jdbcType=TINYINT},
+                    #{namespaceId, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -173,6 +189,9 @@
             </if>
             <if test="enabled != null">
                 enabled,
+            </if>
+            <if test="namespaceId != null">
+                namespace_id,
             </if>
             <if test="userId != null">
                 user_id,
@@ -204,6 +223,9 @@
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
             </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
+            </if>
             <if test="userId != null">
                 #{userId, jdbcType=VARCHAR},
             </if>
@@ -227,6 +249,7 @@
                open = #{open, jdbcType=TINYINT},
                enabled = #{enabled, jdbcType=TINYINT}
          WHERE id = #{id, jdbcType=VARCHAR}
+         AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">

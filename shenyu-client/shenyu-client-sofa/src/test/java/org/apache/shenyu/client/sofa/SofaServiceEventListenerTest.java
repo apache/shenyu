@@ -20,8 +20,10 @@ package org.apache.shenyu.client.sofa;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -119,9 +121,10 @@ public class SofaServiceEventListenerTest {
                 .eventType(EventType.REGISTER)
                 .host(HOST)
                 .port(Integer.parseInt(PORT))
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         Map<String, ServiceFactoryBean> beans = new HashMap<>();
-        URIRegisterDTO realURIRegisterDTO = sofaServiceEventListener.buildURIRegisterDTO(applicationContext, beans);
+        URIRegisterDTO realURIRegisterDTO = sofaServiceEventListener.buildURIRegisterDTO(applicationContext, beans, Constants.SYS_DEFAULT_NAMESPACE_ID);
 
         assertEquals(expectedURIRegisterDTO, realURIRegisterDTO);
     }
@@ -184,7 +187,7 @@ public class SofaServiceEventListenerTest {
     public void testBuildMetaDataDTO() throws NoSuchMethodException {
         Method method = SofaServiceEventListener
                 .class
-                .getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class);
+                .getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class, String.class);
         given(shenyuSofaClient.path()).willReturn(PATH);
         given(shenyuSofaClient.desc()).willReturn(DESC);
         given(shenyuSofaClient.ruleName()).willReturn(CONFIG_RULE_NAME);
@@ -197,7 +200,7 @@ public class SofaServiceEventListenerTest {
         doReturn(Comparable.class).when(serviceFactoryBean).getInterfaceClass();
 
         String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map#java.lang.String#"
-                + "com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean";
+                + "com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean,java.lang.String";
         String expectedPath = "/sofa/findByIdsAndName/path";
         String expectedRpcExt = "{\"loadbalance\":\"loadBalance\",\"retries\":0,\"timeout\":0}";
 
@@ -207,7 +210,7 @@ public class SofaServiceEventListenerTest {
                         shenyuSofaClient,
                         SUPER_PATH_NOT_CONTAINS_STAR,
                         SofaServiceEventListener.class,
-                        method);
+                        method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         MetaDataRegisterDTO expectedMetaDataRegisterDTO = MetaDataRegisterDTO
                 .builder()
                 .appName(APP_NAME)
@@ -223,6 +226,7 @@ public class SofaServiceEventListenerTest {
                 .rpcType(RpcTypeEnum.SOFA.getName())
                 .rpcExt(expectedRpcExt)
                 .enabled(ENABLED)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
 
         assertEquals(expectedMetaDataRegisterDTO, realMetaDataRegisterDTO);
@@ -236,15 +240,20 @@ public class SofaServiceEventListenerTest {
         properties.setProperty("username", USERNAME);
         properties.setProperty("password", PASSWORD);
         properties.setProperty("appName", APP_NAME);
-        PropertiesConfig config = new PropertiesConfig();
+        ClientPropertiesConfig config = new ClientPropertiesConfig();
         config.setProps(properties);
+        
+        ShenyuClientConfig clientConfig = new ShenyuClientConfig();
+        Map<String, ClientPropertiesConfig> client = new HashMap<>();
+        client.put(RpcTypeEnum.SOFA.getName(), config);
+        clientConfig.setClient(client);
 
         ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
 
-        return new SofaServiceEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        return new SofaServiceEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
 }

@@ -31,12 +31,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 
 /**
  * Test Cases for SelectorMapper.
@@ -52,7 +51,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorDO selector = selectorMapper.selectByIdAndNamespaceId(selectorDO.getId(), SYS_DEFAULT_NAMESPACE_ID);
+        SelectorDO selector = selectorMapper.selectById(selectorDO.getId());
         assertNotNull(selector);
         assertEquals(selectorDO.getId(), selector.getId());
         assertEquals(selectorDO.getContinued(), selector.getContinued());
@@ -85,7 +84,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         List<SelectorDO> list = selectorMapper.selectByQuery(query);
         assertNotNull(list);
         assertEquals(list.size(), 1);
@@ -130,7 +129,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
         Integer count = selectorMapper.countByQuery(query);
         assertNotNull(count);
         assertEquals(Integer.valueOf(1), count);

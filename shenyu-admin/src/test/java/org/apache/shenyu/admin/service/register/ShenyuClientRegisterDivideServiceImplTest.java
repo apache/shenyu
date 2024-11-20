@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
@@ -38,7 +37,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -69,8 +67,6 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        DivideSelectorHandleConverter divideSelectorHandleConverter = new DivideSelectorHandleConverter();
-        ReflectionTestUtils.setField(shenyuClientRegisterDivideService, "divideSelectorHandleConverter", divideSelectorHandleConverter);
     }
 
     @Test
@@ -92,7 +88,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     @Test
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
-        when(metaDataService.findByPath(any())).thenReturn(metaDataDO);
+        when(metaDataService.findByPathAndNamespaceId(any(), any())).thenReturn(metaDataDO);
         MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().registerMetaData(true).build();
         shenyuClientRegisterDivideService.registerMetadata(metaDataDTO);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);

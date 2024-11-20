@@ -152,7 +152,7 @@
         <jackson-databind.version>2.15.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
-        <kafka-clients.version>3.4.0</kafka-clients.version>
+        <kafka-clients.version>3.7.1</kafka-clients.version>
         <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>2.0.2</eureka.version>
@@ -175,7 +175,7 @@
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
-        <protobuf-java.version>3.25.1</protobuf-java.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>

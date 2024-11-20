@@ -63,7 +63,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        MetaDataDO exist = metaDataService.findByServiceNameAndMethodName(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
+        MetaDataDO exist = metaDataService.findByServiceNameAndMethodNameAndNamespaceId(metaDataDTO.getServiceName(), metaDataDTO.getMethodName(), metaDataDTO.getNamespaceId());
         metaDataService.saveOrUpdateMetaData(exist, metaDataDTO);
     }
 

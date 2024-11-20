@@ -56,6 +56,16 @@
             <artifactId>shenyu-registry-polaris</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-eureka</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-kubernetes</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.sync.data.etcd;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -59,7 +61,9 @@ public class EtcdSyncDataServiceTest {
         final MetaDataSubscriber metaDataSubscriber = mock(MetaDataSubscriber.class);
         final ProxySelectorDataSubscriber proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
         final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
-        final EtcdSyncDataService zookeeperSyncDataService = new EtcdSyncDataService(etcdClient,
+        final ShenyuConfig shenyuConfig = mock(ShenyuConfig.class);
+        when(shenyuConfig.getNamespace()).thenReturn(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final EtcdSyncDataService zookeeperSyncDataService = new EtcdSyncDataService(shenyuConfig, etcdClient,
                 pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber),
                 Collections.singletonList(proxySelectorDataSubscriber), Collections.singletonList(discoveryUpstreamDataSubscriber));
 

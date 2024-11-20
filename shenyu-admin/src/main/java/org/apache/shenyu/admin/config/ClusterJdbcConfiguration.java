@@ -71,6 +71,7 @@ public class ClusterJdbcConfiguration {
         }
         DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource, fullPath);
         defaultLockRepository.setPrefix("SHENYU_");
+        // set lock ttl
         long millis = TimeUnit.SECONDS.toMillis(clusterProperties.getLockTtl());
         defaultLockRepository.setTimeToLive(Long.valueOf(millis).intValue());
         return defaultLockRepository;

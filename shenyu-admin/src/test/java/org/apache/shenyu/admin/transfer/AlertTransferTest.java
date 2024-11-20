@@ -102,7 +102,7 @@ public final class AlertTransferTest {
 
     @Test
     void testMapToEntity() {
-        AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
+        AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         assertNotNull(entity);
         assertEquals(entity.getId(), alertReceiverDTO.getId());
         assertEquals(entity.getName(), alertReceiverDTO.getName());

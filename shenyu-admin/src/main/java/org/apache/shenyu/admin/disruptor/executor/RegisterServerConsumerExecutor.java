@@ -63,14 +63,15 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
     private boolean isValidData(final Object data) {
         if (data instanceof URIRegisterDTO) {
             URIRegisterDTO uriRegisterDTO = (URIRegisterDTO) data;
-            return StringUtils.isNoneBlank(uriRegisterDTO.getContextPath(), uriRegisterDTO.getRpcType());
+            return StringUtils.isNoneBlank(uriRegisterDTO.getContextPath(), uriRegisterDTO.getRpcType(), uriRegisterDTO.getNamespaceId());
         }
         if (data instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO metaDataRegisterDTO = (MetaDataRegisterDTO) data;
             return StringUtils.isNoneBlank(metaDataRegisterDTO.getAppName(),
                     metaDataRegisterDTO.getPath(),
                     metaDataRegisterDTO.getRuleName(),
-                    metaDataRegisterDTO.getRpcType());
+                    metaDataRegisterDTO.getRpcType(),
+                    metaDataRegisterDTO.getNamespaceId());
         }
         return true;
     }

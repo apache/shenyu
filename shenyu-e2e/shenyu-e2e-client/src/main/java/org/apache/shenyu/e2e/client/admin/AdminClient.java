@@ -277,6 +277,7 @@ public class AdminClient extends BaseClient {
         RuleQueryCondition condition = RuleQueryCondition.builder()
                 .keyword(keyword)
                 .selectors(selectors)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID)
                 .switchStatus(true)
                 .build();
         return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE);
@@ -333,6 +334,8 @@ public class AdminClient extends BaseClient {
      * @return RuleDTO
      */
     public RuleDTO create(final RuleData rule) {
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        rule.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
         return dto;
@@ -375,6 +378,7 @@ public class AdminClient extends BaseClient {
      * @param bindingData bindingData
      */
     public void bindingData(final BindingData bindingData) {
+        bindingData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         HttpEntity<BindingData> entity = new HttpEntity<>(bindingData, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/proxy-selector/binding", entity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "status code");
@@ -494,16 +498,16 @@ public class AdminClient extends BaseClient {
      * change plugin status.
      *
      * @param id       id
-     * @param formData formData
+     * @param requestBody requestBody
      */
-    public void changePluginStatus(final String id, final MultiValueMap<String, String> formData) {
-        putResource("/namespacePlugin", id, NamespacePluginDTO.class, formData);
+    public void changePluginStatus(final String id, final Map<String, String> requestBody) {
+        putResource("/namespacePlugin", id, NamespacePluginDTO.class, requestBody);
     }
 
-    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final MultiValueMap<String, String> formData) {
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, basicAuth);
-        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/pluginId=" + id
-                + "&namespaceId=" + SYS_DEFAULT_NAMESPACE_NAMESPACE_ID, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+    private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
+        
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");

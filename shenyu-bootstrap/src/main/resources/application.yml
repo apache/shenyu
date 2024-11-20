@@ -80,6 +80,7 @@ management:
           - 'health'
           - 'info'
 shenyu:
+  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   selectorMatchCache:
     ## selector L1 cache
     cache:
@@ -252,6 +253,7 @@ shenyu:
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
 #      username:
 #      password:
+#      context-path: nacos
 #      acm:
 #        enabled: false
 #        endpoint: acm.aliyun.com

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +51,8 @@ public class WebsocketListener implements ServletRequestListener {
                 HttpSession session = request.getSession();
                 request.removeAttribute(CLIENT_IP_NAME);
                 session.removeAttribute(CLIENT_IP_NAME);
+                request.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
+                session.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
             }
         } catch (Exception e) {
             LOG.error("request destroyed error", e);
@@ -63,6 +67,11 @@ public class WebsocketListener implements ServletRequestListener {
                 HttpSession session = request.getSession();
                 request.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
+                String namespace = request.getHeader(Constants.SHENYU_NAMESPACE_ID);
+                if (StringUtils.isNoneBlank(namespace)) {
+                    request.setAttribute(Constants.SHENYU_NAMESPACE_ID, namespace);
+                    session.setAttribute(Constants.SHENYU_NAMESPACE_ID, namespace);
+                }
             }
         } catch (Exception e) {
             LOG.error("request initialized error", e);

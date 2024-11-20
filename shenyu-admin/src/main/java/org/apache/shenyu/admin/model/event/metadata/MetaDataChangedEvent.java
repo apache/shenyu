@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -34,7 +35,7 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
      * @param source   Current plugin state
-     * @param before   Before the change plugiin state
+     * @param before   Before the change plugin state
      * @param type     event type
      * @param operator operator
      */
@@ -46,9 +47,11 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final MetaDataDO after = (MetaDataDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the metadata [%s %s] is %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the namespace [%s] metadata [%s %s] is %s", after.getNamespaceId(), after.getAppName(),
+                    after.getPath(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the metadata [%s %s] is %s : %s", after.getAppName(), after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the namespace [%s] metadata [%s %s] is %s : %s", after.getNamespaceId(), after.getAppName(),
+                after.getPath(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     
@@ -93,6 +96,6 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "meta data";
+        return Constants.EVENT_NAME_META_DATA;
     }
 }

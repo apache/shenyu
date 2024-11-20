@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -46,6 +47,7 @@ public class MetadataUpdatedEventTest {
                 .parameterTypes("java.lang.String")
                 .enabled(true)
                 .rpcExt("rpcExtBefore")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         updateAfterDO = MetaDataDO.builder()
                 .id("1")
@@ -58,6 +60,7 @@ public class MetadataUpdatedEventTest {
                 .parameterTypes("java.lang.Integer")
                 .enabled(false)
                 .rpcExt("rpcExtAfter")
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
     }
 
@@ -67,7 +70,7 @@ public class MetadataUpdatedEventTest {
 
         MetaDataChangedEvent updateNothingEvent =
                 new MetaDataChangedEvent(updateBeforeDO, updateBeforeDO, EventTypeEnum.META_DATA_UPDATE, "test-operator");
-        String baseContext = String.format("the metadata [%s %s] is %s : %s",
+        String baseContext = String.format("the namespace [%s] metadata [%s %s] is %s : %s", updateBeforeDO.getNamespaceId(),
                 updateBeforeDO.getAppName(), updateBeforeDO.getPath(), eventTypeStr, "it no change");
         assertEquals(baseContext, updateNothingEvent.buildContext());
 
@@ -82,7 +85,7 @@ public class MetadataUpdatedEventTest {
         contrast.append(String.format("rpc type[%s => %s] ", updateBeforeDO.getRpcType(), updateAfterDO.getRpcType()));
         contrast.append(String.format("rpc ext[%s => %s] ", updateBeforeDO.getRpcExt(), updateAfterDO.getRpcExt()));
 
-        String context = String.format("the metadata [%s %s] is %s : %s",
+        String context = String.format("the namespace [%s] metadata [%s %s] is %s : %s", updateAfterDO.getNamespaceId(),
                 updateAfterDO.getAppName(), updateAfterDO.getPath(), eventTypeStr, contrast);
 
         MetaDataChangedEvent updateEvent =

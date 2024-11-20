@@ -23,6 +23,7 @@ spring:
     allow-bean-definition-overriding: true
 
 shenyu:
+  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   register:
     registerType: http
     serverLists: http://localhost:9095
@@ -38,6 +39,7 @@ shenyu:
 dubbo:
   application:
     name: test-dubbo-service
+    serialize-check-status: DISABLE
   registry:
     address: nacos://127.0.0.1:8848
   protocol:
