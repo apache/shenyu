@@ -20,6 +20,7 @@ package org.apache.shenyu.sync.data.http;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
@@ -219,6 +220,10 @@ public class HttpSyncDataService implements SyncDataService {
             String json = responseBody.string();
             LOG.info("listener result: [{}]", json);
             JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
+            JsonElement element = responseFromServer.get("data");
+            if (element.isJsonNull()) {
+                return;
+            }
             groupJson = responseFromServer.getAsJsonArray("data");
         } catch (IOException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
