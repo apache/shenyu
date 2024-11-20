@@ -40,11 +40,6 @@ public final class DubboUpstream extends CommonUpstream {
     private int port;
 
     /**
-     * gray status.
-     */
-    private Boolean gray;
-
-    /**
      * group.
      */
     private String group;
@@ -147,24 +142,6 @@ public final class DubboUpstream extends CommonUpstream {
     }
 
     /**
-     * Gets the value of gray.
-     *
-     * @return the value of gray
-     */
-    public Boolean isGray() {
-        return gray;
-    }
-
-    /**
-     * Sets the gray.
-     *
-     * @param gray gray
-     */
-    public void setGray(final Boolean gray) {
-        this.gray = gray;
-    }
-
-    /**
      * Gets the value of weight.
      *
      * @return the value of weight
@@ -250,14 +227,14 @@ public final class DubboUpstream extends CommonUpstream {
                 && Objects.equals(appName, that.appName)
                 && Objects.equals(this.getProtocol(), that.getProtocol())
                 && Objects.equals(this.getUpstreamUrl(), that.getUpstreamUrl())
-                && Objects.equals(gray, that.gray)
+                && Objects.equals(this.isGray(), that.isGray())
                 && Objects.equals(group, that.group)
                 && Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(registry, appName, port, gray, group, version);
+        return Objects.hash(registry, appName, port, this.isGray(), group, version);
     }
 
     @Override
@@ -268,7 +245,7 @@ public final class DubboUpstream extends CommonUpstream {
                 + "', protocol='" + this.getProtocol()
                 + "', port=" + port
                 + ", upstreamUrl='" + this.getUpstreamUrl()
-                + "', gray=" + gray
+                + "', gray=" + this.isGray()
                 + ", weight=" + weight
                 + ", warmup=" + warmup
                 + ", status=" + isStatus()
