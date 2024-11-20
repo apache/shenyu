@@ -129,6 +129,22 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
+    
+    /**
+     * list by namespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginRelDO> listByNamespaceId(String namespaceId);
+
+    /**
+     * select by namespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginVO> selectByNamespaceId(String namespaceId);
 
     /**
      * select all by namespaceId.
@@ -146,6 +162,11 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      */
     List<NamespacePluginVO> selectAllByNamespaceIds(List<String> namespaceIds);
 
+    /**
+     * select all.
+     *
+     * @return {@linkplain List}
+     */
     List<NamespacePluginVO> selectAll();
 
     /**
@@ -156,6 +177,16 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return the count of enabled datas
      */
     int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+
+    /**
+     * enable data by a list of ids.
+     *
+     * @param namespaceId namespaceId
+     * @param pluginIds a list of pluginIds
+     * @param enabled status
+     * @return the count of enabled datas
+     */
+    int updateEnableByNamespaceIdAndPluginIdList(@Param("namespaceId") String namespaceId, @Param("pluginIds") List<String> pluginIds, @Param("enabled") Boolean enabled);
 
     /**
      * insert selective plugin.

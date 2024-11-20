@@ -290,4 +290,3 @@ CREATE TABLE `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-INSERT INTO `namespace_user_rel` (`id`, `namespace_id`, `user_id`) VALUES ('1852580590991884288', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '1');
