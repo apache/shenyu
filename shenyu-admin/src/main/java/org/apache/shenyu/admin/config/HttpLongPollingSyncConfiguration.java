@@ -45,6 +45,7 @@ public class HttpLongPollingSyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
+    @ConditionalOnProperty(prefix = "shenyu.sync.http", name = "enabled", havingValue = "true")
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         LOG.info("you use http long polling sync");
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
