@@ -126,6 +126,16 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      */
     String enabled(List<String> ids, Boolean enabled);
 
+    /**
+     * Enabled string.
+     *
+     * @param namespaceId the namespaceId
+     * @param pluginIds   the pluginIds
+     * @param enabled     the enabled
+     * @return the string
+     */
+    String enabled(String namespaceId, List<String> pluginIds, Boolean enabled);
+
 
     /**
      * active plugin snapshot.
