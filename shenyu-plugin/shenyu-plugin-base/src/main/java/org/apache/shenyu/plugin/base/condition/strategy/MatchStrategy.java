@@ -27,6 +27,7 @@ import java.util.List;
  * This is condition strategy.
  */
 @SPI
+@FunctionalInterface
 public interface MatchStrategy {
 
     /**
