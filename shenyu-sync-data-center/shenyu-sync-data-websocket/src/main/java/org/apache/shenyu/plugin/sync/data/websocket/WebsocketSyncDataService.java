@@ -156,7 +156,6 @@ public class WebsocketSyncDataService implements SyncDataService {
                 }
             }
         }
-//        String masterUrl = "";
         Iterator<ShenyuWebsocketClient> iterator = clients.iterator();
         while (iterator.hasNext()) {
             ShenyuWebsocketClient websocketClient = iterator.next();
