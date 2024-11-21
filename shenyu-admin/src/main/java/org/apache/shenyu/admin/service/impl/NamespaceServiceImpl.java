@@ -110,7 +110,13 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public CommonPager<NamespaceVO> listByPage(final NamespaceQuery namespaceQuery) {
-        List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        List<String> namespaceIds;
+        if (SessionUtil.isAdmin()) {
+            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            namespaceIds = allList.stream().map(NamespaceDO::getNamespaceId).toList();
+        } else {
+            namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
+        }
         if (CollectionUtils.isEmpty(namespaceIds)) {
             return new CommonPager<>();
         }
