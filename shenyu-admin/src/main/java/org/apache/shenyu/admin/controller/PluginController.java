@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * this is plugin controller.
  */
-@RestApi("/plugin")
+@RestApi("/plugin_template")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
 
     private final PluginService pluginService;

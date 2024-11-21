@@ -55,7 +55,7 @@ import java.util.List;
 /**
  * this is namespace plugin controller.
  */
-@RestApi("/namespacePlugin")
+@RestApi("/namespace_plugin")
 public class NamespacePluginController implements PagedController<NamespacePluginQueryCondition, NamespacePluginVO> {
 
     private final NamespacePluginService namespacePluginService;
@@ -230,11 +230,12 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * active plugin snapshot of namespace.
      *
+     * @param namespaceId the namespace id
      * @return list
      */
     @GetMapping("/snapshot/active")
-    public ShenyuAdminResult activePluginSnapshot() {
-        return ShenyuAdminResult.success(namespacePluginService.activePluginSnapshot());
+    public ShenyuAdminResult activePluginSnapshot(final String namespaceId) {
+        return ShenyuAdminResult.success(namespacePluginService.activePluginSnapshot(namespaceId));
     }
 
     @Override
