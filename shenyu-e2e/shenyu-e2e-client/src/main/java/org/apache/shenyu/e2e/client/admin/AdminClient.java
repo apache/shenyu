@@ -152,7 +152,7 @@ public class AdminClient extends BaseClient {
         int total;
         do {
             ResponseEntity<ShenYuResult> response = template.exchange(
-                    baseURL + "/plugin_template?currentPage={cur}&pageSize={page}",
+                    baseURL + "/plugin-template?currentPage={cur}&pageSize={page}",
                     HttpMethod.GET,
                     new HttpEntity<>(basicAuth),
                     ShenYuResult.class,
@@ -501,7 +501,7 @@ public class AdminClient extends BaseClient {
      * @param requestBody requestBody
      */
     public void changePluginStatus(final String id, final Map<String, String> requestBody) {
-        putResource("/namespace_plugin", id, NamespacePluginDTO.class, requestBody);
+        putResource("/namespace-plugin", id, NamespacePluginDTO.class, requestBody);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
@@ -544,7 +544,7 @@ public class AdminClient extends BaseClient {
      */
     public void syncPluginAll() {
         HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
-        template.postForEntity(baseURL + "/plugin_template/syncPluginAll", entity, ShenYuResult.class);
+        template.postForEntity(baseURL + "/plugin-template/syncPluginAll", entity, ShenYuResult.class);
         log.warn("admin syncPluginAll");
     }
 
