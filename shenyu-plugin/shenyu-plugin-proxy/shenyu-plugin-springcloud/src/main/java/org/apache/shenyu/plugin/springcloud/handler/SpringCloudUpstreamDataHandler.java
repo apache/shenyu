@@ -25,8 +25,6 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -41,8 +39,6 @@ import java.util.stream.Collectors;
  * upstreamList data change.
  */
 public class SpringCloudUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudUpstreamDataHandler.class);
 
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
