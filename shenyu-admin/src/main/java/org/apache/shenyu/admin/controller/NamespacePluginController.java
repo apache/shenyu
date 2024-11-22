@@ -141,7 +141,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      */
     @PutMapping("/{namespaceId}/{pluginId}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult addPlugin(@Existed(message = "namespace is not exist", provider = NamespaceMapper.class)
+    public ShenyuAdminResult generateNamespacePlugin(@Existed(message = "namespace is not exist", provider = NamespaceMapper.class)
                                           @PathVariable("namespaceId") final String namespaceId,
                                        @Existed(message = "plugin is not exist", provider = PluginMapper.class)
                                        @PathVariable("pluginId") final String pluginId) {
@@ -183,6 +183,22 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     }
 
     /**
+     * Enable plugins of namespace.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the mono
+     */
+    @PostMapping("/enabledByNamespace")
+    @RequiresPermissions("system:plugin:disable")
+    public ShenyuAdminResult enabledByNamespace(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+        final String result = namespacePluginService.enabled(batchCommonDTO.getNamespaceId(), batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return ShenyuAdminResult.error(result);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+    }
+
+    /**
      * sync plugins of namespace.
      *
      * @param namespaceSyncDTO the namespaceSync dto
@@ -200,15 +216,15 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     }
 
     /**
-     * Sync plugin data of namespace.
+     * sync plugin data.
      *
-     * @param id the id
-     * @return the mono
+     * @param pluginId    the plugin id
+     * @param namespaceId the namespace id
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/syncPluginData")
-    public ShenyuAdminResult syncPluginData(@Existed(message = "namespace plugin is not existed", provider = NamespacePluginRelMapper.class)
-                                            @RequestParam("id") final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+    public ShenyuAdminResult syncPluginData(@RequestParam("id") final String pluginId, @RequestParam("namespaceId") final String namespaceId) {
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(namespaceId, pluginId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
 
     /**

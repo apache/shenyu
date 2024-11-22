@@ -173,10 +173,17 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
             </if>
         </where>
     </select>
@@ -187,10 +194,17 @@
         FROM namespace
         <where>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+            <if test="namespaceIds != null and namespaceIds != ''">
+                AND namespace_id IN
+                <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+                    #{namespaceId, jdbcType=VARCHAR}
+                </foreach>
             </if>
         </where>
     </select>
@@ -203,6 +217,20 @@
         <foreach item="namespaceId" collection="ids" open="(" separator="," close=")">
             #{namespaceId, jdbcType=VARCHAR}
         </foreach>
+    </select>
+
+    <select id="selectByNamespaceIdsAndName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+        <if test="name != null and name != ''">
+            <bind name="nameLike" value="('%' + name + '%')"/>
+            AND name LIKE #{nameLike, jdbcType=VARCHAR}
+        </if>
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">

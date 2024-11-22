@@ -55,6 +55,11 @@ public class CommonUpstream {
     private String namespaceId;
 
     /**
+     * this is gray.
+     */
+    private boolean gray;
+
+    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -187,6 +192,24 @@ public class CommonUpstream {
     }
 
     /**
+     * gray.
+     *
+     * @return Gray
+     */
+    public boolean isGray() {
+        return gray;
+    }
+
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
      * set namespaceId.
      *
      * @param namespaceId namespaceId
@@ -206,13 +229,14 @@ public class CommonUpstream {
         CommonUpstream that = (CommonUpstream) o;
         return Objects.equals(upstreamHost, that.upstreamHost)
                 && Objects.equals(protocol, that.protocol)
+                && Objects.equals(gray, that.gray)
                 && Objects.equals(upstreamUrl, that.upstreamUrl)
                 && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray);
     }
 
     @Override
@@ -233,6 +257,8 @@ public class CommonUpstream {
                 + timestamp
                 + ", namespaceId="
                 + namespaceId
+                + ", gray="
+                + gray
                 + '}';
     }
 }

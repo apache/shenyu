@@ -103,7 +103,6 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
-    //todo:[Namespace] Synchronize based on namespaceId
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
@@ -163,6 +162,34 @@ public class SyncDataServiceImpl implements SyncDataService {
             }
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean syncPluginData(final String namespaceId, final String pluginId) {
+        
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByNamespaceIdAndPluginId(namespaceId, pluginId);
+        if (Objects.isNull(namespacePluginVO) || Objects.isNull(namespacePluginVO.getPluginId())) {
+            LOG.error("namespace plugin is not existed");
+            return false;
+        }
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
+        
+        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
+        
+        if (!CollectionUtils.isEmpty(selectorDataList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+            
+            List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
+                    .collect(Collectors.toList());
+            for (String selectorId : selectorIdList) {
+                discoveryUpstreamService.refreshBySelectorId(selectorId);
+            }
+            List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
+            
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
         return true;

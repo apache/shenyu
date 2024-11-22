@@ -374,3 +374,25 @@ comment on column SCALE_HISTORY.date_created
     is 'create time';
 comment on column SCALE_HISTORY.date_updated
     is 'update time';
+
+
+create table namespace_user_rel
+(
+    id             varchar(128) not null,
+    namespace_id   varchar(50) NOT NULL,
+    user_id        varchar(128) NOT NULL,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+comment on column NAMESPACE_USER_REL.id
+    is 'primary key id';
+comment on column NAMESPACE_USER_REL.namespace_id
+    is 'namespace_id';
+comment on column NAMESPACE_USER_REL.user_id
+    is 'user_id';
+comment on column NAMESPACE_USER_REL.date_created
+    is 'create time';
+comment on column NAMESPACE_USER_REL.date_updated
+    is 'update time';
+

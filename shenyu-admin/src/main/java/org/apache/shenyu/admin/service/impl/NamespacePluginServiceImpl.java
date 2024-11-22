@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -76,11 +77,16 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     public NamespacePluginVO findById(final String id) {
         return namespacePluginRelMapper.selectById(id);
     }
-
+    
+    @Override
+    public NamespacePluginVO findByNamespaceIdAndPluginId(final String namespaceId, final String pluginId) {
+        return namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+    }
+    
     @Override
     public NamespacePluginVO create(final String namespaceId, final String pluginId) {
         NamespacePluginVO existNamespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
-        if (!Objects.isNull(existNamespacePluginVO)) {
+        if (Objects.nonNull(existNamespacePluginVO)) {
             throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
@@ -127,10 +133,15 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     public List<PluginData> listAll(final String namespaceId) {
         return ListUtil.map(namespacePluginRelMapper.selectAllByNamespaceId(namespaceId), PluginTransfer.INSTANCE::mapToData);
     }
-
+    
     @Override
     public List<PluginData> listAll() {
-        return ListUtil.map(namespacePluginRelMapper.selectAllByNamespaceId(), PluginTransfer.INSTANCE::mapToData);
+        return ListUtil.map(namespacePluginRelMapper.selectAll(), PluginTransfer.INSTANCE::mapToData);
+    }
+    
+    @Override
+    public List<NamespacePluginVO> listByNamespaceId(final String namespaceId) {
+        return namespacePluginRelMapper.selectAllByNamespaceId(namespaceId);
     }
 
     @Override
@@ -168,7 +179,38 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         }
         return StringUtils.EMPTY;
     }
-
+    
+    @Override
+    public String enabled(final String namespaceId, final List<String> pluginIds, final Boolean enabled) {
+        
+        List<NamespacePluginVO> namespacePluginList = namespacePluginRelMapper.selectByNamespaceId(namespaceId);
+        
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return StringUtils.EMPTY;
+        }
+        
+        Map<String, NamespacePluginVO> namespacePluginMap = namespacePluginList
+                .stream()
+                .collect(Collectors.toMap(NamespacePluginVO::getPluginId, Function.identity()));
+        
+        List<NamespacePluginVO> updateList = Lists.newArrayList();
+        
+        for (String pluginId : pluginIds) {
+            NamespacePluginVO namespacePluginVO = namespacePluginMap.get(pluginId);
+            if (Objects.isNull(namespacePluginVO)) {
+                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            }
+            namespacePluginVO.setEnabled(enabled);
+            updateList.add(namespacePluginVO);
+        }
+        namespacePluginRelMapper.updateEnableByNamespaceIdAndPluginIdList(namespaceId, pluginIds, enabled);
+        // publish change event.
+        if (CollectionUtils.isNotEmpty(updateList)) {
+            namespacePluginEventPublisher.onEnabled(updateList);
+        }
+        return StringUtils.EMPTY;
+    }
+    
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
         //todo:Not yet  implemented

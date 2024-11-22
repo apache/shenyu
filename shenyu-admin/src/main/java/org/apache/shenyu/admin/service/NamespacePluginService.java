@@ -42,6 +42,16 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return {@linkplain PluginVO}
      */
     NamespacePluginVO findById(String id);
+    
+    
+    /**
+     * find by namespaceId and pluginId.
+     *
+     * @param namespaceId namespaceId.
+     * @param pluginId    pluginId.
+     * @return {@linkplain NamespacePluginVO}
+     */
+    NamespacePluginVO findByNamespaceIdAndPluginId(String namespaceId, String pluginId);
 
     /**
      * Update string.
@@ -83,13 +93,21 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return the list
      */
     List<PluginData> listAll(String namespaceId);
-
+    
     /**
      * List all list.
      *
      * @return the list
      */
     List<PluginData> listAll();
+
+    /**
+     * List by namespace id list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<NamespacePluginVO> listByNamespaceId(String namespaceId);
 
     /**
      * List all vo list.
@@ -107,6 +125,16 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled);
+
+    /**
+     * Enabled string.
+     *
+     * @param namespaceId the namespaceId
+     * @param pluginIds   the pluginIds
+     * @param enabled     the enabled
+     * @return the string
+     */
+    String enabled(String namespaceId, List<String> pluginIds, Boolean enabled);
 
 
     /**

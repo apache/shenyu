@@ -106,9 +106,9 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
         shenyuClientRegisterSpringCloudService = spy(shenyuClientRegisterSpringCloudService);
         
         final String returnStr = "{serviceId:'test1',gray:false,divideUpstreams:[{weight:50,warmup:10,protocol:"
-                + "'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',status:'true',timestamp:1637909490935}]}";
+                + "'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',status:'true',timestamp:1637909490935,\"gray\":false}]}";
         final String expected = "{\"serviceId\":\"test1\",\"gray\":false,\"divideUpstreams\":[{\"weight\":50,\"warmup\":10,\"protocol\":"
-                + "\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637909490935}]}";
+                + "\"http://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637909490935,\"gray\":false}]}";
         final URIRegisterDTO dto1 = URIRegisterDTO.builder().appName("test2")
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .host(HOST).port(8090).build();

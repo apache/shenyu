@@ -2894,3 +2894,21 @@ COMMENT ON COLUMN "public"."scale_history"."action" IS 'status 1:enable 0:disabl
 COMMENT ON COLUMN "public"."scale_history"."msg" IS 'message';
 COMMENT ON COLUMN "public"."scale_history"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
+
+-- ----------------------------
+
+DROP TABLE IF EXISTS "public"."namespace_user_rel";
+CREATE TABLE "public"."namespace_user_rel"
+(
+    "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
+    "namespace_id"   varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+    "user_id"        varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+);
+COMMENT ON COLUMN "public"."namespace_user_rel"."id" IS 'primary key';
+COMMENT ON COLUMN "public"."namespace_user_rel"."namespace_id" IS 'namespace_id';
+COMMENT ON COLUMN "public"."namespace_user_rel"."user_id" IS 'user_id';
+COMMENT ON COLUMN "public"."namespace_user_rel"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."namespace_user_rel"."date_updated" IS 'update time';
+

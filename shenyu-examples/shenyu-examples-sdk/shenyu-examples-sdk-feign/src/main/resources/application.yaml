@@ -19,6 +19,7 @@ server:
     max-http-form-post-size: 100MB
 
 shenyu:
+  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   register:
     registerType: http
     serverLists: http://localhost:9095

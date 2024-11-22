@@ -540,6 +540,7 @@ data:
           url: http://shenyu-admin.default.svc.cluster.local:9095
           username: admin
           password: 123456
+          enabled: true
 
   application-bootstrap-sync-zookeeper.yml: |
     shenyu:
