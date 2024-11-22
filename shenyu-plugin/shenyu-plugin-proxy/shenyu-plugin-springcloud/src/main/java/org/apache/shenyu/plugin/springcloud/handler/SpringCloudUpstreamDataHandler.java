@@ -49,9 +49,13 @@ public class SpringCloudUpstreamDataHandler implements DiscoveryUpstreamDataHand
         if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
             return;
         }
-        List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
-        LOG.info("spring cloud upstream data change, selectorId:{} size {}", discoverySyncData.getSelectorId(), upstreamList.size());
-        UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), convertUpstreamList(upstreamList));
+        List<Upstream> upstreamList = convertUpstreamList(discoverySyncData.getUpstreamDataList());
+        final List<Upstream> grayUpstreamList = upstreamList.stream().filter(Upstream::isGray).toList();
+        if (!grayUpstreamList.isEmpty()) {
+            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
+        } else {
+            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreamList);
+        }
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
