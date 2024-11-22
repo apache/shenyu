@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.plugin.apache.dubbo;
 
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.dubbo.common.AbstractDubboPlugin;
@@ -63,6 +66,10 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
                                         final RuleData rule,
                                         final MetaData metaData,
                                         final String param) {
+        DubboRuleHandle dubboRuleHandle = ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(rule.getId());
+        if (dubboRuleHandle.getTimeout() > 0) {
+            RpcContext.getClientAttachment().setAttachment(CommonConstants.TIMEOUT_KEY, dubboRuleHandle.getTimeout());
+        }
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
