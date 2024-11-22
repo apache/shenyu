@@ -36,7 +36,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * upstreamList data change.
+ * discoveryUpstream data change.
  */
 public class SpringCloudUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
 
