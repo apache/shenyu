@@ -23,8 +23,8 @@ services:
       ZOO_STANDALONE_ENABLED: "true"
     ports:
       - "31878:2181"
-    volumes:
-      - /zoo.cfg:/conf/zookeeper.cfg
+#    volumes:
+#      - /zoo.cfg:/conf/zookeeper.cfg
 #    healthcheck:
 #      test: [ "CMD-SHELL", "wget -q -O - http://localhost:2181/actuator/health | grep UP || exit 1" ]
 #      interval: 10s
@@ -57,6 +57,8 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
     depends_on:
       - zookeeper
+    networks:
+      - shenyu
 
 networks:
   shenyu:
