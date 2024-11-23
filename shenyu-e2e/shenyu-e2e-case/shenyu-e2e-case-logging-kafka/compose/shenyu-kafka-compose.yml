@@ -40,14 +40,15 @@ services:
     container_name: kafka
     ports:
       - "31877:9092"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:9092/actuator/health | grep UP || exit 1" ]
-      interval: 10s
-      timeout: 2s
-      retries: 3
-      start_period: 10s
-      depends_on:
-        - zookeeper
+#    healthcheck:
+#      test: [ "CMD-SHELL", "wget -q -O - http://localhost:9092/actuator/health | grep UP || exit 1" ]
+#      interval: 10s
+#      timeout: 2s
+#      retries: 3
+#      start_period: 10s
+#      depends_on:
+#        zookeeper:
+#          condition: service_healthy
     restart: always
     environment:
       KAFKA_BROKER_ID: 1
