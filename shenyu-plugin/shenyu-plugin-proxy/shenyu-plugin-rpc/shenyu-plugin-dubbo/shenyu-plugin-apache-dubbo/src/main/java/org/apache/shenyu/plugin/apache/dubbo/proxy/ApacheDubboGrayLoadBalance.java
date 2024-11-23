@@ -34,6 +34,7 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +52,9 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         // if gray list is not empty,just use load balance to choose one.
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadBalancerFactory.selector(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadBalance(), remoteAddressIp);
+            if (Objects.isNull(upstream)) {
+                return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
+            }
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
                 return select(invokers, url, invocation, dubboRuleHandle.getLoadBalance());
             }
