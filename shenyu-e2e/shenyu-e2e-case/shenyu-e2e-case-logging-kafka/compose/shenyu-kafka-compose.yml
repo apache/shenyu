@@ -26,7 +26,7 @@ services:
     ports:
       - "31878:2181"
     volumes:
-      - /zoo.cfg:/conf/zoo.cfg
+      - /zoo.cfg:/conf/zookeeper.cfg
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://localhost:2181/actuator/health | grep UP || exit 1" ]
       interval: 10s
