@@ -14,15 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version: '3.9'
 
 services:
   zookeeper:
     image: zookeeper:3.8.4
     container_name: zookeeper
     environment:
-      ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888
+      ZOO_STANDALONE_ENABLED: "true"
     ports:
       - "31878:2181"
     volumes:
