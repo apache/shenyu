@@ -37,6 +37,8 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
+  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
+  sleep 30s
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml up -d --quiet-pull
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health
@@ -61,5 +63,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml down
+  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done
