@@ -518,6 +518,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     hk2-api 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-api, EPL 2.0/GPL
     hk2-locator 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator, EPL 2.0/GPL
     aopalliance-repackaged 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2.external/aopalliance-repackaged, EPL 2.0/GPL
+    jakarta.ws.rs-api 3.1.0: https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api EPL 2.0/GPL 2.0
 
 ========================================================================
 MIT licenses
@@ -655,7 +656,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jersey-client 1.19.1: https://mvnrepository.com/artifact/com.sun.jersey/jersey-client, CDDL 1.1/GPL 1.1
     jersey-core 1.19.1: https://mvnrepository.com/artifact/com.sun.jersey/jersey-core, CDDL 1.1/GPL 1.1
     jsr311-api 1.1.1: https://mvnrepository.com/artifact/javax.ws.rs/jsr311-api/1.1.1, CDDL 1.0
-    jakarta.ws.rs-api 3.1.0: https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api EPL 2.0/GPL 2.0
     osgi-resource-locator 1.0.3: https://mvnrepository.com/artifact/org.glassfish.hk2/osgi-resource-locator CDDL/GPL 1.1/GPL 2.0
 
 
@@ -673,6 +673,7 @@ Bouncy Castle licenses
     bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
     bcutil-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
     bcpkix-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
+
 ========================================================================
 XPP License
 ========================================================================
@@ -687,7 +688,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 EDL License
 ========================================================================
 
-The following components are provided under the XPP License. See project link for details.
+The following components are provided under the EDL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     jakarta.activation 1.2.2: https://mvnrepository.com/artifact/com.sun.activation/jakarta.activation, EDL 1.0
