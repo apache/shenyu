@@ -112,11 +112,11 @@ public final class WebsocketCollectorTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
-        when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         assertEquals(1L, getSessionSetSize());
-        verify(syncDataService, times(1)).syncAll(DataEventTypeEnum.MYSELF);
+        verify(syncDataService, times(1)).syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID);
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }
