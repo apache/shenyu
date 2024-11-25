@@ -140,9 +140,10 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     /**
      * active plugin snapshot.
      *
+     * @param namespaceId the namespaceId
      * @return plugin list
      */
-    List<PluginSnapshotVO> activePluginSnapshot();
+    List<PluginSnapshotVO> activePluginSnapshot(String namespaceId);
 
     /**
      * import plugin data.
