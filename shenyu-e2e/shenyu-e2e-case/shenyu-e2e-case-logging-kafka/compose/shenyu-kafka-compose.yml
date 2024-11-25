@@ -17,27 +17,28 @@
 
 services:
   zookeeper:
-    image: zookeeper:3.8.4
-    container_name: zookeeper
+    image: bitnami/zookeeper:latest
+    container_name: shenyu-zookeeper
     environment:
       ZOO_STANDALONE_ENABLED: "true"
+      ALLOW_ANONYMOUS_LOGIN: "yes"
     ports:
       - "31878:2181"
 #    volumes:
 #      - /zoo.cfg:/conf/zookeeper.cfg
-#    healthcheck:
-#      test: [ "CMD-SHELL", "wget -q -O - http://localhost:2181/actuator/health | grep UP || exit 1" ]
-#      interval: 10s
-#      timeout: 2s
-#      retries: 3
-#      start_period: 10s
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 2181 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     restart: always
     networks:
       - shenyu
 
   kafka:
     image: wurstmeister/kafka:latest
-    container_name: kafka
+    container_name: shenyu-kafka
     ports:
       - "31877:9092"
 #    healthcheck:
@@ -56,7 +57,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     networks:
       - shenyu
 
