@@ -70,13 +70,6 @@
             #{namespacePluginRelDO.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>
     </insert>
-
-    <select id="listByNamespaceId" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from namespace_plugin_rel
-        where namespace_id = #{namespaceId}
-    </select>
     
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.NamespacePluginQuery"
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
@@ -340,6 +333,13 @@
         ORDER BY
         sort,
         npr.id ASC
+    </select>
+
+    <select id="listByNamespaceId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_plugin_rel
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
 
