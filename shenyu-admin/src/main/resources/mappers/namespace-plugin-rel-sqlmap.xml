@@ -265,7 +265,7 @@
         p.plugin_jar AS pluginJar
         FROM namespace_plugin_rel npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
-        WHERE npr.namespace_id=#{namespaceId}
+        WHERE npr.namespace_id=#{namespaceId, jdbcType=VARCHAR}
         ORDER BY
         sort,
         npr.id ASC
