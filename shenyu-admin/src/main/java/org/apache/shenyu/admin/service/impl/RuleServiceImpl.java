@@ -231,7 +231,12 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }
-
+    
+    @Override
+    public List<RuleVO> listAllDataByNamespaceId(final String namespaceId) {
+        return this.buildRuleVOList(ruleMapper.selectAllByNamespaceId(namespaceId));
+    }
+    
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
         return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));
@@ -295,7 +300,50 @@ public class RuleServiceImpl implements RuleService {
         }
         return ConfigImportResult.success(successCount);
     }
-
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<RuleDTO> ruleList) {
+        if (CollectionUtils.isEmpty(ruleList)) {
+            return ConfigImportResult.success();
+        }
+        
+        Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
+                .selectAllByNamespaceId(namespace)
+                .stream()
+                .collect(Collectors.groupingBy(RuleDO::getSelectorId));
+        
+        int successCount = 0;
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        for (RuleDTO ruleDTO : ruleList) {
+            String selectorId = ruleDTO.getSelectorId();
+            String ruleName = ruleDTO.getName();
+            Set<String> existRuleNameSet = selectorRuleMap
+                    .getOrDefault(selectorId, Lists.newArrayList())
+                    .stream()
+                    .map(RuleDO::getName)
+                    .collect(Collectors.toSet());
+            
+            if (existRuleNameSet.contains(ruleName)) {
+                errorMsgBuilder
+                        .append(ruleName)
+                        .append(",");
+                continue;
+            }
+            RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
+            final int ruleCount = ruleMapper.insertSelective(ruleDO);
+            addCondition(ruleDO, ruleDTO.getRuleConditions());
+            if (ruleCount > 0) {
+                successCount++;
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail rule: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
