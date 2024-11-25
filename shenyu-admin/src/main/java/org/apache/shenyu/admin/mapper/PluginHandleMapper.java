@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -138,6 +139,15 @@ public interface PluginHandleMapper extends ExistProvider {
      * @return the count of deleted
      */
     List<PluginHandleDO> selectByPluginIdList(@Param("pluginIds") List<String> pluginId);
+    
+    
+    /**
+     * bach delete by idList.
+     *
+     * @param pluginIds a list of ids
+     * @return plugin handle list
+     */
+    List<PluginHandleDO> selectByPluginIds(@Param("pluginIds") Collection<String> pluginIds);
     
     /**
      * delete string id.
