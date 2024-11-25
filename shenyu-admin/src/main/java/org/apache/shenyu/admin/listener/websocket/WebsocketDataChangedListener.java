@@ -47,8 +47,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
         WebsocketData<PluginData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
-        String namespaceId = pluginDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+        if (CollectionUtils.isNotEmpty(pluginDataList)) {
+            String namespaceId = pluginDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
+            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+        }
     }
     
     @Override
