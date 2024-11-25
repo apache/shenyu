@@ -81,9 +81,8 @@
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.NamespacePluginQuery"
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
-        npr.id as id,
         npr.namespace_id AS namespaceId,
-        npr.plugin_id AS pluginId,
+        npr.plugin_id AS id,
         npr.config AS config,
         npr.sort AS sort,
         npr.enabled AS enabled,
@@ -272,7 +271,7 @@
         p.plugin_jar AS pluginJar
         FROM namespace_plugin_rel npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
-        WHERE npr.namespace_id=#{namespaceId}
+        WHERE npr.namespace_id=#{namespaceId, jdbcType=VARCHAR}
         ORDER BY
         sort,
         npr.id ASC
