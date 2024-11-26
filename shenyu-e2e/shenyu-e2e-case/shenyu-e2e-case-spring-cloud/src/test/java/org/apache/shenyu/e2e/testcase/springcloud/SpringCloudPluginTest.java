@@ -74,7 +74,7 @@ public class SpringCloudPluginTest {
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("pluginId", "7");
+        reqBody.put("pluginId", "5");
         reqBody.put("name", "divide");
         reqBody.put("enabled", "true");
         reqBody.put("role", "Proxy");
