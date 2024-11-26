@@ -70,12 +70,12 @@
             #{namespacePluginRelDO.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>
     </insert>
-    
+
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.NamespacePluginQuery"
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         npr.namespace_id AS namespaceId,
-        npr.plugin_id AS id,
+        npr.id AS id,
         npr.config AS config,
         npr.sort AS sort,
         npr.enabled AS enabled,
@@ -352,7 +352,7 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </update>
-    
+
     <update id="updateEnableByNamespaceIdAndPluginIdList">
         UPDATE namespace_plugin_rel
         SET enabled = #{enabled, jdbcType=TINYINT}
