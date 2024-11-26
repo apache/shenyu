@@ -30,7 +30,6 @@
         <module>shenyu-spring-boot-starter-plugin-global</module>
         <module>shenyu-spring-boot-starter-plugin-divide</module>
         <module>shenyu-spring-boot-starter-plugin-httpclient</module>
-        <module>shenyu-spring-boot-starter-plugin-springcloud</module>
         <module>shenyu-spring-boot-starter-plugin-hystrix</module>
         <module>shenyu-spring-boot-starter-plugin-ratelimiter</module>
         <module>shenyu-spring-boot-starter-plugin-sign</module>
