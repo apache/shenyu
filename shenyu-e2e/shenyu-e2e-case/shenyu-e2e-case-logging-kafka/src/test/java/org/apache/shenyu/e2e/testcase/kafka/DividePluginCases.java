@@ -74,63 +74,63 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
-//    private ShenYuScenarioSpec testKafkaHello() {
-//        return ShenYuScenarioSpec.builder()
-//                .name("testKafkaHello")
-//                .beforeEachSpec(
-//                        ShenYuBeforeEachSpec.builder()
-//                                .addSelectorAndRule(
-//                                        newSelectorBuilder("selector", Plugin.LOGGING_KAFKA)
-//                                                .name("2")
-//                                                .matchMode(MatchMode.OR)
-//                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
-//                                                .build(),
-//                                        newRuleBuilder("rule")
-//                                                .name("2")
-//                                                .matchMode(MatchMode.OR)
-//                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
-//                                                .build()
-//                                )
-//                                .checker(exists(TEST))
-//                                .build()
-//                )
-//                .caseSpec(
-//                        ShenYuCaseSpec.builder()
-//                                .add(request -> {
-//                                    AtomicBoolean isLog = new AtomicBoolean(false);
-//                                    try {
-//                                        Thread.sleep(1000 * 30);
-//                                        request.request(Method.GET, "/http/order/findById?id=23");
-//                                        Properties props = new Properties();
-//                                        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-//                                                StringDeserializer.class.getName());
-//                                        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-//                                                StringDeserializer.class.getName());
-//                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:31877");
-//                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-//                                        consumer.subscribe(Arrays.asList(TOPIC));
-//                                        AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
-//                                        Instant start = Instant.now();
-//                                        while (keepCosuming.get()) {
-//                                            if (Duration.between(start, Instant.now()).toMillis() > 60000) {
-//                                                keepCosuming.set(false);
-//                                            }
-//                                            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
-//                                            records.forEach(record -> {
-//                                                String message = record.value();
-//                                                if (message.contains("/http/order/findById?id=23")) {
-//                                                    isLog.set(true);
-//                                                    keepCosuming.set(false);
-//                                                }
-//                                            });
-//                                        }
-//                                        Assertions.assertTrue(isLog.get());
-//                                    } catch (InterruptedException e) {
-//                                        LOG.info("isLog.get():{}", isLog.get());
-//                                        LOG.error("error", e);
-//                                        throw new RuntimeException(e);
-//                                    }
-//                                }).build()
-//                ).build();
-//    }
+    private ShenYuScenarioSpec testKafkaHello() {
+        return ShenYuScenarioSpec.builder()
+                .name("testKafkaHello")
+                .beforeEachSpec(
+                        ShenYuBeforeEachSpec.builder()
+                                .addSelectorAndRule(
+                                        newSelectorBuilder("selector", Plugin.LOGGING_KAFKA)
+                                                .name("2")
+                                                .matchMode(MatchMode.OR)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .build(),
+                                        newRuleBuilder("rule")
+                                                .name("2")
+                                                .matchMode(MatchMode.OR)
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .build()
+                                )
+                                .checker(exists(TEST))
+                                .build()
+                )
+                .caseSpec(
+                        ShenYuCaseSpec.builder()
+                                .add(request -> {
+                                    AtomicBoolean isLog = new AtomicBoolean(false);
+                                    try {
+                                        Thread.sleep(1000 * 30);
+                                        request.request(Method.GET, "/http/order/findById?id=23");
+                                        Properties props = new Properties();
+                                        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                                                StringDeserializer.class.getName());
+                                        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                                                StringDeserializer.class.getName());
+                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:31877");
+                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+                                        consumer.subscribe(Arrays.asList(TOPIC));
+                                        AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
+                                        Instant start = Instant.now();
+                                        while (keepCosuming.get()) {
+                                            if (Duration.between(start, Instant.now()).toMillis() > 60000) {
+                                                keepCosuming.set(false);
+                                            }
+                                            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+                                            records.forEach(record -> {
+                                                String message = record.value();
+                                                if (message.contains("/http/order/findById?id=23")) {
+                                                    isLog.set(true);
+                                                    keepCosuming.set(false);
+                                                }
+                                            });
+                                        }
+                                        Assertions.assertTrue(isLog.get());
+                                    } catch (InterruptedException e) {
+                                        LOG.info("isLog.get():{}", isLog.get());
+                                        LOG.error("error", e);
+                                        throw new RuntimeException(e);
+                                    }
+                                }).build()
+                ).build();
+    }
 }
