@@ -73,6 +73,7 @@ public class SpringCloudPluginTest {
         LOG.info("ruleCache: {}", ruleCache);
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
+
         Map<String, String> reqBody = new HashMap<>();
         reqBody.put("pluginId", "5");
         reqBody.put("name", "divide");
