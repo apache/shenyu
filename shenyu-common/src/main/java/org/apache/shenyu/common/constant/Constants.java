@@ -552,6 +552,11 @@ public interface Constants {
      * dubbo remote address.
      */
     String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
+
+    /**
+     * dubbo load balance from meta data.
+     */
+    String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
     
     /**
      * dubbo group.
