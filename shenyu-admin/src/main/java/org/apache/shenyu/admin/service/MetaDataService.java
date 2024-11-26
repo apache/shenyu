@@ -105,6 +105,14 @@ public interface MetaDataService {
     List<MetaDataVO> listAllData();
 
     /**
+     * List all vo list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the vo list
+     */
+    List<MetaDataVO> listAllDataByNamespaceId(String namespaceId);
+
+    /**
      * Enabled by ids and namespaceId.
      *
      * @param ids     the ids
@@ -160,4 +168,13 @@ public interface MetaDataService {
      * @return the config import result
      */
     ConfigImportResult importData(List<MetaDataDTO> metaDataList);
+
+    /**
+     * Import shenyu meta data.
+     *
+     * @param namespace     the namespace
+     * @param metaDataList meta data list
+     * @return the config import result
+     */
+    ConfigImportResult importData(String namespace, List<MetaDataDTO> metaDataList);
 }
