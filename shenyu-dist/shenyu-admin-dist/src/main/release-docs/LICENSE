@@ -215,51 +215,66 @@ Apache 2.0 licenses
 The following components are provided under the Apache License. See project link for details.
 The text of each license is the standard Apache 2.0 license.
 
+    simpleclient_httpserver 0.15.0: https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver, Apache 2.0
+    client-java-api 17.0.2: https://mvnrepository.com/artifact/io.kubernetes/client-java-api, Apache 2.0
+    client-java 17.0.2: https://mvnrepository.com/artifact/io.kubernetes/client-java, Apache 2.0
+    client-java-proto 17.0.2: https://mvnrepository.com/artifact/io.kubernetes/client-java-proto, Apache 2.0
+    eureka-client-jersey3 2.0.2: https://github.com/Netflix/eureka, Apache 2.0
+    jersey-client 3.1.7: https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-client, Apache 2.0
+    jersey-common 3.1.7: https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common, Apache 2.0
+    jersey-hk2 3.1.7: https://mvnrepository.com/artifact/org.glassfish.jersey.inject/jersey-hk2, Apache 2.0
     accessors-smart 2.4.11: https://www.minidev.net, Apache 2.0
     annotations 13.0: http://source.android.com, Apache 2.0
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
-    attoparser 2.0.5.RELEASE: http://www.attoparser.org, Apache 2.0
+    attoparser 2.0.7.RELEASE: http://www.attoparser.org, Apache 2.0
     audience-annotations 0.12.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     caffeine 2.9.3 https://github.com/ben-manes/caffeine, Apache 2.0
-    classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
+    classmate 1.7.0: https://github.com/FasterXML/java-classmate, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0
-    commons-codec 1.15: https://github.com/apache/commons-codec, Apache 2.0
+    commons-codec 1.16.1: https://github.com/apache/commons-codec, Apache 2.0
     commons-collections 3.2.2: https://github.com/apache/commons-collections, Apache 2.0
     commons-collections4 4.4: https://github.com/apache/commons-collections, Apache 2.0
     commons-io 2.11.0：https://commons.apache.org/proper/commons-io, Apache 2.0
     commons-lang3 3.12.0: https://github.com/apache/commons-lang, Apache 2.0
+    commons-compress 1.22: https://github.com/apache/commons-compress, Apache 2.0
     disruptor 3.4.0: https://github.com/LMAX-Exchange/disruptor , Apache 2.0
     error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1:https://github.com/google/guava, Apache 2.0
-    grpc-api 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-core 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-api 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-core 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-grpclb 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-grpclb 1.48.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-netty 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-protobuf 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-protobuf-lite 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-stub 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-netty 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-protobuf 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-protobuf-lite 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-stub 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-util 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     gson 2.9.0: https://github.com/google/gson, Apache 2.0
+    gson-fire 1.8.5: https://mvnrepository.com/artifact/io.gsonfire/gson-fire, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     hessian 4.0.38: http://github.com/alipay/sofa-hessian, Apache 2.0
-    hibernate-validator 6.2.5.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
-    HikariCP 4.0.3: https://github.com/brettwooldridge/HikariCP, Apache 2.0
+    hibernate-validator 8.0.1.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
+    HikariCP 5.1.0: https://github.com/brettwooldridge/HikariCP, Apache 2.0
     httpasyncclient 4.1.5: https://github.com/apache/httpasyncclient/tree/4.1.2, Apache 2.0
-    httpclient 4.5.14: http://hc.apache.org/httpcomponents-client, Apache 2.0
+    httpclient 4.5.3: http://hc.apache.org/httpcomponents-client, Apache 2.0
     httpcore 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
     httpcore-nio 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
+    micrometer-observation 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-observation, Apache 2.0
+    micrometer-jakarta9 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-jakarta9, Apache 2.0
+    micrometer-commons 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-commons, Apache 2.0
+    micrometer-registry-prometheus 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus, Apache 2.0
     j2objc-annotations 1.3 https://github.com/google/j2objc, Apache 2.0
-    jackson-annotations 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-core 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-databind 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-datatype-jdk8 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-datatype-jsr310 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jackson-module-parameter-names 2.13.5: http://github.com/FasterXML/jackson, Apache 2.0
-    jakarta.validation-api 2.0.2: http://beanvalidation.org, Apache 2.0
-    javassist 3.21.0-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
-    jboss-logging 3.4.3.Final: http://www.jboss.org, Apache 2.0
+    jackson-annotations 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-core 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-databind 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-datatype-jdk8 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-datatype-jsr310 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-module-parameter-names 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jakarta.validation-api 3.0.2: http://beanvalidation.org, Apache 2.0
+    javassist 3.30.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
+    jboss-logging 3.5.3.Final: http://www.jboss.org, Apache 2.0
     jetcd-api 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jetcd-common 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jetcd-core 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
@@ -268,129 +283,161 @@ The text of each license is the standard Apache 2.0 license.
     json-smart 2.4.11: https://www.minidev.net/, Apache 2.0
     jsqlparser 4.5: https://github.com/JSQLParser/JSqlParser, Apache 2.0
     jsr305 3.0.2: http://findbugs.sourceforge.net/, Apache 2.0
+    jersey-apache-connector 3.1.7: https://mvnrepository.com/artifact/org.glassfish.jersey.connectors/jersey-apache-connector, Apache 2.0
+    jose4j 0.9.2: https://mvnrepository.com/artifact/org.bitbucket.b_c/jose4j, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
-    log4j-api 2.17.2: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
-    log4j-to-slf4j 2.17.2: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
-    logging-interceptor 4.9.3: https://github.com/square/okhttp, Apache 2.0
-    micrometer-core 1.9.16: https://github.com/micrometer-metrics/micrometer, Apache 2.0
+    log4j-api 2.23.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
+    log4j-to-slf4j 2.23.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
+    logging-interceptor 4.12.0: https://github.com/square/okhttp, Apache 2.0
+    micrometer-core 1.13.1: https://github.com/micrometer-metrics/micrometer, Apache 2.0
     micrometer-registry-prometheus 1.9.16: https://github.com/micrometer-metrics/micrometer, Apache 2.0
-    mybatis 3.5.9: http://www.mybatis.org/mybatis-3, Apache 2.0
-    mybatis-spring 2.0.7: http://www.mybatis.org/spring, Apache 2.0
-    mybatis-spring-boot-autoconfigure 2.2.2: http://github.com/mybatis/spring-boot-starter/mybatis-spring-boot-autoconfigure, Apache 2.0
-    mybatis-spring-boot-starter 2.2.2: http://github.com/mybatis/spring-boot-starter/mybatis-spring-boot-starter, Apache 2.0
-    nacos-client 2.0.4: https://github.com/alibaba/nacos, Apache 2.0
-    netty-buffer 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-codec 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-codec-dns 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http2 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-codec-socks 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-common 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-handler 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-handler-proxy 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-resolver 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-transport 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-transport-classes-epoll 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-transport-native-unix-common 4.1.100.Final: https://github.com/netty, Apache 2.0
+    mybatis 3.5.14: http://www.mybatis.org/mybatis-3, Apache 2.0
+    mybatis-spring 3.0.3: http://www.mybatis.org/spring, Apache 2.0
+    mybatis-spring-boot-autoconfigure 3.0.3: http://github.com/mybatis/spring-boot-starter/mybatis-spring-boot-autoconfigure, Apache 2.0
+    mybatis-spring-boot-starter 3.0.3: http://github.com/mybatis/spring-boot-starter/mybatis-spring-boot-starter, Apache 2.0
+    nacos-client 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
+    nacos-auth-plugin 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
+    nacos-encryption-plugin 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
+    netty-buffer 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-codec 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-codec-dns 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http2 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-codec-socks 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-common 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-handler 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-handler-proxy 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-resolver 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-transport 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-transport-classes-epoll 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-transport-native-unix-common 4.1.111.Final: https://github.com/netty, Apache 2.0
     netty-resolver-dns-classes-macos 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-native-macos 4.1.100.Final-osx-x86_64 https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.100.Final-linux-x86_64 https://github.com/netty, Apache 2.0
-    objenesis 3.1: http://objenesis.org, Apache 2.0
-    okhttp 4.9.3: https://github.com/square/okhttp, Apache 2.0
-    okio 2.8.0: https://github.com/square/okio, Apache 2.0
-    perfmark-api 0.25.0: https://github.com/perfmark/perfmark, Apache 2.0
-    proto-google-common-protos 2.9.0: https://github.com/googleapis/common-protos-java, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.111.Final-osx-x86_64 https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.111.Final-linux-x86_64 https://github.com/netty, Apache 2.0
+    netty-tcnative-classes 2.0.65.Final: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final-linux-x86_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final-linux-aarch_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final-osx-x86_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.65.Final-windows-x86_64: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-classes-macos 4.1.111.Final: https://github.com/netty, Apache 2.0
+    objenesis 3.3: http://objenesis.org, Apache 2.0
+    okhttp 4.12.0: https://github.com/square/okhttp, Apache 2.0
+    okio 3.6.0: https://github.com/square/okio, Apache 2.0
+    okio-jvm 3.6.0: https://mvnrepository.com/artifact/com.squareup.okio/okio-jvm, Apache 2.0
+    perfmark-api 0.26.0: https://github.com/perfmark/perfmark, Apache 2.0
+    proto-google-common-protos 2.29.0: https://github.com/googleapis/common-protos-java, Apache 2.0
     protostuff-core 1.0.8: https://github.com/protostuff/protostuff/protostuff-core, Apache-2.0
     protostuff-runtime 1.0.8: https://github.com/protostuff/protostuff/protostuff-core, Apache-2.0
     protostuff-api 1.0.8: https://github.com/protostuff/protostuff/protostuff-api, Apache-2.0
     protostuff-collectionschema 1.0.8: https://github.com/protostuff/protostuff/protostuff-collectionschema, Apache-2.0
     protostuff-core 1.0.8: https://github.com/protostuff/protostuff, Apache 2.0
     protostuff-runtime 1.0.8: https://github.com/protostuff/protostuff, Apache 2.0
+    prometheus-metrics-model 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-model, Apache 2.0
+    prometheus-metrics-shaded-protobuf 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-shaded-protobuf, Apache 2.0
+    prometheus-metrics-exposition-formats 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-exposition-formats, Apache 2.0
+    prometheus-metrics-config 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-config, Apache 2.0
+    prometheus-metrics-tracer-common 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-tracer-common, Apache 2.0
+    prometheus-metrics-core 1.2.1: https://mvnrepository.com/artifact/io.prometheus/prometheus-metrics-core, Apache 2.0
     reactor-core 3.4.33: https://github.com/reactor/reactor, Apache 2.0
     reactor-spring 1.0.1.RELEASE: https://github.com/reactor/reactor, Apache 2.0
     shiro-cache 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-config-core 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-config-ogdl 1.13.0: https://shiro.apache.org, Apache 2.0
-    shiro-core 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-core 1.13.0-jakarta: https://shiro.apache.org, Apache 2.0
     shiro-crypto-cipher 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-crypto-core 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-crypto-hash 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-event 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-lang 1.13.0.: https://shiro.apache.org, Apache 2.0
-    shiro-spring 1.13.0: https://shiro.apache.org, Apache 2.0
+    shiro-spring 1.13.0-jakarta: https://shiro.apache.org, Apache 2.0
     shiro-spring-boot-starter 1.13.0: https://shiro.apache.org, Apache 2.0
     shiro-spring-boot-web-starter 1.13.0: https://shiro.apache.org, Apache 2.0
-    shiro-web 1.13.0: https://shiro.apache.org, Apache 2.0
-    simpleclient_tracer_common 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
-    simpleclient_tracer_otel_agent 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
+    shiro-web 1.13.0-jakarta: https://shiro.apache.org, Apache 2.0
+    simpleclient_tracer_common 0.16.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
+    simpleclient_tracer_otel_agent 0.16.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     simpleclient_tracer_otel 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     simpleclient 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
-    snakeyaml 1.30: http://www.snakeyaml.org, Apache 2.0
-    spring-aop 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
-    spring-beans 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
-    spring-boot 2.7.17: https://spring.io, Apache 2.0
-    spring-boot-actuator 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator, Apache 2.0
-    spring-boot-actuator-autoconfigure 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator-autoconfigure, Apache 2.0
-    spring-boot-autoconfigure 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/, Apache 2.0
-    spring-boot-starter 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter, Apache 2.0
-    spring-boot-starter-actuator 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator, Apache 2.0
-    spring-boot-starter-jdbc 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc, Apache 2.0
-    spring-boot-starter-json 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json, Apache 2.0
-    spring-boot-starter-logging 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging, Apache 2.0
-    spring-boot-starter-thymeleaf 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf, Apache 2.0
-    spring-boot-starter-tomcat 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-tomcat, Apache 2.0
-    spring-boot-starter-validation 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation, Apache 2.0
-    spring-boot-starter-web 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web, Apache 2.0
-    spring-boot-starter-websocket 2.7.17:  https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket, Apache 2.0
-    spring-boot-starter-mail 2.7.17: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail, Apache 2.0
-    spring-context 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
-    spring-context-support 5.3.30: https://spring.io, Apache 2.0
-    spring-core 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
-    spring-data-commons 2.7.17: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
-	spring-data-ldap 2.7.17: https://mvnrepository.com/artifact/org.springframework.data/spring-data-ldap, Apache 2.0
+    snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
+    spring-retry 2.0.6: https://mvnrepository.com/artifact/org.springframework.retry/spring-retry/2.0.6, Apache 2.0
+    spring-integration-core 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-core, Apache 2.0
+    spring-integration-jdbc 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-jdbc, Apache 2.0
+    spring-integration-zookeeper 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-zookeeper, Apache 2.0
+    spring-aop 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
+    spring-beans 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
+    spring-boot 3.3.1: https://spring.io, Apache 2.0
+    spring-boot-actuator 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator, Apache 2.0
+    spring-boot-actuator-autoconfigure 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator-autoconfigure, Apache 2.0
+    spring-boot-autoconfigure 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/, Apache 2.0
+    spring-boot-starter 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter, Apache 2.0
+    spring-boot-starter-actuator 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator, Apache 2.0
+    spring-boot-starter-jdbc 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc, Apache 2.0
+    spring-boot-starter-json 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json, Apache 2.0
+    spring-boot-starter-logging 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging, Apache 2.0
+    spring-boot-starter-thymeleaf 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf, Apache 2.0
+    spring-boot-starter-tomcat 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-tomcat, Apache 2.0
+    spring-boot-starter-validation 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation, Apache 2.0
+    spring-boot-starter-web 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web, Apache 2.0
+    spring-boot-starter-websocket 3.3.1:  https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket, Apache 2.0
+    spring-boot-starter-mail 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail, Apache 2.0
+    spring-boot-starter-integration 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-integration, Apache 2.0
+    spring-boot-starter-aop 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop, Apache 2.0
+    spring-context 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
+    spring-context-support 6.1.10: https://spring.io, Apache 2.0
+    spring-core 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
+    spring-data-commons 3.3.1: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
+	spring-data-ldap 3.3.1: https://mvnrepository.com/artifact/org.springframework.data/spring-data-ldap, Apache 2.0
+	springdoc-openapi-starter-common 2.5.0: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-common, Apache 2.0
+	springdoc-openapi-starter-webmvc-api 2.5.0: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-api, Apache 2.0
+    springdoc-openapi-starter-webmvc-ui 2.5.0: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui, Apache 2.0
 	springdoc-openapi-common 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
 	springdoc-openapi-ui 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
 	springdoc-openapi-webmvc-core 1.7.0: https://github.com/springdoc/springdoc-openapi, Apache 2.0
-    spring-expression 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
-    spring-jcl 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-jcl, Apache 2.0
-    spring-jdbc 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-jdbc, Apache 2.0
-    spring-ldap-core 2.4.1: https://mvnrepository.com/artifact/org.springframework.ldap/spring-ldap-core, Apache 2.0
-    spring-messaging 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-messaging, Apache 2.0
-    spring-tx 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
-    spring-web 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
-    spring-webmvc 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-webmvc, Apache 2.0
-    spring-websocket 5.3.30: https://mvnrepository.com/artifact/org.springframework/spring-websocket, Apache 2.0
-    swagger-annotations 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    spring-expression 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
+    spring-jcl 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-jcl, Apache 2.0
+    spring-jdbc 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-jdbc, Apache 2.0
+    spring-ldap-core 3.2.4: https://mvnrepository.com/artifact/org.springframework.ldap/spring-ldap-core, Apache 2.0
+    spring-messaging 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-messaging, Apache 2.0
+    spring-tx 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
+    spring-web 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
+    spring-webmvc 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-webmvc, Apache 2.0
+    spring-websocket 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-websocket, Apache 2.0
+    swagger-annotations 1.6.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-annotations-jakarta 2.2.21: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta, Apache 2.0
     swagger-core 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-core-jakarta 2.2.21: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-core-jakarta, Apache 2.0
+    swagger-models-jakarta 2.2.21: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-models-jakarta, Apache 2.0
     swagger-models 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
-    swagger-ui 4.18.2: https://github.com/swagger-api/swagger-ui, Apache 2.0
-    thymeleaf 3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
+    swagger-ui 5.13.0: https://github.com/swagger-api/swagger-ui, Apache 2.0
+    simpleclient_tracer_otel 0.16.0: https://mvnrepository.com/artifact/io.prometheus/simpleclient_tracer_otel, Apache 2.0
+    thymeleaf 3.1.2.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
-    thymeleaf-spring5-3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
-    tomcat-embed-core 9.0.82: https://tomcat.apache.org, Apache 2.0
-    tomcat-embed-el 9.0.82: https://tomcat.apache.org, Apache 2.0
-    tomcat-embed-websocket 9.0.82: https://tomcat.apache.org, Apache 2.0
+    thymeleaf-spring6 3.1.2.RELEASE: http://www.thymeleaf.org, Apache 2.0
+    tomcat-embed-core 10.1.25: https://tomcat.apache.org, Apache 2.0
+    tomcat-embed-el 10.1.25: https://tomcat.apache.org, Apache 2.0
+    tomcat-embed-websocket 10.1.25: https://tomcat.apache.org, Apache 2.0
     unbescape 1.1.6.RELEASE: http://www.unbescape.org, Apache 2.0
-    zookeeper 3.7.2: https://github.com/apache/zookeeper, Apache 2.0
-    zookeeper-jute 3.7.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
     vertx-core 4.3.2: https://vertx.io/, Apache 2.0
     vertx-grpc 4.3.2: https://vertx.io/, Apache 2.0
-    curator-client 4.3.0: https://github.com/apache/curator, Apache 2.0
-    curator-framework 4.3.0: https://github.com/apache/curator, Apache 2.0
-    curator-recipes 4.3.0: https://github.com/apache/curator, Apache 2.0
+    curator-client 5.7.0: https://github.com/apache/curator, Apache 2.0
+    curator-framework 5.7.0: https://github.com/apache/curator, Apache 2.0
+    curator-recipes 5.7.0: https://github.com/apache/curator, Apache 2.0
     apollo-client 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
     apollo-openapi 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
     apollo-core 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
-    reactor-netty-core 1.0.38 https://github.com/reactor/reactor/blob/main/LICENSE, Apache 2.0
-    reactor-netty-http 1.0.38 https://github.com/reactor/reactor-netty/blob/main/LICENSE, Apache 2.0
+    reactor-netty-core 1.1.20 https://github.com/reactor/reactor/blob/main/LICENSE, Apache 2.0
+    reactor-netty-http 1.1.20 https://github.com/reactor/reactor-netty/blob/main/LICENSE, Apache 2.0
     javax.inject 1 http://www.apache.org/licenses/LICENSE-2.0, Apache 2.0
-    jackson-dataformat-yaml 2.13.5: https://github.com/FasterXML/jackson-dataformats-text, Apache 2.0
-    kotlin-stdlib 1.6.21 https://kotlinlang.org, Apache 2.0
-    kotlin-stdlib-common 1.6.21 https://kotlinlang.org, Apache 2.0
-    reactor-core 3.4.30 https://github.com/reactor/reactor-core/blob/main/LICENSE, Apache 2.0
-    simpleclient_common 0.15.0 https://github.com/micrometer-metrics/micrometer/blob/main/LICENSE, Apache 2.0
+    jakarta.inject-api 2.0.1: https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api, Apache 2.0
+    jackson-dataformat-yaml 2.17.1: https://github.com/FasterXML/jackson-dataformats-text, Apache 2.0
+    kotlin-stdlib 1.9.24 https://kotlinlang.org, Apache 2.0
+    kotlin-stdlib-common 1.9.24 https://kotlinlang.org, Apache 2.0
+    reactor-core 3.6.7 https://github.com/reactor/reactor-core/blob/main/LICENSE, Apache 2.0
+    simpleclient_common 0.16.0 https://github.com/micrometer-metrics/micrometer/blob/main/LICENSE, Apache 2.0
     guice 4.1.0: https://github.com/google/guice/blob/master/COPYING, Apache 2.0
     commons-math 2.2: https://github.com/apache/commons-math, Apache 2.0
     compactmap 2.0: https://mvnrepository.com/artifact/com.github.vlsi.compactmap/compactmap, Apache 2.0
@@ -398,18 +445,18 @@ The text of each license is the standard Apache 2.0 license.
     commons-configuration 1.10: https://github.com/apache/commons-configuration, Apache 2.0
     commons-jxpath 1.3: https://github.com/apache/commons-jxpath, Apache 2.0
     commons-lang 2.6: https://github.com/apache/commons-lang, Apache 2.0
-    commons-logging 1.1.1: https://github.com/apache/commons-logging, Apache 2.0
+    commons-logging 1.2: https://github.com/apache/commons-logging, Apache 2.0
     error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
-    eureka-client 1.10.17 https://github.com/Netflix/eureka, Apache 2.0
+    eureka-client 2.0.2 https://github.com/Netflix/eureka, Apache 2.0
     j2objc-annotations 2.8 https://github.com/google/j2objc, Apache 2.0
-    jettison 1.4.0: https://github.com/jettison-json/jettison, Apache 2.0
+    jettison 1.5.4: https://github.com/jettison-json/jettison, Apache 2.0
     joda-time 2.3 https://www.joda.org/joda-time/, Apache 2.0
     netflix-eventbus 0.3.0: https://github.com/Netflix/netflix-commons, Apache 2.0
     netflix-infix 0.3.0: https://github.com/Netflix/netflix-commons, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
     guava 32.0.0-jre: https://github.com/google/guava, Apache 2.0
-    kotlin-stdlib-jdk7 1.6.21: https://kotlinlang.org, Apache 2.0
-    kotlin-stdlib-jdk8 1.6.21: https://kotlinlang.org, Apache 2.0
+    kotlin-stdlib-jdk7 1.9.24: https://kotlinlang.org, Apache 2.0
+    kotlin-stdlib-jdk8 1.9.24: https://kotlinlang.org, Apache 2.0
     nekohtml 1.9.22: http://nekohtml.sourceforge.net/, Apache 2.0
     thymeleaf-extras-java8time 3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-spring5 3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
@@ -435,13 +482,13 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     kryo-shaded 4.0.0: https://github.com/EsotericSoftware/kryo/kryo-shaded, BSD 2-Clause
     minlog 1.3.0: https://github.com/EsotericSoftware/minlog, BSD 2-Clause
     postgresql 42.3.8: https://github.com/pgjdbc/pgjdbc, BSD 2-Clause
-    protobuf-java 3.21.12: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
+    protobuf-java 3.25.5: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.1: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
     antlr 2.7.7: http://www.antlr.org/, BSD-3-Clause
     antlr-runtime 3.4: http://www.antlr.org/, BSD-3-Clause
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
-    xstream 1.4.18: https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream, BSD
+    xstream 1.4.19: https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream, BSD
     encoder 1.2.3: https://github.com/OWASP/owasp-java-encoder, BSD 3-Clause
 
 ========================================================================
@@ -451,7 +498,7 @@ CC0 licenses
 The following components are provided under a CC0 license. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    HdrHistogram 2.1.12: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
+    HdrHistogram 2.2.2: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
     LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
 
 ========================================================================
@@ -461,11 +508,17 @@ EPL licenses
 The following components are provided under the EPL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    aspectjweaver 1.9.7: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver/1.9.7, EPL 1.0
-    h2 2.1.214: http://www.h2database.com/html/main.html , MPL 2.0 or EPL 1.0
+    aspectjweaver 1.9.22: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver, EPL 1.0
+    h2 2.2.224: http://www.h2database.com/html/main.html , MPL 2.0 or EPL 1.0
     jakarta.annotation-api 1.3.5: https://projects.eclipse.org/projects/ee4j.ca, EPL 2.0
-    logback-classic 1.2.12: https://github.com/qos-ch/logback, EPL 1.0
-    logback-core 1.2.12: https://github.com/qos-ch/logback, EPL 1.0
+    logback-classic 1.5.6: https://github.com/qos-ch/logback, EPL 1.0
+    logback-core 1.5.6: https://github.com/qos-ch/logback, EPL 1.0
+    jakarta.mail 2.0.3: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail, EDL 1.0/EPL 2.0/GPL
+    hk2-utils 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-utils, EPL 2.0/GPL
+    hk2-api 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-api, EPL 2.0/GPL
+    hk2-locator 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator, EPL 2.0/GPL
+    aopalliance-repackaged 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2.external/aopalliance-repackaged, EPL 2.0/GPL
+    jakarta.ws.rs-api 3.1.0: https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api EPL 2.0/GPL 2.0
 
 ========================================================================
 MIT licenses
@@ -474,13 +527,13 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    animal-sniffer-annotations 1.21: https://github.com/mojohaus/animal-sniffer, MIT
+    animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
-    jcl-over-slf4j 1.7.36: https://www.slf4j.org, MIT
-    jul-to-slf4j 1.7.36: http://www.slf4j.org, MIT
+    jcl-over-slf4j 2.0.13: https://www.slf4j.org, MIT
+    jul-to-slf4j 2.0.13: http://www.slf4j.org, MIT
     pagehelper 5.3.3: https://github.com/pagehelper/Mybatis-PageHelper, MIT
-    slf4j-api 1.7.36: https://www.slf4j.org, MIT
+    slf4j-api 2.0.13: https://www.slf4j.org, MIT
     reactive-streams 1.0.4 https://github.com/reactive-streams/reactive-streams-jvm/blob/master/LICENSE, MIT
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
@@ -595,6 +648,7 @@ CDDL licenses
 The following components are provided under the CDDL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    servlet-api 2.5: https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api, CDDL and GPL 2.0
     jaxb-api 2.3.1: https://javaee.github.io/jaxb-v2, CDDL 1.1 and GPLv2
     javax.activation-api 1.2.0: https://github.com/slcorp/javax.activation-api-1.2.0-sources, CDDL and GPL 2.0
     javax.annotation-api 1.3.2: https://github.com/javaee/javax.annotation, CDDL and GPL 2.0
@@ -602,6 +656,8 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jersey-client 1.19.1: https://mvnrepository.com/artifact/com.sun.jersey/jersey-client, CDDL 1.1/GPL 1.1
     jersey-core 1.19.1: https://mvnrepository.com/artifact/com.sun.jersey/jersey-core, CDDL 1.1/GPL 1.1
     jsr311-api 1.1.1: https://mvnrepository.com/artifact/javax.ws.rs/jsr311-api/1.1.1, CDDL 1.0
+    osgi-resource-locator 1.0.3: https://mvnrepository.com/artifact/org.glassfish.hk2/osgi-resource-locator CDDL/GPL 1.1/GPL 2.0
+
 
 ========================================================================
 Public Domain licenses
@@ -609,6 +665,14 @@ Public Domain licenses
 
     aopalliance 1.0: https://mvnrepository.com/artifact/aopalliance/aopalliance, Public Domain
     xmlpull 1.1.3.1: http://www.xmlpull.org, Public Domain
+
+========================================================================
+Bouncy Castle licenses
+========================================================================
+
+    bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
+    bcutil-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
+    bcpkix-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
 
 ========================================================================
 XPP License
@@ -624,8 +688,12 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 EDL License
 ========================================================================
 
-The following components are provided under the XPP License. See project link for details.
+The following components are provided under the EDL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     jakarta.activation 1.2.2: https://mvnrepository.com/artifact/com.sun.activation/jakarta.activation, EDL 1.0
+    jakarta.activation-api 2.1.3: https://mvnrepository.com/artifact/jakarta.activation/jakarta.activation-api, EDL 1.0
+    jakarta.annotation-api 2.1.1: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api, EDL 1.0
+    jakarta.xml.bind-api 4.0.2: https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api, EDL 1.0
     jakarta.mail 1.6.7: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail, EDL 1.0
+    angus-activation 2.0.2: https://mvnrepository.com/artifact/org.eclipse.angus/angus-activation, EDL 1.0
