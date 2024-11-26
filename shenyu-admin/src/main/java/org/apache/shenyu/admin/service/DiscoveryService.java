@@ -86,9 +86,18 @@ public interface DiscoveryService {
 
     /**
      * list all vo.
+     *
      * @return discovery vo
      */
     List<DiscoveryVO> listAllData();
+
+    /**
+     * list all vo.
+     *
+     * @param namespaceId namespaceId
+     * @return discovery vo
+     */
+    List<DiscoveryVO> listAllDataByNamespaceId(String namespaceId);
 
     /**
      * findDiscoveryHandlerBySelectorId.
@@ -111,8 +120,18 @@ public interface DiscoveryService {
 
     /**
      * Import discovery data list.
+     *
      * @param discoveryList the discovery data
      * @return config import result
      */
     ConfigImportResult importData(List<DiscoveryDTO> discoveryList);
+
+    /**
+     * Import discovery data list.
+     *
+     * @param namespace the namespace
+     * @param discoveryList the discovery data
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<DiscoveryDTO> discoveryList);
 }
