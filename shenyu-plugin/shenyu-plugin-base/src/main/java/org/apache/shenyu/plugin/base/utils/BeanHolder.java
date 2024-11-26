@@ -54,7 +54,7 @@ public class BeanHolder<O> implements Supplier<O> {
      * @return boolean
      */
     public boolean isNull() {
-        return o == null;
+        return Objects.isNull(o);
     }
 
     /**

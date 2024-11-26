@@ -62,7 +62,7 @@ Content-Type: application/json
   "id": 123,
   "name": "order"
 }
-### shengyu getway proxy orderSave
+### shengyu getway proxy findById
 GET http://localhost:9195/http/order/findById?id=123
 Accept: application/json
 Content-Type: application/json
@@ -132,7 +132,7 @@ GET http://localhost:9195/http/test/findByUserId?userId=%25
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy findByUserId
+### shengyu getway proxy findByUserIdName
 GET http://localhost:9195/http/test/findByUserIdName?userId=#&name=shenyu
 Accept: application/json
 Content-Type: application/json
