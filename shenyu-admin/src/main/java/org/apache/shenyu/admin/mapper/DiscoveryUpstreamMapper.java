@@ -69,6 +69,15 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      */
     List<DiscoveryUpstreamDO> selectBySelectorId(@Param("selectorId") String selectorId);
 
+
+    /**
+     * selectByNamespaceId.
+     *
+     * @param namespaceId namespaceId
+     * @return DiscoveryUpstreamDO list
+     */
+    List<DiscoveryUpstreamDO> selectByNamespaceId(String namespaceId);
+
     /**
      * selectByDiscoveryHandlerId.
      *
