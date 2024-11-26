@@ -42,6 +42,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -103,7 +104,7 @@ public class ConfigsExportImportControllerTest {
         // mock import data
         List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
 
-        when(this.configsService.configsImport(any())).thenReturn(
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(
                 ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS));
 
         // mock file
@@ -111,6 +112,7 @@ public class ConfigsExportImportControllerTest {
         // Run the test
         final MockHttpServletResponse response = mockMvc.perform(multipart("/configs/import")
                         .file(file)
+                        .param("namespace", "test")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
                 .andExpect(status().isOk())

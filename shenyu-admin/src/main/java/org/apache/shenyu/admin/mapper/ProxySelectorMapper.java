@@ -119,4 +119,12 @@ public interface ProxySelectorMapper extends ExistProvider {
      */
     List<ProxySelectorDO> selectAll();
 
+    /**
+     * selectAllByNamespaceId.
+     *
+     * @param namespaceId namespaceId
+     * @return ProxySelectorDOList
+     */
+    List<ProxySelectorDO> selectByNamespaceId(String namespaceId);
+
 }

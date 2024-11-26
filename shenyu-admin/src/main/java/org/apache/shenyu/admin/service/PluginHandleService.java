@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -95,6 +96,14 @@ public interface PluginHandleService {
      * @return plugin handle list.
      */
     List<PluginHandleVO> listAllData();
+    
+    /**
+     * find all plugin handle list by plugin ids.
+     *
+     * @param pluginIds the plugin ids
+     * @return plugin handle list.
+     */
+    List<PluginHandleVO> listAllDataByPluginIds(Collection<String> pluginIds);
 
     /**
      * import plugin handle list.

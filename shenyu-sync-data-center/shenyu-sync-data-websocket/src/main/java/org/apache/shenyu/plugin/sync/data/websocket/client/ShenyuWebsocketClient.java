@@ -117,7 +117,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final String namespaceId) {
         super(serverUri, headers);
         this.namespaceId = namespaceId;
-        LOG.info("shenyu bootstrap websocket namespaceId:{}", namespaceId);
+        LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();

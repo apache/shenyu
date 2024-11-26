@@ -270,6 +270,16 @@
         </foreach>
     </select>
 
+    <select id="selectByPluginIds" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_handle
+        where plugin_id in
+        <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+            #{pluginId,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByIdList" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
         SELECT
         <include refid="Base_Column_List"/>
