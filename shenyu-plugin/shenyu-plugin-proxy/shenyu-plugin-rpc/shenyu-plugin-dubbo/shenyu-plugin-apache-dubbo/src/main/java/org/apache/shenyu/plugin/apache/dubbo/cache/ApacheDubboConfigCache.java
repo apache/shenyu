@@ -223,6 +223,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             if (StringUtils.isNoneBlank(dubboParam.getCluster())) {
                 reference.setCluster(dubboParam.getCluster());
             }
+            if (StringUtils.isNoneBlank(dubboParam.getLoadbalance())) {
+                reference.getParameters().put(Constants.DUBBO_LOAD_BALANCE, dubboParam.getLoadbalance());
+            }
             // set dubbo sub protocol
             Optional.ofNullable(dubboParam.getProtocol()).ifPresent(reference::setProtocol);
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
