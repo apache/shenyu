@@ -52,7 +52,7 @@ spec:
         env:
           - name: KUBECONFIG
             value: '/root/.kube/config'
-          - name: eureka.client.serviceUrl.defaultZone
+          - name: shenyu.discovery.serverList
             value: http://shenyu-examples-eureka:8761/eureka/
         imagePullPolicy: IfNotPresent
       serviceAccountName: shenyu-ingress-controller
