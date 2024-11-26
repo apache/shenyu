@@ -24,8 +24,6 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
     ports:
       - "31878:2181"
-#    volumes:
-#      - /zoo.cfg:/conf/zookeeper.cfg
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 2181 || exit 1" ]
       interval: 30s
