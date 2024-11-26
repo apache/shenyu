@@ -28,6 +28,5 @@
 
     <modules>
         <module>shenyu-client-springmvc</module>
-        <module>shenyu-client-springcloud</module>
     </modules>
 </project>
