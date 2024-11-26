@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 public class HttpLongPollingSyncConfiguration {
     
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingSyncConfiguration.class);
-    
+
     /**
      * httpLongPollingDataChangedListener.
      *

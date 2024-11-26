@@ -328,8 +328,68 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         return ConfigImportResult.success(successCount);
     }
-
-
+    
+    @Override
+    public ConfigImportResult importData(final String namespace, final List<AppAuthDTO> authDataList) {
+        if (CollectionUtils.isEmpty(authDataList)) {
+            return ConfigImportResult.success();
+        }
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        // exist appKey set
+        Set<String> existAppKeySet = Optional.of(
+                        this.appAuthMapper.selectAllByNamespaceId(namespace)
+                                .stream()
+                                .filter(Objects::nonNull)
+                                .map(AppAuthDO::getAppKey)
+                                .collect(Collectors.toSet()))
+                .orElseGet(Sets::newHashSet);
+        
+        for (AppAuthDTO appAuth : authDataList) {
+            String appKey = appAuth.getAppKey();
+            if (existAppKeySet.contains(appKey)) {
+                // already exists, just record fail info, and continue
+                LOG.info("import auth data, appKey: {} already exists", appKey);
+                errorMsgBuilder
+                        .append(appKey)
+                        .append(",");
+                continue;
+            }
+            AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuth);
+            // create
+            String authId = UUIDUtils.getInstance().generateShortUuid();
+            appAuthDO.setId(authId);
+            int inserted = appAuthMapper.insertSelective(appAuthDO);
+            if (inserted > 0) {
+                successCount++;
+                // auth path
+                List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
+                if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+                    List<AuthPathDO> authPathDOS = authPathDTOList
+                            .stream()
+                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                            .collect(Collectors.toList());
+                    authPathMapper.batchSave(authPathDOS);
+                }
+                
+                // auth param
+                List<AuthParamDTO> authParamVOList = appAuth.getAuthParamList();
+                if (CollectionUtils.isNotEmpty(authParamVOList)) {
+                    List<AuthParamDO> authParamDOS = authParamVOList
+                            .stream()
+                            .map(param -> AuthParamDO.create(authId, param.getAppName(), param.getAppParam()))
+                            .collect(Collectors.toList());
+                    authParamMapper.batchSave(authParamDOS);
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            return ConfigImportResult.fail(successCount, "import fail appKey: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
+    }
+    
+    
     /**
      * create or update application authority.
      *
@@ -540,7 +600,28 @@ public class AppAuthServiceImpl implements AppAuthService {
             }
         ).collect(Collectors.toList());
     }
-
+    
+    @Override
+    public List<AppAuthVO> listAllDataByNamespace(final String namespace) {
+        
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespace);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return new ArrayList<>();
+        }
+        
+        List<String> idList = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
+        Map<String, List<AuthParamVO>> paramMap = this.prepareAuthParamVO(idList);
+        Map<String, List<AuthPathVO>> pathMap = this.prepareAuthPathVO(idList);
+        
+        return appAuthDOList.stream().map(data -> {
+                AppAuthVO vo = AppAuthTransfer.INSTANCE.mapToVO(data);
+                vo.setAuthParamList(paramMap.get(vo.getId()));
+                vo.setAuthPathList(pathMap.get(vo.getId()));
+                return vo;
+            }
+        ).collect(Collectors.toList());
+    }
+    
     @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
         return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
