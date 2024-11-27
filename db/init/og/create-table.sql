@@ -969,7 +969,6 @@ INSERT INTO "public"."plugin" VALUES ('3', 'rewrite', NULL, 'HttpProcess', 90, 0
 INSERT INTO "public"."plugin" VALUES ('4', 'rateLimiter', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 'FaultTolerance', 60, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('5', 'divide', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('6', 'dubbo', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('27', 'generalContext', NULL, 'Common', 125, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('28', 'mqtt', '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', 'Proxy', 125, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
@@ -1039,9 +1038,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136266', '3', 'regex'
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136267', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136268', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136269', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136270', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136271', '8', 'serviceId', 'serviceId', 2, 1, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136272', '12', 'timeoutDurationRate', 'timeoutDurationRate ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136273', '12', 'limitRefreshPeriod', 'limitRefreshPeriod ms)', 1, 2, 0, '{"required":"1","defaultValue":"500","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136274', '12', 'limitForPeriod', 'limitForPeriod', 1, 2, 0, '{"required":"1","defaultValue":"50","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1257,7 +1253,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524999', '38', 'datab
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172800', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172801', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172777', '38', 'ttl', 'ttl', 3, 3, 10, '{"required":"0","defaultValue":"30"}', '2023-03-01 11:14:15', '2023-08-16 11:15:14');
-INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172802', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{"defaultValue":"roundRobin","rule":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172803', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{"required":"0","defaultValue":"500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172804', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{"required":"0","defaultValue":"10"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172805', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
@@ -1367,9 +1362,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507021', '14', 'rewri
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507022', '14', 'percentage', 'percentage', 1, 2, 3, '{"required":"1","defaultValue":"100"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507023', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507024', '8', 'registerType', 'registerType', 2, 3, 1, NULL, '2024-08-24 09:40:03.293', '2024-08-24 21:52:27.920');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507025', '8', 'serverLists', 'serverLists', 2, 3, 2, NULL, '2024-08-24 21:52:51.179', '2024-08-24 21:53:27.483');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507026', '8', 'props', 'props', 4, 3, 3, NULL, '2024-08-24 21:53:25.764', '2024-08-24 21:53:30.255');
 
 -- ----------------------------
 -- Table structure for resource
@@ -2680,7 +2672,6 @@ INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822181','64933
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', '{"enabled":false,"registerType":"eureka","serverLists":"http://localhost:8761/eureka","props":{}}', 200, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 
