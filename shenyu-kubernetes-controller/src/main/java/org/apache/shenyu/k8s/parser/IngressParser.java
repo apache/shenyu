@@ -67,7 +67,6 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         List<ShenyuMemoryConfig> shenyuMemoryConfigList = new ArrayList<>();
         boolean dubboEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_DUBBO_ENABLED);
         boolean motanEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_MOTAN_ENABLED);
-        boolean springCloudEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
         boolean webSocketEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
@@ -82,9 +81,6 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         } else if (motanEnabled) {
             MotanIngressParser motanIngressParser = new MotanIngressParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(motanIngressParser.parse(ingress, coreV1Api));
-        } else if (springCloudEnabled) {
-            SpringCloudParser springCloudParser = new SpringCloudParser(serviceLister, endpointsLister);
-            shenyuMemoryConfigList.add(springCloudParser.parse(ingress, coreV1Api));
         } else if (webSocketEnabled) {
             WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(webSocketParser.parse(ingress, coreV1Api));

@@ -133,12 +133,7 @@ public class ShenyuCacheRepository {
 
     private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
         LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
-        List<DivideUpstream> divideUpstreams;
-        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), pluginName)) {
-            divideUpstreams = GsonUtils.getInstance().fromJson(handle, SpringCloudSelectorHandle.class).getDivideUpstreams();
-        } else {
-            divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-        }
+        List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return Collections.emptyList();
         }

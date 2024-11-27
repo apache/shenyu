@@ -439,7 +439,7 @@ comment on column API.produce
 comment on column API.version
   is 'api version,for example V0.01';
 comment on column API.rpc_type
-  is 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc';
+  is 'http,dubbo,sofa,tars,websocket,motan,grpc';
 comment on column API.state
   is '0-unpublished,1-published,2-offline';
 comment on column API.ext
