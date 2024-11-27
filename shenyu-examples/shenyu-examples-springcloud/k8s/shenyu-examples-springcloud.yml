@@ -53,7 +53,7 @@ spec:
             - name: shenyu.discovery.serverList
               value: http://shenyu-examples-eureka:8761/eureka/
             - name: shenyu.discovery.enable
-              value: 'true'
+              value: 'false'
           ports:
             - containerPort: 8884
           imagePullPolicy: IfNotPresent
