@@ -153,11 +153,6 @@ public enum ShenyuResultEnum {
     SELECTOR_NOT_FOUND(-107, "Can not find selector, please check your configuration!"),
     
     /**
-     * The Springcloud serviceid is error.
-     */
-    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "SpringCloud serviceId does not exist or is configured incorrectly!"),
-    
-    /**
      * The Sentinel block error.
      */
     SENTINEL_BLOCK_ERROR(-110, "The request block by sentinel!"),
