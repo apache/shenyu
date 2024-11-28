@@ -223,6 +223,26 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateByNamespaceIdAndPluginId" parameterType="org.apache.shenyu.admin.model.entity.NamespacePluginRelDO">
+        UPDATE namespace_plugin_rel
+        <set>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="config != null">
+                config = #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+        </set>
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+    </update>
+
     <select id="selectByIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         npr.id AS id,

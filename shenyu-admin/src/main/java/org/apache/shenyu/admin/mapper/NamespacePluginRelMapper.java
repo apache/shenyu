@@ -103,8 +103,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude, @Param("namespaceId") String namespaceId);
-
-
+    
     /**
      * update selective plugin.
      *
@@ -112,6 +111,14 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return rows int
      */
     int updateSelective(NamespacePluginRelDO namespacePluginRelDO);
+    
+    /**
+     * update plugin by namespaceId and pluginId.
+     *
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
+     * @return rows int
+     */
+    int updateByNamespaceIdAndPluginId(NamespacePluginRelDO namespacePluginRelDO);
 
     /**
      * select plugin by ids and namespaceId.
