@@ -75,7 +75,8 @@
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
         npr.namespace_id AS namespaceId,
-        npr.plugin_id AS id,
+        npr.id AS id,
+        npr.plugin_id AS pluginId,
         npr.id AS pluginRelId,
         npr.config AS config,
         npr.sort AS sort,
