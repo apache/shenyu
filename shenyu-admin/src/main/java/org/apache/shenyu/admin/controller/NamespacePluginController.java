@@ -156,7 +156,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     @DeleteMapping("/batch")
     @RequiresPermissions("system:plugin:delete")
     public ShenyuAdminResult deleteNamespacePlugin(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        final String result = namespacePluginService.delete(batchNamespaceCommonDTO.getIds());
+        final String result = namespacePluginService.delete(batchNamespaceCommonDTO.getNamespaceId(), batchNamespaceCommonDTO.getIds());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }

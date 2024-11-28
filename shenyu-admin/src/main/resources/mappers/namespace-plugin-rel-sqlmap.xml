@@ -262,6 +262,27 @@
         </foreach>
     </select>
 
+    <select id="selectByNamespaceIdAndPluginIds" parameterType="java.util.List" resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
+        SELECT
+        npr.id AS id,
+        npr.namespace_id AS namespaceId,
+        npr.plugin_id AS pluginId,
+        npr.config AS config,
+        npr.sort AS sort,
+        npr.enabled AS enabled,
+        npr.date_created AS dateCreated,
+        npr.date_updated AS dateUpdated,
+        p.role AS role,
+        p.NAME AS NAME
+        FROM namespace_plugin_rel  npr LEFT JOIN plugin p ON npr.plugin_id = p.id
+        WHERE
+        npr.namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        AND npr.plugin_id IN
+        <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+            #{pluginId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM namespace_plugin_rel
         WHERE id IN
