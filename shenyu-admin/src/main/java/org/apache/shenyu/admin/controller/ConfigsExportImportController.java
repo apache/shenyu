@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
@@ -84,6 +85,27 @@ public class ConfigsExportImportController {
     }
 
     /**
+     * Export all configs.
+     *
+     * @param namespace namespaceId
+     * @param response response
+     * @return the shenyu result
+     */
+    @GetMapping("/exportByNamespace")
+    @RequiresPermissions("system:manager:exportConfig")
+    public ResponseEntity<byte[]> exportConfigsByNamespace(final String namespace, final HttpServletResponse response) {
+        ShenyuAdminResult result = configsService.configsExport(namespace);
+        if (!Objects.equals(CommonErrorCode.SUCCESSFUL, result.getCode())) {
+            throw new ShenyuException(result.getMessage());
+        }
+        HttpHeaders headers = new HttpHeaders();
+        String fileName = generateFileName();
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+        headers.add("Content-Disposition", "attachment;filename=" + fileName);
+        return new ResponseEntity<>((byte[]) result.getData(), headers, HttpStatus.OK);
+    }
+
+    /**
      * generate export file name.
      *
      * @return fileName
@@ -96,17 +118,18 @@ public class ConfigsExportImportController {
     /**
      * Import configs.
      *
+     * @param namespace namespace
      * @param file config file
      * @return shenyu admin result
      */
     @PostMapping("/import")
     @RequiresPermissions("system:manager:importConfig")
-    public ShenyuAdminResult importConfigs(final MultipartFile file) {
-        if (Objects.isNull(file)) {
+    public ShenyuAdminResult importConfigs(final String namespace, final MultipartFile file) {
+        if (StringUtils.isBlank(namespace) || Objects.isNull(file)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         try {
-            ShenyuAdminResult importResult = configsService.configsImport(file.getBytes());
+            ShenyuAdminResult importResult = configsService.configsImport(namespace, file.getBytes());
             if (Objects.equals(CommonErrorCode.SUCCESSFUL, importResult.getCode())) {
                 // sync data
                 syncDataService.syncAll(DataEventTypeEnum.REFRESH);

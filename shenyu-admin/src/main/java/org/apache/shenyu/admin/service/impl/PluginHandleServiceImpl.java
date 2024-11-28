@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,16 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                 .build());
         return buildPluginHandleVO(pluginHandleDOList);
     }
-
+    
+    @Override
+    public List<PluginHandleVO> listAllDataByPluginIds(final Collection<String> pluginIds) {
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByPluginIds(pluginIds);
+        if (CollectionUtils.isEmpty(pluginHandleDOList)) {
+            return Lists.newArrayList();
+        }
+        return buildPluginHandleVO(pluginHandleDOList);
+    }
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult importData(final List<PluginHandleDTO> pluginHandleList) {
@@ -173,7 +183,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
         }
         return ShenyuAdminResult.success();
     }
-
+    
     /**
      * The associated Handle needs to be deleted synchronously.
      *
