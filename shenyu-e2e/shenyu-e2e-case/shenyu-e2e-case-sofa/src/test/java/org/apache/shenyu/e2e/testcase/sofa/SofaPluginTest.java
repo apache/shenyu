@@ -70,7 +70,7 @@ public class SofaPluginTest {
         reqBody.put("sort", "310");
         reqBody.put("config", "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zookeeper:2181\"}");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("1801816010882822147", reqBody);
+        adminClient.changePluginStatus("11", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.sofa.SofaPlugin");
     }
     

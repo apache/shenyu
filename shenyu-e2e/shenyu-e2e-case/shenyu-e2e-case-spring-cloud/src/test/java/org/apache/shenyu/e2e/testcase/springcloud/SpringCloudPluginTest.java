@@ -83,7 +83,7 @@ public class SpringCloudPluginTest {
         reqBody.put("sort", "200");
         reqBody.put("config", "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\"}");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("1801816010882822185", reqBody);
+        adminClient.changePluginStatus("8", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
 
     }
