@@ -237,8 +237,8 @@ springdoc:
 
 logging:
   level:
-    root: debug
-    org.springframework.boot: debug
+    root: info
+    org.springframework.boot: info
     org.apache.ibatis: debug
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
