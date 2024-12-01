@@ -115,7 +115,7 @@ public class DividePluginTest {
         reqBody.put("sort", "180");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config",
-                "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
+                "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"http://localhost:31877\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
     }
