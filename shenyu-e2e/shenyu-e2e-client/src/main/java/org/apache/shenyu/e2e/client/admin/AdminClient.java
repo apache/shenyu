@@ -514,6 +514,7 @@ public class AdminClient extends BaseClient {
         ResponseEntity<ShenYuResult> response = template.exchange(url, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
+        log.info("putResource, rst: {}", rst);
         Assertions.assertNotNull(rst, "checking http response body");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
