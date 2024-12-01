@@ -99,7 +99,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     public NamespacePluginVO create(final String namespaceId, final String pluginId) {
         NamespacePluginVO existNamespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
         if (Objects.nonNull(existNamespacePluginVO)) {
-            throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
+            return existNamespacePluginVO;
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
