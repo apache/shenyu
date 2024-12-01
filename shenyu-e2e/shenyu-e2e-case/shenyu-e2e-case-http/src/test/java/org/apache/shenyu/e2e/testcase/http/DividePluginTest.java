@@ -99,6 +99,7 @@ public class DividePluginTest {
 //        selectorIds = Lists.newArrayList();
 //    }
 
+
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
