@@ -508,7 +508,7 @@ public class AdminClient extends BaseClient {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
         String url = baseURL + uri + "/" + requestBody.get("namespaceId") + "/" + id;
         log.info("putResource, url: {}", url);
-        ResponseEntity<ShenYuResult> response = template.exchange(uri, HttpMethod.PUT, requestEntity, ShenYuResult.class);
+        ResponseEntity<ShenYuResult> response = template.exchange(url, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
