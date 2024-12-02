@@ -104,11 +104,7 @@ public class ShenYuResult {
     @Override
     public String toString() {
         try {
-            return "ShenYuResult{" +
-                    "code=" + code +
-                    ", message='" + message + '\'' +
-                    ", data=" + MAPPER.writeValueAsString(data) +
-                    '}';
+            return MAPPER.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
