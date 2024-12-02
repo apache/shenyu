@@ -43,9 +43,9 @@ import org.apache.shenyu.e2e.model.data.SelectorQueryCondition;
 import org.apache.shenyu.e2e.model.response.FakeResourceDTO;
 import org.apache.shenyu.e2e.model.response.LoginInfo;
 import org.apache.shenyu.e2e.model.response.MetaDataDTO;
+import org.apache.shenyu.e2e.model.response.NamespacePluginDTO;
 import org.apache.shenyu.e2e.model.response.PaginatedResources;
 import org.apache.shenyu.e2e.model.response.PluginDTO;
-import org.apache.shenyu.e2e.model.response.NamespacePluginDTO;
 import org.apache.shenyu.e2e.model.response.ResourceDTO;
 import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.apache.shenyu.e2e.model.response.SearchedResources;
@@ -93,8 +93,6 @@ public class AdminClient extends BaseClient {
 
     private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<>() {
     };
-    
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
 
@@ -184,13 +182,7 @@ public class AdminClient extends BaseClient {
         SelectorQueryCondition condition = SelectorQueryCondition.builder()
                 .switchStatus(true)
                 .build();
-        List<SelectorDTO> list = list("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE, v -> v);
-        try {
-            log.info("listAllSelectors: {}", MAPPER.writeValueAsString(list));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return list;
+        return list("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE, v -> v);
     }
 
     /**
@@ -516,11 +508,9 @@ public class AdminClient extends BaseClient {
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
         String url = baseURL + uri + "/" + requestBody.get("namespaceId") + "/" + id;
-        log.info("putResource, url: {}", url);
         ResponseEntity<ShenYuResult> response = template.exchange(url, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
-        log.info("putResource, rst: {}", rst);
         Assertions.assertNotNull(rst, "checking http response body");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
@@ -528,11 +518,9 @@ public class AdminClient extends BaseClient {
     private <T extends ResourceDTO> T postResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
         String url = baseURL + uri;
-        log.info("postResource, url: {}", url);
         ResponseEntity<ShenYuResult> response = template.exchange(url, HttpMethod.POST, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
-        log.info("postResource, rst: {}", rst);
         Assertions.assertNotNull(rst, "checking http response body");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }

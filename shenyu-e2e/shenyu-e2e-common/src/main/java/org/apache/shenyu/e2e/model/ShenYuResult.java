@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -99,14 +98,5 @@ public class ShenYuResult {
      */
     public void setData(final JsonNode data) {
         this.data = data;
-    }
-    
-    @Override
-    public String toString() {
-        try {
-            return MAPPER.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

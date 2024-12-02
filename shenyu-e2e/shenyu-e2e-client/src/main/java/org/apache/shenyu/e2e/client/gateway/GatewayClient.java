@@ -213,11 +213,6 @@ public class GatewayClient extends BaseClient {
     public Map<String, Integer> getPlugins() {
         ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
         List body = response.getBody();
-        try {
-            log.info("getPlugins: {}", MAPPER.writeValueAsString(body.get(0)));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
         return (Map<String, Integer>) body.get(0);
     }
 
