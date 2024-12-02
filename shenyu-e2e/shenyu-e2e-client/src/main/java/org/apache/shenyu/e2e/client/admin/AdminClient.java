@@ -502,7 +502,7 @@ public class AdminClient extends BaseClient {
      * @param requestBody requestBody
      */
     public void changePluginStatus(final String id, final Map<String, String> requestBody) {
-        postResource("/namespace-plugin", id, NamespacePluginDTO.class, requestBody);
+        putResource("/namespace-plugin", id, NamespacePluginDTO.class, requestBody);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {

@@ -123,9 +123,13 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param namespacePluginDTO plugin namespace.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PutMapping("/{namespaceId}/{pluginId}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult updatePlugin(@Valid @RequestBody final NamespacePluginDTO namespacePluginDTO) {
+    public ShenyuAdminResult updatePlugin(@PathVariable("namespaceId") final String namespaceId,
+                                          @PathVariable("pluginId") final String pluginId,
+                                          @Valid @RequestBody final NamespacePluginDTO namespacePluginDTO) {
+        namespacePluginDTO.setNamespaceId(namespaceId);
+        namespacePluginDTO.setPluginId(pluginId);
         return ShenyuAdminResult.success(namespacePluginService.update(namespacePluginDTO));
     }
 
@@ -136,7 +140,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @param pluginId           pluginId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{namespaceId}/{pluginId}")
+    @PostMapping("/{namespaceId}/{pluginId}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult generateNamespacePlugin(@Existed(message = "namespace is not exist", provider = NamespaceMapper.class)
                                           @PathVariable("namespaceId") final String namespaceId,
