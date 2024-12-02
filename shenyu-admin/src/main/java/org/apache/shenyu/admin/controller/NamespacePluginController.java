@@ -105,15 +105,15 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * detail plugin of namespace.
      *
      * @param namespaceId namespace id.
-     * @param id namespace plugin relation id.
+     * @param pluginId namespace plugin relation id.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/detail")
+    @GetMapping("/{namespaceId}/{pluginId}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult detailNamespacePlugin(@Existed(message = "namespace is not existed", provider = NamespaceMapper.class)
-                                                       @RequestParam("namespaceId") final String namespaceId,
-                                                   @RequestParam("id") final String id) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findByNamespaceIdAndPluginId(namespaceId, id);
+                                                       @PathVariable("namespaceId") final String namespaceId,
+                                                   @PathVariable("pluginId") final String pluginId) {
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByNamespaceIdAndPluginId(namespaceId, pluginId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
     }
 
