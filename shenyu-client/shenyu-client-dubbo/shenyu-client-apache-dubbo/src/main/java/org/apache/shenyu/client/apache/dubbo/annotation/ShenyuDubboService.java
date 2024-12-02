@@ -30,9 +30,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_CALLBACK_INSTANCES;
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_RETRIES;
-
 
 /**
  * The interface shenyu service.
@@ -170,7 +167,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int executes() default 0;
+    int executes() default -1;
 
     /**
      * Alias for {@link DubboService#register()} .
@@ -186,7 +183,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int weight() default 0;
+    int weight() default -1;
 
     /**
      * Alias for {@link DubboService#document()} .
@@ -202,7 +199,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int delay() default 0;
+    int delay() default -1;
 
     /**
      * Alias for {@link DubboService#local()} .
@@ -242,7 +239,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int connections() default 0;
+    int connections() default -1;
 
     /**
      * Alias for {@link DubboService#callbacks()} .
@@ -250,7 +247,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int callbacks() default DEFAULT_CALLBACK_INSTANCES;
+    int callbacks() default -1;
 
     /**
      * Alias for {@link DubboService#onconnect()} .
@@ -290,7 +287,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int retries() default DEFAULT_RETRIES;
+    int retries() default -1;
 
     /**
      * Alias for {@link DubboService#loadbalance()} .
@@ -298,7 +295,7 @@ public @interface ShenyuDubboService {
      * @return the string
      */
     @AliasFor(annotation = DubboService.class)
-    String loadbalance() default LoadbalanceRules.RANDOM;
+    String loadbalance() default LoadbalanceRules.EMPTY;
 
     /**
      * Alias for {@link DubboService#async()} .
@@ -314,7 +311,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int actives() default 0;
+    int actives() default -1;
 
     /**
      * Alias for {@link DubboService#sent()} .
@@ -346,7 +343,7 @@ public @interface ShenyuDubboService {
      * @return the int
      */
     @AliasFor(annotation = DubboService.class)
-    int timeout() default 0;
+    int timeout() default -1;
 
     /**
      * Alias for {@link DubboService#cache()} .
