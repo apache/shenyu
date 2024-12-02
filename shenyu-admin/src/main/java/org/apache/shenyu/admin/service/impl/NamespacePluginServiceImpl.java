@@ -246,4 +246,14 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     public ConfigImportResult importData(final List<PluginDTO> pluginList) {
         return null;
     }
+    
+    @Override
+    public List<PluginData> listByNamespace(final String namespace) {
+        List<NamespacePluginVO> namespacePluginList = namespacePluginRelMapper.selectAllByNamespaceId(namespace);
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return Lists.newArrayList();
+        }
+        List<String> pluginIds = namespacePluginList.stream().map(NamespacePluginVO::getPluginId).distinct().collect(Collectors.toList());
+        return ListUtil.map(pluginMapper.selectByIds(pluginIds), PluginTransfer.INSTANCE::mapToData);
+    }
 }

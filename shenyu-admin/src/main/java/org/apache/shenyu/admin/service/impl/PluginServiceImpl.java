@@ -212,16 +212,6 @@ public class PluginServiceImpl implements PluginService {
     }
     
     @Override
-    public List<PluginData> listByNamespace(final String namespace) {
-        List<NamespacePluginVO> namespacePluginList = namespacePluginRelMapper.selectAllByNamespaceId(namespace);
-        if (CollectionUtils.isEmpty(namespacePluginList)) {
-            return Lists.newArrayList();
-        }
-        List<String> pluginIds = namespacePluginList.stream().map(NamespacePluginVO::getPluginId).distinct().collect(Collectors.toList());
-        return ListUtil.map(pluginMapper.selectByIds(pluginIds), PluginTransfer.INSTANCE::mapToData);
-    }
-    
-    @Override
     public List<PluginVO> listAllData() {
         // plugin handle
         Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData()

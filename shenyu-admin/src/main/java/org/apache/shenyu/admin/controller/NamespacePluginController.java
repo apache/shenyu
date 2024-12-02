@@ -234,6 +234,18 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     public ShenyuAdminResult activePluginSnapshot(final String namespaceId) {
         return ShenyuAdminResult.success(namespacePluginService.activePluginSnapshot(namespaceId));
     }
+    
+    /**
+     * query plugins by namespace.
+     *
+     * @param namespace namespace.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/listByNamespace")
+    public ShenyuAdminResult queryPluginsByNamespace(final String namespace) {
+        List<PluginData> pluginDataList = namespacePluginService.listByNamespace(namespace);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
+    }
 
     @Override
     public PageService<NamespacePluginQueryCondition, NamespacePluginVO> pageService() {
