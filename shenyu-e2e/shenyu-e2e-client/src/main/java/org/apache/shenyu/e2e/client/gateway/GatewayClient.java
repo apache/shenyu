@@ -214,7 +214,7 @@ public class GatewayClient extends BaseClient {
         ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         try {
-            log.info("getPlugins: {}",MAPPER.writeValueAsString(body.get(0)));
+            log.info("getPlugins: {}", MAPPER.writeValueAsString(body.get(0)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
