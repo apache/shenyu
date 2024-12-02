@@ -220,7 +220,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/syncPluginData")
-    public ShenyuAdminResult syncPluginData(@RequestParam("id") final String pluginId, @RequestParam("namespaceId") final String namespaceId) {
+    public ShenyuAdminResult syncPluginData(@RequestParam("pluginId") final String pluginId, @RequestParam("namespaceId") final String namespaceId) {
         return ShenyuAdminResult.success(syncDataService.syncPluginData(namespaceId, pluginId) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }
 
