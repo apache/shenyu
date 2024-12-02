@@ -93,6 +93,8 @@ public class AdminClient extends BaseClient {
 
     private static final TypeReference<List<MetaDataDTO>> SEARCHED_METADATAS_TYPE_REFERENCE = new TypeReference<>() {
     };
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
 
@@ -183,7 +185,11 @@ public class AdminClient extends BaseClient {
                 .switchStatus(true)
                 .build();
         List<SelectorDTO> list = list("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE, v -> v);
-        log.info("listAllSelectors: {}", list);
+        try {
+            log.info("listAllSelectors: {}", MAPPER.writeValueAsString(list));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return list;
     }
 
@@ -504,7 +510,7 @@ public class AdminClient extends BaseClient {
      * @param requestBody requestBody
      */
     public void changePluginStatus(final String id, final Map<String, String> requestBody) {
-        putResource("/namespace-plugin", id, NamespacePluginDTO.class, requestBody);
+        postResource("/namespace-plugin", id, NamespacePluginDTO.class, requestBody);
     }
 
     private <T extends ResourceDTO> T putResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
@@ -515,6 +521,18 @@ public class AdminClient extends BaseClient {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
         ShenYuResult rst = response.getBody();
         log.info("putResource, rst: {}", rst);
+        Assertions.assertNotNull(rst, "checking http response body");
+        return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
+    }
+
+    private <T extends ResourceDTO> T postResource(final String uri, final String id, final Class<T> valueType, final Map<String, String> requestBody) {
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, basicAuth);
+        String url = baseURL + uri;
+        log.info("postResource, url: {}", url);
+        ResponseEntity<ShenYuResult> response = template.exchange(url, HttpMethod.POST, requestEntity, ShenYuResult.class);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
+        ShenYuResult rst = response.getBody();
+        log.info("postResource, rst: {}", rst);
         Assertions.assertNotNull(rst, "checking http response body");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
