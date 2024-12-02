@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
