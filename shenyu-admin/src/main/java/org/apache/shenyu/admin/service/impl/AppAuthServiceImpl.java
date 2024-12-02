@@ -248,16 +248,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idList);
         Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idList);
 
-        List<AppAuthData> dataList = appAuthDOList.stream()
+        Map<String, List<AppAuthData>> namespaceDataList = appAuthDOList.stream()
                 .filter(Objects::nonNull)
                 .map(appAuthDO -> {
                     String id = appAuthDO.getId();
                     return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
                 })
-                .collect(Collectors.toList());
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                DataEventTypeEnum.REFRESH,
-                dataList));
+                .collect(Collectors.groupingBy(AppAuthData::getNamespaceId));
+        namespaceDataList.values().forEach(dataList -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.REFRESH,
+                    dataList));
+        });
 
         return ShenyuAdminResult.success();
     }
@@ -359,6 +361,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             // create
             String authId = UUIDUtils.getInstance().generateShortUuid();
             appAuthDO.setId(authId);
+            appAuthDO.setNamespaceId(namespace);
             int inserted = appAuthMapper.insertSelective(appAuthDO);
             if (inserted > 0) {
                 successCount++;
