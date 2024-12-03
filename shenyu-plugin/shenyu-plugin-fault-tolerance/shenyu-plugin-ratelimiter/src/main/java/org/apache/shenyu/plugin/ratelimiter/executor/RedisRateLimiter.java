@@ -75,6 +75,7 @@ public class RedisRateLimiter {
                     LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }
+    
     /**
      * Verify using different current limiting algorithm scripts.
      *
