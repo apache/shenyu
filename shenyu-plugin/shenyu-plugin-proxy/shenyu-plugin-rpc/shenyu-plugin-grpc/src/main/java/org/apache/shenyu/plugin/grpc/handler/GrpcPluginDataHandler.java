@@ -40,14 +40,15 @@ public class GrpcPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            final String namespaceId = pluginData.getNamespaceId();
             GrpcRegisterConfig grpcRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), GrpcRegisterConfig.class);
-            GrpcRegisterConfig exist = Singleton.INST.get(GrpcRegisterConfig.class);
+            GrpcRegisterConfig exist = Singleton.INST.get(namespaceId, pluginNamed(), GrpcRegisterConfig.class);
             if (Objects.isNull(grpcRegisterConfig)) {
                 return;
             }
             if (Objects.isNull(exist) || !grpcRegisterConfig.equals(exist)) {
                 // If it is null, cache it
-                Singleton.INST.single(GrpcRegisterConfig.class, grpcRegisterConfig);
+                Singleton.INST.single(namespaceId, pluginNamed(), GrpcRegisterConfig.class, grpcRegisterConfig);
             }
         }
     }

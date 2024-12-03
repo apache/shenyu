@@ -35,8 +35,9 @@ public class MotanPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            final String namespaceId = pluginData.getNamespaceId();
             MotanRegisterConfig motanRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MotanRegisterConfig.class);
-            MotanRegisterConfig exist = Singleton.INST.get(MotanRegisterConfig.class);
+            MotanRegisterConfig exist = Singleton.INST.get(namespaceId, pluginNamed(), MotanRegisterConfig.class);
             if (Objects.isNull(motanRegisterConfig)) {
                 return;
             }
@@ -45,7 +46,7 @@ public class MotanPluginDataHandler implements PluginDataHandler {
                 ApplicationConfigCache.getInstance().init(motanRegisterConfig);
                 ApplicationConfigCache.getInstance().invalidateAll();
             }
-            Singleton.INST.single(MotanRegisterConfig.class, motanRegisterConfig);
+            Singleton.INST.single(namespaceId, pluginNamed(), MotanRegisterConfig.class, motanRegisterConfig);
         }
     }
 

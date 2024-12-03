@@ -74,7 +74,8 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
         String resolverKey = Optional.ofNullable(limiterHandle.getKeyResolverName())
                 .flatMap(name -> Optional.of("-" + RateLimiterKeyResolverFactory.newInstance(name).resolve(exchange)))
                 .orElse("");
-        return redisRateLimiter.isAllowed(rule.getId() + resolverKey, limiterHandle)
+        final String namespaceId = selector.getNamespaceId();
+        return redisRateLimiter.isAllowed(namespaceId, rule.getId() + resolverKey, limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);

@@ -48,7 +48,8 @@ public class CachePlugin extends AbstractShenyuPlugin {
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
-        ICache cache = CacheUtils.getCache();
+        final String namespaceId = selector.getNamespaceId();
+        ICache cache = CacheUtils.getCache(namespaceId, named());
         if (Objects.nonNull(cache)) {
             return cache.getData(CacheUtils.dataKey(exchange))
                     .zipWith(cache.getData(CacheUtils.contentTypeKey(exchange)))

@@ -97,8 +97,9 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         final Class<T> globalLogConfigClass = (Class<T>) actualTypeArguments[0];
         LOG.info("handler {} Plugin data:  {}", pluginNamed(), GsonUtils.getGson().toJson(pluginData));
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            final String namespaceId = pluginData.getNamespaceId();
             T globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), globalLogConfigClass);
-            T exist = Singleton.INST.get(globalLogConfigClass);
+            T exist = Singleton.INST.get(namespaceId, pluginNamed(), globalLogConfigClass);
             if (Objects.isNull(globalLogConfig)) {
                 return;
             }
@@ -107,7 +108,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
                 this.doRefreshConfig(globalLogConfig);
                 logCollector().start();
             }
-            Singleton.INST.single(globalLogConfigClass, globalLogConfig);
+            Singleton.INST.single(namespaceId, pluginNamed(), globalLogConfigClass, globalLogConfig);
             globalLogConfig.setSampler(LogCollectConfigUtils.setSampler(globalLogConfig.getSampleRate()));
             PLUGIN_GLOBAL_CONFIG_MAP.put(pluginData.getId(), globalLogConfig);
         } else {

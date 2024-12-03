@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RateLimitEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -57,5 +58,11 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     @SuppressWarnings("unchecked")
     public void callback(final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
         Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1)).subscribe();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void callback(final String namespace, final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
+        Singleton.INST.get(namespace, PluginEnum.RATE_LIMITER.getName(), ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1)).subscribe();
     }
 }

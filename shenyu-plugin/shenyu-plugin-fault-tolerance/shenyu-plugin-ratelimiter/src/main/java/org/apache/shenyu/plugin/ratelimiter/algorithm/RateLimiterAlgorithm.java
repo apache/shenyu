@@ -61,4 +61,15 @@ public interface RateLimiterAlgorithm<T> {
      */
     default void callback(final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
     }
+
+    /**
+     * Callback string.
+     *
+     * @param namespace  the namespace
+     * @param script     the script
+     * @param keys       the keys
+     * @param scriptArgs the script args
+     */
+    default void callback(final String namespace, final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
+    }
 }

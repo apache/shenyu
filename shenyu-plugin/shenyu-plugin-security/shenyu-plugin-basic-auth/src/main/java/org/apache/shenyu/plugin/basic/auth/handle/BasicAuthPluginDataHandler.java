@@ -44,11 +44,12 @@ public class BasicAuthPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        final String namespaceId = pluginData.getNamespaceId();
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         String defaultHandleJson = Optional.ofNullable(configMap.get(Constants.DEFAULT_HANDLE_JSON)).orElse("");
         BasicAuthConfig basicAuthConfig = new BasicAuthConfig();
         basicAuthConfig.setDefaultHandleJson(defaultHandleJson);
-        Singleton.INST.single(BasicAuthConfig.class, basicAuthConfig);
+        Singleton.INST.single(namespaceId, pluginNamed(), BasicAuthConfig.class, basicAuthConfig);
     }
 
     @Override
@@ -58,7 +59,8 @@ public class BasicAuthPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        BasicAuthConfig basicAuthConfig = Singleton.INST.get(BasicAuthConfig.class);
+        final String namespaceId = ruleData.getNamespaceId();
+        BasicAuthConfig basicAuthConfig = Singleton.INST.get(namespaceId, pluginNamed(), BasicAuthConfig.class);
         Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
             BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthRuleHandle.newInstance(StringUtils.defaultString(ruleHandle, basicAuthConfig.getDefaultHandleJson()));
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), basicAuthRuleHandle);

@@ -61,6 +61,7 @@ public class CachePluginDataHandler implements PluginDataHandler {
             return;
         }
         final String config = pluginData.getConfig();
+        final String namespaceId = pluginData.getNamespaceId();
         CacheConfig cacheConfig = GsonUtils.getInstance().fromJson(config, CacheConfig.class);
         if (Objects.isNull(cacheConfig)) {
             LOG.info("invalid cacheConfig.");
@@ -69,15 +70,17 @@ public class CachePluginDataHandler implements PluginDataHandler {
         LOG.info("use the {} cache.", cacheConfig.getCacheType());
         // set the config to compare with lastConfig.
         cacheConfig.setConfig(config);
-        final CacheConfig lastCacheConfig = Singleton.INST.get(CacheConfig.class);
+        final CacheConfig lastCacheConfig = Singleton.INST.get(namespaceId, pluginNamed(), CacheConfig.class);
         if (cacheConfig.equals(lastCacheConfig)) {
             LOG.info("cache plugin initialized.");
             return;
         }
-        Singleton.INST.single(CacheConfig.class, cacheConfig);
+        
+        
+        Singleton.INST.single(namespaceId, pluginNamed(), CacheConfig.class, cacheConfig);
         this.closeCacheIfNeed();
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
-        Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
+        Singleton.INST.single(namespaceId, pluginNamed(), ICache.class, cacheBuilder.builderCache(config));
     }
     
     @Override

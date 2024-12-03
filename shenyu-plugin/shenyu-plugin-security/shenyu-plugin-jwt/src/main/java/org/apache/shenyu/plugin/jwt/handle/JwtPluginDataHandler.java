@@ -43,11 +43,12 @@ public class JwtPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        final String namespaceId = pluginData.getNamespaceId();
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         String secretKey = Optional.ofNullable(configMap.get(Constants.SECRET_KEY)).orElse("");
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecretKey(secretKey);
-        Singleton.INST.single(JwtConfig.class, jwtConfig);
+        Singleton.INST.single(namespaceId, pluginNamed(), JwtConfig.class, jwtConfig);
     }
     
     @Override

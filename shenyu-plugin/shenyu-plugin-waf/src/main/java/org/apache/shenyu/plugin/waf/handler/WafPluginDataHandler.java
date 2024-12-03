@@ -43,8 +43,9 @@ public class WafPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        final String namespaceId = pluginData.getNamespaceId();
         WafConfig wafConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), WafConfig.class);
-        Singleton.INST.single(WafConfig.class, wafConfig);
+        Singleton.INST.single(namespaceId, pluginNamed(), WafConfig.class, wafConfig);
     }
     
     @Override

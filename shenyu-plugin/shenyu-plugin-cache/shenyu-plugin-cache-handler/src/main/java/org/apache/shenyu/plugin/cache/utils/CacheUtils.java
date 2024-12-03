@@ -66,4 +66,15 @@ public final class CacheUtils {
     public static ICache getCache() {
         return Singleton.INST.get(ICache.class);
     }
+
+    /**
+     * get the cache.
+     *
+     * @param namespace the namespace
+     * @param plugin    the plugin
+     * @return cache
+     */
+    public static ICache getCache(final String namespace, final String plugin) {
+        return Singleton.INST.get(namespace, plugin, ICache.class);
+    }
 }

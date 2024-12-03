@@ -35,17 +35,18 @@ public class SofaPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
+            final String namespaceId = pluginData.getNamespaceId();
             SofaRegisterConfig sofaRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), SofaRegisterConfig.class);
             if (Objects.isNull(sofaRegisterConfig)) {
                 return;
             }
-            SofaRegisterConfig exist = Singleton.INST.get(SofaRegisterConfig.class);
+            SofaRegisterConfig exist = Singleton.INST.get(namespaceId, pluginNamed(), SofaRegisterConfig.class);
             if (Objects.isNull(exist) || !sofaRegisterConfig.equals(exist)) {
                 // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(sofaRegisterConfig);
                 ApplicationConfigCache.getInstance().invalidateAll();
             }
-            Singleton.INST.single(SofaRegisterConfig.class, sofaRegisterConfig);
+            Singleton.INST.single(namespaceId, pluginNamed(), SofaRegisterConfig.class, sofaRegisterConfig);
         }
     }
 

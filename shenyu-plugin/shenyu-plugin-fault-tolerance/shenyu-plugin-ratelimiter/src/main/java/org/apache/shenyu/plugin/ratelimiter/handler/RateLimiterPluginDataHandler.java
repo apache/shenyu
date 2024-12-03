@@ -50,16 +50,18 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             //init redis
             RedisConfigProperties redisConfigProperties = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RedisConfigProperties.class);
+            final String namespaceId = pluginData.getNamespaceId();
             //spring data redisTemplate
-            if (Objects.isNull(Singleton.INST.get(ReactiveRedisTemplate.class))
-                    || Objects.isNull(Singleton.INST.get(RedisConfigProperties.class))
-                    || !redisConfigProperties.equals(Singleton.INST.get(RedisConfigProperties.class))) {
+            if (Objects.isNull(Singleton.INST.get(namespaceId, pluginNamed(), ReactiveRedisTemplate.class))
+                    || Objects.isNull(Singleton.INST.get(namespaceId, pluginNamed(), RedisConfigProperties.class))
+                    || !redisConfigProperties.equals(Singleton.INST.get(namespaceId, pluginNamed(), RedisConfigProperties.class))) {
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
                 ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
                         ShenyuRedisSerializationContext.stringSerializationContext());
-                Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
-                Singleton.INST.single(RedisConfigProperties.class, redisConfigProperties);
+                
+                Singleton.INST.single(namespaceId, pluginNamed(), ReactiveRedisTemplate.class, reactiveRedisTemplate);
+                Singleton.INST.single(namespaceId, pluginNamed(), RedisConfigProperties.class, redisConfigProperties);
             }
         }
     }

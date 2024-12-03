@@ -36,8 +36,9 @@ public class TarsPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            final String namespaceId = pluginData.getNamespaceId();
             TarsRegisterConfig tarsRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TarsRegisterConfig.class);
-            TarsRegisterConfig exist = Singleton.INST.get(TarsRegisterConfig.class);
+            TarsRegisterConfig exist = Singleton.INST.get(namespaceId, pluginNamed(), TarsRegisterConfig.class);
             if (Objects.isNull(tarsRegisterConfig)) {
                 return;
             }
@@ -45,7 +46,7 @@ public class TarsPluginDataHandler implements PluginDataHandler {
                 // If it is null, cache it
                 ApplicationConfigCache.getInstance().init(tarsRegisterConfig);
             }
-            Singleton.INST.single(TarsRegisterConfig.class, tarsRegisterConfig);
+            Singleton.INST.single(namespaceId, pluginNamed(), TarsRegisterConfig.class, tarsRegisterConfig);
         }
     }
     

@@ -56,8 +56,9 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            final String namespaceId = pluginData.getNamespaceId();
             DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
-            DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
+            DubboRegisterConfig exist = Singleton.INST.get(namespaceId, pluginNamed(), DubboRegisterConfig.class);
             if (Objects.isNull(dubboRegisterConfig)) {
                 return;
             }
@@ -65,7 +66,7 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
                 // If it is null, initialize it
                 this.initConfigCache(dubboRegisterConfig);
             }
-            Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
+            Singleton.INST.single(namespaceId, pluginNamed(), DubboRegisterConfig.class, dubboRegisterConfig);
         }
     }
 

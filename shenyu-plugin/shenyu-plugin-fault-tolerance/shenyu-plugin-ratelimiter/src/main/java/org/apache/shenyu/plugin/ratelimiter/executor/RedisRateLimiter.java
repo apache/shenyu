@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ratelimiter.executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
@@ -71,6 +72,38 @@ public class RedisRateLimiter {
                 })
                 .doOnError(throwable -> {
                     rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
+                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
+                });
+    }
+    /**
+     * Verify using different current limiting algorithm scripts.
+     *
+     * @param namespace is namespace
+     * @param id is rule id
+     * @param limiterHandle the limiter handle
+     * @return {@code Mono<RateLimiterResponse>} to indicate when request processing is complete
+     */
+    @SuppressWarnings("unchecked")
+    public Mono<RateLimiterResponse> isAllowed(final String namespace, final String id, final RateLimiterHandle limiterHandle) {
+        double replenishRate = limiterHandle.getReplenishRate();
+        double burstCapacity = limiterHandle.getBurstCapacity();
+        double requestCount = limiterHandle.getRequestCount();
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance(limiterHandle.getAlgorithmName());
+        RedisScript<?> script = rateLimiterAlgorithm.getScript();
+        List<String> keys = rateLimiterAlgorithm.getKeys(id);
+        List<String> scriptArgs = Stream.of(replenishRate, burstCapacity, Instant.now().getEpochSecond(), requestCount).map(String::valueOf).collect(Collectors.toList());
+        Flux<List<Long>> resultFlux = Singleton.INST.get(namespace, PluginEnum.RATE_LIMITER.getName(), ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
+        return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
+                .reduce(new ArrayList<Long>(), (longs, l) -> {
+                    longs.addAll(l);
+                    return longs;
+                }).map(results -> {
+                    boolean allowed = results.get(0) == 1L;
+                    Long tokensLeft = results.get(1);
+                    return new RateLimiterResponse(allowed, tokensLeft, keys);
+                })
+                .doOnError(throwable -> {
+                    rateLimiterAlgorithm.callback(namespace, rateLimiterAlgorithm.getScript(), keys, scriptArgs);
                     LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }

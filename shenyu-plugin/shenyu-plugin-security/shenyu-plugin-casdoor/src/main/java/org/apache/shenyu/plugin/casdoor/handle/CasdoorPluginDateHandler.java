@@ -31,6 +31,7 @@ import java.util.Optional;
 public class CasdoorPluginDateHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        final String namespaceId = pluginData.getNamespaceId();
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         final String endpoint = Optional.ofNullable(configMap.get("endpoint")).orElse("");
         final String clientSecrect = Optional.ofNullable(configMap.get("client_secrect")).orElse("");
@@ -41,7 +42,7 @@ public class CasdoorPluginDateHandler implements PluginDataHandler {
         String application = Optional.ofNullable(configMap.get("application-name")).orElse("");
         CasdoorConfig casdoorConfig = new CasdoorConfig(endpoint, clientId, clientSecrect, certificate, organization, application);
         CasdoorAuthService casdoorAuthService = new CasdoorAuthService(casdoorConfig);
-        Singleton.INST.single(CasdoorAuthService.class, casdoorAuthService);
+        Singleton.INST.single(namespaceId, pluginNamed(), CasdoorAuthService.class, casdoorAuthService);
     }
 
     @Override
