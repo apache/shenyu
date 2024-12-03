@@ -44,19 +44,7 @@ public enum Singleton {
     public void single(final Class<?> clazz, final Object o) {
         SINGLES.put(clazz.getName(), o);
     }
-
-    /**
-     * Get t.
-     *
-     * @param <T>   the type parameter
-     * @param clazz the clazz
-     * @return the t
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(final Class<T> clazz) {
-        return (T) SINGLES.get(clazz.getName());
-    }
-
+    
     /**
      * Single.
      *
@@ -67,6 +55,19 @@ public enum Singleton {
      */
     public void single(final String namespace, final String plugin, final Class<?> clazz, final Object o) {
         SINGLES.put(generateKey(namespace, plugin, clazz), o);
+    }
+    
+    
+    /**
+     * Get t.
+     *
+     * @param <T>   the type parameter
+     * @param clazz the clazz
+     * @return the t
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(final Class<T> clazz) {
+        return (T) SINGLES.get(clazz.getName());
     }
     
     /**
