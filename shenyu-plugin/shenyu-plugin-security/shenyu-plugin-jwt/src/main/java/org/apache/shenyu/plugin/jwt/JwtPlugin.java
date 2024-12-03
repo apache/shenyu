@@ -57,7 +57,8 @@ public class JwtPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
+        final String namespace = selector.getNamespaceId();
+        JwtConfig jwtConfig = Singleton.INST.get(namespace, named(), JwtConfig.class);
         String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         String token = exchange.getRequest().getHeaders().getFirst(TOKEN);
         // check secreteKey

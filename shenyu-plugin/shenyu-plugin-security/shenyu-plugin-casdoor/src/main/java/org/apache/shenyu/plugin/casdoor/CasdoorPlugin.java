@@ -43,7 +43,8 @@ public class CasdoorPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        CasdoorAuthService casdoorAuthService = Singleton.INST.get(CasdoorAuthService.class);
+        final String namespace = selector.getNamespaceId();
+        CasdoorAuthService casdoorAuthService = Singleton.INST.get(namespace, named(), CasdoorAuthService.class);
         ServerHttpRequest request = exchange.getRequest();
         String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (Objects.nonNull(token)) {
