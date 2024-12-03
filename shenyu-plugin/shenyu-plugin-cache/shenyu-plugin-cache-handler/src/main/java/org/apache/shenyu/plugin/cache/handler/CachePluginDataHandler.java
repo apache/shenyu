@@ -76,7 +76,6 @@ public class CachePluginDataHandler implements PluginDataHandler {
             return;
         }
         
-        
         Singleton.INST.single(namespaceId, pluginNamed(), CacheConfig.class, cacheConfig);
         this.closeCacheIfNeed();
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());

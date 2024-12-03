@@ -51,7 +51,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final String namespace = selector.getNamespaceId();
-        WafConfig wafConfig = Singleton.INST.get(namespace, named(),WafConfig.class);
+        WafConfig wafConfig = Singleton.INST.get(namespace, named(), WafConfig.class);
         if (Objects.isNull(rule)) {
             if (WafModelEnum.BLACK.getName().equals(wafConfig.getModel())) {
                 return chain.execute(exchange);
