@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -104,12 +105,13 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * detail plugin of namespace.
      *
-     * @param id ns plugin rel id.
+     * @param id namespace plugin relation id.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult detailNamespacePlugin(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailNamespacePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+                                                   @PathVariable("id") final String id) {
         NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
     }
@@ -117,13 +119,14 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     /**
      * update plugin of namespace.
      *
-     * @param id                plugin namespace id.
+     * @param id                namespace plugin relation id.
      * @param namespacePluginDTO plugin namespace.
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult updatePlugin(@PathVariable("id") final String id,
+    public ShenyuAdminResult updatePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+                                          @PathVariable("id") final String id,
                                           @Valid @RequestBody final NamespacePluginDTO namespacePluginDTO) {
         namespacePluginDTO.setId(id);
         return ShenyuAdminResult.success(namespacePluginService.update(namespacePluginDTO));

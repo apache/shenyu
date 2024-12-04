@@ -113,8 +113,8 @@ public class DividePluginTest {
         reqBody.put("sort", "170");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-        adminClient.changePluginStatus("29", reqBody);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq.LoggingRocketMQPlugin");
+        adminClient.changePluginStatus("1801816010882822166", reqBody);
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)

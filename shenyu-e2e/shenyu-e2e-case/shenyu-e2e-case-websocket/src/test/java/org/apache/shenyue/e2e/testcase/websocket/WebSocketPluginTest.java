@@ -74,7 +74,7 @@ public class WebSocketPluginTest {
         reqBody.put("role", "Proxy");
         reqBody.put("sort", "200");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("26", reqBody);
+        adminClient.changePluginStatus("1801816010882822163", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
 
     }

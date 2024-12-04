@@ -74,7 +74,7 @@ public class ApacheDubboPluginTest {
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config", "{\"corethreads\":\"0\",\"multiSelectorHandle\":\"1\",\"queues\":\"0\","
                 + "\"threadpool\":\"shared\",\"threads\":2147483647,\"register\":\"zookeeper://shenyu-zookeeper:2181\"}");
-        adminClient.changePluginStatus("6", reqBody);
+        adminClient.changePluginStatus("1801816010882822184", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin");
         LOG.info("start dubbo plugin success!");
     }

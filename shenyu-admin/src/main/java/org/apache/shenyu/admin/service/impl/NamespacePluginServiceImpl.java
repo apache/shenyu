@@ -110,11 +110,10 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final NamespacePluginDTO namespacePluginDTO) {
-        String id = namespacePluginDTO.getId();
-        final NamespacePluginVO before = namespacePluginRelMapper.selectById(id);
+        final NamespacePluginVO before = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
-        if (namespacePluginRelMapper.updateByNamespaceIdAndPluginId(namespacePluginRelDO) > 0) {
-            final NamespacePluginVO now = namespacePluginRelMapper.selectById(id);
+        if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {
+            final NamespacePluginVO now = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
             // publish update event.
             namespacePluginEventPublisher.onUpdated(now, before);
         }
