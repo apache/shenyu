@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
+import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -33,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 import java.util.Optional;
 
@@ -41,6 +44,8 @@ import java.util.Optional;
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSpringMvcDiscoveryConfiguration {
 
+    @Resource
+    private Environment environment;
 
     /**
      * clientDiscoveryConfigRefreshedEventListener Bean.
@@ -70,6 +75,7 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
      * @return InstanceRegisterListener
      */
     @Bean("springmvcInstanceRegisterListener")
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     @Primary
     public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,
@@ -81,6 +87,10 @@ public class ShenyuSpringMvcDiscoveryConfiguration {
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse(ShenyuClientConstants.HTTP));
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
+        final String appName = environment.getProperty("spring.application.name");
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && appName != null) {
+            shenyuDiscoveryConfig.getProps().put("name", appName);
+        }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

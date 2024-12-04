@@ -14,61 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: spring-cloud-test
-  namespace: shenyu-ingress
-  annotations:
-    kubernetes.io/ingress.class: shenyu
-    shenyu.apache.org/loadbalancer: roundRobin
-    shenyu.apache.org/plugin-spring-cloud-enabled: 'true'
-    shenyu.apache.org/plugin-spring-cloud-app-name: springCloud-test
-    shenyu.apache.org/plugin-spring-cloud-path: /new/feature/get/mapping/path
-    shenyu.apache.org/plugin-spring-cloud-rpc-type: springCloud
-    shenyu.apache.org/plugin-spring-cloud-service-name: org.apache.shenyu.examples.springcloud.controller.NewFeatureController
-    shenyu.apache.org/plugin-spring-cloud-method-name: getMappingUrl
-spec:
-  selector:
-    app: shenyu-examples-springcloud-service
-  ports:
-    - port: 8884  # Assuming this is the spring cloud service port
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: spring-cloud-save
-  namespace: shenyu-ingress
-  annotations:
-    kubernetes.io/ingress.class: shenyu
-    shenyu.apache.org/loadbalancer: roundRobin
-    shenyu.apache.org/plugin-spring-cloud-enabled: 'true'
-    shenyu.apache.org/plugin-spring-cloud-app-name: springCloud-test
-    shenyu.apache.org/plugin-spring-cloud-path: /order/save
-    shenyu.apache.org/plugin-spring-cloud-rpc-type: springCloud
-    shenyu.apache.org/plugin-spring-cloud-service-name: org.apache.shenyu.examples.springcloud.controller.OrderController
-    shenyu.apache.org/plugin-spring-cloud-method-name: save
-    shenyu.apache.org/plugin-spring-cloud-params-type: org.apache.shenyu.examples.springcloud.dto.OrderDTO
-spec:
-  selector:
-    app: shenyu-examples-springcloud-service
-  ports:
-    - port: 8884  # Assuming this is the Spring Cloud service port
-
----
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: shenyu-ingress
-  labels:
-    shenyu.apache.org/metadata-labels-1: spring-cloud-test
-    shenyu.apache.org/metadata-labels-2: spring-cloud-save
   annotations:
     kubernetes.io/ingress.class: shenyu
-    shenyu.apache.org/plugin-spring-cloud-enabled: 'true'
+    shenyu.apache.org/loadbalancer: p2c
     shenyu.apache.org/upstreams-protocol: http://,http://
   name: demo-ingress
 spec:

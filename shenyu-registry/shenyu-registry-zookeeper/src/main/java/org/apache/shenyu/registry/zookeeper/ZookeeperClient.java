@@ -23,8 +23,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -43,25 +43,23 @@ public class ZookeeperClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
 
-    private final ZookeeperConfig config;
-
     private final CuratorFramework client;
 
-    private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
+    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
-        this.config = zookeeperConfig;
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(config.getBaseSleepTimeMilliseconds(), config.getMaxRetries(), config.getMaxSleepTimeMilliseconds());
+        ExponentialBackoffRetry retryPolicy =
+                new ExponentialBackoffRetry(zookeeperConfig.getBaseSleepTimeMilliseconds(), zookeeperConfig.getMaxRetries(), zookeeperConfig.getMaxSleepTimeMilliseconds());
 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                .connectString(config.getServerLists())
+                .connectString(zookeeperConfig.getServerLists())
                 .retryPolicy(retryPolicy)
-                .connectionTimeoutMs(config.getConnectionTimeoutMilliseconds())
-                .sessionTimeoutMs(config.getSessionTimeoutMilliseconds())
-                .namespace(config.getNamespace());
+                .connectionTimeoutMs(zookeeperConfig.getConnectionTimeoutMilliseconds())
+                .sessionTimeoutMs(zookeeperConfig.getSessionTimeoutMilliseconds())
+                .namespace(zookeeperConfig.getNamespace());
 
-        if (!StringUtils.isEmpty(config.getDigest())) {
-            builder.authorization("digest", config.getDigest().getBytes(StandardCharsets.UTF_8));
+        if (!StringUtils.isEmpty(zookeeperConfig.getDigest())) {
+            builder.authorization("digest", zookeeperConfig.getDigest().getBytes(StandardCharsets.UTF_8));
         }
 
         this.client = builder.build();
@@ -85,7 +83,7 @@ public class ZookeeperClient {
      */
     public void close() {
         // close all caches
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());
         }
         // close client
@@ -137,11 +135,11 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromCache(key);
+        CuratorCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
-        ChildData data = cache.getCurrentData(key);
+        ChildData data = cache.get(key).orElse(null);
         if (Objects.isNull(data)) {
             return getDirectly(key);
         }
@@ -221,7 +219,7 @@ public class ZookeeperClient {
      * @param path path.
      * @return cache.
      */
-    public TreeCache getCache(final String path) {
+    public CuratorCache getCache(final String path) {
         return caches.get(path);
     }
 
@@ -231,12 +229,12 @@ public class ZookeeperClient {
      * @param listeners listeners.
      * @return cache.
      */
-    public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
-        TreeCache cache = TreeCache.newBuilder(client, path).build();
+    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
+        CuratorCache cache = CuratorCache.build(client, path);
         caches.put(path, cache);
         if (ArrayUtils.isNotEmpty(listeners)) {
-            for (TreeCacheListener listener : listeners) {
-                cache.getListenable().addListener(listener);
+            for (CuratorCacheListener listener : listeners) {
+                cache.listenable().addListener(listener);
             }
         }
         try {
@@ -266,8 +264,8 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromCache(final String key) {
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+    private CuratorCache findFromCache(final String key) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
             }

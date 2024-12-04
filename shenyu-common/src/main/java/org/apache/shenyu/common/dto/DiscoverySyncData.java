@@ -47,6 +47,12 @@ public class DiscoverySyncData {
     private String namespaceId;
 
     /**
+     * discoveryHandlerId.
+     *
+     */
+    private String discoveryHandlerId;
+
+    /**
      * getSelectorId.
      *
      * @return selectorId
@@ -137,4 +143,21 @@ public class DiscoverySyncData {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * discoveryHandlerId.
+     *
+     * @return DiscoveryHandlerId
+     */
+    public String getDiscoveryHandlerId() {
+        return discoveryHandlerId;
+    }
+
+    /**
+     * set discoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
+        this.discoveryHandlerId = discoveryHandlerId;
+    }
 }

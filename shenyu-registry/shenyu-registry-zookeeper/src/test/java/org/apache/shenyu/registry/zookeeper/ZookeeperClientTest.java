@@ -29,8 +29,8 @@ import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.ProtectACLCreateModeStatPathAndBytesable;
 import org.apache.curator.framework.imps.ExistsBuilderImpl;
-import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
@@ -168,7 +168,7 @@ class ZookeeperClientTest {
 
     @Test
     void cacheTest() throws Exception {
-        assertThrows(ShenyuException.class, () -> client.addCache("/path", mock(TreeCacheListener.class), mock(TreeCacheListener.class)));
+        assertThrows(ShenyuException.class, () -> client.addCache("/path", mock(CuratorCacheListener.class), mock(CuratorCacheListener.class)));
         Field clientField = ZookeeperClient.class.getDeclaredField("client");
         clientField.setAccessible(true);
         CuratorFramework curatorFramework = mock(CuratorFramework.class);
@@ -180,12 +180,10 @@ class ZookeeperClientTest {
         client.get("/path");
         client.get("/test");
         client.getCache("/test");
-        MockedStatic<TreeCache> treeCacheMockedStatic = mockStatic(TreeCache.class);
-        TreeCache.Builder treeCacheBuilder = mock(TreeCache.Builder.class);
-        treeCacheMockedStatic.when(() -> TreeCache.newBuilder(any(), any())).thenReturn(treeCacheBuilder);
-        TreeCache treeCache = mock(TreeCache.class);
-        when(treeCacheBuilder.build()).thenReturn(treeCache);
-        when(treeCache.start()).thenThrow(ShenyuException.class);
+        MockedStatic<CuratorCache> treeCacheMockedStatic = mockStatic(CuratorCache.class);
+        CuratorCache treeCacheBuilder = mock(CuratorCache.class);
+        treeCacheMockedStatic.when(() -> CuratorCache.build(any(), any())).thenReturn(treeCacheBuilder);
+        doThrow(ShenyuException.class).when(treeCacheBuilder).start();
         Assertions.assertThrows(ShenyuException.class, () -> client.addCache("/path"));
         treeCacheMockedStatic.close();
     }

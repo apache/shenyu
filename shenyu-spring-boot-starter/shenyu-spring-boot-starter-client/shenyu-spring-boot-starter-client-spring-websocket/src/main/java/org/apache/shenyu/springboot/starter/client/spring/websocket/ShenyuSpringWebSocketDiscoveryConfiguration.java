@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
+import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -33,10 +35,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSpringWebSocketDiscoveryConfiguration {
+
+    @Resource
+    private Environment environment;
 
     /**
      * clientDiscoveryConfigRefreshedEventListener.
@@ -67,6 +73,7 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
      */
     @Bean("websocketInstanceRegisterListener")
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     public InstanceRegisterListener instanceRegisterListener(final SpringWebSocketClientEventListener eventListener,
                                                              final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                              final ShenyuClientConfig shenyuClientConfig) {
@@ -76,6 +83,10 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
         discoveryUpstreamData.setWeight(50);
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
+        final String appName = environment.getProperty("spring.application.name");
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && appName != null) {
+            shenyuDiscoveryConfig.getProps().put("name", appName);
+        }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);
     }
 

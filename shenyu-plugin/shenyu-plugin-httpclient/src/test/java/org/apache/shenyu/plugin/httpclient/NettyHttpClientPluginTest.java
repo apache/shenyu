@@ -101,11 +101,6 @@ public final class NettyHttpClientPluginTest {
         when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(nettyHttpClientPlugin.skip(exchangeHttp));
-
-        ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
-        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
-                .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-        assertFalse(nettyHttpClientPlugin.skip(exchangeSpringCloud));
     }
 
     /**

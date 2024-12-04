@@ -29,7 +29,7 @@ spring:
 
 eureka:
   client:
-    enabled: true
+    enabled: false
     serviceUrl:
       defaultZone: http://shenyu-examples-eureka:8761/eureka/
   instance:

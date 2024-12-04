@@ -50,8 +50,10 @@ spec:
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
-            - name: eureka.client.serviceUrl.defaultZone
+            - name: shenyu.discovery.serverList
               value: http://shenyu-examples-eureka:8761/eureka/
+            - name: shenyu.discovery.enable
+              value: 'false'
           ports:
             - containerPort: 8884
           imagePullPolicy: IfNotPresent

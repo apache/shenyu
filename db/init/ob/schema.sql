@@ -51,7 +51,7 @@ CREATE TABLE `api`  (
   `consume`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'consume content-type',
   `produce`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'produce content-type',
   `version`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'api version,for example V0.01',
-  `rpc_type`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
+  `rpc_type`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,motan,grpc',
   `state`        tinyint(4) NOT NULL COMMENT '0-unpublished,1-published,2-offline',
   `ext`          varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'extended fields',
   `api_owner`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL COMMENT 'api_owner',
@@ -902,7 +902,6 @@ INSERT INTO `plugin` VALUES ('30', 'cache', '{\"cacheType\":\"memory\"}', 'Cache
 INSERT INTO `plugin` VALUES ('4', 'rateLimiter', '{\"master\":\"mymaster\",\"mode\":\"standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}', 'FaultTolerance', 60, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('5', 'divide', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('6', 'dubbo', '{\"register\":\"zookeeper://localhost:2181\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('32', 'loggingElasticSearch','{\"host\":\"localhost\", \"port\": \"9200\"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00',null);
 INSERT INTO `plugin` VALUES ('33', 'loggingKafka','{\"host\":\"localhost\", \"port\": \"9092\"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-02 22:00:00',null);
@@ -959,9 +958,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978511', '3', 'regex', 'regex'
 INSERT INTO `plugin_handle` VALUES ('1529402613199978512', '3', 'replace', 'replace', 2, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1697146860569596304', '3', 'percentage', 'percentage', 1, 2, 3, NULL, '2023-09-15 20:25:53', '2023-09-15 20:25:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978513', '16', 'redirectURI', 'redirectURI', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978514', '8', 'path', 'path', 2, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978515', '8', 'timeout', 'timeout ms)', 1, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613199978516', '8', 'serviceId', 'serviceId', 2, 1, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978517', '12', 'timeoutDurationRate', 'timeoutDurationRate ms)', 1, 2, 1, '{\"required\":\"1\",\"defaultValue\":\"5000\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978518', '12', 'limitRefreshPeriod', 'limitRefreshPeriod ms)', 1, 2, 0, '{\"required\":\"1\",\"defaultValue\":\"500\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978519', '12', 'limitForPeriod', 'limitForPeriod', 1, 2, 0, '{\"required\":\"1\",\"defaultValue\":\"50\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1165,7 +1161,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172933', '36', 'retries', 'ret
 INSERT INTO `plugin_handle` VALUES ('1529402613204172934', '36', 'maxReservedAttempts', 'maxReservedAttempts', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":11}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172935', '36', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{\"required\":\"0\",\"defaultValue\":100}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172936', '36', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172742', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{\"defaultValue\":\"roundRobin\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172743', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"500\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"10\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172745', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"false\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
@@ -1283,10 +1278,6 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507021', '14', 'rewriteContext
 INSERT INTO `plugin_handle` VALUES ('1722804548510507022', '14', 'percentage', 'percentage', 1, 2, 3, '{"required":"1","defaultValue":"100"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507023', '3', 'rewriteMetaData', 'rewriteMetaData', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
-INSERT INTO `plugin_handle` VALUES ('1722804548510507024', '8', 'registerType', 'registerType', 2, 3, 1, NULL, '2024-08-24 09:40:03.293', '2024-08-24 21:52:27.920');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507025', '8', 'serverLists', 'serverLists', 2, 3, 2, NULL, '2024-08-24 21:52:51.179', '2024-08-24 21:53:27.483');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507026', '8', 'props', 'props', 4, 3, 3, NULL, '2024-08-24 21:53:25.764', '2024-08-24 21:53:30.255');
-
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1398,7 +1389,6 @@ INSERT INTO `resource` VALUES ('1529402639284355094', '1346775491550474240', 'ca
 INSERT INTO `resource` VALUES ('1529402639284355095', '1346775491550474240', 'rateLimiter', 'rateLimiter', '/plug/rateLimiter', 'rateLimiter', 1, 0, 'key', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639284355096', '1346775491550474240', 'divide', 'divide', '/plug/divide', 'divide', 1, 0, 'stop', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639284355097', '1346775491550474240', 'dubbo', 'dubbo', '/plug/dubbo', 'dubbo', 1, 0, 'fire', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639284355098', '1346775491550474240', 'springCloud', 'springCloud', '/plug/springCloud', 'springCloud', 1, 0, 'border-bottom', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639284355099', '1346775491550474240', 'hystrix', 'hystrix', '/plug/hystrix', 'hystrix', 1, 0, 'border-bottom', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639368241152', '1529402639271772160', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:signSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639368241153', '1529402639271772160', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:signSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -1643,15 +1633,6 @@ INSERT INTO `resource` VALUES ('1529402639372435641', '1529402639284355097', 'SH
 INSERT INTO `resource` VALUES ('1529402639372435642', '1529402639284355097', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:dubboRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435643', '1529402639284355097', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:dubboRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435644', '1529402639284355097', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:dubbo:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435645', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435646', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435647', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435648', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435649', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435650', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435651', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435652', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloudRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1529402639372435653', '1529402639284355098', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:springCloud:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435654', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435655', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435656', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -2359,7 +2340,6 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822182','649330b6-c2d7-4edc-be8e-8a54df9eb385','45', '{\"host\":\"127.0.0.1\",\"port\":5672,\"password\":\"admin\",\"username\":\"admin\",\"exchangeName\":\"exchange.logging.plugin\",\"queueName\":\"queue.logging.plugin\",\"routingKey\":\"topic.logging\",\"virtualHost\":\"/\",\"exchangeType\":\"direct\",\"durable\":\"true\",\"exclusive\":\"false\",\"autoDelete\":\"false\"}', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 200, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{\"register\":\"zookeeper://localhost:2181\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822185','649330b6-c2d7-4edc-be8e-8a54df9eb385','8', '{\"enabled\":false,\"registerType\":\"eureka\",\"serverLists\":\"http://localhost:8761/eureka\",\"props\": {}}', 200, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 

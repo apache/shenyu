@@ -37,7 +37,7 @@
         <!--shenyu springCloud plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
+            <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -49,18 +49,6 @@
                 <exclusion>
                     <groupId>org.projectlombok</groupId>
                     <artifactId>lombok</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>${spring-cloud.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-loadbalancer</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

@@ -28,7 +28,6 @@
 
     <modules>
         <module>shenyu-spring-boot-starter-client-springmvc</module>
-        <module>shenyu-spring-boot-starter-client-springcloud</module>
         <module>shenyu-spring-boot-starter-client-apache-dubbo</module>
         <module>shenyu-spring-boot-starter-client-sofa</module>
         <module>shenyu-spring-boot-starter-client-tars</module>

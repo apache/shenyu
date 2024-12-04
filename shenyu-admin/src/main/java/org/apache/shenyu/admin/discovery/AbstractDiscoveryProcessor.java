@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.listener.DataChangedEventListener;
 import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -33,9 +34,9 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,16 +44,17 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.Properties;
-import java.util.HashSet;
-import java.util.Collections;
 
 public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
 
@@ -60,9 +62,11 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
 
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
 
-    private final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
+    private final Map<String, ShenyuInstanceRegisterRepository> discoveryServiceCache;
 
     private final Map<String, Set<String>> dataChangedEventListenerCache;
+
+    private final Map<String, DataChangedEventListener> dataChangedEventListenerMap = new HashMap<>();
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -88,11 +92,11 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         String type = discoveryDO.getType();
         String props = discoveryDO.getProps();
         Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
-        DiscoveryConfig discoveryConfig = new DiscoveryConfig();
-        discoveryConfig.setType(type);
+        RegisterConfig discoveryConfig = new RegisterConfig();
+        discoveryConfig.setRegisterType(type);
         discoveryConfig.setProps(properties);
-        discoveryConfig.setServerList(discoveryDO.getServerList());
-        ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
+        discoveryConfig.setServerLists(discoveryDO.getServerList());
+        ShenyuInstanceRegisterRepository discoveryService = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(type);
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
         dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());
@@ -106,12 +110,12 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     @Override
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
-        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
+        ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
         if (shenyuDiscoveryService == null) {
             return;
         }
         if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
-            shenyuDiscoveryService.shutdown();
+            shenyuDiscoveryService.close();
             LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
         }
     }
@@ -123,11 +127,11 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     @Override
     public void removeProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
+        ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         Optional.ofNullable(dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId())).ifPresent(cacheKey -> {
             cacheKey.remove(key);
-            shenyuDiscoveryService.unwatch(key);
+            shenyuDiscoveryService.unWatchInstances(key);
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
             eventPublisher.publishEvent(dataChangedEvent);
@@ -151,10 +155,21 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     public void fetchAll(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         String discoveryId = discoveryHandlerDTO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
-            ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            List<String> childData = shenyuDiscoveryService.getRegisterData(buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
-            List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
-                    .collect(Collectors.toList());
+            ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
+            final List<InstanceEntity> instanceEntities = shenyuDiscoveryService.selectInstances(buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = instanceEntities.stream().map(instanceEntity -> {
+                final DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+                String uri = String.format("%s:%s", instanceEntity.getHost(), instanceEntity.getPort());
+                discoveryUpstreamData.setUrl(uri);
+                discoveryUpstreamData.setWeight(instanceEntity.getWeight());
+                discoveryUpstreamData.setStatus(instanceEntity.getStatus());
+                discoveryUpstreamData.setProtocol("http://");
+                if (discoveryUpstreamData.getNamespaceId() == null) {
+                    discoveryUpstreamData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+                }
+                discoveryUpstreamData.setDiscoveryHandlerId(proxySelectorDTO.getId());
+                return discoveryUpstreamData;
+            }).collect(Collectors.toList());
             Set<String> urlList = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
             List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDTO.getId());
             Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUrl).collect(Collectors.toSet());
@@ -205,15 +220,36 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param proxySelectorDTO    proxySelectorDTO
      * @return DataChangedEventListener
      */
-    public DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+    public DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO,
+                                                                         final ProxySelectorDTO proxySelectorDTO) {
         final Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
         discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+        discoverySyncData.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
+                new CustomDiscoveryUpstreamParser(customMap), discoverySyncData, discoveryHandlerDTO.getDiscoveryId());
+    }
+
+    /**
+     * addDiscoverySyncDataListener.
+     *
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO proxySelectorDTO
+     */
+    public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
+        if (changedEventListener != null) {
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
+            discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+            discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+            discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+            discoverySyncData.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
+            changedEventListener.addListener(discoverySyncData);
+        }
     }
 
     @Override
@@ -227,7 +263,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param discoveryId discoveryId
      * @return ShenyuDiscoveryService
      */
-    public ShenyuDiscoveryService getShenyuDiscoveryService(final String discoveryId) {
+    public ShenyuInstanceRegisterRepository getShenyuDiscoveryService(final String discoveryId) {
         return discoveryServiceCache.get(discoveryId);
     }
 
@@ -239,6 +275,26 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     public Set<String> getCacheKey(final String discoveryId) {
         return dataChangedEventListenerCache.get(discoveryId);
+    }
+
+    /**
+     * addChangedEventListener.
+     *
+     * @param discoveryId discoveryId
+     * @param dataChangedEventListener dataChangedEventListener
+     */
+    public void addChangedEventListener(final String discoveryId, final DataChangedEventListener dataChangedEventListener) {
+        this.dataChangedEventListenerMap.put(discoveryId, dataChangedEventListener);
+    }
+
+    /**
+     * getChangedEventListener.
+     *
+     * @param discoveryId discoveryId
+     * @return {@link DataChangedEventListener}
+     */
+    public DataChangedEventListener getChangedEventListener(final String discoveryId) {
+        return this.dataChangedEventListenerMap.get(discoveryId);
     }
 
     /**

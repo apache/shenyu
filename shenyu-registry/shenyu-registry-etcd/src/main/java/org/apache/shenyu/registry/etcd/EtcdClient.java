@@ -87,15 +87,16 @@ public class EtcdClient {
 
 
     /**
-     * watch key changes.
+     * watchKeyChanges.
      *
-     * @param key      watch key.
-     * @param listener watch listener.
+     * @param key key
+     * @param listener listener
+     * @return {@link Watch.Watcher}
      */
-    public void watchKeyChanges(final String key, final Watch.Listener listener) {
+    public Watch.Watcher watchKeyChanges(final String key, final Watch.Listener listener) {
         WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
 
-        client.getWatchClient().watch(bytesOf(key), option, listener);
+        return client.getWatchClient().watch(bytesOf(key), option, listener);
     }
 
 

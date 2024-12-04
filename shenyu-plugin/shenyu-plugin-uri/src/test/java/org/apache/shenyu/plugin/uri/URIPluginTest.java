@@ -171,8 +171,6 @@ public class URIPluginTest {
     public void testSkip() {
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(uriPlugin.skip(exchange));
-        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-        assertFalse(uriPlugin.skip(exchange));
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         assertTrue(uriPlugin.skip(exchange));
     }

@@ -197,8 +197,6 @@ public class IngressReconciler implements Reconciler {
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
             String zookeeperUrl = getZookeeperUrl(annotations, request);
             enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, zookeeperUrl);
-        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
-            enablePlugin(shenyuCacheRepository, PluginEnum.SPRING_CLOUD, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -217,8 +215,6 @@ public class IngressReconciler implements Reconciler {
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(),
                     oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
-            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -234,8 +230,6 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED), "true")) {
-                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SPRING_CLOUD.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -570,7 +564,6 @@ public class IngressReconciler implements Reconciler {
         String pluginName;
         String pluginDubboEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
         String pluginMotanEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
-        String pluginSpringCloudEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SPRING_CLOUD_ENABLED);
         String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
         String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
@@ -579,8 +572,6 @@ public class IngressReconciler implements Reconciler {
             pluginName = PluginEnum.DUBBO.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
             pluginName = PluginEnum.MOTAN.getName();
-        } else if ((Boolean.TRUE.toString()).equals(pluginSpringCloudEnabled)) {
-            pluginName = PluginEnum.SPRING_CLOUD.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
             pluginName = PluginEnum.WEB_SOCKET.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginGrpcEnabled)) {
