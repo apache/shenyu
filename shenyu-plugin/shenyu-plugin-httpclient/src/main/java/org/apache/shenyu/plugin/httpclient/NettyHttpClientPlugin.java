@@ -29,6 +29,7 @@ import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -63,9 +64,14 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     @Override
     protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                                  final URI uri, final Flux<DataBuffer> body) {
+        ServerHttpRequest request = exchange.getRequest();
         return Mono.from(httpClient.headers(headers -> {
             exchange.getRequest().getHeaders().forEach(headers::add);
             headers.remove(HttpHeaders.HOST);
+            Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
+            if (preserveHost) {
+                headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
+            }
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
@@ -99,7 +105,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         }
         DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
         for (String headerKey : duplicateHeaders) {
-            duplicateHeaders(headers, headerKey, strategy);
+            super.duplicateHeaders(headers, headerKey, strategy);
         }
     }
 

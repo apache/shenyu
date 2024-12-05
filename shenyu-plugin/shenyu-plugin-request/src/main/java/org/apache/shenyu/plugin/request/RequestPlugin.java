@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.request;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
@@ -60,8 +61,15 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             LOG.error("request handler can not configuration：{}", requestHandle);
             return chain.execute(exchange);
         }
-        Boolean preserveHost = requestHandle.getPreserveHost();
-
+        exchange.getAttributes().put(Constants.PRESERVE_HOST, requestHandle.getPreserveHost());
+        if (StringUtils.isNotEmpty(requestHandle.getHeaderUniqueStrategy().name()) && StringUtils.isNotEmpty(requestHandle.getUniqueHeaders())) {
+            exchange.getAttributes().put(Constants.HEADER_UNIQUE_STRATEGY, requestHandle.getHeaderUniqueStrategy());
+            exchange.getAttributes().put(Constants.UNIQUE_HEADERS, requestHandle.getUniqueHeaders());
+        }
+        if (requestHandle.isEmptyConfig()) {
+            LOG.warn("request handler configuration is empty：{}", requestHandle);
+            return chain.execute(exchange);
+        }
         ServerHttpRequest request = exchange.getRequest();
         ServerWebExchange modifiedExchange = exchange.mutate()
                 .request(originalRequest -> originalRequest.uri(

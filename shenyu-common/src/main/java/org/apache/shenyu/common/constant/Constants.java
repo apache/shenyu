@@ -925,6 +925,21 @@ public interface Constants {
      * The constant EVENT_NAME_REGISTER.
      */
     String HTTP_PATH = "shenyu.httpPath";
+
+    /**
+     * The constant preserve host.
+     */
+    String PRESERVE_HOST = "preserveHost";
+
+    /**
+     * The constant HEADER_UNIQUE_STRATEGY
+     */
+    String HEADER_UNIQUE_STRATEGY = "headerUniqueStrategy";
+
+    /**
+     * The constant UNIQUE_HEADERS
+     */
+    String UNIQUE_HEADERS = "uniqueHeaders";
     
     /**
      * String q.
