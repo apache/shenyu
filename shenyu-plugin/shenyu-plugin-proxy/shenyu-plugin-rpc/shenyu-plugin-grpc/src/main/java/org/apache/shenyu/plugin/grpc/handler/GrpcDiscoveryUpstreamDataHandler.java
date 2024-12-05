@@ -50,7 +50,13 @@ public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHa
         }
         LOG.info("discovery grpc upstream data:{}", JsonUtils.toJson(discoverySyncData));
         final String selectorId = discoverySyncData.getSelectorId();
-        ApplicationConfigCache.getInstance().handlerUpstream(selectorId, convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        final List<GrpcUpstream> upstreams = convertUpstreamList(discoverySyncData.getUpstreamDataList());
+        final List<GrpcUpstream> grayUpstreamList = upstreams.stream().filter(GrpcUpstream::isGray).toList();
+        if (!grayUpstreamList.isEmpty()) {
+            ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), grayUpstreamList);
+        } else {
+            ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), upstreams);
+        }
         GrpcClientCache.initGrpcClient(selectorId);
     }
 

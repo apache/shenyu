@@ -162,7 +162,8 @@ public class WebsocketCollector {
         if (Objects.equals(message, DataEventTypeEnum.MYSELF.name())) {
             try {
                 ThreadLocalUtils.put(SESSION_KEY, session);
-                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll(DataEventTypeEnum.MYSELF);
+                String namespaceId = getNamespaceId(session);
+                SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAllByNamespaceId(DataEventTypeEnum.MYSELF, namespaceId);
             } finally {
                 ThreadLocalUtils.clear();
             }

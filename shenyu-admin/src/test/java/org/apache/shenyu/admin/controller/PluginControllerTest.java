@@ -107,7 +107,7 @@ public final class PluginControllerTest {
         commonPager.setDataList(pluginVOS);
         final PluginQuery pluginQuery = new PluginQuery("t_n", 1, pageParameter);
         given(this.pluginService.listByPage(pluginQuery)).willReturn(commonPager);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin")
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template")
                         .param("name", "t_n")
                         .param("enabled", "1")
                         .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
@@ -122,7 +122,7 @@ public final class PluginControllerTest {
     public void testQueryAllPlugins() throws Exception {
         given(this.pluginService.listAll())
                 .willReturn(new ArrayList<>());
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin/all"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template/all"))
                 .andExpect(status().isOk())
                 .andReturn();
     }
@@ -130,7 +130,7 @@ public final class PluginControllerTest {
     @Test
     public void testDetailPlugin() throws Exception {
         given(this.pluginService.findById("123")).willReturn(pluginVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin/{id}", "123"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(pluginVO.getId())))
@@ -150,7 +150,7 @@ public final class PluginControllerTest {
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin-template")
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
                         .param("role", pluginDTO.getRole())
@@ -163,7 +163,7 @@ public final class PluginControllerTest {
         pluginDTO.setId("123");
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin-template")
                         .param("file", pluginDTO.getFile())
                         .param("id", pluginDTO.getId())
                         .param("name", pluginDTO.getName())
@@ -176,7 +176,7 @@ public final class PluginControllerTest {
 
         // update fail
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
-        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin-template")
                         .file(file)
                         .param("id", pluginDTO.getId())
                         .param("name", pluginDTO.getName())
@@ -199,7 +199,7 @@ public final class PluginControllerTest {
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
@@ -209,7 +209,7 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(null);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
@@ -219,7 +219,7 @@ public final class PluginControllerTest {
                 .andReturn();
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("name", pluginDTO.getName())
                         .param("enabled", String.valueOf(pluginDTO.getEnabled()))
@@ -233,7 +233,7 @@ public final class PluginControllerTest {
     @Test
     public void testDeletePlugins() throws Exception {
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(StringUtils.EMPTY);
-        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin-template/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"123\"]"))
                 .andExpect(status().isOk())
@@ -241,7 +241,7 @@ public final class PluginControllerTest {
                 .andReturn();
 
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
-        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin-template/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"123\"]"))
                 .andExpect(status().isOk())
@@ -249,7 +249,7 @@ public final class PluginControllerTest {
                 .andReturn();
 
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_NOT_DELETE);
-        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin-template/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"123\"]"))
                 .andExpect(status().isOk())
@@ -263,7 +263,7 @@ public final class PluginControllerTest {
         batchCommonDTO.setEnabled(false);
         batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(StringUtils.EMPTY);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-template/enabled")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
@@ -271,7 +271,7 @@ public final class PluginControllerTest {
                 .andReturn();
 
         given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-template/enabled")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
