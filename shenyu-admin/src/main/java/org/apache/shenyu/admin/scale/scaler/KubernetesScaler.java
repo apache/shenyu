@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class KubernetesScaler {
@@ -39,8 +40,8 @@ public class KubernetesScaler {
 
     private final DeploymentProperties deploymentProperties;
 
-    public KubernetesScaler(final AppsV1Api appsV1Api, final DeploymentProperties deploymentProperties) {
-        this.appsV1Api = appsV1Api;
+    public KubernetesScaler(final Optional<AppsV1Api> appsV1Api, final DeploymentProperties deploymentProperties) {
+        this.appsV1Api = appsV1Api.orElse(null);
         this.deploymentProperties = deploymentProperties;
     }
 

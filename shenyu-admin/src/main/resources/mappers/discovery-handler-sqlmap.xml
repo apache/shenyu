@@ -76,6 +76,17 @@
         where discovery_id = #{discoveryId , jdbcType=LONGVARCHAR}
     </select>
 
+    <select id="selectByDiscoveryIds" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from discovery_handler
+        where discovery_id IN
+        <foreach collection="discoveryIds" item="discoveryId" index="index"
+                 open="(" separator="," close=")">
+            #{discoveryId}
+        </foreach>
+    </select>
+
     <select id="selectBySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         SELECT
         dh.id,

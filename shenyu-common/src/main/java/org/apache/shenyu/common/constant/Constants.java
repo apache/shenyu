@@ -552,6 +552,11 @@ public interface Constants {
      * dubbo remote address.
      */
     String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
+
+    /**
+     * dubbo load balance from meta data.
+     */
+    String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
     
     /**
      * dubbo group.
@@ -915,6 +920,11 @@ public interface Constants {
      * The constant EVENT_NAME_DATA.
      */
     String EVENT_NAME_DATA = "data";
+    
+    /**
+     * The constant EVENT_NAME_REGISTER.
+     */
+    String HTTP_PATH = "shenyu.httpPath";
     
     /**
      * String q.
