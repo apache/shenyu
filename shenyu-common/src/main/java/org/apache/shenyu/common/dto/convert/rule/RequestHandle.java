@@ -35,6 +35,8 @@ public class RequestHandle {
 
     private ShenyuCookie cookie;
 
+    private Boolean preserveHost = Boolean.FALSE;
+
     /**
      * get header.
      *
@@ -87,6 +89,24 @@ public class RequestHandle {
      */
     public void setCookie(final ShenyuCookie cookie) {
         this.cookie = cookie;
+    }
+
+    /**
+     * get preserveHost.
+     *
+     * @return preserveHost
+     */
+    public Boolean getPreserveHost() {
+        return preserveHost;
+    }
+
+    /**
+     * set preserveHost.
+     *
+     * @param preserveHost preserveHost
+     */
+    public void setPreserveHost(Boolean preserveHost) {
+        this.preserveHost = preserveHost;
     }
 
     @Override
