@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -66,7 +67,7 @@ public class ShenyuSpringMvcClientConfiguration {
                                                                       final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                       final Environment env) {
         ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
-        Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        Properties props = Optional.ofNullable(clientPropertiesConfig).map(ClientPropertiesConfig::getProps).orElse(null);
         String applicationName = env.getProperty("spring.application.name");
         String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
         if (props != null) {

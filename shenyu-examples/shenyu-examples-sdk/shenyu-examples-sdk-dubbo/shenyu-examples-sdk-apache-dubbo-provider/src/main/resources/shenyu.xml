@@ -20,7 +20,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean id = "apacheDubboServiceBeanListener" class="org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener">
-        <constructor-arg ref="clientPropertiesConfig"/>
+        <constructor-arg ref="shenyuClientConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
     </bean>
 
@@ -55,5 +55,14 @@
     <bean id="shenyuClientShutdownHook" class="org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook">
         <constructor-arg ref="shenyuRegisterCenterConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
+    </bean>
+
+    <bean id="shenyuClientConfig"
+          class="org.apache.shenyu.register.common.config.ShenyuClientConfig">
+        <property name="client">
+            <map>
+                <entry key="dubbo" value-ref="clientPropertiesConfig"/>
+            </map>
+        </property>
     </bean>
 </beans>

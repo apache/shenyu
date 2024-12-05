@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * this is plugin controller.
  */
-@RestApi("/plugin")
+@RestApi("/plugin-template")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
 
     private final PluginService pluginService;
@@ -85,6 +85,18 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     @GetMapping("/all")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
+    }
+    
+    /**
+     * query plugins by namespace.
+     *
+     * @param namespace namespace.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/listByNamespace")
+    public ShenyuAdminResult queryPluginsByNamespace(final String namespace) {
+        List<PluginData> pluginDataList = pluginService.listByNamespace(namespace);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
     }
     

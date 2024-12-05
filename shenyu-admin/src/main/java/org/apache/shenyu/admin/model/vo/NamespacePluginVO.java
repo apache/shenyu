@@ -41,6 +41,11 @@ public class NamespacePluginVO extends PluginVO implements Serializable {
     private String namespaceId;
 
     /**
+     * namespace id.
+     */
+    private String pluginRelId;
+
+    /**
      * plugin jar byte.
      */
     private byte[] pluginJar;
@@ -110,6 +115,24 @@ public class NamespacePluginVO extends PluginVO implements Serializable {
      */
     public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the plugin rel id.
+     *
+     * @return the plugin rel id
+     */
+    public String getPluginRelId() {
+        return pluginRelId;
+    }
+
+    /**
+     * set pluginRelId.
+     *
+     * @param pluginRelId pluginRelId
+     */
+    public void setPluginRelId(final String pluginRelId) {
+        this.pluginRelId = pluginRelId;
     }
 
     /**

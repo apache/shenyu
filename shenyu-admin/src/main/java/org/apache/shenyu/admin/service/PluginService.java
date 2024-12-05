@@ -79,6 +79,14 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @return the list
      */
     List<PluginData> listAll();
+    
+    /**
+     * List by namespace list.
+     *
+     * @param namespace the namespace
+     * @return the list
+     */
+    List<PluginData> listByNamespace(String namespace);
 
     /**
      * List all vo list.
@@ -86,6 +94,14 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @return the vo list
      */
     List<PluginVO> listAllData();
+
+    /**
+     * List all vo list.
+     *
+     * @param namespaceId the namespace id
+     * @return the vo list
+     */
+    List<PluginVO> listAllDataByNamespaceId(String namespaceId);
     
     /**
      * list all not in resource.
@@ -128,8 +144,18 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
 
     /**
      * import plugin data.
+     *
      * @param pluginList the plugin data
      * @return config import result
      */
     ConfigImportResult importData(List<PluginDTO> pluginList);
+
+    /**
+     * import plugin data.
+     *
+     * @param namespace the namespace
+     * @param pluginList the plugin data
+     * @return config import result
+     */
+    ConfigImportResult importData(String namespace, List<PluginDTO> pluginList);
 }
