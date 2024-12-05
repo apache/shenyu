@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +37,10 @@ public class RequestHandle {
     private ShenyuCookie cookie;
 
     private Boolean preserveHost = Boolean.FALSE;
+
+    private HeaderUniqueStrategyEnum headerStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
+
+    private String uniqueHeader;
 
     /**
      * get header.
@@ -105,8 +110,44 @@ public class RequestHandle {
      *
      * @param preserveHost preserveHost
      */
-    public void setPreserveHost(Boolean preserveHost) {
+    public void setPreserveHost(final Boolean preserveHost) {
         this.preserveHost = preserveHost;
+    }
+
+    /**
+     * get headerStrategy.
+     *
+     * @return headerStrategy
+     */
+    public HeaderUniqueStrategyEnum getHeaderStrategy() {
+        return headerStrategy;
+    }
+
+    /**
+     * set headerStrategy.
+     *
+     * @param headerStrategy headerStrategy
+     */
+    public void setHeaderStrategy(final HeaderUniqueStrategyEnum headerStrategy) {
+        this.headerStrategy = headerStrategy;
+    }
+
+    /**
+     * get uniqueHeader.
+     *
+     * @return uniqueHeader
+     */
+    public String getUniqueHeader() {
+        return uniqueHeader;
+    }
+
+    /**
+     * set uniqueHeader.
+     *
+     * @param uniqueHeader uniqueHeader
+     */
+    public void setUniqueHeader(final String uniqueHeader) {
+        this.uniqueHeader = uniqueHeader;
     }
 
     @Override
@@ -153,7 +194,7 @@ public class RequestHandle {
      * @return not empty is true
      */
     private boolean isNotEmptyConfig() {
-        return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig();
+        return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig() || !preserveHost;
     }
 
     public class ShenyuRequestHeader {

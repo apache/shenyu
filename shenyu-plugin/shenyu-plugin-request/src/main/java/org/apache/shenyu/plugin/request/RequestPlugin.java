@@ -56,10 +56,12 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
             final RuleData rule) {
         RequestHandle requestHandle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
+        if (Objects.isNull(requestHandle)) {
             LOG.error("request handler can not configuration：{}", requestHandle);
             return chain.execute(exchange);
         }
+        Boolean preserveHost = requestHandle.getPreserveHost();
+
         ServerHttpRequest request = exchange.getRequest();
         ServerWebExchange modifiedExchange = exchange.mutate()
                 .request(originalRequest -> originalRequest.uri(
