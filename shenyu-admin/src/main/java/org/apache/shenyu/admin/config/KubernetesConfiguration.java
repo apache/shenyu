@@ -21,17 +21,24 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.util.Config;
 import org.apache.shenyu.admin.config.properties.DeploymentProperties;
+import org.apache.shenyu.admin.scale.scaler.KubernetesScaler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 @Configuration
 @EnableConfigurationProperties(DeploymentProperties.class)
 public class KubernetesConfiguration {
+
+    private final Logger logger = LoggerFactory.getLogger(KubernetesConfiguration.class);
 
     /**
      * kubernetes apiClient.
@@ -39,34 +46,34 @@ public class KubernetesConfiguration {
      * @return AppsV1Api
      */
     @Bean
+    @ConditionalOnProperty(value = "shenyu.k8s.scale.enabled", havingValue = "true")
     @ConditionalOnMissingBean(DeploymentProperties.class)
     public AppsV1Api apiClient(final DeploymentProperties deploymentProperties) {
         try {
-            if (isLocalEnvironment()) {
-
-                return new AppsV1Api(Config.defaultClient());
-
-            } else {
-                ApiClient client = Config.fromToken(
-                        deploymentProperties.getApiServer(),
-                        deploymentProperties.getToken(),
-                        false
-                );
-                client.setSslCaCert(new FileInputStream(deploymentProperties.getCaCertPath()));
-                return new AppsV1Api(client);
-            }
+            ApiClient client = Config.fromToken(
+                    deploymentProperties.getApiServer(),
+                    deploymentProperties.getToken(),
+                    false
+            );
+            client.setSslCaCert(new FileInputStream(deploymentProperties.getCaCertPath()));
+            return new AppsV1Api(client);
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error("kubernetes apiClient create error", e);
         }
+        return null;
     }
 
     /**
-     * isLocalEnvironment.
-     *
-     * @return boolean
+     * kubernetes scaler.
+     * @param appsV1Api appsV1Api
+     * @param deploymentProperties deploymentProperties
+     * @return KubernetesScaler KubernetesScaler
      */
-    private boolean isLocalEnvironment() {
-        return System.getenv("ENV") == null || "local".equalsIgnoreCase(System.getenv("ENV"));
+    @Bean
+    @ConditionalOnMissingBean({AppsV1Api.class, DeploymentProperties.class})
+    public KubernetesScaler kubernetesScaler(final Optional<AppsV1Api> appsV1Api, final DeploymentProperties deploymentProperties) {
+        return new KubernetesScaler(appsV1Api, deploymentProperties);
     }
+
 }

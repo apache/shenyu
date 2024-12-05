@@ -71,19 +71,13 @@
         </foreach>
     </insert>
 
-    <select id="listByNamespaceId" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from namespace_plugin_rel
-        where namespace_id = #{namespaceId}
-    </select>
-    
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.NamespacePluginQuery"
             resultType="org.apache.shenyu.admin.model.vo.NamespacePluginVO">
         SELECT
-        npr.id as id,
         npr.namespace_id AS namespaceId,
+        npr.id AS id,
         npr.plugin_id AS pluginId,
+        npr.id AS pluginRelId,
         npr.config AS config,
         npr.sort AS sort,
         npr.enabled AS enabled,
@@ -272,7 +266,7 @@
         p.plugin_jar AS pluginJar
         FROM namespace_plugin_rel npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
-        WHERE npr.namespace_id=#{namespaceId}
+        WHERE npr.namespace_id=#{namespaceId, jdbcType=VARCHAR}
         ORDER BY
         sort,
         npr.id ASC
@@ -343,6 +337,13 @@
         npr.id ASC
     </select>
 
+    <select id="listByNamespaceId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_plugin_rel
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
 
     <update id="updateEnableByIdList">
         UPDATE namespace_plugin_rel
@@ -353,7 +354,7 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </update>
-    
+
     <update id="updateEnableByNamespaceIdAndPluginIdList">
         UPDATE namespace_plugin_rel
         SET enabled = #{enabled, jdbcType=TINYINT}

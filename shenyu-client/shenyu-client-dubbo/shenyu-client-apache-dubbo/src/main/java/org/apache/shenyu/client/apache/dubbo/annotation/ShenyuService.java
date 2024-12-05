@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.apache.dubbo.annotation;
 
 import org.apache.dubbo.common.constants.ClusterRules;
-import org.apache.dubbo.common.constants.LoadbalanceRules;
 import org.apache.dubbo.config.annotation.Method;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
@@ -29,9 +28,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_CALLBACK_INSTANCES;
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_RETRIES;
 
 
 /**
@@ -170,7 +166,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int executes() default 0;
+    int executes() default -1;
 
     /**
      * Alias for {@link Service#register()} .
@@ -186,7 +182,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int weight() default 0;
+    int weight() default -1;
 
     /**
      * Alias for {@link Service#document()} .
@@ -202,7 +198,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int delay() default 0;
+    int delay() default -1;
 
     /**
      * Alias for {@link Service#local()} .
@@ -242,7 +238,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int connections() default 0;
+    int connections() default -1;
 
     /**
      * Alias for {@link Service#callbacks()} .
@@ -250,7 +246,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int callbacks() default DEFAULT_CALLBACK_INSTANCES;
+    int callbacks() default -1;
 
     /**
      * Alias for {@link Service#onconnect()} .
@@ -290,7 +286,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int retries() default DEFAULT_RETRIES;
+    int retries() default -1;
 
     /**
      * Alias for {@link Service#loadbalance()} .
@@ -298,7 +294,7 @@ public @interface ShenyuService {
      * @return the string
      */
     @AliasFor(annotation = Service.class)
-    String loadbalance() default LoadbalanceRules.RANDOM;
+    String loadbalance() default "";
 
     /**
      * Alias for {@link Service#async()} .
@@ -314,7 +310,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int actives() default 0;
+    int actives() default -1;
 
     /**
      * Alias for {@link Service#sent()} .
@@ -346,7 +342,7 @@ public @interface ShenyuService {
      * @return the int
      */
     @AliasFor(annotation = Service.class)
-    int timeout() default 0;
+    int timeout() default -1;
 
     /**
      * Alias for {@link Service#cache()} .
