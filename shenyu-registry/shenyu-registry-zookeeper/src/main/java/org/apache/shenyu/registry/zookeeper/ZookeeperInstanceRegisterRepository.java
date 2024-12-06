@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.registry.zookeeper;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
@@ -62,7 +64,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
-    private final Map<String, CuratorCache> cacheMap = new HashMap<>();
+    private final Multimap<String, CuratorCache> cacheMap = ArrayListMultimap.create();
 
     private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
@@ -217,7 +219,8 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void unWatchInstances(final String key) {
         if (cacheMap.containsKey(key)) {
-            cacheMap.remove(key).close();
+            cacheMap.get(key).forEach(CuratorCache::close);
+            cacheMap.removeAll(key);
         }
     }
 
@@ -235,9 +238,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         try {
             watcherInstanceRegisterMap.clear();
             //close treeCache
-            for (String key : cacheMap.keySet()) {
-                cacheMap.get(key).close();
-            }
+            cacheMap.values().forEach(CuratorCache::close);
             this.client.close();
             this.client = null;
             LOGGER.info("zookeeper registry shutting down...");

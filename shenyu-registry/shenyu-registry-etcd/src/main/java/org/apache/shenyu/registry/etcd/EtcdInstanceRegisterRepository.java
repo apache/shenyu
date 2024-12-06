@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.registry.etcd;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.shenyu.common.constant.Constants;
@@ -38,8 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -57,7 +57,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
-    private final ConcurrentMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
+    private final Multimap<String, Watch.Watcher> watchCache = ArrayListMultimap.create();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -159,7 +159,8 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     @Override
     public void unWatchInstances(final String key) {
         if (watchCache.containsKey(key)) {
-            watchCache.remove(key).close();
+            watchCache.get(key).forEach(Watch.Watcher::close);
+            watchCache.removeAll(key);
             LOGGER.info("etcd Unwatched etcd key: {}", key);
         }
     }
@@ -179,10 +180,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     @Override
     public void close() {
         try {
-            for (Map.Entry<String, Watch.Watcher> entry : watchCache.entrySet()) {
-                Watch.Watcher watcher = entry.getValue();
-                watcher.close();
-            }
+            watchCache.values().forEach(Watch.Watcher::close);
             watchCache.clear();
             if (Objects.nonNull(client)) {
                 client.close();
