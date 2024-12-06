@@ -117,7 +117,7 @@ public class DividePluginTest {
         reqBody.put("config",
                 "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"http://localhost:31877\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka.LoggingKafkaPlugin");
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)
