@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 
 import java.util.List;
@@ -131,7 +132,8 @@ public interface DiscoveryService {
      *
      * @param namespace the namespace
      * @param discoveryList the discovery data
+     * @param context import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<DiscoveryDTO> discoveryList);
+    ConfigImportResult importData(String namespace, List<DiscoveryDTO> discoveryList, ConfigsImportContext context);
 }
