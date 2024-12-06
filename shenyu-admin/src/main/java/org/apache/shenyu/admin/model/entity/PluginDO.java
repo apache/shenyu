@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.opengauss.util.Base64;
+import org.apache.shiro.codec.Base64;
 
 import java.sql.Timestamp;
 import java.util.Arrays;

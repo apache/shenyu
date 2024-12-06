@@ -79,14 +79,6 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @return the list
      */
     List<PluginData> listAll();
-    
-    /**
-     * List by namespace list.
-     *
-     * @param namespace the namespace
-     * @return the list
-     */
-    List<PluginData> listByNamespace(String namespace);
 
     /**
      * List all vo list.

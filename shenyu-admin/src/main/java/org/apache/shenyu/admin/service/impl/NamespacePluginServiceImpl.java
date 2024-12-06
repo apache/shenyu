@@ -123,7 +123,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
-        // select plugin id.
+        // select namespace plugin by ns plugin rel Ids.
         List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(namespacePluginVOS)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
@@ -245,5 +245,15 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Override
     public ConfigImportResult importData(final List<PluginDTO> pluginList) {
         return null;
+    }
+    
+    @Override
+    public List<PluginData> listByNamespace(final String namespace) {
+        List<NamespacePluginVO> namespacePluginList = namespacePluginRelMapper.selectAllByNamespaceId(namespace);
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return Lists.newArrayList();
+        }
+        List<String> pluginIds = namespacePluginList.stream().map(NamespacePluginVO::getPluginId).distinct().collect(Collectors.toList());
+        return ListUtil.map(pluginMapper.selectByIds(pluginIds), PluginTransfer.INSTANCE::mapToData);
     }
 }
