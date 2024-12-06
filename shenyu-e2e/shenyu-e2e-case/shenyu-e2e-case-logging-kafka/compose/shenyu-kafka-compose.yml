@@ -35,7 +35,7 @@ services:
       - shenyu
 
   kafka:
-    image: wurstmeister/kafka:latest
+    image: bitnami/kafka:latest
     container_name: shenyu-kafka
     ports:
       - "31877:9092"
@@ -51,9 +51,9 @@ services:
     restart: always
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: shenyu-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://shenyu-kafka:31877
+      KAFKA_LISTENERS: PLAINTEXT://shenyu-kafka:31877
     depends_on:
       zookeeper:
         condition: service_healthy
