@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -71,14 +70,15 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
                                                                @RequestParam @NotNull final Integer currentPage,
                                                                @RequestParam @NotNull final Integer pageSize,
-                                                               @Valid @Existed(message = "namespaceId is not existed",
-                                                                       provider = NamespaceMapper.class) final String namespaceId
+                                                               @RequestParam(value = "namespaceId", required = false) final String namespaceId
     ) {
         final SelectorQueryCondition condition = new SelectorQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setPlugin(ListUtil.of(pluginId));
         condition.setKeyword(name);
-        condition.setNamespaceId(namespaceId);
+        if (namespaceId != null) {
+            condition.setNamespaceId(namespaceId);
+        }
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
 
