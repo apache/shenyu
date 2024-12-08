@@ -103,9 +103,7 @@ public class DividePluginTest {
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        
         Map<String, String> reqBody = new HashMap<>();
         LOG.info("start loggingKafka plugin");
         reqBody.put("pluginId", "33");
@@ -118,6 +116,10 @@ public class DividePluginTest {
                 "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"http://localhost:31877\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka");
+        
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
+        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)
