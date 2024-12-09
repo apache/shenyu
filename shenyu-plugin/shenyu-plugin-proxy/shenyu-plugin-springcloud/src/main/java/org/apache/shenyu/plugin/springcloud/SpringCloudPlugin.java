@@ -85,7 +85,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         final String domain = upstream.buildDomain();
-        setDomain(URI.create(domain + shenyuContext.getRealUrl()), exchange);
+        setDomain(URI.create(domain + (StringUtils.isBlank(ruleHandle.getPath()) ? shenyuContext.getRealUrl() : ruleHandle.getPath())), exchange);
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);
