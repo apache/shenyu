@@ -119,7 +119,12 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
-        return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+        try {
+            return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+        } catch (Exception e) {
+            loggingServerHttpResponse.logError(e);
+            throw e;
+        }
     }
 
     /**
