@@ -38,12 +38,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -97,8 +100,15 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 .append(getRequestMethod(request, desensitized, keyWordMatch)).append(System.lineSeparator())
                 .append(getRequestHeaders(request, desensitized, keyWordMatch)).append(System.lineSeparator())
                 .append(getQueryParams(request, desensitized, keyWordMatch)).append(System.lineSeparator());
-        return chain.execute(exchange.mutate().request(new LoggingServerHttpRequest(request, requestInfo, desensitized, keyWordMatch))
-                .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo, desensitized, keyWordMatch)).build());
+        final LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo, desensitized, keyWordMatch);
+        try {
+            return chain.execute(exchange.mutate().request(new LoggingServerHttpRequest(request, requestInfo, desensitized, keyWordMatch))
+                            .response(loggingServerHttpResponse).build())
+                    .doOnError(loggingServerHttpResponse::logError);
+        } catch (Exception e) {
+            loggingServerHttpResponse.logError(e);
+            throw e;
+        }
     }
 
     @Override
@@ -268,6 +278,22 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 // when response, print all request info.
                 print(logInfo.toString());
             });
+        }
+
+        /**
+         * access error.
+         *
+         * @param throwable Exception occurred。
+         */
+        public void logError(final Throwable throwable) {
+            HttpStatusCode httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            if (throwable instanceof ResponseStatusException) {
+                httpStatus = ((ResponseStatusException) throwable).getStatusCode();
+            }
+            logInfo.append("Response Code: ").append(httpStatus).append(System.lineSeparator());
+            logInfo.append(getResponseHeaders()).append(System.lineSeparator());
+            logInfo.append("ERROR: ").append(System.lineSeparator());
+            logInfo.append(throwable.getMessage()).append(System.lineSeparator());
         }
 
         private String getResponseHeaders() {
