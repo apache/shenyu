@@ -87,7 +87,7 @@ public class WaitDataSync {
         LOGGER.info("pluginMap:{}", MAPPER.writeValueAsString(pluginMap));
         int retryNum = 0;
         boolean existPlugin = false;
-        while (!existPlugin && retryNum < 5) {
+        while (!existPlugin && retryNum < 10) {
             for (String plugin : pluginMap.keySet()) {
                 if (plugin.startsWith(pluginClass)) {
                     existPlugin = true;
