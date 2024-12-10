@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 
@@ -130,7 +131,9 @@ public interface DiscoveryUpstreamService {
      *
      * @param namespace the namespace
      * @param discoveryUpstreamList the discoveryUpstream data
+     * @param context import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<DiscoveryUpstreamDTO> discoveryUpstreamList);
+    ConfigImportResult importData(String namespace, List<DiscoveryUpstreamDTO> discoveryUpstreamList,
+                                  ConfigsImportContext context);
 }

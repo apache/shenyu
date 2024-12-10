@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 
 import java.util.List;
@@ -111,7 +112,8 @@ public interface ProxySelectorService {
      *
      * @param namespace namespace
      * @param proxySelectorList proxy selector data list
+     * @param context import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<ProxySelectorData> proxySelectorList);
+    ConfigImportResult importData(String namespace, List<ProxySelectorData> proxySelectorList, ConfigsImportContext context);
 }
