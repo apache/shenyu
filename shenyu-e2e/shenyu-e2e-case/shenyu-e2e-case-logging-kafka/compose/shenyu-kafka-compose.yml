@@ -23,7 +23,7 @@ services:
       - ZOO_STANDALONE_ENABLED=true
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
-      - "31878:2181"
+      - "2181:2181"
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 2181 || exit 1" ]
       interval: 30s
@@ -35,10 +35,11 @@ services:
       - shenyu
 
   kafka:
-    image: bitnami/kafka:3.4.0
+    image: wurstmeister/kafka
     container_name: kafka
+    hostname: kafka
     ports:
-      - "31877:9092"
+      - "9092:9092"
 #    healthcheck:
 #      test: [ "CMD-SHELL", "wget -q -O - http://localhost:9092/actuator/health | grep UP || exit 1" ]
 #      interval: 10s
@@ -51,11 +52,10 @@ services:
     restart: always
     environment:
       - KAFKA_BROKER_ID=1
+      - KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+      - KAFKA_ADVERTISED_PORT=9092
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_LISTENERS=PLAINTEXT://:9092
     depends_on:
       zookeeper:
         condition: service_healthy
