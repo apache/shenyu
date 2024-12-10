@@ -18,7 +18,7 @@
 services:
   zookeeper:
     image: bitnami/zookeeper:latest
-    container_name: shenyu-zookeeper
+    container_name: zookeeper
     environment:
       - ZOO_STANDALONE_ENABLED="true"
       - ALLOW_ANONYMOUS_LOGIN="yes"
@@ -36,7 +36,7 @@ services:
 
   kafka:
     image: bitnami/kafka:3.4.0
-    container_name: shenyu-kafka
+    container_name: kafka
     ports:
       - "31877:9092"
 #    healthcheck:
