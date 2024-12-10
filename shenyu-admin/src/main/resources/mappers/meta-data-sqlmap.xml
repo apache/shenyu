@@ -148,6 +148,7 @@
         SElECT true
         FROM meta_data
         WHERE path = #{path}
+        AND namespace_id = #{namespaceId}
         LIMIT 1
     </select>
 

@@ -39,6 +39,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -289,10 +290,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
     
     @Override
-    public ConfigImportResult importData(final String namespace, final List<DiscoveryUpstreamDTO> discoveryUpstreamList) {
+    public ConfigImportResult importData(final String namespace, final List<DiscoveryUpstreamDTO> discoveryUpstreamList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
         }
+        Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -313,7 +315,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                         .append(",");
                 continue;
             }
+            discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
+            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.get(discoveryUpstreamDTO.getDiscoveryHandlerId()));
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             successCount++;
