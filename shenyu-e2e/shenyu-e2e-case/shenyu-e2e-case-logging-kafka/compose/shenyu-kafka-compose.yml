@@ -20,8 +20,8 @@ services:
     image: bitnami/zookeeper:latest
     container_name: zookeeper
     environment:
-      - ZOO_STANDALONE_ENABLED="true"
-      - ALLOW_ANONYMOUS_LOGIN="yes"
+      - ZOO_STANDALONE_ENABLED=true
+      - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
       - "31878:2181"
     healthcheck:
