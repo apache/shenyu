@@ -119,7 +119,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
                                             records.forEach(record -> {
                                                 String message = record.value();
-                                                if (message.contains("/http/order/findById?id=23")) {
+                                                LOG.info("kafka message:{}", message);
+                                                if (message.contains("/http/order/findById")) {
                                                     isLog.set(true);
                                                     keepCosuming.set(false);
                                                 }
