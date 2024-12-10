@@ -55,6 +55,7 @@ services:
       - KAFKA_ADVERTISED_HOST_NAME=kafka
       - KAFKA_ADVERTISED_PORT=9092
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://kafka:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       zookeeper:
