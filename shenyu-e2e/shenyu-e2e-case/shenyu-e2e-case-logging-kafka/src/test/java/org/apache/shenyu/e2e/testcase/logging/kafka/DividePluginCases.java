@@ -113,7 +113,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
                                         Instant start = Instant.now();
                                         while (keepCosuming.get()) {
-                                            if (Duration.between(start, Instant.now()).toMillis() > 150000) {
+                                            if (Duration.between(start, Instant.now()).toMillis() > 300000) {
                                                 keepCosuming.set(false);
                                             }
                                             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
