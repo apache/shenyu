@@ -110,6 +110,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "http://localhost:9092");
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
                                         consumer.subscribe(Arrays.asList(TOPIC));
+                                        Thread.sleep(1000 * 30);
                                         AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
                                         Instant start = Instant.now();
                                         while (keepCosuming.get()) {
