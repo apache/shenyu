@@ -20,8 +20,8 @@ services:
     image: bitnami/zookeeper:latest
     container_name: shenyu-zookeeper
     environment:
-      ZOO_STANDALONE_ENABLED: "true"
-      ALLOW_ANONYMOUS_LOGIN: "yes"
+      - ZOO_STANDALONE_ENABLED="true"
+      - ALLOW_ANONYMOUS_LOGIN="yes"
     ports:
       - "31878:2181"
     healthcheck:
@@ -35,7 +35,7 @@ services:
       - shenyu
 
   kafka:
-    image: wurstmeister/kafka:latest
+    image: bitnami/kafka:3.4.0
     container_name: shenyu-kafka
     ports:
       - "31877:9092"
@@ -50,10 +50,12 @@ services:
 #          condition: service_healthy
     restart: always
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: shenyu-zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://shenyu-kafka:9092
-      KAFKA_LISTENERS: PLAINTEXT://shenyu-kafka:9092
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
     depends_on:
       zookeeper:
         condition: service_healthy
