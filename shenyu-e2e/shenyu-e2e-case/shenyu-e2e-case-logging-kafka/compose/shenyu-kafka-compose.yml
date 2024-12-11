@@ -19,6 +19,7 @@ services:
   zookeeper:
     image: bitnami/zookeeper:latest
     container_name: zookeeper
+    network_mode: host
     environment:
       - ZOO_STANDALONE_ENABLED=true
       - ALLOW_ANONYMOUS_LOGIN=yes
@@ -31,8 +32,6 @@ services:
       retries: 5
       start_period: 40s
     restart: always
-    networks:
-      - shenyu
 
   kafka:
     image: wurstmeister/kafka
@@ -55,15 +54,9 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_ADVERTISED_HOST_NAME=localhost
       - KAFKA_ADVERTISED_PORT=9092
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ZOOKEEPER_CONNECT=localhost:2181
+      - KAFKA_LISTENERS=PLAINTEXT://localhost:9092
     depends_on:
       zookeeper:
         condition: service_healthy
-
-networks:
-  shenyu:
-    name: shenyu
-    driver: bridge
-    external: true
 
