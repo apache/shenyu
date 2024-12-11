@@ -38,6 +38,7 @@ services:
     image: wurstmeister/kafka
     container_name: kafka
     hostname: kafka
+    network_mode: host
     ports:
       - "9092:9092"
 #    healthcheck:
@@ -59,9 +60,6 @@ services:
     depends_on:
       zookeeper:
         condition: service_healthy
-    networks:
-      - shenyu
-      - host
 
 networks:
   shenyu:
