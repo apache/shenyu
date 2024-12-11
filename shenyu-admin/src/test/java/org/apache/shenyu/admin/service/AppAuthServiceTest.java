@@ -258,7 +258,9 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testSyncData() {
-        ArrayList<AppAuthDO> all = Lists.newArrayList(new AppAuthDO());
+        AppAuthDO authDO = new AppAuthDO();
+        authDO.setNamespaceId("test");
+        ArrayList<AppAuthDO> all = Lists.newArrayList(authDO);
         when(appAuthMapper.selectAll())
                 .thenReturn(null)
                 .thenReturn(Lists.newArrayList())

@@ -15,28 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.provider;
+package org.apache.shenyu.admin.service.configs;
 
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.validation.ExistProvider;
-import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
+import java.util.Optional;
 
-/**
- * MetaDataPathProvider.
- */
-@Component
-public class MetaDataPathProvider implements ExistProvider {
-    
-    private final MetaDataMapper metaDataMapper;
-    
-    public MetaDataPathProvider(final MetaDataMapper metaDataMapper) {
-        this.metaDataMapper = metaDataMapper;
-    }
-    
-    @Override
-    public Boolean existed(final Serializable key) {
-        return metaDataMapper.pathExisted(key);
-    }
+public interface ConfigsExportImportHandler {
+
+    ConfigsExportImportEnum configsEnum();
+
+    Optional<String> configsExport(String namespaceId);
+
+    void configsImport(String namespaceId, String data, ConfigsImportContext context);
 }
