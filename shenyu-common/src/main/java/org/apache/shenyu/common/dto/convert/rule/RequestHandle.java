@@ -234,7 +234,7 @@ public class RequestHandle {
      * @return not empty is true
      */
     private boolean isNotEmptyConfig() {
-        return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig() || !preserveHost;
+        return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig();
     }
 
     public class ShenyuRequestHeader {
