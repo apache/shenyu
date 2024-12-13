@@ -53,17 +53,6 @@ public class HttpClientPluginConfiguration {
     public HttpClientProperties httpClientProperties() {
         return new HttpClientProperties();
     }
-    
-    /**
-     * http response duplicate response headers config.
-     *
-     * @return the duplicate response header properties
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "shenyu.duplicate-response-header")
-    public DuplicateResponseHeaderProperties responseHeaderProperties() {
-        return new DuplicateResponseHeaderProperties();
-    }
 
     /**
      * Http client loop resource.
