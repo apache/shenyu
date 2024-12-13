@@ -20,14 +20,13 @@ package org.apache.shenyu.common.enums;
 public enum UniqueHeaderEnum {
     REQ_UNIQUE_HEADER("requestUniqueHeaders", "requestHeaderUniqueStrategy"),
 
-    RESP_UNIQUE_HEADER("responseUniqueHeaders", "responseHeaderUniqueStrategy")
-    ;
+    RESP_UNIQUE_HEADER("responseUniqueHeaders", "responseHeaderUniqueStrategy");
 
     private final String name;
 
     private final String strategy;
 
-    UniqueHeaderEnum(String name, String strategy) {
+    UniqueHeaderEnum(final String name, final String strategy) {
         this.name = name;
         this.strategy = strategy;
     }

@@ -130,7 +130,7 @@ public class RequestHandle {
     /**
      * set headerUniqueStrategy.
      *
-     * @param headerUniqueStrategy headerUniqueStrategy
+     * @param requestHeaderUniqueStrategy requestHeaderUniqueStrategy
      */
     public void setRequestHeaderUniqueStrategy(final HeaderUniqueStrategyEnum requestHeaderUniqueStrategy) {
         this.requestHeaderUniqueStrategy = requestHeaderUniqueStrategy;
@@ -148,7 +148,7 @@ public class RequestHandle {
     /**
      * set uniqueHeader.
      *
-     * @param uniqueHeader uniqueHeader
+     * @param requestUniqueHeaders requestUniqueHeaders
      */
     public void setRequestUniqueHeaders(final String requestUniqueHeaders) {
         this.requestUniqueHeaders = requestUniqueHeaders;
@@ -186,7 +186,7 @@ public class RequestHandle {
      *
      * @param respUniqueHeaders respUniqueHeaders
      */
-    public void setRespUniqueHeaders(String respUniqueHeaders) {
+    public void setRespUniqueHeaders(final String respUniqueHeaders) {
         this.respUniqueHeaders = respUniqueHeaders;
     }
 
