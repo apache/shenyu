@@ -17,26 +17,24 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
-import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
-import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.List;
 
 /**
  * The type Web client plugin.
@@ -44,18 +42,14 @@ import java.util.List;
 public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flux<DataBuffer>>> {
     
     private final WebClient webClient;
-    
-    private final DuplicateResponseHeaderProperties properties;
 
     /**
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
-     * @param properties properties
      */
-    public WebClientPlugin(final WebClient webClient, final DuplicateResponseHeaderProperties properties) {
+    public WebClientPlugin(final WebClient webClient) {
         this.webClient = webClient;
-        this.properties = properties;
     }
     
     @Override
@@ -64,10 +58,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
+        ServerHttpRequest request = exchange.getRequest();
+        final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
+        this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
         final WebClient.ResponseSpec responseSpec = webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> {
                     headers.addAll(exchange.getRequest().getHeaders());
                     headers.remove(HttpHeaders.HOST);
+                    Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
+                    if (preserveHost) {
+                        headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
+                    }
                 })
                 .body((outputMessage, context) -> {
                     MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
@@ -89,23 +90,12 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     }
                     HttpHeaders headers = new HttpHeaders();
                     headers.addAll(fluxResponseEntity.getHeaders());
-                    this.duplicate(headers);
+                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
                     exchange.getResponse().getHeaders().putAll(headers);
                     exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);
                 });
-    }
-    
-    private void duplicate(final HttpHeaders headers) {
-        List<String> duplicateHeaders = properties.getHeaders();
-        if (CollectionUtils.isEmpty(duplicateHeaders)) {
-            return;
-        }
-        DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
-        for (String headerKey : duplicateHeaders) {
-            duplicateHeaders(headers, headerKey, strategy);
-        }
     }
 
     @Override

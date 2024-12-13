@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -62,9 +63,13 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         exchange.getAttributes().put(Constants.PRESERVE_HOST, requestHandle.getPreserveHost());
-        if (StringUtils.isNotEmpty(requestHandle.getHeaderUniqueStrategy().name()) && StringUtils.isNotEmpty(requestHandle.getUniqueHeaders())) {
-            exchange.getAttributes().put(Constants.HEADER_UNIQUE_STRATEGY, requestHandle.getHeaderUniqueStrategy());
-            exchange.getAttributes().put(Constants.UNIQUE_HEADERS, requestHandle.getUniqueHeaders());
+        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRequestUniqueHeaders())) {
+            exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), requestHandle.getRequestHeaderUniqueStrategy());
+            exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), requestHandle.getRequestUniqueHeaders());
+        }
+        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
+            exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), requestHandle.getRespHeaderUniqueStrategy());
+            exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), requestHandle.getRespUniqueHeaders());
         }
         if (requestHandle.isEmptyConfig()) {
             LOG.warn("request handler configuration is empty：{}", requestHandle);

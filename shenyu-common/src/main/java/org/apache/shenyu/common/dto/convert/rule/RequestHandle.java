@@ -38,9 +38,13 @@ public class RequestHandle {
 
     private Boolean preserveHost = Boolean.FALSE;
 
-    private HeaderUniqueStrategyEnum headerUniqueStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
+    private HeaderUniqueStrategyEnum requestHeaderUniqueStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
 
-    private String uniqueHeaders;
+    private String requestUniqueHeaders;
+
+    private HeaderUniqueStrategyEnum respHeaderUniqueStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
+
+    private String respUniqueHeaders;
 
     /**
      * get header.
@@ -119,8 +123,8 @@ public class RequestHandle {
      *
      * @return headerUniqueStrategy
      */
-    public HeaderUniqueStrategyEnum getHeaderUniqueStrategy() {
-        return headerUniqueStrategy;
+    public HeaderUniqueStrategyEnum getRequestHeaderUniqueStrategy() {
+        return requestHeaderUniqueStrategy;
     }
 
     /**
@@ -128,8 +132,8 @@ public class RequestHandle {
      *
      * @param headerUniqueStrategy headerUniqueStrategy
      */
-    public void setHeaderUniqueStrategy(final HeaderUniqueStrategyEnum headerUniqueStrategy) {
-        this.headerUniqueStrategy = headerUniqueStrategy;
+    public void setRequestHeaderUniqueStrategy(final HeaderUniqueStrategyEnum requestHeaderUniqueStrategy) {
+        this.requestHeaderUniqueStrategy = requestHeaderUniqueStrategy;
     }
 
     /**
@@ -137,8 +141,8 @@ public class RequestHandle {
      *
      * @return uniqueHeader
      */
-    public String getUniqueHeaders() {
-        return uniqueHeaders;
+    public String getRequestUniqueHeaders() {
+        return requestUniqueHeaders;
     }
 
     /**
@@ -146,8 +150,44 @@ public class RequestHandle {
      *
      * @param uniqueHeader uniqueHeader
      */
-    public void setUniqueHeaders(final String uniqueHeaders) {
-        this.uniqueHeaders = uniqueHeaders;
+    public void setRequestUniqueHeaders(final String requestUniqueHeaders) {
+        this.requestUniqueHeaders = requestUniqueHeaders;
+    }
+
+    /**
+     * get respHeaderUniqueStrategy.
+     *
+     * @return respHeaderUniqueStrategy
+     */
+    public HeaderUniqueStrategyEnum getRespHeaderUniqueStrategy() {
+        return respHeaderUniqueStrategy;
+    }
+
+    /**
+     * set respHeaderUniqueStrategy.
+     *
+     * @param respHeaderUniqueStrategy respHeaderUniqueStrategy
+     */
+    public void setRespHeaderUniqueStrategy(final HeaderUniqueStrategyEnum respHeaderUniqueStrategy) {
+        this.respHeaderUniqueStrategy = respHeaderUniqueStrategy;
+    }
+
+    /**
+     * get respUniqueHeaders.
+     *
+     * @return respUniqueHeaders
+     */
+    public String getRespUniqueHeaders() {
+        return respUniqueHeaders;
+    }
+
+    /**
+     * set respUniqueHeaders.
+     *
+     * @param respUniqueHeaders respUniqueHeaders
+     */
+    public void setRespUniqueHeaders(String respUniqueHeaders) {
+        this.respUniqueHeaders = respUniqueHeaders;
     }
 
     @Override
