@@ -18,17 +18,17 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.apache.commons.collections4.CollectionUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties;
-import org.apache.shenyu.plugin.httpclient.config.DuplicateResponseHeaderProperties.DuplicateResponseHeaderStrategy;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -37,7 +37,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -47,25 +46,28 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
 
     private final HttpClient httpClient;
 
-    private final DuplicateResponseHeaderProperties properties;
-
     /**
      * Instantiates a new Netty http client plugin.
      *
      * @param httpClient the http client
-     * @param properties proerties
      */
-    public NettyHttpClientPlugin(final HttpClient httpClient, final DuplicateResponseHeaderProperties properties) {
+    public NettyHttpClientPlugin(final HttpClient httpClient) {
         this.httpClient = httpClient;
-        this.properties = properties;
     }
 
     @Override
     protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                                  final URI uri, final Flux<DataBuffer> body) {
+        ServerHttpRequest request = exchange.getRequest();
+        final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
+        this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
         return Mono.from(httpClient.headers(headers -> {
-            exchange.getRequest().getHeaders().forEach(headers::add);
+            httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
+            Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
+            if (preserveHost) {
+                headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
+            }
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
@@ -74,7 +76,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     final ServerHttpResponse response = exchange.getResponse();
                     HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-                    this.duplicate(headers);
+                    this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
                     String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
@@ -92,16 +94,6 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                 }));
     }
 
-    private void duplicate(final HttpHeaders headers) {
-        List<String> duplicateHeaders = properties.getHeaders();
-        if (CollectionUtils.isEmpty(duplicateHeaders)) {
-            return;
-        }
-        DuplicateResponseHeaderStrategy strategy = properties.getStrategy();
-        for (String headerKey : duplicateHeaders) {
-            duplicateHeaders(headers, headerKey, strategy);
-        }
-    }
 
     @Override
     public int getOrder() {
