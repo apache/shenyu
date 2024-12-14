@@ -41,6 +41,8 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=localhost:2181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+    ports:
+      - 9092:9092
     depends_on:
       zookeeper:
         condition: service_healthy
