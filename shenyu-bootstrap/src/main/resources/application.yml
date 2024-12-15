@@ -193,10 +193,6 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
-  duplicate-response-header:
-    strategy: RETAIN_FIRST
-    headers:
-      - Access-Control-Allow-Origin
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
