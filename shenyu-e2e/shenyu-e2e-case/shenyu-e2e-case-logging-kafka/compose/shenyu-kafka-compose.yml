@@ -40,9 +40,9 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=localhost:2181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:31877
-      - KAFKA_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_LISTENERS=PLAINTEXT://localhost:31877
     ports:
-      - "31877:9092"
+      - "31877:31877"
     depends_on:
       zookeeper:
         condition: service_healthy
