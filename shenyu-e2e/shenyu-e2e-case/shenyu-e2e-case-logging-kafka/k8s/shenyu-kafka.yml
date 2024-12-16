@@ -75,11 +75,11 @@ spec:
           image: bitnami/kafka:3.6.2
           env:
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: PLAINTEXT://kafka:9092
+              value: PLAINTEXT://kafka:31877
             - name: KAFKA_ZOOKEEPER_CONNECT
               value: zookeeper:2181
           ports:
-            - containerPort: 9092
+            - containerPort: 31877
 
 ---
 apiVersion: v1
