@@ -922,6 +922,16 @@ public interface Constants {
     String EVENT_NAME_DATA = "data";
     
     /**
+     * The constant EVENT_NAME_REGISTER.
+     */
+    String HTTP_PATH = "shenyu.httpPath";
+
+    /**
+     * The constant preserve host.
+     */
+    String PRESERVE_HOST = "preserveHost";
+    
+    /**
      * String q.
      */
     default void findConstants() {
