@@ -35,7 +35,6 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
-import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
@@ -212,26 +211,10 @@ public class PluginServiceImpl implements PluginService {
     
     @Override
     public List<PluginVO> listAllData() {
-        // plugin handle
-        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData()
-                .stream()
-                .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
-
         return pluginMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(pluginDO -> {
-                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
-                    List<PluginHandleVO> pluginHandleList = Optional
-                            .ofNullable(pluginHandleMap.getOrDefault(exportVO.getId(), Lists.newArrayList()))
-                            .orElse(Lists.newArrayList())
-                            .stream()
-                            // to make less volume of export data
-                            .peek(x -> x.setDictOptions(null))
-                            .collect(Collectors.toList());
-                    exportVO.setPluginHandleList(pluginHandleList);
-                    return exportVO;
-                }).collect(Collectors.toList());
+                .map(PluginVO::buildPluginVO).collect(Collectors.toList());
     }
     
     @Override

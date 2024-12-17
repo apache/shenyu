@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
@@ -44,12 +45,14 @@ import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.utils.ZipUtil;
+import org.apache.shenyu.admin.utils.ZipUtil.ZipItem;
 import org.apache.shenyu.common.constant.ExportImportConstants;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -78,6 +81,11 @@ public class ConfigsServiceImpl implements ConfigsService {
      * The Plugin service.
      */
     private final PluginService pluginService;
+
+    /**
+     * The Plugin Handle service.
+     */
+    private final PluginHandleService pluginHandleService;
 
     /**
      * The Selector service.
@@ -116,6 +124,7 @@ public class ConfigsServiceImpl implements ConfigsService {
 
     public ConfigsServiceImpl(final AppAuthService appAuthService,
                                          final PluginService pluginService,
+                                         final PluginHandleService pluginHandleService,
                                          final SelectorService selectorService,
                                          final RuleService ruleService,
                                          final MetaDataService metaDataService,
@@ -125,6 +134,7 @@ public class ConfigsServiceImpl implements ConfigsService {
                                          final DiscoveryUpstreamService discoveryUpstreamService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
+        this.pluginHandleService = pluginHandleService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.metaDataService = metaDataService;
@@ -176,6 +186,8 @@ public class ConfigsServiceImpl implements ConfigsService {
         
         exportPluginTemplateData(zipItemList);
         
+        exportPluginHandleData(zipItemList);
+        
         exportProxySelectorData(namespace, zipItemList);
         
         exportDiscoveryData(namespace, zipItemList);
@@ -183,6 +195,13 @@ public class ConfigsServiceImpl implements ConfigsService {
         exportDiscoveryUpstreamData(namespace, zipItemList);
         
         return ShenyuAdminResult.success(ZipUtil.zip(zipItemList));
+    }
+    
+    private void exportPluginHandleData(final List<ZipItem> zipItemList) {
+        List<PluginHandleVO> pluginHandleDataList = pluginHandleService.listAllData();
+        if (CollectionUtils.isNotEmpty(pluginHandleDataList)) {
+            zipItemList.add(new ZipItem(ExportImportConstants.PLUGIN_HANDLE_JSON, JsonUtils.toJson(pluginHandleDataList)));
+        }
     }
     
     private void exportDiscoveryUpstreamData(final List<ZipUtil.ZipItem> zipItemList) {
