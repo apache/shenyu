@@ -39,9 +39,6 @@ services:
       retries: 30
     ports:
       - "8189:8189"
-    depends_on:
-      shenyu-integrated-test-http:
-        condition: service_healthy
     networks:
       - shenyu
 
@@ -51,9 +48,6 @@ services:
     restart: always
     networks:
       - shenyu
-    depends_on:
-      shenyu-redis:
-        condition: service_healthy
     ports:
       - "9095:9095"
     environment:
