@@ -34,7 +34,7 @@ MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
   kubectl apply -f "${PRGDIR}"/shenyu-kafka.yml
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31877/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:9092/actuator/health
 
   sleep 30s
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-springcloud.yml"
