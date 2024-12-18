@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
@@ -45,6 +46,7 @@ import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
@@ -81,6 +83,11 @@ public class ConfigsServiceImpl implements ConfigsService {
      * The Plugin service.
      */
     private final PluginService pluginService;
+
+    /**
+     * The Namespace Plugin service.
+     */
+    private final NamespacePluginService namespacePluginService;
 
     /**
      * The Plugin Handle service.
@@ -124,6 +131,7 @@ public class ConfigsServiceImpl implements ConfigsService {
 
     public ConfigsServiceImpl(final AppAuthService appAuthService,
                                          final PluginService pluginService,
+                                         final NamespacePluginService namespacePluginService,
                                          final PluginHandleService pluginHandleService,
                                          final SelectorService selectorService,
                                          final RuleService ruleService,
@@ -134,6 +142,7 @@ public class ConfigsServiceImpl implements ConfigsService {
                                          final DiscoveryUpstreamService discoveryUpstreamService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
+        this.namespacePluginService = namespacePluginService;
         this.pluginHandleService = pluginHandleService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
@@ -176,7 +185,7 @@ public class ConfigsServiceImpl implements ConfigsService {
         
         exportMetadata(namespace, zipItemList);
         
-        exportPluginData(namespace, zipItemList);
+        exportNamespacePluginData(namespace, zipItemList);
         
         exportSelectorData(namespace, zipItemList);
         
@@ -291,10 +300,10 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
-    private void exportPluginData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
-        List<PluginVO> pluginDataList = pluginService.listAllDataByNamespaceId(namespace);
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginDataList)));
+    private void exportNamespacePluginData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginService.listAllData(namespace);
+        if (CollectionUtils.isNotEmpty(namespacePluginVOList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(namespacePluginVOList)));
         }
     }
     
@@ -586,6 +595,18 @@ public class ConfigsServiceImpl implements ConfigsService {
             // set namespaceId
             pluginList.forEach(pluginDTO -> pluginDTO.setNamespaceId(namespace));
             ConfigImportResult configImportResult = pluginService.importData(pluginList);
+            result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+    
+    private void importPluginTemplateData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String pluginTemplateJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(pluginTemplateJson)) {
+            List<PluginDTO> pluginTemplateList = GsonUtils.getInstance().fromList(pluginTemplateJson, PluginDTO.class);
+            ConfigImportResult configImportResult = pluginService.importData(pluginTemplateList);
             result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());

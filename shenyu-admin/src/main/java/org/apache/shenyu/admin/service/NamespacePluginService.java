@@ -108,11 +108,11 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return the list
      */
     List<NamespacePluginVO> listByNamespaceId(String namespaceId);
-
+    
     /**
      * List all vo list.
      *
-     * @param namespaceId the namespaceId
+     * @param namespaceId the namespace id
      * @return the vo list
      */
     List<NamespacePluginVO> listAllData(String namespaceId);

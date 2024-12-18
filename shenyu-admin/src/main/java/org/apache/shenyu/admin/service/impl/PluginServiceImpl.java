@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -218,26 +217,6 @@ public class PluginServiceImpl implements PluginService {
     }
     
     @Override
-    public List<PluginVO> listAllDataByNamespaceId(final String namespaceId) {
-        List<NamespacePluginRelDO> pluginRelDOList = namespacePluginRelMapper.listByNamespaceId(namespaceId);
-        if (CollectionUtils.isEmpty(pluginRelDOList)) {
-            return Lists.newArrayList();
-        }
-        Set<String> pluginIdSet = pluginRelDOList.stream().map(NamespacePluginRelDO::getPluginId).collect(Collectors.toSet());
-        
-        List<PluginDO> pluginDOList = pluginMapper.selectByIds(Lists.newArrayList(pluginIdSet));
-        
-        if (CollectionUtils.isEmpty(pluginDOList)) {
-            return Lists.newArrayList();
-        }
-        
-        return pluginDOList
-                .stream()
-                .filter(Objects::nonNull)
-                .map(PluginVO::buildPluginVO).collect(Collectors.toList());
-    }
-    
-    @Override
     public List<PluginData> listAllNotInResource() {
         return ListUtil.map(pluginMapper.listAllNotInResource(), PluginTransfer.INSTANCE::mapToData);
     }
@@ -284,30 +263,17 @@ public class PluginServiceImpl implements PluginService {
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
-            String pluginId;
             // check plugin base info
             if (existPluginMap.containsKey(pluginName)) {
-                PluginDO existPlugin = existPluginMap.get(pluginName);
-                pluginId = existPlugin.getId();
                 errorMsgBuilder
                         .append(pluginName)
                         .append(",");
             } else {
                 PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-                pluginId = pluginDO.getId();
                 if (pluginMapper.insertSelective(pluginDO) > 0) {
                     // publish create event. init plugin data
                     successCount++;
                 }
-            }
-            // check and import plugin handle
-            List<PluginHandleDTO> pluginHandleList = pluginDTO.getPluginHandleList();
-            if (CollectionUtils.isNotEmpty(pluginHandleList)) {
-                pluginHandleService
-                        .importData(pluginHandleList
-                                .stream()
-                                .peek(x -> x.setPluginId(pluginId))
-                                .collect(Collectors.toList()));
             }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
