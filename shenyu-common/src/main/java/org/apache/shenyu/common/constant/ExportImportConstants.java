@@ -42,6 +42,11 @@ public final class ExportImportConstants {
     public static final String PLUGIN_JSON = "plugin.json";
 
     /**
+     * plugin template json config name.
+     */
+    public static final String PLUGIN_TEMPLATE_JSON = "plugin_template.json";
+
+    /**
      * selector json config name.
      */
     public static final String SELECTOR_JSON = "selector.json";
