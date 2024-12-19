@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
+import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -59,6 +60,7 @@ import org.apache.shenyu.common.constant.ExportImportConstants;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -406,8 +408,11 @@ public class ConfigsServiceImpl implements ConfigsService {
                 case ExportImportConstants.META_JSON:
                     importMetaData(namespace, result, zipItem);
                     break;
-                case ExportImportConstants.PLUGIN_JSON:
-                    importPluginData(namespace, result, zipItem);
+                case ExportImportConstants.PLUGIN_TEMPLATE_JSON:
+                    importPluginTemplateData(result, zipItem);
+                    break;
+                case ExportImportConstants.NAMESPACE_PLUGIN_JSON:
+                    importNamespacePluginData(namespace, result, zipItem);
                     break;
                 case ExportImportConstants.SELECTOR_JSON:
                     importSelectorData(namespace, result, zipItem);
@@ -595,6 +600,24 @@ public class ConfigsServiceImpl implements ConfigsService {
             // set namespaceId
             pluginList.forEach(pluginDTO -> pluginDTO.setNamespaceId(namespace));
             ConfigImportResult configImportResult = pluginService.importData(pluginList);
+            result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
+            if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
+                result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());
+            }
+        }
+    }
+
+    private void importNamespacePluginData(final String namespace, final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
+        String pluginJson = zipItem.getItemData();
+        if (StringUtils.isNotEmpty(pluginJson)) {
+            List<NamespacePluginDTO> namespacePluginDTOS = GsonUtils.getInstance().fromList(pluginJson, NamespacePluginDTO.class);
+            // set namespaceId
+            namespacePluginDTOS.forEach(namespacePluginDTO -> {
+                namespacePluginDTO.setNamespaceId(namespace);
+                // change id
+                namespacePluginDTO.setId(UUIDUtils.getInstance().generateShortUuid());
+            });
+            ConfigImportResult configImportResult = namespacePluginService.importData(namespace, namespacePluginDTOS);
             result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());

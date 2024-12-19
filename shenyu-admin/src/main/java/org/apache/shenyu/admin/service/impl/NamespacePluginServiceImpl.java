@@ -233,8 +233,37 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
     
     @Override
-    public ConfigImportResult importData(final List<PluginDTO> pluginList) {
-        return null;
+    public ConfigImportResult importData(final String namespace, final List<NamespacePluginDTO> namespacePluginList) {
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return ConfigImportResult.success();
+        }
+        Map<String, NamespacePluginRelDO> existPluginMap = namespacePluginRelMapper.listByNamespaceId(namespace)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(NamespacePluginRelDO::getPluginId, x -> x));
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
+            String pluginId = namespacePluginDTO.getPluginId();
+            // check plugin base info
+            if (existPluginMap.containsKey(pluginId)) {
+                errorMsgBuilder
+                        .append(pluginId)
+                        .append(",");
+            } else {
+                NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
+                if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) > 0) {
+                    // publish create event. init plugin data
+                    successCount++;
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
     
     @Override

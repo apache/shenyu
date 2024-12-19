@@ -148,10 +148,17 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     /**
      * import plugin data.
      *
+     * @param namespace  the namespace
      * @param pluginList the plugin data
      * @return config import result
      */
-    ConfigImportResult importData(List<PluginDTO> pluginList);
+    ConfigImportResult importData(String namespace, List<NamespacePluginDTO> pluginList);
     
+    /**
+     * List by namespace.
+     *
+     * @param namespace the namespace
+     * @return the list
+     */
     List<PluginData> listByNamespace(String namespace);
 }
