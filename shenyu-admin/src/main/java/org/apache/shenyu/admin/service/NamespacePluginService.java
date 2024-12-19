@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;

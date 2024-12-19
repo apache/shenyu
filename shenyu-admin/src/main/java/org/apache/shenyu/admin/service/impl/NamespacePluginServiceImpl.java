@@ -26,7 +26,6 @@ import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
