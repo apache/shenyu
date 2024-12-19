@@ -315,13 +315,6 @@ public class ConfigsServiceImpl implements ConfigsService {
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_TEMPLATE_JSON, JsonUtils.toJson(pluginDataList)));
         }
     }
-    
-    private void exportPluginTemplateData(final List<ZipUtil.ZipItem> zipItemList) {
-        List<PluginVO> pluginDataList = pluginService.listAllData();
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_TEMPLATE_JSON, JsonUtils.toJson(pluginDataList)));
-        }
-    }
 
     private void exportMetadata(final List<ZipUtil.ZipItem> zipItemList) {
         List<MetaDataVO> metaDataList = metaDataService.listAllData();
