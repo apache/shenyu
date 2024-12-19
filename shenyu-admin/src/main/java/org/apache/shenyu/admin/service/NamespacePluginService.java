@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
@@ -108,11 +107,11 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return the list
      */
     List<NamespacePluginVO> listByNamespaceId(String namespaceId);
-
+    
     /**
      * List all vo list.
      *
-     * @param namespaceId the namespaceId
+     * @param namespaceId the namespace id
      * @return the vo list
      */
     List<NamespacePluginVO> listAllData(String namespaceId);
@@ -148,10 +147,17 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     /**
      * import plugin data.
      *
+     * @param namespace  the namespace
      * @param pluginList the plugin data
      * @return config import result
      */
-    ConfigImportResult importData(List<PluginDTO> pluginList);
+    ConfigImportResult importData(String namespace, List<NamespacePluginDTO> pluginList);
     
+    /**
+     * List by namespace.
+     *
+     * @param namespace the namespace
+     * @return the list
+     */
     List<PluginData> listByNamespace(String namespace);
 }
