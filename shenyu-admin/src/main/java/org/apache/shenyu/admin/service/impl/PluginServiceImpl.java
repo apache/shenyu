@@ -213,6 +213,37 @@ public class PluginServiceImpl implements PluginService {
         return pluginMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
+                .map(pluginDO -> {
+                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
+                    List<PluginHandleVO> pluginHandleList = Optional
+                            .ofNullable(pluginHandleMap.getOrDefault(exportVO.getId(), Lists.newArrayList()))
+                            .orElse(Lists.newArrayList())
+                            .stream()
+                            // to make less volume of export data
+                            .peek(x -> x.setDictOptions(null))
+                            .collect(Collectors.toList());
+                    exportVO.setPluginHandleList(pluginHandleList);
+                    return exportVO;
+                }).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<PluginVO> listAllDataByNamespaceId(final String namespaceId) {
+        List<NamespacePluginRelDO> pluginRelDOList = namespacePluginRelMapper.listByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(pluginRelDOList)) {
+            return Lists.newArrayList();
+        }
+        Set<String> pluginIdSet = pluginRelDOList.stream().map(NamespacePluginRelDO::getPluginId).collect(Collectors.toSet());
+        
+        List<PluginDO> pluginDOList = pluginMapper.selectByIds(Lists.newArrayList(pluginIdSet));
+        
+        if (CollectionUtils.isEmpty(pluginDOList)) {
+            return Lists.newArrayList();
+        }
+        
+        return pluginDOList
+                .stream()
+                .filter(Objects::nonNull)
                 .map(PluginVO::buildPluginVO).collect(Collectors.toList());
     }
     
