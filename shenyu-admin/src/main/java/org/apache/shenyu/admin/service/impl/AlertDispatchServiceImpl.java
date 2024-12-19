@@ -106,7 +106,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     }
     
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         if (this.workerExecutor != null) {
             workerExecutor.shutdownNow();
         }
