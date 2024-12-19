@@ -174,6 +174,8 @@ public class ConfigsServiceImpl implements ConfigsService {
         
         exportDictData(zipItemList);
         
+        exportPluginTemplateData(zipItemList);
+        
         exportProxySelectorData(namespace, zipItemList);
         
         exportDiscoveryData(namespace, zipItemList);
@@ -274,6 +276,13 @@ public class ConfigsServiceImpl implements ConfigsService {
         List<PluginVO> pluginDataList = pluginService.listAllDataByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(pluginDataList)));
+        }
+    }
+    
+    private void exportPluginTemplateData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<PluginVO> pluginDataList = pluginService.listAllData();
+        if (CollectionUtils.isNotEmpty(pluginDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_TEMPLATE_JSON, JsonUtils.toJson(pluginDataList)));
         }
     }
 
