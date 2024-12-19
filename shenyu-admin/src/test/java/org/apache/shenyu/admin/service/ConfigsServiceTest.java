@@ -55,6 +55,12 @@ public final class ConfigsServiceTest {
     private PluginService pluginService;
 
     @Mock
+    private NamespacePluginService namespacePluginService;
+
+    @Mock
+    private PluginHandleService pluginHandleService;
+
+    @Mock
     private RuleService ruleService;
 
     @Mock
@@ -77,7 +83,7 @@ public final class ConfigsServiceTest {
 
     @BeforeEach
     public void setUp() {
-        configsService = new ConfigsServiceImpl(appAuthService, pluginService, selectorService, ruleService,
+        configsService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService, pluginHandleService, selectorService, ruleService,
                 metaDataService, shenyuDictService, proxySelectorService, discoveryService, discoveryUpstreamService);
     }
 
