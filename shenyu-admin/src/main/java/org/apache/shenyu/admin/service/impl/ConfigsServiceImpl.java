@@ -303,7 +303,7 @@ public class ConfigsServiceImpl implements ConfigsService {
     private void exportNamespacePluginData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
         List<NamespacePluginVO> namespacePluginVOList = namespacePluginService.listAllData(namespace);
         if (CollectionUtils.isNotEmpty(namespacePluginVOList)) {
-            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, JsonUtils.toJson(namespacePluginVOList)));
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.NAMESPACE_PLUGIN_JSON, JsonUtils.toJson(namespacePluginVOList)));
         }
     }
     
