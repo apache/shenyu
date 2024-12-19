@@ -244,26 +244,14 @@ public class PluginServiceImpl implements PluginService {
         
         List<PluginDO> pluginDOList = pluginMapper.selectByIds(Lists.newArrayList(pluginIdSet));
         
-        // plugin handle
-        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllDataByPluginIds(pluginIdSet)
-                .stream()
-                .collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
+        if (CollectionUtils.isEmpty(pluginDOList)) {
+            return Lists.newArrayList();
+        }
         
         return pluginDOList
                 .stream()
                 .filter(Objects::nonNull)
-                .map(pluginDO -> {
-                    PluginVO exportVO = PluginVO.buildPluginVO(pluginDO);
-                    List<PluginHandleVO> pluginHandleList = Optional
-                            .ofNullable(pluginHandleMap.getOrDefault(exportVO.getId(), Lists.newArrayList()))
-                            .orElse(Lists.newArrayList())
-                            .stream()
-                            // to make less volume of export data
-                            .peek(x -> x.setDictOptions(null))
-                            .collect(Collectors.toList());
-                    exportVO.setPluginHandleList(pluginHandleList);
-                    return exportVO;
-                }).collect(Collectors.toList());
+                .map(PluginVO::buildPluginVO).collect(Collectors.toList());
     }
     
     @Override
