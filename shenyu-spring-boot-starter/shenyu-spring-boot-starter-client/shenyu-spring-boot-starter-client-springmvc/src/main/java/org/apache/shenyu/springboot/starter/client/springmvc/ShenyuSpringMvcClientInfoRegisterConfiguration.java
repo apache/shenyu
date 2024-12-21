@@ -74,8 +74,6 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @param clientRegisterConfig clientRegisterConfig
      * @return ApiMetaRegistrar
      */
-//    @Bean(name = "ApiMetaRegistrar")
-//    @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                           final ClientRegisterConfig clientRegisterConfig) {
 
@@ -89,8 +87,6 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @param clientRegisterConfig clientRegisterConfig
      * @return ApiDocRegistrar
      */
-//    @Bean(name = "ApiDocRegistrar")
-//    @ConditionalOnProperty(value = "shenyu.register.api.data.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiDocRegistrar buildApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                         final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocRegistrar(publisher, clientRegisterConfig);

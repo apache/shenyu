@@ -256,13 +256,13 @@ The text of each license is the standard Apache 2.0 license.
     commons-pool2 2.12.0: https://commons.apache.org/proper/commons-pool, Apache 2.0
     commons-math 2.2: https://github.com/apache/commons-math, Apache 2.0
     commons-validator 1.7: https://github.com/apache/commons-validator, Apache 2.0
-    commons-compress 1.26: https://github.com/apache/commons-compress, Apache 2.0
+    commons-compress 1.26.0: https://github.com/apache/commons-compress, Apache 2.0
     compactmap 2.0: https://mvnrepository.com/artifact/com.github.vlsi.compactmap/compactmap, Apache 2.0
 	conscrypt-openjdk-uber 2.5.2: https://conscrypt.org, Apache 2.0
     curator-client 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-framework 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-recipes 5.7.0:  https://github.com/apache/curator, Apache 2.0
-    curator-x-discovery 5.7.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
+    curator-x-discovery 4.3.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
 	dubbo 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.18.0: https://github.com/google/error-prone, Apache 2.0
     fury-core 0.4.1: https://mvnrepository.com/artifact/org.apache.fury/fury-core, Apache 2.0
@@ -273,26 +273,27 @@ The text of each license is the standard Apache 2.0 license.
     google-http-client 1.41.0: https://github.com/googleapis/google-http-java-client/google-http-client, Apache 2.0
     google-http-client-jackson2 1.34.0: https://github.com/googleapis/google-http-java-client/google-http-client-jackson2, Apache 2.0
     google-http-client-gson 1.41.0: https://mvnrepository.com/artifact/com.google.http-client/google-http-client-gson, Apache 2.0
-    grpc-all 1.65.1 https://github.com/grpc/grpc, Apache 2.0
-    grpc-alts 1.65.1 https://github.com/grpc/grpc, Apache 2.0
+    grpc-all 1.53.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-alts 1.53.0 https://github.com/grpc/grpc, Apache 2.0
     grpc-api 1.65.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-util 1.65.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-servlet 1.53.0 https://github.com/grpc/grpc, Apache 2.0
     grpc-rls 1.53.0 https://github.com/grpc/grpc, Apache 2.0
-    grpc-servlet-jakarta 1.65.1 https://github.com/grpc/grpc, Apache 2.0
-    grpc-auth 1.65.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-servlet-jakarta 1.53.0 https://github.com/grpc/grpc, Apache 2.0
+    grpc-auth 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-core 1.65.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-grpclb 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-grpclb 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-netty 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-netty-shaded 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-okhttp 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-protobuf 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-protobuf-lite 1.65.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-services 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-services 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-stub 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-testing 1.65.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-xds 1.65.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-testing 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-xds 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     gson 2.9.0: https://github.com/google/gson, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     guava 32.0.0-jre: https://github.com/google/guava, Apache 2.0
@@ -344,12 +345,12 @@ The text of each license is the standard Apache 2.0 license.
     jakarta.inject-api 2.0.1: https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api, Apache 2.0
     kotlin-stdlib-jdk8 1.9.24: https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-jdk7 1.9.24: https://kotlinlang.org, Apache 2.0
-    kafka-clients 3.4.0: https://github.com/apache/kafka, Apache 2.0
+    kafka-clients 3.7.1: https://github.com/apache/kafka, Apache 2.0
     lettuce-core 6.3.2.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
     wasmtime-java 0.19.0: https://github.com/kawamuray/wasmtime-java, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.23.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
-    log4j-1.2-api 2.23.1:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
+    log4j 1.2-api-2.23.1:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
 	log4j-to-slf4j 2.23.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
     lookout-api 1.4.1: https://github.com/sofastack/sofa-lookout/lookout-api, Apache 2.0
     lz4 1.3.0: https://github.com/jpountz/lz4-java, Apache 2.0
@@ -460,7 +461,7 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient_tracer_otel 0.16.0: https://github.com/prometheus/client_java, Apache 2.0
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
-    snappy-java 1.1.8.4: https://github.com/xerial/snappy-java, Apache 2.0
+    snappy-java 1.1.10.5: https://github.com/xerial/snappy-java, Apache 2.0
     sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
     sofa-rpc-all 5.13.0: http://github.com/sofastack/sofa-rpc, Apache 2.0
     spring-aop 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
@@ -630,7 +631,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
-    zstd-jni 1.5.2-1: https://github.com/luben/zstd-jni, BSD 2-Clause
+    zstd-jni 1.5.6-3: https://github.com/luben/zstd-jni, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause
     stax2-api 4.2.1: http://github.com/FasterXML/stax2-api, BSD 2-Clause
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
@@ -741,8 +742,8 @@ Bouncy Castle licenses
 ========================================================================
 
     bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
-    bcutil-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
-    bcpkix-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
+    bcutil-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
+    bcpkix-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
     bcprov-ext-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-ext-jdk18on, Bouncy Castle
 
 ========================================================================

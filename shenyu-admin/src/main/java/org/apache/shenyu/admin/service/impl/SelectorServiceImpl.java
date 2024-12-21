@@ -294,12 +294,14 @@ public class SelectorServiceImpl implements SelectorService {
             if (Objects.nonNull(discoveryDO)) {
                 final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+                proxySelectorDTO.setId(selector.getId());
                 proxySelectorDTO.setName(selector.getName());
-                proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getId(), ""));
+                proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getPluginId(), ""));
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
                 if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
+                    discoveryProcessor.removeSelectorUpstream(proxySelectorDTO);
                     discoveryMapper.delete(discoveryDO.getId());
                 }
             }

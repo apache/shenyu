@@ -155,9 +155,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         if (isDiscoveryLocalMode) {
             List<String> namespaceIds = this.getNamespace();
-            namespaceIds.forEach(namespaceId -> {
-                publisher.publishEvent(buildURIRegisterDTO(context, beans, namespaceId));
-            });
+            namespaceIds.forEach(namespaceId -> publisher.publishEvent(buildURIRegisterDTO(context, beans, namespaceId)));
         }
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);

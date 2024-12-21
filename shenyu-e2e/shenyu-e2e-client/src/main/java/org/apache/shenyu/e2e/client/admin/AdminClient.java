@@ -32,6 +32,7 @@ import org.apache.shenyu.e2e.common.NameUtils;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.ShenYuResult;
 import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.NamespaceSyncData;
 import org.apache.shenyu.e2e.model.data.QueryCondition;
 import org.apache.shenyu.e2e.model.data.ResourceData;
 import org.apache.shenyu.e2e.model.data.RuleData;
@@ -543,8 +544,11 @@ public class AdminClient extends BaseClient {
      * sync all plugin.
      */
     public void syncPluginAll() {
-        HttpEntity<SearchCondition> entity = new HttpEntity<>(basicAuth);
-        template.postForEntity(baseURL + "/plugin-template/syncPluginAll", entity, ShenYuResult.class);
+        NamespaceSyncData namespaceSyncData = new NamespaceSyncData();
+        namespaceSyncData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        basicAuth.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<NamespaceSyncData> entity = new HttpEntity<>(namespaceSyncData, basicAuth);
+        template.postForEntity(baseURL + "/namespace-plugin/syncPluginAll", entity, ShenYuResult.class);
         log.warn("admin syncPluginAll");
     }
 

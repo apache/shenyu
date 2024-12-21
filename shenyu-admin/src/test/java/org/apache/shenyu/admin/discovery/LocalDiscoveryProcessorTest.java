@@ -82,6 +82,13 @@ public class LocalDiscoveryProcessorTest {
     }
 
     @Test
+    public void testRemoveSelectorUpstream() {
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        localDiscoveryProcessor.removeSelectorUpstream(new ProxySelectorDTO());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
     public void testFetchAll() {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = new ArrayList<>();
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();

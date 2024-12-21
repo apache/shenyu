@@ -20,10 +20,12 @@ package org.apache.shenyu.plugin.request;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -56,8 +58,21 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
             final RuleData rule) {
         RequestHandle requestHandle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
+        if (Objects.isNull(requestHandle)) {
             LOG.error("request handler can not configuration：{}", requestHandle);
+            return chain.execute(exchange);
+        }
+        exchange.getAttributes().put(Constants.PRESERVE_HOST, requestHandle.getPreserveHost());
+        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRequestUniqueHeaders())) {
+            exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), requestHandle.getRequestHeaderUniqueStrategy());
+            exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), requestHandle.getRequestUniqueHeaders());
+        }
+        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
+            exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), requestHandle.getRespHeaderUniqueStrategy());
+            exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), requestHandle.getRespUniqueHeaders());
+        }
+        if (requestHandle.isEmptyConfig()) {
+            LOG.warn("request handler configuration is empty：{}", requestHandle);
             return chain.execute(exchange);
         }
         ServerHttpRequest request = exchange.getRequest();

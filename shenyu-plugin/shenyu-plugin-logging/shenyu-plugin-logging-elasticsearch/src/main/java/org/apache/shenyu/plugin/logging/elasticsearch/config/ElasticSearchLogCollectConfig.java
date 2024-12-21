@@ -82,7 +82,7 @@ public class ElasticSearchLogCollectConfig {
          * setIndexName.
          * @param indexName indexName
          */
-        public void setIndeName(final String indexName) {
+        public void setIndexName(final String indexName) {
             this.indexName = indexName;
         }
 

@@ -26,4 +26,4 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8189
 
-CMD java -jar ${APP_NAME}.jar
+CMD java --add-opens java.base/java.lang=ALL-UNNAMED -jar ${APP_NAME}.jar
