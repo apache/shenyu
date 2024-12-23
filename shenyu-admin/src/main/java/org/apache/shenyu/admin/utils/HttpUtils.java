@@ -28,6 +28,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.internal.http.HttpMethod;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.logging.HttpLoggingInterceptor.Level;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -220,15 +221,16 @@ public class HttpUtils {
      * @param url    url
      * @param json   json
      * @param header header
+     * @param method method
      * @return Response
      * @throws IOException IOException
      */
     public Response requestJson(final String url, final String json,
-        final Map<String, String> header) throws IOException {
+        final Map<String, String> header, final HTTPMethod method) throws IOException {
         RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
         Request.Builder requestBuilder = new Request.Builder()
             .url(url)
-            .post(body);
+            .method(method.value(), HttpMethod.requiresRequestBody(method.value()) ? body : null);
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
@@ -305,7 +307,7 @@ public class HttpUtils {
         if (Objects.nonNull(files) && !files.isEmpty()) {
             return requestFile(url, form, header, files);
         } else if (isJsonRequest(header)) {
-            return requestJson(url, JsonUtils.toJson(form), header);
+            return requestJson(url, JsonUtils.toJson(form), header, method);
         } else {
             return requestForResponse(url, form, header, method);
         }
