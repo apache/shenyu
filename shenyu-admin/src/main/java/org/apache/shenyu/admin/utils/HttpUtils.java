@@ -226,7 +226,7 @@ public class HttpUtils {
      * @throws IOException IOException
      */
     public Response requestJson(final String url, final String json,
-        final Map<String, String> header, HTTPMethod method) throws IOException {
+        final Map<String, String> header, final HTTPMethod method) throws IOException {
         RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
         Request.Builder requestBuilder = new Request.Builder()
             .url(url)
