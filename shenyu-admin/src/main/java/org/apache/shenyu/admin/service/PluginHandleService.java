@@ -21,8 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 
 import java.util.Collection;
 import java.util.List;
@@ -108,7 +109,8 @@ public interface PluginHandleService {
     /**
      * import plugin handle list.
      * @param pluginHandleList the plugin handle list
+     * @param context the import context
      * @return shenyu admin result
      */
-    ShenyuAdminResult importData(List<PluginHandleDTO> pluginHandleList);
+    ConfigImportResult importData(List<PluginHandleDTO> pluginHandleList, ConfigsImportContext context);
 }

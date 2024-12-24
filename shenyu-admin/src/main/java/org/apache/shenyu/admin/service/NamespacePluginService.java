@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.PluginData;
 
 import java.util.List;
@@ -149,9 +150,10 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      *
      * @param namespace  the namespace
      * @param pluginList the plugin data
+     * @param context the import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<NamespacePluginDTO> pluginList);
+    ConfigImportResult importData(String namespace, List<NamespacePluginDTO> pluginList, ConfigsImportContext context);
     
     /**
      * List by namespace.

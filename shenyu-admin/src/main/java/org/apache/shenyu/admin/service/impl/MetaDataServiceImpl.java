@@ -138,7 +138,10 @@ public class MetaDataServiceImpl implements MetaDataService {
     public void syncData() {
         List<MetaDataDO> all = metaDataMapper.findAll();
         if (CollectionUtils.isNotEmpty(all)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
+            Map<String, List<MetaDataDO>> namespaceMetaDataList = all.stream().collect(Collectors.groupingBy(MetaDataDO::getNamespaceId));
+            namespaceMetaDataList.values().forEach(m -> {
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(m)));
+            });
         }
     }
 
@@ -241,6 +244,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<MetaDataDTO> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
             return ConfigImportResult.success();
@@ -263,10 +267,10 @@ public class MetaDataServiceImpl implements MetaDataService {
                         .append(",");
                 continue;
             }
+            metaDataDTO.setNamespaceId(namespace);
             create(metaDataDTO);
             successCount++;
         }
-        this.syncData();
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult.fail(successCount, "import fail meta: " + errorMsgBuilder);
@@ -275,7 +279,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
     
     private String create(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath()), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath(), metaDataDTO.getNamespaceId()), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
         metaDataDO.setPathDesc(Objects.isNull(metaDataDO.getPathDesc()) ? "" : metaDataDO.getPathDesc());

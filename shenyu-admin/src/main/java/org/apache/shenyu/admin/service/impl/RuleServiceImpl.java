@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -53,6 +54,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -302,11 +304,12 @@ public class RuleServiceImpl implements RuleService {
     }
     
     @Override
-    public ConfigImportResult importData(final String namespace, final List<RuleDTO> ruleList) {
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final String namespace, final List<RuleDTO> ruleList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ConfigImportResult.success();
         }
-        
+        Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()
@@ -317,8 +320,16 @@ public class RuleServiceImpl implements RuleService {
         for (RuleDTO ruleDTO : ruleList) {
             String selectorId = ruleDTO.getSelectorId();
             String ruleName = ruleDTO.getName();
+
+            String newSelectorId = selectorIdMapping.get(selectorId);
+            if (Objects.isNull(newSelectorId)) {
+                errorMsgBuilder
+                        .append(ruleName)
+                        .append(",");
+                continue;
+            }
             Set<String> existRuleNameSet = selectorRuleMap
-                    .getOrDefault(selectorId, Lists.newArrayList())
+                    .getOrDefault(newSelectorId, Lists.newArrayList())
                     .stream()
                     .map(RuleDO::getName)
                     .collect(Collectors.toSet());
@@ -329,8 +340,17 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
+            ruleDTO.setNamespaceId(namespace);
+            ruleDTO.setSelectorId(newSelectorId);
+            String ruleId = UUIDUtils.getInstance().generateShortUuid();
+            ruleDTO.setId(ruleId);
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
+            Optional.ofNullable(ruleDTO.getRuleConditions())
+                            .orElse(Collections.emptyList()).forEach(c -> {
+                                c.setRuleId(ruleId);
+                                c.setId(null);
+                            });
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
                 successCount++;
