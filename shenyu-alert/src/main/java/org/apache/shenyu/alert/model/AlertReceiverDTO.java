@@ -26,7 +26,9 @@ import java.util.Map;
  * AlertReceiver.
  */
 public class AlertReceiverDTO implements Serializable {
-    
+
+    private static final long serialVersionUID = 1790514185328089645L;
+
     /**
      * primary key id.
      */
