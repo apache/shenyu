@@ -114,8 +114,8 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 } else {
                     ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
                 }
-            } catch (Exception e) {
-                LOG.error("DefaultLogCollector collect log error", e);
+            } catch (Throwable t) {
+                LOG.error("DefaultLogCollector collect log error", t);
                 ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
             }
         }
