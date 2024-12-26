@@ -517,6 +517,7 @@ The text of each license is the standard Apache 2.0 license.
     swagger-models 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
     tracer-core 3.0.8: https://projects.spring.io/spring-boot/#/spring-boot-starter-parent/sofaboot-dependencies/tracer-all-parent/tracer-core, Apache 2.0
     transmittable-thread-local 2.12.1: https://mvnrepository.com/artifact/com.alibaba/transmittable-thread-local, Apache 2.0
+    spring-context-support 1.0.11: https://mvnrepository.com/artifact/com.alibaba.spring/spring-context-support/1.0.11, Apache 2.0
     validation-api 2.0.1.Final: http://beanvalidation.org/licensing, Apache 2.0
     validation-api 1.1.0.Final: http://beanvalidation.org/licensing, Apache 2.0
     vavr 0.10.2: http://vavr.io, Apache 2.0
