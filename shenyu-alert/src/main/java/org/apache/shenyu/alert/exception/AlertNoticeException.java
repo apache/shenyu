@@ -21,6 +21,9 @@ package org.apache.shenyu.alert.exception;
  * alert notice send failed.
  */
 public class AlertNoticeException extends RuntimeException {
+
+    private static final long serialVersionUID = 1904557336581968426L;
+
     public AlertNoticeException(final String message) {
         super(message);
     }
