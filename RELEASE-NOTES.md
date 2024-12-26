@@ -1,3 +1,136 @@
+## [v2.7.0]- 2024-12-23
+
+### ✨ New Features
+
+1. Upgrade dockerfile java runtime version 8 to 17
+2. Upgrade SpringBoot to 3.x
+3. Support ShenYu Admin Cluster
+4. Upgrade checkstyle plugin to 3.4.0
+5. Datasource support OceanBase
+6. Supports batch modification of selector/rule status
+7. Supports batch modification of PathAuth status 
+8. Upgrade apache dubbo version 
+9. Support `Contribute with Gitpod`
+10. Support Configs Export And Import 
+11. Add shenyu client heartbeat 
+12. Support Namespace 
+13. Support k8s dynamically scale 
+14. Invalidate Previous Tokens on New Login by Implementing Client ID Validation
+15. Support for gray release in divide-plugin
+16. Support Kubernetes registry
+17. Add shenyu-plugin-wasm
+
+### ⚡Enhancement
+
+1. Add rocketmq logging e2e test
+2. Enhance metrics-ratelimiter collect
+3. Enhance metrics collection for Sentinel, Resilience4j, and Hystrix
+4. Arrange sofa common tools dependencies
+5. Remove expired comments
+6. Add missing license
+7. Set up callback for send message on Kafka
+8. Use the loadbalance configuration from metadata for Dubbo
+9. Add non null validation for upstream which obtained from select
+10. Set timeout which from rule handle to dubbo rpc context
+11. Publish event when enable selector and rule
+12. Remove closed session from the NAMESPACE_SESSION_MAP
+13. Add test case for ShenyuClientURIExecutorSubscriber
+14. Add test case for `ShenyuClientIllegalArgumentException`
+15. Add test case for `ShenyuClientRegisterEventPublisher`
+16. Add test case for `ShenyuClientMetadataExecutorSubscriber`
+17. Add test case for `AbstractWasmPluginDataHandler`
+18. Add test case for `ShenyuClientRegisterRepositoryFactoryTest`
+19. Add test case for `AbstractWasmDiscoveryHandler`
+20. Upgrade sofa rpc version support
+21. Add header key of Sign plugin to CrossFilter config
+22. Encrypt the password
+23. Add AbstractShenyuWasmPluginTest
+24. RewritePlugin/ContextPathPlugin supports across application and plugin
+25. Remove duplicate path check
+26. Remove Alibaba Dubbo Support
+27. Support docker env set http path
+28. Add some code refactor improve
+29. Support get token from cookie\header\param
+30. Make the default value of ShenyuDubboService annotation equal to that of DubboService annotation
+31. Add db script into admin package
+32. Get rid of the dead code and add some improvements
+33. MotanServiceEventListenerTest case optimization
+34. Delete duplicate maven in shenyu-registry-eureka.xml
+35. Jwt dependency updated
+36. Print plugin execute time
+37. Discovery Local support upstream health check in Admin
+38. Close rule cache
+39. Less concurrency
+40. Optimize logic to avoid "orElse" execution，Update VersionTwoExtractor.java
+
+### ♻️Refactor
+
+1. Admin distributed lock by spring-integration-jdbc
+2. Refactor beanUtils
+3. Remove macos ci
+4. Update logging plugin DataBuffer deprecated method
+5. Modify e2e k8s to docker compose
+6. Migrate Admin swagger from springfox to springdoc
+7. Refactor springcloud plugin
+8. Refactor some code
+9. Delete SO_SNDBUF & SO_RCVBUF
+10. Refactor shenyu-sync-data-http : replace log %s -> {}.
+11. Optimizing the node type listener
+12. Refactor plugin lifecycle
+13. Adjust code order and remove invalid input parameters
+
+### 🐛Bug Fix
+
+1. Fix duplicate header for request plugin
+2. Fix proxy.selector and discovery not delete when delete divide selector
+3. Fix LoggingPlugin error log catch
+4. Fix logging plugin sample bug
+5. Fix memory overflow
+6. Fix rewrite integrated test
+7. Fix AbstractWasmPluginDataHandlerTest
+8. Fix missing PRIMARY KEY in sql-script/h2/schema.sql
+9. Fix Data dictionary page data sorting exception
+10. FIx doc error
+11. Resolve dashboard routing mismatch post context-path update
+12. Fix etcd sync config problem
+13. Fix consul sync problem
+14. Fix the bug of being unable to query without registration
+15. Fix Plugin Edit Page Issue by Correcting Plugin ID Query and Updating Data Type
+16. Fix class AdminConstants has word spelling error
+17. Fix shenyu-examples-springmvc start failed
+18. Fix dashboard menu children sort not working problem
+19. Fix ShenyuApacheDubboXmlProviderApplication config
+20. Fix data sync dataId for proxy selector and discovery is not unique
+21. Filter disable dict option
+22. Fix SpringCloudParser MetaData null data
+23. Fix client register validation
+24. Config dubbo serialize-check-status=DISABLE
+25. Fix example TestApacheDubboXmlApplication start failed
+26. Fix the nacos data sync model missing the contextPath configuration
+27. Fix SPI create non singleton objects in multi-threaded scenarios
+28. Fix BadSqlGrammarException
+29. Fix some word typo error
+30. Fix ListUtil->merge exception
+31. Fix metaData disable not filtered
+32. Fix divide logging request method
+33. Fix e2e chunk header error
+34. Fix cookie error and sql check
+35. Fixed NPE issue
+36. Fix Invalid path error
+37. Fix hot load issue
+38. Fix e2e test case can not run wget command
+39. Fix fallback issue
+40. Fix some ci bugs
+41. Resolve the sql error in rule-sqlmap.xml
+42. Fix readYmlBuildRepository NPE
+43. Fix nacos cannot be registered in the Shenyu-examples-SpringCloud project
+44. Fix springCloud ruleData path setting didn't used
+45. Fix shenyu-plugin-logging-elasticsearch : modify setIndexName of ElasticSearchLogConfig
+46. Fix Not first offline from the gateway when stopping service
+47. Fix k8s liveness probe can not run wget command error
+48. Fix AbstractNodeDataSyncService load discoverUpstream on startup
+
+
 ## 2.6.1
 
 ### New Features
