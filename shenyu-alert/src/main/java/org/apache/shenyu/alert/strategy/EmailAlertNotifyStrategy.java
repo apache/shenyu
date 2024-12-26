@@ -31,6 +31,7 @@ import org.thymeleaf.context.Context;
 import jakarta.mail.internet.MimeMessage;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * email alert notice.
@@ -80,7 +81,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
         context.setVariable("content", alert.getContent());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date alertTime = alert.getDateCreated();
-        if (alertTime == null) {
+        if (Objects.isNull(alert)) {
             alertTime = new Date();
         }
         String alarmTime = simpleDateFormat.format(alertTime);

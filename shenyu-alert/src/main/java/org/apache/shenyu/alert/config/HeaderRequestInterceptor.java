@@ -25,6 +25,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Rest Template interceptor adds request header information.
@@ -35,11 +36,12 @@ public class HeaderRequestInterceptor implements ClientHttpRequestInterceptor {
     public ClientHttpResponse intercept(final HttpRequest request, final byte[] body, final ClientHttpRequestExecution execution)
             throws IOException {
         // Send json by default
-        if (request.getHeaders().getContentType() == null) {
-            request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = request.getHeaders();
+        if (Objects.isNull(headers.getContentType())) {
+            headers.setContentType(MediaType.APPLICATION_JSON);
         }
         // Use short links     
-        request.getHeaders().add(HttpHeaders.CONNECTION, "close");
+        headers.add(HttpHeaders.CONNECTION, "close");
         return execution.execute(request, body);
     }
 }
