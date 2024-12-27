@@ -29,10 +29,11 @@ import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.PluginHandleEventPublisher;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
@@ -145,10 +146,10 @@ public class PluginHandleServiceImpl implements PluginHandleService {
         }
         return buildPluginHandleVO(pluginHandleDOList);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ShenyuAdminResult importData(final List<PluginHandleDTO> pluginHandleList) {
+    public ConfigImportResult importData(final List<PluginHandleDTO> pluginHandleList, final ConfigsImportContext context) {
         Map<String, List<PluginHandleVO>> existHandleMap = listAllData()
                 .stream()
                 .filter(Objects::nonNull)
@@ -158,9 +159,10 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(PluginHandleDTO::getPluginId));
 
+        int successCount = 0;
         for (Map.Entry<String, List<PluginHandleDTO>> pluginHandleEntry : importHandleMap.entrySet()) {
             // pluginId
-            String pluginId = pluginHandleEntry.getKey();
+            String pluginId = context.getPluginTemplateIdMapping().get(pluginHandleEntry.getKey());
             List<PluginHandleDTO> handles = pluginHandleEntry.getValue();
             if (CollectionUtils.isNotEmpty(handles)) {
                 if (existHandleMap.containsKey(pluginId)) {
@@ -171,19 +173,23 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                             .collect(Collectors.toSet());
                     for (PluginHandleDTO handle : handles) {
                         if (!handleFiledMap.contains(handle.getField())) {
+                            handle.setPluginId(pluginId);
                             create(handle);
+                            successCount++;
                         }
                     }
                 } else {
                     for (PluginHandleDTO handle : handles) {
+                        handle.setPluginId(pluginId);
                         create(handle);
+                        successCount++;
                     }
                 }
             }
         }
-        return ShenyuAdminResult.success();
+        return ConfigImportResult.success(successCount);
     }
-    
+
     /**
      * The associated Handle needs to be deleted synchronously.
      *

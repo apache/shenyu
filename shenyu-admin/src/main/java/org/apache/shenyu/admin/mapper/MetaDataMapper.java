@@ -177,9 +177,10 @@ public interface MetaDataMapper extends ExistProvider {
      * the path is existed.
      *
      * @param path path
+     * @param namespaceId namespaceId
      * @return existed
      */
-    Boolean pathExisted(@Param("path") Serializable path);
+    Boolean pathExisted(@Param("path") Serializable path, @Param("namespaceId") String namespaceId);
     
     /**
      * the path is existed.

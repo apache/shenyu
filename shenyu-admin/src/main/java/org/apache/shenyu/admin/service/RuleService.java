@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -188,9 +189,10 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      *
      * @param namespace namespace
      * @param ruleList rule list
+     * @param context import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<RuleDTO> ruleList);
+    ConfigImportResult importData(String namespace, List<RuleDTO> ruleList, ConfigsImportContext context);
 
     /**
      * Enabled string by ids and namespaceId.
