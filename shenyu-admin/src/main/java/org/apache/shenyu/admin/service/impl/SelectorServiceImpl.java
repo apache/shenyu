@@ -58,6 +58,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -73,6 +74,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -495,10 +497,12 @@ public class SelectorServiceImpl implements SelectorService {
     }
     
     @Override
-    public ConfigImportResult importData(final String namespace, final List<SelectorDTO> selectorList) {
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final String namespace, final List<SelectorDTO> selectorList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
+        Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
@@ -510,26 +514,37 @@ public class SelectorServiceImpl implements SelectorService {
         
         for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
             // the import selector's pluginId
-            String pluginId = selectorEntry.getKey();
+            String pluginId = context.getPluginTemplateIdMapping().get(selectorEntry.getKey());
             List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
                 
-                Set<String> existSelectorSet = Optional
+                Map<String, String> existSelectorSet = Optional
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
-                        .map(SelectorDO::getName)
-                        .collect(Collectors.toSet());
+                        .collect(Collectors.toMap(SelectorDO::getName, SelectorDO::getId));
                 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName
                     String selectorName = selectorDTO.getName();
-                    if (CollectionUtils.isNotEmpty(existSelectorSet)
-                            && existSelectorSet.contains(selectorName)) {
+                    if (MapUtils.isNotEmpty(existSelectorSet)
+                            && existSelectorSet.containsKey(selectorName)) {
                         errorMsgBuilder
                                 .append(selectorName)
                                 .append(",");
+                        selectorIdMapping.put(selectorDTO.getId(), existSelectorSet.get(selectorName));
                     } else {
+                        // gen new id
+                        String selectorId = UUIDUtils.getInstance().generateShortUuid();
+                        selectorIdMapping.put(selectorDTO.getId(), selectorId);
+                        selectorDTO.setId(selectorId);
+                        selectorDTO.setNamespaceId(namespace);
+                        selectorDTO.setPluginId(pluginId);
+                        Optional.ofNullable(selectorDTO.getSelectorConditions())
+                                        .orElse(Collections.emptyList()).forEach(c -> {
+                                            c.setSelectorId(selectorId);
+                                            c.setId(null);
+                                        });
                         create(selectorDTO);
                         successCount++;
                     }
