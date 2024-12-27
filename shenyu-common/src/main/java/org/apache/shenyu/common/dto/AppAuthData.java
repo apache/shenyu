@@ -202,7 +202,7 @@ public class AppAuthData {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         AppAuthData that = (AppAuthData) o;
