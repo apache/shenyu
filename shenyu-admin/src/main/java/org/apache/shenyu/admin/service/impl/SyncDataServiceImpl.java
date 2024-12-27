@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -108,13 +109,25 @@ public class SyncDataServiceImpl implements SyncDataService {
         appAuthService.syncData();
 
         List<PluginData> pluginDataList = namespacePluginService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
+        Map<String, List<PluginData>> namespacePluginDataList =
+                pluginDataList.stream().collect(Collectors.groupingBy(PluginData::getNamespaceId));
+        namespacePluginDataList.values().forEach(p -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, p));
+        });
 
         List<SelectorData> selectorDataList = selectorService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
+        Map<String, List<SelectorData>> namespaceSelectorDataList =
+                selectorDataList.stream().collect(Collectors.groupingBy(SelectorData::getNamespaceId));
+        namespaceSelectorDataList.values().forEach(s -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, s));
+        });
 
         List<RuleData> ruleDataList = ruleService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
+        Map<String, List<RuleData>> namespaceRuleDataList =
+                ruleDataList.stream().collect(Collectors.groupingBy(RuleData::getNamespaceId));
+        namespaceRuleDataList.values().forEach(r -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, r));
+        });
 
         metaDataService.syncData();
         discoveryService.syncData();

@@ -99,7 +99,7 @@ public class ConfigsExportImportController {
             throw new ShenyuException(result.getMessage());
         }
         HttpHeaders headers = new HttpHeaders();
-        String fileName = generateFileName();
+        String fileName = generateFileName(namespace);
         response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
         headers.add("Content-Disposition", "attachment;filename=" + fileName);
         return new ResponseEntity<>((byte[]) result.getData(), headers, HttpStatus.OK);
@@ -114,6 +114,12 @@ public class ConfigsExportImportController {
         return ExportImportConstants.EXPORT_CONFIG_FILE_NAME + DateFormatUtils.format(new Date(), ExportImportConstants.EXPORT_CONFIG_FILE_NAME_DATE_FORMAT)
                 + ExportImportConstants.EXPORT_CONFIG_FILE_NAME_EXT;
     }
+
+    private String generateFileName(final String namespace) {
+        return ExportImportConstants.EXPORT_CONFIG_FILE_NAME + namespace + "_" + DateFormatUtils.format(new Date(), ExportImportConstants.EXPORT_CONFIG_FILE_NAME_DATE_FORMAT)
+                + ExportImportConstants.EXPORT_CONFIG_FILE_NAME_EXT;
+    }
+
 
     /**
      * Import configs.
