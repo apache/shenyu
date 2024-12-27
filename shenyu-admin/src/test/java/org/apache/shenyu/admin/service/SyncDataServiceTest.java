@@ -154,6 +154,7 @@ public final class SyncDataServiceTest {
         selectorData.setPluginName("divide");
         selectorData.setSort(1);
         selectorData.setType(1);
+        selectorData.setNamespaceId("test");
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.POST.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
@@ -179,6 +180,7 @@ public final class SyncDataServiceTest {
         ruleData.setPluginName("divide");
         ruleData.setSelectorId("1");
         ruleData.setSort(1);
+        ruleData.setNamespaceId("test");
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.POST.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
