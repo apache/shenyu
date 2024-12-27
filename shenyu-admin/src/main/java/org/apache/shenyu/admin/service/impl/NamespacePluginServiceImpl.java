@@ -37,12 +37,14 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -232,7 +234,8 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
     
     @Override
-    public ConfigImportResult importData(final String namespace, final List<NamespacePluginDTO> namespacePluginList) {
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final String namespace, final List<NamespacePluginDTO> namespacePluginList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(namespacePluginList)) {
             return ConfigImportResult.success();
         }
@@ -243,13 +246,16 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
-            String pluginId = namespacePluginDTO.getPluginId();
+            String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
             // check plugin base info
             if (existPluginMap.containsKey(pluginId)) {
                 errorMsgBuilder
                         .append(pluginId)
                         .append(",");
             } else {
+                namespacePluginDTO.setId(UUIDUtils.getInstance().generateShortUuid());
+                namespacePluginDTO.setNamespaceId(namespace);
+                namespacePluginDTO.setPluginId(pluginId);
                 NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
                 if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) > 0) {
                     // publish create event. init plugin data
