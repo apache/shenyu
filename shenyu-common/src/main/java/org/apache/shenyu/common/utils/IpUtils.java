@@ -132,7 +132,7 @@ public final class IpUtils {
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress inetAddress = addresses.nextElement();
-                    if (Objects.nonNull(inetAddress)&& !inetAddress.isLoopbackAddress()) {
+                    if (Objects.nonNull(inetAddress) && !inetAddress.isLoopbackAddress()) {
                         if (inetAddress instanceof Inet4Address && isCompleteHost(inetAddress.getHostAddress())) {
                             netCard = new NetCard(inetAddress.getHostAddress(),
                                     getName(networkInterface.getName()),
