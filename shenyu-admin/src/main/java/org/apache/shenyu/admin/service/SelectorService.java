@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -260,9 +261,10 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      *
      * @param namespace    the namespace
      * @param selectorList the plugin selector list
+     * @param context import context
      * @return config import result
      */
-    ConfigImportResult importData(String namespace, List<SelectorDTO> selectorList);
+    ConfigImportResult importData(String namespace, List<SelectorDTO> selectorList, ConfigsImportContext context);
 
     /**
      * Enabled by ids and namespaceId.

@@ -158,7 +158,7 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testSyncDate() {
-        ArrayList<MetaDataDO> all = Lists.newArrayList(MetaDataDO.builder().build());
+        ArrayList<MetaDataDO> all = Lists.newArrayList(MetaDataDO.builder().namespaceId("test").build());
         when(metaDataMapper.findAll())
                 .thenReturn(null)
                 .thenReturn(Lists.newArrayList())
@@ -256,7 +256,7 @@ public final class MetaDataServiceTest {
 
         final List<MetaDataDTO> metaDataDTOList = getMetaDataDTOList();
         given(this.metaDataMapper.insert(any())).willReturn(1);
-        given(this.metaDataMapper.pathExisted(any())).willReturn(null);
+        given(this.metaDataMapper.pathExisted(any(), any())).willReturn(null);
 
         ConfigImportResult configImportResult = this.metaDataService.importData(metaDataDTOList);
 
@@ -324,7 +324,7 @@ public final class MetaDataServiceTest {
     private void testCreateOrUpdateForInsert() {
         when(metaDataDTO.getId()).thenReturn(null);
         when(metaDataMapper.insert(any())).thenReturn(1);
-        when(metaDataMapper.pathExisted(any())).thenReturn(null);
+        when(metaDataMapper.pathExisted(any(), any())).thenReturn(null);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
         assertEquals(ShenyuResultMessage.CREATE_SUCCESS, msg);
     }

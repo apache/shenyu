@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ProxySelectorData;
@@ -498,13 +499,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
     
     @Override
-    public ConfigImportResult importData(final String namespace, final List<ProxySelectorData> proxySelectorList) {
+    public ConfigImportResult importData(final String namespace, final List<ProxySelectorData> proxySelectorList,
+                                         final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(proxySelectorList)) {
             return ConfigImportResult.success();
         }
-        // TODO namespace
+        Map<String, String> proxySelectorIdMapping = context.getProxySelectorIdMapping();
         Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
-                .selectAll()
+                .selectByNamespaceId(namespace)
                 .stream()
                 .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName));
         int successCount = 0;
@@ -512,20 +514,25 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         for (ProxySelectorData selectorData : proxySelectorList) {
             String pluginName = selectorData.getPluginName();
             String proxySelectorName = selectorData.getName();
-            Set<String> existProxySelectorNameSet = pluginProxySelectorMap
+            Map<String, String> existProxySelectorNameSet = pluginProxySelectorMap
                     .getOrDefault(pluginName, Lists.newArrayList())
                     .stream()
-                    .map(ProxySelectorDO::getName)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toMap(ProxySelectorDO::getName, ProxySelectorDO::getId));
             
-            if (existProxySelectorNameSet.contains(proxySelectorName)) {
+            if (existProxySelectorNameSet.containsKey(proxySelectorName)) {
                 errorMsgBuilder
                         .append(proxySelectorName)
                         .append(",");
+                proxySelectorIdMapping.put(selectorData.getId(), existProxySelectorNameSet.get(proxySelectorName));
                 continue;
             }
+            String oldProxySelectorId = selectorData.getId();
+            String newProxySelectorId = UUIDUtils.getInstance().generateShortUuid();
+            selectorData.setId(newProxySelectorId);
+            selectorData.setNamespaceId(namespace);
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
             if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+                proxySelectorIdMapping.put(oldProxySelectorId, newProxySelectorId);
                 successCount++;
             }
         }
