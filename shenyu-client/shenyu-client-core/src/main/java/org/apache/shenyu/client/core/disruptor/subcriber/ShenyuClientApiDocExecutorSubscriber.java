@@ -46,8 +46,6 @@ public class ShenyuClientApiDocExecutorSubscriber implements ExecutorTypeSubscri
 
     @Override
     public void executor(final Collection<ApiDocRegisterDTO> dataList) {
-        for (ApiDocRegisterDTO apiDocRegisterDTO : dataList) {
-            shenyuClientRegisterRepository.persistApiDoc(apiDocRegisterDTO);
-        }
+        dataList.forEach(shenyuClientRegisterRepository::persistApiDoc);
     }
 }
