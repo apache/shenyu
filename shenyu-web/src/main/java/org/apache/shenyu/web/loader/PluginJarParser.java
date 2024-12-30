@@ -44,7 +44,7 @@ public class PluginJarParser {
         PluginJar pluginJar = new PluginJar();
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
-            while (Objects.nonNull((jarEntry = jarInputStream.getNextJarEntry()))) {
+            while (Objects.nonNull(jarEntry = jarInputStream.getNextJarEntry())) {
                 String entryName = jarEntry.getName();
                 // get jar version
                 if (jarEntry.getName().endsWith("pom.properties")) {
