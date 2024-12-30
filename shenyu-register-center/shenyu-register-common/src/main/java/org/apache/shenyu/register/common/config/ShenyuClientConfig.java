@@ -29,6 +29,9 @@ import java.util.Objects;
 public final class ShenyuClientConfig {
     
     private Map<String, ClientPropertiesConfig> client = new HashMap<>() {
+
+        private static final long serialVersionUID = -136112437884668755L;
+
         @Override
         public ClientPropertiesConfig get(final Object key) {
             ClientPropertiesConfig config = super.get(key);
