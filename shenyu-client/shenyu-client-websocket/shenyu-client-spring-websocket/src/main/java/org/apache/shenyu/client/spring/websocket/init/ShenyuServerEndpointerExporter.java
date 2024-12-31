@@ -59,7 +59,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
 
     @Override
     protected void initServletContext(final ServletContext servletContext) {
-        if (this.serverContainer == null) {
+        if (Objects.isNull(this.serverContainer)) {
             this.serverContainer = (ServerContainer) servletContext.getAttribute("jakarta.websocket.server.ServerContainer");
         }
     }
@@ -75,7 +75,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
      */
     public void registerEndpoint(final Class<?> pojo) {
         ShenyuServerEndpoint annotation = AnnotatedElementUtils.findMergedAnnotation(pojo, ShenyuServerEndpoint.class);
-        if (annotation == null) {
+        if (Objects.isNull(annotation)) {
             throw new ShenyuException("Class missing annotation ShenyuServerEndpoint! class name: " + pojo.getName());
         }
 

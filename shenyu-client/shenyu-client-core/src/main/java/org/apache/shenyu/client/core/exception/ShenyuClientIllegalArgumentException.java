@@ -22,6 +22,8 @@ package org.apache.shenyu.client.core.exception;
  */
 public class ShenyuClientIllegalArgumentException extends IllegalArgumentException {
 
+    private static final long serialVersionUID = -5608921593520024291L;
+
     /**
      * Constructs an <code>IllegalArgumentException</code> with the
      * specified detail message.
