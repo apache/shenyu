@@ -23,6 +23,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class ResponsiveException extends ShenyuException {
 
+    private static final long serialVersionUID = 3951601337229132230L;
+
     private final int code;
 
     private final ServerWebExchange webExchange;
