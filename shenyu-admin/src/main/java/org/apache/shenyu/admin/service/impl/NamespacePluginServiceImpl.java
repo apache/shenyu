@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
@@ -210,6 +211,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         if (CollectionUtils.isEmpty(namespacePluginVOList)) {
             return Lists.newArrayList();
         }
+        namespacePluginVOList = namespacePluginVOList.stream().filter(PluginVO::getEnabled).toList();
+        if (CollectionUtils.isEmpty(namespacePluginVOList)) {
+            return Lists.newArrayList();
+        }
+
         List<String> pluginIds = namespacePluginVOList.stream().map(NamespacePluginVO::getPluginId).toList();
         
         List<SelectorDO> selectorDOList = selectorMapper.selectAllByNamespaceId(namespaceId);
