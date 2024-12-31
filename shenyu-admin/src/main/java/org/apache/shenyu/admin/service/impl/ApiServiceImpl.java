@@ -50,7 +50,6 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -126,11 +125,6 @@ public class ApiServiceImpl implements ApiService {
                 tagRelationMapper.deleteByApiId(apiDO.getId());
                 tagRelationMapper.batchInsert(tags);
             }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                removeRegister(apiDO);
-            }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
@@ -157,9 +151,6 @@ public class ApiServiceImpl implements ApiService {
                         .dateUpdated(currentTime)
                         .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
-            }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
             }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
