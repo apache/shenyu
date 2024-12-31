@@ -18,11 +18,11 @@
 package org.apache.shenyu.disruptor.consumer;
 
 import com.lmax.disruptor.WorkHandler;
-import java.util.Objects;
 import org.apache.shenyu.disruptor.event.DataEvent;
 import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -68,6 +68,6 @@ public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     }
     
     private boolean isEmpty(final String t) {
-        return t == null || t.isEmpty();
+        return Objects.isNull(t) || t.isEmpty();
     }
 }
