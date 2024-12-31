@@ -47,8 +47,6 @@ public class ShenyuClientMetadataExecutorSubscriber implements ExecutorTypeSubsc
     
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
-        for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
-            shenyuClientRegisterRepository.persistInterface(metaDataRegisterDTO);
-        }
+        metaDataRegisterDTOList.forEach(shenyuClientRegisterRepository::persistInterface);
     }
 }

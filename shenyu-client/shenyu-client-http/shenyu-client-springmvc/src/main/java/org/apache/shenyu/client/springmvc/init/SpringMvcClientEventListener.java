@@ -287,7 +287,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
 
     @Override
     public String getPort() {
-        final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
+        final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElse("-1"));
         final int mergedPort = port <= 0 ? PortUtils.findPort(getContext().getAutowireCapableBeanFactory()) : port;
         return String.valueOf(mergedPort);
     }

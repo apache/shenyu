@@ -89,9 +89,7 @@ public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
      * @param api api
      */
     protected void apiPostProcess(final ApiBean api) {
-        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
-            apiAnnotationProcessor.process(api);
-        }
+        extractorProcessors.forEach(apiAnnotationProcessor -> apiAnnotationProcessor.process(api));
         LOG.debug("[Shenyu Client] extract api info [{}]", api);
     }
     
@@ -147,9 +145,7 @@ public abstract class BaseApiBeansExtractor implements RpcApiBeansExtractor {
      * @param apiDefinition apiDefinition
      */
     protected void definitionPostProcess(final ApiBean.ApiDefinition apiDefinition) {
-        for (ExtractorProcessor apiAnnotationProcessor : extractorProcessors) {
-            apiAnnotationProcessor.process(apiDefinition);
-        }
+        extractorProcessors.forEach(apiAnnotationProcessor -> apiAnnotationProcessor.process(apiDefinition));
         LOG.debug("[Shenyu Client] extract api definition info [{}]", apiDefinition);
     }
     
