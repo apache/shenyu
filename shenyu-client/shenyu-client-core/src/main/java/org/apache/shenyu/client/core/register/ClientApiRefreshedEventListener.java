@@ -42,13 +42,10 @@ public final class ClientApiRefreshedEventListener implements ApplicationListene
         // Collect all types of RPC client APIs
         List<ApiBean> apiBeans = apiBeanExtractor.extract(event.getApplicationContext());
         // Register different metadata
-        for (ApiRegistrar registrar : apiRegistrars) {
-            // Optimization point: parallel registration
-            // Each registrar holds a copy of the full API information,
-            // which is not complete and can be modified during the registration process
-            
-            registrar.register(copy(apiBeans));
-        }
+        // Optimization point: parallel registration
+        // Each registrar holds a copy of the full API information,
+        // which is not complete and can be modified during the registration process
+        apiRegistrars.forEach(registrar -> registrar.register(copy(apiBeans)));
     }
     
     @NotNull
