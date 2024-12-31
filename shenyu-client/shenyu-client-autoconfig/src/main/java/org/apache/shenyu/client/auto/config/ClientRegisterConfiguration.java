@@ -60,9 +60,7 @@ public class ClientRegisterConfiguration {
     @Bean
     public MateDataApiRegistrarImpl mateDataApiRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processor) {
         final MateDataApiRegistrarImpl apiRegistrarImpl = new MateDataApiRegistrarImpl(clientRegisterConfig);
-        for (ApiRegisterProcessor apiProcessor : processor) {
-            apiRegistrarImpl.addApiProcessor(apiProcessor);
-        }
+        processor.forEach(apiRegistrarImpl::addApiProcessor);
         return apiRegistrarImpl;
     }
 
@@ -76,9 +74,7 @@ public class ClientRegisterConfiguration {
     @Bean
     public ApiDocRegistrarImpl apiDocRegistrarImpl(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processor) {
         final ApiDocRegistrarImpl apiRegistrarImpl = new ApiDocRegistrarImpl(clientRegisterConfig);
-        for (ApiRegisterProcessor apiProcessor : processor) {
-            apiRegistrarImpl.addApiProcessor(apiProcessor);
-        }
+        processor.forEach(apiRegistrarImpl::addApiProcessor);
         return apiRegistrarImpl;
     }
 
