@@ -51,9 +51,7 @@ public abstract class BaseApiRegistrarImpl implements ApiRegistrar, Initializing
     
     @Override
     public void register(final ApiBean apiBean) {
-        for (ApiRegisterProcessor processor : processors) {
-            processor.process(apiBean);
-        }
+        processors.forEach(processor -> processor.process(apiBean));
         if (ApiBean.Status.INIT.equals(apiBean.getStatus())) {
             // default register all api
             apiBean.setStatus(ApiBean.Status.REGISTRABLE_API);
