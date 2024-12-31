@@ -69,7 +69,7 @@ public class NacosDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        if (this.namingService != null) {
+        if (Objects.nonNull(this.namingService)) {
             LOGGER.info("Nacos naming service already registered");
             return;
         }
