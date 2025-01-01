@@ -30,9 +30,7 @@ public interface ApiRegistrar {
      * @param beans apiBean to register
      */
     default void register(List<ApiBean> beans) {
-        for (ApiBean bean : beans) {
-            register(bean);
-        }
+        beans.forEach(this::register);
     }
     
     /**
