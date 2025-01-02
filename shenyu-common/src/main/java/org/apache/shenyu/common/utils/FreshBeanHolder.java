@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public class FreshBeanHolder<E, O> implements Function<E, O> {
@@ -37,7 +38,7 @@ public class FreshBeanHolder<E, O> implements Function<E, O> {
      */
     @Override
     public O apply(final E e) {
-        if (o != null) {
+        if (Objects.nonNull(o)) {
             return o;
         }
         return init(e);
@@ -49,7 +50,7 @@ public class FreshBeanHolder<E, O> implements Function<E, O> {
      * @return bean
      */
     synchronized O init(final E e) {
-        if (o != null) {
+        if (Objects.nonNull(o)) {
             return o;
         }
         O res = function.apply(e);
@@ -64,7 +65,7 @@ public class FreshBeanHolder<E, O> implements Function<E, O> {
      */
     public void doFresh(final E e) {
         O fresh = function.apply(e);
-        if (fresh != null) {
+        if (Objects.nonNull(fresh)) {
             synchronized (this) {
                 this.o = fresh;
             }

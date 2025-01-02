@@ -482,7 +482,7 @@ public class GsonUtils {
         @Override
         public void write(final JsonWriter out, final Duration value) {
             try {
-                if (value == null) {
+                if (Objects.isNull(value)) {
                     out.nullValue();
                     return;
                 }
