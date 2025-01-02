@@ -26,6 +26,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -73,12 +74,12 @@ public final class VersionUtils {
         // guess version for jar file name if nothing's found from MANIFEST.MF
         CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
 
-        if (codeSource == null) {
+        if (Objects.isNull(codeSource)) {
             LOG.info("No codeSource for class {} when getVersion, use default version {}", cls.getName(), defaultVersion);
             return defaultVersion;
         }
         String file = codeSource.getLocation().getFile();
-        if (file != null && file.endsWith(JAR)) {
+        if (Objects.nonNull(file) && file.endsWith(JAR)) {
             file = file.substring(0, file.length() - 4);
             int i = file.lastIndexOf('/');
             if (i >= 0) {
@@ -131,7 +132,7 @@ public final class VersionUtils {
         Set<String> files = new HashSet<>();
         while (urls.hasMoreElements()) {
             URL url = urls.nextElement();
-            if (url != null) {
+            if (Objects.nonNull(url)) {
                 String file = url.getFile();
                 if (StringUtils.isNotEmpty(file)) {
                     files.add(file);

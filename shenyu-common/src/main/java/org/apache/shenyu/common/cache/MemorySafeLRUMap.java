@@ -32,6 +32,8 @@ import java.util.Map;
 @NotThreadSafe
 public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 
+    private static final long serialVersionUID = -102926983721266409L;
+
     private final int maxFreeMemory;
 
     public MemorySafeLRUMap(final int maxFreeMemory,
