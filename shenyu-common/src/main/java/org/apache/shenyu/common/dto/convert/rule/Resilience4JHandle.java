@@ -339,7 +339,7 @@ public class Resilience4JHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         Resilience4JHandle that = (Resilience4JHandle) o;
