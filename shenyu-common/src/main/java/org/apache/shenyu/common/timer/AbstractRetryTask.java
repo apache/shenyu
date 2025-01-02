@@ -20,6 +20,8 @@ package org.apache.shenyu.common.timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * AbstractRetryTask .
  */
@@ -80,11 +82,11 @@ public abstract class AbstractRetryTask extends TimerTask {
     
     protected void again(final TaskEntity taskEntity) {
         Timer timer = taskEntity.getTimer();
-        if (timer == null) {
+        if (Objects.isNull(timer)) {
             return;
         }
         TimerTask timerTask = taskEntity.getTimerTask();
-        if (timerTask == null) {
+        if (Objects.isNull(timerTask)) {
             return;
         }
         if (taskEntity.cancelled()) {
@@ -96,7 +98,7 @@ public abstract class AbstractRetryTask extends TimerTask {
     
     @Override
     public void run(final TaskEntity taskEntity) {
-        if (taskEntity == null) {
+        if (Objects.isNull(taskEntity)) {
             return;
         }
         if (taskEntity.cancelled()) {
