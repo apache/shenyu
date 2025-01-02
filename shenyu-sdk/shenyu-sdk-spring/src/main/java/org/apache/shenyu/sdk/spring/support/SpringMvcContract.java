@@ -81,11 +81,11 @@ public class SpringMvcContract extends Contract.BaseContract {
         checkAtMostOne(method, methodMapping.value(), "value");
         if (methodMapping.value().length > 0) {
             String pathValue = methodMapping.value()[0];
-            if (StringUtils.isNotEmpty(pathValue)) {
+            if (StringUtils.isNotBlank(pathValue)) {
                 pathValue = resolve(pathValue);
                 // Append path from @RequestMapping if value is present on method
                 if (!pathValue.startsWith("/")
-                        && StringUtils.isNotEmpty(shenyuClientFactoryBean.getPath())
+                        && StringUtils.isNotBlank(shenyuClientFactoryBean.getPath())
                         && !shenyuClientFactoryBean.getPath().endsWith("/")) {
                     pathValue = "/" + pathValue;
                 }
@@ -131,7 +131,7 @@ public class SpringMvcContract extends Contract.BaseContract {
     }
 
     private String resolve(final String value) {
-        if (StringUtils.isNotEmpty(value) && resourceLoader instanceof ConfigurableApplicationContext) {
+        if (StringUtils.isNotBlank(value) && resourceLoader instanceof ConfigurableApplicationContext) {
             return ((ConfigurableApplicationContext) resourceLoader).getEnvironment().resolvePlaceholders(value);
         }
         return value;

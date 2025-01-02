@@ -46,7 +46,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
         String name = requestParam.value();
-        checkState(StringUtils.isNotEmpty(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
+        checkState(StringUtils.isNotBlank(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
             requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
         StringBuilder pathResult = new StringBuilder(requestTemplate.getPath());
         Map<Object, Object> params = Maps.newHashMap();
