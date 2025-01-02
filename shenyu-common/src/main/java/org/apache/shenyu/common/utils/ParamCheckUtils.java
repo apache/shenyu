@@ -20,6 +20,8 @@ package org.apache.shenyu.common.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 
+import java.util.Objects;
+
 /**
  * The type Param check utils.
  */
@@ -32,7 +34,7 @@ public class ParamCheckUtils {
      * @return the boolean
      */
     public static boolean bodyIsEmpty(final String body) {
-        return null == body || StringUtils.isEmpty(body) || "null".equals(body);
+        return Objects.isNull(body) || StringUtils.isEmpty(body) || "null".equals(body);
     }
 
     /**
