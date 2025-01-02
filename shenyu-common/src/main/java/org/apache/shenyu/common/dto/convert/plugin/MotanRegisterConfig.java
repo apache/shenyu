@@ -153,7 +153,7 @@ public class MotanRegisterConfig implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         MotanRegisterConfig that = (MotanRegisterConfig) o;
