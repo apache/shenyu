@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.web.forward;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
@@ -84,7 +85,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     @Override
     public InetSocketAddress resolve(final ServerWebExchange exchange) {
         List<String> xForwardedValues = extractXForwardedValues(exchange);
-        if (!xForwardedValues.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(xForwardedValues)) {
             int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
             return new InetSocketAddress(xForwardedValues.get(index), 0);
         }
@@ -94,7 +95,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     private List<String> extractXForwardedValues(final ServerWebExchange exchange) {
         List<String> xForwardedValues = exchange.getRequest().getHeaders()
                 .get(X_FORWARDED_FOR);
-        if (xForwardedValues == null || xForwardedValues.isEmpty()) {
+        if (CollectionUtils.isEmpty(xForwardedValues)) {
             return Collections.emptyList();
         }
         if (xForwardedValues.size() > 1) {
@@ -102,7 +103,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             return Collections.emptyList();
         }
         List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-        if (values.size() == 1 && !StringUtils.hasText(values.get(0))) {
+        if (values.size() == 1 && StringUtils.isNotEmpty(values.get(0))) {
             return Collections.emptyList();
         }
         return values;

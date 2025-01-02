@@ -92,9 +92,9 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @return plugin loader instance
      */
     public static ShenyuPluginLoader getInstance() {
-        if (null == pluginLoader) {
+        if (Objects.isNull(pluginLoader)) {
             synchronized (ShenyuPluginLoader.class) {
-                if (null == pluginLoader) {
+                if (Objects.isNull(pluginLoader)) {
                     pluginLoader = new ShenyuPluginLoader();
                 }
             }
@@ -181,9 +181,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      */
     public List<ShenyuLoaderResult> loadUploadedJarPlugins(final List<String> loadUploadedJarResources) {
         List<byte[]> jarByteArrayList = loadUploadedJarResources.stream().map(loadUploadedJarResourceStr -> Base64.getDecoder().decode(loadUploadedJarResourceStr)).collect(Collectors.toList());
-        for (byte[] jarByteArray : jarByteArrayList) {
-            parserJar(jarByteArray);
-        }
+        jarByteArrayList.forEach(this::parserJar);
         List<ShenyuLoaderResult> results = new ArrayList<>();
         names.forEach(className -> {
             Object instance;
