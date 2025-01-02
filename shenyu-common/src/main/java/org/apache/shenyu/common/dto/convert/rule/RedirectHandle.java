@@ -80,7 +80,7 @@ public class RedirectHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;  
         }
         final RedirectHandle that = (RedirectHandle) o;
