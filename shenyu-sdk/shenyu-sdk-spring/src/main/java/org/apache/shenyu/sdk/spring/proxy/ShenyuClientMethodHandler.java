@@ -34,6 +34,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * ShenyuClientMethodHandler.
@@ -74,7 +75,7 @@ public class ShenyuClientMethodHandler {
     }
 
     private Object handlerResponse(final ShenyuResponse shenyuResponse, final Class<?> returnType) {
-        if (shenyuResponse == null || void.class == returnType) {
+        if (Objects.isNull(shenyuResponse) || void.class == returnType) {
             return null;
         } else if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
