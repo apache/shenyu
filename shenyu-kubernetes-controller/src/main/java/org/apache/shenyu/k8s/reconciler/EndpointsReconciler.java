@@ -24,10 +24,11 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
-import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -87,12 +89,12 @@ public class EndpointsReconciler implements Reconciler {
     @Override
     public Result reconcile(final Request request) {
         List<Pair<String, String>> ingressList = ServiceIngressCache.getInstance().getIngressName(request.getNamespace(), request.getName());
-        if (ingressList == null || ingressList.isEmpty()) {
+        if (CollectionUtils.isEmpty(ingressList)) {
             return new Result(false);
         }
 
         V1Endpoints v1Endpoints = endpointsLister.namespace(request.getNamespace()).get(request.getName());
-        if (v1Endpoints == null) {
+        if (Objects.isNull(v1Endpoints)) {
             // The deletion event is not processed, because deleting all upstreams in the Selector has
             // the same effect as not deleting them, and they cannot be accessed
             LOG.info("Cannot find endpoints {}", request);
@@ -135,10 +137,12 @@ public class EndpointsReconciler implements Reconciler {
 
     private List<DivideUpstream> getUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
         List<DivideUpstream> res = new ArrayList<>();
-        if (v1Endpoints.getSubsets() != null) {
-            for (V1EndpointSubset subset : v1Endpoints.getSubsets()) {
+        List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+        if (CollectionUtils.isNotEmpty(subsets)) {
+            for (V1EndpointSubset subset : subsets) {
                 List<CoreV1EndpointPort> ports = subset.getPorts();
-                if (ports == null || ports.isEmpty() || subset.getAddresses() == null || subset.getAddresses().isEmpty()) {
+                List<V1EndpointAddress> addresses = subset.getAddresses();
+                if (CollectionUtils.isEmpty(ports) || CollectionUtils.isEmpty(addresses)) {
                     continue;
                 }
                 CoreV1EndpointPort endpointPort = ports.stream()
@@ -148,12 +152,15 @@ public class EndpointsReconciler implements Reconciler {
                 String port = null;
                 if (endpointPort.getPort() > 0) {
                     port = String.valueOf(endpointPort.getPort());
-                } else if (endpointPort.getName() != null) {
-                    port = endpointPort.getName();
+                } else {
+                    String endpointPortName = endpointPort.getName();
+                    if (Objects.nonNull(endpointPortName)) {
+                        port = endpointPortName;
+                    }
                 }
-                for (V1EndpointAddress address : subset.getAddresses()) {
+                for (V1EndpointAddress address : addresses) {
                     String ip = address.getIp();
-                    if (ip != null) {
+                    if (Objects.nonNull(ip)) {
                         DivideUpstream upstream = new DivideUpstream();
                         upstream.setUpstreamUrl(ip + ":" + port);
                         upstream.setWeight(100);

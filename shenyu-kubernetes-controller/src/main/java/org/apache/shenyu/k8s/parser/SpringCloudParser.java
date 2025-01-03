@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
@@ -127,9 +128,10 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.nonNull(tls.getSecretName()) && Objects.nonNull(tls.getHosts()) && CollectionUtils.isNotEmpty(tls.getHosts())) {
                         try {
                             V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
-                            if (secret.getData() != null) {
-                                InputStream keyCertChainInputStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
-                                InputStream keyInputStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
+                            Map<String, byte[]> secretData = secret.getData();
+                            if (MapUtils.isNotEmpty(secretData)) {
+                                InputStream keyCertChainInputStream = new ByteArrayInputStream(secretData.get("tls.crt"));
+                                InputStream keyInputStream = new ByteArrayInputStream(secretData.get("tls.key"));
                                 tls.getHosts().forEach(host ->
                                         sslList.add(new SslCrtAndKeyStream(host, keyCertChainInputStream, keyInputStream))
                                 );
@@ -152,11 +154,12 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
                     OperatorEnum operator = getOperator(path.getPathType());
-                    ConditionData pathCondition = createPathCondition(path.getPath(), operator);
+                    ConditionData pathCondition = createPathCondition(pathPath, operator);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
@@ -164,7 +167,7 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
                     conditionList.add(pathCondition);
 
                     SpringCloudSelectorHandle springCloudSelectorHandle = createSpringCloudSelectorHandle(annotations, path, namespace);
-                    SelectorData selectorData = createSelectorData(path.getPath(), conditionList, springCloudSelectorHandle);
+                    SelectorData selectorData = createSelectorData(pathPath, conditionList, springCloudSelectorHandle);
                     SpringCloudRuleHandle ruleHandle = createSpringCloudRuleHandle(annotations);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<MetaData> metaDataList = new ArrayList<>();

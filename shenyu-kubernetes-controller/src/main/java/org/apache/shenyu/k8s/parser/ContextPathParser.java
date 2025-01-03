@@ -100,17 +100,18 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
                     OperatorEnum operator = getOperator(path.getPathType());
-                    ConditionData pathCondition = createPathCondition(path.getPath(), operator);
+                    ConditionData pathCondition = createPathCondition(pathPath, operator);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
                     }
                     conditionList.add(pathCondition);
-                    SelectorData selectorData = createSelectorData(path.getPath(), conditionList);
+                    SelectorData selectorData = createSelectorData(pathPath, conditionList);
                     ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(annotations);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<ConditionData> ruleConditionList = getRuleConditionList(annotations);

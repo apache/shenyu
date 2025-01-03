@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -123,13 +124,15 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
             if (Objects.nonNull(tlsList) && CollectionUtils.isNotEmpty(tlsList)) {
                 List<SslCrtAndKeyStream> sslList = new ArrayList<>();
                 for (V1IngressTLS tls : tlsList) {
-                    if (tls.getSecretName() != null && tls.getHosts() != null && CollectionUtils.isNotEmpty(tls.getHosts())) {
+                    String secretName = tls.getSecretName();
+                    List<String> hosts = tls.getHosts();
+                    if (Objects.nonNull(secretName) && CollectionUtils.isNotEmpty(hosts)) {
                         try {
-                            V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
+                            V1Secret secret = coreV1Api.readNamespacedSecret(secretName, namespace, "ture");
                             if (Objects.nonNull(secret.getData())) {
                                 InputStream keyCertChainInputStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
                                 InputStream keyInputStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
-                                tls.getHosts().forEach(host ->
+                                hosts.forEach(host ->
                                         sslList.add(new SslCrtAndKeyStream(host, keyCertChainInputStream, keyInputStream))
                                 );
                             }
@@ -200,7 +203,8 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
 
@@ -219,7 +223,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                     ConditionData pathCondition = new ConditionData();
                     pathCondition.setOperator(operator.getAlias());
                     pathCondition.setParamType(ParamTypeEnum.URI.getName());
-                    pathCondition.setParamValue(path.getPath());
+                    pathCondition.setParamValue(pathPath);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
@@ -229,7 +233,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                     SelectorData selectorData = SelectorData.builder()
                             .pluginId(String.valueOf(PluginEnum.WEB_SOCKET.getCode()))
                             .pluginName(PluginEnum.WEB_SOCKET.getName())
-                            .name(path.getPath())
+                            .name(pathPath)
                             .matchMode(MatchModeEnum.AND.getCode())
                             .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                             .enabled(true)
@@ -249,7 +253,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                         webSocketRuleHandle.setTimeout(Long.parseLong(annotations.getOrDefault(IngressConstants.TIMEOUT_ANNOTATION_KEY, "3000")));
                     }
                     RuleData ruleData = RuleData.builder()
-                            .name(path.getPath())
+                            .name(pathPath)
                             .pluginName(PluginEnum.WEB_SOCKET.getName())
                             .matchMode(MatchModeEnum.AND.getCode())
                             .conditionDataList(conditionList)
@@ -265,11 +269,19 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
     }
 
     private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
+        V1ServiceBackendPort servicePort = service.getPort();
+        if (Objects.nonNull(servicePort)) {
+            Integer portNumber = servicePort.getNumber();
+            if (Objects.nonNull(portNumber) && portNumber > 0) {
+                return String.valueOf(portNumber);
+            } else {
+                String servicePortName = servicePort.getName();
+                if (Objects.nonNull(servicePortName)) {
+                    String trim = servicePortName.trim();
+                    if (StringUtils.isNoneBlank(trim)) {
+                        return trim;
+                    }
+                }
             }
         }
         return null;

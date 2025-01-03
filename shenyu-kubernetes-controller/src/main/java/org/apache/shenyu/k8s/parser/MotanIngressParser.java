@@ -115,13 +115,15 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
             if (Objects.nonNull(tlsList) && CollectionUtils.isNotEmpty(tlsList)) {
                 List<SslCrtAndKeyStream> sslList = new ArrayList<>();
                 for (V1IngressTLS tls : tlsList) {
-                    if (tls.getSecretName() != null && tls.getHosts() != null && CollectionUtils.isNotEmpty(tls.getHosts())) {
+                    String secretName = tls.getSecretName();
+                    List<String> hosts = tls.getHosts();
+                    if (Objects.nonNull(secretName) && CollectionUtils.isNotEmpty(hosts)) {
                         try {
-                            V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
+                            V1Secret secret = coreV1Api.readNamespacedSecret(secretName, namespace, "ture");
                             if (Objects.nonNull(secret.getData())) {
                                 InputStream keyCertChainInputStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
                                 InputStream keyInputStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
-                                tls.getHosts().forEach(host ->
+                                hosts.forEach(host ->
                                         sslList.add(new SslCrtAndKeyStream(host, keyCertChainInputStream, keyInputStream))
                                 );
                             }
@@ -153,7 +155,8 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
 
@@ -172,7 +175,7 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                     ConditionData pathCondition = new ConditionData();
                     pathCondition.setOperator(operator.getAlias());
                     pathCondition.setParamType(ParamTypeEnum.URI.getName());
-                    pathCondition.setParamValue(path.getPath());
+                    pathCondition.setParamValue(pathPath);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
@@ -181,14 +184,14 @@ public class MotanIngressParser implements K8sResourceParser<V1Ingress> {
                     ConditionData ruleConditionData = new ConditionData();
                     ruleConditionData.setParamType(ParamTypeEnum.URI.getName());
                     ruleConditionData.setOperator(OperatorEnum.EQ.getAlias());
-                    ruleConditionData.setParamName(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PATH, path.getPath()));
+                    ruleConditionData.setParamName(annotations.getOrDefault(IngressConstants.PLUGIN_MOTAN_PATH, pathPath));
                     List<ConditionData> ruleConditionDataList = new ArrayList<>();
                     ruleConditionDataList.add(ruleConditionData);
 
                     SelectorData selectorData = SelectorData.builder()
                             .pluginId(String.valueOf(PluginEnum.MOTAN.getCode()))
                             .pluginName(PluginEnum.MOTAN.getName())
-                            .name(path.getPath())
+                            .name(pathPath)
                             .matchMode(MatchModeEnum.AND.getCode())
                             .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                             .enabled(true)

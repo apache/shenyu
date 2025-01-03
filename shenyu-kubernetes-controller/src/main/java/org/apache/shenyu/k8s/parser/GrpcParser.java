@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -210,11 +211,16 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
     }
 
     private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
+        V1ServiceBackendPort servicePort = service.getPort();
+        if (Objects.nonNull(servicePort)) {
+            Integer portNumber = servicePort.getNumber();
+            if (Objects.nonNull(portNumber) && portNumber > 0) {
+                return String.valueOf(portNumber);
+            } else {
+                String servicePortName = servicePort.getName();
+                if (Objects.nonNull(servicePortName) && StringUtils.isNoneBlank(servicePortName.trim())) {
+                    return servicePortName.trim();
+                }
             }
         }
         return null;
@@ -230,11 +236,12 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
                     OperatorEnum operator = getOperator(path.getPathType());
-                    ConditionData pathCondition = createPathCondition(path.getPath(), operator);
+                    ConditionData pathCondition = createPathCondition(pathPath, operator);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
@@ -242,7 +249,7 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                     conditionList.add(pathCondition);
                     List<GrpcUpstream> grpcUpstreamList = parseUpstream(path.getBackend(), namespace);
 
-                    SelectorData selectorData = createSelectorData(path.getPath(), conditionList, grpcUpstreamList);
+                    SelectorData selectorData = createSelectorData(pathPath, conditionList, grpcUpstreamList);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<MetaData> metaDataList = new ArrayList<>();
                     for (String label : labels.keySet()) {
