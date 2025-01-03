@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okhttp3.internal.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
@@ -33,6 +34,7 @@ import org.apache.shenyu.spi.Join;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -103,7 +105,8 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
         try (Response okhttpResponse = okHttpClient
                 .newCall(okhttpRequest)
                 .execute()) {
-            String bodyStr = okhttpResponse.body() == null ? null : okhttpResponse.body().string();
+            ResponseBody responseBody = okhttpResponse.body();
+            String bodyStr = Objects.isNull(responseBody) ? null : responseBody.string();
             return new ShenyuResponse(okhttpResponse.code(), null,
                     okhttpResponse.headers().names().stream().collect(Collectors.toMap(name -> name, name -> okhttpResponse.headers().values(name))),
                     bodyStr, request);

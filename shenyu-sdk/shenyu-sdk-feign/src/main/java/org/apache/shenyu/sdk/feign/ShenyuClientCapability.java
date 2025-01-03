@@ -20,7 +20,6 @@ package org.apache.shenyu.sdk.feign;
 import feign.Capability;
 import feign.Client;
 import feign.Request;
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -29,6 +28,9 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.openfeign.loadbalancer.FeignBlockingLoadBalancerClient;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.util.Assert;
+
+import java.net.URI;
+import java.util.Objects;
 
 /**
  * custom a shenyu client capability to enrich clients.
@@ -51,7 +53,7 @@ public final class ShenyuClientCapability implements Capability {
             Client delegate = finalDelegate;
             final URI originalUri = URI.create(request.url());
             String serviceId = originalUri.getHost();
-            Assert.state(serviceId != null, "Request URI does not contain a valid hostname: " + originalUri);
+            Assert.state(Objects.nonNull(serviceId), "Request URI does not contain a valid hostname: " + originalUri);
             if (finalDelegate instanceof FeignBlockingLoadBalancerClient) {
                 delegate = ((FeignBlockingLoadBalancerClient) finalDelegate).getDelegate();
             } else if (finalDelegate instanceof RetryableFeignBlockingLoadBalancerClient) {
