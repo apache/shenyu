@@ -103,11 +103,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     @Override
     public InputStream getResourceAsStream(final String name) {
         byte[] cacheByte = resourceCache.get(name);
-        if (cacheByte != null) {
+        if (Objects.nonNull(cacheByte)) {
             return new ByteArrayInputStream(cacheByte);
         }
         byte[] bytes = pluginJar.getResourceMap().get(name);
-        if (bytes != null) {
+        if (Objects.nonNull(bytes)) {
             resourceCache.put(name, bytes);
             return new ByteArrayInputStream(bytes);
         }
@@ -120,12 +120,12 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
             return this.getParent().loadClass(name);
         }
         Class<?> clazz = classCache.get(name);
-        if (clazz != null) {
+        if (Objects.nonNull(clazz)) {
             return clazz;
         }
         synchronized (this) {
             clazz = classCache.get(name);
-            if (clazz == null) {
+            if (Objects.isNull(clazz)) {
                 // support base64Jar
                 if (pluginJar.getClazzMap().containsKey(name) && !checkExistence(name)) {
                     byte[] bytes = pluginJar.getClazzMap().get(name);
