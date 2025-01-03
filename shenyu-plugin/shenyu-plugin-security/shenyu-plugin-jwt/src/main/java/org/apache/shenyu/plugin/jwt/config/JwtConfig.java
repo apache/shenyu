@@ -30,6 +30,11 @@ public class JwtConfig implements Serializable {
     private String secretKey;
 
     /**
+     * private handleType.
+     */
+    private String handleType;
+
+    /**
      * Gets secret key.
      *
      * @return the secret key
@@ -47,4 +52,21 @@ public class JwtConfig implements Serializable {
         this.secretKey = secretKey;
     }
 
+    /**
+     * Gets handleType.
+     *
+     * @return jwt payload handle type
+     */
+    public String getHandleType() {
+        return handleType;
+    }
+
+    /**
+     * Sets handleType.
+     *
+     * @param handleType jwt payload handle type
+     */
+    public void setHandleType(final String handleType) {
+        this.handleType = handleType;
+    }
 }

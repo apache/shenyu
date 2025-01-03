@@ -45,16 +45,18 @@ public class JwtPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         String secretKey = Optional.ofNullable(configMap.get(Constants.SECRET_KEY)).orElse("");
+        String handleType = Optional.ofNullable(configMap.get("handleType")).orElse("default");
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecretKey(secretKey);
+        jwtConfig.setHandleType(handleType);
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
-    
+
     @Override
     public void removeRule(final RuleData ruleData) {
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
     }
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
