@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -46,10 +47,10 @@ public class KubernetesClient {
      */
     public List<KubernetesInstance> selectInstances(final String serviceId) {
         List<KubernetesInstance> response = Collections.emptyList();
-        KubernetesInstance[] responseBody = (KubernetesInstance[]) this.rest.getForEntity(this.kubernetesConfig.getDiscoveryServerUrl() + "/apps/" + serviceId,
+        KubernetesInstance[] responseBody = this.rest.getForEntity(this.kubernetesConfig.getDiscoveryServerUrl() + "/apps/" + serviceId,
                 KubernetesInstance[].class, new Object[0]).getBody();
-        if (responseBody != null && responseBody.length > 0) {
-            response = (List) Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
+        if (Objects.nonNull(responseBody) && responseBody.length > 0) {
+            response = Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
         }
 
         return response;
