@@ -41,6 +41,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -84,7 +85,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
             result = handler.invoke(args);
         } catch (Throwable throwable) {
             LOG.error("ShenYu Client invoke error  ", throwable);
-            if (fallbackFactory == null) {
+            if (Objects.isNull(fallbackFactory)) {
                 throw new NoFallbackAvailableException("No fallback available.", throwable);
             }
             Object fallback = fallbackFactory.create(throwable);
