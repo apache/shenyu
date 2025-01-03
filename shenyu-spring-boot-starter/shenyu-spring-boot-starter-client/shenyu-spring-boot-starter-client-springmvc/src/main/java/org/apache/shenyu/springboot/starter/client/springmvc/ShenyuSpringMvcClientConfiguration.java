@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
@@ -70,7 +71,7 @@ public class ShenyuSpringMvcClientConfiguration {
         Properties props = Optional.ofNullable(clientPropertiesConfig).map(ClientPropertiesConfig::getProps).orElse(null);
         String applicationName = env.getProperty("spring.application.name");
         String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
-        if (props != null) {
+        if (Objects.nonNull(props)) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
             if (StringUtils.isBlank(appName) && StringUtils.isBlank(applicationName)) {
                 throw new IllegalArgumentException("spring.application.name or shenyu.client.http.props.appName must not be empty");
