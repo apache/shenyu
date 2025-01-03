@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
@@ -43,7 +44,7 @@ public class PluginJarParser {
         PluginJar pluginJar = new PluginJar();
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
-            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+            while (Objects.nonNull(jarEntry = jarInputStream.getNextJarEntry())) {
                 String entryName = jarEntry.getName();
                 // get jar version
                 if (jarEntry.getName().endsWith("pom.properties")) {
