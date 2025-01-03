@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
@@ -104,7 +105,7 @@ public interface Contract extends ResourceLoaderAware {
             List<RequestTemplate.ParamMetadata> params = new ArrayList<>(parameters.length);
             for (int index = 0; index < parameters.length; index++) {
                 Annotation[] annotations = parameters[index].getAnnotations();
-                if (annotations == null || annotations.length == 0) {
+                if (Objects.isNull(annotations) || annotations.length == 0) {
                     continue;
                 }
                 params.add(new RequestTemplate.ParamMetadata(annotations, parameters[index].getType(), index));
