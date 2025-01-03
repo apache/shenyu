@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.spring.support;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.ShenyuClientFactoryBean;
@@ -25,7 +26,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -33,6 +33,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
@@ -80,11 +81,11 @@ public class SpringMvcContract extends Contract.BaseContract {
         checkAtMostOne(method, methodMapping.value(), "value");
         if (methodMapping.value().length > 0) {
             String pathValue = methodMapping.value()[0];
-            if (pathValue != null && !pathValue.isEmpty()) {
+            if (StringUtils.isNotBlank(pathValue)) {
                 pathValue = resolve(pathValue);
                 // Append path from @RequestMapping if value is present on method
                 if (!pathValue.startsWith("/")
-                        && StringUtils.hasText(shenyuClientFactoryBean.getPath())
+                        && StringUtils.isNotBlank(shenyuClientFactoryBean.getPath())
                         && !shenyuClientFactoryBean.getPath().endsWith("/")) {
                     pathValue = "/" + pathValue;
                 }
@@ -106,7 +107,7 @@ public class SpringMvcContract extends Contract.BaseContract {
     private void parseProduces(final RequestTemplate requestTemplate, final RequestMapping annotation) {
         String[] serverProduces = annotation.produces();
         String clientAccepts = serverProduces.length == 0 ? null : serverProduces[0].isEmpty() ? null : serverProduces[0];
-        if (clientAccepts != null) {
+        if (Objects.nonNull(clientAccepts)) {
             requestTemplate.getHeaders().put(ACCEPT, Collections.singleton(clientAccepts));
         }
     }
@@ -114,7 +115,7 @@ public class SpringMvcContract extends Contract.BaseContract {
     private void parseConsumes(final RequestTemplate requestTemplate, final RequestMapping annotation) {
         String[] serverConsumes = annotation.consumes();
         String clientProduces = serverConsumes.length == 0 ? null : serverConsumes[0].isEmpty() ? null : serverConsumes[0];
-        if (clientProduces != null) {
+        if (Objects.nonNull(clientProduces)) {
             requestTemplate.getHeaders().put(CONTENT_TYPE, Collections.singleton(clientProduces));
         }
     }
@@ -130,20 +131,20 @@ public class SpringMvcContract extends Contract.BaseContract {
     }
 
     private String resolve(final String value) {
-        if (StringUtils.hasText(value) && resourceLoader instanceof ConfigurableApplicationContext) {
+        if (StringUtils.isNotBlank(value) && resourceLoader instanceof ConfigurableApplicationContext) {
             return ((ConfigurableApplicationContext) resourceLoader).getEnvironment().resolvePlaceholders(value);
         }
         return value;
     }
 
     private void checkOne(final Method method, final Object[] values, final String fieldName) {
-        Assert.state(values != null && values.length == 1,
+        Assert.state(Objects.nonNull(values) && values.length == 1,
                 String.format("Method %s can only contain 1 %s field. Found: %s",
-                        method.getName(), fieldName, values == null ? null : Arrays.asList(values)));
+                        method.getName(), fieldName, Objects.isNull(values) ? null : Arrays.asList(values)));
     }
 
     private void checkAtMostOne(final Method method, final Object[] values, final String fieldName) {
-        Assert.state(values != null && (values.length == 0 || values.length == 1),
+        Assert.state(Objects.nonNull(values) && (values.length == 0 || values.length == 1),
                 String.format("Method %s can only contain at most 1 %s field. Found: %s",
                         method.getName(), fieldName, Arrays.asList(values)));
     }
