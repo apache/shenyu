@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import static com.google.common.base.Strings.emptyToNull;
-import java.lang.annotation.Annotation;
-import java.util.Map;
 import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
 
 /**
  * {@link PathVariable} parameter processor.
@@ -43,7 +44,7 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         String name = ANNOTATION.cast(annotation).value();
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
-        checkState(arg instanceof String && emptyToNull(name) != null || arg instanceof Map,
+        checkState(arg instanceof String && StringUtils.isNotBlank(name) || arg instanceof Map,
             "PathVariable Object class pls is String or Map<String, String> and PathVariable annotation value could not be empty when String class at the method %s.", requestTemplate.getMethod());
 
         if (arg instanceof String) {

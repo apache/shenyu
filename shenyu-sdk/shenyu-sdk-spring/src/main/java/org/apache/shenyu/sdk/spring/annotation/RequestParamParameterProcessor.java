@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import static com.google.common.base.Strings.emptyToNull;
 import com.google.common.collect.Maps;
 import java.lang.annotation.Annotation;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -45,7 +46,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
         String name = requestParam.value();
-        checkState(emptyToNull(name) != null || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
+        checkState(StringUtils.isNotBlank(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
             requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
         StringBuilder pathResult = new StringBuilder(requestTemplate.getPath());
         Map<Object, Object> params = Maps.newHashMap();
