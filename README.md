@@ -196,7 +196,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Prerequisite
  
-   * JDK 1.8+
+   * JDK 17+
    
 --- 
         
