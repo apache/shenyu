@@ -22,7 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 
 /**
- * shenyu admin start.
+ * shenyu admin start
  */
 @SpringBootApplication(exclude = {LdapAutoConfiguration.class})
 public class ShenyuAdminBootstrap {
