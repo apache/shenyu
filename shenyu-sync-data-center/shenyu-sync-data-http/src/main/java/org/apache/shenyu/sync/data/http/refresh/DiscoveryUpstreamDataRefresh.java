@@ -67,7 +67,7 @@ public class DiscoveryUpstreamDataRefresh extends AbstractDataRefresh<DiscoveryS
 
     @Override
     public ConfigData<?> cacheConfigData() {
-        return GROUP_CACHE.get(ConfigGroupEnum.PROXY_SELECTOR);
+        return GROUP_CACHE.get(ConfigGroupEnum.DISCOVER_UPSTREAM);
     }
 
 }
