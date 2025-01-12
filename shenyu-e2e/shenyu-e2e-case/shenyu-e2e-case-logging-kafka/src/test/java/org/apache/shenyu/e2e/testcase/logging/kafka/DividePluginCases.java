@@ -107,7 +107,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                                                 StringDeserializer.class.getName());
                                         props.put(ConsumerConfig.GROUP_ID_CONFIG, "testGroup");
-                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-docker:9092");
+                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "shenyu-kafka:9092");
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
                                         consumer.subscribe(Arrays.asList(TOPIC));
                                         Thread.sleep(1000 * 30);
