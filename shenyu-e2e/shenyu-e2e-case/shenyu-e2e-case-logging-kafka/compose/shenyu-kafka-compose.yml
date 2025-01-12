@@ -23,6 +23,24 @@ services:
     networks:
       - shenyu
 
+  shenyu-kafka:
+    container_name: shenyu-kafka
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+      - shenyu-zk
+    networks:
+      - shenyu
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: shenyu-zk
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://shenyu-kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
   shenyu-examples-http:
     deploy:
       resources:
@@ -41,40 +59,6 @@ services:
       - "8189:8189"
     networks:
       - shenyu
-
-  shenyu-admin:
-    image: apache/shenyu-admin:latest
-    container_name: shenyu-admin
-    restart: always
-    networks:
-      - shenyu
-    ports:
-      - "9095:9095"
-    environment:
-      - SPRING_PROFILES_ACTIVE=h2
-      - shenyu.database.init_script=sql-script/h2/schema.sql
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
-      timeout: 2s
-      retries: 30
-
-  shenyu-kafka:
-    container_name: shenyu-kafka
-    image: confluentinc/cp-kafka:latest
-    restart: always
-    depends_on:
-      - shenyu-zk
-    networks:
-      - shenyu
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: shenyu-zk
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://shenyu-kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
 networks:
   shenyu:
