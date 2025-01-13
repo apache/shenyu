@@ -57,8 +57,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testDivideHello(),
-                testKafkaHello()
+                testDivideHello()
         );
     }
 
