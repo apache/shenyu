@@ -1292,6 +1292,8 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507029', '20', 'requestUniqueH
 INSERT INTO `plugin_handle` VALUES ('1722804548510507030', '20', 'respHeaderUniqueStrategy', 'respHeaderUniqueStrategy', 2, 2, 3, '{"required":"0","rule":""}', '2024-12-13 22:37:48.239', '2024-12-13 22:37:48.239');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507031', '20', 'respUniqueHeaders', 'respUniqueHeaders', 2, 2, 4, '{"required":"0","rule":""}', '2024-12-13 22:38:05.726', '2024-12-13 22:38:05.726');
 
+INSERT INTO `plugin_handle` VALUES ('1722804548510507032', '19', 'handleType', 'handleType', 2, 3, 1, '{"required":"0","rule":""}', '2025-01-02 17:20:50.233', '2025-01-02 17:20:50.233');
+
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
