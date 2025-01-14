@@ -57,7 +57,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
-                testDivideHello()
+                testDivideHello(),
+                testKafkaHello()
         );
     }
 
@@ -105,7 +106,6 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 StringDeserializer.class.getName());
                                         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                                                 StringDeserializer.class.getName());
-                                        props.put(ConsumerConfig.GROUP_ID_CONFIG, "testGroup");
                                         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "shenyu-kafka:9092");
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
                                         consumer.subscribe(Arrays.asList(TOPIC));
