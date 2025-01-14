@@ -52,6 +52,7 @@
         <profile>
             <id>it</id>
             <build>
+                <finalName>shenyu-integrated-test-custom-plugin</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
