@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -201,7 +202,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcExt(buildRpcExt(bean))
+                .rpcExt(buildRpcExt(bean, methodName))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .enabled(shenyuClient.enabled())
                 .namespaceId(namespaceId)
@@ -219,7 +220,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 }).orElse(port);
     }
     
-    private String buildRpcExt(final ServiceBean<?> serviceBean) {
+    private String buildRpcExt(final ServiceBean<?> serviceBean, final String methodName) {
         DubboRpcExt build = DubboRpcExt.builder()
                 .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
@@ -231,6 +232,16 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
                 .build();
+        // set method config: loadbalance,retries,timeout,sent
+        Optional.ofNullable(serviceBean.getMethods()).orElse(Collections.emptyList()).stream()
+                .filter(m -> methodName.equals(m.getName()))
+                .findFirst()
+                .ifPresent(methodConfig -> {
+                    Optional.ofNullable(methodConfig.getLoadbalance()).filter(StringUtils::isNotEmpty).ifPresent(build::setLoadbalance);
+                    Optional.ofNullable(methodConfig.getRetries()).ifPresent(build::setRetries);
+                    Optional.ofNullable(methodConfig.getTimeout()).ifPresent(build::setTimeout);
+                    Optional.ofNullable(methodConfig.getSent()).ifPresent(build::setSent);
+                });
         return GsonUtils.getInstance().toJson(build);
     }
 }
