@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
  * RestTemplate config.
  */
 @Configuration
-public class RestTemplateConfig {
+public class RestTemplateConfiguration {
     
     /**
      * ClientHttpRequestFactory bean.
