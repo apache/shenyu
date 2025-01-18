@@ -72,7 +72,7 @@ public class WebsocketConfig {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         WebsocketConfig that = (WebsocketConfig) o;
