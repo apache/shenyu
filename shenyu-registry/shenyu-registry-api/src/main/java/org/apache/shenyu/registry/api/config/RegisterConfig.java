@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.registry.api.config;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -127,7 +130,7 @@ public class RegisterConfig {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj == null) {
+        if (Objects.isNull(obj)) {
             return false;
         }
         RegisterConfig registerConfig = (RegisterConfig) obj;
@@ -137,18 +140,20 @@ public class RegisterConfig {
         if (!this.getServerLists().equals(registerConfig.getServerLists())) {
             return false;
         }
-        if (this.getProps() == null && registerConfig.getProps() == null) {
+        Properties properties = this.getProps();
+        Properties registerConfigProps = registerConfig.getProps();
+        if (Objects.isNull(properties) && Objects.isNull(registerConfigProps)) {
             return true;
         }
-        if (this.getProps() == null || registerConfig.getProps() == null) {
+        if (Objects.isNull(properties) || Objects.isNull(registerConfigProps)) {
             return false;
         }
-        if (this.getProps().entrySet().size() != registerConfig.getProps().entrySet().size()) {
+        if (properties.entrySet().size() != registerConfigProps.entrySet().size()) {
             return false;
         }
-        for (Map.Entry<Object, Object> entry : this.getProps().entrySet()) {
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             Object newValue = entry.getValue();
-            Object oldValue = registerConfig.getProps().get(entry.getKey());
+            Object oldValue = registerConfigProps.get(entry.getKey());
             if (!newValue.equals(oldValue)) {
                 return false;
             }
@@ -158,13 +163,18 @@ public class RegisterConfig {
 
     @Override
     public int hashCode() {
-        int result = getRegisterType() != null ? getRegisterType().hashCode() : 0;
-        result = 31 * result + (getServerLists() != null ? getServerLists().hashCode() : 0);
+        String registerTypeStr = getRegisterType();
+        int result = StringUtils.isNotEmpty(registerTypeStr) ? registerTypeStr.hashCode() : 0;
+        String serverListsStr = getServerLists();
+        result = 31 * result + (StringUtils.isNotEmpty(serverListsStr) ? serverListsStr.hashCode() : 0);
 
-        if (getProps() != null) {
-            for (Map.Entry<Object, Object> entry : getProps().entrySet()) {
-                result = 31 * result + (entry.getKey() != null ? entry.getKey().hashCode() : 0);
-                result = 31 * result + (entry.getValue() != null ? entry.getValue().hashCode() : 0);
+        Properties properties = getProps();
+        if (Objects.nonNull(properties)) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                Object entryKey = entry.getKey();
+                result = 31 * result + (Objects.nonNull(entryKey) ? entryKey.hashCode() : 0);
+                Object entryValue = entry.getValue();
+                result = 31 * result + (Objects.nonNull(entryValue) ? entryValue.hashCode() : 0);
             }
         }
 
