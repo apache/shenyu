@@ -32,7 +32,7 @@ services:
     networks:
       - shenyu
     ports:
-      - "9092:9092"
+      - "31092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: shenyu-zk

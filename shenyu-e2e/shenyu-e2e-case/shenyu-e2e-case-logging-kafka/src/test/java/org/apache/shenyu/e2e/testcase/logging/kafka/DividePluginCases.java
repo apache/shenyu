@@ -101,14 +101,12 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try {
                                         Thread.sleep(1000 * 30);
                                         request.request(Method.GET, "/http/order/findById?id=23");
-                                        Properties props = new Properties();
-                                        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                                                StringDeserializer.class.getName());
-                                        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                                                StringDeserializer.class.getName());
-                                        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
-                                        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "shenyu-kafka:9092");
-                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+                                        Properties properties = new Properties();
+                                        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:31092");  // Kafka 服务器地址
+                                        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");        // 消费者组ID
+                                        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+                                        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
                                         consumer.subscribe(Arrays.asList(TOPIC));
                                         Thread.sleep(1000 * 30);
                                         AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
