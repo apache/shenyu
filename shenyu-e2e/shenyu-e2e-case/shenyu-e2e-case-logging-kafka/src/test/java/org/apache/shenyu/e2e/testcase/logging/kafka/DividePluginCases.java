@@ -106,6 +106,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 StringDeserializer.class.getName());
                                         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                                                 StringDeserializer.class.getName());
+                                        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
                                         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "shenyu-kafka:9092");
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
                                         consumer.subscribe(Arrays.asList(TOPIC));
@@ -127,7 +128,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             });
                                         }
                                         Assertions.assertTrue(isLog.get());
-                                    } catch (Exception e) {
+                                    } catch (InterruptedException e) {
                                         LOG.info("isLog.get():{}", isLog.get());
                                         LOG.error("error", e);
                                         throw new RuntimeException(e);
