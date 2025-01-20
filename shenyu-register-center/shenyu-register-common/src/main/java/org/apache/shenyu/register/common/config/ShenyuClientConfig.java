@@ -27,7 +27,7 @@ import java.util.Objects;
  * The type Shenyu client config.
  */
 public final class ShenyuClientConfig {
-    
+
     private Map<String, ClientPropertiesConfig> client = new HashMap<>() {
         @Override
         public ClientPropertiesConfig get(final Object key) {
