@@ -44,6 +44,11 @@ public final class BodyParamUtils {
 
     private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
     
+    // Caffeine cache with maximum size of 5000
+    private static final Cache<String, Boolean> BASE_TYPE_CACHE = Caffeine.newBuilder()
+            .maximumSize(5000)
+            .build();
+
     private BodyParamUtils() {
     }
 
@@ -130,10 +135,6 @@ public final class BodyParamUtils {
         return parameterTypes.startsWith("{") && parameterTypes.endsWith("}");
     }
 
-    // Caffeine cache with maximum size of 5000
-    private static final Cache<String, Boolean> BASE_TYPE_CACHE = Caffeine.newBuilder()
-            .maximumSize(5000)
-            .build();
 
     /**
      * isBaseType.
