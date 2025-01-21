@@ -45,3 +45,5 @@ Thumbs.db
 
 # rust ignore
 *.lock
+
+.factorypath
