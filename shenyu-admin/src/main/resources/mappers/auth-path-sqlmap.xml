@@ -23,6 +23,7 @@
         <result column="auth_id" jdbcType="VARCHAR" property="authId"/>
         <result column="app_name" jdbcType="VARCHAR" property="appName"/>
         <result column="path" jdbcType="VARCHAR" property="path"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>

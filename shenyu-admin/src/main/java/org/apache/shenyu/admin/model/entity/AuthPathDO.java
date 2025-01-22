@@ -37,14 +37,17 @@ public final class AuthPathDO extends BaseDO {
 
     private Boolean enabled;
 
+    private String namespaceId;
+
     public AuthPathDO() {
     }
 
-    public AuthPathDO(final String authId, final String appName, final String path, final Boolean enabled) {
+    public AuthPathDO(final String authId, final String appName, final String path, final Boolean enabled, final String namespaceId) {
         this.authId = authId;
         this.appName = appName;
         this.path = path;
         this.enabled = enabled;
+        this.namespaceId= namespaceId;
     }
 
     /**
@@ -120,6 +123,15 @@ public final class AuthPathDO extends BaseDO {
     }
 
     /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * Build AuthPathDO object with given params.
      *
      * @param path      {@linkplain String}
@@ -127,7 +139,7 @@ public final class AuthPathDO extends BaseDO {
      * @param appName   {@linkplain String}
      * @return          {@linkplain AuthPathDO}
      */
-    public static AuthPathDO create(final String path, final String authId, final String appName) {
+    public static AuthPathDO create(final String path, final String authId, final String appName,final String namespaceId) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return AuthPathDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
@@ -135,6 +147,7 @@ public final class AuthPathDO extends BaseDO {
                 .appName(appName)
                 .path(path)
                 .enabled(true)
+                .namespaceId(namespaceId)
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
@@ -152,12 +165,12 @@ public final class AuthPathDO extends BaseDO {
             return false;
         }
         AuthPathDO that = (AuthPathDO) o;
-        return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(path, that.path) && Objects.equals(enabled, that.enabled);
+        return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(path, that.path) && Objects.equals(namespaceId, that.namespaceId)  && Objects.equals(enabled, that.enabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), authId, appName, path, enabled);
+        return Objects.hash(super.hashCode(), authId, appName, path, enabled,namespaceId);
     }
 
     /**
@@ -178,6 +191,8 @@ public final class AuthPathDO extends BaseDO {
         private String path;
 
         private Boolean enabled;
+
+        private String namespaceId;
 
         private String id;
 
@@ -244,6 +259,17 @@ public final class AuthPathDO extends BaseDO {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return AppAuthDOBuilder
+         */
+        public AuthPathDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * dateCreated.
          *
          * @param dateCreated the dateCreated.
@@ -277,6 +303,7 @@ public final class AuthPathDO extends BaseDO {
             authPathDO.setPath(path);
             authPathDO.setEnabled(enabled);
             authPathDO.setId(id);
+            authPathDO.setNamespaceId(namespaceId);
             authPathDO.setDateCreated(dateCreated);
             authPathDO.setDateUpdated(dateUpdated);
             return authPathDO;
