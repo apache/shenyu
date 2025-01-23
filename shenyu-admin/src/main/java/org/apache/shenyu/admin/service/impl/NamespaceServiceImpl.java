@@ -92,7 +92,8 @@ public class NamespaceServiceImpl implements NamespaceService {
                                 final RuleMapper ruleMapper,
                                 final AuthPathMapper authPathMapper,
                                 final MetaDataMapper metaDataMapper,
-                                final DiscoveryMapper discoveryMapper, final AppAuthMapper appAuthMapper) {
+                                final DiscoveryMapper discoveryMapper,
+                                final AppAuthMapper appAuthMapper) {
         this.namespaceMapper = namespaceMapper;
         this.namespaceUserService = namespaceUserService;
         this.namespaceEventPublisher = namespaceEventPublisher;
