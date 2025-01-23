@@ -90,6 +90,14 @@ public interface AppAuthMapper extends ExistProvider {
     List<AppAuthDO> selectAllByNamespaceId(String namespaceId);
 
     /**
+     * Find by namespace id list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<AppAuthDO> findByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * count application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}
