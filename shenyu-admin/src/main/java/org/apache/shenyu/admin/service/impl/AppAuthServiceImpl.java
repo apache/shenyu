@@ -125,7 +125,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
             List<AuthPathDO> collect = authApplyDTO.getPathList()
                     .stream()
-                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
+                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName(), appAuthDO.getNamespaceId()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
             data.setPathDataList(collect.stream().map(authPathDO ->
@@ -163,7 +163,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             }
             List<AuthPathDO> collect = authApplyDTO.getPathList()
                     .stream()
-                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
+                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName(), appAuthDO.getNamespaceId()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
         }
@@ -199,7 +199,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
                     .filter(Objects::nonNull)
-                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName))
+                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName, appAuthDTO.getNamespaceId()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(authPathDOList);
         }
@@ -223,7 +223,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
             List<AuthPathDO> collect = authPathDTOList.stream()
                     .filter(Objects::nonNull)
-                    .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
+                    .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName(), appAuthDO.getNamespaceId()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
         }
@@ -309,7 +309,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 if (CollectionUtils.isNotEmpty(authPathDTOList)) {
                     List<AuthPathDO> authPathDOS = authPathDTOList
                             .stream()
-                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName(), param.getNamespaceId()))
                             .collect(Collectors.toList());
                     authPathMapper.batchSave(authPathDOS);
                 }
@@ -371,7 +371,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 if (CollectionUtils.isNotEmpty(authPathDTOList)) {
                     List<AuthPathDO> authPathDOS = authPathDTOList
                             .stream()
-                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName()))
+                            .map(param -> AuthPathDO.create(param.getPath(), authId, param.getAppName(), param.getNamespaceId()))
                             .collect(Collectors.toList());
                     authPathMapper.batchSave(authPathDOS);
                 }

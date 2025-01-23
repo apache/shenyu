@@ -47,7 +47,7 @@ public final class AuthPathDO extends BaseDO {
         this.appName = appName;
         this.path = path;
         this.enabled = enabled;
-        this.namespaceId= namespaceId;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -137,9 +137,10 @@ public final class AuthPathDO extends BaseDO {
      * @param path      {@linkplain String}
      * @param authId    {@linkplain String}
      * @param appName   {@linkplain String}
+     * @param namespaceId {@linkplain String}
      * @return          {@linkplain AuthPathDO}
      */
-    public static AuthPathDO create(final String path, final String authId, final String appName,final String namespaceId) {
+    public static AuthPathDO create(final String path, final String authId, final String appName, final String namespaceId) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return AuthPathDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
@@ -165,12 +166,13 @@ public final class AuthPathDO extends BaseDO {
             return false;
         }
         AuthPathDO that = (AuthPathDO) o;
-        return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(path, that.path) && Objects.equals(namespaceId, that.namespaceId)  && Objects.equals(enabled, that.enabled);
+        return Objects.equals(authId, that.authId) && Objects.equals(appName, that.appName) && Objects.equals(path, that.path)
+                && Objects.equals(namespaceId, that.namespaceId) && Objects.equals(enabled, that.enabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), authId, appName, path, enabled,namespaceId);
+        return Objects.hash(super.hashCode(), authId, appName, path, enabled, namespaceId);
     }
 
     /**

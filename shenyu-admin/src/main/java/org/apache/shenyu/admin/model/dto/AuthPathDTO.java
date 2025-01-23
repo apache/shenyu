@@ -33,6 +33,8 @@ public class AuthPathDTO implements Serializable {
     @NotBlank
     private String path;
 
+    private String namespaceId;
+
     private Boolean enabled;
 
     /**
@@ -72,6 +74,24 @@ public class AuthPathDTO implements Serializable {
     }
 
     /**
+     * Gets the value of namespaceId.
+     *
+     * @return the value of namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * Gets the value of enabled.
      *
      * @return the value of enabled
@@ -98,7 +118,8 @@ public class AuthPathDTO implements Serializable {
             return false;
         }
         AuthPathDTO that = (AuthPathDTO) o;
-        return Objects.equals(appName, that.appName) && Objects.equals(path, that.path) && Objects.equals(enabled, that.enabled);
+        return Objects.equals(appName, that.appName) && Objects.equals(path, that.path)
+                && Objects.equals(enabled, that.enabled) && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
