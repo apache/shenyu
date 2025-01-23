@@ -210,6 +210,12 @@ ALTER TABLE `proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMM
 
 ALTER TABLE `alert_receiver` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `levels`;
 
+ALTER TABLE `auth_path` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `path`;
+
+UPDATE auth_path
+SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
+WHERE namespace_id IS NULL;
+
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
 WHERE namespace_id IS NULL;
