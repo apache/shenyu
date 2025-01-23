@@ -196,4 +196,13 @@ public interface AppAuthMapper extends ExistProvider {
      * @return list
      */
     List<AppAuthVO> selectByCondition(@Param("condition") AppAuthQuery condition);
+
+
+    /**
+     * Find by namespace id list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<AppAuthDO> findByNamespaceIds(List<String> namespaceIds);
 }
