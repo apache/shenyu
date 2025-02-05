@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Parser of Ingress.
@@ -103,7 +104,7 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
 
     private boolean getBooleanAnnotation(final V1Ingress ingress, final String annotationKey) {
         String annotationValue = ingress.getMetadata().getAnnotations().get(annotationKey);
-        return annotationValue != null && Boolean.parseBoolean(annotationValue);
+        return Objects.nonNull(annotationValue) && Boolean.parseBoolean(annotationValue);
     }
 
     private void contextPathParse(final V1Ingress ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList, final CoreV1Api coreV1Api) {
