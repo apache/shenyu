@@ -25,12 +25,11 @@ import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressRule;
-import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -127,9 +126,10 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.nonNull(tls.getSecretName()) && Objects.nonNull(tls.getHosts()) && CollectionUtils.isNotEmpty(tls.getHosts())) {
                         try {
                             V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
-                            if (secret.getData() != null) {
-                                InputStream keyCertChainInputStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
-                                InputStream keyInputStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
+                            Map<String, byte[]> secretData = secret.getData();
+                            if (MapUtils.isNotEmpty(secretData)) {
+                                InputStream keyCertChainInputStream = new ByteArrayInputStream(secretData.get("tls.crt"));
+                                InputStream keyInputStream = new ByteArrayInputStream(secretData.get("tls.key"));
                                 tls.getHosts().forEach(host ->
                                         sslList.add(new SslCrtAndKeyStream(host, keyCertChainInputStream, keyInputStream))
                                 );
@@ -143,17 +143,6 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
             }
         }
         return res;
-    }
-
-    private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
-            }
-        }
-        return null;
     }
 
     private List<IngressConfiguration> parseIngressRule(final V1IngressRule ingressRule,
