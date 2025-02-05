@@ -447,20 +447,20 @@ public class IngressReconciler implements Reconciler {
     private void processShenyuMemoryConfig(final ShenyuMemoryConfig shenyuMemoryConfig, final V1Ingress v1Ingress, final String pluginName) throws IOException {
         List<IngressConfiguration> routeConfigList = shenyuMemoryConfig.getRouteConfigList();
 
-        if (routeConfigList == null) {
+        if (CollectionUtils.isEmpty(routeConfigList)) {
             return;
         }
 
         for (IngressConfiguration routeConfig : routeConfigList) {
             SelectorData selectorData = routeConfig.getSelectorData();
 
-            if (selectorData != null) {
+            if (Objects.nonNull(selectorData)) {
                 processSelectorData(routeConfig, selectorData, v1Ingress, pluginName);
             }
 
             List<MetaData> metaDataList = routeConfig.getMetaDataList();
 
-            if (metaDataList != null) {
+            if (Objects.nonNull(metaDataList)) {
                 processMetaDataList(metaDataList);
             }
         }
@@ -479,7 +479,7 @@ public class IngressReconciler implements Reconciler {
 
         List<RuleData> ruleDataList = routeConfig.getRuleDataList();
 
-        if (ruleDataList != null) {
+        if (CollectionUtils.isNotEmpty(ruleDataList)) {
             processRuleDataList(ruleDataList, selectorData);
         }
 
@@ -493,7 +493,7 @@ public class IngressReconciler implements Reconciler {
 
     private void processRuleDataList(final List<RuleData> ruleDataList, final SelectorData selectorData) {
         for (RuleData ruleData : ruleDataList) {
-            if (ruleData != null) {
+            if (Objects.nonNull(ruleData)) {
                 ruleData.setId(IngressSelectorCache.getInstance().generateRuleId());
                 ruleData.setSelectorId(selectorData.getId());
                 ruleData.setSort(100);
@@ -504,7 +504,7 @@ public class IngressReconciler implements Reconciler {
 
     private void processMetaDataList(final List<MetaData> metaDataList) {
         for (MetaData metaData : metaDataList) {
-            if (metaData != null) {
+            if (Objects.nonNull(metaData)) {
                 metaData.setId(IngressSelectorCache.getInstance().generateMetaDataId());
                 shenyuCacheRepository.saveOrUpdateMetaData(metaData);
             }
@@ -512,16 +512,17 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void processGlobalDefaultBackend(final ShenyuMemoryConfig shenyuMemoryConfig, final V1Ingress v1Ingress, final String pluginName) {
-        if (shenyuMemoryConfig.getGlobalDefaultBackend() != null) {
+        Pair<Pair<String, String>, IngressConfiguration> configurationPair = shenyuMemoryConfig.getGlobalDefaultBackend();
+        if (Objects.nonNull(configurationPair)) {
             synchronized (IngressReconciler.class) {
                 if (Objects.isNull(globalDefaultBackend)) {
                     // Add a default backend
-                    IngressConfiguration ingressConfiguration = shenyuMemoryConfig.getGlobalDefaultBackend().getRight();
+                    IngressConfiguration ingressConfiguration = configurationPair.getRight();
                     SelectorData selectorData = ingressConfiguration.getSelectorData();
                     shenyuCacheRepository.saveOrUpdateSelectorData(selectorData);
                     ingressConfiguration.getRuleDataList().forEach(shenyuCacheRepository::saveOrUpdateRuleData);
                     ingressConfiguration.getMetaDataList().forEach(shenyuCacheRepository::saveOrUpdateMetaData);
-                    globalDefaultBackend = shenyuMemoryConfig.getGlobalDefaultBackend();
+                    globalDefaultBackend = configurationPair;
                     IngressSelectorCache.getInstance().put(
                             Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
                             v1Ingress.getMetadata().getName(),
@@ -536,7 +537,7 @@ public class IngressReconciler implements Reconciler {
     private void processTlsConfigurations(final ShenyuMemoryConfig shenyuMemoryConfig, final V1Ingress v1Ingress) throws IOException {
         List<SslCrtAndKeyStream> tlsConfigList = shenyuMemoryConfig.getTlsConfigList();
 
-        if (tlsConfigList != null) {
+        if (CollectionUtils.isNotEmpty(tlsConfigList)) {
             final String namespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
             final String ingressName = v1Ingress.getMetadata().getName();
             Set<String> oldDomainSet = Optional.ofNullable(IngressSecretCache.getInstance().removeDomainByIngress(namespace, ingressName)).orElse(new HashSet<>());
