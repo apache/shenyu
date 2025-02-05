@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -200,7 +201,8 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    String pathPath = path.getPath();
+                    if (Objects.isNull(pathPath)) {
                         continue;
                     }
 
@@ -219,7 +221,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     ConditionData pathCondition = new ConditionData();
                     pathCondition.setOperator(operator.getAlias());
                     pathCondition.setParamType(ParamTypeEnum.URI.getName());
-                    pathCondition.setParamValue(path.getPath());
+                    pathCondition.setParamValue(pathPath);
                     List<ConditionData> conditionList = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionList.add(hostCondition);
@@ -229,7 +231,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     SelectorData selectorData = SelectorData.builder()
                             .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
                             .pluginName(PluginEnum.DIVIDE.getName())
-                            .name(path.getPath())
+                            .name(pathPath)
                             .matchMode(MatchModeEnum.AND.getCode())
                             .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                             .enabled(true)
@@ -251,7 +253,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                         divideRuleHandle.setRequestMaxSize(Long.parseLong(annotations.getOrDefault(IngressConstants.REQUEST_MAX_SIZE_ANNOTATION_KEY, "102400")));
                     }
                     RuleData ruleData = RuleData.builder()
-                            .name(path.getPath())
+                            .name(pathPath)
                             .pluginName(PluginEnum.DIVIDE.getName())
                             .matchMode(MatchModeEnum.AND.getCode())
                             .conditionDataList(conditionList)
@@ -267,11 +269,19 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
     }
 
     private String parsePort(final V1IngressServiceBackend service) {
-        if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
-                return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
-                return service.getPort().getName().trim();
+        V1ServiceBackendPort servicePort = service.getPort();
+        if (Objects.nonNull(servicePort)) {
+            Integer portNumber = servicePort.getNumber();
+            if (Objects.nonNull(portNumber) && portNumber > 0) {
+                return String.valueOf(portNumber);
+            } else {
+                String servicePortName = servicePort.getName();
+                if (Objects.nonNull(servicePortName)) {
+                    String trim = servicePortName.trim();
+                    if (StringUtils.isNoneBlank(trim)) {
+                        return trim;
+                    }
+                }
             }
         }
         return null;
