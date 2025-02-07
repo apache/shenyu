@@ -96,7 +96,7 @@ jobs:
           docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
 
       - name: Upload Docker Image Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/apache-shenyu-*.tar
