@@ -75,7 +75,7 @@ jobs:
       - name: Save ShenYu Maven Repos
         uses: actions/cache/save@v3
         with:
-          paths: ~/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
@@ -87,7 +87,7 @@ jobs:
 #        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
 #        uses: actions/cache/save@v3
 #        with:
-#          paths: ~/.m2/repository
+#          path: ~/.m2/repository
 #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Build Docker Image
@@ -96,10 +96,10 @@ jobs:
           docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
 
       - name: Upload Docker Image Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: shenyu-images
-          paths: /tmp/apache-shenyu-*.tar
+          path: /tmp/apache-shenyu-*.tar
           retention-days: 1
 
   e2e-storage:
@@ -160,7 +160,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
-          paths: ~/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
@@ -168,7 +168,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          paths: /tmp/shenyu/
+          path: /tmp/shenyu/
       
       - name: Load ShenYu Docker Images
         run: |
@@ -264,7 +264,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
-          paths: ~/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
@@ -272,12 +272,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          paths: /tmp/shenyu/
+          path: /tmp/shenyu/
 
 #      - name: Restore ShenYu E2E Maven Repos
 #        uses: actions/cache/restore@v3
 #        with:
-#          paths: ~/.m2/repository
+#          path: ~/.m2/repository
 #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 #          restore-keys: |
 #            ${{ runner.os }}-e2e-maven-
@@ -288,7 +288,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: shenyu-images
-          paths: /tmp/shenyu/
+          path: /tmp/shenyu/
 
       - name: Load ShenYu Docker Images
         run: |
