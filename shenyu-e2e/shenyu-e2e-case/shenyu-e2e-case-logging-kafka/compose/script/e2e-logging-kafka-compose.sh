@@ -20,6 +20,9 @@
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 
+# init ip
+export HOST_IP=$(hostname -I | awk '{print $1}')
+
 # init register center
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
