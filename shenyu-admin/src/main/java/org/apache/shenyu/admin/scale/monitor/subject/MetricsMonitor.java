@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class MetricsMonitor implements Subject {
@@ -72,7 +73,7 @@ public class MetricsMonitor implements Subject {
         for (ScaleRuleDO rule : sortedRules) {
             MetricData metricData = metricsProvider.getMetricData(rule.getMetricName());
 
-            if (metricData != null) {
+            if (Objects.nonNull(metricData)) {
                 notifyObservers(metricData, rule);
             }
         }

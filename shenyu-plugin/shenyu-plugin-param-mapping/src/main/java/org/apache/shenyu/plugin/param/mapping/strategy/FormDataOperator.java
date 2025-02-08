@@ -75,7 +75,7 @@ public class FormDataOperator implements Operator {
                     HttpHeaders headers = exchange.getRequest().getHeaders();
                     HttpHeaders httpHeaders = new HttpHeaders();
                     Charset charset = Objects.requireNonNull(headers.getContentType()).getCharset();
-                    charset = charset == null ? StandardCharsets.UTF_8 : charset;
+                    charset = Objects.isNull(charset) ? StandardCharsets.UTF_8 : charset;
                     LinkedMultiValueMap<String, String> modifyMap = toLinkedMultiValueMap(modify);
                     List<String> list = prepareParams(modifyMap, charset.name());
                     String content = String.join("&", list);

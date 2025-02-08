@@ -36,6 +36,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -130,7 +131,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
                     changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
 
-                    if (configDataNames != null && configDataNames.size() > changedList.size()) {
+                    if (Objects.nonNull(configDataNames) && configDataNames.size() > changedList.size()) {
                         configDataNames.removeAll(changeNames);
                         configDataNames.forEach(this::delConfig);
                     }

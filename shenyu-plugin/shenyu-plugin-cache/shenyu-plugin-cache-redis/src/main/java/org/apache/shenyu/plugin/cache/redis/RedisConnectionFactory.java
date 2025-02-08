@@ -77,7 +77,7 @@ public class RedisConnectionFactory {
         config.setMaxTotal(redisConfigProperties.getMaxActive());
         config.setMaxIdle(redisConfigProperties.getMaxIdle());
         config.setMinIdle(redisConfigProperties.getMinIdle());
-        if (redisConfigProperties.getMaxWait() != null) {
+        if (Objects.nonNull(redisConfigProperties.getMaxWait())) {
             config.setMaxWait(Duration.ofMillis(redisConfigProperties.getMaxWait().toMillis()));
         }
         return config;
@@ -92,10 +92,10 @@ public class RedisConnectionFactory {
     protected final RedisStandaloneConfiguration redisStandaloneConfiguration(final RedisConfigProperties redisConfigProperties) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         String[] parts = StringUtils.split(redisConfigProperties.getUrl(), ":");
-        assert parts != null;
+        assert Objects.nonNull(parts);
         config.setHostName(parts[0]);
         config.setPort(Integer.parseInt(parts[1]));
-        if (redisConfigProperties.getPassword() != null) {
+        if (Objects.nonNull(redisConfigProperties.getPassword())) {
             config.setPassword(RedisPassword.of(redisConfigProperties.getPassword()));
         }
         config.setDatabase(redisConfigProperties.getDatabase());
@@ -105,7 +105,7 @@ public class RedisConnectionFactory {
     private RedisClusterConfiguration redisClusterConfiguration(final RedisConfigProperties redisConfigProperties) {
         RedisClusterConfiguration config = new RedisClusterConfiguration();
         config.setClusterNodes(createRedisNode(redisConfigProperties.getUrl()));
-        if (redisConfigProperties.getPassword() != null) {
+        if (Objects.nonNull(redisConfigProperties.getPassword())) {
             config.setPassword(RedisPassword.of(redisConfigProperties.getPassword()));
         }
         return config;
@@ -115,7 +115,7 @@ public class RedisConnectionFactory {
         RedisSentinelConfiguration config = new RedisSentinelConfiguration();
         config.master(redisConfigProperties.getMaster());
         config.setSentinels(createRedisNode(redisConfigProperties.getUrl()));
-        if (redisConfigProperties.getPassword() != null) {
+        if (Objects.nonNull(redisConfigProperties.getPassword())) {
             config.setPassword(RedisPassword.of(redisConfigProperties.getPassword()));
         }
         config.setDatabase(redisConfigProperties.getDatabase());

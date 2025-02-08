@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import redis.embedded.RedisServer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -121,7 +122,7 @@ public class CachePluginDataHandlerTest {
 
     private void testCacheData(final String testKey) {
         ICache cache = CacheUtils.getCache();
-        assert null != cache;
+        assert Objects.nonNull(cache);
         cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
         cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10)
                 .subscribe(v -> assertEquals(Boolean.TRUE, v));

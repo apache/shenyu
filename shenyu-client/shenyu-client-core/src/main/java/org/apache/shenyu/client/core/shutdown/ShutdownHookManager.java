@@ -98,7 +98,7 @@ public final class ShutdownHookManager {
      * @param shutdownHook shutdownHook <code>Runnable</code>
      */
     public void addShutdownHook(final Runnable shutdownHook) {
-        if (shutdownHook == null) {
+        if (Objects.isNull(shutdownHook)) {
             throw new IllegalArgumentException("shutdownHook cannot be NULL");
         }
         if (shutdownInProgress.get()) {
@@ -116,7 +116,7 @@ public final class ShutdownHookManager {
      * @param priority     priority of the shutdownHook.
      */
     public void addShutdownHook(final Runnable shutdownHook, final int priority) {
-        if (shutdownHook == null) {
+        if (Objects.isNull(shutdownHook)) {
             throw new IllegalArgumentException("shutdownHook cannot be NULL");
         }
         if (shutdownInProgress.get()) {

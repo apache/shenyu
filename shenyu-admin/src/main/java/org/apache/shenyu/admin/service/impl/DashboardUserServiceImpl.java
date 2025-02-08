@@ -293,7 +293,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                         return loginUser;
                     }
-                    if (clientId != null) {
+                    if (Objects.nonNull(clientId)) {
                         DashboardUserDO userDO = new DashboardUserDO();
                         userDO.setId(loginUser.getId());
                         userDO.setClientId(clientId);

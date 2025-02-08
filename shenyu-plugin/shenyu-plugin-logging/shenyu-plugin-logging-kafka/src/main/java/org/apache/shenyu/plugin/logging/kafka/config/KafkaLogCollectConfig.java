@@ -223,7 +223,7 @@ public class KafkaLogCollectConfig {
                 return Boolean.TRUE;
             }
 
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return Boolean.FALSE;
             }
 

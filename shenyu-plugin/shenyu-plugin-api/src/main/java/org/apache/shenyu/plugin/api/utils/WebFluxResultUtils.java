@@ -64,7 +64,7 @@ public final class WebFluxResultUtils {
         }
         exchange.getResponse().getHeaders().setContentType(mediaType);
         final Object responseData = shenyuResult.result(exchange, resultData);
-        assert null != responseData;
+        assert Objects.nonNull(responseData);
         final byte[] bytes = (responseData instanceof byte[])
                 ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
