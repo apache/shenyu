@@ -96,7 +96,7 @@ jobs:
           docker save apache/shenyu-admin:latest > /tmp/apache-shenyu-admin.tar
 
       - name: Upload Docker Image Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/apache-shenyu-*.tar
@@ -165,7 +165,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/shenyu/
@@ -265,7 +265,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/shenyu/
@@ -281,7 +281,7 @@ jobs:
       - name: Build examples with Maven
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/shenyu/
