@@ -66,6 +66,10 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudPluginDataHandler.class);
 
+    private static final String NAMESPACE = "nacosNameSpace";
+
+    private static final String GROUP = "groupName";
+
     private final ShenyuConfig.SpringCloudCacheConfig springCloudCacheConfig;
 
     private final Environment env;
@@ -192,7 +196,8 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
             final String serverLists = env.getProperty("spring.cloud.nacos.discovery.server-addr");
             final String prefix = "spring.cloud.nacos.discovery.";
             Properties properties = new Properties();
-            properties.put(PropertyKeyConst.NAMESPACE, env.getProperty(prefix + PropertyKeyConst.NAMESPACE));
+            properties.put(NAMESPACE, env.getProperty(prefix + PropertyKeyConst.NAMESPACE));
+            properties.put(GROUP, env.getProperty(prefix + "group"));
             if (env.getProperty(prefix + PropertyKeyConst.USERNAME) != null) {
                 properties.put(PropertyKeyConst.USERNAME, env.getProperty(prefix + PropertyKeyConst.USERNAME));
             }
