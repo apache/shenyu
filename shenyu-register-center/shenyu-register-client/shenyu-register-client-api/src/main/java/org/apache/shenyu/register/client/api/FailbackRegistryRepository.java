@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -146,7 +147,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
 
     private <T> void addToFail(final Holder t) {
         Holder oldObj = concurrentHashMap.get(t.getKey());
-        if (oldObj != null) {
+        if (Objects.nonNull(oldObj)) {
             return;
         }
         FailureRegistryTask registryTask = new FailureRegistryTask(t.getKey(), this);
@@ -171,7 +172,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      */
     public void accept(final String key) {
         Holder holder = concurrentHashMap.get(key);
-        if (holder == null) {
+        if (Objects.isNull(holder)) {
             return;
         }
         String type = holder.getType();

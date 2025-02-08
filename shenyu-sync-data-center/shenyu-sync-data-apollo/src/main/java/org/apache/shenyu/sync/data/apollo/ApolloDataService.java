@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ApolloDataService extends AbstractNodeDataSyncService implements SyncDataService {
@@ -87,7 +88,7 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
         final ConfigChangeListener listener = changeEvent -> changeEvent.changedKeys().forEach(changeKey -> {
             try {
                 final ConfigChange configChange = changeEvent.getChange(changeKey);
-                if (configChange == null) {
+                if (Objects.isNull(configChange)) {
                     LOG.error("apollo watchPrefixes error configChange is null {}", changeKey);
                     return;
                 }

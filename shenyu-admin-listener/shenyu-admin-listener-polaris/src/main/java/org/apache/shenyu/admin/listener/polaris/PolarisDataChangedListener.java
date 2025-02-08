@@ -31,6 +31,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * Use polaris to push data changes.
  */
@@ -61,7 +63,7 @@ public class PolarisDataChangedListener extends AbstractNodeDataChangedListener 
                     polarisProperties.getFileGroup(),
                     dataId);
             if (isReleased(metadata)) {
-                configFilePublishService.updateConfigFile(metadata, data == null ? "" : GsonUtils.getInstance().toJson(data));
+                configFilePublishService.updateConfigFile(metadata, Objects.isNull(data) ? "" : GsonUtils.getInstance().toJson(data));
             } else {
                 configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
             }
@@ -89,7 +91,7 @@ public class PolarisDataChangedListener extends AbstractNodeDataChangedListener 
 
     private boolean isReleased(final DefaultConfigFileMetadata metadata) {
         try {
-            return configFileService.getConfigFile(metadata).getContent() != null;
+            return Objects.nonNull(configFileService.getConfigFile(metadata).getContent());
         } catch (PolarisException e) {
             LOG.error("Polaris Get data from polaris error.", e);
             throw new ShenyuException(e.getMessage());

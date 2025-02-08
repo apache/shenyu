@@ -132,7 +132,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void registerShenyuClients(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
         Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName());
-        final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
+        final Class<?>[] clients = Objects.isNull(attrs) ? null : (Class<?>[]) attrs.get("clients");
         LOG.info("clients:{}", JsonUtils.toJson(clients));
         if (Objects.isNull(clients) || clients.length == 0) {
             ClassPathScanningCandidateComponentProvider scanner = getScanner();
@@ -328,7 +328,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         }
         List<String> qualifierList = new ArrayList<>(Arrays.asList((String[]) client.get("qualifiers")));
         qualifierList.removeIf(qualifier -> !StringUtils.hasText(qualifier));
-        if (qualifierList.isEmpty() && getQualifier(client) != null) {
+        if (qualifierList.isEmpty() && Objects.nonNull(getQualifier(client))) {
             qualifierList = Collections.singletonList(getQualifier(client));
         }
         return !qualifierList.isEmpty() ? qualifierList.toArray(new String[0]) : null;

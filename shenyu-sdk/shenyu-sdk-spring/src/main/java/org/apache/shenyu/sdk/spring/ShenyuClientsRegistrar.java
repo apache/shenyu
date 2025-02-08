@@ -319,7 +319,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         } catch (URISyntaxException e) {
             host = null;
         }
-        Assert.state(host != null, "Service id not legal hostname (" + name + ")");
+        Assert.state(Objects.nonNull(host), "Service id not legal hostname (" + name + ")");
         return name;
     }
 
