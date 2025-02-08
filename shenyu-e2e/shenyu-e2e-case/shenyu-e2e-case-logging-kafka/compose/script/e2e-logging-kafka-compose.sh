@@ -35,11 +35,12 @@ docker network create -d bridge shenyu
 
 for sync in "${SYNC_ARRAY[@]}"; do
   echo -e "------------------\n"
+  docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml up -d --quiet-pull
+  sleep 30s
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml up -d --quiet-pull
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
-  docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml up -d --quiet-pull
   docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
   sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
