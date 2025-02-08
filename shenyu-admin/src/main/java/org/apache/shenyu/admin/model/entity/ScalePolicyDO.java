@@ -193,7 +193,7 @@ public final class ScalePolicyDO extends BaseDO {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {
@@ -236,9 +236,9 @@ public final class ScalePolicyDO extends BaseDO {
                                 .sort(item.getSort())
                                 .status(item.getStatus())
                                 .num(item.getNum())
-                                .beginTime(item.getBeginTime() != null && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getBeginTime()))
+                                .beginTime(Objects.nonNull(item.getBeginTime()) && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getBeginTime()))
                                         ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(DateUtils.localDateTimeToString(item.getBeginTime())) : null)
-                                .endTime(item.getEndTime() != null && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getEndTime()))
+                                .endTime(Objects.nonNull(item.getEndTime()) && DateUtils.isValidDate(DateUtils.localDateTimeToString(item.getEndTime()))
                                         ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(DateUtils.localDateTimeToString(item.getEndTime())) : null)
                                 .dateUpdated(currentTime)
                                 .build();

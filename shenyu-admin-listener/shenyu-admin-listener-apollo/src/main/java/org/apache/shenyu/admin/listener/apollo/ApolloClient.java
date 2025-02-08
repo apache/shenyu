@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -65,7 +66,7 @@ public class ApolloClient {
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
                 key);
-        if (openItemDTO == null) {
+        if (Objects.isNull(openItemDTO)) {
             return null;
         }
         if (openItemDTO.getKey().equals("timeout")) {

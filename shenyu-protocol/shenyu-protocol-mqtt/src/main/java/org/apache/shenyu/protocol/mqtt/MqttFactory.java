@@ -24,6 +24,8 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 
+import java.util.Objects;
+
 /**
  * mqtt factory.
  */
@@ -44,7 +46,7 @@ public class MqttFactory {
      * connect.
      */
     public void connect() {
-        if (msg.fixedHeader() == null) {
+        if (Objects.isNull(msg.fixedHeader())) {
             return;
         }
         switch (msg.fixedHeader().messageType()) {

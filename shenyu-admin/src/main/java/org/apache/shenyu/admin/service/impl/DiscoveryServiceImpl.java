@@ -128,7 +128,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         SelectorDO selectorDO = null;
         for (int i = 0; i < 3; i++) {
             selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
-            if (selectorDO != null) {
+            if (Objects.nonNull(selectorDO)) {
                 return selectorDO;
             }
             try {
@@ -149,7 +149,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(discoveryConfigRegisterDTO.getPluginName(),
                 DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId());
-        if (discoveryDO == null) {
+        if (Objects.isNull(discoveryDO)) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
@@ -166,7 +166,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryMapper.insertSelective(discoveryDO);
         }
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
-        if (discoveryHandlerDO == null) {
+        if (Objects.isNull(discoveryHandlerDO)) {
             discoveryHandlerDO = DiscoveryHandlerDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .discoveryId(discoveryDO.getId())
@@ -203,7 +203,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     private DiscoveryVO create(final DiscoveryDTO discoveryDTO) {
-        if (discoveryDTO == null) {
+        if (Objects.isNull(discoveryDTO)) {
             return null;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -426,7 +426,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             successCount++;
 
             // import discovery handler data
-            if (null != discoveryDTO.getDiscoveryHandler()) {
+            if (Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
                 DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryHandler());
@@ -435,7 +435,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             }
 
             // import discovery rel data
-            if (null != discoveryDTO.getDiscoveryRel()) {
+            if (Objects.nonNull(discoveryDTO.getDiscoveryRel())) {
                 DiscoveryRelDO discoveryRelDO = DiscoveryTransfer
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryRel());
@@ -485,7 +485,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             
             // import discovery handler data
             String discoveryHandlerId = null;
-            if (null != discoveryDTO.getDiscoveryHandler()) {
+            if (Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
                 DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryHandler());
@@ -497,7 +497,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             }
             
             // import discovery rel data
-            if (null != discoveryDTO.getDiscoveryRel()) {
+            if (Objects.nonNull(discoveryDTO.getDiscoveryRel())) {
                 DiscoveryRelDO discoveryRelDO = DiscoveryTransfer
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryRel());

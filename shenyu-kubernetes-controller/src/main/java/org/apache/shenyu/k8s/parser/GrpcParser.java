@@ -129,7 +129,7 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.nonNull(tls.getSecretName()) && Objects.nonNull(tls.getHosts()) && CollectionUtils.isNotEmpty(tls.getHosts())) {
                         try {
                             V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
-                            if (secret.getData() != null) {
+                            if (Objects.nonNull(secret.getData())) {
                                 InputStream keyCertChainInputStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
                                 InputStream keyInputStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
                                 tls.getHosts().forEach(host ->

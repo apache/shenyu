@@ -29,6 +29,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * Send alarm information through DingTalk robot.
  */
@@ -54,7 +56,7 @@ final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler 
             ResponseEntity<CommonRobotNotifyResp> responseEntity = getRestTemplate().postForEntity(webHookUrl,
                     httpEntity, CommonRobotNotifyResp.class);
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                assert responseEntity.getBody() != null;
+                assert Objects.nonNull(responseEntity.getBody());
                 if (responseEntity.getBody().getErrCode() == 0) {
                     log.debug("Send dingTalk webHook: {} Success", webHookUrl);
                 } else {

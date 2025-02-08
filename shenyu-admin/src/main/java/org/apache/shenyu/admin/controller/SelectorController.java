@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Objects;
+
 /**
  * this is selector controller.
  */
@@ -76,7 +78,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setPlugin(ListUtil.of(pluginId));
         condition.setKeyword(name);
-        if (namespaceId != null) {
+        if (Objects.nonNull(namespaceId)) {
             condition.setNamespaceId(namespaceId);
         }
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));

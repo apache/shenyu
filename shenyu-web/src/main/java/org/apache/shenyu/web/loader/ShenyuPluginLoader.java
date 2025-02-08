@@ -206,7 +206,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     private void parserJar(final byte[] jarBytes) {
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
-            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+            while (Objects.nonNull(jarEntry = jarInputStream.getNextJarEntry())) {
                 String entryName = jarEntry.getName();
                 if (!jarEntry.isDirectory() && entryName.endsWith(".class") && !entryName.contains("$")) {
                     String className = jarEntry.getName().substring(0, entryName.length() - 6).replaceAll("/", ".");
@@ -370,7 +370,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     private void definePackageInternal(final String packageName, final Manifest manifest) {
-        if (null != getPackage(packageName)) {
+        if (Objects.nonNull(getPackage(packageName))) {
             return;
         }
         Attributes attributes = manifest.getMainAttributes();
