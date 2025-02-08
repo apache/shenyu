@@ -69,10 +69,10 @@ public class MotanPlugin extends AbstractShenyuPlugin {
                                    final SelectorData selector, final RuleData rule) {
         String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        assert Objects.nonNull(shenyuContext);
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
-            assert metaData != null;
+            assert Objects.nonNull(metaData);
             LOG.error("path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR);

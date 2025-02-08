@@ -155,7 +155,7 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
             List<V1HTTPIngressPath> paths = ingressRule.getHttp().getPaths();
             if (Objects.nonNull(paths)) {
                 for (V1HTTPIngressPath path : paths) {
-                    if (path.getPath() == null) {
+                    if (Objects.isNull(path.getPath())) {
                         continue;
                     }
                     OperatorEnum operator = getOperator(path.getPathType());

@@ -51,7 +51,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
         
         context.setVariable("triggerTimeLabel", "Alarm Time");
         context.setVariable("triggerTime", DTF.format(LocalDateTime.ofInstant(
-                alert.getDateCreated() == null ? Instant.now() : alert.getDateCreated().toInstant(), 
+                Objects.isNull(alert.getDateCreated()) ? Instant.now() : alert.getDateCreated().toInstant(),
                 TimeZone.getDefault().toZoneId())));
         
         context.setVariable("contentLabel", "Alarm Content");
