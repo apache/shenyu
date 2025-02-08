@@ -75,7 +75,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void init(final DiscoveryConfig config) {
         try {
-            if (this.etcdClient != null) {
+            if (Objects.nonNull(this.etcdClient)) {
                 return;
             }
             Properties props = config.getProps();
@@ -115,7 +115,7 @@ public class EtcdDiscoveryService implements ShenyuDiscoveryService {
             });
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("initLease error.", e);
-            if (lease != null && leaseId != 0) {
+            if (Objects.nonNull(lease) && leaseId != 0) {
                 try {
                     lease.revoke(leaseId).get();
                     leaseId = 0;

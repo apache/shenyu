@@ -76,7 +76,7 @@ public interface TestService {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             TestObject that = (TestObject) o;

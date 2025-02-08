@@ -391,10 +391,10 @@ public class IngressReconciler implements Reconciler {
         String name = ingress.getMetadata().getName();
         String namespacedName = namespace + "/" + name;
         String defaultService = null;
-        if (ingress.getSpec().getDefaultBackend() != null && ingress.getSpec().getDefaultBackend().getService() != null) {
+        if (Objects.nonNull(ingress.getSpec().getDefaultBackend()) && Objects.nonNull(ingress.getSpec().getDefaultBackend().getService())) {
             defaultService = ingress.getSpec().getDefaultBackend().getService().getName();
             if (Objects.isNull(ingress.getSpec().getRules())) {
-                if (globalDefaultBackend != null) {
+                if (Objects.nonNull(globalDefaultBackend)) {
                     if (globalDefaultBackend.getLeft().getLeft().equals(namespacedName)) {
                         res.add(Pair.of(namespace, defaultService));
                     }

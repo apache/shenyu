@@ -203,7 +203,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
                 .collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
-        if (handler != null) {
+        if (Objects.nonNull(handler)) {
             selectorDO.setHandle(handler);
             SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
             selectorData.setHandle(handler);

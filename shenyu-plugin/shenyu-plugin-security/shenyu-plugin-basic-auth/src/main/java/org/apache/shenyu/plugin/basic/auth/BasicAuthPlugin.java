@@ -34,6 +34,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -56,7 +57,7 @@ public class BasicAuthPlugin extends AbstractShenyuPlugin {
         BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         BasicAuthAuthenticationStrategy authenticationStrategy = Optional.ofNullable(basicAuthRuleHandle).map(BasicAuthRuleHandle::getBasicAuthAuthenticationStrategy).orElse(null);
 
-        if (authenticationStrategy != null && authenticationStrategy.authenticate(basicAuthRuleHandle, authorization)) {
+        if (Objects.nonNull(authenticationStrategy) && authenticationStrategy.authenticate(basicAuthRuleHandle, authorization)) {
             return chain.execute(exchange);
         }
         return WebFluxResultUtils.result(exchange, ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN));

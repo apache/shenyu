@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 public class ScaleRuleEvaluator {
 
@@ -39,10 +41,10 @@ public class ScaleRuleEvaluator {
         double value = metricData.value();
         Double max = parseToDouble(rule.getMaximum());
         Double min = parseToDouble(rule.getMinimum());
-        if (max != null && value > max) {
+        if (Objects.nonNull(max) && value > max) {
             return new ScaleAction(ScaleAction.ActionType.SCALE_UP);
         }
-        if (min != null && value < min) {
+        if (Objects.nonNull(min) && value < min) {
             return new ScaleAction(ScaleAction.ActionType.SCALE_DOWN);
         }
         return null;
@@ -55,7 +57,7 @@ public class ScaleRuleEvaluator {
      * @return java.lang.Double
      */
     private Double parseToDouble(final String str) {
-        if (str == null || str.isEmpty()) {
+        if (Objects.isNull(str) || str.isEmpty()) {
             return null;
         }
         try {

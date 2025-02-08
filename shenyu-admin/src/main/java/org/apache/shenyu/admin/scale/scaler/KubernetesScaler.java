@@ -56,7 +56,7 @@ public class KubernetesScaler {
                 deploymentProperties.getNamespace(),
                 null);
         V1ScaleSpec spec = scale.getSpec();
-        int currentReplicas = (spec != null && spec.getReplicas() != null)
+        int currentReplicas = (Objects.nonNull(spec) && Objects.nonNull(spec.getReplicas()))
                 ? spec.getReplicas()
                 : 0;
         int newReplicas = calculateNewReplicaCount(currentReplicas, action);

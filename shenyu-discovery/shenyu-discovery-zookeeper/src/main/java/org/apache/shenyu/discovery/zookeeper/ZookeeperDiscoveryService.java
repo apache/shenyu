@@ -60,7 +60,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        if (this.client != null) {
+        if (Objects.nonNull(this.client)) {
             LOGGER.info("ZooKeeper naming service already registered");
             return;
         }
@@ -109,7 +109,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public Boolean exists(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
