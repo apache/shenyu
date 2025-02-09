@@ -110,7 +110,7 @@ public class ZookeeperClient implements AutoCloseable {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -182,7 +182,7 @@ public class ZookeeperClient implements AutoCloseable {
      * @param mode  creation mode.
      */
     public void createOrUpdate(final String key, final Object value, final CreateMode mode) {
-        if (value != null) {
+        if (Objects.nonNull(value)) {
             String val = GsonUtils.getInstance().toJson(value);
             createOrUpdate(key, val, mode);
         } else {

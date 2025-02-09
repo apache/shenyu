@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.jwt.exception.ThrowingFunction;
 import org.apache.shenyu.spi.Join;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Join
 public class DefaultJwtPayloadParseStrategy implements JwtPayloadParseStrategy {
@@ -37,7 +38,7 @@ public class DefaultJwtPayloadParseStrategy implements JwtPayloadParseStrategy {
         JwtParser jwtParser = jwtParserBuilder.build();
         if (jwtParser.isSigned(authorization)) {
             Jwt jwt = ThrowingFunction.wrap(() -> jwtParser.parse(authorization));
-            return jwt == null ? null : (Map<String, Object>) jwt.getPayload();
+            return Objects.isNull(jwt) ? null : (Map<String, Object>) jwt.getPayload();
         }
         return null;
     }

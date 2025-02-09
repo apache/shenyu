@@ -359,7 +359,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuRequestHeader that = (ShenyuRequestHeader) o;
@@ -506,7 +506,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuRequestParameter that = (ShenyuRequestParameter) o;
@@ -652,7 +652,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuCookie that = (ShenyuCookie) o;

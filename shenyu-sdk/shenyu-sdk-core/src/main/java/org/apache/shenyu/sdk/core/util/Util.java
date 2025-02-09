@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static java.lang.String.format;
 
@@ -57,7 +58,7 @@ public final class Util {
      * @return true of the value is not null and not empty.
      */
     public static boolean isNotBlank(final String value) {
-        return value != null && !value.isEmpty();
+        return Objects.nonNull(value) && !value.isEmpty();
     }
 
     /**
@@ -67,7 +68,7 @@ public final class Util {
      * @return true if the value is null or empty.
      */
     public static boolean isBlank(final String value) {
-        return value == null || value.isEmpty();
+        return Objects.isNull(value) || value.isEmpty();
     }
 
     /**
@@ -82,7 +83,7 @@ public final class Util {
     public static <T> T checkNotNull(final T reference,
                                      final String errorMessageTemplate,
                                      final Object... errorMessageArgs) {
-        if (reference == null) {
+        if (Objects.isNull(reference)) {
             // If either of these parameters is null, the right thing happens anyway
             throw new NullPointerException(
                     format(errorMessageTemplate, errorMessageArgs));
