@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * JsonMessage.
@@ -156,7 +157,7 @@ public class JsonMessage {
                                                                                                         final DynamicMessage request,
                                                                                                         final DynamicMessage response) {
         MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = METHOD_DESCRIPTOR_CACHE.get(serviceName + GrpcConstants.GRPC_JSON_SERVICE + methodName);
-        if (methodDescriptor == null) {
+        if (Objects.isNull(methodDescriptor)) {
             methodDescriptor = MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
                     .setType(getMethodType(methodType))
                     .setFullMethodName(MethodDescriptor.generateFullMethodName(serviceName + GrpcConstants.GRPC_JSON_SERVICE, methodName))

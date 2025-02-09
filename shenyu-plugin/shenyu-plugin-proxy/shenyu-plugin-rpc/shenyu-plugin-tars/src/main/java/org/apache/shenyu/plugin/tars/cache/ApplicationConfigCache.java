@@ -216,7 +216,7 @@ public final class ApplicationConfigCache {
      * @see ReentrantLock
      */
     private void tryLockedLoadMetaData(final MetaData metaData) throws ClassNotFoundException {
-        assert LOCK != null;
+        assert Objects.nonNull(LOCK);
         if (LOCK.tryLock()) {
             try {
                 if (StringUtils.isEmpty(metaData.getRpcExt())) {

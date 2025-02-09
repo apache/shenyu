@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Comparator;
+import java.util.Objects;
 
 
 @Component
@@ -64,7 +65,7 @@ public class ScaleService {
      */
     public void executeScaling() {
         ScalePolicyDO activePolicy = getActivePolicy();
-        if (activePolicy != null) {
+        if (Objects.nonNull(activePolicy)) {
             switch (activePolicy.getId()) {
                 case "1":
                     stopDynamicTask();

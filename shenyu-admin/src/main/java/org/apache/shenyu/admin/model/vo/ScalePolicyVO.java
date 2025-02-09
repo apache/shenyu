@@ -246,9 +246,9 @@ public class ScalePolicyVO implements Serializable {
     public static ScalePolicyVO buildScalePolicyVO(final ScalePolicyDO scalePolicyDO) {
         return Optional.ofNullable(scalePolicyDO)
                 .map(item -> {
-                    String beginTime = item.getBeginTime() != null
+                    String beginTime = Objects.nonNull(item.getBeginTime())
                             ? DateUtils.localDateTimeToString(new Timestamp(item.getBeginTime().getTime()).toLocalDateTime()) : null;
-                    String endTime = item.getEndTime() != null
+                    String endTime = Objects.nonNull(item.getEndTime())
                             ? DateUtils.localDateTimeToString(new Timestamp(item.getEndTime().getTime()).toLocalDateTime()) : null;
                     return new ScalePolicyVO(item.getId(), item.getSort(), item.getStatus(), item.getNum(),
                             beginTime,
@@ -263,7 +263,7 @@ public class ScalePolicyVO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         ScalePolicyVO that = (ScalePolicyVO) o;

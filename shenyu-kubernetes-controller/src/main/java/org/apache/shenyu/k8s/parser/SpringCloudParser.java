@@ -270,9 +270,9 @@ public class SpringCloudParser implements K8sResourceParser<V1Ingress> {
 
     private String parsePort(final V1IngressServiceBackend service) {
         if (Objects.nonNull(service.getPort())) {
-            if (service.getPort().getNumber() != null && service.getPort().getNumber() > 0) {
+            if (Objects.nonNull(service.getPort().getNumber()) && service.getPort().getNumber() > 0) {
                 return String.valueOf(service.getPort().getNumber());
-            } else if (service.getPort().getName() != null && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
+            } else if (Objects.nonNull(service.getPort().getName()) && StringUtils.isNoneBlank(service.getPort().getName().trim())) {
                 return service.getPort().getName().trim();
             }
         }

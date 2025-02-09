@@ -64,7 +64,7 @@ public final class VerifyResult {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (java.util.Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         VerifyResult result = (VerifyResult) o;

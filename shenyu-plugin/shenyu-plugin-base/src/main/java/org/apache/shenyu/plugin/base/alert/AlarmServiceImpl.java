@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Alarm service implement.
@@ -54,7 +55,7 @@ public class AlarmServiceImpl implements AlarmService {
         adminReportUrls = new LinkedList<>();
         String scheme = System.getProperty("scheme", "http");
         String[] urls = StringUtils.split(admins, ",");
-        if (urls != null) {
+        if (Objects.nonNull(urls)) {
             for (int index = 0; index < urls.length; index++) {
                 urls[index] = UriUtils.appendScheme(urls[index], scheme);
                 urls[index] = urls[index] + PATH;

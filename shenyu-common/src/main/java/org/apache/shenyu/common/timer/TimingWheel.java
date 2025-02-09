@@ -63,7 +63,7 @@ class TimingWheel {
     }
 
     private synchronized void addOverflowWheel() {
-        if (overflowWheel == null) {
+        if (Objects.isNull(overflowWheel)) {
             overflowWheel = new TimingWheel(interval, wheelSize, currentTime, taskCounter, queue);
         }
     }

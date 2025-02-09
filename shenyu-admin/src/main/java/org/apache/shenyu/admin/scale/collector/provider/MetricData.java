@@ -34,7 +34,7 @@ public record MetricData(String metricName, double value) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         MetricData that = (MetricData) o;

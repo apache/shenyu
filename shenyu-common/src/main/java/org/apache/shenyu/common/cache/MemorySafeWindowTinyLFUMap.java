@@ -174,7 +174,7 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
         // try to clear weak reference
         for (WeakReference<MemorySafeWindowTinyLFUMap<?, ?>> weakReference : ALL) {
             MemorySafeWindowTinyLFUMap<?, ?> cacheMap = weakReference.get();
-            if (cacheMap == null) {
+            if (Objects.isNull(cacheMap)) {
                 ALL.remove(weakReference);
             }
         }

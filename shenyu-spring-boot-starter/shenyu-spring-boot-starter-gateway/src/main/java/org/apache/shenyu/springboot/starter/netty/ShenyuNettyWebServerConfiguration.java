@@ -95,11 +95,11 @@ public class ShenyuNettyWebServerConfiguration {
             NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
             if (sniProperties.getEnabled()) {
                 ShenyuSniAsyncMapping shenyuSniAsyncMapping = shenyuSniAsyncMappingProvider.getIfAvailable();
-                if (shenyuSniAsyncMapping == null) {
+                if (Objects.isNull(shenyuSniAsyncMapping)) {
                     throw new ShenyuException("Can not find shenyuSniAsyncMapping bean");
                 }
                 if ("manual".equals(sniProperties.getMod())) {
-                    if (sniProperties.getCertificates() == null || sniProperties.getCertificates().isEmpty()) {
+                    if (Objects.isNull(sniProperties.getCertificates()) || sniProperties.getCertificates().isEmpty()) {
                         throw new ShenyuException("At least one certificate is required");
                     }
 
