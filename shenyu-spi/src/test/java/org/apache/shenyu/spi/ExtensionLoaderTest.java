@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -120,7 +121,7 @@ public final class ExtensionLoaderTest {
     @Test
     public void testSPIGetDefaultJoin() {
         HasDefaultSPI spi = ExtensionLoader.getExtensionLoader(HasDefaultSPI.class).getDefaultJoin();
-        assert spi != null;
+        assert Objects.nonNull(spi);
         assertThat(spi.getClass().getName(), is(SubHasDefaultSPI.class.getName()));
     }
     

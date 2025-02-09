@@ -268,5 +268,29 @@
         <!-- Filters -->
         <module name="SuppressionCommentFilter"/>
         <module name="SuppressWithNearbyCommentFilter"/>
+
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="==\s*null"/>
+            <property name="message" value="Use Objects.isNull() instead of == null"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="null\s*=="/>
+            <property name="message" value="Use Objects.isNull() instead of null =="/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="!=\s*null"/>
+            <property name="message" value="Use Objects.nonNull() instead of != null"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="null\s*!="/>
+            <property name="message" value="Use Objects.nonNull() instead of null !="/>
+            <property name="ignoreComments" value="true"/>
+        </module>
     </module>
 </module>

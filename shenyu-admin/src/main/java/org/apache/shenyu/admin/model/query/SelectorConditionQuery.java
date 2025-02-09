@@ -85,7 +85,7 @@ public class SelectorConditionQuery implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         SelectorConditionQuery that = (SelectorConditionQuery) o;

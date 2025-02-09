@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.mock.generator;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,7 +39,7 @@ public final class ZhStringGeneratorTest {
         int maxLength = 20;
         String generate = generator.generate(String.format("zh|%d-%d", minLength, maxLength), null);
         assertTrue(
-                generate != null && generate.length() >= minLength && generate.length() <= maxLength);
+                Objects.nonNull(generate) && generate.length() >= minLength && generate.length() <= maxLength);
     }
 
     @Test

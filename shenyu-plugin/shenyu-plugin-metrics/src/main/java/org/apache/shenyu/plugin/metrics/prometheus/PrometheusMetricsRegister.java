@@ -43,7 +43,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     public void registerCounter(final String name, final String[] labelNames, final String document) {
         if (!COUNTER_MAP.containsKey(name)) {
             Counter.Builder builder = Counter.build().name(name).help(document);
-            if (null != labelNames) {
+            if (Objects.nonNull(labelNames)) {
                 builder.labelNames(labelNames);
             }
             COUNTER_MAP.putIfAbsent(name, builder.register());
@@ -54,7 +54,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     public void registerGauge(final String name, final String[] labelNames, final String document) {
         if (!GAUGE_MAP.containsKey(name)) {
             Gauge.Builder builder = Gauge.build().name(name).help(document);
-            if (null != labelNames) {
+            if (Objects.nonNull(labelNames)) {
                 builder.labelNames(labelNames);
             }
             GAUGE_MAP.putIfAbsent(name, builder.register());
@@ -65,7 +65,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     public void registerHistogram(final String name, final String[] labelNames, final String document) {
         if (!HISTOGRAM_MAP.containsKey(name)) {
             Histogram.Builder builder = Histogram.build().name(name).help(document);
-            if (null != labelNames) {
+            if (Objects.nonNull(labelNames)) {
                 builder.labelNames(labelNames);
             }
             HISTOGRAM_MAP.putIfAbsent(name, builder.register());
@@ -78,7 +78,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
         if (Objects.isNull(counter)) {
             return;
         }
-        if (null != labelValues) {
+        if (Objects.nonNull(labelValues)) {
             counter.labels(labelValues).inc(count);
         } else {
             counter.inc(count);
@@ -91,7 +91,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
         if (Objects.isNull(gauge)) {
             return;
         }
-        if (null != labelValues) {
+        if (Objects.nonNull(labelValues)) {
             gauge.labels(labelValues).inc();
         } else {
             gauge.inc();
@@ -104,7 +104,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
         if (Objects.isNull(gauge)) {
             return;
         }
-        if (null != labelValues) {
+        if (Objects.nonNull(labelValues)) {
             gauge.labels(labelValues).dec();
         } else {
             gauge.dec();
@@ -117,7 +117,7 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
         if (Objects.isNull(histogram)) {
             return;
         }
-        if (null != labelValues) {
+        if (Objects.nonNull(labelValues)) {
             histogram.labels(labelValues).observe(duration);
         } else {
             histogram.observe(duration);
