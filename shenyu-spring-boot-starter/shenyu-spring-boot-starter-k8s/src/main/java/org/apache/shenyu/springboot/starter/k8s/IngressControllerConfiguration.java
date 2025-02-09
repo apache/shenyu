@@ -55,6 +55,7 @@ import reactor.netty.tcp.TcpSslContextSpec;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 
@@ -254,12 +255,12 @@ public class IngressControllerConfiguration {
     public TcpSslContextSpec tcpSslContextSpec(final ObjectProvider<NettyHttpProperties> properties, final ApiClient apiClient) throws ApiException {
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
         NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
-        if (sniProperties != null && sniProperties.getEnabled() && "k8s".equals(sniProperties.getMod())) {
+        if (Objects.nonNull(sniProperties) && sniProperties.getEnabled() && "k8s".equals(sniProperties.getMod())) {
             String defaultName = Optional.ofNullable(sniProperties.getDefaultK8sSecretName()).orElse("default-ingress-crt");
             String defaultNamespace = Optional.ofNullable(sniProperties.getDefaultK8sSecretNamespace()).orElse("default");
             CoreV1Api coreV1Api = new CoreV1Api(apiClient);
             V1Secret secret = coreV1Api.readNamespacedSecret(defaultName, defaultNamespace, "true");
-            if (secret.getData() != null) {
+            if (Objects.nonNull(secret.getData())) {
                 InputStream crtStream = new ByteArrayInputStream(secret.getData().get("tls.crt"));
                 InputStream keyStream = new ByteArrayInputStream(secret.getData().get("tls.key"));
                 return TcpSslContextSpec.forServer(crtStream, keyStream);

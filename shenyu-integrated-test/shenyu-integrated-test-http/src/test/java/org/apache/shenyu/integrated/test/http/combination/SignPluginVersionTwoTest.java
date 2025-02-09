@@ -230,10 +230,10 @@ public final class SignPluginVersionTwoTest extends AbstractPluginDataInit {
 
     private String buildParameters(final String timestamp, final String appKey) {
         Map<String, String> map = new HashMap<>();
-        if (timestamp != null) {
+        if (Objects.nonNull(timestamp)) {
             map.put(Constants.TIMESTAMP, timestamp);
         }
-        if (appKey != null) {
+        if (Objects.nonNull(appKey)) {
             map.put(Constants.APP_KEY, appKey);
         }
         map.put("alg", "MD5");

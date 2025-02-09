@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -132,7 +133,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
         int correctCount = 0;
         for (Future<AdminResponse<Object>> future : futures) {
             AdminResponse<Object> adminResponse = future.get();
-            if (adminResponse.getCode() != null && adminResponse.getCode() == 429) {
+            if (Objects.nonNull(adminResponse.getCode()) && adminResponse.getCode() == 429) {
                 errorCount++;
             } else {
                 correctCount++;

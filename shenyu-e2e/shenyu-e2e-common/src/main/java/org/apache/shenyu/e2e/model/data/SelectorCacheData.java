@@ -418,7 +418,7 @@ public final class SelectorCacheData {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         SelectorCacheData that = (SelectorCacheData) o;

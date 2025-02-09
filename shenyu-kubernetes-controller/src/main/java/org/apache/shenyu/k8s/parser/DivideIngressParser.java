@@ -127,7 +127,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             if (Objects.nonNull(tlsList) && CollectionUtils.isNotEmpty(tlsList)) {
                 List<SslCrtAndKeyStream> sslList = new ArrayList<>();
                 for (V1IngressTLS tls : tlsList) {
-                    if (tls.getSecretName() != null && tls.getHosts() != null && CollectionUtils.isNotEmpty(tls.getHosts())) {
+                    if (Objects.nonNull(tls.getSecretName()) && Objects.nonNull(tls.getHosts()) && CollectionUtils.isNotEmpty(tls.getHosts())) {
                         try {
                             V1Secret secret = coreV1Api.readNamespacedSecret(tls.getSecretName(), namespace, "ture");
                             if (Objects.nonNull(secret.getData())) {

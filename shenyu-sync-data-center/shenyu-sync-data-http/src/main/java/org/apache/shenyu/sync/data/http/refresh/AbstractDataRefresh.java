@@ -104,7 +104,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      */
     protected boolean updateCacheIfNeed(final ConfigData<T> newVal, final ConfigGroupEnum groupEnum) {
         // first init cache
-        if (GROUP_CACHE.putIfAbsent(groupEnum, newVal) == null) {
+        if (Objects.isNull(GROUP_CACHE.putIfAbsent(groupEnum, newVal))) {
             return true;
         }
         ResultHolder holder = new ResultHolder(false);

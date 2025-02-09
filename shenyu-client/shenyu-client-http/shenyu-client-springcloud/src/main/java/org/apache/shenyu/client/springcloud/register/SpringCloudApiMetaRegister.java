@@ -66,7 +66,7 @@ public class SpringCloudApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringCloudClient annotation = apiBean.getAnnotation(ShenyuSpringCloudClient.class);
 
-        return annotation != null && annotation.path()[0].endsWith("/**");
+        return Objects.nonNull(annotation) && annotation.path()[0].endsWith("/**");
     }
 
     @Override

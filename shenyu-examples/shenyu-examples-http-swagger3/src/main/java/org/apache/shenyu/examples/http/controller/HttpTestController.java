@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * TestController.
@@ -362,7 +363,7 @@ public class HttpTestController {
         filePart.transferTo(tempFile.toFile());
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
             String line = bufferedReader.readLine();
-            while (line != null) {
+            while (Objects.nonNull(line)) {
                 LOGGER.info(line);
                 line = bufferedReader.readLine();
             }

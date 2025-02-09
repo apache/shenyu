@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 public class PrometheusMetricsProvider implements MetricsProvider {
@@ -57,7 +58,7 @@ public class PrometheusMetricsProvider implements MetricsProvider {
     public MetricData getMetricData(final String metricName) {
 
         String queryTemplate = prometheusProperties.getQueries().get(metricName);
-        if (queryTemplate == null) {
+        if (Objects.isNull(queryTemplate)) {
             LOG.error("No query template found for metric: {}", metricName);
             return null;
         }
@@ -77,7 +78,7 @@ public class PrometheusMetricsProvider implements MetricsProvider {
                 return null;
             }
 
-            if (response.body() == null) {
+            if (Objects.isNull(response.body())) {
                 LOG.error("Response body is null for metric: {}", metricName);
                 return null;
             }
@@ -100,7 +101,7 @@ public class PrometheusMetricsProvider implements MetricsProvider {
      */
     private MetricData parseMetricData(final String metricName, final JsonNode jsonNode) {
         JsonNode statusNode = jsonNode.get("status");
-        if (statusNode == null || !"success".equals(statusNode.asText())) {
+        if (Objects.isNull(statusNode) || !"success".equals(statusNode.asText())) {
             LOG.error("Failed to fetch metric: {} ", metricName);
             return null;
         }
@@ -112,7 +113,7 @@ public class PrometheusMetricsProvider implements MetricsProvider {
         }
 
         JsonNode valueNode = dataNode.get(0).get("value");
-        if (valueNode == null || valueNode.size() < 2) {
+        if (Objects.isNull(valueNode) || valueNode.size() < 2) {
             LOG.error("Invalid metric data format for: {} ", metricName);
             return null;
         }
