@@ -34,7 +34,7 @@ import java.lang.reflect.Field;
 import static org.mockito.Mockito.mockConstruction;
 
 /**
- * The Test Case For RocketMQLogCollectClient.
+ * The Test Case For KafkaLogCollectClient.
  */
 public class KafkaLogCollectClientTest {
 
@@ -50,7 +50,7 @@ public class KafkaLogCollectClientTest {
     public void setUp() {
         this.kafkaLogCollectClient = new KafkaLogCollectClient();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\":\"localhost:8082\"}");
+        pluginData.setConfig("{\"topic\":\"shenyu-access-logging\", \"bootstrapServer\":\"localhost:8082\"}");
         globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), KafkaLogCollectConfig.KafkaLogConfig.class);
         globalLogConfig.setCompressAlg("LZ4");
         shenyuRequestLog.setClientIp("0.0.0.0");

@@ -28,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public final class JsonUtil {
                 }
             }
         } else {
-            return map.get(fieldName) == null ? null : map.get(fieldName).toString();
+            return Objects.isNull(map.get(fieldName)) ? null : map.get(fieldName).toString();
         }
         return str;
     }

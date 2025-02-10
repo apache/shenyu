@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +76,7 @@ public final class RuntimeUtils {
 
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
-            while ((line = bufferedReader.readLine()) != null) {
+            while (Objects.nonNull(line = bufferedReader.readLine())) {
                 if (!line.contains("LISTEN") || !line.contains(":" + port + " ")) {
                     continue;
                 }
@@ -88,7 +89,7 @@ public final class RuntimeUtils {
         } catch (Exception e) {
             LOGGER.warn("get netstat input stream fail. {}", e.getMessage());
         } finally {
-            if (process != null) {
+            if (Objects.nonNull(process)) {
                 process.destroy();
             }
         }

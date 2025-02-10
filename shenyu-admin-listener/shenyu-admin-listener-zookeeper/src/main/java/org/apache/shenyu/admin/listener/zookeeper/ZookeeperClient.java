@@ -109,7 +109,7 @@ public class ZookeeperClient {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             return false;
         }
@@ -181,7 +181,7 @@ public class ZookeeperClient {
      * @param mode  creation mode.
      */
     public void createOrUpdate(final String key, final Object value, final CreateMode mode) {
-        if (value != null) {
+        if (Objects.nonNull(value)) {
             String val = GsonUtils.getInstance().toJson(value);
             createOrUpdate(key, val, mode);
         } else {

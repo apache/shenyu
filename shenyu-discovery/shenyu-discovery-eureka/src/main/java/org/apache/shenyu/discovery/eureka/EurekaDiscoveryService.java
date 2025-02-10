@@ -76,7 +76,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        if (this.eurekaClient != null) {
+        if (Objects.nonNull(this.eurekaClient)) {
             LOGGER.info("Eureka naming service already registered");
         }
         discoveryConfig = config;
@@ -283,7 +283,7 @@ public class EurekaDiscoveryService implements ShenyuDiscoveryService {
         try {
             DiscoveryUpstreamData upstreamData = GsonUtils.getInstance().fromJson(value, DiscoveryUpstreamData.class);
             Map<String, String> metadata = GsonUtils.getInstance().toObjectMap(upstreamData.getProps(), String.class);
-            metadata = metadata != null ? metadata : new HashMap<>();
+            metadata = Objects.nonNull(metadata) ? metadata : new HashMap<>();
             metadata.put("weight", String.valueOf(upstreamData.getWeight()));
             metadata.put("protocol", String.valueOf(upstreamData.getProtocol()));
             metadata.put("props", Optional.ofNullable(upstreamData.getProps()).orElse("{}"));

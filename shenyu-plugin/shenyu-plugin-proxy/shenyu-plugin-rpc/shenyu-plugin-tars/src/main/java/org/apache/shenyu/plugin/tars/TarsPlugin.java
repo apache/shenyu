@@ -64,10 +64,10 @@ public class TarsPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String body = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        assert Objects.nonNull(shenyuContext);
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
-            assert metaData != null;
+            assert Objects.nonNull(metaData);
             LOG.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR);

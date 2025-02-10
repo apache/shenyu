@@ -357,13 +357,13 @@ public final class SignServiceVersionOneTest {
 
     private ServerWebExchange buildServerWebExchange(final String url, final String timestamp, final String appKey, final String sign) {
         Map<String, String> map = new HashMap<>();
-        if (timestamp != null) {
+        if (Objects.nonNull(timestamp)) {
             map.put(Constants.TIMESTAMP, timestamp);
         }
-        if (appKey != null) {
+        if (Objects.nonNull(appKey)) {
             map.put(Constants.APP_KEY, appKey);
         }
-        if (sign != null) {
+        if (Objects.nonNull(sign)) {
             map.put(Constants.SIGN, sign);
         }
         map.put(Constants.VERSION, VERSION_1);
