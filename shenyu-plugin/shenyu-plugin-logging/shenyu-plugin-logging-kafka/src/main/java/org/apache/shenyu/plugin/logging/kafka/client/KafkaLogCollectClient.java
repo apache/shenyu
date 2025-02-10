@@ -66,13 +66,13 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
     @Override
     public void initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
         if (Objects.isNull(config)
-                || StringUtils.isBlank(config.getNamesrvAddr())
+                || StringUtils.isBlank(config.getBootstrapServer())
                 || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
         String topic = config.getTopic();
-        String nameserverAddress = config.getNamesrvAddr();
+        String nameserverAddress = config.getBootstrapServer();
 
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
@@ -83,7 +83,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
         Properties props = new Properties();
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getNamesrvAddr());
+        props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getBootstrapServer());
         if (!StringUtils.isBlank(config.getSecurityProtocol())
                 && !StringUtils.isBlank(config.getSaslMechanism())) {
             props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, config.getSecurityProtocol());
