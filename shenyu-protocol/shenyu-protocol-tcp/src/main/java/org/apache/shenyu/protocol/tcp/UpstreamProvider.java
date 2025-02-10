@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,7 +80,7 @@ public final class UpstreamProvider {
      */
     public List<DiscoveryUpstreamData> refreshCache(final String pluginSelectorName, final List<DiscoveryUpstreamData> upstreams) {
         List<DiscoveryUpstreamData> remove = cache.remove(pluginSelectorName);
-        if (remove == null) {
+        if (Objects.isNull(remove)) {
             return Collections.emptyList();
         }
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = Optional.ofNullable(upstreams).orElse(new ArrayList<>());

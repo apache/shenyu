@@ -99,7 +99,7 @@ public interface Contract extends ResourceLoaderAware {
          */
         private List<RequestTemplate.ParamMetadata> analysisParamMetadata(final Method method) {
             Parameter[] parameters = method.getParameters();
-            if (parameters == null || parameters.length == 0) {
+            if (Objects.isNull(parameters) || parameters.length == 0) {
                 return Collections.emptyList();
             }
             List<RequestTemplate.ParamMetadata> params = new ArrayList<>(parameters.length);
