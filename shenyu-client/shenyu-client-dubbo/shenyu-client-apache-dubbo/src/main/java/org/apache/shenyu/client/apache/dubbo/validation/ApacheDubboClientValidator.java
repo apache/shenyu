@@ -273,7 +273,7 @@ public class ApacheDubboClientValidator implements Validator {
         classGroups = groups.toArray(classGroups);
 
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
-        if (parameterBean != null) {
+        if (Objects.nonNull(parameterBean)) {
             violations.addAll(validator.validate(parameterBean, classGroups));
         }
 

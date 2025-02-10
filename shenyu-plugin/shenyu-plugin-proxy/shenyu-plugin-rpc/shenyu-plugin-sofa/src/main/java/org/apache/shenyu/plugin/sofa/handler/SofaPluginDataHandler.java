@@ -34,7 +34,7 @@ public class SofaPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        if (null != pluginData && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             SofaRegisterConfig sofaRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), SofaRegisterConfig.class);
             if (Objects.isNull(sofaRegisterConfig)) {
                 return;

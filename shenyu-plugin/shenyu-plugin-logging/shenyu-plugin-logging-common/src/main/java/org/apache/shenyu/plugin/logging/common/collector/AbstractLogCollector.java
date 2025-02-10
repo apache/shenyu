@@ -178,7 +178,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     public void close() throws Exception {
         started.set(false);
         AbstractLogConsumeClient<?, ?> logCollectClient = getLogConsumeClient();
-        if (logCollectClient != null) {
+        if (Objects.nonNull(logCollectClient)) {
             logCollectClient.close();
         }
     }

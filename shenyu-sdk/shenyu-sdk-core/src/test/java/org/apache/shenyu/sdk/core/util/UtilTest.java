@@ -18,6 +18,7 @@
 package org.apache.shenyu.sdk.core.util;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +35,7 @@ class UtilTest {
     @MethodSource("argumentProvider")
     void testCheckArgument(
         final boolean expression, final String errorMessageTemplate, final Object[] errorMessageArgs, final Class<? extends Exception> expectedException) {
-        if (expectedException == null) {
+        if (Objects.isNull(expectedException)) {
             Util.checkArgument(expression, errorMessageTemplate, errorMessageArgs);
         } else {
             Exception exception = assertThrows(expectedException, () ->
@@ -78,7 +79,7 @@ class UtilTest {
         final boolean expression, final String errorMessageTemplate, final Object[] errorMessageArgs, final String expectedExceptionName) {
         Class<? extends Exception> expectedException = null;
 
-        if (expectedExceptionName != null) {
+        if (Objects.nonNull(expectedExceptionName)) {
             try {
                 expectedException = (Class<? extends Exception>) Class.forName(expectedExceptionName);
             } catch (ClassNotFoundException e) {
@@ -86,7 +87,7 @@ class UtilTest {
             }
         }
 
-        if (expectedException == null) {
+        if (Objects.isNull(expectedException)) {
             Util.checkState(expression, errorMessageTemplate, errorMessageArgs);
         } else {
             Exception exception = assertThrows(expectedException, () ->

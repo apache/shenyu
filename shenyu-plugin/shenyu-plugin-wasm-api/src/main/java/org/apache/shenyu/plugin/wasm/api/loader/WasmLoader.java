@@ -85,7 +85,7 @@ public class WasmLoader implements AutoCloseable {
      * @see io.github.kawamuray.wasmtime.WasmFunctions#wrap
      */
     public WasmLoader(final Class<?> wasmClass, final Function<Store<Void>, Map<String, Func>> initializer) {
-        final Class<?> clazz = wasmClass != null ? wasmClass : this.getClass();
+        final Class<?> clazz = Objects.nonNull(wasmClass) ? wasmClass : this.getClass();
         this.wasmName = clazz.getName() + ".wasm";
         try {
             // locate `.wasm` lib.
