@@ -106,7 +106,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try {
                                         Thread.sleep(1000 * 30);
                                         kafkaBroker = kafkaBroker + ":9092";
-                                        LOG.info("kafkaBroker = "+kafkaBroker);
+                                        LOG.info("kafkaBroker = " + kafkaBroker);
                                         request.request(Method.GET, "/http/order/findById?id=23");
                                         Properties properties = new Properties();
                                         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker);
