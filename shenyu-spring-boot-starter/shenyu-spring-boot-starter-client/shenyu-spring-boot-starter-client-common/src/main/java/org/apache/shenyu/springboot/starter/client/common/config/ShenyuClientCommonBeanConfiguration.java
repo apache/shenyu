@@ -73,7 +73,7 @@ public class ShenyuClientCommonBeanConfiguration {
      * @return the shenyu discovery config
      */
     @Bean
-    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "enable", matchIfMissing = false, havingValue = "true")
+    @ConditionalOnProperty(prefix = "shenyu.discovery", name = "enable", havingValue = "true")
     @ConfigurationProperties(prefix = "shenyu.discovery")
     public ShenyuDiscoveryConfig shenyuDiscoveryConfig() {
         return new ShenyuDiscoveryConfig();
