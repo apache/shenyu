@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.netty;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.WriteBufferWaterMark;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.config.NettyHttpProperties;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
@@ -99,12 +100,13 @@ public class ShenyuNettyWebServerConfiguration {
                     throw new ShenyuException("Can not find shenyuSniAsyncMapping bean");
                 }
                 if ("manual".equals(sniProperties.getMod())) {
-                    if (Objects.isNull(sniProperties.getCertificates()) || sniProperties.getCertificates().isEmpty()) {
+                    List<SslCrtAndKeyFile> sslCrtAndKeyFiles = sniProperties.getCertificates();
+                    if (CollectionUtils.isEmpty(sslCrtAndKeyFiles)) {
                         throw new ShenyuException("At least one certificate is required");
                     }
 
                     // Use the first certificate as the default certificate (this default certificate will not actually be used)
-                    List<SslCrtAndKeyFile> certificates = sniProperties.getCertificates();
+                    List<SslCrtAndKeyFile> certificates = sslCrtAndKeyFiles;
                     for (SslCrtAndKeyFile certificate : certificates) {
                         try {
                             shenyuSniAsyncMapping.addSslCertificate(certificate);
