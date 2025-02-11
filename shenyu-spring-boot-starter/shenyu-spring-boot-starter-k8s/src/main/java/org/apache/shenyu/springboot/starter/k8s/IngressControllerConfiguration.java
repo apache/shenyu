@@ -56,6 +56,7 @@ import reactor.netty.tcp.TcpSslContextSpec;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Duration;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -261,6 +262,7 @@ public class IngressControllerConfiguration {
             String defaultNamespace = Optional.ofNullable(sniProperties.getDefaultK8sSecretNamespace()).orElse("default");
             CoreV1Api coreV1Api = new CoreV1Api(apiClient);
             V1Secret secret = coreV1Api.readNamespacedSecret(defaultName, defaultNamespace, "true");
+
             Map<String, byte[]> secretData = secret.getData();
             if (MapUtils.isEmpty(secretData)) {
                 InputStream crtStream = new ByteArrayInputStream(secretData.get("tls.crt"));

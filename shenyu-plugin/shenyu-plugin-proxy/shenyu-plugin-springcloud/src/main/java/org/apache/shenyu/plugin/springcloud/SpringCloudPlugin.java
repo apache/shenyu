@@ -70,7 +70,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             return Mono.empty();
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        assert Objects.nonNull(shenyuContext);
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selector.getId());
         final SpringCloudRuleHandle ruleHandle = buildRuleHandle(rule);
         String serviceId = springCloudSelectorHandle.getServiceId();

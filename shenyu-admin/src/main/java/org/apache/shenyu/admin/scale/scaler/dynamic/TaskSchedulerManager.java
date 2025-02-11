@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
@@ -67,7 +68,7 @@ public class TaskSchedulerManager {
      */
     public void cancelMonitorTask(final String taskName) {
         ScheduledFuture<?> future = taskMap.remove(taskName);
-        if (future != null && !future.isCancelled()) {
+        if (Objects.nonNull(future) && !future.isCancelled()) {
             future.cancel(true);
         }
     }

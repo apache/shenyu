@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -100,7 +101,7 @@ public class NacosSyncDataService extends AbstractNodeDataSyncService implements
                 @Override
                 public void receiveConfigInfo(final String configInfo) {
                     try {
-                        if (StringUtils.isBlank(configInfo) && deleteHandler != null) {
+                        if (StringUtils.isBlank(configInfo) && Objects.nonNull(deleteHandler)) {
                             deleteHandler.accept(key);
                         } else {
                             updateHandler.accept(configInfo);

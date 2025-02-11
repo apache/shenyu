@@ -73,7 +73,7 @@ public final class GeneratorFactory {
         String ruleContent = matcher.group(1);
         String ruleName = ruleContent.split("\\|")[0];
         Generator<?> generator = newInstance(ruleName, rule);
-        if (generator == null || !generator.match(ruleContent)) {
+        if (Objects.isNull(generator) || !generator.match(ruleContent)) {
             return rule;
         }
 
@@ -97,7 +97,7 @@ public final class GeneratorFactory {
     public static String dealRule(final String content, final MockRequest mockRequest) {
         String afterDeal = content;
         String placeHolder = getPlaceholder(content);
-        while (placeHolder != null) {
+        while (Objects.nonNull(placeHolder)) {
             Object generateData = generate(placeHolder, mockRequest);
             if (Objects.equals(generateData, placeHolder)) {
                 generateData = ERROR_PARSE;

@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -87,7 +88,7 @@ public class NacosSyncDataConfiguration {
     @Bean
     public ConfigService nacosConfigService(final NacosConfig nacosConfig) throws Exception {
         Properties properties = new Properties();
-        if (nacosConfig.getAcm() != null && nacosConfig.getAcm().isEnabled()) {
+        if (Objects.nonNull(nacosConfig.getAcm()) && nacosConfig.getAcm().isEnabled()) {
             properties.put(PropertyKeyConst.ENDPOINT, nacosConfig.getAcm().getEndpoint());
             properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getAcm().getNamespace());
             properties.put(PropertyKeyConst.ACCESS_KEY, nacosConfig.getAcm().getAccessKey());
@@ -97,10 +98,10 @@ public class NacosSyncDataConfiguration {
             if (StringUtils.isNotBlank(nacosConfig.getNamespace())) {
                 properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
             }
-            if (nacosConfig.getUsername() != null) {
+            if (Objects.nonNull(nacosConfig.getUsername())) {
                 properties.put(PropertyKeyConst.USERNAME, nacosConfig.getUsername());
             }
-            if (nacosConfig.getPassword() != null) {
+            if (Objects.nonNull(nacosConfig.getPassword())) {
                 properties.put(PropertyKeyConst.PASSWORD, nacosConfig.getPassword());
             }
             if (StringUtils.isNotBlank(nacosConfig.getContextPath())) {

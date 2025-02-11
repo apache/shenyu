@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -139,7 +140,7 @@ public class TagServiceImpl implements TagService {
                 Collectors.toMap(TagDO::getParentTagId, tagDO -> true, (a, b) -> b, ConcurrentHashMap::new));
         return tagDOS.stream().map(tag -> {
             TagVO tagVO = TagVO.buildTagVO(tag);
-            if (map.get(tag.getId()) != null) {
+            if (Objects.nonNull(map.get(tag.getId()))) {
                 tagVO.setHasChildren(map.get(tag.getId()));
             }
             return tagVO;

@@ -190,7 +190,7 @@ public class HttpSyncDataService implements SyncDataService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);
-            if (cacheConfig != null) {
+            if (Objects.nonNull(cacheConfig)) {
                 String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
                 params.put(group.name(), Lists.newArrayList(value));
             }
