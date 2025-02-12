@@ -245,9 +245,9 @@ public abstract class AbstractNodeDataSyncService {
     protected void unCacheRuleData(final String removeKey) {
         final RuleData ruleData = new RuleData();
         final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        ruleData.setPluginName(ruleKeys[1]);
-        ruleData.setSelectorId(ruleKeys[2]);
-        ruleData.setId(ruleKeys[3]);
+        ruleData.setPluginName(ruleKeys[2]);
+        ruleData.setSelectorId(ruleKeys[3]);
+        ruleData.setId(ruleKeys[4]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
         removeListener(removeKey);
     }
