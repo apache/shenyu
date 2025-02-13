@@ -71,6 +71,8 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
+
+        LOG.info("isLog.get():{}", config);
         String topic = config.getTopic();
         String nameserverAddress = config.getBootstrapServer();
 
