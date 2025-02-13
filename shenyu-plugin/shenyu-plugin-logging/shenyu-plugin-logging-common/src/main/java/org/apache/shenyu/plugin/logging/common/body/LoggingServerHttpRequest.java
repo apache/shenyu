@@ -56,11 +56,11 @@ public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends Server
             }
         }).doFinally(signal -> {
             int size = writer.size();
-            String body = writer.output();
             boolean requestBodyTooLarge = LogCollectConfigUtils.isRequestBodyTooLarge(size);
             if (size == 0 || requestBodyTooLarge) {
                 return;
             }
+            String body = writer.output();
             logInfo.setRequestBody(body);
         });
     }
