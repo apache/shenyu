@@ -171,8 +171,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
         if (Objects.nonNull(writer)) {
             int size = writer.size();
-            String body = writer.output();
             if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+                String body = writer.output();
                 logInfo.setResponseBody(body);
             }
         } else {
@@ -261,8 +261,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
 
         int size = bytes.length;
-        String body = new String(bytes, StandardCharsets.UTF_8);
         if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+            String body = new String(bytes, StandardCharsets.UTF_8);
             logInfo.setResponseBody(body);
         }
         // collect log
