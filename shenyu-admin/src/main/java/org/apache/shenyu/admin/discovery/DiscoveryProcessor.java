@@ -76,4 +76,11 @@ public interface DiscoveryProcessor {
      */
     void fetchAll(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO);
 
+    /**
+     * remove selector upstream.
+     *
+     * @param proxySelectorDTO    proxySelectorDTO
+     */
+    void removeSelectorUpstream(ProxySelectorDTO proxySelectorDTO);
+
 }

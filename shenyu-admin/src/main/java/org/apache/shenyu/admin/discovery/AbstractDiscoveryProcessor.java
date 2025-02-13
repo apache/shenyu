@@ -139,6 +139,17 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
     }
 
     @Override
+    public void removeSelectorUpstream(final ProxySelectorDTO proxySelectorDTO) {
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
+        discoverySyncData.setSelectorId(proxySelectorDTO.getId());
+        discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+        discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.DELETE, Collections.singletonList(discoverySyncData));
+        eventPublisher.publishEvent(dataChangedEvent);
+    }
+
+    @Override
     public void changeUpstream(final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
