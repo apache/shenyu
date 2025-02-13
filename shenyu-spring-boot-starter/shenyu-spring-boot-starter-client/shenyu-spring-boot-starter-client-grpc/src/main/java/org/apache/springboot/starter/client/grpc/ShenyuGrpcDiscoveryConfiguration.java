@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Configuration
@@ -66,7 +67,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
         discoveryUpstreamData.setProtocol(Optional.ofNullable(shenyuDiscoveryConfig.getProtocol()).orElse(ShenyuClientConstants.HTTP));
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
         final String appName = environment.getProperty("spring.application.name");
-        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && appName != null) {
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && Objects.nonNull(appName)) {
             shenyuDiscoveryConfig.getProps().put("name", appName);
         }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);

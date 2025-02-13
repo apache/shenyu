@@ -37,6 +37,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Objects;
+
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSpringWebSocketDiscoveryConfiguration {
@@ -84,7 +86,7 @@ public class ShenyuSpringWebSocketDiscoveryConfiguration {
         discoveryUpstreamData.setUrl(eventListener.getHost() + ":" + eventListener.getPort());
         discoveryUpstreamData.setNamespaceId(shenyuClientConfig.getNamespace());
         final String appName = environment.getProperty("spring.application.name");
-        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && appName != null) {
+        if (StringUtils.isEmpty(shenyuDiscoveryConfig.getProps().getProperty("name")) && Objects.nonNull(appName)) {
             shenyuDiscoveryConfig.getProps().put("name", appName);
         }
         return new InstanceRegisterListener(discoveryUpstreamData, shenyuDiscoveryConfig);

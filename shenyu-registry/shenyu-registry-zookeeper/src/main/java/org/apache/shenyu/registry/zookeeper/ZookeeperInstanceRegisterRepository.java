@@ -171,7 +171,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public boolean serviceExists(final String key) {
         try {
-            return null != client.get(key);
+            return Objects.nonNull(client.get(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

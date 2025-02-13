@@ -111,7 +111,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     @Override
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
-        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
+        ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
         if (Objects.isNull(shenyuDiscoveryService)) {
             return;
         }
@@ -253,7 +253,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
-        if (changedEventListener != null) {
+        if (Objects.nonNull(changedEventListener)) {
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
             discoverySyncData.setSelectorName(proxySelectorDTO.getName());
