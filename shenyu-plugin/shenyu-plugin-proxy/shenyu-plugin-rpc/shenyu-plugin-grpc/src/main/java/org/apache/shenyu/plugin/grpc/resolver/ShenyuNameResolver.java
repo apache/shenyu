@@ -76,7 +76,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
     @Override
     public void start(final Listener2 listener) {
-        Preconditions.checkState(this.listener == null, "already started");
+        Preconditions.checkState(Objects.isNull(this.listener), "already started");
         this.executor = SharedResourceHolder.get(this.executorResource);
         this.listener = Preconditions.checkNotNull(listener, "listener");
         ApplicationConfigCache.getInstance().watch(appName, this);
@@ -94,7 +94,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
     @Override
     public void refresh() {
-        Preconditions.checkState(this.listener != null, "not started");
+        Preconditions.checkState(Objects.nonNull(this.listener), "not started");
         resolve();
     }
 
@@ -145,7 +145,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
                 ShenyuNameResolver.this.syncContext.execute(() -> {
                     ShenyuNameResolver.this.resolving = false;
                     final List<GrpcUpstream> newInstanceList = resultContainer.get();
-                    if (Objects.nonNull(newInstanceList) && ShenyuNameResolver.this.listener != null) {
+                    if (Objects.nonNull(newInstanceList) && Objects.nonNull(ShenyuNameResolver.this.listener)) {
                         ShenyuNameResolver.this.instanceList = newInstanceList;
                     }
                 });

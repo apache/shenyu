@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -110,8 +111,8 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      */
     @Override
     public void removeDiscovery(final DiscoveryDO discoveryDO) {
-        ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
-        if (shenyuDiscoveryService == null) {
+        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.remove(discoveryDO.getId());
+        if (Objects.isNull(shenyuDiscoveryService)) {
             return;
         }
         if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {

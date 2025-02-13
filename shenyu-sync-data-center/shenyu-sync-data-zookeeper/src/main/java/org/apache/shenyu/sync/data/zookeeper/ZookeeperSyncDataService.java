@@ -85,7 +85,7 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
         String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
         zkClient.addCache(registerPath, (curatorFramework, treeCacheEvent) -> {
             ChildData childData = treeCacheEvent.getData();
-            if (null == childData) {
+            if (Objects.isNull(childData)) {
                 return;
             }
             String path = childData.getPath();
@@ -101,7 +101,7 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
             }
 
             EventType eventType = treeCacheEvent.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
-            final String updateData = childData.getData() != null ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
+            final String updateData = Objects.nonNull(childData.getData()) ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
             this.event(configNamespace, path, updateData, registerPath, eventType);
         });
     }

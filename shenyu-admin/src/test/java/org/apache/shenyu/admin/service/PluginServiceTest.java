@@ -200,7 +200,7 @@ public final class PluginServiceTest {
         when(pluginMapper.nameExisted(pluginDTO.getName())).thenReturn(null);
         when(pluginMapper.insert(any())).thenReturn(1);
 
-        ConfigImportResult configImportResult = this.pluginService.importData(pluginDTOList);
+        ConfigImportResult configImportResult = this.pluginService.importData(pluginDTOList, null);
 
         assertNotNull(configImportResult);
         Assertions.assertEquals(configImportResult.getSuccessCount(), pluginDTOList.size());

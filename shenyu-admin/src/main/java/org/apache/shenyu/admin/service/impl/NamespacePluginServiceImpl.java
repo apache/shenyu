@@ -26,7 +26,6 @@ import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
@@ -36,23 +35,23 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
-import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.NamespacePluginService;
-import org.apache.shenyu.admin.service.PluginHandleService;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,8 +59,6 @@ import java.util.stream.Collectors;
 public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     private final NamespacePluginRelMapper namespacePluginRelMapper;
-    
-    private final PluginHandleService pluginHandleService;
     
     private final NamespacePluginEventPublisher namespacePluginEventPublisher;
     
@@ -72,13 +69,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     private final PluginHandleMapper pluginHandleMapper;
     
     public NamespacePluginServiceImpl(final NamespacePluginRelMapper namespacePluginRelMapper,
-                                      final PluginHandleService pluginHandleService,
                                       final NamespacePluginEventPublisher namespacePluginEventPublisher,
                                       final PluginMapper pluginMapper,
                                       final SelectorMapper selectorMapper,
                                       final PluginHandleMapper pluginHandleMapper) {
         this.namespacePluginRelMapper = namespacePluginRelMapper;
-        this.pluginHandleService = pluginHandleService;
         this.namespacePluginEventPublisher = namespacePluginEventPublisher;
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
@@ -158,14 +153,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     public List<NamespacePluginVO> listAllData(final String namespaceId) {
-        Map<String, List<PluginHandleVO>> pluginHandleMap = pluginHandleService.listAllData().stream().collect(Collectors.groupingBy(PluginHandleVO::getPluginId));
-        
-        return namespacePluginRelMapper.selectAllByNamespaceId(namespaceId).stream().filter(Objects::nonNull).peek(namespacePluginVO -> {
-            List<PluginHandleVO> pluginHandleList = Optional.ofNullable(pluginHandleMap.get(namespacePluginVO.getPluginId())).orElse(Lists.newArrayList()).stream()
-                    // to make less volume of export data
-                    .peek(x -> x.setDictOptions(null)).collect(Collectors.toList());
-            namespacePluginVO.setPluginHandleList(pluginHandleList);
-        }).collect(Collectors.toList());
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(namespacePluginVOList)) {
+            return Lists.newArrayList();
+        }
+        return namespacePluginVOList;
     }
     
     @Override
@@ -219,6 +211,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         if (CollectionUtils.isEmpty(namespacePluginVOList)) {
             return Lists.newArrayList();
         }
+        namespacePluginVOList = namespacePluginVOList.stream().filter(PluginVO::getEnabled).toList();
+        if (CollectionUtils.isEmpty(namespacePluginVOList)) {
+            return Lists.newArrayList();
+        }
+
         List<String> pluginIds = namespacePluginVOList.stream().map(NamespacePluginVO::getPluginId).toList();
         
         List<SelectorDO> selectorDOList = selectorMapper.selectAllByNamespaceId(namespaceId);
@@ -243,8 +240,41 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
     
     @Override
-    public ConfigImportResult importData(final List<PluginDTO> pluginList) {
-        return null;
+    @Transactional(rollbackFor = Exception.class)
+    public ConfigImportResult importData(final String namespace, final List<NamespacePluginDTO> namespacePluginList, final ConfigsImportContext context) {
+        if (CollectionUtils.isEmpty(namespacePluginList)) {
+            return ConfigImportResult.success();
+        }
+        Map<String, NamespacePluginRelDO> existPluginMap = namespacePluginRelMapper.listByNamespaceId(namespace)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(NamespacePluginRelDO::getPluginId, x -> x));
+        StringBuilder errorMsgBuilder = new StringBuilder();
+        int successCount = 0;
+        for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
+            String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
+            // check plugin base info
+            if (existPluginMap.containsKey(pluginId)) {
+                errorMsgBuilder
+                        .append(pluginId)
+                        .append(",");
+            } else {
+                namespacePluginDTO.setId(UUIDUtils.getInstance().generateShortUuid());
+                namespacePluginDTO.setNamespaceId(namespace);
+                namespacePluginDTO.setPluginId(pluginId);
+                NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
+                if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) > 0) {
+                    // publish create event. init plugin data
+                    successCount++;
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(errorMsgBuilder)) {
+            errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
+            return ConfigImportResult
+                    .fail(successCount, "import fail plugin: " + errorMsgBuilder);
+        }
+        return ConfigImportResult.success(successCount);
     }
     
     @Override

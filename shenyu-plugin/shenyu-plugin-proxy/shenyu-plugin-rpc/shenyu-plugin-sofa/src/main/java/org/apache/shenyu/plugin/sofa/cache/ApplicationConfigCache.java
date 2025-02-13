@@ -71,7 +71,7 @@ public final class ApplicationConfigCache {
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
-                if (notification.getValue() != null) {
+                if (Objects.nonNull(notification.getValue())) {
                     try {
                         Class<?> cz = notification.getValue().getClass();
                         final Field field = FieldUtils.getDeclaredField(cz, "consumerBootstrap", true);
@@ -111,12 +111,12 @@ public final class ApplicationConfigCache {
      */
     public void init(final SofaRegisterConfig sofaRegisterConfig) {
         final String shenyuProxy = "shenyu_proxy";
-        if (applicationConfig == null) {
+        if (Objects.isNull(applicationConfig)) {
             applicationConfig = new ApplicationConfig();
             applicationConfig.setAppId(shenyuProxy);
             applicationConfig.setAppName(shenyuProxy);
         }
-        if (registryConfig == null) {
+        if (Objects.isNull(registryConfig)) {
             registryConfig = new RegistryConfig();
             registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
             registryConfig.setId(shenyuProxy);
@@ -217,7 +217,7 @@ public final class ApplicationConfigCache {
         }
         try {
             Object obj = reference.refer();
-            if (obj != null) {
+            if (Objects.nonNull(obj)) {
                 LOG.info("init sofa reference success there meteData is :{}", metaData);
                 cache.put(metaData.getPath(), reference);
             }

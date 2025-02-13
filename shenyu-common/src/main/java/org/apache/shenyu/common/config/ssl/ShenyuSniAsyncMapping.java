@@ -28,6 +28,7 @@ import reactor.netty.tcp.TcpSslContextSpec;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -43,7 +44,7 @@ public class ShenyuSniAsyncMapping implements AsyncMapping<String, SslProvider> 
     }
 
     public ShenyuSniAsyncMapping(final List<SslCrtAndKeyFile> sslCrtAndKeys) {
-        if (sslCrtAndKeys == null || sslCrtAndKeys.isEmpty()) {
+        if (Objects.isNull(sslCrtAndKeys) || sslCrtAndKeys.isEmpty()) {
             throw new ShenyuException("The sslCrtAndKeys can not be null");
         }
         this.sslProviderMap = new ConcurrentHashMap<>();

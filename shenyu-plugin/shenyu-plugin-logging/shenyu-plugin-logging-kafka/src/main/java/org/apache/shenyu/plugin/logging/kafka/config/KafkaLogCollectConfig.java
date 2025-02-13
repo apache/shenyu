@@ -59,7 +59,7 @@ public class KafkaLogCollectConfig {
 
         private String topic;
 
-        private String namesrvAddr;
+        private String bootstrapServer;
 
         private String producerGroup;
 
@@ -186,17 +186,17 @@ public class KafkaLogCollectConfig {
          *
          * @return kafka nameserver address
          */
-        public String getNamesrvAddr() {
-            return namesrvAddr;
+        public String getBootstrapServer() {
+            return bootstrapServer;
         }
 
         /**
          * set kafka nameserver address.
          *
-         * @param namesrvAddr kafka nameserver address
+         * @param bootstrapServer kafka nameserver address
          */
-        public void setNamesrvAddr(final String namesrvAddr) {
-            this.namesrvAddr = namesrvAddr;
+        public void setBootstrapServer(final String bootstrapServer) {
+            this.bootstrapServer = bootstrapServer;
         }
 
         /**
@@ -223,14 +223,14 @@ public class KafkaLogCollectConfig {
                 return Boolean.TRUE;
             }
 
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return Boolean.FALSE;
             }
 
             KafkaLogConfig that = (KafkaLogConfig) o;
             return Objects.equals(getTopic(), that.getTopic())
                     && Objects.equals(getCompressAlg(), that.getCompressAlg())
-                    && Objects.equals(getNamesrvAddr(), that.getNamesrvAddr())
+                    && Objects.equals(getBootstrapServer(), that.getBootstrapServer())
                     && Objects.equals(getProducerGroup(), that.getProducerGroup())
                     && Objects.equals(getSampleRate(), that.getSampleRate())
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
@@ -240,7 +240,7 @@ public class KafkaLogCollectConfig {
 
         @Override
         public int hashCode() {
-            return Objects.hash(topic, compressAlg, namesrvAddr, producerGroup);
+            return Objects.hash(topic, compressAlg, bootstrapServer, producerGroup);
         }
     }
 

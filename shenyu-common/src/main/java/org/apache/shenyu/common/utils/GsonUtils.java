@@ -357,7 +357,7 @@ public class GsonUtils {
             }
             
             Map<T, U> resultMap = null;
-            assert mapClass != null;
+            assert Objects.nonNull(mapClass);
             if (Objects.requireNonNull(mapClass).isInterface()) {
                 resultMap = new LinkedHashMap<>();
             } else {
@@ -482,7 +482,7 @@ public class GsonUtils {
         @Override
         public void write(final JsonWriter out, final Duration value) {
             try {
-                if (value == null) {
+                if (Objects.isNull(value)) {
                     out.nullValue();
                     return;
                 }

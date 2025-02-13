@@ -106,8 +106,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     }
     
     @Override
-    public void destroy() throws Exception {
-        if (this.workerExecutor != null) {
+    public void destroy() {
+        if (Objects.nonNull(this.workerExecutor)) {
             workerExecutor.shutdownNow();
         }
     }
@@ -147,7 +147,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
         
         private List<AlertReceiverDTO> matchReceiverByRules(final AlarmContent alert) {
             List<AlertReceiverDTO> dtoList = alertReceiverReference.get();
-            if (dtoList == null) {
+            if (Objects.isNull(dtoList)) {
                 dtoList = alertReceiverMapper.selectAll();
                 alertReceiverReference.set(dtoList);
             }

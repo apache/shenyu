@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.timer;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,7 +92,7 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
         while (!done) {
             timerTaskEntry.remove();
             synchronized (this) {
-                if (timerTaskEntry.list == null) {
+                if (Objects.isNull(timerTaskEntry.list)) {
                     TimerTaskEntry tail = root.prev;
                     timerTaskEntry.next = root;
                     timerTaskEntry.prev = tail;
@@ -204,7 +205,7 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
             this.timerTask = timerTask;
             this.expirationMs = expirationMs;
             this.timer = timer;
-            if (timerTask != null) {
+            if (Objects.nonNull(timerTask)) {
                 timerTask.setTimerTaskEntry(this);
             }
         }
@@ -261,7 +262,7 @@ public class TimerTaskList implements Delayed, Iterable<TimerTask> {
          */
         void remove() {
             TimerTaskList currentList = list;
-            while (currentList != null) {
+            while (Objects.nonNull(currentList)) {
                 currentList.remove(this);
                 currentList = list;
             }

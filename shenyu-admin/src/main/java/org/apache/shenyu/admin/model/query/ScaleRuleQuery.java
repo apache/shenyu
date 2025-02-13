@@ -136,7 +136,7 @@ public class ScaleRuleQuery implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         ScaleRuleQuery that = (ScaleRuleQuery) o;

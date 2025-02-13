@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,7 +57,7 @@ public class TtlScheduler {
         final ScheduledFuture<?> task = this.scheduler.scheduleAtFixedRate(
                 new ConsulHeartbeatTask(instanceId), ttl, ttl, TimeUnit.SECONDS);
         final ScheduledFuture<?> previousTask = this.serviceHeartbeats.put(instanceId, task);
-        if (previousTask != null) {
+        if (Objects.nonNull(previousTask)) {
             previousTask.cancel(true);
         }
     }
@@ -68,7 +69,7 @@ public class TtlScheduler {
      */
     public void remove(final String instanceId) {
         ScheduledFuture<?> task = this.serviceHeartbeats.get(instanceId);
-        if (task != null) {
+        if (Objects.nonNull(task)) {
             task.cancel(true);
         }
         this.serviceHeartbeats.remove(instanceId);

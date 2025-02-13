@@ -42,6 +42,21 @@ public final class ExportImportConstants {
     public static final String PLUGIN_JSON = "plugin.json";
 
     /**
+     * namespace plugin json config name.
+     */
+    public static final String NAMESPACE_PLUGIN_JSON = "namespace_plugin.json";
+
+    /**
+     * plugin template json config name.
+     */
+    public static final String PLUGIN_TEMPLATE_JSON = "plugin_template.json";
+    
+    /**
+     * plugin handle json config name.
+     */
+    public static final String PLUGIN_HANDLE_JSON = "plugin_handle.json";
+
+    /**
      * selector json config name.
      */
     public static final String SELECTOR_JSON = "selector.json";
@@ -87,9 +102,29 @@ public final class ExportImportConstants {
     public static final String PLUGIN_IMPORT_SUCCESS_COUNT = "pluginImportSuccessCount";
 
     /**
+     * plugin handle import success count.
+     */
+    public static final String PLUGIN_HANDLE_IMPORT_SUCCESS_COUNT = "pluginHandleImportSuccessCount";
+
+    /**
+     * namespace plugin import success count.
+     */
+    public static final String NAMESPACE_PLUGIN_IMPORT_SUCCESS_COUNT = "namespacePluginImportSuccessCount";
+
+    /**
      * plugin import fail message.
      */
     public static final String PLUGIN_IMPORT_FAIL_MESSAGE = "pluginImportFailMessage";
+
+    /**
+     * plugin handle import fail message.
+     */
+    public static final String PLUGIN_HANDLE_IMPORT_FAIL_MESSAGE = "pluginHandleImportFailMessage";
+
+    /**
+     * namespace plugin import fail message.
+     */
+    public static final String NAMESPACE_PLUGIN_IMPORT_FAIL_MESSAGE = "pluginHandleImportFailMessage";
 
     /**
      * selector import success count.

@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Test for {@link RequestTemplate}.
@@ -106,13 +107,13 @@ public class RequestTemplateTest {
      */
     public static List<RequestTemplate.ParamMetadata> analysisParamMetadata(final Method method) {
         Parameter[] parameters = method.getParameters();
-        if (parameters == null || parameters.length == 0) {
+        if (Objects.isNull(parameters) || parameters.length == 0) {
             return Collections.emptyList();
         }
         List<RequestTemplate.ParamMetadata> params = new ArrayList<>(parameters.length);
         for (int index = 0; index < parameters.length; index++) {
             Annotation[] annotations = parameters[index].getAnnotations();
-            if (annotations == null || annotations.length == 0) {
+            if (Objects.isNull(annotations) || annotations.length == 0) {
                 continue;
             }
             params.add(new RequestTemplate.ParamMetadata(annotations, parameters[index].getType(), index));

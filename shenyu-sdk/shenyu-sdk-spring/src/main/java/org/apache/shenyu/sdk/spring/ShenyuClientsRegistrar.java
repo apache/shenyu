@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.sdk.spring;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,7 +42,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -53,6 +54,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -147,12 +149,12 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             factoryBean.setUrl(getUrl(beanFactory, attributes));
             factoryBean.setPath(getPath(beanFactory, attributes));
             Object fallback = attributes.get("fallback");
-            if (fallback != null) {
+            if (Objects.nonNull(fallback)) {
                 factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback
                         : ClassUtils.resolveClassName(fallback.toString(), null));
             }
             Object fallbackFactory = attributes.get("fallbackFactory");
-            if (fallbackFactory != null) {
+            if (Objects.nonNull(fallbackFactory)) {
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory
                         : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
@@ -189,7 +191,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private String getContextId(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String contextId = (String) attributes.get("contextId");
-        if (!StringUtils.hasText(contextId)) {
+        if (StringUtils.isBlank(contextId)) {
             return getName(attributes);
         }
 
@@ -198,17 +200,17 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     private String resolve(final ConfigurableBeanFactory beanFactory, final String value) {
-        if (StringUtils.hasText(value)) {
-            if (beanFactory == null) {
+        if (StringUtils.isNotBlank(value)) {
+            if (Objects.isNull(beanFactory)) {
                 return this.environment.resolvePlaceholders(value);
             }
             String resolved = beanFactory.resolveEmbeddedValue(value);
             BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
-            if (resolver == null) {
+            if (Objects.isNull(resolver)) {
                 return resolved;
             }
             Object evaluateValue = resolver.evaluate(resolved, new BeanExpressionContext(beanFactory, null));
-            if (evaluateValue != null) {
+            if (Objects.nonNull(evaluateValue)) {
                 return String.valueOf(evaluateValue);
             }
             return null;
@@ -247,12 +249,12 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
         Set<String> basePackages = new HashSet<>();
         for (String pkg : (String[]) attributes.get("value")) {
-            if (StringUtils.hasText(pkg)) {
+            if (StringUtils.isNotBlank(pkg)) {
                 basePackages.add(pkg);
             }
         }
         for (String pkg : (String[]) attributes.get("basePackages")) {
-            if (StringUtils.hasText(pkg)) {
+            if (StringUtils.isNotBlank(pkg)) {
                 basePackages.add(pkg);
             }
         }
@@ -267,26 +269,26 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     private String getQualifier(final Map<String, Object> client) {
-        if (client == null) {
+        if (Objects.isNull(client)) {
             return null;
         }
         String qualifier = (String) client.get("qualifier");
-        if (StringUtils.hasText(qualifier)) {
+        if (StringUtils.isNotBlank(qualifier)) {
             return qualifier;
         }
         return null;
     }
 
     private String[] getQualifiers(final Map<String, Object> client) {
-        if (client == null) {
+        if (Objects.isNull(client)) {
             return null;
         }
         List<String> qualifierList = new ArrayList<>(Arrays.asList((String[]) client.get("qualifiers")));
-        qualifierList.removeIf(qualifier -> !StringUtils.hasText(qualifier));
-        if (qualifierList.isEmpty() && getQualifier(client) != null) {
+        qualifierList.removeIf(qualifier -> StringUtils.isBlank(qualifier));
+        if (CollectionUtils.isEmpty(qualifierList) && StringUtils.isNotBlank(getQualifier(client))) {
             qualifierList = Collections.singletonList(getQualifier(client));
         }
-        return !qualifierList.isEmpty() ? qualifierList.toArray(new String[0]) : null;
+        return CollectionUtils.isNotEmpty(qualifierList) ? qualifierList.toArray(new String[0]) : null;
     }
 
     @Override
@@ -301,7 +303,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      * @return the name
      */
     static String getName(final String name) {
-        if (!StringUtils.hasText(name)) {
+        if (StringUtils.isBlank(name)) {
             return "";
         }
         String host;
@@ -317,7 +319,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         } catch (URISyntaxException e) {
             host = null;
         }
-        Assert.state(host != null, "Service id not legal hostname (" + name + ")");
+        Assert.state(Objects.nonNull(host), "Service id not legal hostname (" + name + ")");
         return name;
     }
 
@@ -340,7 +342,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      */
     String getName(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String name = (String) attributes.get("name");
-        if (!StringUtils.hasText(name)) {
+        if (StringUtils.isBlank(name)) {
             name = (String) attributes.get("value");
         }
         name = resolve(beanFactory, name);
@@ -355,7 +357,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      */
     static String getUrl(final String url) {
         String resultUrl = url;
-        if (StringUtils.hasText(resultUrl) && !(resultUrl.startsWith("#{") && resultUrl.contains("}"))) {
+        if (StringUtils.isNotBlank(resultUrl) && !(resultUrl.startsWith("#{") && resultUrl.contains("}"))) {
             if (!resultUrl.contains("://")) {
                 resultUrl = "http://" + resultUrl;
             }
@@ -373,7 +375,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private String getUrl(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String url = resolve(beanFactory, (String) attributes.get("url"));
-        if (!StringUtils.hasText(url)) {
+        if (StringUtils.isBlank(url)) {
             return getUrl(getName(beanFactory, attributes));
         }
         return getUrl(url);
@@ -392,7 +394,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
      */
     static String getPath(final String path) {
         String resultPath = path;
-        if (StringUtils.hasText(resultPath)) {
+        if (StringUtils.isNotBlank(resultPath)) {
             resultPath = resultPath.trim();
             if (!resultPath.startsWith("/")) {
                 resultPath = "/" + resultPath;

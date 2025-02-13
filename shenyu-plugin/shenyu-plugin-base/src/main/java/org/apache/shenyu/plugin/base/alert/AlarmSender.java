@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -66,10 +67,10 @@ public class AlarmSender {
             namespaceId = shenyuConfig.getNamespace();
             alarmContent.setNamespaceId(namespaceId);
         }
-        if (alarmService == null) {
+        if (Objects.isNull(alarmService)) {
             alarmService = SpringBeanUtils.getInstance().getBean(AlarmService.class);
         }
-        if (enabled == null) {
+        if (Objects.isNull(enabled)) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             enabled = shenyuConfig.getAlert().getEnabled();
         }

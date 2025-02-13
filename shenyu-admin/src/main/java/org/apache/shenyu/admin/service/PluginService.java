@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.PluginData;
 
 import java.util.List;
@@ -86,14 +87,6 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @return the vo list
      */
     List<PluginVO> listAllData();
-
-    /**
-     * List all vo list.
-     *
-     * @param namespaceId the namespace id
-     * @return the vo list
-     */
-    List<PluginVO> listAllDataByNamespaceId(String namespaceId);
     
     /**
      * list all not in resource.
@@ -138,16 +131,8 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * import plugin data.
      *
      * @param pluginList the plugin data
+     * @param context the import context
      * @return config import result
      */
-    ConfigImportResult importData(List<PluginDTO> pluginList);
-
-    /**
-     * import plugin data.
-     *
-     * @param namespace the namespace
-     * @param pluginList the plugin data
-     * @return config import result
-     */
-    ConfigImportResult importData(String namespace, List<PluginDTO> pluginList);
+    ConfigImportResult importData(List<PluginDTO> pluginList, ConfigsImportContext context);
 }
