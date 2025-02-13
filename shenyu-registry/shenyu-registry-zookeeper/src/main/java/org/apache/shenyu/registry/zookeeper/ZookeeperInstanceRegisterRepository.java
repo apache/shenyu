@@ -129,7 +129,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
                 InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
                 instanceEntity.setUri(getURI(instanceRegisterJsonStr, instanceEntity.getPort(), instanceEntity.getHost()));
-                if (instanceEntity.getUri() == null) {
+                if (Objects.isNull(instanceEntity.getUri())) {
                     final JsonObject hashMap = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, JsonObject.class);
                     final String address = hashMap.get("address").getAsString();
                     final Integer port = hashMap.get("port").getAsInt();
@@ -225,7 +225,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     }
 
     private URI getURI(final String instanceRegisterJsonStr, final Integer port, final String host) {
-        if (port == null || host == null) {
+        if (Objects.isNull(port) || Objects.isNull(host)) {
             return null;
         }
         String scheme = (instanceRegisterJsonStr.contains("https") || instanceRegisterJsonStr.contains("HTTPS")) ? "https" : "http";

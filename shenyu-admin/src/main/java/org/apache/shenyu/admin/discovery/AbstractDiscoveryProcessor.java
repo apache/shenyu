@@ -176,7 +176,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
                 discoveryUpstreamData.setWeight(instanceEntity.getWeight());
                 discoveryUpstreamData.setStatus(instanceEntity.getStatus());
                 discoveryUpstreamData.setProtocol("http://");
-                if (discoveryUpstreamData.getNamespaceId() == null) {
+                if (Objects.isNull(discoveryUpstreamData.getNamespaceId())) {
                     discoveryUpstreamData.setNamespaceId(proxySelectorDTO.getNamespaceId());
                 }
                 discoveryUpstreamData.setDiscoveryHandlerId(proxySelectorDTO.getId());

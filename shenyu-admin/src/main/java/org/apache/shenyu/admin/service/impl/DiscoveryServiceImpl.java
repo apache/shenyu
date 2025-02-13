@@ -149,7 +149,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         DiscoveryDO discoveryDO = discoveryMapper.selectByPluginNameAndLevelAndNamespaceIdAndType(discoveryConfigRegisterDTO.getPluginName(),
                 DiscoveryLevel.PLUGIN.getCode(), discoveryConfigRegisterDTO.getNamespaceId(), discoveryConfigRegisterDTO.getDiscoveryType());
-        if (discoveryDO == null) {
+        if (Objects.isNull(discoveryDO)) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
