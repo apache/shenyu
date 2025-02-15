@@ -268,3 +268,19 @@ SELECT
     `date_created`,
     `date_updated`
 FROM `plugin`;
+
+
+INSERT INTO `namespace_user_rel` (
+    `id`,
+    `namespace_id`,
+    `user_id`,
+    `date_created`,
+    `date_updated`
+)
+SELECT
+    CONCAT(FLOOR(UNIX_TIMESTAMP(NOW(3)) * 1000), LPAD(FLOOR(RAND() * 1000000), 6, '0')),
+    '649330b6-c2d7-4edc-be8e-8a54df9eb385',
+    `id`,
+    `date_created`,
+    `date_updated`
+FROM `dashboard_user`;
