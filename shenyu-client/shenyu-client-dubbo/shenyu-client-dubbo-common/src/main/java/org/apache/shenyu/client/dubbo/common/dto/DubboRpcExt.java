@@ -44,6 +44,8 @@ public class DubboRpcExt implements Serializable {
 
     private String protocol;
 
+    private String serialization;
+
     /**
      * constructor without parameter.
      */
@@ -71,7 +73,8 @@ public class DubboRpcExt implements Serializable {
                        final String url,
                        final Boolean sent,
                        final String cluster,
-                       final String protocol) {
+                       final String protocol,
+                       final String serialization) {
         this.group = group;
         this.version = version;
         this.loadbalance = loadbalance;
@@ -81,6 +84,7 @@ public class DubboRpcExt implements Serializable {
         this.sent = sent;
         this.cluster = cluster;
         this.protocol = protocol;
+        this.serialization = serialization;
     }
 
     /**
@@ -245,6 +249,24 @@ public class DubboRpcExt implements Serializable {
         this.protocol = protocol;
     }
 
+    /**
+     * get serialization.
+     *
+     * @return serialization
+     */
+    public String getSerialization() {
+        return serialization;
+    }
+
+    /**
+     * set serialization.
+     *
+     * @param serialization serialization
+     */
+    public void setSerialization(final String serialization) {
+        this.serialization = serialization;
+    }
+
     @Override
     public String toString() {
         return "DubboRpcExt{"
@@ -257,6 +279,7 @@ public class DubboRpcExt implements Serializable {
                 + ", sent=" + sent
                 + ", cluster='" + cluster + '\''
                 + ", protocol='" + protocol + '\''
+                + ", serialization='" + serialization + '\''
                 + '}';
     }
 
@@ -291,6 +314,8 @@ public class DubboRpcExt implements Serializable {
         private String cluster;
 
         private String protocol;
+
+        private String serialization;
 
         /**
          * constructor without parameter.
@@ -398,6 +423,17 @@ public class DubboRpcExt implements Serializable {
         }
 
         /**
+         * set serialization.
+         *
+         * @param serialization serialization
+         * @return Builder
+         */
+        public Builder serialization(final String serialization) {
+            this.serialization = serialization;
+            return this;
+        }
+
+        /**
          * build DubboRpcExt.
          *
          * @return DubboRpcExt
@@ -413,6 +449,7 @@ public class DubboRpcExt implements Serializable {
             dubboRpcExt.setSent(sent);
             dubboRpcExt.setCluster(cluster);
             dubboRpcExt.setProtocol(protocol);
+            dubboRpcExt.setSerialization(serialization);
             return dubboRpcExt;
         }
     }

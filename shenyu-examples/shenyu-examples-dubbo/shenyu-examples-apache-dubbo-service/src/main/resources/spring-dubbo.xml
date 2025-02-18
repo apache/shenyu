@@ -30,4 +30,5 @@
 
     <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService" version="v0.0.2"/>
     <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService" version="v0.0.2"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboProtobufService" ref="dubboProtobufService" version="v0.0.2" serialization="protobuf"/>
 </beans>

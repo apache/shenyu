@@ -41,6 +41,7 @@
         <nacos-client.version>2.2.4</nacos-client.version>
         <apache.dubbo.version>3.2.14</apache.dubbo.version>
         <zookeeper.version>3.9.2</zookeeper.version>
+        <protobuf.version>3.25.5</protobuf.version>
     </properties>
 
     <dependencyManagement>

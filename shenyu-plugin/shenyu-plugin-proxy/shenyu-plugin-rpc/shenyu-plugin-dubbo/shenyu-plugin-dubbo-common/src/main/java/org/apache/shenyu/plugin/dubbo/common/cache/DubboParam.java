@@ -68,6 +68,11 @@ public class DubboParam {
     private String protocol;
 
     /**
+     * the serialization.
+     */
+    private String serialization;
+
+    /**
      * Gets group.
      *
      * @return the group
@@ -225,5 +230,23 @@ public class DubboParam {
      */
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
+    }
+
+    /**
+     * get serialization.
+     *
+     * @return serialization
+     */
+    public String getSerialization() {
+        return serialization;
+    }
+
+    /**
+     * get serialization.
+     *
+     * @param serialization serialization
+     */
+    public void setSerialization(final String serialization) {
+        this.serialization = serialization;
     }
 }

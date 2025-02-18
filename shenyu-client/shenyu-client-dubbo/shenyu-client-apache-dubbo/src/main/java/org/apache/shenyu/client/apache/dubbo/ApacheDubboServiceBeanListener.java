@@ -231,6 +231,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
                 .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
+                .serialization(serviceBean.getSerialization())
                 .build();
         // set method config: loadbalance,retries,timeout,sent
         Optional.ofNullable(serviceBean.getMethods()).orElse(Collections.emptyList()).stream()
