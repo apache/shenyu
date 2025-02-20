@@ -28,7 +28,6 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.plugin.AiProxyConfig;
-import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.ai.proxy.strategy.AiModel;
 import org.jetbrains.annotations.NotNull;
@@ -57,11 +56,6 @@ public class OpenAI implements AiModel {
             .writeTimeout(5, TimeUnit.MINUTES)
             .readTimeout(5, TimeUnit.MINUTES)
             .build();
-    
-    @Override
-    public String getProvider() {
-        return AiModelProviderEnum.OPEN_AI.getName();
-    }
     
     @Override
     public Mono<Void> invoke(final AiProxyConfig aiProxyConfig, final ServerWebExchange exchange, final String requestBody) {

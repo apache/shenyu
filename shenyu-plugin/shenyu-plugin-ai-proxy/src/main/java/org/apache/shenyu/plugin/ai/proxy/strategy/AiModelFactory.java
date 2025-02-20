@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.strategy;
 
-import org.apache.shenyu.plugin.ai.proxy.strategy.ali.Ali;
-import org.apache.shenyu.plugin.ai.proxy.strategy.deepseek.DeepSeek;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.plugin.ai.proxy.strategy.openai.OpenAI;
 
 /**
@@ -33,21 +32,14 @@ public final class AiModelFactory {
      * Create ai model.
      *
      * @param provider the provider
-     * @return the ai model
+     * @return the ai model provider
      */
-    public static AiModel createAiModel(final String provider) {
+    public static AiModel createAiModel(final AiModelProviderEnum provider) {
         if (provider == null) {
             return null;
         }
-        switch (provider) {
-            case "OpenAI":
-                return new OpenAI();
-            case "DeepSeek":
-                return new DeepSeek();
-            case "ALi":
-                return new Ali();
-            default:
-                return null;
-        }
+        return switch (provider) {
+            case OPEN_AI, DEEP_SEEK, A_LI, OPEN_API, MOONSHOT -> new OpenAI();
+        };
     }
 }

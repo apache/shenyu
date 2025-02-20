@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiProxyConfig;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.proxy.strategy.AiModel;
@@ -54,7 +55,10 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     String requestBody = new String(bytes, StandardCharsets.UTF_8);
                     
                     // choose the model by provider
-                    AiModel aiModel = AiModelFactory.createAiModel(aiProxyConfig.getProvider());
+                    String provider = aiProxyConfig.getProvider();
+                    AiModelProviderEnum providerEnum = AiModelProviderEnum.getByName(provider);
+                    assert Objects.nonNull(providerEnum);
+                    AiModel aiModel = AiModelFactory.createAiModel(providerEnum);
                     assert Objects.nonNull(aiModel);
                     return aiModel.invoke(aiProxyConfig, exchange, requestBody);
                 });

@@ -37,6 +37,16 @@ public enum AiModelProviderEnum {
      */
     A_LI("ALi"),
     
+    /**
+     * OpenAPI.
+     */
+    OPEN_API("OpenAPI"),
+    
+    /**
+     * Moonshot.
+     */
+    MOONSHOT("Moonshot"),
+    
     ;
 
     private final String name;
@@ -52,5 +62,20 @@ public enum AiModelProviderEnum {
      */
     public String getName() {
         return name;
+    }
+    
+    /**
+     * get model by name.
+     *
+     * @param name name
+     * @return AiModelProviderEnum
+     */
+    public static AiModelProviderEnum getByName(final String name) {
+        for (AiModelProviderEnum value : AiModelProviderEnum.values()) {
+            if (value.getName().equals(name)) {
+                return value;
+            }
+        }
+        return null;
     }
 }
