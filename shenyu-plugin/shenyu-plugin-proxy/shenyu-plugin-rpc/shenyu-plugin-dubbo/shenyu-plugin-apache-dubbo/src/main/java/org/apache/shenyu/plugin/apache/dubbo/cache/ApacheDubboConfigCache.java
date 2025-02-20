@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ReferenceConfig;
@@ -225,6 +226,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             }
             if (StringUtils.isNoneBlank(dubboParam.getLoadbalance())) {
                 reference.getParameters().put(Constants.DUBBO_LOAD_BALANCE, dubboParam.getLoadbalance());
+            }
+            if ("protobuf".equals(dubboParam.getSerialization())) {
+                reference.setGeneric(CommonConstants.GENERIC_SERIALIZATION_PROTOBUF);
             }
             // set dubbo sub protocol
             Optional.ofNullable(dubboParam.getProtocol()).ifPresent(reference::setProtocol);
