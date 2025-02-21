@@ -39,7 +39,7 @@ public final class AiModelFactory {
             return null;
         }
         return switch (provider) {
-            case OPEN_AI, DEEP_SEEK, A_LI, OPEN_API, MOONSHOT -> new OpenAI();
+            case OPEN_AI, DEEP_SEEK, ALIYUN, OPEN_API, MOONSHOT -> new OpenAI();
         };
     }
 }

@@ -33,9 +33,9 @@ public enum AiModelProviderEnum {
     DEEP_SEEK("DeepSeek"),
     
     /**
-     * Ali.
+     * ALiYun.
      */
-    A_LI("ALi"),
+    ALIYUN("ALiYun"),
     
     /**
      * OpenAPI.
