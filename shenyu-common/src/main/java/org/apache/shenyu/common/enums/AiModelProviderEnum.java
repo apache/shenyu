@@ -45,9 +45,7 @@ public enum AiModelProviderEnum {
     /**
      * Moonshot.
      */
-    MOONSHOT("Moonshot"),
-    
-    ;
+    MOONSHOT("Moonshot");
 
     private final String name;
 
