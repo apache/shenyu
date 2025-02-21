@@ -74,5 +74,6 @@
         <module>shenyu-spring-boot-starter-plugin-transform</module>
         <module>shenyu-spring-boot-starter-plugin-logging-huawei-lts</module>
         <module>shenyu-spring-boot-starter-plugin-basic-auth</module>
+        <module>shenyu-spring-boot-starter-plugin-ai-proxy</module>
     </modules>
 </project>
