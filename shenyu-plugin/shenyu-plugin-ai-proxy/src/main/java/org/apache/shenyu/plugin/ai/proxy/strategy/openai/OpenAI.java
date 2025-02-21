@@ -49,30 +49,30 @@ import java.util.concurrent.TimeUnit;
  * The OpenAI model.
  */
 public class OpenAI implements AiModel {
-    
-    
+
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.MINUTES)
             .readTimeout(5, TimeUnit.MINUTES)
             .build();
-    
+
     @Override
-    public Mono<Void> invoke(final AiProxyConfig aiProxyConfig, final ServerWebExchange exchange, final String requestBody) {
+    public Mono<Void> invoke(final AiProxyConfig aiProxyConfig, final ServerWebExchange exchange,
+            final String requestBody) {
         Map<String, Object> paramMap = GsonUtils.getInstance().convertToMap(requestBody);
         paramMap.put(Constants.MODEL, aiProxyConfig.getModel());
         paramMap.put(Constants.STREAM, aiProxyConfig.getStream());
         paramMap.put(Constants.PROMPT, aiProxyConfig.getPrompt());
-        
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), GsonUtils.getInstance().toJson(paramMap));
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"),
+                GsonUtils.getInstance().toJson(paramMap));
         Request request = buildRequest(aiProxyConfig, body);
-        
+
         return aiProxyConfig.getStream()
                 ? handleStreamResponse(exchange, request)
                 : handleNormalResponse(exchange, request);
     }
-    
-    
+
     private Request buildRequest(final AiProxyConfig config, final RequestBody body) {
         return new Request.Builder()
                 .url(config.getBaseUrl())
@@ -81,56 +81,71 @@ public class OpenAI implements AiModel {
                 .addHeader("Authorization", "Bearer " + config.getApiKey())
                 .build();
     }
-    
-    
-    
+
     private Mono<Void> handleStreamResponse(final ServerWebExchange exchange, final Request request) {
         ServerHttpResponse exchangeResponse = exchange.getResponse();
         exchangeResponse.getHeaders().set(HttpHeaders.CONTENT_TYPE,
                 org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE);
         exchangeResponse.getHeaders().set(HttpHeaders.CACHE_CONTROL, "no-cache");
         exchangeResponse.getHeaders().set(HttpHeaders.CONNECTION, "keep-alive");
-        
+
         return exchangeResponse.writeAndFlushWith(
-                Flux.<Publisher<DataBuffer>>create(sink -> client.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        sink.error(e);
-                    }
-                    
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) {
-                        try (ResponseBody responseBody = response.body()) {
-                            if (!response.isSuccessful() || responseBody == null) {
-                                sink.error(new IOException("Request failed: " + response));
-                                return;
-                            }
-                            
-                            BufferedSource source = responseBody.source();
-                            while (!source.exhausted()) {
-                                String line = source.readUtf8Line();
-                                if (line == null) {
-                                    break;
-                                }
-                                
-                                if (line.startsWith("data: ")) {
-                                    String data = line.substring(6).trim();
-                                    if (!"[DONE]".equals(data)) {
-                                        // Process the SSE data chunk
-                                        DataBuffer buffer = exchangeResponse.bufferFactory()
-                                                .wrap((data + "\n").getBytes(StandardCharsets.UTF_8));
-                                        sink.next(Flux.just(buffer));
-                                    }
-                                }
-                            }
-                            sink.complete();
-                        } catch (IOException e) {
-                            sink.error(e);
-                        }
-                    }
-                }), FluxSink.OverflowStrategy.BUFFER));
+                Flux.<Publisher<DataBuffer>>create(
+                        sink -> client.newCall(request).enqueue(new StreamResponseCallback(sink, exchangeResponse)),
+                        FluxSink.OverflowStrategy.BUFFER));
     }
-    
+
+    private static class StreamResponseCallback implements Callback {
+
+        private final FluxSink<Publisher<DataBuffer>> sink;
+
+        private final ServerHttpResponse response;
+
+        StreamResponseCallback(final FluxSink<Publisher<DataBuffer>> sink, final ServerHttpResponse response) {
+            this.sink = sink;
+            this.response = response;
+        }
+
+        @Override
+        public void onFailure(@NotNull final Call call, @NotNull final IOException e) {
+            sink.error(e);
+        }
+
+        @Override
+        public void onResponse(@NotNull final Call call, @NotNull final Response response) {
+            try (ResponseBody responseBody = response.body()) {
+                if (!response.isSuccessful() || responseBody == null) {
+                    sink.error(new IOException("Request failed: " + response));
+                    return;
+                }
+
+                processStreamResponse(responseBody);
+                sink.complete();
+            } catch (IOException e) {
+                sink.error(e);
+            }
+        }
+
+        private void processStreamResponse(final ResponseBody responseBody) throws IOException {
+            BufferedSource source = responseBody.source();
+            while (!source.exhausted()) {
+                String line = source.readUtf8Line();
+                if (line == null) {
+                    break;
+                }
+
+                if (line.startsWith("data: ")) {
+                    String data = line.substring(6).trim();
+                    if (!"[DONE]".equals(data)) {
+                        DataBuffer buffer = response.bufferFactory()
+                                .wrap((data + "\n").getBytes(StandardCharsets.UTF_8));
+                        sink.next(Flux.just(buffer));
+                    }
+                }
+            }
+        }
+    }
+
     private Mono<Void> handleNormalResponse(final ServerWebExchange exchange, final Request request) {
         return Mono.create(sink -> {
             try (Response response = client.newCall(request).execute()) {
@@ -138,17 +153,17 @@ public class OpenAI implements AiModel {
                     sink.error(new IOException("Request failed: " + response));
                     return;
                 }
-                
+
                 String responseBody = response.body().string();
                 exchange.getResponse().getHeaders().setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
                 exchange.getResponse().writeWith(
-                                Mono.just(exchange.getResponse().bufferFactory()
-                                        .wrap(responseBody.getBytes(StandardCharsets.UTF_8))))
+                        Mono.just(exchange.getResponse().bufferFactory()
+                                .wrap(responseBody.getBytes(StandardCharsets.UTF_8))))
                         .subscribe(v -> sink.success(), sink::error);
             } catch (IOException e) {
                 sink.error(e);
             }
         });
     }
-    
+
 }

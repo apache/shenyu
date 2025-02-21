@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.ai.proxy.strategy;
 import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.plugin.ai.proxy.strategy.openai.OpenAI;
 
+import java.util.Objects;
+
 /**
  * The interface Ai model.
  */
@@ -35,7 +37,7 @@ public final class AiModelFactory {
      * @return the ai model provider
      */
     public static AiModel createAiModel(final AiModelProviderEnum provider) {
-        if (provider == null) {
+        if (Objects.isNull(provider)) {
             return null;
         }
         return switch (provider) {
