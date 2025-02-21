@@ -239,6 +239,14 @@
         </dependency>
         <!--Tcp Plugin end-->
 
+        <!--Ai proxy Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-proxy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai proxy Plugin end-->
+
         <!--shenyu sofa plugin start-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
