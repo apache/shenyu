@@ -7,12 +7,12 @@
 3. generate the wasm file
 
 ```shell
-cd {shenyu}/shenyu-plugin/shenyu-plugin-wasm-api/src/test/rust-wasm-filter
-cargo build --target wasm32-wasi --release
+cd {shenyu}/shenyu-plugin/shenyu-plugin-wasm-api/src/test/rust-wasm-plugin
+cargo build --target wasm32-wasip1 --release
 ```
 
 then you will see the wasm file
-in `{shenyu}/shenyu-plugin/shenyu-plugin-wasm-api/src/test/rust-wasm-filter/target/wasm32-wasi/release/rust_filter.wasm`
+in `{shenyu}/shenyu-plugin/shenyu-plugin-wasm-api/src/test/rust-wasm-plugin/target/wasm32-wasip1/release/rust_wasm_plugin.wasm`
 
 4. rename the wasm file
 
