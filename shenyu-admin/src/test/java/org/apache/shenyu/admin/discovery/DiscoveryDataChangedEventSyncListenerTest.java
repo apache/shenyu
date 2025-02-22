@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.discovery;
 
+import org.apache.shenyu.admin.discovery.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +66,7 @@ public class DiscoveryDataChangedEventSyncListenerTest {
     @BeforeEach
     public void setUp() {
         String discoveryHandlerId = "discoveryHandlerId";
-        discoveryDataChangedEventSyncListener = new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper, keyValueParser, discoveryHandlerId, contextInfo);
+        discoveryDataChangedEventSyncListener = new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper, keyValueParser, contextInfo, discoveryHandlerId);
     }
 
     @Test
@@ -76,10 +76,12 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         discoveryUpstreamData.setProtocol("http");
         discoveryUpstreamData.setUrl("1111");
         discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        discoveryUpstreamData.setDiscoveryHandlerId("discoveryHandlerId");
         discoveryUpstreamDTOS.add(discoveryUpstreamData);
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
         when(keyValueParser.parseValue(anyString())).thenReturn(discoveryUpstreamDTOS);
         when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
         DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED);
         discoveryDataChangedEventSyncListener.onChange(event);
         verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));

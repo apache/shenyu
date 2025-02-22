@@ -29,7 +29,6 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-http
           - shenyu-integrated-test-k8s-ingress-apache-dubbo
           - shenyu-integrated-test-k8s-ingress-motan
-          - shenyu-integrated-test-k8s-ingress-spring-cloud
           - shenyu-integrated-test-k8s-ingress-websocket
           - shenyu-integrated-test-k8s-ingress-grpc
 #          - shenyu-integrated-test-k8s-ingress-sofa

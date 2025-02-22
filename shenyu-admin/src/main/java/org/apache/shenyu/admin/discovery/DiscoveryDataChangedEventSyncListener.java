@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.listener.DataChangedEventListener;
+import org.apache.shenyu.admin.discovery.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -29,8 +31,6 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,6 +38,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -58,20 +59,21 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    private final String discoveryHandlerId;
+    private final List<DiscoverySyncData> discoverySyncDataList;
 
-    private final DiscoverySyncData contextInfo;
+    private final String discoveryId;
 
     public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
                                                  final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                                  final KeyValueParser keyValueParser,
-                                                 final String discoveryHandlerId,
-                                                 final DiscoverySyncData contextInfo) {
+                                                 final DiscoverySyncData contextInfo,
+                                                 final String discoveryId) {
+        this.discoverySyncDataList = new ArrayList<>();
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
+        this.discoveryId = discoveryId;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
-        this.discoveryHandlerId = discoveryHandlerId;
-        this.contextInfo = contextInfo;
+        discoverySyncDataList.add(contextInfo);
     }
 
     @Override
@@ -81,12 +83,22 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
             return;
         }
-        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
-        final List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
+        discoverySyncDataList.forEach(discoverySyncData -> {
+            LOG.info("DiscoveryDataChangedEventSyncListener watch discoveryId {} discoveryHandlerId {} selectorId {} event {}", discoveryId,
+                    discoverySyncData.getDiscoveryHandlerId(),
+                    discoverySyncData.getSelectorId(), event);
+            syncData0(event, discoverySyncData, currentEvent);
+        });
+    }
+
+    private void syncData0(final DiscoveryDataChangedEvent event, final DiscoverySyncData discoverySyncData, final DiscoveryDataChangedEvent.Event currentEvent) {
+        final DiscoverySyncData syncData = buildProxySelectorData(discoverySyncData, event.getValue());
+        final List<DiscoveryUpstreamData> upstreamDataList = syncData.getUpstreamDataList();
         if (CollectionUtils.isEmpty(upstreamDataList)) {
-            LOG.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
+            LOG.warn("Discover EventSync proxySelectorData discoveryUpstreamList is empty syncData {}", syncData);
             return;
         }
+        final String discoveryHandlerId = discoverySyncData.getDiscoveryHandlerId();
         switch (currentEvent) {
             case ADDED:
                 upstreamDataList.forEach(d -> {
@@ -97,10 +109,10 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                             d.setDateCreated(new Timestamp(System.currentTimeMillis()));
                             d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                             discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
-                            LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
+                            LOG.info("[DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                         }
                     } catch (DuplicateKeyException ex) {
-                        LOG.info("shenyu [DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
+                        LOG.info("[DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
                     }
                 });
                 break;
@@ -108,33 +120,25 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
                     int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
-                    LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
+                    LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
                 });
                 break;
             case DELETED:
                 if (CollectionUtils.isNotEmpty(upstreamDataList)) {
                     upstreamDataList.forEach(up -> {
                         discoveryUpstreamMapper.deleteByUrl(discoveryHandlerId, up.getUrl());
-                        LOG.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
+                        LOG.info("[DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
                     });
                 }
                 break;
             default:
-                throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
+                throw new IllegalStateException("DiscoveryDataChangedEventSyncListener find IllegalState");
         }
-        fillFullyDiscoverySyncData(discoverySyncData);
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
-    private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(discoverySyncData.getSelectorId());
-        discoveryUpstreamDOS.addAll(discoveryUpstreamMapper.selectBySelectorId(discoverySyncData.getSelectorId()));
-        List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
-        discoverySyncData.setUpstreamDataList(collect);
-    }
-
-    private DiscoverySyncData buildProxySelectorData(final String value) {
+    private DiscoverySyncData buildProxySelectorData(final DiscoverySyncData discoverySyncData, final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
             if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())) {
@@ -142,21 +146,30 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             }
         });
         discoveryUpstreamDTOS = discoveryUpstreamDTOS.stream()
-                .filter(upstreamData -> contextInfo.getNamespaceId().equals(upstreamData.getNamespaceId()))
+                .filter(upstreamData -> discoverySyncData.getNamespaceId().equals(upstreamData.getNamespaceId()))
                 .collect(Collectors.toList());
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
-            discoveryUpstreamData.setDiscoveryHandlerId(discoveryHandlerId);
+            discoveryUpstreamData.setDiscoveryHandlerId(discoverySyncData.getDiscoveryHandlerId());
             if (StringUtils.isBlank(discoveryUpstreamData.getProtocol())) {
-                discoveryUpstreamData.setProtocol(discoverySupportProtocol(contextInfo.getPluginName()));
+                discoveryUpstreamData.setProtocol(discoverySupportProtocol(discoverySyncData.getPluginName()));
             }
         });
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
-        data.setSelectorId(contextInfo.getSelectorId());
-        data.setSelectorName(contextInfo.getSelectorName());
-        data.setPluginName(contextInfo.getPluginName());
-        data.setNamespaceId(contextInfo.getNamespaceId());
+        data.setSelectorId(discoverySyncData.getSelectorId());
+        data.setSelectorName(discoverySyncData.getSelectorName());
+        data.setPluginName(discoverySyncData.getPluginName());
+        data.setNamespaceId(discoverySyncData.getNamespaceId());
         return data;
+    }
+
+    @Override
+    public void addListener(final DiscoverySyncData discoverySyncData) {
+        if (discoverySyncDataList.stream().noneMatch(data -> data.getSelectorId().equals(discoverySyncData.getSelectorId())
+                && data.getDiscoveryHandlerId().equals(discoverySyncData.getDiscoveryHandlerId()))) {
+            discoverySyncDataList.add(discoverySyncData);
+            LOG.info("[DiscoveryDataChangedEventSyncListener] add discoverySyncData {}", discoverySyncData);
+        }
     }
 
     private String discoverySupportProtocol(final String pluginName) {

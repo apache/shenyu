@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.registry.api;
 
-import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.Collections;
@@ -53,6 +54,33 @@ public interface ShenyuInstanceRegisterRepository {
      */
     default List<InstanceEntity> selectInstances(final String selectKey) {
         return Collections.emptyList();
+    }
+
+    /**
+     * serviceExists.
+     *
+     * @param key key
+     * @return {@link boolean}
+     */
+    default boolean serviceExists(String key) {
+        return true;
+    }
+
+    /**
+     * watchInstances.
+     *
+     * @param key key
+     * @param changedEventListener changedEventListener
+     */
+    default void watchInstances(String key, ChangedEventListener changedEventListener) {
+    }
+
+    /**
+     * unWatchInstances.
+     *
+     * @param key key
+     */
+    default void unWatchInstances(String key) {
     }
 
     /**

@@ -48,7 +48,6 @@ public class RpcTypeEnumTest {
         assertTrue(RpcTypeEnum.HTTP.getSupport());
         assertTrue(RpcTypeEnum.MOTAN.getSupport());
         assertTrue(RpcTypeEnum.SOFA.getSupport());
-        assertTrue(RpcTypeEnum.SPRING_CLOUD.getSupport());
         assertTrue(RpcTypeEnum.TARS.getSupport());
         assertTrue(RpcTypeEnum.WEB_SOCKET.getSupport());
     }
@@ -84,7 +83,6 @@ public class RpcTypeEnumTest {
         List<RpcTypeEnum> rpcTypeEnumList = RpcTypeEnum.acquireSupportMetadatas();
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.DUBBO));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.GRPC));
-        assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SPRING_CLOUD));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SOFA));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.TARS));
     }

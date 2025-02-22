@@ -144,7 +144,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
                     switch (changeEvent.getChange(key).getChangeType()) {
                         case ADDED:
                             childrenList.put(key, changeEvent.getChange(key).getNewValue());
-                            LOGGER.info("apollo instance register success: {}", changeEvent.getChange(key).getNewValue());
+                            LOGGER.info("apollo instance register add {}", changeEvent.getChange(key).getNewValue());
                             break;
                         case DELETED:
                             childrenList.remove(key);
