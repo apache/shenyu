@@ -26,5 +26,13 @@ import reactor.core.publisher.Mono;
  */
 public interface AiModel {
     
+    /**
+     * Invoke mono.
+     *
+     * @param aiProxyConfig the ai proxy config
+     * @param exchange      the exchange
+     * @param requestBody   the request body
+     * @return the mono
+     */
     Mono<Void> invoke(AiProxyConfig aiProxyConfig, ServerWebExchange exchange, String requestBody);
 }
