@@ -25,6 +25,8 @@ import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 public class ScaleObserver implements Observer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScaleObserver.class);
@@ -42,7 +44,7 @@ public class ScaleObserver implements Observer {
     public void update(final MetricData metricData, final ScaleRuleDO rule) {
         try {
             ScaleAction action = ruleEvaluator.evaluate(metricData, rule);
-            if (action != null) {
+            if (Objects.nonNull(action)) {
                 kubernetesScaler.scaleByAction(action);
             }
         } catch (Exception e) {

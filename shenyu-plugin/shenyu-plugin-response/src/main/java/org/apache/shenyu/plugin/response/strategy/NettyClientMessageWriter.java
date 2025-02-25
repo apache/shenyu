@@ -95,7 +95,7 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
 
     private static <T> Mono<T> releaseIfNotConsumed(final Flux<NettyDataBuffer> dataBufferDody, final Throwable ex) {
-        return dataBufferDody != null ? dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex)) : Mono.error(ex);
+        return Objects.nonNull(dataBufferDody) ? dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex)) : Mono.error(ex);
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {

@@ -68,10 +68,10 @@ public class KafkaLogCollectConfigTest {
     }
 
     @Test
-    public void testSetGlobalLogConfigNamesrvAddr() {
+    public void testSetGlobalLogConfigBootstrapServer() {
         KafkaLogCollectConfig.KafkaLogConfig kafkaLogConfig = new KafkaLogCollectConfig.KafkaLogConfig();
-        kafkaLogConfig.setNamesrvAddr("test");
-        Assertions.assertEquals(kafkaLogConfig.getNamesrvAddr(), "test");
+        kafkaLogConfig.setBootstrapServer("test");
+        Assertions.assertEquals(kafkaLogConfig.getBootstrapServer(), "test");
     }
 
     @Test

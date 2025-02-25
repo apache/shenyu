@@ -26,6 +26,8 @@ import org.apache.shenyu.disruptor.event.OrderlyDataEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * DisruptorProvider.
  * disruptor provider definition.
@@ -105,7 +107,7 @@ public class DisruptorProvider<T> {
      * Shutdown.
      */
     public void shutdown() {
-        if (null != disruptor) {
+        if (Objects.nonNull(disruptor)) {
             disruptor.shutdown();
         }
     }

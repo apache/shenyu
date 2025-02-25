@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +66,7 @@ public final class BodyParamUtils {
             String name = matcher.group(1);
             String eq = matcher.group(2);
             String value = matcher.group(3);
-            params.add(name, value != null ? value : (StringUtils.isNotBlank(eq) ? "" : null));
+            params.add(name, Objects.nonNull(value) ? value : (StringUtils.isNotBlank(eq) ? "" : null));
         }
         return params;
     }

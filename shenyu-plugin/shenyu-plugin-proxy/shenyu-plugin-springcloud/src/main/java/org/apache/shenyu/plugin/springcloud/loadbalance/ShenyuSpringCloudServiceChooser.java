@@ -122,7 +122,7 @@ public final class ShenyuSpringCloudServiceChooser {
             return ServiceInstanceCache.getServiceInstance(serviceId);
         }
         List<InstanceEntity> instances = null;
-        if (SpringCloudPluginDataHandler.getRepository() != null) {
+        if (Objects.nonNull(SpringCloudPluginDataHandler.getRepository())) {
             instances = SpringCloudPluginDataHandler.getRepository().selectInstances(serviceId);
         }
         final List<InstanceEntity> instanceEntities = Optional.ofNullable(instances).orElse(Collections.emptyList());

@@ -35,6 +35,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * TestController.
@@ -57,7 +58,7 @@ public class TestHttpController {
     @ResponseBody
     public String sendMsg(final String token, final String msg) {
         WebSocketSession webSocketSession = WsSessionManager.get(token);
-        if (webSocketSession == null) {
+        if (Objects.isNull(webSocketSession)) {
             return "User login has expired";
         }
         try {
@@ -80,7 +81,7 @@ public class TestHttpController {
     public String file(final String token, @RequestParam("file") final MultipartFile file) {
         try {
             WebSocketSession webSocketSession = WsSessionManager.get(token);
-            if (webSocketSession == null) {
+            if (Objects.isNull(webSocketSession)) {
                 return "User login has expired";
             }
             if (file.getOriginalFilename().endsWith(".bin")) {
