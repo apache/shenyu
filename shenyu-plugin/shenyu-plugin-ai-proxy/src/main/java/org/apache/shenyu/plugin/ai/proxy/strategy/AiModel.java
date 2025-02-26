@@ -39,5 +39,5 @@ public interface AiModel {
      * @param messageReaders the message readers
      * @return the mono
      */
-    Mono<Void> invoke(AiProxyConfig aiProxyConfig, ServerWebExchange exchange, final ShenyuPluginChain chain, final List<HttpMessageReader<?>> messageReaders);
+    Mono<Void> invoke(AiProxyConfig aiProxyConfig, ServerWebExchange exchange, ShenyuPluginChain chain, List<HttpMessageReader<?>> messageReaders);
 }

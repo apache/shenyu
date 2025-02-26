@@ -35,6 +35,7 @@ public class AiProxyPluginConfiguration {
     /**
      * Ai proxy plugin.
      *
+     * @param configurer the configurer
      * @return the shenyu plugin
      */
     @Bean
