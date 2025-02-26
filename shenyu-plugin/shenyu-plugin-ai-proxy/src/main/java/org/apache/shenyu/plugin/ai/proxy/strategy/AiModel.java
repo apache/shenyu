@@ -18,8 +18,12 @@
 package org.apache.shenyu.plugin.ai.proxy.strategy;
 
 import org.apache.shenyu.common.dto.convert.plugin.AiProxyConfig;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * The interface Ai model.
@@ -29,10 +33,11 @@ public interface AiModel {
     /**
      * Invoke mono.
      *
-     * @param aiProxyConfig the ai proxy config
-     * @param exchange      the exchange
-     * @param requestBody   the request body
+     * @param aiProxyConfig  the ai proxy config
+     * @param exchange       the exchange
+     * @param chain          the chain
+     * @param messageReaders the message readers
      * @return the mono
      */
-    Mono<Void> invoke(AiProxyConfig aiProxyConfig, ServerWebExchange exchange, String requestBody);
+    Mono<Void> invoke(AiProxyConfig aiProxyConfig, ServerWebExchange exchange, final ShenyuPluginChain chain, final List<HttpMessageReader<?>> messageReaders);
 }

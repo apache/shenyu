@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.ServerCodecConfigurer;
 
 /**
  * The type ai proxy plugin configuration.
@@ -37,8 +38,8 @@ public class AiProxyPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin aiProxyPlugin() {
-        return new AiProxyPlugin();
+    public ShenyuPlugin aiProxyPlugin(final ServerCodecConfigurer configurer) {
+        return new AiProxyPlugin(configurer.getReaders());
     }
     
     /**
