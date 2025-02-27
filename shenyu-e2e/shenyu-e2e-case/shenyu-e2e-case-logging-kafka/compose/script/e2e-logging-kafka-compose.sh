@@ -37,6 +37,10 @@ for sync in "${SYNC_ARRAY[@]}"; do
   echo -e "------------------\n"
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml up -d --quiet-pull
   sleep 30s
+  # 创建kafka topic
+  echo "create kafka topic shenyu-access-logging"
+  docker exec -it shenyu-kafka /opt/kafka/bin/kafka-topics.sh --create --topic shenyu-access-logging --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml up -d --quiet-pull
   sleep 30s
