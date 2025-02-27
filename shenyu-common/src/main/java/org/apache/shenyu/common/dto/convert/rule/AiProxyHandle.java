@@ -17,71 +17,89 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
+
 import java.util.Objects;
 
 /**
  * this is Ai Proxy plugin handle.
  */
 public class AiProxyHandle {
-
+    
     /**
-     * type.
+     * provider.
      */
-    private String type;
-
+    private String provider;
+    
     /**
      * base url.
      */
     private String baseUrl;
-
+    
     /**
      * api key.
      */
     private String apiKey;
-
+    
     /**
      * model.
      */
     private String model;
-
+    
     /**
      * temperature.
      */
-    private Double temperature;
-
+    private Double temperature = 0.8;
+    
     /**
      * max tokens.
      */
     private Integer maxTokens;
-
+    
     /**
      * prompt.
      */
     private String prompt;
-
+    
     /**
      * stream.
      */
     private Boolean stream = false;
-
+    
     /**
-     * get type.
+     * new default instance.
      *
-     * @return type
+     * @return AiProxyHandle
      */
-    public String getType() {
-        return type;
+    public static AiProxyHandle newDefaultInstance() {
+        AiProxyHandle aiProxyHandle = new AiProxyHandle();
+        aiProxyHandle.setProvider(AiModelProviderEnum.OPEN_AI.getName());
+        aiProxyHandle.setBaseUrl("https://api.openai.com");
+        aiProxyHandle.setApiKey("your-api-key");
+        aiProxyHandle.setModel("gpt-4o-mini");
+        aiProxyHandle.setTemperature(0.8);
+        aiProxyHandle.setStream(false);
+        return aiProxyHandle;
     }
-
+    
     /**
-     * set type.
+     * get provider.
      *
-     * @param type type
+     * @return provider
      */
-    public void setType(final String type) {
-        this.type = type;
+    public String getProvider() {
+        return provider;
     }
-
+    
+    /**
+     * set provider.
+     *
+     * @param provider provider
+     */
+    public void setProvider(final String provider) {
+        this.provider = provider;
+    }
+    
     /**
      * get base url.
      *
@@ -90,7 +108,7 @@ public class AiProxyHandle {
     public String getBaseUrl() {
         return baseUrl;
     }
-
+    
     /**
      * set base url.
      *
@@ -99,7 +117,7 @@ public class AiProxyHandle {
     public void setBaseUrl(final String baseUrl) {
         this.baseUrl = baseUrl;
     }
-
+    
     /**
      * get api key.
      *
@@ -108,7 +126,7 @@ public class AiProxyHandle {
     public String getApiKey() {
         return apiKey;
     }
-
+    
     /**
      * set api key.
      *
@@ -117,7 +135,7 @@ public class AiProxyHandle {
     public void setApiKey(final String apiKey) {
         this.apiKey = apiKey;
     }
-
+    
     /**
      * get model.
      *
@@ -126,7 +144,7 @@ public class AiProxyHandle {
     public String getModel() {
         return model;
     }
-
+    
     /**
      * set model.
      *
@@ -135,7 +153,7 @@ public class AiProxyHandle {
     public void setModel(final String model) {
         this.model = model;
     }
-
+    
     /**
      * get temperature.
      *
@@ -144,7 +162,7 @@ public class AiProxyHandle {
     public Double getTemperature() {
         return temperature;
     }
-
+    
     /**
      * set temperature.
      *
@@ -153,7 +171,7 @@ public class AiProxyHandle {
     public void setTemperature(final Double temperature) {
         this.temperature = temperature;
     }
-
+    
     /**
      * get max tokens.
      *
@@ -162,7 +180,7 @@ public class AiProxyHandle {
     public Integer getMaxTokens() {
         return maxTokens;
     }
-
+    
     /**
      * set max tokens.
      *
@@ -171,7 +189,7 @@ public class AiProxyHandle {
     public void setMaxTokens(final Integer maxTokens) {
         this.maxTokens = maxTokens;
     }
-
+    
     /**
      * get prompt.
      *
@@ -180,7 +198,7 @@ public class AiProxyHandle {
     public String getPrompt() {
         return prompt;
     }
-
+    
     /**
      * set prompt.
      *
@@ -189,7 +207,7 @@ public class AiProxyHandle {
     public void setPrompt(final String prompt) {
         this.prompt = prompt;
     }
-
+    
     /**
      * get stream.
      *
@@ -198,7 +216,7 @@ public class AiProxyHandle {
     public Boolean getStream() {
         return stream;
     }
-
+    
     /**
      * set stream.
      *
@@ -207,7 +225,7 @@ public class AiProxyHandle {
     public void setStream(final Boolean stream) {
         this.stream = stream;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -217,7 +235,7 @@ public class AiProxyHandle {
             return false;
         }
         AiProxyHandle that = (AiProxyHandle) o;
-        return Objects.equals(type, that.type)
+        return Objects.equals(provider, that.provider)
                 && Objects.equals(baseUrl, that.baseUrl)
                 && Objects.equals(apiKey, that.apiKey)
                 && Objects.equals(model, that.model)
@@ -226,16 +244,16 @@ public class AiProxyHandle {
                 && Objects.equals(prompt, that.prompt)
                 && Objects.equals(stream, that.stream);
     }
-
+    
     @Override
     public int hashCode() {
-        return Objects.hash(type, baseUrl, apiKey, model, temperature, maxTokens, prompt, stream);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, prompt, stream);
     }
-
+    
     @Override
     public String toString() {
-        return "AiProxyHandle{" + "type='" + type + '\'' + "baseUrl='" + baseUrl + '\'' + ", apiKey='" + apiKey + '\''
-                + ", model='" + model
+        return "AiProxyHandle{" + "provider='" + provider + '\'' + "baseUrl='" + baseUrl + '\'' + ", apiKey='" + apiKey
+                + '\'' + ", model='" + model
                 + '\''
                 + ", temperature=" + temperature + ", maxTokens=" + maxTokens
                 + ", prompt='" + prompt + '\'' + ", stream=" + stream + '}';
