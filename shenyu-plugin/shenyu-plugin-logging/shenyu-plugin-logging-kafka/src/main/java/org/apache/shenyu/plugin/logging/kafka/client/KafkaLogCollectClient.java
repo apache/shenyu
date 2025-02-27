@@ -65,9 +65,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
      */
     @Override
     public void initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
-        if (Objects.isNull(config)
-                || StringUtils.isBlank(config.getBootstrapServer())
-                || StringUtils.isBlank(config.getTopic())) {
+        if (StringUtils.isBlank(config.getBootstrapServer()) || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
