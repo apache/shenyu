@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.dubbo.common.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * The type Dubbo rpc ext.
@@ -45,6 +46,8 @@ public class DubboRpcExt implements Serializable {
     private String protocol;
 
     private String serialization;
+
+    private List<DubboRpcMethodExt> methods;
 
     /**
      * constructor without parameter.
@@ -267,6 +270,24 @@ public class DubboRpcExt implements Serializable {
         this.serialization = serialization;
     }
 
+    /**
+     * get methods.
+     *
+     * @return methods
+     */
+    public List<DubboRpcMethodExt> getMethods() {
+        return methods;
+    }
+
+    /**
+     * set methods.
+     *
+     * @param methods methods
+     */
+    public void setMethods(final List<DubboRpcMethodExt> methods) {
+        this.methods = methods;
+    }
+
     @Override
     public String toString() {
         return "DubboRpcExt{"
@@ -280,6 +301,7 @@ public class DubboRpcExt implements Serializable {
                 + ", cluster='" + cluster + '\''
                 + ", protocol='" + protocol + '\''
                 + ", serialization='" + serialization + '\''
+                + ", methods=" + methods + '\''
                 + '}';
     }
 
@@ -316,6 +338,8 @@ public class DubboRpcExt implements Serializable {
         private String protocol;
 
         private String serialization;
+
+        private List<DubboRpcMethodExt> methods;
 
         /**
          * constructor without parameter.
@@ -434,6 +458,17 @@ public class DubboRpcExt implements Serializable {
         }
 
         /**
+         * set methods.
+         *
+         * @param methods methods
+         * @return Builder
+         */
+        public Builder methods(final List<DubboRpcMethodExt> methods) {
+            this.methods = methods;
+            return this;
+        }
+
+        /**
          * build DubboRpcExt.
          *
          * @return DubboRpcExt
@@ -450,6 +485,7 @@ public class DubboRpcExt implements Serializable {
             dubboRpcExt.setCluster(cluster);
             dubboRpcExt.setProtocol(protocol);
             dubboRpcExt.setSerialization(serialization);
+            dubboRpcExt.setMethods(methods);
             return dubboRpcExt;
         }
     }
