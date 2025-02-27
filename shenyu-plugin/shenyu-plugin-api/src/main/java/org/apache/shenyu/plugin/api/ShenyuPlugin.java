@@ -129,7 +129,7 @@ public interface ShenyuPlugin {
      * @return http/spring cloud return true, others false.
      */
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
-        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
+        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.AI);
     }
 
     /**

@@ -26,6 +26,7 @@ import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
+import org.apache.dubbo.rpc.support.RpcUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
@@ -89,7 +90,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
     }
     
     private <T> Invoker<T> dubboSelect(final List<Invoker<T>> invokers, final URL url, final Invocation invocation) {
-        String loadBalance = Optional.ofNullable(url.getParameter(Constants.DUBBO_LOAD_BALANCE)).orElse(CommonConstants.DEFAULT_LOADBALANCE);
+        String loadBalance = Optional.ofNullable(url.getMethodParameter(RpcUtils.getMethodName(invocation), Constants.DUBBO_LOAD_BALANCE)).orElse(CommonConstants.DEFAULT_LOADBALANCE);
         return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadBalance).select(invokers, url, invocation);
     }
 }
