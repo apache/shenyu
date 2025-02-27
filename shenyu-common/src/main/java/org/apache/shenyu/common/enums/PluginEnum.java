@@ -270,7 +270,7 @@ public enum PluginEnum {
     /**
      * Ai-proxy plugin enum.
      */
-    AI_PROXY(440, 0, "aiProxy"),
+    AI_PROXY(200, 0, "aiProxy"),
     
     /**
      * Basic-auth plugin enum.

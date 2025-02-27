@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.plugin.ai.proxy.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiProxyConfig;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -30,15 +31,14 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * this is ai proxy plugin.
+ * this is ai proxy plugin handler.
  */
 public class AiProxyPluginHandler implements PluginDataHandler {
     
-    public static final Supplier<CommonHandleCache<String, AiProxyHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, AiProxyHandle>> SELECTOR_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -52,18 +52,17 @@ public class AiProxyPluginHandler implements PluginDataHandler {
     }
     
     @Override
-    public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle())
-                .ifPresent(s -> {
-                    AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(s, AiProxyHandle.class);
-                    CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), aiProxyHandle);
-                });
+    public void handlerSelector(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData.getHandle())) {
+            return;
+        }
+        AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), AiProxyHandle.class);
+        SELECTOR_CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), aiProxyHandle);
     }
     
     @Override
-    public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData)
-                .ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+    public void removeSelector(final SelectorData selectorData) {
+        SELECTOR_CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
     
     @Override
