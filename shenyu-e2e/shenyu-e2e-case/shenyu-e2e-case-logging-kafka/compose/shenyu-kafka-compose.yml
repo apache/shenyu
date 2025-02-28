@@ -60,7 +60,7 @@ services:
       timeout: 2s
       retries: 30
     ports:
-      - "8189:8189"
+      - "31189:8189"
     networks:
       - shenyu
 

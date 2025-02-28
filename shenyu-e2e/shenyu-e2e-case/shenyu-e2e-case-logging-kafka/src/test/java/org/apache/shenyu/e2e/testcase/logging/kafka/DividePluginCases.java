@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.testcase.logging.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -34,7 +35,6 @@ import org.apache.shenyu.e2e.model.data.Condition;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
@@ -53,9 +54,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     private static final String TOPIC = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
-
-    @Value("${HOST_IP}")
-    private static String kafkaBroker;
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
 
@@ -116,19 +116,22 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
                                         consumer.subscribe(Arrays.asList(TOPIC));
                                         Thread.sleep(1000 * 30);
-                                        AtomicReference<Boolean> keepCosuming = new AtomicReference<>(true);
+                                        AtomicReference<Boolean> keepConsuming = new AtomicReference<>(true);
                                         Instant start = Instant.now();
-                                        while (keepCosuming.get()) {
+                                        while (keepConsuming.get()) {
+                                            LOG.info("keepConsuming.get():{}", keepConsuming.get());
                                             if (Duration.between(start, Instant.now()).toMillis() > 300000) {
-                                                keepCosuming.set(false);
+                                                keepConsuming.set(false);
+                                                LOG.info("timeout1");
                                             }
                                             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+                                            LOG.info("records.count:{}", records.count());
                                             records.forEach(record -> {
                                                 String message = record.value();
                                                 LOG.info("kafka message:{}", message);
                                                 if (message.contains("/http/order/findById")) {
                                                     isLog.set(true);
-                                                    keepCosuming.set(false);
+                                                    keepConsuming.set(false);
                                                 }
                                             });
                                         }

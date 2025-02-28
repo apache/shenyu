@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.testcase.logging.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
@@ -69,6 +70,8 @@ public class DividePluginTest {
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginTest.class);
 
     private List<String> selectorIds = Lists.newArrayList();
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
@@ -120,7 +123,7 @@ public class DividePluginTest {
                 "{\"topic\":\"shenyu-access-logging\",\"bootstrapServer\":\"shenyu-kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
         Map<String, Integer> plugins = gatewayClient.getPlugins();
-        LOG.info("shenyu e2e plugin list ={}", plugins);
+        LOG.info("shenyu e2e plugin list: {}", MAPPER.writeValueAsString(plugins));
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka.LoggingKafkaPlugin");
     }
 
