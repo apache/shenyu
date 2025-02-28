@@ -68,10 +68,10 @@ import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAM
 public class DividePluginTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginTest.class);
-
-    private List<String> selectorIds = Lists.newArrayList();
     
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    
+    private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
