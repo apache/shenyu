@@ -68,5 +68,5 @@ services:
 networks:
   shenyu:
     name: shenyu
-    driver: host
+    driver: bridge
     external: true
