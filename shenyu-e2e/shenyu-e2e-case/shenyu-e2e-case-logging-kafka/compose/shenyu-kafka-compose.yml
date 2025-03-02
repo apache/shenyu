@@ -26,6 +26,7 @@ services:
       - shenyu
 
   shenyu-kafka:
+    hostname: shenyu-kafka
     container_name: shenyu-kafka
     image: confluentinc/cp-kafka:latest
     restart: always
@@ -47,24 +48,24 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  shenyu-examples-http:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-http
-    image: shenyu-examples-http:latest
-    restart: always
-    environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
-    healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
-      timeout: 2s
-      retries: 30
-    ports:
-      - "31189:8189"
-    networks:
-      - shenyu
+#  shenyu-examples-http:
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2048M
+#    container_name: shenyu-examples-http
+#    image: shenyu-examples-http:latest
+#    restart: always
+#    environment:
+#      - shenyu.register.serverLists=http://shenyu-admin:9095
+#    healthcheck:
+#      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
+#      timeout: 2s
+#      retries: 30
+#    ports:
+#      - "31189:8189"
+#    networks:
+#      - shenyu
 
 networks:
   shenyu:
