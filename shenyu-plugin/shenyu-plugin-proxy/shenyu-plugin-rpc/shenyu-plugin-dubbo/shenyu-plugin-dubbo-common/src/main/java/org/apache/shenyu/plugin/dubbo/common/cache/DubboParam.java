@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.dubbo.common.cache;
 
+import java.util.List;
+
 /**
  * DubboParam.
  */
@@ -66,6 +68,16 @@ public class DubboParam {
      * the protocol (dubbo3 sub protocol).
      */
     private String protocol;
+
+    /**
+     * the serialization.
+     */
+    private String serialization;
+
+    /**
+     * the methods.
+     */
+    private List<DubboMethodParam> methods;
 
     /**
      * Gets group.
@@ -225,5 +237,41 @@ public class DubboParam {
      */
     public void setProtocol(final String protocol) {
         this.protocol = protocol;
+    }
+
+    /**
+     * get serialization.
+     *
+     * @return serialization
+     */
+    public String getSerialization() {
+        return serialization;
+    }
+
+    /**
+     * get serialization.
+     *
+     * @param serialization serialization
+     */
+    public void setSerialization(final String serialization) {
+        this.serialization = serialization;
+    }
+
+    /**
+     * get methods.
+     *
+     * @return methods
+     */
+    public List<DubboMethodParam> getMethods() {
+        return methods;
+    }
+
+    /**
+     * set methods.
+     *
+     * @param methods methods
+     */
+    public void setMethods(final List<DubboMethodParam> methods) {
+        this.methods = methods;
     }
 }

@@ -21,15 +21,20 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import jakarta.annotation.Nonnull;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
+import org.apache.dubbo.config.MethodConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
@@ -38,6 +43,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
+import org.apache.shenyu.plugin.dubbo.common.cache.DubboMethodParam;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,11 +232,30 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             if (StringUtils.isNoneBlank(dubboParam.getLoadbalance())) {
                 reference.getParameters().put(Constants.DUBBO_LOAD_BALANCE, dubboParam.getLoadbalance());
             }
+            if ("protobuf".equals(dubboParam.getSerialization())) {
+                reference.setGeneric(CommonConstants.GENERIC_SERIALIZATION_PROTOBUF);
+            }
             // set dubbo sub protocol
             Optional.ofNullable(dubboParam.getProtocol()).ifPresent(reference::setProtocol);
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
+            // methods
+            if (CollectionUtils.isNotEmpty(dubboParam.getMethods())) {
+                reference.setMethods(new ArrayList<>());
+                for (DubboMethodParam dubboMethodParam : dubboParam.getMethods()) {
+                    MethodConfig methodConfig = new MethodConfig();
+                    methodConfig.setName(dubboMethodParam.getName());
+                    methodConfig.setLoadbalance("gray");
+                    methodConfig.setRetries(dubboMethodParam.getRetries());
+                    methodConfig.setTimeout(dubboMethodParam.getTimeout());
+                    methodConfig.setSent(dubboMethodParam.getSent());
+                    Map<String, String> methodsParameters = new HashMap<>(1);
+                    methodsParameters.put(Constants.DUBBO_LOAD_BALANCE, dubboMethodParam.getLoadbalance());
+                    methodConfig.setParameters(methodsParameters);
+                    reference.getMethods().add(methodConfig);
+                }
+            }
         }
         if (StringUtils.isNotBlank(namespace)) {
             RegistryConfig registryConfig = new RegistryConfig();
