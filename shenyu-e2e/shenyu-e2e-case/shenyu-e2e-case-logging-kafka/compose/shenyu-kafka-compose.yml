@@ -32,7 +32,7 @@ services:
     network_mode: "host"
     environment:
       - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - KAFKA_CFG_ZOOKEEPER_CONNECT=localhost:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
