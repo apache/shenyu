@@ -115,12 +115,12 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
                                         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
                                         consumer.subscribe(Arrays.asList(TOPIC));
-                                        Thread.sleep(1000 * 30);
+//                                        Thread.sleep(1000 * 30);
                                         AtomicReference<Boolean> keepConsuming = new AtomicReference<>(true);
                                         Instant start = Instant.now();
                                         while (keepConsuming.get()) {
                                             LOG.info("keepConsuming.get():{}", keepConsuming.get());
-                                            if (Duration.between(start, Instant.now()).toMillis() > 300000) {
+                                            if (Duration.between(start, Instant.now()).toMillis() > 30000) {
                                                 keepConsuming.set(false);
                                                 LOG.info("timeout1");
                                             }
