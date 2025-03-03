@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.junit.jupiter.api.Assertions;
@@ -35,8 +34,6 @@ import java.util.Map;
 public class WaitDataSync {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WaitDataSync.class);
-    
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * waitAdmin2GatewayDataSync.
@@ -84,7 +81,6 @@ public class WaitDataSync {
      */
     public static void waitGatewayPluginUse(final GatewayClient gatewayClient, final String pluginClass) throws Exception {
         Map<String, Integer> pluginMap = gatewayClient.getPlugins();
-        LOGGER.info("pluginMap:{}", MAPPER.writeValueAsString(pluginMap));
         int retryNum = 0;
         boolean existPlugin = false;
         while (!existPlugin && retryNum < 10) {
@@ -97,7 +93,6 @@ public class WaitDataSync {
             Thread.sleep(10000);
             retryNum++;
             pluginMap = gatewayClient.getPlugins();
-            LOGGER.info("pluginMap:{}", MAPPER.writeValueAsString(pluginMap));
         }
         if (!existPlugin) {
             throw new AssertionFailedError(pluginClass + " plugin not found");
