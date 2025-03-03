@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 
@@ -122,7 +123,8 @@ public class DividePluginTest {
         reqBody.put("config",
                 "{\"topic\":\"shenyu-access-logging\",\"bootstrapServer\":\"localhost:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
-        Map<String, Integer> plugins = gatewayClient.getPlugins();
+        TimeUnit.SECONDS.sleep(5);
+//        Map<String, Integer> plugins = gatewayClient.getPlugins();
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka.LoggingKafkaPlugin");
     }
 
