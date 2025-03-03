@@ -121,7 +121,7 @@ public class DividePluginTest {
         reqBody.put("sort", "180");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config",
-                "{\"topic\":\"shenyu-access-logging\",\"bootstrapServer\":\"localhost:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
+                "{\"topic\":\"shenyu-access-logging\",\"bootstrapServer\":\"shenyu-kafka:9092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
         TimeUnit.SECONDS.sleep(5);
 //        Map<String, Integer> plugins = gatewayClient.getPlugins();

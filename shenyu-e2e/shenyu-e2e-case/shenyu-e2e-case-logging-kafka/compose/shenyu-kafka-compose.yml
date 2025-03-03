@@ -20,21 +20,28 @@ services:
   shenyu-zk:
     container_name: shenyu-zk
     image: zookeeper:latest
-    network_mode: "host"
+#    network_mode: "host"
+    ports:
+      - "2181:2181"
     restart: always
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
       - ZOO_PORT=2181
+    networks:
+      - shenyu
   
   shenyu-kafka:
     image: bitnami/kafka:latest
     container_name: shenyu-kafka
-    network_mode: "host"
+#    network_mode: "host"
+    ports:
+      - "9092:9092"
+      - "29092:29092"
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=localhost:2181
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=shenyu-zk:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
@@ -49,25 +56,25 @@ services:
       start_period: 30s
     depends_on:
       - shenyu-zk
-
-#  shenyu-examples-http:
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 2048M
-#    container_name: shenyu-examples-http
-#    image: shenyu-examples-http:latest
-#    restart: always
-#    environment:
-#      - shenyu.register.serverLists=http://shenyu-admin:9095
-#    healthcheck:
-#      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
-#      timeout: 2s
-#      retries: 30
-#    ports:
-#      - "31189:8189"
-#    networks:
-#      - shenyu
+    networks:
+      - shenyu
+  
+  shenyu-examples-http:
+    image: shenyu-examples-http:latest
+    container_name: shenyu-examples-http
+    environment:
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+    ports:
+      - "31189:8189"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+    restart: always
+    networks:
+      - shenyu
 
 networks:
   shenyu:

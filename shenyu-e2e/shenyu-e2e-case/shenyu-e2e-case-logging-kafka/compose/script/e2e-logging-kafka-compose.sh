@@ -45,8 +45,8 @@ for sync in "${SYNC_ARRAY[@]}"; do
   echo "create kafka topic shenyu-access-logging"
   docker exec shenyu-kafka kafka-topics.sh --create --topic shenyu-access-logging --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
 
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
-  sleep 30s
+#  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
+#  sleep 30s
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health
   sleep 10s
@@ -70,6 +70,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
+#  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done
