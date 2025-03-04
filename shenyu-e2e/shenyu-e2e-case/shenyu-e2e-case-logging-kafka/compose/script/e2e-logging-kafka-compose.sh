@@ -43,7 +43,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sleep 30s
   # 创建kafka topic
   echo "create kafka topic shenyu-access-logging"
-  docker exec shenyu-kafka kafka-topics.sh --create --topic shenyu-access-logging --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+  docker exec shenyu-kafka kafka-topics --create --topic shenyu-access-logging --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
 
 #  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
 #  sleep 30s
