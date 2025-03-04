@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
