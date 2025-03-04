@@ -104,41 +104,55 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
                                     try {
-                                        Thread.sleep(1000 * 30);
-//                                        kafkaBroker = kafkaBroker + ":9092";
-//                                        LOG.info("kafkaBroker = " + kafkaBroker);
+                                        // Send request first
                                         request.request(Method.GET, "/http/order/findById?id=23");
+                                        
                                         Properties properties = new Properties();
                                         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
                                         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shenyu-consumer-group");
                                         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
                                         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-                                        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-                                        consumer.subscribe(Arrays.asList(TOPIC));
-                                        Thread.sleep(1000 * 30);
-                                        AtomicReference<Boolean> keepConsuming = new AtomicReference<>(true);
-                                        Instant start = Instant.now();
-                                        while (keepConsuming.get()) {
-                                            if (Duration.between(start, Instant.now()).toMillis() > 600000) {
-                                                keepConsuming.set(false);
-                                                LOG.info("timeout1");
-                                            }
-                                            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
-                                            LOG.info("records.count:{}", records.count());
-                                            records.forEach(record -> {
-                                                String message = record.value();
-                                                LOG.info("kafka message:{}", message);
-                                                if (message.contains("/http/order/findById")) {
-                                                    isLog.set(true);
-                                                    keepConsuming.set(false);
+                                        // 启用自动提交
+                                        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+                                        // 自动提交间隔
+                                        properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+                                        
+                                        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
+                                            consumer.subscribe(Arrays.asList(TOPIC));
+                                            
+                                            // Set a reasonable timeout period, e.g. 30 seconds
+                                            Instant start = Instant.now();
+                                            while (Duration.between(start, Instant.now()).getSeconds() < 30) {
+                                                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+                                                LOG.info("records.count:{}", records.count());
+                                                
+                                                for (var record : records) {
+                                                    String message = record.value();
+                                                    LOG.info("kafka message:{}", message);
+                                                    if (message.contains("/http/order/findById")) {
+                                                        isLog.set(true);
+                                                        
+                                                        // 如果使用手动提交，在处理完消息后提交
+                                                        // consumer.commitSync();  // 同步提交
+                                                        // 或者
+                                                        // consumer.commitAsync(); // 异步提交
+                                                        
+                                                        return;
+                                                    }
                                                 }
-                                            });
+                                                
+                                                // 也可以在每次轮询后批量提交
+                                                // if (!records.isEmpty() && !properties.getProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true").equals("true")) {
+                                                //     consumer.commitSync();  // 或 consumer.commitAsync();
+                                                // }
+                                            }
+                                            // If expected message not found within timeout period
+                                            LOG.error("Timeout waiting for kafka message");
+                                            Assertions.fail("Did not receive expected message within timeout period");
                                         }
-                                        Assertions.assertTrue(isLog.get());
-                                    } catch (InterruptedException e) {
-                                        LOG.info("isLog.get():{}", isLog.get());
-                                        LOG.error("error", e);
-                                        throw new RuntimeException(e);
+                                    } catch (Exception e) {
+                                        LOG.error("Error during kafka message consumption", e);
+                                        throw new RuntimeException("Failed to consume kafka message", e);
                                     }
                                 }).build()
                 ).build();

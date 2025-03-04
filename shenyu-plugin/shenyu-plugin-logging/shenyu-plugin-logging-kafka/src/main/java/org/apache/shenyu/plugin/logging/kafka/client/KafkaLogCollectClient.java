@@ -131,6 +131,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                         LOG.error("kafka push logs error", exception);
                     }
                 });
+                producer.flush();
             } catch (Exception e) {
                 LOG.error("kafka push logs error", e);
             }
