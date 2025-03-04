@@ -119,7 +119,6 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         AtomicReference<Boolean> keepConsuming = new AtomicReference<>(true);
                                         Instant start = Instant.now();
                                         while (keepConsuming.get()) {
-                                            LOG.info("keepConsuming.get():{}", keepConsuming.get());
                                             if (Duration.between(start, Instant.now()).toMillis() > 300000) {
                                                 keepConsuming.set(false);
                                                 LOG.info("timeout1");

@@ -30,6 +30,7 @@ import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
@@ -123,13 +124,13 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                     .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)
                     ).orElse(topic);
             try {
-                LOG.info("logTopic:{}", logTopic);
+                LOG.info("logTopic:{}, log:{}", logTopic, log);
                 producer.send(toProducerRecord(logTopic, log), (metadata, exception) -> {
+                    LOG.info("kafka push logs metadata:{}", GsonUtils.getInstance().toJson(metadata));
                     if (Objects.nonNull(exception)) {
                         LOG.error("kafka push logs error", exception);
                     }
                 });
-                producer.commitTransaction();
             } catch (Exception e) {
                 LOG.error("kafka push logs error", e);
             }
