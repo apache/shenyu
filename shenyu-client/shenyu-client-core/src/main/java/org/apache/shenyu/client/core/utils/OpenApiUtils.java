@@ -25,10 +25,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * openApiUtils.
@@ -149,6 +164,210 @@ public class OpenApiUtils {
                 .put("409", conflictMap)
                 .build();
     }
+
+    /**
+     * Perhaps a better way is to generate API documentation through OpenAPI annotations.
+     *
+     * @param method the method
+     * @return return type
+     */
+    public static ResponseType parseReturnType(final Method method) {
+        Type returnType = method.getGenericReturnType();
+        return parseType("ROOT", returnType, 0, new HashMap<>(16));
+    }
+
+    private static ResponseType parseType(final String name, final Type type, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+        ResponseType responseType = new ResponseType();
+        if (StringUtils.isBlank(name)) {
+            responseType.setName(type.getTypeName());
+        } else {
+            responseType.setName(name);
+        }
+        if (depth > 5) {
+            responseType.setType("object");
+            return responseType;
+        }
+        if (type instanceof Class) {
+            return parseClass(responseType, (Class<?>) type, depth, typeVariableMap);
+        } else if (type instanceof ParameterizedType) {
+            return parseParameterizedType(responseType, (ParameterizedType) type, depth, typeVariableMap);
+        } else if (type instanceof GenericArrayType) {
+            return parseGenericArrayType(responseType, (GenericArrayType) type, depth, typeVariableMap);
+        } else if (type instanceof TypeVariable) {
+            Type actualType = typeVariableMap.get(type);
+            if (Objects.nonNull(actualType)) {
+                return parseType(name, actualType, depth, typeVariableMap);
+            } else if (((TypeVariable<?>) type).getBounds().length > 0) {
+                Type upperBound = ((TypeVariable<?>) type).getBounds()[0];
+                return parseType(name, upperBound, depth, typeVariableMap);
+            } else {
+                responseType.setType("object");
+                return responseType;
+            }
+        } else if (type instanceof WildcardType) {
+            responseType.setType("object");
+            return responseType;
+        } else {
+            responseType.setType("object");
+            return responseType;
+        }
+    }
+
+    private static ResponseType parseClass(final ResponseType responseType, final Class<?> clazz, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+        if (clazz.isArray()) {
+            responseType.setType("array");
+            responseType.setRefs(Collections.singletonList(parseType("ITEMS", clazz.getComponentType(), depth + 1, typeVariableMap)));
+            return responseType;
+        } else if (clazz.isEnum()) {
+            responseType.setType("string");
+            return responseType;
+        } else if (isBooleanType(clazz)) {
+            responseType.setType("boolean");
+            return responseType;
+        } else if (isIntegerType(clazz)) {
+            responseType.setType("integer");
+            return responseType;
+        } else if (isNumberType(clazz)) {
+            responseType.setType("number");
+            return responseType;
+        } else if (isStringType(clazz)) {
+            responseType.setType("string");
+            return responseType;
+        } else if (isDateType(clazz)) {
+            responseType.setType("date");
+            return responseType;
+        } else {
+            List<ResponseType> refs = new ArrayList<>();
+            for (Field field : clazz.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                refs.add(parseType(field.getName(), field.getGenericType(), depth + 1, typeVariableMap));
+            }
+            responseType.setType("object");
+            responseType.setRefs(refs);
+            return responseType;
+        }
+    }
+
+    private static ResponseType parseParameterizedType(final ResponseType responseType, final ParameterizedType type, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+        Class<?> rawType = (Class<?>) type.getRawType();
+        Type[] actualTypeArguments = type.getActualTypeArguments();
+        TypeVariable<?>[] typeVariables = rawType.getTypeParameters();
+        Map<TypeVariable<?>, Type> newTypeVariableMap = new HashMap<>(typeVariableMap);
+        for (int i = 0; i < typeVariables.length; i++) {
+            newTypeVariableMap.put(typeVariables[i], actualTypeArguments[i]);
+        }
+        if (Collection.class.isAssignableFrom(rawType)) {
+            Type actualType = actualTypeArguments[0];
+            ResponseType elementParam = parseType("ITEMS", actualType, depth + 1, newTypeVariableMap);
+            responseType.setRefs(Collections.singletonList(elementParam));
+            responseType.setType("array");
+            return responseType;
+        } else if (Map.class.isAssignableFrom(rawType)) {
+            Type keyType = actualTypeArguments[0];
+            Type valueType = actualTypeArguments[1];
+            ResponseType keyParam = parseType("key", keyType, depth + 1, newTypeVariableMap);
+            ResponseType valueParam = parseType("value", valueType, depth + 1, newTypeVariableMap);
+            List<ResponseType> children = new ArrayList<>();
+            children.add(keyParam);
+            children.add(valueParam);
+            responseType.setRefs(children);
+            responseType.setType("map");
+            return responseType;
+        } else {
+            List<ResponseType> refs = new ArrayList<>();
+            for (Field field : rawType.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                ResponseType fieldParam = parseType(field.getName(), field.getGenericType(), depth + 1, newTypeVariableMap);
+                refs.add(fieldParam);
+            }
+            responseType.setType("object");
+            responseType.setRefs(refs);
+            return responseType;
+        }
+    }
+
+    private static ResponseType parseGenericArrayType(final ResponseType responseType, final GenericArrayType type, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+        responseType.setRefs(Collections.singletonList(parseType("ITEMS", type.getGenericComponentType(), depth + 1, typeVariableMap)));
+        responseType.setType("array");
+        return responseType;
+    }
+
+    private static boolean isDateType(final Class<?> clazz) {
+        return clazz == Date.class || clazz == LocalDate.class
+                || clazz == LocalDateTime.class || clazz == LocalTime.class;
+    }
+
+    private static boolean isStringType(final Class<?> clazz) {
+        return CharSequence.class.isAssignableFrom(clazz) || clazz == char.class
+                || clazz == Character.class;
+    }
+
+    private static boolean isBooleanType(final Class<?> clazz) {
+        return clazz == boolean.class || clazz == Boolean.class;
+    }
+
+    private static boolean isIntegerType(final Class<?> clazz) {
+        return clazz == byte.class || clazz == Byte.class
+                || clazz == short.class || clazz == Short.class
+                || clazz == int.class || clazz == Integer.class
+                || clazz == long.class || clazz == Long.class;
+    }
+
+    private static boolean isNumberType(final Class<?> clazz) {
+        return clazz == float.class || clazz == Float.class
+                || clazz == double.class || clazz == Double.class;
+    }
+
+    public static class ResponseType {
+
+        private String name;
+
+        private String description;
+
+        private String type;
+
+        /**
+         * child fields.
+         */
+        private List<ResponseType> refs;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(final String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(final String description) {
+            this.description = description;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(final String type) {
+            this.type = type;
+        }
+
+        public List<ResponseType> getRefs() {
+            return refs;
+        }
+
+        public void setRefs(final List<ResponseType> refs) {
+            this.refs = refs;
+        }
+    }
+
 
     public static class Parameter {
 
