@@ -136,7 +136,9 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
                 .put("tags", buildTags(api))
                 .put("operationId", path)
                 .put("parameters", OpenApiUtils.generateDocumentParameters(path, api.getApiMethod()))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
+                .put("responses", OpenApiUtils.generateDocumentResponse(path))
+                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(api.getApiMethod())))
+                .build();
         return GsonUtils.getInstance().toJson(documentMap);
     }
     
