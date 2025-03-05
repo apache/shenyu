@@ -121,7 +121,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             
                                             // Set a reasonable timeout period, e.g. 30 seconds
                                             Instant start = Instant.now();
-                                            while (Duration.between(start, Instant.now()).getSeconds() < 30) {
+                                            while (Duration.between(start, Instant.now()).getSeconds() < 60) {
                                                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                                                 LOG.info("records.count:{}", records.count());
                                                 

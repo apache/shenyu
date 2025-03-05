@@ -71,8 +71,8 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
             return;
         }
 
-        LOG.info("isLog.get():{}", config);
-        LOG.info("isLog.get():{}", config.getTopic());
+        LOG.info("initClient0:{}", GsonUtils.getInstance().toJson(config));
+        
         String topic = config.getTopic();
         String nameserverAddress = config.getBootstrapServer();
 
