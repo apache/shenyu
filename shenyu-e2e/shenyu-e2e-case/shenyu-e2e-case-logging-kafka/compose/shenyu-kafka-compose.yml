@@ -33,6 +33,8 @@ services:
   shenyu-kafka:
     image: confluentinc/cp-kafka:latest
     container_name: shenyu-kafka
+    extra_hosts:
+      - "shenyu-kafka:127.0.0.1"
     depends_on:
       - shenyu-zk
     ports:
