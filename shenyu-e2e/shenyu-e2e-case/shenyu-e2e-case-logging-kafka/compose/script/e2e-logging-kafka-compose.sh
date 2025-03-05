@@ -67,7 +67,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "------------------"
     docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml logs
 #    echo "kafka-console-consumer log:"
-#    docker exec shenyu-kafka kafka-console-consumer --topic shenyu-access-logging --bootstrap-server localhost:9092 --from-beginning
+    timeout 50s docker exec shenyu-kafka kafka-console-consumer --topic shenyu-access-logging --bootstrap-server localhost:9092 --from-beginning
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down

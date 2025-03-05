@@ -101,7 +101,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
-                                    AtomicBoolean isLog = new AtomicBoolean(false);
+                                    AtomicBoolean messageFound = new AtomicBoolean(false);
                                     try {
                                         // Send request first
                                         request.request(Method.GET, "/http/order/findById?id=23");
@@ -111,43 +111,41 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shenyu-consumer-group");
                                         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
                                         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-                                        // 启用自动提交
-                                        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-                                        // 自动提交间隔
-                                        properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+                                        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+                                        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+                                        properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "10000");
+                                        properties.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, "5000");
                                         
                                         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
                                             consumer.subscribe(Arrays.asList(TOPIC));
                                             
-                                            // Set a reasonable timeout period, e.g. 30 seconds
                                             Instant start = Instant.now();
-                                            while (Duration.between(start, Instant.now()).getSeconds() < 300) {
-                                                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+                                            // Set timeout to 30 seconds
+                                            while (Duration.between(start, Instant.now()).getSeconds() < 90) {
+                                                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
                                                 LOG.info("records.count:{}", records.count());
                                                 
                                                 for (var record : records) {
                                                     String message = record.value();
                                                     LOG.info("kafka message:{}", message);
                                                     if (message.contains("/http/order/findById")) {
-                                                        isLog.set(true);
-                                                        
-                                                        // 如果使用手动提交，在处理完消息后提交
-                                                        // consumer.commitSync();  // 同步提交
-                                                        // 或者
-                                                        // consumer.commitAsync(); // 异步提交
-                                                        
-                                                        return;
+                                                        messageFound.set(true);
+                                                        consumer.commitSync();
+                                                        break;
                                                     }
                                                 }
                                                 
-                                                // 也可以在每次轮询后批量提交
-                                                // if (!records.isEmpty() && !properties.getProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true").equals("true")) {
-                                                //     consumer.commitSync();  // 或 consumer.commitAsync();
-                                                // }
+                                                if (messageFound.get()) {
+                                                    break;
+                                                }
                                             }
-                                            // If expected message not found within timeout period
-                                            LOG.error("Timeout waiting for kafka message");
-                                            Assertions.fail("Did not receive expected message within timeout period");
+                                            
+                                            if (!messageFound.get()) {
+                                                LOG.error("Timeout waiting for kafka message");
+                                                Assertions.fail("Did not receive expected message within timeout period");
+                                            }
+                                            
+                                            Assertions.assertTrue(messageFound.get(), "Expected message was not found in Kafka topic");
                                         }
                                     } catch (Exception e) {
                                         LOG.error("Error during kafka message consumption", e);
