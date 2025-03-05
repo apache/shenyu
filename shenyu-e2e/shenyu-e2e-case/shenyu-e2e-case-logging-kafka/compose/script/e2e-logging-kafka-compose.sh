@@ -59,13 +59,13 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "------------------"
     echo "shenyu-admin log:"
     echo "------------------"
-#    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-admin
+    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-admin
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
     echo "shenyu-kafka log:"
     echo "------------------"
-#    docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml logs
+    docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml logs
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down

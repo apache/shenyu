@@ -123,7 +123,7 @@ public class DividePluginTest {
         reqBody.put("config",
                 "{\"topic\":\"shenyu-access-logging\",\"bootstrapServer\":\"shenyu-kafka:29092\",\"sampleRate\":\"1\",\"maxResponseBody\":524288,\"maxRequestBody\":524288,\"compressAlg\":\"none\"}");
         adminClient.changePluginStatus("1801816010882822171", reqBody);
-        TimeUnit.SECONDS.sleep(5);
+//        TimeUnit.SECONDS.sleep(5);
 //        Map<String, Integer> plugins = gatewayClient.getPlugins();
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.kafka.LoggingKafkaPlugin");
     }
