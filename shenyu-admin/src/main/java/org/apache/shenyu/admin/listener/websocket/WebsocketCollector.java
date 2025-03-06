@@ -19,19 +19,23 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import jakarta.annotation.Resource;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +68,16 @@ public class WebsocketCollector {
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
     
     private static final String SESSION_KEY = "sessionKey";
+    
+    private ShenyuClientServerRegisterPublisher publisher;
+    
+    public ShenyuClientServerRegisterPublisher getPublisher() {
+        return publisher;
+    }
+    
+    public void setPublisher(final ShenyuClientServerRegisterPublisher publisher) {
+        this.publisher = publisher;
+    }
     
     /**
      * On open.
@@ -124,7 +138,25 @@ public class WebsocketCollector {
     @OnMessage
     public void onMessage(final String message, final Session session) {
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
-                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
+                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())
+                && !message.contains("bootstrapInstanceInfo")) {
+            return;
+        }
+        
+        if (message.contains(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("bootstrap report instance info: {}", message);
+            }
+            LOG.info("bootstrap report instance info: {}", message);
+            String sessionId = session.getId();
+            String namespaceId = getNamespaceId(session);
+            InstanceInfoRegisterDTO instanceInfoRegisterDTO = InstanceInfoRegisterDTO.builder()
+                    .instanceIp(getClientIp(session))
+                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)
+                    .instanceInfo(message)
+                    .namespaceId(namespaceId)
+                    .build();
+            SpringBeanUtils.getInstance().getBean(ShenyuClientServerRegisterPublisher.class).publish(instanceInfoRegisterDTO);
             return;
         }
         
