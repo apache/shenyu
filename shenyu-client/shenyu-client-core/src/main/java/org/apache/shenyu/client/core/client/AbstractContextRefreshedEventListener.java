@@ -263,7 +263,9 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                 .put("tags", tags)
                 .put("operationId", path)
                 .put("parameters", OpenApiUtils.generateDocumentParameters(path, method))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
+                .put("responses", OpenApiUtils.generateDocumentResponse(path))
+                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(method)))
+                .build();
         return GsonUtils.getInstance().toJson(documentMap);
     }
 
