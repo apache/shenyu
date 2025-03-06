@@ -62,7 +62,9 @@ public class RegisterCenterConfiguration {
      * @return the shenyu server register repository
      */
     @Bean
-    public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService, final InstanceInfoService instanceInfoService) {
+    public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService,
+                                                                                         final DiscoveryService discoveryService,
+                                                                                         final InstanceInfoService instanceInfoService) {
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
         publisher.start(registerServiceMap, discoveryService, instanceInfoService);

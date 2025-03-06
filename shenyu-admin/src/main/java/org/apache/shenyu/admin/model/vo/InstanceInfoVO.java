@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.vo;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 

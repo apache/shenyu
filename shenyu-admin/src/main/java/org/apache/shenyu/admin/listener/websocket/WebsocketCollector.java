@@ -19,7 +19,12 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import jakarta.annotation.Resource;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpoint;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
@@ -38,13 +43,6 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
 import java.util.Map;

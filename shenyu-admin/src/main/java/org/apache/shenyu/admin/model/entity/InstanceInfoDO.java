@@ -199,8 +199,11 @@ public final class InstanceInfoDO extends BaseDO {
         if (!super.equals(o)) {
             return false;
         }
-        InstanceInfoDO InstanceInfoDO = (InstanceInfoDO) o;
-        return Objects.equals(instanceIp, InstanceInfoDO.instanceIp) && Objects.equals(instanceType, InstanceInfoDO.instanceType) && Objects.equals(instanceInfo, InstanceInfoDO.instanceInfo) && Objects.equals(namespaceId, InstanceInfoDO.namespaceId);
+        InstanceInfoDO instanceInfoDO = (InstanceInfoDO) o;
+        return Objects.equals(instanceIp, instanceInfoDO.instanceIp)
+                && Objects.equals(instanceType, instanceInfoDO.instanceType)
+                && Objects.equals(instanceInfo, instanceInfoDO.instanceInfo)
+                && Objects.equals(namespaceId, instanceInfoDO.namespaceId);
     }
     
     @Override

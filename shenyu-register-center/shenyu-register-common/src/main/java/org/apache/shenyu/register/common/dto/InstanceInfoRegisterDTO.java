@@ -45,6 +45,20 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
      */
     private String namespaceId;
     
+    public InstanceInfoRegisterDTO(final String instanceIp, final String instanceType, final String instanceInfo, final String namespaceId) {
+        this.instanceIp = instanceIp;
+        this.instanceType = instanceType;
+        this.instanceInfo = instanceInfo;
+        this.namespaceId = namespaceId;
+    }
+    
+    private InstanceInfoRegisterDTO(final Builder builder) {
+        this.instanceIp = builder.instanceIp;
+        this.instanceType = builder.instanceType;
+        this.instanceInfo = builder.instanceInfo;
+        this.namespaceId = builder.namespaceId;
+    }
+    
     /**
      * builder method.
      *
@@ -126,12 +140,6 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
         this.namespaceId = namespaceId;
     }
     
-    private InstanceInfoRegisterDTO(final Builder builder) {
-        this.instanceIp = builder.instanceIp;
-        this.instanceType = builder.instanceType;
-        this.instanceInfo = builder.instanceInfo;
-        this.namespaceId = builder.namespaceId;
-    }
     
     @Override
     public DataType getType() {

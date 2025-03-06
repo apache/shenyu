@@ -41,7 +41,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper) {
         this.instanceInfoMapper = instanceInfoMapper;
     }
-
+    
     @Override
     public void registerInstanceInfo(final InstanceInfoRegisterDTO instanceInfoRegisterDTO) {
         LOG.info("Instance info registered: {}", GsonUtils.getInstance().toJson(instanceInfoRegisterDTO));
@@ -49,11 +49,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoDTO);
         try {
             instanceInfoMapper.insert(instanceInfoDO);
-        }catch (Exception e) {
+        } catch (Exception e) {
             LOG.error("Failed to register instance info", e);
         }
     }
-
+    
     @Override
     public InstanceInfoVO createOrUpdate(final InstanceInfoDTO instanceInfoDTO) {
         // Implementation here
