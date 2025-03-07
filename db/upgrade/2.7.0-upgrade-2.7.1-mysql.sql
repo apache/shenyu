@@ -66,3 +66,5 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507045', '50', 'temperature', 
 INSERT INTO `plugin_handle` VALUES ('1722804548510507046', '50', 'maxTokens', 'maxTokens', 2, 1, 5, '{\"required\":\"0\",\"rule\":\"\", \"placeholder\":\"optional,0,0.01~1\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{\"defaultValue\":\"false\",\"rule\":\"\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{\"required\":\"0\",\"rule\":\"\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
+UPDATE `plugin_handle` SET ext_obj = '{\"required\":\"0\",\"rule\":\"\"}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;

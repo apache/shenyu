@@ -144,3 +144,8 @@ VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValu
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173926', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","placeholder":"","rule":""}');
+
+UPDATE plugin_handle SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
