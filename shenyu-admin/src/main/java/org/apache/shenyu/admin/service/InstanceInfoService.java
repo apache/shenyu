@@ -15,40 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.admin.service;
 
-/**
- * The enum Data type enum.
- */
-public enum DataType {
+import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
+import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
+import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
+
+public interface InstanceInfoService {
     
     /**
-     * Meta data data type enum.
+     * registerInstanceInfo.
+     * <p>
+     * instance info register info .
+     * </p>
+     *
+     * @param instanceInfoRegisterDTO instanceInfoRegisterDTO
      */
-    META_DATA,
+    void registerInstanceInfo(InstanceInfoRegisterDTO instanceInfoRegisterDTO);
     
     /**
-     * Uri data type enum.
+     * Creates or updates an instance information record.
+     *
+     * @param instanceInfoDTO the instance information data transfer object
+     * @return the instance information view object
      */
-    URI,
-
-    /**
-     * Api doc type enum.
-     */
-    API_DOC,
-
-    /**
-     * Heartbeat type enum.
-     */
-    HEARTBEAT,
-
-    /**
-     * Discovery config type enum.
-     */
-    DISCOVERY_CONFIG,
+    InstanceInfoVO createOrUpdate(InstanceInfoDTO instanceInfoDTO);
     
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
 }
