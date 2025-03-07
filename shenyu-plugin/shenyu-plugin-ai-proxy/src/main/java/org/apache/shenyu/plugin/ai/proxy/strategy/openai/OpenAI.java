@@ -62,7 +62,9 @@ public class OpenAI implements AiModel {
     
     
     private static void convertHeader(final HttpHeaders httpHeaders, final AiProxyConfig aiProxyConfig) {
-        httpHeaders.add("Authorization", "Bearer " + aiProxyConfig.getApiKey());
+        if (!httpHeaders.containsKey("Authorization")) {
+            httpHeaders.add("Authorization", "Bearer " + aiProxyConfig.getApiKey());
+        }
         if (aiProxyConfig.getStream()) {
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_EVENT_STREAM_VALUE);
             httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache");
