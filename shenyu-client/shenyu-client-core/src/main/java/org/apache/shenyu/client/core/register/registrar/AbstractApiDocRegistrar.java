@@ -42,6 +42,7 @@ import org.apache.shenyu.register.common.enums.EventType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -131,7 +132,9 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
                 .put("tags", tags)
                 .put("operationId", path)
                 .put("parameters", OpenApiUtils.generateDocumentParameters(path, method))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
+                .put("responses", OpenApiUtils.generateDocumentResponse(path))
+                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(method)))
+                .build();
         return GsonUtils.getInstance().toJson(documentMap);
     }
     
