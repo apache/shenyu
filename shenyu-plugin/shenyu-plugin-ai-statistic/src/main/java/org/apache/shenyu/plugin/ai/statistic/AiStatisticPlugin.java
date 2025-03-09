@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.plugin.ai.statistic;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
@@ -44,6 +46,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,27 +56,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Shenyu ai statistic plugin.
  */
 public class AiStatisticPlugin extends AbstractShenyuPlugin {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(AiStatisticPlugin.class);
-
+    
+    private static final Map<String, AtomicLong> CLIENT_TOKENS_USAGE = new ConcurrentHashMap<>();
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
+        // get clientId
+        String clientId = extractClientId(exchange);
         
         ServerHttpRequest request = exchange.getRequest();
         //"Print Request Info: "
         StringBuilder requestInfo = new StringBuilder().append(System.lineSeparator());
-        requestInfo.append(getRequestUri(request))
-                .append(getRequestMethod(request)).append(System.lineSeparator())
+        requestInfo
+                .append("Client ID: ").append(clientId).append(System.lineSeparator())
+                .append("Used Tokens: ").append(getUsedTokensStatistics(clientId)).append(System.lineSeparator())
+                .append(getRequestUri(request))
                 .append(getRequestHeaders(request)).append(System.lineSeparator())
-                .append(getQueryParams(request)).append(System.lineSeparator());
-        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), requestInfo);
+                ;
+        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), requestInfo, tokens -> recordTokensUsage(clientId, tokens));
         try {
             return chain.execute(exchange.mutate().request(new AiStatisticServerHttpRequest(request, requestInfo))
                             .response(loggingServerHttpResponse).build())
@@ -83,27 +96,58 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             throw e;
         }
     }
-
+    
+    private String extractClientId(ServerWebExchange exchange) {
+        ServerHttpRequest request = exchange.getRequest();
+        
+        // Get client identifier from request headers first
+        String clientId = request.getHeaders().getFirst("X-Client-ID");
+        
+        if (StringUtils.isBlank(clientId)) {
+            // Finally, try using the combination of IP and User-Agent
+            String ip = request.getRemoteAddress().getAddress().getHostAddress();
+            String userAgent = request.getHeaders().getFirst(HttpHeaders.USER_AGENT);
+            clientId = ip + "|" + (userAgent != null ? userAgent : "unknown");
+        }
+        return clientId;
+    }
+    
+    private void recordTokensUsage(String clientId, long tokens) {
+        CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0))
+                .addAndGet(tokens);
+    }
+    
+    /**
+     * Get the total number of tokens used by a specific client.
+     *
+     * @param clientId the client ID
+     * @return the total number of tokens used
+     */
+    public Long getUsedTokensStatistics(final String clientId) {
+        AtomicLong usedTokens = CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0));
+        return usedTokens.get();
+    }
+    
     @Override
     public int getOrder() {
         return PluginEnum.AI_STATISTIC.getCode();
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.AI_STATISTIC.getName();
     }
-
+    
     private String getRequestMethod(final ServerHttpRequest request) {
         return "Request Method: " + request.getMethod() + System.lineSeparator();
     }
-
+    
     private String getRequestUri(final ServerHttpRequest request) {
         // request uri
         String requestUri = request.getURI().toString();
         return "Request Uri: " + requestUri + System.lineSeparator();
     }
-
+    
     private String getQueryParams(final ServerHttpRequest request) {
         MultiValueMap<String, String> params = request.getQueryParams();
         StringBuilder logInfo = new StringBuilder();
@@ -118,7 +162,7 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-
+    
     private String getRequestHeaders(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         final StringBuilder logInfo = new StringBuilder();
@@ -129,11 +173,11 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-
+    
     private void print(final String info) {
         LOG.info(info);
     }
-
+    
     private String getHeaders(final HttpHeaders headers) {
         StringBuilder logInfo = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
@@ -145,16 +189,16 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         });
         return logInfo.toString();
     }
-
+    
     static class AiStatisticServerHttpRequest extends ServerHttpRequestDecorator {
-
+        
         private final StringBuilder logInfo;
-
+        
         AiStatisticServerHttpRequest(final ServerHttpRequest delegate, final StringBuilder logInfo) {
             super(delegate);
             this.logInfo = logInfo;
         }
-
+        
         @Override
         @NonNull
         public Flux<DataBuffer> getBody() {
@@ -176,26 +220,29 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             });
         }
     }
-
+    
     class AiStatisticServerHttpResponse extends ServerHttpResponseDecorator {
-
+        
         private final StringBuilder logInfo;
-
+        
         private final ServerHttpResponse serverHttpResponse;
-
-        AiStatisticServerHttpResponse(final ServerHttpResponse delegate, final StringBuilder logInfo) {
+        
+        private final Consumer<Long> tokensRecorder;
+        
+        AiStatisticServerHttpResponse(final ServerHttpResponse delegate, final StringBuilder logInfo, final Consumer<Long> tokensRecorder) {
             super(delegate);
             this.logInfo = logInfo;
             this.serverHttpResponse = delegate;
             this.logInfo.append(System.lineSeparator());
+            this.tokensRecorder = tokensRecorder;
         }
-
+        
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             return super.writeWith(appendResponse(body));
         }
-
+        
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
             logInfo.append(System.lineSeparator());
@@ -214,7 +261,33 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             BodyWriter writer = new BodyWriter();
             return Flux.from(body).doOnNext(buffer -> {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
-                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                    bufferIterator.forEachRemaining(byteBuffer -> {
+                        // Handle gzip encoded response
+                        if (serverHttpResponse.getHeaders().containsKey("Content-Encoding")
+                                && serverHttpResponse.getHeaders().getFirst("Content-Encoding").contains("gzip")) {
+                            try {
+                                ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
+                                byte[] compressed = new byte[readOnlyBuffer.remaining()];
+                                readOnlyBuffer.get(compressed);
+                                
+                                // Decompress gzipped content
+                                try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
+                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                                    byte[] buffers = new byte[1024];
+                                    int len;
+                                    while ((len = gzipInputStream.read(buffers)) > 0) {
+                                        outputStream.write(buffers, 0, len);
+                                    }
+                                    writer.write(ByteBuffer.wrap(outputStream.toByteArray()));
+                                }
+                            } catch (IOException e) {
+                                LOG.error("Failed to decompress gzipped response", e);
+                                writer.write(byteBuffer.asReadOnlyBuffer());
+                            }
+                        } else {
+                            writer.write(byteBuffer.asReadOnlyBuffer());
+                        }
+                    });
                 }
             }).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
@@ -223,9 +296,30 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
                 logInfo.append("[Response Body End]").append(System.lineSeparator());
                 // when response, print all request info.
                 print(logInfo.toString());
+                long tokens = extractTokensFromResponse(responseBody);
+                tokensRecorder.accept(tokens);
             });
         }
-
+        
+        private long extractTokensFromResponse(String responseBody) {
+            // 根据 OpenAI API 响应格式解析出 tokens 使用量
+            // 不同的 API 端点响应格式可能不同，需要相应调整
+            try {
+                JsonNode root = JsonUtils.toJsonNode(responseBody);
+                JsonNode usage = root.get("usage");
+                if (usage != null) {
+                    JsonNode totalTokens = usage.get("total_tokens");
+                    if (totalTokens != null) {
+                        return totalTokens.asLong();
+                    }
+                }
+            } catch (Exception e) {
+                // 处理解析异常
+                LOG.error("Failed to parse response body: {}", responseBody, e);
+            }
+            return 0;
+        }
+        
         /**
          * access error.
          *
@@ -241,22 +335,22 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             logInfo.append("ERROR: ").append(System.lineSeparator());
             logInfo.append(throwable.getMessage()).append(System.lineSeparator());
         }
-
+        
         private String getResponseHeaders() {
             return System.lineSeparator() + "[Response Headers Start]" + System.lineSeparator()
                     + AiStatisticPlugin.this.getHeaders(serverHttpResponse.getHeaders())
                     + "[Response Headers End]" + System.lineSeparator();
         }
     }
-
+    
     static class BodyWriter {
-
+        
         private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
+        
         private final WritableByteChannel channel = Channels.newChannel(stream);
-
+        
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
-
+        
         void write(final ByteBuffer buffer) {
             if (!isClosed.get()) {
                 try {
@@ -267,11 +361,11 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
                 }
             }
         }
-
+        
         boolean isEmpty() {
             return stream.size() == 0;
         }
-
+        
         String output() {
             try {
                 isClosed.compareAndSet(false, true);
