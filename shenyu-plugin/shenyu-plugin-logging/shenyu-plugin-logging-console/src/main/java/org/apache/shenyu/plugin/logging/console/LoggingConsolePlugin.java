@@ -280,17 +280,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                                 readOnlyBuffer.get(compressed);
                                 
                                 // Decompress gzipped content
-                                try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
-                                    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                                        // Read decompressed data
-                                        byte[] buffers = new byte[1024];
-                                        int len;
-                                        while ((len = gzipInputStream.read(buffers)) > 0) {
-                                            outputStream.write(buffers, 0, len);
-                                        }
-                                        writer.write(ByteBuffer.wrap(outputStream.toByteArray()));
-                                    }
-                                }
+                                byte[] decompressed = decompressGzip(compressed);
+                                writer.write(ByteBuffer.wrap(decompressed));
+                                
                             } catch (IOException e) {
                                 LOG.error("Failed to decompress gzipped response", e);
                                 writer.write(byteBuffer.asReadOnlyBuffer());
@@ -309,6 +301,18 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 // when response, print all request info.
                 print(logInfo.toString());
             });
+        }
+        
+        private byte[] decompressGzip(byte[] compressed) throws IOException {
+            try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = gzipInputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, len);
+                }
+                return outputStream.toByteArray();
+            }
         }
         
         /**
