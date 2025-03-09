@@ -280,14 +280,16 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                                 readOnlyBuffer.get(compressed);
                                 
                                 // Decompress gzipped content
-                                try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
-                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                                    byte[] buffers = new byte[1024];
-                                    int len;
-                                    while ((len = gzipInputStream.read(buffers)) > 0) {
-                                        outputStream.write(buffers, 0, len);
+                                try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
+                                    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                                        // Read decompressed data
+                                        byte[] buffers = new byte[1024];
+                                        int len;
+                                        while ((len = gzipInputStream.read(buffers)) > 0) {
+                                            outputStream.write(buffers, 0, len);
+                                        }
+                                        writer.write(ByteBuffer.wrap(outputStream.toByteArray()));
                                     }
-                                    writer.write(ByteBuffer.wrap(outputStream.toByteArray()));
                                 }
                             } catch (IOException e) {
                                 LOG.error("Failed to decompress gzipped response", e);
