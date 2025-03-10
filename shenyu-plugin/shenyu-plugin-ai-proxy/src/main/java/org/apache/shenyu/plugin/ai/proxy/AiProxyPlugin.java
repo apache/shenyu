@@ -88,9 +88,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         
         // set domain
-        // TODO fix the domain
-        //        String domain = aiProxyConfig.getBaseUrl() + realUrl;
-        
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, aiProxyConfig.getBaseUrl());
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 60 * 3000L);
