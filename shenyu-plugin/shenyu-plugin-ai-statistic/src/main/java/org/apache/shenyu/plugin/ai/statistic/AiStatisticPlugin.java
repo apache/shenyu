@@ -47,6 +47,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -73,7 +74,6 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         // store the used tokens in the exchange attributes
         exchange.getAttributes().put(Constants.USED_TOKENS, usedTokensStatistics);
         
-        
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(clientId, tokens));
         try {
             return chain.execute(exchange.mutate()
@@ -84,7 +84,7 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         }
     }
     
-    private String extractClientId(ServerWebExchange exchange) {
+    private String extractClientId(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         // Get client identifier from request headers first
         String clientId = request.getHeaders().getFirst(Constants.CLIENT_ID);
@@ -105,7 +105,7 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         return clientId;
     }
     
-    private void recordTokensUsage(String clientId, long tokens) {
+    private void recordTokensUsage(final String clientId, final long tokens) {
         CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0))
                 .addAndGet(tokens);
     }
@@ -159,23 +159,17 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
                     bufferIterator.forEachRemaining(byteBuffer -> {
                         // Handle gzip encoded response
-                        if (serverHttpResponse.getHeaders().containsKey("Content-Encoding")
-                                && serverHttpResponse.getHeaders().getFirst("Content-Encoding").contains("gzip")) {
+                        if (serverHttpResponse.getHeaders().containsKey(Constants.CONTENT_ENCODING)
+                                && serverHttpResponse.getHeaders().getFirst(Constants.CONTENT_ENCODING).contains("gzip")) {
                             try {
                                 ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
                                 byte[] compressed = new byte[readOnlyBuffer.remaining()];
                                 readOnlyBuffer.get(compressed);
                                 
                                 // Decompress gzipped content
-                                try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
-                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                                    byte[] buffers = new byte[1024];
-                                    int len;
-                                    while ((len = gzipInputStream.read(buffers)) > 0) {
-                                        outputStream.write(buffers, 0, len);
-                                    }
-                                    writer.write(ByteBuffer.wrap(outputStream.toByteArray()));
-                                }
+                                byte[] decompressed = decompressGzip(compressed);
+                                writer.write(ByteBuffer.wrap(decompressed));
+                                
                             } catch (IOException e) {
                                 LOG.error("Failed to decompress gzipped response", e);
                                 writer.write(byteBuffer.asReadOnlyBuffer());
@@ -192,15 +186,27 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             });
         }
         
-        private long extractTokensFromResponse(String responseBody) {
+        private byte[] decompressGzip(final byte[] compressed) throws IOException {
+            try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = gzipInputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, len);
+                }
+                return outputStream.toByteArray();
+            }
+        }
+        
+        private long extractTokensFromResponse(final String responseBody) {
             // 根据 OpenAI API 响应格式解析出 tokens 使用量
             // 不同的 API 端点响应格式可能不同，需要相应调整
             try {
                 JsonNode root = JsonUtils.toJsonNode(responseBody);
                 JsonNode usage = root.get("usage");
-                if (usage != null) {
+                if (Objects.nonNull(usage)) {
                     JsonNode totalTokens = usage.get("total_tokens");
-                    if (totalTokens != null) {
+                    if (Objects.nonNull(totalTokens)) {
                         return totalTokens.asLong();
                     }
                 }
