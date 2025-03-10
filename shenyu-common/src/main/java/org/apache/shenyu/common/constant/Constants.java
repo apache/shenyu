@@ -945,6 +945,11 @@ public interface Constants {
      * The constant prompt.
      */
     String PROMPT = "prompt";
+
+    /**
+     * The constant Content-Encoding.
+     */
+    String CONTENT_ENCODING = "Content-Encoding";
     
     /**
      * String q.
