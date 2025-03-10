@@ -68,28 +68,30 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         String clientId = extractClientId(exchange);
         
         // store the used tokens in the exchange attributes
-//        ReactiveRedisTemplate reactiveRedisTemplate = AiStatisticPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_STATISTIC.getName());
-//        Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
-//        reactiveRedisTemplate
-//                .opsForValue()
-//                .get(clientId)
-//                .doOnNext(value -> {
-//                    if (Objects.isNull(value)) {
-//                        exchange.getAttributes().put(Constants.USED_TOKENS, 0L);
-//                    } else {
-//                        exchange.getAttributes().put(Constants.USED_TOKENS, value);
-//                    }
-//                })
-//                .subscribe();
+        ReactiveRedisTemplate reactiveRedisTemplate = AiStatisticPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_STATISTIC.getName());
+        Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
         
-        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(clientId, tokens));
-        try {
-            return chain.execute(exchange.mutate()
-                    .response(loggingServerHttpResponse).build());
-        } catch (Exception e) {
-            LOG.error("Error occurred while processing request: ", e);
-            throw e;
-        }
+        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(reactiveRedisTemplate, clientId, tokens));
+        
+        // First get Redis value, then execute chain in reactive way
+        return reactiveRedisTemplate
+                .opsForValue()
+                .get(generateRedisKey(clientId))
+                .defaultIfEmpty(0L)
+                .flatMap(value -> {
+                    // Store in exchange attributes
+                    exchange.getAttributes().put(Constants.USED_TOKENS, value);
+                    // Execute chain with modified exchange
+                    ServerWebExchange mutatedExchange = exchange.mutate()
+                            .response(loggingServerHttpResponse)
+                            .build();
+                    
+                    return chain.execute(mutatedExchange);
+                })
+                .onErrorResume(e -> {
+                    LOG.error("Error occurred while processing request", e);
+                    return Mono.error((Throwable) e);
+                });
     }
     
     private String extractClientId(final ServerWebExchange exchange) {
@@ -115,13 +117,15 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         return clientId;
     }
     
-    private void recordTokensUsage(final String clientId, final long tokens) {
-//        ReactiveRedisTemplate reactiveRedisTemplate = AiStatisticPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_STATISTIC.getName());
-//        Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
-//        reactiveRedisTemplate.opsForValue()
-//                .increment(clientId, tokens)
-//                .doOnError(e -> LOG.error("Failed to record tokens usage for client {}: {}", clientId, e))
-//                .subscribe();
+    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String clientId, final long tokens) {
+        reactiveRedisTemplate.opsForValue()
+                .increment(generateRedisKey(clientId), tokens)
+                .doOnError(e -> LOG.error("Failed to record tokens usage for client {}: {}", clientId, e))
+                .subscribe();
+    }
+    
+    private String generateRedisKey(final String clientId) {
+        return Constants.AI_TOKEN_STATISTIC_KEY_PREFIX + ":" + clientId;
     }
     
     @Override

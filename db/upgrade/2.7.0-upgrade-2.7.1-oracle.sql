@@ -208,3 +208,31 @@ VALUES ('1697146860569542759', '1346358560427216896', '1844026099075534867');
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
 VALUES ('1697146860569542760', '1346358560427216896', '1844026099075534868');
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507049', '51', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507050', '51', 'master', 'master', 2, 3, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507051', '51', 'mode', 'mode', 2, 3, 4, '{"required":"0","defaultValue":"standalone","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507052', '51', 'url', 'url', 2, 3, 5, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507053', '51', 'password', 'password', 2, 3, 6, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507054', '51', 'maxIdle', 'maxIdle', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507055', '51', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507056', '51', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507057', '51', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', sysdate, sysdate);

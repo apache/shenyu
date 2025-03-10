@@ -949,7 +949,7 @@ public interface Constants {
     /**
      * The constant usedTokens.
      */
-    String USED_TOKENS = "usedTokens";
+    String USED_TOKENS = "used-tokens";
 
     /**
      * The constant X-Client-ID.
@@ -960,6 +960,11 @@ public interface Constants {
      * The constant Content-Encoding.
      */
     String CONTENT_ENCODING = "Content-Encoding";
+    
+    /**
+     * The constant ai_token_statistic_key_prefix.
+     */
+    String AI_TOKEN_STATISTIC_KEY_PREFIX = "ai_token_statistic_";
     
     /**
      * String q.
