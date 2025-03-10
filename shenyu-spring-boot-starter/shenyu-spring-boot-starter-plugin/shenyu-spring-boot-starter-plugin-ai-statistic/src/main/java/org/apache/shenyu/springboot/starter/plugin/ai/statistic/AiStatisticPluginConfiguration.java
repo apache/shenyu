@@ -22,7 +22,6 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.codec.ServerCodecConfigurer;
 
 /**
  * The type ai statistic plugin configuration.
