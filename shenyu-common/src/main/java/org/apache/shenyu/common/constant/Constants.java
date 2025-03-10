@@ -957,6 +957,11 @@ public interface Constants {
     String CLIENT_ID = "X-Client-ID";
     
     /**
+     * The constant Content-Encoding.
+     */
+    String CONTENT_ENCODING = "Content-Encoding";
+    
+    /**
      * String q.
      */
     default void findConstants() {
