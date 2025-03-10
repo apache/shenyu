@@ -19,12 +19,11 @@ package org.apache.shenyu.examples.springcloud.controller;
 
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
-import org.apache.shenyu.client.springcloud.annotation.ShenyuGetMapping;
-import org.apache.shenyu.client.springcloud.annotation.ShenyuPostMapping;
-import org.apache.shenyu.client.springcloud.annotation.ShenyuRequestMapping;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.springcloud.dto.OrderDTO;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * OrderController.
  */
 @RestController
-@ShenyuRequestMapping("/order")
+@RequestMapping("/order")
+@ShenyuSpringMvcClient(path = "/order/**")
 @ApiModule(value = "order")
 public class OrderController {
 
@@ -42,7 +42,7 @@ public class OrderController {
      * @param orderDTO the order dto
      * @return the order dto
      */
-    @ShenyuPostMapping("/save")
+    @RequestMapping("/save")
     @ApiDoc(desc = "save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world spring cloud save order");
@@ -55,7 +55,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @ShenyuGetMapping("/findById")
+    @RequestMapping("/findById")
     @ApiDoc(desc = "findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return buildOrder(id, "hello world spring cloud findById");
@@ -68,7 +68,7 @@ public class OrderController {
      * @param name the name
      * @return the path variable
      */
-    @ShenyuGetMapping("/path/{id}/{name}")
+    @RequestMapping("/path/{id}/{name}")
     @ApiDoc(desc = "path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return buildOrder(id, "hello world spring cloud restful: " + name);
@@ -80,7 +80,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @ShenyuGetMapping("/path/{id}/name")
+    @RequestMapping("/path/{id}/name")
     @ApiDoc(desc = "path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return buildOrder(id, "hello world spring cloud restful inline " + id);

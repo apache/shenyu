@@ -18,7 +18,6 @@
 package org.apache.shenyu.k8s.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -26,8 +25,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
@@ -133,12 +130,7 @@ public class ShenyuCacheRepository {
 
     private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
         LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
-        List<DivideUpstream> divideUpstreams;
-        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), pluginName)) {
-            divideUpstreams = GsonUtils.getInstance().fromJson(handle, SpringCloudSelectorHandle.class).getDivideUpstreams();
-        } else {
-            divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-        }
+        List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return Collections.emptyList();
         }

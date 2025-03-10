@@ -31,6 +31,8 @@ spring:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
         namespace: ShenyuRegisterCenter
+        username: nacos
+        password: nacos
 
 eureka:
   client:
@@ -45,6 +47,13 @@ springCloud-test:
   ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
 
 shenyu:
+  discovery:
+    enable: true
+    type: eureka
+    serverList: ${eureka.client.serviceUrl.defaultZone}
+    registerPath: ${spring.application.name}
+    props:
+      nacosNameSpace: ShenyuRegisterCenter
   namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   register:
     registerType: http
@@ -54,7 +63,7 @@ shenyu:
       password: 123456
       nacosNameSpace: ShenyuRegisterCenter
   client:
-    springCloud:
+    http:
       props:
         contextPath: /springcloud
         addPrefixed: false
