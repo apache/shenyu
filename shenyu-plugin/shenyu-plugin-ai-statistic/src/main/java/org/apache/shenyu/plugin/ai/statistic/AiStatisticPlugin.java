@@ -24,16 +24,19 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.ai.statistic.handler.AiStatisticPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,11 +49,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 
@@ -61,23 +61,31 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
     
     private static final Logger LOG = LoggerFactory.getLogger(AiStatisticPlugin.class);
     
-    private static final Map<String, AtomicLong> CLIENT_TOKENS_USAGE = new ConcurrentHashMap<>();
-    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         // get clientId
         String clientId = extractClientId(exchange);
         
-        Long usedTokensStatistics = getUsedTokensStatistics(clientId);
-        
         // store the used tokens in the exchange attributes
-        exchange.getAttributes().put(Constants.USED_TOKENS, usedTokensStatistics);
+//        ReactiveRedisTemplate reactiveRedisTemplate = AiStatisticPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_STATISTIC.getName());
+//        Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
+//        reactiveRedisTemplate
+//                .opsForValue()
+//                .get(clientId)
+//                .doOnNext(value -> {
+//                    if (Objects.isNull(value)) {
+//                        exchange.getAttributes().put(Constants.USED_TOKENS, 0L);
+//                    } else {
+//                        exchange.getAttributes().put(Constants.USED_TOKENS, value);
+//                    }
+//                })
+//                .subscribe();
         
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(clientId, tokens));
         try {
             return chain.execute(exchange.mutate()
-                            .response(loggingServerHttpResponse).build());
+                    .response(loggingServerHttpResponse).build());
         } catch (Exception e) {
             LOG.error("Error occurred while processing request: ", e);
             throw e;
@@ -91,7 +99,9 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         
         if (StringUtils.isBlank(clientId)) {
             // If not present, try to get it from the exchange attributes
-            clientId = exchange.getAttributes().get(Constants.CLIENT_ID).toString();
+            if (exchange.getAttributes().containsKey(Constants.CLIENT_ID)) {
+                clientId = exchange.getAttributes().get(Constants.CLIENT_ID).toString();
+            }
         }
         
         if (StringUtils.isBlank(clientId)) {
@@ -106,20 +116,12 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
     }
     
     private void recordTokensUsage(final String clientId, final long tokens) {
-        CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0))
-                .addAndGet(tokens);
-    }
-    
-    /**
-     * Get the total number of tokens used by a specific client.
-     *
-     * @param clientId the client ID
-     * @return the total number of tokens used
-     */
-    public Long getUsedTokensStatistics(final String clientId) {
-        // TODO get tokens from exchange attributes
-        AtomicLong usedTokens = CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0));
-        return usedTokens.get();
+//        ReactiveRedisTemplate reactiveRedisTemplate = AiStatisticPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_STATISTIC.getName());
+//        Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
+//        reactiveRedisTemplate.opsForValue()
+//                .increment(clientId, tokens)
+//                .doOnError(e -> LOG.error("Failed to record tokens usage for client {}: {}", clientId, e))
+//                .subscribe();
     }
     
     @Override

@@ -18,7 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.ai.statistic;
 
 import org.apache.shenyu.plugin.ai.statistic.AiStatisticPlugin;
+import org.apache.shenyu.plugin.ai.statistic.handler.AiStatisticPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +40,17 @@ public class AiStatisticPluginConfiguration {
     @Bean
     public ShenyuPlugin aiStatisticPlugin() {
         return new AiStatisticPlugin();
+    }
+    
+    
+    /**
+     * Ai statistic plugin handler.
+     *
+     * @return the shenyu plugin handler
+     */
+    @Bean
+    public PluginDataHandler aiStatisticPluginHandler() {
+        return new AiStatisticPluginHandler();
     }
     
     
