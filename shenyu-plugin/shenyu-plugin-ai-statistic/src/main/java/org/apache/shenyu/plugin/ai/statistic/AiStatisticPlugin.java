@@ -98,7 +98,7 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             // Finally, try using the combination of IP and User-Agent
             String ip = request.getRemoteAddress().getAddress().getHostAddress();
             String userAgent = request.getHeaders().getFirst(HttpHeaders.USER_AGENT);
-            clientId = ip + "|" + (userAgent != null ? userAgent : "unknown");
+            clientId = ip + "|" + (Objects.nonNull(userAgent) ? userAgent : "unknown");
         }
         exchange.getAttributes().put(Constants.CLIENT_ID, clientId);
         
