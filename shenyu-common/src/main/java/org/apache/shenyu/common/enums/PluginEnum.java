@@ -271,6 +271,11 @@ public enum PluginEnum {
      * Ai-proxy plugin enum.
      */
     AI_PROXY(200, 0, "aiProxy"),
+
+    /**
+     * Ai-statistic plugin enum.
+     */
+    AI_STATISTIC(171, 0, "aiStatistic"),
     
     /**
      * Basic-auth plugin enum.
