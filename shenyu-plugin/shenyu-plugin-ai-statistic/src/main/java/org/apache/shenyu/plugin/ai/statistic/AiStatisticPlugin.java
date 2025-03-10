@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.statistic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -67,11 +68,12 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
         // get clientId
         String clientId = extractClientId(exchange);
         
-        StringBuilder requestInfo = new StringBuilder().append(System.lineSeparator());
-        requestInfo
-                .append("Client ID: ").append(clientId).append(System.lineSeparator())
-                .append("Used Tokens: ").append(getUsedTokensStatistics(clientId)).append(System.lineSeparator())
-                ;
+        Long usedTokensStatistics = getUsedTokensStatistics(clientId);
+        
+        // store the used tokens in the exchange attributes
+        exchange.getAttributes().put(Constants.USED_TOKENS, usedTokensStatistics);
+        
+        
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(clientId, tokens));
         try {
             return chain.execute(exchange.mutate()
@@ -85,7 +87,12 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
     private String extractClientId(ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         // Get client identifier from request headers first
-        String clientId = request.getHeaders().getFirst("X-Client-ID");
+        String clientId = request.getHeaders().getFirst(Constants.CLIENT_ID);
+        
+        if (StringUtils.isBlank(clientId)) {
+            // If not present, try to get it from the exchange attributes
+            clientId = exchange.getAttributes().get(Constants.CLIENT_ID).toString();
+        }
         
         if (StringUtils.isBlank(clientId)) {
             // Finally, try using the combination of IP and User-Agent
@@ -93,6 +100,8 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
             String userAgent = request.getHeaders().getFirst(HttpHeaders.USER_AGENT);
             clientId = ip + "|" + (userAgent != null ? userAgent : "unknown");
         }
+        exchange.getAttributes().put(Constants.CLIENT_ID, clientId);
+        
         return clientId;
     }
     
@@ -108,6 +117,7 @@ public class AiStatisticPlugin extends AbstractShenyuPlugin {
      * @return the total number of tokens used
      */
     public Long getUsedTokensStatistics(final String clientId) {
+        // TODO get tokens from exchange attributes
         AtomicLong usedTokens = CLIENT_TOKENS_USAGE.computeIfAbsent(clientId, k -> new AtomicLong(0));
         return usedTokens.get();
     }

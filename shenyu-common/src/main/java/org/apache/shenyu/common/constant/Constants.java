@@ -945,6 +945,16 @@ public interface Constants {
      * The constant prompt.
      */
     String PROMPT = "prompt";
+
+    /**
+     * The constant usedTokens.
+     */
+    String USED_TOKENS = "usedTokens";
+
+    /**
+     * The constant X-Client-ID.
+     */
+    String CLIENT_ID = "X-Client-ID";
     
     /**
      * String q.
