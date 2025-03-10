@@ -303,7 +303,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             });
         }
         
-        private byte[] decompressGzip(byte[] compressed) throws IOException {
+        private byte[] decompressGzip(final byte[] compressed) throws IOException {
             try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
                  ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[1024];
