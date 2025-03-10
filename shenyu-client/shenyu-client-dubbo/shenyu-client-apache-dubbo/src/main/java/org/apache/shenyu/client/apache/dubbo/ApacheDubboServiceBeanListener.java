@@ -19,11 +19,13 @@ package org.apache.shenyu.client.apache.dubbo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
+import org.apache.dubbo.config.MethodConfig;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
+import org.apache.shenyu.client.dubbo.common.dto.DubboRpcMethodExt;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -44,8 +46,8 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -231,17 +233,21 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
                 .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
+                .serialization(serviceBean.getSerialization())
                 .build();
-        // set method config: loadbalance,retries,timeout,sent
-        Optional.ofNullable(serviceBean.getMethods()).orElse(Collections.emptyList()).stream()
-                .filter(m -> methodName.equals(m.getName()))
-                .findFirst()
-                .ifPresent(methodConfig -> {
-                    Optional.ofNullable(methodConfig.getLoadbalance()).filter(StringUtils::isNotEmpty).ifPresent(build::setLoadbalance);
-                    Optional.ofNullable(methodConfig.getRetries()).ifPresent(build::setRetries);
-                    Optional.ofNullable(methodConfig.getTimeout()).ifPresent(build::setTimeout);
-                    Optional.ofNullable(methodConfig.getSent()).ifPresent(build::setSent);
-                });
+        // method config: loadbalance,retries,timeout,sent
+        if (Objects.nonNull(serviceBean.getMethods())) {
+            build.setMethods(new ArrayList<>());
+            for (MethodConfig methodConfig : serviceBean.getMethods()) {
+                DubboRpcMethodExt methodExt = new DubboRpcMethodExt();
+                methodExt.setName(methodConfig.getName());
+                methodExt.setLoadbalance(methodConfig.getLoadbalance());
+                methodExt.setRetries(methodConfig.getRetries());
+                methodExt.setTimeout(methodConfig.getTimeout());
+                methodExt.setSent(methodConfig.getSent());
+                build.getMethods().add(methodExt);
+            }
+        }
         return GsonUtils.getInstance().toJson(build);
     }
 }

@@ -930,6 +930,21 @@ public interface Constants {
      * The constant preserve host.
      */
     String PRESERVE_HOST = "preserveHost";
+
+    /**
+     * The constant model.
+     */
+    String MODEL = "model";
+
+    /**
+     * The constant stream.
+     */
+    String STREAM = "stream";
+
+    /**
+     * The constant prompt.
+     */
+    String PROMPT = "prompt";
     
     /**
      * String q.

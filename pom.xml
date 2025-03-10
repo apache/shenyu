@@ -47,6 +47,7 @@
         <module>shenyu-sdk</module>
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
+        <module>shenyu-infra</module>
     </modules>
 
     <licenses>
