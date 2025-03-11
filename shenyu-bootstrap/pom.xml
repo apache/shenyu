@@ -250,7 +250,7 @@
         <!--Ai statistic Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-ai-statistic</artifactId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-token-limiter</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--Ai statistic Plugin end-->

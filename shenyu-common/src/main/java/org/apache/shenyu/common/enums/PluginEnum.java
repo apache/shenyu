@@ -273,9 +273,9 @@ public enum PluginEnum {
     AI_PROXY(200, 0, "aiProxy"),
 
     /**
-     * Ai-statistic plugin enum.
+     * Ai-token-limiter plugin enum.
      */
-    AI_STATISTIC(171, 0, "aiStatistic"),
+    AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
     
     /**
      * Basic-auth plugin enum.
