@@ -40,9 +40,9 @@ public class AiStatisticPluginHandler implements PluginDataHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(AiStatisticPluginHandler.class);
     
-    public static final Supplier<CommonHandleCache<String, RedisConfigProperties>> REDIS_PROPERTIES_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-    
     public static final Supplier<CommonHandleCache<String, ReactiveRedisTemplate>> REDIS_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    
+    public static final Supplier<CommonHandleCache<String, RedisConfigProperties>> REDIS_PROPERTIES_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     @Override
     public void handlerPlugin(final PluginData pluginData) {
