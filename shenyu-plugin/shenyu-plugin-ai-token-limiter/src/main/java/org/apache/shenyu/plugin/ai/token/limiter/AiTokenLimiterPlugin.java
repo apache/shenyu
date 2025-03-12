@@ -22,17 +22,28 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
+import org.apache.shenyu.common.enums.AiTokenLimiterKeyResolverEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
@@ -49,7 +60,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
@@ -61,37 +74,122 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     
     private static final Logger LOG = LoggerFactory.getLogger(AiTokenLimiterPlugin.class);
     
+    private static final String REDIS_KEY_PREFIX = "SHENYU:AI:TOKENLIMIT:";
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
+        
+        AiTokenLimiterHandle aiTokenLimiterHandle = AiTokenLimiterPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        
+        if (Objects.isNull(aiTokenLimiterHandle)) {
+            return chain.execute(exchange);
+        }
+        
         // get clientId
         String clientId = extractClientId(exchange);
         
-        // store the used tokens in the exchange attributes
         ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
         
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(reactiveRedisTemplate, clientId, tokens));
         
         // First get Redis value, then execute chain in reactive way
-        return reactiveRedisTemplate
-                .opsForValue()
-                .get(generateRedisKey(clientId))
-                .defaultIfEmpty(0L)
-                .flatMap(value -> {
-                    // Store in exchange attributes
-                    exchange.getAttributes().put(Constants.USED_TOKENS, value);
-                    // Execute chain with modified exchange
+        
+        return isAllowed(exchange, reactiveRedisTemplate, aiTokenLimiterHandle)
+                .flatMap(allowed -> {
+                    if (!allowed) {
+                        exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+                        final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
+                        Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+                        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
+                        return WebFluxResultUtils.result(exchange, error);
+                    }
                     ServerWebExchange mutatedExchange = exchange.mutate()
                             .response(loggingServerHttpResponse)
                             .build();
                     
                     return chain.execute(mutatedExchange);
-                })
-                .onErrorResume(e -> {
-                    LOG.error("Error occurred while processing request", e);
-                    return Mono.error((Throwable) e);
                 });
+        
+        //        return reactiveRedisTemplate
+        //                .opsForValue()
+        //                .get(generateRedisKey(clientId))
+        //                .defaultIfEmpty(0L)
+        //                .flatMap(value -> {
+        //                    // Store in exchange attributes
+        //                    exchange.getAttributes().put(Constants.USED_TOKENS, value);
+        //                    // Execute chain with modified exchange
+        //                    ServerWebExchange mutatedExchange = exchange.mutate()
+        //                            .response(loggingServerHttpResponse)
+        //                            .build();
+        //
+        //                    return chain.execute(mutatedExchange);
+        //                });
+    }
+    
+    /**
+     * Check if the request is allowed based on rate limiting rules.
+     *
+     * @param exchange the server web exchange
+     * @param config the token rate limit configuration
+     * @return whether the request is allowed
+     */
+    private Mono<Boolean> isAllowed(final ServerWebExchange exchange, final ReactiveRedisTemplate reactiveRedisTemplate, final AiTokenLimiterHandle config) {
+        String cacheKey = REDIS_KEY_PREFIX + config.getKeyResolverName() + ":" + getCacheKey(exchange, config);
+        
+        return Mono.from(reactiveRedisTemplate.execute(
+                        RedisScript.of(
+                                new ClassPathResource("scripts/ai-token-limit.lua"), Long.class),
+                        Arrays.asList(cacheKey),
+                        Arrays.asList(
+                                config.getTokenLimit().toString(),
+                                config.getTimeWindowSeconds().toString(),
+                                String.valueOf(System.currentTimeMillis())
+                        ))
+                .map(result -> (Long) result == 1L));
+    }
+    
+    /**
+     * Get the cache key based on the configured key resolver type.
+     *
+     * @param exchange the server web exchange
+     * @param config the token rate limit configuration
+     * @return the cache key
+     */
+    private String getCacheKey(final ServerWebExchange exchange, final AiTokenLimiterHandle config) {
+        ServerHttpRequest request = exchange.getRequest();
+        String key;
+        String keyResolverName = config.getKeyResolverName();
+        if (StringUtils.isBlank(keyResolverName)) {
+            keyResolverName = AiTokenLimiterKeyResolverEnum.DEFAULT.getName();
+        }
+        // Determine the key based on the configured key resolver type
+        AiTokenLimiterKeyResolverEnum keyResolverEnum = AiTokenLimiterKeyResolverEnum.getByName(keyResolverName);
+        
+        switch (keyResolverEnum) {
+            case IP:
+                key = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
+                break;
+            case URI:
+                key = request.getURI().getPath();
+                break;
+            case HEADER:
+                key = request.getHeaders().getFirst(config.getKeyName());
+                break;
+            case PARAMETER:
+                key = request.getQueryParams().getFirst(config.getKeyName());
+                break;
+            case COOKIE:
+                HttpCookie cookie = request.getCookies().getFirst(config.getKeyName());
+                key = Objects.nonNull(cookie) ? cookie.getValue() : "";
+                break;
+            default:
+                key = exchange.getAttribute(Constants.CONTEXT_PATH) + ":" +
+                        exchange.getRequest().getURI().getPath();
+        }
+        
+        return StringUtils.isBlank(key) ? "" : key;
     }
     
     private String extractClientId(final ServerWebExchange exchange) {

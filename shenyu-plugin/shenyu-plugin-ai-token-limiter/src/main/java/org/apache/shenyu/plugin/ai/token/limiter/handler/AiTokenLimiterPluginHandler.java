@@ -17,7 +17,12 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.ai.token.limiter.redis.RedisConfigProperties;
@@ -27,11 +32,13 @@ import org.apache.shenyu.plugin.ai.token.limiter.redis.serializer.ShenyuRedisSer
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -42,6 +49,8 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
     public static final Supplier<CommonHandleCache<String, ReactiveRedisTemplate>> REDIS_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     public static final Supplier<CommonHandleCache<String, RedisConfigProperties>> REDIS_PROPERTIES_CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    
+    public static final Supplier<CommonHandleCache<String, AiTokenLimiterHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     private static final Logger LOG = LoggerFactory.getLogger(AiTokenLimiterPluginHandler.class);
     
@@ -62,6 +71,31 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
                 REDIS_PROPERTIES_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), redisConfigProperties);
             }
         }
+    }
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), AiTokenLimiterHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+    }
+    
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final AiTokenLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, AiTokenLimiterHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
+        });
+    }
+    
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
     
     @Override
