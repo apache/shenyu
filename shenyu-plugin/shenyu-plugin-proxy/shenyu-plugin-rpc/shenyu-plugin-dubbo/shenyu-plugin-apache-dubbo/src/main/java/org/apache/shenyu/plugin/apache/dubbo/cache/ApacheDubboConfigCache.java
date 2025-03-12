@@ -107,14 +107,14 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      */
     public void init(final DubboRegisterConfig dubboRegisterConfig) {
         if (Objects.isNull(applicationConfig)) {
-            applicationConfig = new ApplicationConfig("shenyu_proxy");
+            applicationConfig = new ApplicationConfig(Constants.DUBBO_DEFAULT_APPLICATION_NAME);
             applicationConfig.setQosEnable(false);
             applicationConfig.setRegisterConsumer(true);
         }
         if (needUpdateRegistryConfig(dubboRegisterConfig)) {
             RegistryConfig registryConfigTemp = new RegistryConfig();
             registryConfigTemp.setProtocol(dubboRegisterConfig.getProtocol());
-            registryConfigTemp.setId("shenyu_proxy");
+            registryConfigTemp.setId(Constants.DUBBO_DEFAULT_APPLICATION_NAME);
             registryConfigTemp.setRegister(false);
             registryConfigTemp.setAddress(dubboRegisterConfig.getRegister());
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
@@ -212,7 +212,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @return the reference config cache key
      */
     public String generateUpstreamCacheKey(final String selectorId, final String ruleId, final String metaDataId, final String namespace, final DubboUpstream dubboUpstream) {
-        StringJoiner stringJoiner = new StringJoiner("_");
+        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
         if (StringUtils.isNotBlank(namespace)) {
             stringJoiner.add(namespace);
         }
@@ -308,7 +308,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         // default protocol is dubbo
-        reference.setProtocol("dubbo");
+        reference.setProtocol(CommonConstants.DUBBO);
         reference.setCheck(false);
         reference.setLoadbalance("gray");
 
@@ -334,7 +334,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             if (StringUtils.isNoneBlank(dubboParam.getLoadbalance())) {
                 reference.getParameters().put(Constants.DUBBO_LOAD_BALANCE, dubboParam.getLoadbalance());
             }
-            if ("protobuf".equals(dubboParam.getSerialization())) {
+            if (Constants.DUBBO_SERIALIZATION_PROTOBUF.equals(dubboParam.getSerialization())) {
                 reference.setGeneric(CommonConstants.GENERIC_SERIALIZATION_PROTOBUF);
             }
             // set dubbo sub protocol
@@ -397,7 +397,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
 
         RegistryConfig registryConfigTemp = new RegistryConfig();
         registryConfigTemp.setProtocol(dubboUpstream.getProtocol());
-        registryConfigTemp.setId("shenyu_proxy");
+        registryConfigTemp.setId(Constants.DUBBO_DEFAULT_APPLICATION_NAME);
         registryConfigTemp.setRegister(false);
         registryConfigTemp.setAddress(dubboUpstream.getRegistry());
         Optional.ofNullable(dubboUpstream.getGroup()).ifPresent(registryConfigTemp::setGroup);
@@ -427,7 +427,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setConsumer(consumerConfigTmp);
         reference.setInterface(metaData.getServiceName());
         // default protocol is dubbo
-        reference.setProtocol("dubbo");
+        reference.setProtocol(CommonConstants.DUBBO);
         reference.setCheck(false);
 
         Map<String, String> parameters = new HashMap<>(2);
@@ -465,7 +465,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         if (StringUtils.isNoneBlank(dubboParam.getLoadbalance())) {
             reference.getParameters().put(Constants.DUBBO_LOAD_BALANCE, dubboParam.getLoadbalance());
         }
-        if ("protobuf".equals(dubboParam.getSerialization())) {
+        if (Constants.DUBBO_SERIALIZATION_PROTOBUF.equals(dubboParam.getSerialization())) {
             reference.setGeneric(CommonConstants.GENERIC_SERIALIZATION_PROTOBUF);
         }
         // set dubbo sub protocol
