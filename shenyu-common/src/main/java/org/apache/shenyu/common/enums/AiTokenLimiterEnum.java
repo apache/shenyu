@@ -18,34 +18,38 @@
 package org.apache.shenyu.common.enums;
 
 /**
- * AiTokenLimiterKeyResolverEnum.
+ * AiTokenLimiterEnum.
  */
-public enum AiTokenLimiterKeyResolverEnum {
+public enum AiTokenLimiterEnum {
     /**
      * Ip key resolver enum.
      */
     IP("ip"),
+    
     /**
      * Uri key resolver enum.
      */
     URI("uri"),
+    
     /**
      * Header key resolver enum.
      */
     HEADER("header"),
+    
     /**
      * Parameter key resolver enum.
      */
     PARAMETER("parameter"),
+    
     /**
      * Cookie key resolver enum.
      */
     COOKIE("cookie"),
+    
     /**
      * Default key resolver enum.
      */
-    DEFAULT("default"),
-    ;
+    DEFAULT("default");
     
     private final String name;
     
@@ -54,7 +58,7 @@ public enum AiTokenLimiterKeyResolverEnum {
      *
      * @param name name
      */
-    AiTokenLimiterKeyResolverEnum(final String name) {
+    AiTokenLimiterEnum(final String name) {
         this.name = name;
     }
     
@@ -73,8 +77,8 @@ public enum AiTokenLimiterKeyResolverEnum {
      * @param keyResolverName key resolver name.
      * @return key resolver name.
      */
-    public static AiTokenLimiterKeyResolverEnum getByName(final String keyResolverName) {
-        for (AiTokenLimiterKeyResolverEnum value : AiTokenLimiterKeyResolverEnum.values()) {
+    public static AiTokenLimiterEnum getByName(final String keyResolverName) {
+        for (AiTokenLimiterEnum value : AiTokenLimiterEnum.values()) {
             if (value.getName().equals(keyResolverName)) {
                 return value;
             }

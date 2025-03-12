@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
-import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.ai.token.limiter.redis.RedisConfigProperties;

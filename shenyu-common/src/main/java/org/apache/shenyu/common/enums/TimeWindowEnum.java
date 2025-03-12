@@ -42,7 +42,7 @@ public enum TimeWindowEnum {
     
     private final Long seconds;
     
-    TimeWindowEnum(Long seconds) {
+    TimeWindowEnum(final Long seconds) {
         this.seconds = seconds;
     }
     

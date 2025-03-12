@@ -18,12 +18,13 @@
 package org.apache.shenyu.plugin.ai.token.limiter;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
-import org.apache.shenyu.common.enums.AiTokenLimiterKeyResolverEnum;
+import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -60,7 +62,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,6 +78,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     
     private static final String REDIS_KEY_PREFIX = "SHENYU:AI:TOKENLIMIT:";
     
+    private static final String CHECK_LIMIT_SCRIPT = "check-limit.lua";
+    
+    private static final String INCREMENT_TOKEN_SCRIPT = "increment-token.lua";
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -86,17 +92,25 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         
-        // get clientId
-        String clientId = extractClientId(exchange);
-        
         ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
         
-        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(), tokens -> recordTokensUsage(reactiveRedisTemplate, clientId, tokens));
+        // generate redis key
+        String keyResolverName = aiTokenLimiterHandle.getAiTokenLimitType();
+        String keyName = aiTokenLimiterHandle.getKeyName();
+        Long tokenLimit = aiTokenLimiterHandle.getTokenLimit();
+        Long timeWindowSeconds = aiTokenLimiterHandle.getTimeWindowSeconds();
         
-        // First get Redis value, then execute chain in reactive way
+        String cacheKey = REDIS_KEY_PREFIX + aiTokenLimiterHandle.getAiTokenLimitType() + ":" + getCacheKey(exchange, keyResolverName, keyName);
         
-        return isAllowed(exchange, reactiveRedisTemplate, aiTokenLimiterHandle)
+        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange.getResponse(),
+                tokens -> recordTokensUsage(reactiveRedisTemplate,
+                        cacheKey,
+                        tokens,
+                        timeWindowSeconds));
+        
+        // check if the request is allowed
+        return isAllowed(reactiveRedisTemplate, cacheKey, tokenLimit)
                 .flatMap(allowed -> {
                     if (!allowed) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
@@ -105,6 +119,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
                         return WebFluxResultUtils.result(exchange, error);
                     }
+                    // record tokens usage
                     ServerWebExchange mutatedExchange = exchange.mutate()
                             .response(loggingServerHttpResponse)
                             .build();
@@ -112,60 +127,45 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     return chain.execute(mutatedExchange);
                 });
         
-        //        return reactiveRedisTemplate
-        //                .opsForValue()
-        //                .get(generateRedisKey(clientId))
-        //                .defaultIfEmpty(0L)
-        //                .flatMap(value -> {
-        //                    // Store in exchange attributes
-        //                    exchange.getAttributes().put(Constants.USED_TOKENS, value);
-        //                    // Execute chain with modified exchange
-        //                    ServerWebExchange mutatedExchange = exchange.mutate()
-        //                            .response(loggingServerHttpResponse)
-        //                            .build();
-        //
-        //                    return chain.execute(mutatedExchange);
-        //                });
     }
     
     /**
      * Check if the request is allowed based on rate limiting rules.
      *
-     * @param exchange the server web exchange
-     * @param config the token rate limit configuration
+     * @param reactiveRedisTemplate the reactive Redis template
+     * @param cacheKey the cache key for the request
+     * @param tokenLimit the token limit for the request
      * @return whether the request is allowed
      */
-    private Mono<Boolean> isAllowed(final ServerWebExchange exchange, final ReactiveRedisTemplate reactiveRedisTemplate, final AiTokenLimiterHandle config) {
-        String cacheKey = REDIS_KEY_PREFIX + config.getKeyResolverName() + ":" + getCacheKey(exchange, config);
-        
+    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
+        DefaultRedisScript checkLimitScript = new DefaultRedisScript<>();
+        String scriptPath = Constants.SCRIPT_PATH + CHECK_LIMIT_SCRIPT;
+        checkLimitScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+        checkLimitScript.setResultType(Long.class);
         return Mono.from(reactiveRedisTemplate.execute(
-                        RedisScript.of(
-                                new ClassPathResource("scripts/ai-token-limit.lua"), Long.class),
-                        Arrays.asList(cacheKey),
-                        Arrays.asList(
-                                config.getTokenLimit().toString(),
-                                config.getTimeWindowSeconds().toString(),
-                                String.valueOf(System.currentTimeMillis())
-                        ))
-                .map(result -> (Long) result == 1L));
+                        checkLimitScript,
+                        Lists.newArrayList(cacheKey),
+                        Lists.newArrayList(tokenLimit.toString()))
+                .map(result -> {
+                    // Convert result to String since StatusOutput doesn't support long
+                    // Return true if result is "1", false otherwise
+                    return (Long) result == 1L;
+                }));
     }
     
     /**
      * Get the cache key based on the configured key resolver type.
      *
      * @param exchange the server web exchange
-     * @param config the token rate limit configuration
+     * @param keyResolverName the name of the key resolver
+     * @param keyName the name of the key
      * @return the cache key
      */
-    private String getCacheKey(final ServerWebExchange exchange, final AiTokenLimiterHandle config) {
+    private String getCacheKey(final ServerWebExchange exchange, final String keyResolverName, final String keyName) {
         ServerHttpRequest request = exchange.getRequest();
         String key;
-        String keyResolverName = config.getKeyResolverName();
-        if (StringUtils.isBlank(keyResolverName)) {
-            keyResolverName = AiTokenLimiterKeyResolverEnum.DEFAULT.getName();
-        }
         // Determine the key based on the configured key resolver type
-        AiTokenLimiterKeyResolverEnum keyResolverEnum = AiTokenLimiterKeyResolverEnum.getByName(keyResolverName);
+        AiTokenLimiterEnum keyResolverEnum = AiTokenLimiterEnum.getByName(keyResolverName);
         
         switch (keyResolverEnum) {
             case IP:
@@ -175,18 +175,19 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 key = request.getURI().getPath();
                 break;
             case HEADER:
-                key = request.getHeaders().getFirst(config.getKeyName());
+                key = request.getHeaders().getFirst(keyName);
                 break;
             case PARAMETER:
-                key = request.getQueryParams().getFirst(config.getKeyName());
+                key = request.getQueryParams().getFirst(keyName);
                 break;
             case COOKIE:
-                HttpCookie cookie = request.getCookies().getFirst(config.getKeyName());
+                HttpCookie cookie = request.getCookies().getFirst(keyName);
                 key = Objects.nonNull(cookie) ? cookie.getValue() : "";
                 break;
             default:
-                key = exchange.getAttribute(Constants.CONTEXT_PATH) + ":" +
-                        exchange.getRequest().getURI().getPath();
+                key = exchange.getAttribute(Constants.CONTEXT_PATH)
+                        + ":"
+                        + exchange.getRequest().getURI().getPath();
         }
         
         return StringUtils.isBlank(key) ? "" : key;
@@ -215,15 +216,14 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return clientId;
     }
     
-    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String clientId, final long tokens) {
-        reactiveRedisTemplate.opsForValue()
-                .increment(generateRedisKey(clientId), tokens)
-                .doOnError(e -> LOG.error("Failed to record tokens usage for client {}: {}", clientId, e))
-                .subscribe();
-    }
-    
-    private String generateRedisKey(final String clientId) {
-        return Constants.AI_TOKEN_STATISTIC_KEY_PREFIX + ":" + clientId;
+    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
+        DefaultRedisScript incrementTokenScript = new DefaultRedisScript<>();
+        String scriptPath = Constants.SCRIPT_PATH + INCREMENT_TOKEN_SCRIPT;
+        incrementTokenScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+        incrementTokenScript.setResultType(List.class);
+        reactiveRedisTemplate.execute(incrementTokenScript,
+                Lists.newArrayList(cacheKey),
+                Lists.newArrayList(tokens.toString(), windowSeconds.toString())).subscribe();
     }
     
     @Override
@@ -235,7 +235,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.AI_TOKEN_LIMITER.getName();
     }
-    
     
     static class AiStatisticServerHttpResponse extends ServerHttpResponseDecorator {
         

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
-import org.apache.shenyu.common.enums.AiTokenLimiterKeyResolverEnum;
+import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
 import org.apache.shenyu.common.enums.TimeWindowEnum;
 
 import java.util.Objects;
@@ -29,7 +29,7 @@ public class AiTokenLimiterHandle {
     /**
      * key resolver enum.
      */
-    private String keyResolverName;
+    private String aiTokenLimitType;
     
     /**
      * time window seconds.
@@ -47,17 +47,21 @@ public class AiTokenLimiterHandle {
     private Long tokenLimit;
     
     /**
-     * key resolver enum.
+     * apiTokenLimitKey.
+     *
+     * @return apiTokenLimitKey apiTokenLimitKey
      */
-    public String getKeyResolverName() {
-        return keyResolverName;
+    public String getAiTokenLimitType() {
+        return aiTokenLimitType;
     }
     
     /**
-     * key resolver enum.
+     * set apiTokenLimitKey.
+     *
+     * @param aiTokenLimitType apiTokenLimitKey
      */
-    public void setKeyResolverName(final String keyResolverName) {
-        this.keyResolverName = keyResolverName;
+    public void setAiTokenLimitType(final String aiTokenLimitType) {
+        this.aiTokenLimitType = aiTokenLimitType;
     }
     
     /**
@@ -121,7 +125,7 @@ public class AiTokenLimiterHandle {
      */
     public static AiTokenLimiterHandle newDefaultInstance() {
         AiTokenLimiterHandle aiTokenLimiterHandle = new AiTokenLimiterHandle();
-        aiTokenLimiterHandle.setKeyResolverName(AiTokenLimiterKeyResolverEnum.DEFAULT.getName());
+        aiTokenLimiterHandle.setAiTokenLimitType(AiTokenLimiterEnum.DEFAULT.getName());
         aiTokenLimiterHandle.setTimeWindowSeconds(TimeWindowEnum.MINUTE.getSeconds());
         aiTokenLimiterHandle.setKeyName("default");
         aiTokenLimiterHandle.setTokenLimit(100L);
@@ -130,12 +134,12 @@ public class AiTokenLimiterHandle {
     
     @Override
     public String toString() {
-        return "AiTokenLimiterHandle{" +
-                "keyResolverName='" + keyResolverName + '\'' +
-                ", timeWindowSeconds=" + timeWindowSeconds +
-                ", keyName='" + keyName + '\'' +
-                ", tokenLimit=" + tokenLimit +
-                '}';
+        return "AiTokenLimiterHandle{"
+                + "keyResolverName='" + aiTokenLimitType + '\''
+                + ", timeWindowSeconds=" + timeWindowSeconds
+                + ", keyName='" + keyName + '\''
+                + ", tokenLimit=" + tokenLimit
+                + '}';
     }
     
     @Override
@@ -146,7 +150,7 @@ public class AiTokenLimiterHandle {
         if (!(o instanceof final AiTokenLimiterHandle that)) {
             return false;
         }
-        return keyResolverName.equals(that.keyResolverName)
+        return aiTokenLimitType.equals(that.aiTokenLimitType)
                 && timeWindowSeconds.equals(that.timeWindowSeconds)
                 && keyName.equals(that.keyName)
                 && tokenLimit.equals(that.tokenLimit);
@@ -154,7 +158,7 @@ public class AiTokenLimiterHandle {
     
     @Override
     public int hashCode() {
-        return Objects.hash(keyResolverName, timeWindowSeconds, keyName, tokenLimit);
+        return Objects.hash(aiTokenLimitType, timeWindowSeconds, keyName, tokenLimit);
     }
     
 }
