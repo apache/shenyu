@@ -294,6 +294,8 @@ public final class AdminConstants {
     public static final String PLUGIN_INTERFACE_PATH = "org.apache.shenyu.plugin.api.ShenyuPlugin";
 
     public static final String PLUGIN_ABSTRACT_PATH = "org.apache.shenyu.plugin.base.AbstractShenyuPlugin";
+    
+    public static final String LOGGING_PLUGIN_ABSTRACT_PATH = "org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin";
 
     public static final String PROXY_SELECTOR_NAME_IS_EXIST = "The proxy selector name already exists and can't be added repeatedly!";
 
