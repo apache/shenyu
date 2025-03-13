@@ -144,3 +144,23 @@ VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValu
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+
+CREATE TABLE instance_info (
+    id            varchar2(128)  NOT NULL,
+    namespace_id  varchar2(50)   NOT NULL,
+    instance_ip   varchar2(128)  NOT NULL,
+    instance_type varchar2(128)  NOT NULL,
+    instance_info clob          NOT NULL,
+    date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE instance_info IS 'Instance information table';
+COMMENT ON COLUMN instance_info.id IS 'primary key';
+COMMENT ON COLUMN instance_info.namespace_id IS 'namespace_id';
+COMMENT ON COLUMN instance_info.instance_ip IS 'instance_ip';
+COMMENT ON COLUMN instance_info.instance_type IS 'instance_type';
+COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
+COMMENT ON COLUMN instance_info.date_created IS 'create time';
+COMMENT ON COLUMN instance_info.date_updated IS 'update time';
