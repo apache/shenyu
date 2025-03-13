@@ -343,7 +343,9 @@ public class PluginServiceImpl implements PluginService {
                 return false;
             }
             Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file);
-            return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACT_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
+            return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACT_PATH)
+                    || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH)
+                    || dependencyTree.contains(AdminConstants.LOGGING_PLUGIN_ABSTRACT_PATH);
         } catch (Exception e) {
             LogUtils.error(LOG, "check plugin jar error:{}", e.getMessage());
             throw new ShenyuException(e);
