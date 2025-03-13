@@ -794,6 +794,7 @@
                         <!-- GitHub files -->
                         <exclude>**/.github/**</exclude>
                         <!-- Gitpod files -->
+                        <exclude>**/.gitpod.Dockerfile</exclude>
                         <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
