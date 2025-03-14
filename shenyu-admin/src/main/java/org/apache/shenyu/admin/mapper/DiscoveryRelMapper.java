@@ -107,4 +107,5 @@ public interface DiscoveryRelMapper {
      * @return rows
      */
     int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
 }

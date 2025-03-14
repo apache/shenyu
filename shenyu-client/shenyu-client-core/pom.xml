@@ -63,7 +63,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-discovery-api</artifactId>
+            <artifactId>shenyu-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
