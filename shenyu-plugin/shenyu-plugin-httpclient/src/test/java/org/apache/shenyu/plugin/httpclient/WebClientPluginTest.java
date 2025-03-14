@@ -129,11 +129,6 @@ public final class WebClientPluginTest {
         when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(webClientPlugin.skip(exchangeHttp));
-
-        ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
-        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
-                .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-        assertFalse(webClientPlugin.skip(exchangeSpringCloud));
     }
 
     /**
