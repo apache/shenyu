@@ -214,6 +214,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             }
         }catch (Throwable e){
             //  no supported , do noting
+            LOG.error("dubbo version no supported", e);
         }
         // default protocol is dubbo
         reference.setProtocol("dubbo");
