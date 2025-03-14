@@ -17,13 +17,17 @@
 
 package org.apache.shenyu.registry.etcd;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.registry.api.path.InstancePathConstants;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
@@ -34,9 +38,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * The type Etcd instance register repository.
@@ -49,6 +56,8 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     private EtcdClient client;
 
     private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+
+    private final Multimap<String, Watch.Watcher> watchCache = ArrayListMultimap.create();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -104,6 +113,58 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         return instanceEntities;
     }
 
+    @Override
+    public boolean serviceExists(final String key) {
+        try {
+            return !selectInstances(key).isEmpty();
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
+    public void watchInstances(final String watchKey, final ChangedEventListener listener) {
+        try {
+            Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
+            serverNodes.forEach((k, v) -> listener.onEvent(k, v, ChangedEventListener.Event.ADDED));
+            final Watch.Watcher watcher = this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
+                for (WatchEvent event : response.getEvents()) {
+                    String value = event.getKeyValue().getValue().toString(UTF_8);
+                    String path = event.getKeyValue().getKey().toString(UTF_8);
+                    switch (event.getEventType()) {
+                        case PUT:
+                            if (event.getKeyValue().getCreateRevision() == event.getKeyValue().getModRevision()) {
+                                listener.onEvent(path, value, ChangedEventListener.Event.ADDED);
+                            } else {
+                                listener.onEvent(path, value, ChangedEventListener.Event.UPDATED);
+                            }
+                            LOGGER.info("watch key {} updated, value is {}", watchKey, value);
+                            continue;
+                        case DELETE:
+                            listener.onEvent(path, value, ChangedEventListener.Event.DELETED);
+                            LOGGER.info("watch key {} deleted, key is {}", watchKey, path);
+                            continue;
+                        default:
+                    }
+                }
+            }));
+            watchCache.put(watchKey, watcher);
+            LOGGER.info("etcd added watcher for key: {}", watchKey);
+        } catch (Exception e) {
+            LOGGER.error("etcd client watch key: {} error", watchKey, e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    @Override
+    public void unWatchInstances(final String key) {
+        if (watchCache.containsKey(key)) {
+            watchCache.get(key).forEach(Watch.Watcher::close);
+            watchCache.removeAll(key);
+            LOGGER.info("etcd Unwatched etcd key: {}", key);
+        }
+    }
+
     private URI getURI(final String instanceRegisterJsonStr, final int port, final String host) {
         String scheme = (instanceRegisterJsonStr.contains("https") || instanceRegisterJsonStr.contains("HTTPS")) ? "https" : "http";
         String uri = String.format("%s://%s:%s", scheme, host, port);
@@ -118,6 +179,16 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     @Override
     public void close() {
-        client.close();
+        try {
+            watchCache.values().forEach(Watch.Watcher::close);
+            watchCache.clear();
+            if (Objects.nonNull(client)) {
+                client.close();
+            }
+            LOGGER.info("Shutting down EtcdDiscoveryService");
+        } catch (Exception e) {
+            LOGGER.error("etcd client shutdown error", e);
+            throw new ShenyuException(e);
+        }
     }
 }
