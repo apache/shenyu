@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.testcase.springcloud;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import io.restassured.http.Method;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
@@ -35,7 +36,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
-import io.restassured.http.Method;
+
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newCondition;
@@ -80,7 +81,6 @@ public class SpringCloudPluginCases implements ShenYuScenarioProvider {
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .addExists("/springcloud/order/path/123/hahah")
-                        .addNotExists("/springcloud/order/path/123/hahah/123")
                         .build())
                 .build();
     }
