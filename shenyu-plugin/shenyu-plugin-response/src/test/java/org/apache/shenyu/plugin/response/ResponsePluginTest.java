@@ -63,7 +63,6 @@ public class ResponsePluginTest {
         MessageWriter messageWriter = mock(MessageWriter.class);
         when(messageWriter.writeWith(any(), any())).thenReturn(Mono.empty());
         writerMap.put(RpcTypeEnum.HTTP.getName(), messageWriter);
-        writerMap.put(RpcTypeEnum.SPRING_CLOUD.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.DUBBO.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.SOFA.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.GRPC.getName(), messageWriter);
@@ -76,9 +75,6 @@ public class ResponsePluginTest {
     public void testExecute() {
         ServerWebExchange httpExchange = generateServerWebExchange(RpcTypeEnum.HTTP.getName());
         StepVerifier.create(responsePlugin.execute(httpExchange, chain)).expectSubscription().verifyComplete();
-
-        ServerWebExchange springCloudExchange = generateServerWebExchange(RpcTypeEnum.SPRING_CLOUD.getName());
-        StepVerifier.create(responsePlugin.execute(springCloudExchange, chain)).expectSubscription().verifyComplete();
 
         ServerWebExchange dubboExchange = generateServerWebExchange(RpcTypeEnum.DUBBO.getName());
         StepVerifier.create(responsePlugin.execute(dubboExchange, chain)).expectSubscription().verifyComplete();

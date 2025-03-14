@@ -19,7 +19,7 @@ package org.apache.shenyu.examples.springcloud.controller;
 
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
-import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.springcloud.dto.EntityResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +53,7 @@ public class NewFeatureController {
      * @return result
      */
     @RequestMapping("/request/mapping/path")
-    @ShenyuSpringCloudClient
+    @ShenyuSpringMvcClient
     @ApiDoc(desc = "request/mapping/path")
     public EntityResult requestMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used request mapping path");
@@ -65,7 +65,7 @@ public class NewFeatureController {
      * @return result
      */
     @PostMapping("/post/mapping/path")
-    @ShenyuSpringCloudClient
+    @ShenyuSpringMvcClient
     @ApiDoc(desc = "post/mapping/path")
     public EntityResult postMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used post mapping path");
@@ -77,7 +77,7 @@ public class NewFeatureController {
      * @return result
      */
     @GetMapping("/get/mapping/path")
-    @ShenyuSpringCloudClient
+    @ShenyuSpringMvcClient
     @ApiDoc(desc = "get/mapping/path")
     public EntityResult getMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used get mapping path");
@@ -89,7 +89,7 @@ public class NewFeatureController {
      * @return result
      */
     @PutMapping("/put/mapping/path")
-    @ShenyuSpringCloudClient
+    @ShenyuSpringMvcClient
     @ApiDoc(desc = "put/mapping/path")
     public EntityResult putMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used put mapping path");
@@ -101,7 +101,7 @@ public class NewFeatureController {
      * @return result
      */
     @DeleteMapping("/delete/mapping/path")
-    @ShenyuSpringCloudClient
+    @ShenyuSpringMvcClient
     @ApiDoc(desc = "delete/mapping/path")
     public EntityResult deleteMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used delete mapping path");

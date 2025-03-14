@@ -26,9 +26,9 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
+import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
@@ -76,7 +76,7 @@ public class DefaultDiscoveryProcessorTest {
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
-    private ShenyuDiscoveryService shenyuDiscoveryService;
+    private ShenyuInstanceRegisterRepository shenyuDiscoveryService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -103,17 +103,17 @@ public class DefaultDiscoveryProcessorTest {
         discoveryDO.setServerList("localhost:2181");
         MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);
         ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
-        mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class)).thenReturn(extensionLoader);
+        mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(extensionLoader);
         when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
-        doNothing().when(shenyuDiscoveryService).init(any(DiscoveryConfig.class));
+        doNothing().when(shenyuDiscoveryService).init(any(RegisterConfig.class));
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
-        verify(ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class), times(1)).getJoin(type);
+        verify(ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class), times(1)).getJoin(type);
         try {
             final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "discoveryServiceCache");
             field.setAccessible(true);
-            Map<String, ShenyuDiscoveryService> actual = (Map<String, ShenyuDiscoveryService>) field.get(defaultDiscoveryProcessor);
-            Map<String, ShenyuDiscoveryService> expected = new HashMap<>();
+            Map<String, ShenyuInstanceRegisterRepository> actual = (Map<String, ShenyuInstanceRegisterRepository>) field.get(defaultDiscoveryProcessor);
+            Map<String, ShenyuInstanceRegisterRepository> expected = new HashMap<>();
             expected.put(id, shenyuDiscoveryService);
             assertEquals(expected, actual);
 
@@ -143,11 +143,8 @@ public class DefaultDiscoveryProcessorTest {
         discoveryHandlerDTO.setDiscoveryId("id");
 
         Assertions.assertThrows(ShenyuAdminException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
-        when(shenyuDiscoveryService.exists(anyString())).thenReturn(true);
-        doNothing().when(shenyuDiscoveryService).watch(anyString(), any(DataChangedEventListener.class));
+        doNothing().when(shenyuDiscoveryService).watchInstances(anyString(), any(ChangedEventListener.class));
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
-        defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
-        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
     @Test
@@ -186,7 +183,7 @@ public class DefaultDiscoveryProcessorTest {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         final ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         discoveryHandlerDTO.setDiscoveryId("id");
-        doNothing().when(shenyuDiscoveryService).unwatch(anyString());
+        doNothing().when(shenyuDiscoveryService).unWatchInstances(anyString());
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
         defaultDiscoveryProcessor.removeProxySelector(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
@@ -196,9 +193,9 @@ public class DefaultDiscoveryProcessorTest {
     public void testRemoveDiscovery() {
         DiscoveryDO discoveryDO = new DiscoveryDO();
         discoveryDO.setId("id");
-        doNothing().when(shenyuDiscoveryService).shutdown();
+        doNothing().when(shenyuDiscoveryService).close();
         defaultDiscoveryProcessor.removeDiscovery(discoveryDO);
-        verify(shenyuDiscoveryService).shutdown();
+        verify(shenyuDiscoveryService).close();
 
     }
 

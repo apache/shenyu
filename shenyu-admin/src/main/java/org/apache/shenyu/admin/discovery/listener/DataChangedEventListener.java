@@ -15,55 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.admin.discovery.listener;
+
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 
 /**
- * RegisterTypeEnum.
+ * Data changed listener.
  */
-public enum RegisterTypeEnum {
+public interface DataChangedEventListener {
 
     /**
-     * Http rpc type enum.
-     */
-    HTTP("http"),
-
-    /**
-     * Dubbo rpc type enum.
-     */
-    DUBBO("dubbo"),
-
-    /**
-     * Sofa rpc type enum.
-     */
-    SOFA("sofa"),
-
-    /**
-     * Tars rpc type enum.
-     */
-    TARS("tars"),
-
-    /**
-     * Motan rpc type enum.
-     */
-    MOTAN("motan"),
-
-    /**
-     * grpc.
-     */
-    GRPC("grpc");
-    
-    private final String name;
-
-    RegisterTypeEnum(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * getName.
+     * when data changed, fire this event.
      *
-     * @return String
+     * @param event data changed event
      */
-    public String getName() {
-        return name;
-    }
+    void onChange(DiscoveryDataChangedEvent event);
+
+    /**
+     * addListener.
+     *
+     * @param discoverySyncData discoverySyncData
+     */
+    void addListener(DiscoverySyncData discoverySyncData);
 }
