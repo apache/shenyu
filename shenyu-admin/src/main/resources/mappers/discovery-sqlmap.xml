@@ -64,6 +64,14 @@
         WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByPluginNameAndLevelAndNamespaceIdAndType" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        AND type = #{discoveryType, jdbcType=VARCHAR}
+    </select>
+
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         SELECT
         <include refid="Base_Column_List"/>

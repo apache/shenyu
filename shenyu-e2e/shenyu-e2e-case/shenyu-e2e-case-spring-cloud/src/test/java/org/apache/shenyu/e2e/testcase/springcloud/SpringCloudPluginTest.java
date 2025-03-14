@@ -69,22 +69,21 @@ public class SpringCloudPluginTest {
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start spring cloud plugin");
         List<RuleCacheData> ruleCache = gatewayClient.getRuleCache();
         LOG.info("ruleCache: {}", ruleCache);
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
-        LOG.info("start spring cloud  plugin");
+
         Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("pluginId", "8");
-        reqBody.put("name", "springCloud");
+        reqBody.put("pluginId", "5");
+        reqBody.put("name", "divide");
         reqBody.put("enabled", "true");
         reqBody.put("role", "Proxy");
         reqBody.put("sort", "200");
-        reqBody.put("config", "{\"enabled\":true,\"registerType\":\"eureka\",\"serverLists\":\"http://shenyu-examples-eureka:8761/eureka\"}");
+        reqBody.put("config", "{\"enabled\":true}");
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("1801816010882822185", reqBody);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.springcloud.SpringCloudPlugin");
+        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.divide.DividePlugin");
 
     }
 
