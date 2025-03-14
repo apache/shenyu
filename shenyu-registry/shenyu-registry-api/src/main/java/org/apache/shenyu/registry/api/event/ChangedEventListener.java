@@ -15,55 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.registry.api.event;
 
-/**
- * RegisterTypeEnum.
- */
-public enum RegisterTypeEnum {
+@FunctionalInterface
+public interface ChangedEventListener {
 
     /**
-     * Http rpc type enum.
+     * Data changed event.
      */
-    HTTP("http"),
+    enum Event {
 
-    /**
-     * Dubbo rpc type enum.
-     */
-    DUBBO("dubbo"),
-
-    /**
-     * Sofa rpc type enum.
-     */
-    SOFA("sofa"),
-
-    /**
-     * Tars rpc type enum.
-     */
-    TARS("tars"),
-
-    /**
-     * Motan rpc type enum.
-     */
-    MOTAN("motan"),
-
-    /**
-     * grpc.
-     */
-    GRPC("grpc");
-    
-    private final String name;
-
-    RegisterTypeEnum(final String name) {
-        this.name = name;
+        /**
+         * Added event.
+         */
+        ADDED,
+        /**
+         * Updated event.
+         */
+        UPDATED,
+        /**
+         * Deleted event.
+         */
+        DELETED,
+        /**
+         * Ignored event.
+         */
+        IGNORED
     }
 
     /**
-     * getName.
+     * onEvent.
      *
-     * @return String
+     * @param key key
+     * @param value value
+     * @param event event
      */
-    public String getName() {
-        return name;
-    }
+    void onEvent(String key, String value, Event event);
 }
