@@ -30,10 +30,8 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -238,12 +236,7 @@ public class LocalPluginController {
         discoverySyncData.setSelectorId(defaultSelectorData.getId());
         discoverySyncData.setSelectorName(defaultSelectorData.getName());
         discoverySyncData.setPluginName(defaultSelectorData.getPluginName());
-        List<DivideUpstream> upstreamList;
-        if (StringUtils.equalsIgnoreCase(PluginEnum.SPRING_CLOUD.getName(), defaultSelectorData.getPluginName())) {
-            upstreamList = GsonUtils.getInstance().fromJson(defaultSelectorData.getHandle(), SpringCloudSelectorHandle.class).getDivideUpstreams();
-        } else {
-            upstreamList = GsonUtils.getInstance().fromList(defaultSelectorData.getHandle(), DivideUpstream.class);
-        }
+        List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(defaultSelectorData.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = upstreamList.stream().map(up -> {
                 DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
