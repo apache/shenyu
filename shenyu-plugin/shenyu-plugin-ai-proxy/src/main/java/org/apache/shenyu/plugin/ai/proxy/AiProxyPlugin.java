@@ -67,7 +67,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         
         String rpcType = shenyuContext.getRpcType();
         String realUrl = shenyuContext.getRealUrl();
-        LOG.info("AiProxyPlugin rpcType:{} realUrl:{}", rpcType, realUrl);
         // Get selector handle from cache
         AiProxyHandle selectorHandle = AiProxyPluginHandler.SELECTOR_CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
