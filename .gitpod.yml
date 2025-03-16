@@ -1,3 +1,6 @@
+image:
+    file: .gitpod.Dockerfile
+
 additionalRepositories:
     - url: https://github.com/apache/shenyu-dashboard.git
       checkoutLocation: frontend
@@ -19,8 +22,6 @@ tasks:
 
     - name: Setup backend
       init: |
-          sdk install java 17.0.11.fx-zulu < /dev/null
-          sdk default java 17.0.11.fx-zulu < /dev/null
           mvn clean install -DskipTests
       command: |
           gp sync-done setup-backend
