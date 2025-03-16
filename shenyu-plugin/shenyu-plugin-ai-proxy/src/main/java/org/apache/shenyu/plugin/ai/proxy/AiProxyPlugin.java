@@ -60,14 +60,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                                    final SelectorData selector, final RuleData rule) {
         AiProxyConfig aiProxyConfig = Singleton.INST.get(AiProxyConfig.class);
         if (Objects.isNull(aiProxyConfig)) {
-            return chain.execute(exchange);
+            aiProxyConfig = new AiProxyConfig();
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert Objects.nonNull(shenyuContext);
         
-        String rpcType = shenyuContext.getRpcType();
-        String realUrl = shenyuContext.getRealUrl();
-        LOG.info("AiProxyPlugin rpcType:{} realUrl:{}", rpcType, realUrl);
         // Get selector handle from cache
         AiProxyHandle selectorHandle = AiProxyPluginHandler.SELECTOR_CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -80,7 +77,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             aiProxyConfig.setModel(selectorHandle.getModel());
             aiProxyConfig.setTemperature(selectorHandle.getTemperature());
             aiProxyConfig.setMaxTokens(selectorHandle.getMaxTokens());
-            aiProxyConfig.setPrompt(selectorHandle.getPrompt());
             aiProxyConfig.setStream(selectorHandle.getStream());
         }
         
