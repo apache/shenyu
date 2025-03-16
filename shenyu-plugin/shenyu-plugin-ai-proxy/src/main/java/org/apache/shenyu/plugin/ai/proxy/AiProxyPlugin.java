@@ -80,6 +80,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             aiProxyConfig.setStream(selectorHandle.getStream());
         }
         
+        if (Objects.isNull(aiProxyConfig.getBaseUrl())) {
+            LOG.error("AI proxy plugin: baseUrl is null");
+            return chain.execute(exchange);
+        }
+        
         shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         
