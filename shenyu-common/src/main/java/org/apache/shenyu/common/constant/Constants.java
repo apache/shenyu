@@ -947,9 +947,24 @@ public interface Constants {
     String PROMPT = "prompt";
 
     /**
+     * The constant messages.
+     */
+    String MESSAGES = "messages";
+
+    /**
      * The constant Content-Encoding.
      */
     String CONTENT_ENCODING = "Content-Encoding";
+    
+    /**
+     * The constant Content.
+     */
+    String CONTENT = "content";
+    
+    /**
+     * The constant ROLE.
+     */
+    String ROLE = "role";
     
     /**
      * String q.
