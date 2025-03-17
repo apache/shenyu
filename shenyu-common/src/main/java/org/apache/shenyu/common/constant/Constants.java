@@ -952,6 +952,16 @@ public interface Constants {
     String MESSAGES = "messages";
 
     /**
+     * The constant usedTokens.
+     */
+    String USED_TOKENS = "used-tokens";
+
+    /**
+     * The constant X-Client-ID.
+     */
+    String CLIENT_ID = "X-Client-ID";
+    
+    /**
      * The constant Content-Encoding.
      */
     String CONTENT_ENCODING = "Content-Encoding";

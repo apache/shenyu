@@ -1168,8 +1168,8 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('43', 'loggingHuaweiLts', 'Logging', 177, '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('44', 'basicAuth', 'Authentication', 150, '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('45', 'loggingRabbitmq', 'Logging', 171, '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', '0');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 200, 0);
-
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 199, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0);
 
 /*insert plugin_handle data for sentinel*/
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -2931,8 +2931,8 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespa
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822186','649330b6-c2d7-4edc-be8e-8a54df9eb385','9', NULL, 130, 0);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 171, 0);
-
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 199, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACEPLUGIN', 'namespacePlugin', '/config/namespacePlugin', 'namespacePlugin', 1, 2, 'build', 0, 0, '', 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840480', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, '', 1, 0, 'system:namespacePlugin:list', 1);
@@ -3243,3 +3243,148 @@ VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'us
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) 
 VALUES ('1801816010882822189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '52', NULL, 171, 0, to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'));
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534859', '1346775491550474240', 'aiTokenLimiter', 'aiTokenLimiter', '/plug/aiTokenLimiter', 'aiTokenLimiter', 1, 0, 'pic-center', 0, 0, '', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534860', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:add', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534861', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:query', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534862', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:edit', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534863', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:delete', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534864', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:add', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534865', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:query', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534866', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:edit', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534867', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:delete', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534868', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiter:modify', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542751', '1346358560427216896', '1844026099075534859');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542752', '1346358560427216896', '1844026099075534860');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542753', '1346358560427216896', '1844026099075534861');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542754', '1346358560427216896', '1844026099075534862');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542755', '1346358560427216896', '1844026099075534863');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542756', '1346358560427216896', '1844026099075534864');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542757', '1346358560427216896', '1844026099075534865');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542758', '1346358560427216896', '1844026099075534866');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542759', '1346358560427216896', '1844026099075534867');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1697146860569542760', '1346358560427216896', '1844026099075534868');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507049', '51', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507050', '51', 'master', 'master', 2, 3, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507051', '51', 'mode', 'mode', 2, 3, 4, '{"required":"0","defaultValue":"standalone","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507052', '51', 'url', 'url', 2, 3, 5, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507053', '51', 'password', 'password', 2, 3, 6, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507054', '51', 'maxIdle', 'maxIdle', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507055', '51', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507056', '51', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507057', '51', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', sysdate, sysdate);
+
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507049', '51', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507050', '51', 'master', 'master', 2, 3, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507051', '51', 'mode', 'mode', 2, 3, 4, '{"required":"0","defaultValue":"standalone","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507052', '51', 'url', 'url', 2, 3, 5, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507053', '51', 'password', 'password', 2, 3, 6, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507054', '51', 'maxIdle', 'maxIdle', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507055', '51', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507056', '51', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
+VALUES ('1722804548510507057', '51', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737490', 'aiTokenLimitType', 'DEFAULT_KEY_RESOLVER', 'default', 'default', 'Rate limit by default', 0, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737491', 'aiTokenLimitType', 'IP_KEY_RESOLVER', 'ip', 'ip', 'Rate limit by request ip', 1, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737492', 'aiTokenLimitType', 'URI_KEY_RESOLVER', 'uri', 'uri', 'Rate limit by request uri', 2, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737493', 'aiTokenLimitType', 'HEADER_KEY_RESOLVER', 'header', 'header', 'Rate limit by request header', 3, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737494', 'aiTokenLimitType', 'PARAMETER_KEY_RESOLVER', 'parameter', 'parameter', 'Rate limit by request parameter', 4, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
+VALUES ('1679002911061737495', 'aiTokenLimitType', 'COOKIE_KEY_RESOLVER', 'cookie', 'cookie', 'Rate limit by request cookie', 5, 1, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899702350766538752', '51', 'aiTokenLimitType', 'aiTokenLimitType', 3, 2, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899702411294539776', '51', 'timeWindowSeconds', 'timeWindowSeconds', 1, 2, 1, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
