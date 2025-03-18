@@ -161,10 +161,6 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
         }
-        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(discoveryDOList)) {
-            throw new ShenyuAdminException("discovery exist under those namespace!");
-        }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }

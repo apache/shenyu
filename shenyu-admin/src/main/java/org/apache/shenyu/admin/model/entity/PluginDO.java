@@ -245,7 +245,7 @@ public final class PluginDO extends BaseDO {
                 pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 pluginDO.setDateCreated(currentTime);
             } else {
-                pluginDO.setId(item.getId());
+                pluginDO.setId(item.getPluginId());
             }
             if (Objects.nonNull(item.getFile())) {
                 pluginDO.setPluginJar(Base64.decode(item.getFile()));
