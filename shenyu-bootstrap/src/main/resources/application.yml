@@ -112,7 +112,7 @@ shenyu:
       accessLog: false
       serverSocketChannel:
         soBackLog: 128
-        soReuseAddr: false
+        soReuseAddr: true
         connectTimeoutMillis: 10000
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
@@ -123,7 +123,7 @@ shenyu:
         singleEventExecutorPerGroup: true
       socketChannel:
         soKeepAlive: false
-        soReuseAddr: false
+        soReuseAddr: true
         soLinger: -1
         tcpNoDelay: true
         ipTos: 0

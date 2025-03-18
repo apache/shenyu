@@ -16,11 +16,11 @@
 
 -- this file works for PostgreSQL, can not use "`" syntax.
 
-ALTER TABLE selector ADD COLUMN match_restful int2 NOT NULL;
+ALTER TABLE selector ADD COLUMN match_restful int2 NOT NULL DEFAULT 0;
 COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
-ALTER TABLE rule ADD COLUMN match_restful int2 NOT NULL;
+ALTER TABLE rule ADD COLUMN match_restful int2 NOT NULL DEFAULT 0;
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
@@ -127,8 +127,8 @@ CREATE TABLE "public"."discovery_upstream"
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "url"         varchar(128) COLLATE "pg_catalog"."default",
-    "status"      int2 COLLATE "pg_catalog"."default" NOT NULL,
-    "weight"      int2 COLLATE "pg_catalog"."default" NOT NULL,
+    "status"      int2 NOT NULL,
+    "weight"      int2 NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP

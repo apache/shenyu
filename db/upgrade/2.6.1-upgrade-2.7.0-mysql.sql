@@ -144,21 +144,21 @@ INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, 
 ALTER TABLE `dashboard_user` ADD COLUMN `client_id` varchar(32) NULL DEFAULT NULL COMMENT 'client id';
 
 
-ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
+ALTER TABLE `selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `match_restful`;
 
-ALTER TABLE `rule` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `match_restful`;
+ALTER TABLE `rule` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `match_restful`;
 
-ALTER TABLE `meta_data` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `rpc_ext`;
+ALTER TABLE `meta_data` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `rpc_ext`;
 
-ALTER TABLE `app_auth` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `enabled`;
+ALTER TABLE `app_auth` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `enabled`;
 
-ALTER TABLE `discovery` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `plugin_name`;
+ALTER TABLE `discovery` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `plugin_name`;
 
-ALTER TABLE `discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `discovery_handler_id`;
+ALTER TABLE `discovery_upstream` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `discovery_handler_id`;
 
-ALTER TABLE `proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `props`;
+ALTER TABLE `proxy_selector` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `props`;
 
-ALTER TABLE `alert_receiver` ADD COLUMN `namespace_id` varchar(50) NOT NULL COMMENT 'namespaceId' AFTER `levels`;
+ALTER TABLE `alert_receiver` ADD COLUMN `namespace_id` varchar(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385' COMMENT 'namespaceId' AFTER `levels`;
 
 UPDATE selector
 SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385'
