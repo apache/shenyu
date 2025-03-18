@@ -108,39 +108,6 @@ public class IngressConstants {
     // The configuration key to specify additional RPC extension for the Tars plugin, in string
     public static final String PLUGIN_MOTAN_RPC_EXPAND = "shenyu.apache.org/plugin-motan-rpc-expand";
 
-    // Determining whether to use the SpringCloud plugin, in String
-    public static final String PLUGIN_SPRING_CLOUD_ENABLED = "shenyu.apache.org/plugin-spring-cloud-enabled";
-
-    // The configuration key to specify the SpringCloud app name for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_APP_NAME = "shenyu.apache.org/plugin-spring-cloud-app-name";
-
-    // The configuration key to specify the SpringCloud path for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_PATH = "shenyu.apache.org/plugin-spring-cloud-path";
-
-    // The configuration key to specify the SpringCloud context path for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_CONTEXT_PATH = "shenyu.apache.org/plugin-spring-cloud-context-path";
-
-    // The configuration key to specify the SpringCloud load balance for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_METHOD_NAME = "shenyu.apache.org/plugin-spring-cloud-method-name";
-
-    // The configuration key to specify the SpringCloud rpc type for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_RPC_TYPE = "shenyu.apache.org/plugin-spring-cloud-rpc-type";
-
-    // The configuration key to specify the SpringCloud parament type for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_PARAMENT_TYPE = "shenyu.apache.org/plugin-spring-cloud-params-type";
-
-    // The configuration key to specify the SpringCloud rpc ext balance for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_RPC_EXT = "shenyu.apache.org/plugin-spring-cloud-rpc-ext";
-
-    // The configuration key to specify the SpringCloud service name for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_SERVICE_NAME = "shenyu.apache.org/plugin-spring-cloud-service-name";
-
-    // The configuration key to specify the SpringCloud service id for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_SERVICE_ID = "shenyu.apache.org/plugin-spring-cloud-service-id";
-
-    // The configuration key to specify the SpringCloud gray for the plugin, in string
-    public static final String PLUGIN_SPRING_CLOUD_GRAY = "shenyu.apache.org/plugin-spring-cloud-gray";
-
     //Determining whether to use the WebSocket plugin, in String
     public static final String PLUGIN_WEB_SOCKET_ENABLED = "shenyu.apache.org/plugin-web-socket-enabled";
 

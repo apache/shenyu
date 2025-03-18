@@ -19,7 +19,7 @@ package org.apache.shenyu.examples.springcloud.controller;
 
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
-import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.springcloud.dto.EntityResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * AllController.
  */
 @RestController
-@ShenyuSpringCloudClient
+@ShenyuSpringMvcClient
 @ApiModule(value = "allController")
 public class AllController {
     

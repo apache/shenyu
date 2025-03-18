@@ -32,6 +32,10 @@ public class InstanceEntity {
     private Integer port;
 
     private URI uri;
+
+    private int status;
+
+    private int weight;
     
     /**
      * Instantiates a new Instance register dto.
@@ -139,6 +143,42 @@ public class InstanceEntity {
      */
     public void setUri(final URI uri) {
         this.uri = uri;
+    }
+
+    /**
+     * status.
+     *
+     * @return Status
+     */
+    public int getStatus() {
+        return status;
+    }
+
+    /**
+     * set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final int status) {
+        this.status = status;
+    }
+
+    /**
+     * weight.
+     *
+     * @return Weight
+     */
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
     }
 
     @Override

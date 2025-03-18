@@ -45,7 +45,6 @@
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
-        <module>shenyu-discovery</module>
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
@@ -794,6 +793,7 @@
                         <!-- GitHub files -->
                         <exclude>**/.github/**</exclude>
                         <!-- Gitpod files -->
+                        <exclude>**/.gitpod.Dockerfile</exclude>
                         <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>

@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.logging.console;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -52,6 +53,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -65,17 +67,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Shenyu logging console plugin. it can print request info(include request headers, request params, request body ...etc) and
  * response info(include response headers and response body).
  */
 public class LoggingConsolePlugin extends AbstractShenyuPlugin {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(LoggingConsolePlugin.class);
-
+    
     private static String dataDesensitizeAlg = DataDesensitizeEnum.CHARACTER_REPLACE.getDataDesensitizeAlg();
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -110,17 +113,17 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             throw e;
         }
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.LOGGING_CONSOLE.getCode();
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.LOGGING_CONSOLE.getName();
     }
-
+    
     private String getRequestMethod(final ServerHttpRequest request, final Boolean desensitized, final KeyWordMatch keyWordMatch) {
         // desensitize request method
         String requestMethod = "";
@@ -130,14 +133,14 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         }
         return "Request Method: " + requestMethod + System.lineSeparator();
     }
-
+    
     private String getRequestUri(final ServerHttpRequest request, final Boolean desensitized, final KeyWordMatch keyWordMatch) {
         // desensitize request uri
         String requestUri = DataDesensitizeUtils.desensitizeSingleKeyword(desensitized, GenericLoggingConstant.REQUEST_URI,
                 request.getURI().toString(), keyWordMatch, dataDesensitizeAlg);
         return "Request Uri: " + requestUri + System.lineSeparator();
     }
-
+    
     private String getQueryParams(final ServerHttpRequest request, final Boolean desensitized, final KeyWordMatch keyWordMatch) {
         MultiValueMap<String, String> params = request.getQueryParams();
         StringBuilder logInfo = new StringBuilder();
@@ -154,7 +157,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-
+    
     private String getRequestHeaders(final ServerHttpRequest request, final Boolean desensitized, final KeyWordMatch keyWordMatch) {
         HttpHeaders headers = request.getHeaders();
         final StringBuilder logInfo = new StringBuilder();
@@ -165,11 +168,11 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-
+    
     private void print(final String info) {
         LOG.info(info);
     }
-
+    
     private String getHeaders(final HttpHeaders headers, final Boolean desensitized, final KeyWordMatch keyWordMatch) {
         StringBuilder logInfo = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
@@ -183,15 +186,15 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         });
         return logInfo.toString();
     }
-
+    
     static class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
-
+        
         private final StringBuilder logInfo;
-
+        
         private final Boolean desensitized;
-
+        
         private final KeyWordMatch keyWordMatch;
-
+        
         LoggingServerHttpRequest(final ServerHttpRequest delegate, final StringBuilder logInfo,
                                  final Boolean desensitized, final KeyWordMatch keyWordMatch) {
             super(delegate);
@@ -199,7 +202,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             this.desensitized = desensitized;
             this.keyWordMatch = keyWordMatch;
         }
-
+        
         @Override
         @NonNull
         public Flux<DataBuffer> getBody() {
@@ -222,17 +225,17 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             });
         }
     }
-
+    
     class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
-
+        
         private final StringBuilder logInfo;
-
+        
         private final ServerHttpResponse serverHttpResponse;
-
+        
         private final Boolean desensitized;
-
+        
         private final KeyWordMatch keyWordMatch;
-
+        
         LoggingServerHttpResponse(final ServerHttpResponse delegate, final StringBuilder logInfo,
                                   final Boolean desensitized, final KeyWordMatch keyWordMatch) {
             super(delegate);
@@ -242,13 +245,13 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             this.keyWordMatch = keyWordMatch;
             this.logInfo.append(System.lineSeparator());
         }
-
+        
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             return super.writeWith(appendResponse(body));
         }
-
+        
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
             logInfo.append(System.lineSeparator());
@@ -267,7 +270,27 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             BodyWriter writer = new BodyWriter();
             return Flux.from(body).doOnNext(buffer -> {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
-                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                    bufferIterator.forEachRemaining(byteBuffer -> {
+                        // Handle gzip encoded response
+                        if (serverHttpResponse.getHeaders().containsKey(Constants.CONTENT_ENCODING)
+                                && serverHttpResponse.getHeaders().getFirst(Constants.CONTENT_ENCODING).contains("gzip")) {
+                            try {
+                                ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
+                                byte[] compressed = new byte[readOnlyBuffer.remaining()];
+                                readOnlyBuffer.get(compressed);
+                                
+                                // Decompress gzipped content
+                                byte[] decompressed = decompressGzip(compressed);
+                                writer.write(ByteBuffer.wrap(decompressed));
+                                
+                            } catch (IOException e) {
+                                LOG.error("Failed to decompress gzipped response", e);
+                                writer.write(byteBuffer.asReadOnlyBuffer());
+                            }
+                        } else {
+                            writer.write(byteBuffer.asReadOnlyBuffer());
+                        }
+                    });
                 }
             }).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
@@ -279,7 +302,19 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 print(logInfo.toString());
             });
         }
-
+        
+        private byte[] decompressGzip(final byte[] compressed) throws IOException {
+            try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = gzipInputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, len);
+                }
+                return outputStream.toByteArray();
+            }
+        }
+        
         /**
          * access error.
          *
@@ -295,22 +330,22 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             logInfo.append("ERROR: ").append(System.lineSeparator());
             logInfo.append(throwable.getMessage()).append(System.lineSeparator());
         }
-
+        
         private String getResponseHeaders() {
             return System.lineSeparator() + "[Response Headers Start]" + System.lineSeparator()
                     + LoggingConsolePlugin.this.getHeaders(serverHttpResponse.getHeaders(), desensitized, keyWordMatch)
                     + "[Response Headers End]" + System.lineSeparator();
         }
     }
-
+    
     static class BodyWriter {
-
+        
         private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
+        
         private final WritableByteChannel channel = Channels.newChannel(stream);
-
+        
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
-
+        
         void write(final ByteBuffer buffer) {
             if (!isClosed.get()) {
                 try {
@@ -321,11 +356,11 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 }
             }
         }
-
+        
         boolean isEmpty() {
             return stream.size() == 0;
         }
-
+        
         String output() {
             try {
                 isClosed.compareAndSet(false, true);
