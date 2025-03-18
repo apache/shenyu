@@ -34,7 +34,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737484', 'provider', 'P
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737485', 'provider', 'PROVIDER_TYPE_OPENAPI', 'OpenAPI', 'OpenAPI', 'OpenAPI', 3, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737486', 'provider', 'PROVIDER_TYPE_ALIYUN', 'ALiYun', 'ALiYun', 'ALiYun', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 199, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 INSERT INTO "public"."resource" VALUES ('1844026099075534849', '1346775491550474240', 'aiProxy', 'aiProxy', '/plug/aiProxy', 'aiProxy', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075534850', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxySelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -85,3 +85,51 @@ COMMENT ON COLUMN "public"."instance_info"."instance_type" IS 'instance_type';
 COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
+
+INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+
+INSERT INTO "public"."resource" VALUES ('1844026099075534859', '1346775491550474240', 'aiTokenLimiter', 'aiTokenLimiter', '/plug/aiTokenLimiter', 'aiTokenLimiter', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534860', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534861', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534862', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534863', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534864', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534865', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534866', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534867', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534868', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiter:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+
+INSERT INTO "public"."permission" VALUES ('1697146860569542751', '1346358560427216896', '1844026099075534859', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697146860569542752', '1346358560427216896', '1844026099075534860', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146860569542753', '1346358560427216896', '1844026099075534861', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146860569542754', '1346358560427216896', '1844026099075534862', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146860569542755', '1346358560427216896', '1844026099075534863', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569542756', '1346358560427216896', '1844026099075534864', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569542757', '1346358560427216896', '1844026099075534865', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569542758', '1346358560427216896', '1844026099075534866', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569542759', '1346358560427216896', '1844026099075534867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569542760', '1346358560427216896', '1844026099075534868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507049', '51', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507050', '51', 'master', 'master', 2, 3, 3, '{"required":"0","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507051', '51', 'mode', 'mode', 2, 3, 4, '{"required":"0","defaultValue":"standalone","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507052', '51', 'url', 'url', 2, 3, 5, '{"required":"0","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507053', '51', 'password', 'password', 2, 3, 6, '{"required":"0","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507054', '51', 'maxIdle', 'maxIdle', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507055', '51', 'minIdle', 'minIdle', 1, 3, 8, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507056', '51', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507057', '51', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737490', 'aiTokenLimitType', 'DEFAULT_KEY_RESOLVER', 'default', 'default', 'Rate limit by default', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737491', 'aiTokenLimitType', 'IP_KEY_RESOLVER', 'ip', 'ip', 'Rate limit by request ip', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737492', 'aiTokenLimitType', 'URI_KEY_RESOLVER', 'uri', 'uri', 'Rate limit by request uri', 2, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737493', 'aiTokenLimitType', 'HEADER_KEY_RESOLVER', 'header', 'header', 'Rate limit by request header', 3, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737494', 'aiTokenLimitType', 'PARAMETER_KEY_RESOLVER', 'parameter', 'parameter', 'Rate limit by request parameter', 4, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737495', 'aiTokenLimitType', 'COOKIE_KEY_RESOLVER', 'cookie', 'cookie', 'Rate limit by request cookie', 5, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1899702350766538752', '51', 'aiTokenLimitType', 'aiTokenLimitType', 3, 2, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
+INSERT INTO "public"."plugin_handle" VALUES ('1899702411294539776', '51', 'timeWindowSeconds', 'timeWindowSeconds', 1, 2, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
+INSERT INTO "public"."plugin_handle" VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
+INSERT INTO "public"."plugin_handle" VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
