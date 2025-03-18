@@ -16,11 +16,11 @@
 
 -- this file works for MySQL.
 
-ALTER TABLE selector ADD COLUMN match_restful TINYINT(0) NOT NULL
+ALTER TABLE selector ADD COLUMN match_restful TINYINT(0) NOT NULL default 0
 COMMENT 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
-ALTER TABLE rule ADD COLUMN match_restful TINYINT(0) NOT NULL
+ALTER TABLE rule ADD COLUMN match_restful TINYINT(0) NOT NULL default 0
 COMMENT 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
