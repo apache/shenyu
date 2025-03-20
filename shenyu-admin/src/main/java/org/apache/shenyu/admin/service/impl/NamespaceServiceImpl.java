@@ -140,17 +140,17 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isEmpty(namespaceIdList)) {
             throw new ShenyuAdminException(AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST);
         }
-        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(namespacePluginVOS)) {
-            throw new ShenyuAdminException("Plugins exist under those namespace!");
+        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(ruleDOList)) {
+            throw new ShenyuAdminException("rule exist under those namespace!");
         }
         List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(selectorDOS)) {
             throw new ShenyuAdminException("selector exist under those namespace!");
         }
-        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(ruleDOList)) {
-            throw new ShenyuAdminException("rule exist under those namespace!");
+        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(namespacePluginVOS)) {
+            throw new ShenyuAdminException("Plugins exist under those namespace!");
         }
         List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(metaDataDOList)) {
