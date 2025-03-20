@@ -17,11 +17,8 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import jakarta.validation.constraints.NotBlank;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
-
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
@@ -54,11 +51,90 @@ public class InstanceInfoVO implements Serializable {
     /**
      * namespaceId.
      */
-    @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
     private String namespaceId;
-
-
+    
+    /**
+     * created time.
+     */
+    private Timestamp dateCreated;
+    
+    /**
+     * updated time.
+     */
+    private Timestamp dateUpdated;
+    
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+    
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+    
+    /**
+     * get instanceIp.
+     *
+     * @return instanceIp
+     */
+    public String getInstanceIp() {
+        return instanceIp;
+    }
+    
+    /**
+     * set instanceIp.
+     *
+     * @param instanceIp instanceIp
+     */
+    public void setInstanceIp(final String instanceIp) {
+        this.instanceIp = instanceIp;
+    }
+    
+    /**
+     * get instanceType.
+     *
+     * @return instanceType
+     */
+    public String getInstanceType() {
+        return instanceType;
+    }
+    
+    /**
+     * set instanceType.
+     *
+     * @param instanceType instanceType
+     */
+    public void setInstanceType(final String instanceType) {
+        this.instanceType = instanceType;
+    }
+    
+    /**
+     * get instanceInfo.
+     *
+     * @return instanceInfo
+     */
+    public String getInstanceInfo() {
+        return instanceInfo;
+    }
+    
+    /**
+     * set instanceInfo.
+     *
+     * @param instanceInfo instanceInfo
+     */
+    public void setInstanceInfo(final String instanceInfo) {
+        this.instanceInfo = instanceInfo;
+    }
+    
     /**
      * get namespaceId.
      *
@@ -76,7 +152,43 @@ public class InstanceInfoVO implements Serializable {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-
+    
+    /**
+     * get dateCreated.
+     *
+     * @return dateCreated
+     */
+    public Timestamp getDateCreated() {
+        return dateCreated;
+    }
+    
+    /**
+     * set dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final Timestamp dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+    
+    /**
+     * get dateUpdated.
+     *
+     * @return dateUpdated
+     */
+    public Timestamp getDateUpdated() {
+        return dateUpdated;
+    }
+    
+    /**
+     * set dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(final Timestamp dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -91,11 +203,13 @@ public class InstanceInfoVO implements Serializable {
                 && Objects.equals(instanceIp, that.instanceIp)
                 && Objects.equals(instanceType, that.instanceType)
                 && Objects.equals(instanceInfo, that.instanceInfo)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(dateCreated, that.dateCreated)
+                && Objects.equals(dateUpdated, that.dateUpdated);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, instanceIp, instanceType, instanceInfo, namespaceId);
+        return Objects.hash(id, instanceIp, instanceType, instanceInfo, namespaceId, dateCreated, dateUpdated);
     }
 }

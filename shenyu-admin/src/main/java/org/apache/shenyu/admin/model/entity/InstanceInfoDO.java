@@ -98,12 +98,15 @@ public final class InstanceInfoDO extends BaseDO {
      * @return InstanceInfoDO
      */
     public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoDTO instanceInfoDTO) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return InstanceInfoDO.builder()
                 .id(instanceInfoDTO.getId())
                 .instanceIp(instanceInfoDTO.getInstanceIp())
                 .instanceType(instanceInfoDTO.getInstanceType())
                 .instanceInfo(instanceInfoDTO.getInstanceInfo())
                 .namespaceId(instanceInfoDTO.getNamespaceId())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
                 .build();
     }
     

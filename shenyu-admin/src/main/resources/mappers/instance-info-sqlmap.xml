@@ -35,9 +35,23 @@
         instance_ip,
         instance_type,
         instance_info,
-        namespace_id
+        namespace_id,
+        date_created,
+        date_updated
     </sql>
-
+    
+    <update id="updateById">
+        UPDATE
+          instance_info
+        SET
+          date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+          instance_ip = #{instanceIp, jdbcType=VARCHAR},
+          instance_type = #{instanceType, jdbcType=VARCHAR},
+          instance_info = #{instanceInfo, jdbcType=VARCHAR}
+        WHERE
+          id = #{id, jdbcType=VARCHAR}
+    </update>
+    
     <select id="findAllByNamespaceId" resultMap="BaseResultMap">
         SElECT
         <include refid="Base_Column_List"/>
@@ -57,7 +71,26 @@
         WHERE id = #{id}
         LIMIT 1
     </select>
-
+    
+    <select id="selectByQuery" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM instance_info
+        WHERE namespace_id = #{namespaceId}
+        <if test="instanceIp != null and instanceIp != ''">
+            AND instance_ip like '%#{instanceIp}%'
+        </if>
+        <if test="instanceType != null and instanceType != ''">
+            AND instance_type = #{instanceType}
+        </if>
+    </select>
+    <select id="selectById" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM instance_info
+        WHERE id = #{id}
+    </select>
+    
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
         INSERT INTO instance_info
         (id,

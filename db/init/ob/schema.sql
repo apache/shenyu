@@ -2459,7 +2459,7 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 
 
 
-CREATE TABLE `namespace_user_rel` (
+CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key',
                                       `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace_id',
                                       `user_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user_id',
@@ -2468,7 +2468,7 @@ CREATE TABLE `namespace_user_rel` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
 CREATE TABLE IF NOT EXISTS instance_info (
-                                             `id`            varchar(128)  NOT NULL COMMENT 'primary key',
+     `id`            varchar(128)  NOT NULL COMMENT 'primary key',
     `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
     `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
     `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',

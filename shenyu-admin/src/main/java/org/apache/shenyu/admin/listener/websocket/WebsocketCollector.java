@@ -39,6 +39,7 @@ import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
 import org.slf4j.Logger;
@@ -140,18 +141,19 @@ public class WebsocketCollector {
                 && !message.contains("bootstrapInstanceInfo")) {
             return;
         }
-        
         if (message.contains(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("bootstrap report instance info: {}", message);
             }
-            LOG.info("bootstrap report instance info: {}", message);
             String sessionId = session.getId();
             String namespaceId = getNamespaceId(session);
+            Map<String, Object> infoMap = GsonUtils.getInstance().convertToMap(message);
+            Object o = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
             InstanceInfoRegisterDTO instanceInfoRegisterDTO = InstanceInfoRegisterDTO.builder()
+                    .sessionId(sessionId)
                     .instanceIp(getClientIp(session))
-                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)
-                    .instanceInfo(message)
+                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
+                    .instanceInfo(GsonUtils.getInstance().toJson(o))
                     .namespaceId(namespaceId)
                     .build();
             SpringBeanUtils.getInstance().getBean(ShenyuClientServerRegisterPublisher.class).publish(instanceInfoRegisterDTO);

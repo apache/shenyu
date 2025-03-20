@@ -26,6 +26,11 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 public class InstanceInfoRegisterDTO implements DataTypeParent {
     
     /**
+     * session id.
+     */
+    private String sessionId;
+    
+    /**
      * instance ip.
      */
     private String instanceIp;
@@ -45,7 +50,8 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
      */
     private String namespaceId;
     
-    public InstanceInfoRegisterDTO(final String instanceIp, final String instanceType, final String instanceInfo, final String namespaceId) {
+    public InstanceInfoRegisterDTO(final String sessionId, final String instanceIp, final String instanceType, final String instanceInfo, final String namespaceId) {
+        this.sessionId = sessionId;
         this.instanceIp = instanceIp;
         this.instanceType = instanceType;
         this.instanceInfo = instanceInfo;
@@ -53,6 +59,7 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
     }
     
     private InstanceInfoRegisterDTO(final Builder builder) {
+        this.sessionId = builder.sessionId;
         this.instanceIp = builder.instanceIp;
         this.instanceType = builder.instanceType;
         this.instanceInfo = builder.instanceInfo;
@@ -66,6 +73,24 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
      */
     public static InstanceInfoRegisterDTO.Builder builder() {
         return new InstanceInfoRegisterDTO.Builder();
+    }
+    
+    /**
+     * get session id.
+     *
+     * @return session id
+     */
+    public String getSessionId() {
+        return sessionId;
+    }
+    
+    /**
+     * set session id.
+     *
+     * @param sessionId session id
+     */
+    public void setSessionId(final String sessionId) {
+        this.sessionId = sessionId;
     }
     
     /**
@@ -150,6 +175,11 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
     public static final class Builder {
         
         /**
+         * sessionId.
+         */
+        private String sessionId;
+        
+        /**
          * instance ip.
          */
         private String instanceIp;
@@ -170,6 +200,17 @@ public class InstanceInfoRegisterDTO implements DataTypeParent {
         private String namespaceId;
         
         private Builder() {
+        }
+        
+        /**
+         * sessionId.
+         *
+         * @param sessionId sessionId
+         * @return InstanceInfoRegisterDTO.Builder
+         */
+        public InstanceInfoRegisterDTO.Builder sessionId(final String sessionId) {
+            this.sessionId = sessionId;
+            return this;
         }
         
         /**

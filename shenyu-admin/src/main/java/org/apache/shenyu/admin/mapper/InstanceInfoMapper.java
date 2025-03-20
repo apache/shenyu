@@ -20,6 +20,9 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
+import org.apache.shenyu.admin.model.entity.PluginHandleDO;
+import org.apache.shenyu.admin.model.query.InstanceQuery;
+import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -54,6 +57,22 @@ public interface InstanceInfoMapper extends ExistProvider {
      * @return instanceInfoDOList
      */
     List<InstanceInfoDO> findAllByNamespaceId(String namespaceId);
+
+    /**
+     * selectById.
+     *
+     * @param id the id
+     * @return instanceInfoDO
+     */
+    InstanceInfoDO selectById(String id);
+    
+    /**
+     * select instance list by query.
+     *
+     * @param instanceQuery {@linkplain InstanceQuery}
+     * @return the instance list
+     */
+    List<InstanceInfoDO> selectByQuery(InstanceQuery instanceQuery);
     
     /**
      * insert instanceInfoDO.
@@ -70,5 +89,12 @@ public interface InstanceInfoMapper extends ExistProvider {
      * @return rows.
      */
     int delete(String id);
-
+    
+    /**
+     * update instanceInfoDO.
+     *
+     * @param instanceInfoDO instanceInfoDO.
+     * @return rows
+     */
+    int updateById(InstanceInfoDO instanceInfoDO);
 }

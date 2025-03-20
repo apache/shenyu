@@ -32,4 +32,14 @@ public class InstanceTypeConstants {
      */
     public static final String CLIENT_INSTANCE_INFO = "clientInstanceInfo";
     
+    /**
+     * The constant bootstrapInstanceType.
+     */
+    public static final String BOOTSTRAP_INSTANCE_TYPE = "bootstrap";
+    
+    /**
+     * The constant clientInstanceInfo.
+     */
+    public static final String CLIENT_INSTANCE_Type = "client";
+    
 }
