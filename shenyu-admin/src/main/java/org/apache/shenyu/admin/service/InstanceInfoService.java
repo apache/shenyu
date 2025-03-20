@@ -21,9 +21,7 @@ import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
-import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
-import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
 
 public interface InstanceInfoService extends PageService<InstanceQueryCondition, InstanceInfoVO> {

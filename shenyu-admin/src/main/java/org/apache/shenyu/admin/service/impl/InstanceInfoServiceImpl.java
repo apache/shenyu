@@ -85,6 +85,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return PageResultUtils.result(instanceQuery.getPageParameter(), () -> this.buildInstanceInfoVO(instanceInfoDOList));
     }
     
+    @Override
+    public InstanceInfoVO findById(final String id) {
+        return null;
+    }
+    
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
         if (instanceInfoDOList.isEmpty()) {
             return List.of();
@@ -92,11 +97,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return instanceInfoDOList.stream()
                 .map(this::buildInstanceInfoVO)
                 .toList();
-    }
-    
-    @Override
-    public InstanceInfoVO findById(final String id) {
-        return null;
     }
     
     private InstanceInfoDTO buildInstanceInfoDTO(final InstanceInfoRegisterDTO instanceInfoRegisterDTO) {

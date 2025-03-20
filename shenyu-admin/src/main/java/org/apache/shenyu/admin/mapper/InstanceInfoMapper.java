@@ -20,9 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
-import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
-import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
