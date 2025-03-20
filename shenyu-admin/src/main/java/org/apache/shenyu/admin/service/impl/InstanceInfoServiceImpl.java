@@ -90,15 +90,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return null;
     }
     
-    private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
-        if (instanceInfoDOList.isEmpty()) {
-            return List.of();
-        }
-        return instanceInfoDOList.stream()
-                .map(this::buildInstanceInfoVO)
-                .toList();
-    }
-    
     private InstanceInfoDTO buildInstanceInfoDTO(final InstanceInfoRegisterDTO instanceInfoRegisterDTO) {
         InstanceInfoDTO instanceInfoDTO = new InstanceInfoDTO();
         instanceInfoDTO.setId(instanceInfoRegisterDTO.getSessionId());
@@ -107,6 +98,15 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoDTO.setInstanceInfo(instanceInfoRegisterDTO.getInstanceInfo());
         instanceInfoDTO.setNamespaceId(instanceInfoRegisterDTO.getNamespaceId());
         return instanceInfoDTO;
+    }
+    
+    private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
+        if (instanceInfoDOList.isEmpty()) {
+            return List.of();
+        }
+        return instanceInfoDOList.stream()
+                .map(this::buildInstanceInfoVO)
+                .toList();
     }
     
     private InstanceInfoVO buildInstanceInfoVO(final InstanceInfoDO instanceInfoDO) {
