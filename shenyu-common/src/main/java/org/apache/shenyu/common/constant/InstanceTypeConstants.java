@@ -40,6 +40,6 @@ public class InstanceTypeConstants {
     /**
      * The constant clientInstanceInfo.
      */
-    public static final String CLIENT_INSTANCE_Type = "client";
+    public static final String CLIENT_INSTANCE_TYPE = "client";
     
 }
