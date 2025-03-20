@@ -21,17 +21,16 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -141,17 +140,17 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isEmpty(namespaceIdList)) {
             throw new ShenyuAdminException(AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST);
         }
-        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(namespacePluginVOS)) {
-            throw new ShenyuAdminException("Plugins exist under those namespace!");
+        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(ruleDOList)) {
+            throw new ShenyuAdminException("rule exist under those namespace!");
         }
         List<SelectorDO> selectorDOS = selectorMapper.selectAllByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(selectorDOS)) {
             throw new ShenyuAdminException("selector exist under those namespace!");
         }
-        List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(ruleDOList)) {
-            throw new ShenyuAdminException("rule exist under those namespace!");
+        List<NamespacePluginVO> namespacePluginVOS = namespacePluginRelMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(namespacePluginVOS)) {
+            throw new ShenyuAdminException("Plugins exist under those namespace!");
         }
         List<MetaDataDO> metaDataDOList = metaDataMapper.findAllByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(metaDataDOList)) {
@@ -160,10 +159,6 @@ public class NamespaceServiceImpl implements NamespaceService {
         List<AppAuthDO> appPathDOList = appAuthMapper.findByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
-        }
-        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
-        if (CollectionUtils.isNotEmpty(discoveryDOList)) {
-            throw new ShenyuAdminException("discovery exist under those namespace!");
         }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;

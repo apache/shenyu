@@ -19,11 +19,14 @@ package org.apache.shenyu.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -87,7 +90,7 @@ public final class JsonUtils {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException e) {
-            LOG.warn("write to json string error: " + object, e);
+            LOG.warn("write to json string error: {}", object, e);
             return Constants.EMPTY_JSON;
         }
     }
@@ -104,8 +107,23 @@ public final class JsonUtils {
             final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
             return MAPPER.readValue(json, mapType);
         } catch (IOException e) {
-            LOG.warn("write to map error: " + object, e);
+            LOG.warn("write to map error: {}", object, e);
             return new LinkedHashMap<>();
+        }
+    }
+    
+    /**
+     * To json node.
+     *
+     * @param json the object
+     * @return the converted map
+     */
+    public static JsonNode toJsonNode(final String json) {
+        try {
+            return MAPPER.readTree(json);
+        } catch (JsonProcessingException e) {
+            LOG.warn("write to json node error: {}", json, e);
+            return new ObjectNode(MAPPER.getNodeFactory());
         }
     }
 
@@ -122,7 +140,7 @@ public final class JsonUtils {
             JavaType t = MAPPER.getTypeFactory().constructParametricType(HashMap.class, String.class, valueTypeRef);
             return MAPPER.readValue(json, t);
         } catch (IOException e) {
-            LOG.warn("write to map error: " + json, e);
+            LOG.warn("write to map error: {}", json, e);
             return new LinkedHashMap<>();
         }
     }
@@ -138,7 +156,7 @@ public final class JsonUtils {
             final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
             return MAPPER.readValue(json, mapType);
         } catch (IOException e) {
-            LOG.warn("write to map error: " + json, e);
+            LOG.warn("write to map error: {}", json, e);
             return new LinkedHashMap<>();
         }
     }
@@ -155,7 +173,7 @@ public final class JsonUtils {
         try {
             return MAPPER.readValue(json, valueTypeRef);
         } catch (IOException e) {
-            LOG.warn("write to Object error: " + json, e);
+            LOG.warn("write to Object error: {}", json, e);
             return null;
         }
     }

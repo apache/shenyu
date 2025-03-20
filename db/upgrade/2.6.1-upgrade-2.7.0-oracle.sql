@@ -219,28 +219,28 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 ALTER TABLE dashboard_user ADD client_id VARCHAR(32) NULL;
 COMMENT ON COLUMN dashboard_user.client_id IS 'client id';
 
-ALTER TABLE selector ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE selector ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN selector.namespace_id IS 'namespaceId';
 
-ALTER TABLE rule ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE rule ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN rule.namespace_id IS 'namespaceId';
 
-ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE meta_data ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN meta_data.namespace_id IS 'namespaceId';
 
-ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE app_auth ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN app_auth.namespace_id IS 'namespaceId';
 
-ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE discovery ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN discovery.namespace_id IS 'namespaceId';
 
-ALTER TABLE discovery_upstream ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE discovery_upstream ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN discovery_upstream.namespace_id IS 'namespaceId';
 
-ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE proxy_selector ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN proxy_selector.namespace_id IS 'namespaceId';
 
-ALTER TABLE alert_receiver ADD namespace_id VARCHAR2(50) NOT NULL;
+ALTER TABLE alert_receiver ADD namespace_id VARCHAR2(50) NOT NULL default '649330b6-c2d7-4edc-be8e-8a54df9eb385';
 COMMENT ON COLUMN alert_receiver.namespace_id IS 'namespaceId';
 
 UPDATE selector SET namespace_id = '649330b6-c2d7-4edc-be8e-8a54df9eb385' WHERE namespace_id IS NULL OR LENGTH(namespace_id) = 0;
