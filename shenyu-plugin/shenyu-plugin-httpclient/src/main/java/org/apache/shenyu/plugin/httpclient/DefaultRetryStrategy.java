@@ -8,6 +8,8 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -18,8 +20,9 @@ import reactor.util.retry.RetryBackoffSpec;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Function;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+
 
 /**
  * 默认重试策略类 Default Retry Policy Class
@@ -29,10 +32,12 @@ import java.util.stream.Collectors;
  * @Date 2025/3/23 08:36
  */
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
-    private final Function<ServerWebExchange, Mono<R>> doRequestFunction;
+    private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
-    public DefaultRetryStrategy(Function<ServerWebExchange, Mono<R>> doRequestFunction) {
-        this.doRequestFunction = doRequestFunction;
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
+
+    public DefaultRetryStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+        this.httpClientPlugin = httpClientPlugin;
     }
 
     @Override
@@ -104,9 +109,9 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
-            return doRequestFunction.apply(exchange)
-                    .timeout(duration, Mono.error(() -> new java.util.concurrent.TimeoutException("Response took longer than timeout: " + duration)))
-                    .doOnError(e -> System.err.println(e.getMessage()));
+            return httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, exchange.getRequest().getBody())
+                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+                    .doOnError(e -> LOG.error(e.getMessage(), e));
         });
     }
 }
