@@ -13,12 +13,12 @@ import java.time.Duration;
  * @author Jerry
  * @Date 2025/3/23 14:20
  */
-public class DefaultRetryBackoffStrategy<R> implements RetryStrategy<R> {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryBackoffStrategy.class);
+public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
+    private static final Logger LOG = LoggerFactory.getLogger(ExponentialRetryBackoffStrategy.class);
 
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
-    public DefaultRetryBackoffStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+    public ExponentialRetryBackoffStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
         this.httpClientPlugin = httpClientPlugin;
     }
 

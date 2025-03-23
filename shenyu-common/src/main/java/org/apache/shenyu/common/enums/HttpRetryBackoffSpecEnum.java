@@ -14,6 +14,11 @@ public enum HttpRetryBackoffSpecEnum {
     FIXED_BACKOFF("fixed"),
 
     /**
+     * 指数重试
+     */
+    EXPONENTIAL_BACKOFF("exponential"),
+
+    /**
      * 自定义重试
      */
     CUSTOM_BACKOFF("custom");
