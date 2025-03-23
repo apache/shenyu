@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.common.utils;
 
+import com.sun.management.OperatingSystemMXBean;
 import oshi.SystemInfo;
 
+import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
@@ -38,8 +40,8 @@ public final class SystemInfoUtils {
         SystemInfo systemInfo = new SystemInfo();
         
         // Get host information
-        com.sun.management.OperatingSystemMXBean osBean =
-                (com.sun.management.OperatingSystemMXBean) java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        OperatingSystemMXBean osBean =
+                (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         Map<String, Object> hostInfo = Map.of(
                 "arch", osBean.getArch(),
                 "operatingSystem", systemInfo.getOperatingSystem().toString(),
