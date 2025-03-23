@@ -19,7 +19,7 @@ public class RetryStrategyTest{
     void testDefaultRetryBackoffExecute() {
         // 创建一个模拟的 AbstractHttpClientPlugin
         AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
-        DefaultRetryBackoffStrategy<String> strategy = new DefaultRetryBackoffStrategy<>(httpClientPlugin);
+        ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(httpClientPlugin);
 
         // 创建一个模拟的 ServerWebExchange
         ServerWebExchange exchange = mock(ServerWebExchange.class);
