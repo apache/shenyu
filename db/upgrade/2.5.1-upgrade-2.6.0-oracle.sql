@@ -16,11 +16,11 @@
 
 -- this file works for Oracle, can not use "`" syntax.
 
-ALTER TABLE selector ADD match_restful NUMBER(3) not null;
+ALTER TABLE selector ADD match_restful NUMBER(3) NOT NULL DEFAULT 0;
 COMMENT ON COLUMN SELECTOR.match_restful IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
-ALTER TABLE rule ADD match_restful NUMBER(3) not null;
+ALTER TABLE rule ADD match_restful NUMBER(3) NOT NULL DEFAULT 0;
 COMMENT ON COLUMN RULE.match_restful IS 'whether to match restful(0 cache, 1 not cache)';
 COMMIT;
 
