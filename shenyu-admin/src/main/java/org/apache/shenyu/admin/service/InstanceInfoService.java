@@ -47,7 +47,7 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      * List instance info by page.
      *
      * @param instanceQuery instanceQuery
-     * @return CommonPager<InstanceInfoVO>
+     * @return CommonPager
      */
     CommonPager<InstanceInfoVO> listByPage(InstanceQuery instanceQuery);
     
