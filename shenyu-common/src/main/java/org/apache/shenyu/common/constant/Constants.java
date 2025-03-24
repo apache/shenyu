@@ -947,6 +947,16 @@ public interface Constants {
     String PROMPT = "prompt";
 
     /**
+     * The constant usedTokens.
+     */
+    String USED_TOKENS = "used-tokens";
+
+    /**
+     * The constant X-Client-ID.
+     */
+    String CLIENT_ID = "X-Client-ID";
+    
+    /**
      * The constant Content-Encoding.
      */
     String CONTENT_ENCODING = "Content-Encoding";
@@ -955,6 +965,11 @@ public interface Constants {
      */
     String HTTP_RETRY_BACK_OFF_SPEC = "default";
 
+    /**
+     * The constant ai_token_statistic_key_prefix.
+     */
+    String AI_TOKEN_STATISTIC_KEY_PREFIX = "ai_token_statistic_";
+    
     /**
      * String q.
      */
