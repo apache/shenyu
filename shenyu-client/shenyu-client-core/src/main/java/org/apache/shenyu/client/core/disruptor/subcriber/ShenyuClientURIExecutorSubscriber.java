@@ -67,7 +67,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         executor.scheduleAtFixedRate(() -> {
             try {
                 URIS.forEach(this::sendHeartbeat);
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOG.error("send heartbeat error", e);
             }
         }, 30, 30, TimeUnit.SECONDS);
