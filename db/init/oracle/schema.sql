@@ -3158,6 +3158,7 @@ CREATE TABLE instance_info (
     id            varchar2(128)  NOT NULL,
     namespace_id  varchar2(50)   NOT NULL,
     instance_ip   varchar2(128)  NOT NULL,
+    instance_port varchar2(128)  NOT NULL,
     instance_type varchar2(128)  NOT NULL,
     instance_info clob          NOT NULL,
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
@@ -3169,6 +3170,7 @@ COMMENT ON TABLE instance_info IS 'Instance information table';
 COMMENT ON COLUMN instance_info.id IS 'primary key';
 COMMENT ON COLUMN instance_info.namespace_id IS 'namespace_id';
 COMMENT ON COLUMN instance_info.instance_ip IS 'instance_ip';
+COMMENT ON COLUMN instance_info.instance_port IS 'instance_port';
 COMMENT ON COLUMN instance_info.instance_type IS 'instance_type';
 COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
 COMMENT ON COLUMN instance_info.date_created IS 'create time';

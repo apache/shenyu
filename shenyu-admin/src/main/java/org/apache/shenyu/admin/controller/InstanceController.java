@@ -58,15 +58,17 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     @GetMapping
     public ShenyuAdminResult queryPlugins(@RequestParam(name = "instanceType", required = false) final String instanceType,
                                           @RequestParam(name = "instanceIp", required = false) final String instanceIp,
+                                          @RequestParam(name = "instancePort", required = false) final String instancePort,
                                           @RequestParam(name = "namespaceId") final String namespaceId,
                                           @NotNull @RequestParam(name = "currentPage") final Integer currentPage,
                                           @NotNull @RequestParam(name = "pageSize") final Integer pageSize) {
         CommonPager<InstanceInfoVO> commonPager = instanceInfoService.listByPage(
             new InstanceQuery(
                 new PageParameter(currentPage, pageSize),
-                instanceType,
-                instanceIp,
-                namespaceId
+                    instanceType,
+                    instanceIp,
+                    instancePort,
+                    namespaceId
             )
         );
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);

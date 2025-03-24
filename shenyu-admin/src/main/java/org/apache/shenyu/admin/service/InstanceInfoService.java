@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
-import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 
 public interface InstanceInfoService extends PageService<InstanceQueryCondition, InstanceInfoVO> {
     
@@ -34,7 +34,7 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      *
      * @param instanceInfoRegisterDTO instanceInfoRegisterDTO
      */
-    void registerInstanceInfo(InstanceInfoRegisterDTO instanceInfoRegisterDTO);
+    void registerInstanceInfo(InstanceInfoReportEvent instanceInfoRegisterDTO);
     
     /**
      * Creates or updates an instance information record.
@@ -43,7 +43,17 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      */
     void createOrUpdate(InstanceInfoDTO instanceInfoDTO);
     
+    /**
+     * List instance info by page.
+     * @param instanceQuery instanceQuery
+     * @return CommonPager<InstanceInfoVO>
+     */
     CommonPager<InstanceInfoVO> listByPage(InstanceQuery instanceQuery);
     
+    /**
+     * findById.
+     * @param id instance id
+     * @return InstanceInfoVO
+     */
     InstanceInfoVO findById(String id);
 }

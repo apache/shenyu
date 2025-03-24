@@ -63,6 +63,14 @@ public interface InstanceInfoMapper extends ExistProvider {
      * @return instanceInfoDO
      */
     InstanceInfoDO selectById(String id);
+
+    /**
+     * selectOneByQuery.
+     *
+     * @param instanceQuery {@linkplain InstanceQuery}
+     * @return instanceInfoDO
+     */
+    InstanceInfoDO selectOneByQuery(InstanceQuery instanceQuery);
     
     /**
      * select instance list by query.

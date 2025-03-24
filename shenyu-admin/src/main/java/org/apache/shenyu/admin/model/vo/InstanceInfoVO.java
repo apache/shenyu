@@ -27,16 +27,16 @@ import java.util.Objects;
 public class InstanceInfoVO implements Serializable {
 
     private static final long serialVersionUID = -5798225577222473005L;
-
-    /**
-     * id.
-     */
-    private String id;
     
     /**
      * instance ip.
      */
     private String instanceIp;
+    
+    /**
+     * instance port.
+     */
+    private String instancePort;
     
     /**
      * instance type.
@@ -64,24 +64,6 @@ public class InstanceInfoVO implements Serializable {
     private Timestamp dateUpdated;
     
     /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-    
-    /**
-     * set id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-    
-    /**
      * get instanceIp.
      *
      * @return instanceIp
@@ -97,6 +79,24 @@ public class InstanceInfoVO implements Serializable {
      */
     public void setInstanceIp(final String instanceIp) {
         this.instanceIp = instanceIp;
+    }
+    
+    /**
+     * get instancePort.
+     *
+     * @return instancePort
+     */
+    public String getInstancePort() {
+        return instancePort;
+    }
+    
+    /**
+     * set instancePort.
+     *
+     * @param instancePort instancePort
+     */
+    public void setInstancePort(final String instancePort) {
+        this.instancePort = instancePort;
     }
     
     /**
@@ -199,8 +199,8 @@ public class InstanceInfoVO implements Serializable {
         }
 
         InstanceInfoVO that = (InstanceInfoVO) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(instanceIp, that.instanceIp)
+        return Objects.equals(instanceIp, that.instanceIp)
+                && Objects.equals(instancePort, that.instancePort)
                 && Objects.equals(instanceType, that.instanceType)
                 && Objects.equals(instanceInfo, that.instanceInfo)
                 && Objects.equals(namespaceId, that.namespaceId)
@@ -210,6 +210,6 @@ public class InstanceInfoVO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, instanceIp, instanceType, instanceInfo, namespaceId, dateCreated, dateUpdated);
+        return Objects.hash(instanceIp, instancePort, instanceType, instanceInfo, namespaceId, dateCreated, dateUpdated);
     }
 }

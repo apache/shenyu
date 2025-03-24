@@ -23,6 +23,7 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="instance_ip" jdbcType="VARCHAR" property="instanceIp"/>
+        <result column="instance_port" jdbcType="VARCHAR" property="instancePort"/>
         <result column="instance_type" jdbcType="VARCHAR" property="instanceType"/>
         <result column="instance_info" jdbcType="VARCHAR" property="instanceInfo"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
@@ -33,6 +34,7 @@
         date_created,
         date_updated,
         instance_ip,
+        instance_port,
         instance_type,
         instance_info,
         namespace_id,
@@ -46,6 +48,7 @@
         SET
           date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
           instance_ip = #{instanceIp, jdbcType=VARCHAR},
+          instance_port = #{instancePort, jdbcType=VARCHAR},
           instance_type = #{instanceType, jdbcType=VARCHAR},
           instance_info = #{instanceInfo, jdbcType=VARCHAR}
         WHERE
@@ -78,17 +81,38 @@
         FROM instance_info
         WHERE namespace_id = #{namespaceId}
         <if test="instanceIp != null and instanceIp != ''">
-            AND instance_ip like '%#{instanceIp}%'
+            AND instance_ip like CONCAT('%', #{instanceIp}, '%')
+        </if>
+        <if test="instancePort != null and instancePort != ''">
+            AND instance_port = #{instancePort}
         </if>
         <if test="instanceType != null and instanceType != ''">
             AND instance_type = #{instanceType}
         </if>
     </select>
+    
     <select id="selectById" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
         SElECT
         <include refid="Base_Column_List"/>
         FROM instance_info
         WHERE id = #{id}
+    </select>
+    
+    <select id="selectOneByQuery" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM instance_info
+        WHERE namespace_id = #{namespaceId}
+        <if test="instanceIp != null and instanceIp != ''">
+            AND instance_ip = #{instanceIp}
+        </if>
+        <if test="instancePort != null and instancePort != ''">
+            AND instance_port = #{instancePort}
+        </if>
+        <if test="instanceType != null and instanceType != ''">
+            AND instance_type = #{instanceType}
+        </if>
+        LIMIT 1
     </select>
     
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
@@ -97,6 +121,7 @@
         date_created,
         date_updated,
         instance_ip,
+        instance_port,
         instance_type,
         instance_info,
         namespace_id)
@@ -105,6 +130,7 @@
         #{dateCreated,jdbcType=TIMESTAMP},
         #{dateUpdated,jdbcType=TIMESTAMP},
         #{instanceIp,jdbcType=VARCHAR},
+        #{instancePort,jdbcType=VARCHAR},
         #{instanceType,jdbcType=VARCHAR},
         #{instanceInfo,jdbcType=VARCHAR},
         #{namespaceId,jdbcType=TINYINT})

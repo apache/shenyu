@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
+import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,7 +34,7 @@ public class WebSocketSyncConfigurationTest {
     @Test
     public void testWebsocketCollector() {
         WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
-        RegisterClientServerDisruptorPublisher publisher = mock(RegisterClientServerDisruptorPublisher.class);
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
         assertNotNull(websocketListener.websocketCollector(publisher));
     }
     

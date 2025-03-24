@@ -29,8 +29,9 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
-import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -41,7 +42,6 @@ import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +68,13 @@ public class WebsocketCollector {
     
     private static final String SESSION_KEY = "sessionKey";
     
-    private ShenyuClientServerRegisterPublisher publisher;
+    private InstanceInfoReportEventPublisher publisher;
     
-    public ShenyuClientServerRegisterPublisher getPublisher() {
+    public InstanceInfoReportEventPublisher getPublisher() {
         return publisher;
     }
     
-    public void setPublisher(final ShenyuClientServerRegisterPublisher publisher) {
+    public void setPublisher(final InstanceInfoReportEventPublisher publisher) {
         this.publisher = publisher;
     }
     
@@ -112,6 +112,20 @@ public class WebsocketCollector {
                 .orElse(StringUtils.EMPTY);
     }
     
+    private static String getClientPort(final Session session) {
+        if (!session.isOpen()) {
+            return StringUtils.EMPTY;
+        }
+        Map<String, Object> userProperties = session.getUserProperties();
+        if (MapUtils.isEmpty(userProperties)) {
+            return StringUtils.EMPTY;
+        }
+        
+        return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_PORT_NAME))
+                .map(Object::toString)
+                .orElse(StringUtils.EMPTY);
+    }
+    
     private static String getNamespaceId(final Session session) {
         if (!session.isOpen()) {
             LOG.warn("websocket session is closed, can not get namespaceId");
@@ -145,18 +159,17 @@ public class WebsocketCollector {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("bootstrap report instance info: {}", message);
             }
-            String sessionId = session.getId();
             String namespaceId = getNamespaceId(session);
             Map<String, Object> infoMap = GsonUtils.getInstance().convertToMap(message);
             Object o = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
-            InstanceInfoRegisterDTO instanceInfoRegisterDTO = InstanceInfoRegisterDTO.builder()
-                    .sessionId(sessionId)
+            InstanceInfoReportEvent instanceInfoRegisterDTO = InstanceInfoReportEvent.builder()
                     .instanceIp(getClientIp(session))
+                    .instancePort(getClientPort(session))
                     .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
                     .instanceInfo(GsonUtils.getInstance().toJson(o))
                     .namespaceId(namespaceId)
                     .build();
-            SpringBeanUtils.getInstance().getBean(ShenyuClientServerRegisterPublisher.class).publish(instanceInfoRegisterDTO);
+            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
             return;
         }
         

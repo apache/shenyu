@@ -18,10 +18,10 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
-import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
+import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -56,7 +56,7 @@ public class WebSocketSyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(WebsocketCollector.class)
-    public WebsocketCollector websocketCollector(final RegisterClientServerDisruptorPublisher publisher) {
+    public WebsocketCollector websocketCollector(final InstanceInfoReportEventPublisher publisher) {
         WebsocketCollector websocketCollector = new WebsocketCollector();
         websocketCollector.setPublisher(publisher);
         return websocketCollector;

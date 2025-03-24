@@ -26,9 +26,10 @@ import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceInfoRegisterDTO;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -51,7 +52,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
     
     @Override
-    public void registerInstanceInfo(final InstanceInfoRegisterDTO instanceInfoRegisterDTO) {
+    public void registerInstanceInfo(final InstanceInfoReportEvent instanceInfoRegisterDTO) {
         LOG.info("Instance info registered: {}", GsonUtils.getInstance().toJson(instanceInfoRegisterDTO));
         InstanceInfoDTO instanceInfoDTO = buildInstanceInfoDTO(instanceInfoRegisterDTO);
         createOrUpdate(instanceInfoDTO);
@@ -59,7 +60,12 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     
     @Override
     public void createOrUpdate(final InstanceInfoDTO instanceInfoDTO) {
-        InstanceInfoDO infoDO = instanceInfoMapper.selectById(instanceInfoDTO.getId());
+        InstanceQuery instanceQuery = new InstanceQuery();
+        instanceQuery.setInstanceIp(instanceInfoDTO.getInstanceIp());
+        instanceQuery.setInstancePort(instanceInfoDTO.getInstancePort());
+        instanceQuery.setInstanceType(instanceInfoDTO.getInstanceType());
+        instanceQuery.setNamespaceId(instanceInfoDTO.getNamespaceId());
+        InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
         if (Objects.isNull(infoDO)) {
             LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceInfoDTO));
             InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoDTO);
@@ -90,10 +96,10 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return null;
     }
     
-    private InstanceInfoDTO buildInstanceInfoDTO(final InstanceInfoRegisterDTO instanceInfoRegisterDTO) {
+    private InstanceInfoDTO buildInstanceInfoDTO(final InstanceInfoReportEvent instanceInfoRegisterDTO) {
         InstanceInfoDTO instanceInfoDTO = new InstanceInfoDTO();
-        instanceInfoDTO.setId(instanceInfoRegisterDTO.getSessionId());
         instanceInfoDTO.setInstanceIp(instanceInfoRegisterDTO.getInstanceIp());
+        instanceInfoDTO.setInstancePort(instanceInfoRegisterDTO.getInstancePort());
         instanceInfoDTO.setInstanceType(instanceInfoRegisterDTO.getInstanceType());
         instanceInfoDTO.setInstanceInfo(instanceInfoRegisterDTO.getInstanceInfo());
         instanceInfoDTO.setNamespaceId(instanceInfoRegisterDTO.getNamespaceId());
@@ -111,13 +117,24 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     
     private InstanceInfoVO buildInstanceInfoVO(final InstanceInfoDO instanceInfoDO) {
         InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
-        instanceInfoVO.setId(instanceInfoDO.getId());
         instanceInfoVO.setInstanceIp(instanceInfoDO.getInstanceIp());
+        instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
         instanceInfoVO.setInstanceInfo(instanceInfoDO.getInstanceInfo());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());
         instanceInfoVO.setDateUpdated(instanceInfoDO.getDateUpdated());
         return instanceInfoVO;
+    }
+    
+    /**
+     * listen {@link InstanceInfoReportEvent} instance info report event.
+     *
+     * @param event event
+     */
+    @EventListener(InstanceInfoReportEvent.class)
+    public void onInstanceInfoReport(final InstanceInfoReportEvent event) {
+        InstanceInfoDTO instanceInfoDTO = buildInstanceInfoDTO(event);
+        createOrUpdate(instanceInfoDTO);
     }
 }

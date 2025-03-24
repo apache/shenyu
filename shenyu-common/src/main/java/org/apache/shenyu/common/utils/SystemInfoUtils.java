@@ -36,19 +36,24 @@ public final class SystemInfoUtils {
      * @return the system info
      */
     public static String getSystemInfo() {
-        // Get host information using OSHI
-        SystemInfo systemInfo = new SystemInfo();
-        
-        // Get host information
-        OperatingSystemMXBean osBean =
-                (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        Map<String, Object> hostInfo = Map.of(
-                "arch", osBean.getArch(),
-                "operatingSystem", systemInfo.getOperatingSystem().toString(),
-                "availableProcessors", osBean.getAvailableProcessors(),
-                "totalMemorySizeGB", bytesToGB(osBean.getTotalMemorySize()) + " GB"
-        );
-        return GsonUtils.getInstance().toJson(hostInfo);
+        try {
+            // Get host information using OSHI
+            SystemInfo systemInfo = new SystemInfo();
+            
+            // Get host information
+            OperatingSystemMXBean osBean =
+                    (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+            Map<String, Object> hostInfo = Map.of(
+                    "arch", osBean.getArch(),
+                    "operatingSystem", systemInfo.getOperatingSystem().toString(),
+                    "availableProcessors", osBean.getAvailableProcessors(),
+                    "totalMemorySizeGB", bytesToGB(osBean.getTotalMemorySize()) + " GB"
+            );
+            return GsonUtils.getInstance().toJson(hostInfo);
+        } catch (Exception e) {
+            // Handle any exceptions that may occur
+            return "Error retrieving system information: " + e.getMessage();
+        }
     }
     
     /**

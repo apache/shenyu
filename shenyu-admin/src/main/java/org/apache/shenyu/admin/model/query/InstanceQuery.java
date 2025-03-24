@@ -39,11 +39,15 @@ public class InstanceQuery implements Serializable {
      */
     private String instanceType;
     
-    
     /**
      * instance ip.
      */
     private String instanceIp;
+    
+    /**
+     * instance port.
+     */
+    private String instancePort;
     
     /**
      * page parameter.
@@ -54,8 +58,9 @@ public class InstanceQuery implements Serializable {
     public InstanceQuery() {
     }
 
-    public InstanceQuery(final PageParameter pageParameter, final String instanceType, final String instanceIp, final String namespaceId) {
+    public InstanceQuery(final PageParameter pageParameter, final String instanceType, final String instanceIp, final String instancePort, final String namespaceId) {
         this.instanceIp = instanceIp;
+        this.instancePort = instancePort;
         this.namespaceId = namespaceId;
         this.instanceType = instanceType;
         this.pageParameter = pageParameter;
@@ -95,6 +100,24 @@ public class InstanceQuery implements Serializable {
      */
     public void setInstanceIp(final String instanceIp) {
         this.instanceIp = instanceIp;
+    }
+    
+    /**
+     * Gets the value of instancePort.
+     *
+     * @return the value of instancePort
+     */
+    public String getInstancePort() {
+        return instancePort;
+    }
+    
+    /**
+     * Sets the instancePort.
+     *
+     * @param instancePort instancePort
+     */
+    public void setInstancePort(final String instancePort) {
+        this.instancePort = instancePort;
     }
     
     /**

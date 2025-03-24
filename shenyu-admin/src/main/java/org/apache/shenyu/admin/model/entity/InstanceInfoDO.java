@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -28,6 +29,8 @@ import java.util.Objects;
 public final class InstanceInfoDO extends BaseDO {
     
     private String instanceIp;
+    
+    private String instancePort;
     
     private String instanceType;
     
@@ -46,8 +49,9 @@ public final class InstanceInfoDO extends BaseDO {
      * @param instanceType instanceType
      * @param instanceInfo instanceInfo
      */
-    public InstanceInfoDO(final String instanceIp, final String instanceType, final String instanceInfo) {
+    public InstanceInfoDO(final String instanceIp, final String instancePort, final String instanceType, final String instanceInfo) {
         this.instanceIp = instanceIp;
+        this.instancePort = instancePort;
         this.instanceType = instanceType;
         this.instanceInfo = instanceInfo;
     }
@@ -59,13 +63,15 @@ public final class InstanceInfoDO extends BaseDO {
      * @param dateCreated dateCreated
      * @param dateUpdated dateUpdated
      * @param instanceIp instanceIp
+     * @param instancePort instancePort
      * @param instanceType instanceType
      * @param instanceInfo instanceInfo
      */
     public InstanceInfoDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated,
-                          final String instanceIp, final String instanceType, final String instanceInfo) {
+                          final String instanceIp, final String instancePort, final String instanceType, final String instanceInfo) {
         super(id, dateCreated, dateUpdated);
         this.instanceIp = instanceIp;
+        this.instancePort = instancePort;
         this.instanceType = instanceType;
         this.instanceInfo = instanceInfo;
     }
@@ -82,10 +88,11 @@ public final class InstanceInfoDO extends BaseDO {
      * @param namespaceId namespaceId
      */
     public InstanceInfoDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated,
-                          final String instanceIp, final String instanceType, final String instanceInfo,
+                          final String instanceIp, final String instancePort, final String instanceType, final String instanceInfo,
                           final String namespaceId) {
         super(id, dateCreated, dateUpdated);
         this.instanceIp = instanceIp;
+        this.instancePort = instancePort;
         this.instanceType = instanceType;
         this.instanceInfo = instanceInfo;
         this.namespaceId = namespaceId;
@@ -100,8 +107,9 @@ public final class InstanceInfoDO extends BaseDO {
     public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoDTO instanceInfoDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return InstanceInfoDO.builder()
-                .id(instanceInfoDTO.getId())
+                .id(UUIDUtils.getInstance().generateShortUuid())
                 .instanceIp(instanceInfoDTO.getInstanceIp())
+                .instancePort(instanceInfoDTO.getInstancePort())
                 .instanceType(instanceInfoDTO.getInstanceType())
                 .instanceInfo(instanceInfoDTO.getInstanceInfo())
                 .namespaceId(instanceInfoDTO.getNamespaceId())
@@ -126,6 +134,24 @@ public final class InstanceInfoDO extends BaseDO {
      */
     public void setInstanceIp(final String instanceIp) {
         this.instanceIp = instanceIp;
+    }
+    
+    /**
+     * get instancePort.
+     *
+     * @return instancePort
+     */
+    public String getInstancePort() {
+        return instancePort;
+    }
+    
+    /**
+     * set instancePort.
+     *
+     * @param instancePort instancePort
+     */
+    public void setInstancePort(final String instancePort) {
+        this.instancePort = instancePort;
     }
     
     /**
@@ -204,6 +230,7 @@ public final class InstanceInfoDO extends BaseDO {
         }
         InstanceInfoDO instanceInfoDO = (InstanceInfoDO) o;
         return Objects.equals(instanceIp, instanceInfoDO.instanceIp)
+                && Objects.equals(instancePort, instanceInfoDO.instancePort)
                 && Objects.equals(instanceType, instanceInfoDO.instanceType)
                 && Objects.equals(instanceInfo, instanceInfoDO.instanceInfo)
                 && Objects.equals(namespaceId, instanceInfoDO.namespaceId);
@@ -211,7 +238,7 @@ public final class InstanceInfoDO extends BaseDO {
     
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), instanceIp, instanceType, instanceInfo, namespaceId);
+        return Objects.hash(super.hashCode(), instanceIp, instancePort, instanceType, instanceInfo, namespaceId);
     }
     
     public static final class InstanceInfoDOBuilder {
@@ -223,6 +250,8 @@ public final class InstanceInfoDO extends BaseDO {
         private Timestamp dateUpdated;
         
         private String instanceIp;
+        
+        private String instancePort;
         
         private String instanceType;
         
@@ -279,6 +308,17 @@ public final class InstanceInfoDO extends BaseDO {
         }
         
         /**
+         * instancePort.
+         *
+         * @param instancePort instancePort
+         * @return InstanceInfoDOBuilder
+         */
+        public InstanceInfoDOBuilder instancePort(final String instancePort) {
+            this.instancePort = instancePort;
+            return this;
+        }
+        
+        /**
          * instanceType.
          *
          * @param instanceType instanceType
@@ -324,6 +364,7 @@ public final class InstanceInfoDO extends BaseDO {
             instanceInfoDO.setDateCreated(dateCreated);
             instanceInfoDO.setDateUpdated(dateUpdated);
             instanceInfoDO.setInstanceIp(instanceIp);
+            instanceInfoDO.setInstancePort(instancePort);
             instanceInfoDO.setInstanceType(instanceType);
             instanceInfoDO.setInstanceInfo(instanceInfo);
             instanceInfoDO.setNamespaceId(namespaceId);

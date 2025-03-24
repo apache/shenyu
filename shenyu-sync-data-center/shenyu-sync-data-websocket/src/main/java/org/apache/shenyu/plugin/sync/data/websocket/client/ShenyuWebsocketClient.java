@@ -93,7 +93,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     ) {
         super(serverUri);
         this.namespaceId = namespaceId;
-        this.addHeader("namespaceId", namespaceId);
+        this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();

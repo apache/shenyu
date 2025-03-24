@@ -72,6 +72,7 @@ CREATE TABLE "public"."instance_info" (
     "id"            varchar(128)   NOT NULL,
     "namespace_id"  varchar(50)    NOT NULL,
     "instance_ip"   varchar(128)   NOT NULL,
+    "instance_port"   varchar(128)   NOT NULL,
     "instance_type" varchar(128)   NOT NULL,
     "instance_info" text          NOT NULL,
     "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
@@ -81,6 +82,7 @@ CREATE TABLE "public"."instance_info" (
 COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';
 COMMENT ON COLUMN "public"."instance_info"."instance_ip" IS 'instance_ip';
+COMMENT ON COLUMN "public"."instance_info"."instance_port" IS 'instance_port';
 COMMENT ON COLUMN "public"."instance_info"."instance_type" IS 'instance_type';
 COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
