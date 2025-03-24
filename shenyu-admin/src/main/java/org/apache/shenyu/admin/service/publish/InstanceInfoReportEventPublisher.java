@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 
 /**
  * InstanceInfoReportEventPublisher.

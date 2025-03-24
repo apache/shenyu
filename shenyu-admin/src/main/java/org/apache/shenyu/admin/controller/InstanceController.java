@@ -50,6 +50,7 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      *
      * @param instanceType instance type.
      * @param instanceIp   instance ip.
+     * @param instancePort instance port.
      * @param namespaceId namespace id.
      * @param currentPage current page.
      * @param pageSize    page size.
