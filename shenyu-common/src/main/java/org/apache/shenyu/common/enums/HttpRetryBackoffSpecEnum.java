@@ -25,22 +25,22 @@ import java.util.Arrays;
 public enum HttpRetryBackoffSpecEnum {
 
     /**
-     * 默认重试.
+     * Default retry.
      */
     DEFAULT_BACKOFF("default"),
 
     /**
-     * 固定重试.
+     * Fixed retry.
      */
     FIXED_BACKOFF("fixed"),
 
     /**
-     * 指数重试.
+     * Exponential retry.
      */
     EXPONENTIAL_BACKOFF("exponential"),
 
     /**
-     * 自定义重试.
+     * Custom retry.
      */
     CUSTOM_BACKOFF("custom");
 

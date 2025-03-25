@@ -961,7 +961,7 @@ public interface Constants {
      */
     String CONTENT_ENCODING = "Content-Encoding";
     /**
-     * http请求重试策略  http request retry policy.
+     * Http request retry policy.
      */
     String HTTP_RETRY_BACK_OFF_SPEC = "default";
 

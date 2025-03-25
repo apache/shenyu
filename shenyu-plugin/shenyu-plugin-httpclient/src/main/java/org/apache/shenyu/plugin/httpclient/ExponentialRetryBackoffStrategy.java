@@ -23,13 +23,13 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
     }
 
     /**
-     * 执行重试策略
+     * Execute retry policy
      *
-     * @param response    响应的 Mono 对象
-     * @param exchange    当前服务器交换对象
-     * @param duration    超时时间
-     * @param retryTimes  重试次数
-     * @return 经过重试处理后的响应 Mono 对象
+     * @param response    The Mono object of the response
+     * @param exchange    Current Server Exchange Object
+     * @param duration    Timeout
+     * @param retryTimes  Number of retries
+     * @return Response Mono object after retry processing
      */
     public Mono<R> execute(Mono<R> response, ServerWebExchange exchange, Duration duration, int retryTimes) {
         RetryBackoffSpec retrySpec = initDefaultBackoff(retryTimes);

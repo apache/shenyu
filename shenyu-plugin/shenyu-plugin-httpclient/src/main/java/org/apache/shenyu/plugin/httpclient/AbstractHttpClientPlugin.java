@@ -75,7 +75,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .doOnError(e -> LOG.error(e.getMessage(), e));
 
         RetryStrategy<R> strategy;
-        //这里走配置文件是不是更好点?   Is it better to go with the configuration file here?
+        //Is it better to go with the configuration file here?
         String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC)).orElse(HttpRetryBackoffSpecEnum.getDefault());
         switch (retryStrategyType){
             case "exponential":

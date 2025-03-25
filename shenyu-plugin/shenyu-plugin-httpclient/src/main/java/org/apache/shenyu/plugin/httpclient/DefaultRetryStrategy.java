@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 
 
 /**
- * 默认重试策略类 Default Retry Policy Class
- * 保持原有默认的请求重试测试不做任何改变. Keep the original default request retry test without any changes.
- * @param <R> 请求响应类型 Request Response Type
+ * Default Retry Policy Class
+ * Keep the original default request retry test without any changes.
+ * @param <R> Request Response Type
  * @author Jerry
  * @Date 2025/3/23 08:36
  */
