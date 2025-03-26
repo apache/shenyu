@@ -17,7 +17,6 @@
  * under the License.
  *
  */
-
 package org.apache.shenyu.plugin.httpclient;
 
 import org.slf4j.Logger;
