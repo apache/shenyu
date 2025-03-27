@@ -20,15 +20,12 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespaceUserRelMapper;
-import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
 import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
-import org.apache.shenyu.admin.model.event.user.UserCreatedEvent;
 import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -74,15 +71,6 @@ public class NamespaceUserServiceImpl implements NamespaceUserService {
             return Lists.newArrayList();
         }
         return namespaceUserRelDOS.stream().map(NamespaceUserRelDO::getNamespaceId).collect(Collectors.toList());
-    }
-    
-    @EventListener(value = UserCreatedEvent.class)
-    public void onUserCreated(final UserCreatedEvent event) {
-        DashboardUserDO dashboardUserDO = event.getChangedUser();
-        if (Objects.isNull(dashboardUserDO)) {
-            return;
-        }
-        create(Constants.SYS_DEFAULT_NAMESPACE_ID, dashboardUserDO.getId());
     }
     
     @EventListener(value = NamespaceCreatedEvent.class)
