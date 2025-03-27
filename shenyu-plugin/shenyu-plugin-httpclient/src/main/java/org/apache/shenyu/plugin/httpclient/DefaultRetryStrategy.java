@@ -17,6 +17,16 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.net.URI;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -34,31 +44,24 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-import java.net.URI;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
 
 /**
  * Default Retry Policy Class
  * Keep the original default request retry test without any changes.
  * @param <R> Request Response Type
- * @author Jerry
  * @Date 2025/3/23 08:36
  */
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
-    private final AbstractHttpClientPlugin<R> httpClientPlugin;
-
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
 
-    public DefaultRetryStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+    private final AbstractHttpClientPlugin<R> httpClientPlugin;
+
+    public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
         this.httpClientPlugin = httpClientPlugin;
     }
 
     @Override
-    public Mono<R> execute(Mono<R> clientResponse, ServerWebExchange exchange, Duration duration, int retryTimes) {
+    public Mono<R> execute(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(() -> "current");
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
@@ -119,7 +122,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             }
             final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
             final Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalance, ip);
-            if (upstream == null) {
+            if (Objects.isNull(upstream)) {
                 // no need to retry anymore
                 return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
             }

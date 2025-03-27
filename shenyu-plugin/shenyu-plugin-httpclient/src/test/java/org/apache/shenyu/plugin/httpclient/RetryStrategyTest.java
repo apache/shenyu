@@ -27,10 +27,11 @@ import java.time.Duration;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Jerry
+ * retry strategy test.
+ *
  * @Date 2025/3/16 22:46
  */
-public class RetryStrategyTest{
+public class RetryStrategyTest {
 
     @Test
     void testDefaultRetryBackoffExecute() {

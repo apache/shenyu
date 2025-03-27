@@ -17,6 +17,16 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -41,12 +51,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.net.URI;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 
 
 /**
@@ -73,11 +77,10 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethod().name(), uri, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
-
         RetryStrategy<R> strategy;
         //Is it better to go with the configuration file here?
         String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC)).orElse(HttpRetryBackoffSpecEnum.getDefault());
-        switch (retryStrategyType){
+        switch (retryStrategyType) {
             case "exponential":
                 strategy = new ExponentialRetryBackoffStrategy<>(this);
                 break;

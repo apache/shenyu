@@ -26,12 +26,11 @@ import java.time.Duration;
 /**
  * Retry Policy Interface.
  * @param <R> Request Response Type
- *@author Jerry
  *@Date 2025/3/23 08:27
  */
 public interface RetryStrategy<R> {
     /**
-     * Execute retry policy
+     * Execute retry policy.
      *
      * @param clientResponse Original Request Response
      * @param exchange       Server Exchange Object

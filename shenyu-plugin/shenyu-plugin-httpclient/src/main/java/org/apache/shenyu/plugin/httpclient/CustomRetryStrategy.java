@@ -1,43 +1,39 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-
 /**
  *  Custom retry policy.
  *      Also please achieve your own
- *@author Jerry
  *@Date 2025/3/23 14:27
  */
 public class CustomRetryStrategy<R> implements RetryStrategy<R> {
-    private final AbstractHttpClientPlugin<R> httpClientPlugin;
-
     private static final Logger LOG = LoggerFactory.getLogger(CustomRetryStrategy.class);
 
-    public CustomRetryStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+    private final AbstractHttpClientPlugin<R> httpClientPlugin;
+
+    public CustomRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
         this.httpClientPlugin = httpClientPlugin;
     }
 
@@ -50,7 +46,7 @@ public class CustomRetryStrategy<R> implements RetryStrategy<R> {
      * @param retryTimes Number of retries
      * @return Response Mono object after retry processing
      */
-    public Mono<R> execute(Mono<R> response, ServerWebExchange exchange, Duration duration, int retryTimes) {
+    public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
         return null;
     }
 }

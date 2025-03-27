@@ -27,7 +27,8 @@ import reactor.util.retry.RetryBackoffSpec;
 import java.time.Duration;
 
 /**
- * @author Jerry
+ * Exponential Retry Backoff Strategy.
+ *
  * @Date 2025/3/23 14:20
  */
 public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
@@ -35,12 +36,12 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
 
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
-    public ExponentialRetryBackoffStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+    public ExponentialRetryBackoffStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
         this.httpClientPlugin = httpClientPlugin;
     }
 
     /**
-     * Execute retry policy
+     * Execute retry policy.
      *
      * @param response    The Mono object of the response
      * @param exchange    Current Server Exchange Object
@@ -48,14 +49,14 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
      * @param retryTimes  Number of retries
      * @return Response Mono object after retry processing
      */
-    public Mono<R> execute(Mono<R> response, ServerWebExchange exchange, Duration duration, int retryTimes) {
+    public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
         RetryBackoffSpec retrySpec = initDefaultBackoff(retryTimes);
         return response.retryWhen(retrySpec)
                 .timeout(duration, Mono.error(() -> new java.util.concurrent.TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 
-    private RetryBackoffSpec initDefaultBackoff(int retryTimes) {
+    private RetryBackoffSpec initDefaultBackoff(final int retryTimes) {
         return Retry.backoff(retryTimes, Duration.ofMillis(500))
                 .maxBackoff(Duration.ofSeconds(5))
                 // 只对瞬时错误进行重试

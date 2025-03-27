@@ -26,7 +26,8 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 
 /**
- * @author Jerry
+ * Fixed Retry Policy Class.
+ *
  * @Date 2025/3/23 10:04
  */
 public class FixedRetryStrategy<R> implements RetryStrategy<R> {
@@ -34,12 +35,12 @@ public class FixedRetryStrategy<R> implements RetryStrategy<R> {
 
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
-    public FixedRetryStrategy(AbstractHttpClientPlugin<R> httpClientPlugin) {
+    public FixedRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
         this.httpClientPlugin = httpClientPlugin;
     }
 
     /**
-     * Execute retry policy
+     * Execute retry policy.
      *
      * @param response   The Mono object of the response
      * @param exchange   Current Server Exchange Object
@@ -47,14 +48,14 @@ public class FixedRetryStrategy<R> implements RetryStrategy<R> {
      * @param retryTimes Number of retries
      * @return Response Mono object after retry processing
      */
-    public Mono<R> execute(Mono<R> response, ServerWebExchange exchange, Duration duration, int retryTimes) {
+    public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
         Retry retrySpec = initFixedBackoff(retryTimes);
         return response.retryWhen(retrySpec)
                 .timeout(duration, Mono.error(() -> new java.util.concurrent.TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 
-    private Retry initFixedBackoff(int retryTimes) {
+    private Retry initFixedBackoff(final int retryTimes) {
         return Retry.fixedDelay(retryTimes, Duration.ofSeconds(2));
     }
 }
