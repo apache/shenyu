@@ -15,40 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.admin.service.publish;
+
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * The enum Data type enum.
+ * InstanceInfoReportEventPublisher.
  */
-public enum DataType {
+public class InstanceInfoReportEventPublisher {
+    
+    private final ApplicationEventPublisher publisher;
+    
+    public InstanceInfoReportEventPublisher(final ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
     
     /**
-     * Meta data data type enum.
+     * event.
+     *
+     * @param event event.
      */
-    META_DATA,
-    
-    /**
-     * Uri data type enum.
-     */
-    URI,
-
-    /**
-     * Api doc type enum.
-     */
-    API_DOC,
-
-    /**
-     * Heartbeat type enum.
-     */
-    HEARTBEAT,
-
-    /**
-     * Discovery config type enum.
-     */
-    DISCOVERY_CONFIG,
-    
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
+    public void publish(final InstanceInfoReportEvent event) {
+        publisher.publishEvent(event);
+    }
 }
