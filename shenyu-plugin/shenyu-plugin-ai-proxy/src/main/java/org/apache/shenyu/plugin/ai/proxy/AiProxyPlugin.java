@@ -63,7 +63,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             aiProxyConfig = new AiProxyConfig();
         }
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert Objects.nonNull(shenyuContext);
+        Objects.requireNonNull(shenyuContext);
         
         // Get selector handle from cache
         AiProxyHandle selectorHandle = AiProxyPluginHandler.SELECTOR_CACHED_HANDLE.get()
