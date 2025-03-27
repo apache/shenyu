@@ -163,9 +163,9 @@ public final class DividePluginTest {
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(null);
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
-        // hit `assert shenyuContext != null`
+        // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
-        assertThrows(AssertionError.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
+        assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
     }
 
     /**
