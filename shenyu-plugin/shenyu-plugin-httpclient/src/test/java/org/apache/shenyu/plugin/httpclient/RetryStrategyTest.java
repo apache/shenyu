@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -98,7 +99,7 @@ public class RetryStrategyTest {
 
         // Use StepVerifier to verify results
         StepVerifier.create(result)
-                .expectError(RuntimeException.class)
+                .expectError(TimeoutException.class)
                 .verify();
     }
 }
