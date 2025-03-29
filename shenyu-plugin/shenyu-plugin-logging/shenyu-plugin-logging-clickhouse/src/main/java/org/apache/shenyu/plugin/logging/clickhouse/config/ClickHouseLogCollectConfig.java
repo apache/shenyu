@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.clickhouse.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -205,6 +206,35 @@ public class ClickHouseLogCollectConfig {
          */
         public void setDatabase(final String database) {
             this.database = database;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+            ClickHouseLogConfig that = (ClickHouseLogConfig) o;
+
+            return Objects.equals(getHost(), that.getHost())
+                    && Objects.equals(getPort(), that.getPort())
+                    && Objects.equals(getUsername(), that.getUsername())
+                    && Objects.equals(getPassword(), that.getPassword())
+                    && Objects.equals(getDatabase(), that.getDatabase())
+                    && Objects.equals(getClusterName(), that.getClusterName())
+                    && Objects.equals(getEngine(), that.getEngine())
+                    && Objects.equals(getTtl(), that.getTtl())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(host, port, username, password, database, clusterName, engine, ttl);
         }
     }
 
