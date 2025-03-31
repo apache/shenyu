@@ -71,12 +71,12 @@ public final class MetaDataCache {
      */
     public void cache(final MetaData data) {
         // clean old path data
-        if (META_DATA_MAP.containsKey(data.getId())) {
+        Optional.ofNullable(META_DATA_MAP.get(data.getId())).ifPresent(oldMetaData -> {
             // the update is also need to clean, but there is
             // no way to distinguish between crate and update,
             // so it is always clean
-            clean(META_DATA_MAP.get(data.getId()).getPath());
-        }
+            clean(oldMetaData.getPath());
+        });
         META_DATA_MAP.put(data.getId(), data);
         final String path = data.getPath();
         clean(path);
