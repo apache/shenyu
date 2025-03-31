@@ -125,7 +125,7 @@ public class AiTokenLimiterHandle {
      */
     public static AiTokenLimiterHandle newDefaultInstance() {
         AiTokenLimiterHandle aiTokenLimiterHandle = new AiTokenLimiterHandle();
-        aiTokenLimiterHandle.setAiTokenLimitType(AiTokenLimiterEnum.DEFAULT.getName());
+        aiTokenLimiterHandle.setAiTokenLimitType(AiTokenLimiterEnum.CONTEXT_PATH.getName());
         aiTokenLimiterHandle.setTimeWindowSeconds(TimeWindowEnum.MINUTE.getSeconds());
         aiTokenLimiterHandle.setKeyName("default");
         aiTokenLimiterHandle.setTokenLimit(100L);

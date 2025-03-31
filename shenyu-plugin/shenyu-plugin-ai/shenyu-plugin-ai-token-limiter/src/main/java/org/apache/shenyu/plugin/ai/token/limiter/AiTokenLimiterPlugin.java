@@ -106,7 +106,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                         final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
                         Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
-                        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
+                        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.RUN_OUT_OF_TOKENS);
                         return WebFluxResultUtils.result(exchange, error);
                     }
                     // record tokens usage
@@ -170,10 +170,9 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 HttpCookie cookie = request.getCookies().getFirst(keyName);
                 key = Objects.nonNull(cookie) ? cookie.getValue() : "";
                 break;
+            case CONTEXT_PATH:
             default:
-                key = exchange.getAttribute(Constants.CONTEXT_PATH)
-                        + ":"
-                        + exchange.getRequest().getURI().getPath();
+                key = exchange.getAttribute(Constants.CONTEXT_PATH);
         }
         
         return StringUtils.isBlank(key) ? "" : key;
