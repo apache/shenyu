@@ -247,7 +247,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 }
             }).doFinally(signal -> {
                 String responseBody = writer.output();
-                AiModel aiModel =  exchange.getAttribute(Constants.AI_MODEL);
+                AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
                 long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(responseBody);
                 tokensRecorder.accept(tokens);
             });
