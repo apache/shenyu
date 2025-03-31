@@ -55,7 +55,7 @@ public class ResponseDecorator extends ServerHttpResponseDecorator {
             DataBufferUtils.release(dataBuffer);
             String bodyString = new String(bytes, StandardCharsets.UTF_8);
             final String convertStr = convert.apply(bodyString);
-            return WebFluxResultUtils.result(this.exchange, convertStr);
+            return WebFluxResultUtils.result(this.exchange, convertStr).doFinally(signalType -> DataBufferUtils.release(dataBuffer));
         });
     }
 }
