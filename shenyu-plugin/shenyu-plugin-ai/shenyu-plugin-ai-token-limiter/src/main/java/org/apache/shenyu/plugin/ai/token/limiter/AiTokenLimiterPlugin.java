@@ -94,16 +94,14 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
         
         // generate redis key
-        String keyResolverName = aiTokenLimiterHandle.getAiTokenLimitType();
+        String tokenLimitType = aiTokenLimiterHandle.getAiTokenLimitType();
         String keyName = aiTokenLimiterHandle.getKeyName();
         Long tokenLimit = aiTokenLimiterHandle.getTokenLimit();
         Long timeWindowSeconds = aiTokenLimiterHandle.getTimeWindowSeconds();
         
-        String cacheKey = REDIS_KEY_PREFIX + aiTokenLimiterHandle.getAiTokenLimitType() + ":" + getCacheKey(exchange, keyResolverName, keyName);
+        String cacheKey = REDIS_KEY_PREFIX + getCacheKey(exchange, tokenLimitType, keyName);
         
-        AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
-        
-        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(aiModel, exchange.getResponse(),
+        final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(),
                 tokens -> recordTokensUsage(reactiveRedisTemplate,
                         cacheKey,
                         tokens,
@@ -142,32 +140,31 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         String scriptPath = Constants.SCRIPT_PATH + CHECK_LIMIT_SCRIPT;
         checkLimitScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
         checkLimitScript.setResultType(Long.class);
-        return Mono.from(reactiveRedisTemplate.execute(
-                        checkLimitScript,
-                        Lists.newArrayList(cacheKey),
-                        Lists.newArrayList(tokenLimit.toString()))
-                .map(result -> {
-                    // Convert result to String since StatusOutput doesn't support long
-                    // Return true if result is "1", false otherwise
-                    return (Long) result == 1L;
-                }));
+        return reactiveRedisTemplate.opsForValue().get(cacheKey)
+                .defaultIfEmpty(0L)
+                .flatMap(currentTokens -> {
+                    if ((Long)currentTokens >= tokenLimit) {
+                        return Mono.just(false);
+                    }
+                    return Mono.just(true);
+                });
     }
     
     /**
      * Get the cache key based on the configured key resolver type.
      *
      * @param exchange the server web exchange
-     * @param keyResolverName the name of the key resolver
+     * @param tokenLimitType the type of token limit
      * @param keyName the name of the key
      * @return the cache key
      */
-    private String getCacheKey(final ServerWebExchange exchange, final String keyResolverName, final String keyName) {
+    private String getCacheKey(final ServerWebExchange exchange, final String tokenLimitType, final String keyName) {
         ServerHttpRequest request = exchange.getRequest();
         String key;
         // Determine the key based on the configured key resolver type
-        AiTokenLimiterEnum keyResolverEnum = AiTokenLimiterEnum.getByName(keyResolverName);
+        AiTokenLimiterEnum tokenLimiterEnum = AiTokenLimiterEnum.getByName(tokenLimitType);
         
-        switch (keyResolverEnum) {
+        switch (tokenLimiterEnum) {
             case IP:
                 key = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
                 break;
@@ -190,7 +187,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         + exchange.getRequest().getURI().getPath();
         }
         
-        return StringUtils.isBlank(key) ? "" : key;
+        return StringUtils.isBlank(key) ? "" : key.replaceAll("/","");
     }
     
     private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
@@ -215,15 +212,15 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     
     static class AiStatisticServerHttpResponse extends ServerHttpResponseDecorator {
         
-        private final AiModel aiModel;
+        private final ServerWebExchange exchange;
         
         private final ServerHttpResponse serverHttpResponse;
         
         private final Consumer<Long> tokensRecorder;
         
-        AiStatisticServerHttpResponse(final AiModel aiModel, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder) {
+        AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder) {
             super(delegate);
-            this.aiModel = aiModel;
+            this.exchange = exchange;
             this.serverHttpResponse = delegate;
             this.tokensRecorder = tokensRecorder;
         }
@@ -264,7 +261,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 }
             }).doFinally(signal -> {
                 String responseBody = writer.output();
-                long tokens = this.aiModel.getCompletionTokens(responseBody);
+                AiModel aiModel =  exchange.getAttribute(Constants.AI_MODEL);
+                long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(responseBody);
                 tokensRecorder.accept(tokens);
             });
         }

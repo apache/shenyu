@@ -105,7 +105,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             return Mono.error(new IllegalStateException("Failed to create AI model"));
         }
         
-        exchange.getAttributes().put(Constants.AI_MODEL, providerEnum);
+        exchange.getAttributes().put(Constants.AI_MODEL, aiModel);
         
         return aiModel.invoke(aiCommonConfig, exchange, chain, messageReaders);
         
