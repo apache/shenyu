@@ -52,6 +52,7 @@ public class ResponseDecorator extends ServerHttpResponseDecorator {
         return dataBufferMono.flatMap(dataBuffer -> {
             byte[] bytes = new byte[dataBuffer.readableByteCount()];
             dataBuffer.read(bytes);
+            DataBufferUtils.release(dataBuffer);
             String bodyString = new String(bytes, StandardCharsets.UTF_8);
             final String convertStr = convert.apply(bodyString);
             return WebFluxResultUtils.result(this.exchange, convertStr);
