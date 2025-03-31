@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -36,17 +35,14 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -60,7 +56,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,10 +71,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AiTokenLimiterPlugin.class);
     
     private static final String REDIS_KEY_PREFIX = "SHENYU:AI:TOKENLIMIT:";
-    
-    private static final String CHECK_LIMIT_SCRIPT = "check-limit.lua";
-    
-    private static final String INCREMENT_TOKEN_SCRIPT = "increment-token.lua";
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -136,14 +128,11 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      * @return whether the request is allowed
      */
     private Mono<Boolean> isAllowed(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
-        DefaultRedisScript checkLimitScript = new DefaultRedisScript<>();
-        String scriptPath = Constants.SCRIPT_PATH + CHECK_LIMIT_SCRIPT;
-        checkLimitScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
-        checkLimitScript.setResultType(Long.class);
+        
         return reactiveRedisTemplate.opsForValue().get(cacheKey)
                 .defaultIfEmpty(0L)
                 .flatMap(currentTokens -> {
-                    if ((Long)currentTokens >= tokenLimit) {
+                    if (Long.parseLong(currentTokens.toString()) >= tokenLimit) {
                         return Mono.just(false);
                     }
                     return Mono.just(true);
@@ -187,17 +176,15 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         + exchange.getRequest().getURI().getPath();
         }
         
-        return StringUtils.isBlank(key) ? "" : key.replaceAll("/","");
+        return StringUtils.isBlank(key) ? "" : key;
     }
     
     private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        DefaultRedisScript incrementTokenScript = new DefaultRedisScript<>();
-        String scriptPath = Constants.SCRIPT_PATH + INCREMENT_TOKEN_SCRIPT;
-        incrementTokenScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
-        incrementTokenScript.setResultType(List.class);
-        reactiveRedisTemplate.execute(incrementTokenScript,
-                Lists.newArrayList(cacheKey),
-                Lists.newArrayList(tokens.toString(), windowSeconds.toString())).subscribe();
+        // Record token usage with expiration
+        reactiveRedisTemplate.opsForValue()
+                .increment(cacheKey, tokens)
+                .flatMap(currentValue -> reactiveRedisTemplate.expire(cacheKey, Duration.ofSeconds(windowSeconds)))
+                .subscribe();
     }
     
     @Override
