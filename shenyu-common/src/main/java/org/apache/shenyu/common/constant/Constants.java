@@ -980,7 +980,11 @@ public interface Constants {
      * The constant Content-Encoding.
      */
     String CONTENT_ENCODING = "Content-Encoding";
-    
+    /**
+     * Http request retry policy.
+     */
+    String HTTP_RETRY_BACK_OFF_SPEC = "default";
+
     /**
      * The constant Content.
      */
