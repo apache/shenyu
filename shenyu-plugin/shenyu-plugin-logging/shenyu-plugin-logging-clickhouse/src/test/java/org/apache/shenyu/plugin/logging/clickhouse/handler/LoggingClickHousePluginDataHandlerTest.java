@@ -18,31 +18,38 @@
 package org.apache.shenyu.plugin.logging.clickhouse.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * The Test Case For ClickHousePluginDataHandler.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class LoggingClickHousePluginDataHandlerTest {
 
     private LoggingClickHousePluginDataHandler loggingClickHousePluginDataHandler;
 
     @BeforeEach
     public void setUp() {
-        loggingClickHousePluginDataHandler = new LoggingClickHousePluginDataHandler();
+        loggingClickHousePluginDataHandler = Mockito.spy(new LoggingClickHousePluginDataHandler());
     }
 
     @Test
     public void testHandlerPlugin() {
-        PluginData pluginData = new PluginData();
-        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\", \"ttl\":\"30\"}");
-        pluginData.setEnabled(true);
-        pluginData.setId("37");
-        pluginData.setName("loggingClickHouse");
-        pluginData.setRole("Logging");
-        pluginData.setSort(195);
+        PluginData pluginData = createPluginData();
         loggingClickHousePluginDataHandler.handlerPlugin(pluginData);
         Assertions.assertNull(null);
     }
@@ -50,6 +57,40 @@ public final class LoggingClickHousePluginDataHandlerTest {
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(loggingClickHousePluginDataHandler.pluginNamed(), "loggingClickHouse");
+    }
+
+    @Test
+    void testHandlerPluginUpdateSameConfig() {
+        ClickHouseLogCollectConfig.ClickHouseLogConfig existingConfig = createValidConfig();
+        Singleton.INST.single(existingConfig.getClass(), existingConfig);
+
+        PluginData pluginData = createPluginData();
+
+        loggingClickHousePluginDataHandler.handlerPlugin(pluginData);
+
+        verify(loggingClickHousePluginDataHandler, never()).doRefreshConfig(any());
+    }
+
+    private ClickHouseLogCollectConfig.ClickHouseLogConfig createValidConfig() {
+        ClickHouseLogCollectConfig.ClickHouseLogConfig config = new ClickHouseLogCollectConfig.ClickHouseLogConfig();
+        config.setHost("127.0.0.1");
+        config.setPort("8123");
+        config.setDatabase("shenyu-gateway");
+        config.setUsername("foo");
+        config.setPassword("bar");
+        config.setTtl("30");
+        return config;
+    }
+
+    private PluginData createPluginData() {
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\", \"ttl\":\"30\"}");
+        pluginData.setEnabled(true);
+        pluginData.setId("37");
+        pluginData.setName("loggingClickHouse");
+        pluginData.setRole("Logging");
+        pluginData.setSort(195);
+        return pluginData;
     }
 
 }
