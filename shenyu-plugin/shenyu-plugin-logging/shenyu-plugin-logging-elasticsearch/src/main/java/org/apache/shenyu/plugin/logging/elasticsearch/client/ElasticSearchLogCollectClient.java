@@ -179,10 +179,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
             }
             
             // Create or update the alias to point to the current index
-            client.indices().putAlias(r -> r
-                    .index(actualIndex)
-                    .name(aliasName)
-            );
+            client.indices().putAlias(r -> r.index(actualIndex).name(aliasName));
             LogUtils.info(LOG, "Updated alias {} to point to index {}", aliasName, actualIndex);
         } catch (Exception e) {
             LogUtils.error(LOG, "Failed to create/update alias: ", e);
