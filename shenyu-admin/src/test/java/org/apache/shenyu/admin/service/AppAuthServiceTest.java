@@ -273,8 +273,23 @@ public final class AppAuthServiceTest {
     }
 
     private void testApplyCreateParameterError() {
-        AuthApplyDTO newAuthApplyDTO = new AuthApplyDTO();
-        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyCreate(newAuthApplyDTO);
+        testApplyCreateAppNameBlank();
+        testApplyCreateMissingPathsWhenOpen();
+    }
+
+    private void testApplyCreateAppNameBlank() {
+        AuthApplyDTO authApplyDTO = new AuthApplyDTO();
+        authApplyDTO.setAppName("");
+        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyCreate(authApplyDTO);
+        assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
+    }
+
+    private void testApplyCreateMissingPathsWhenOpen() {
+        AuthApplyDTO authApplyDTO = new AuthApplyDTO();
+        authApplyDTO.setAppName("appName");
+        authApplyDTO.setOpen(true);
+        authApplyDTO.setPathList(Collections.emptyList());
+        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyCreate(authApplyDTO);
         assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
     }
 
@@ -287,7 +302,23 @@ public final class AppAuthServiceTest {
     }
 
     private void testApplyUpdateParameterError() {
-        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyUpdate(new AuthApplyDTO());
+        testApplyUpdateAppNameBlank();
+        testApplyUpdateMissingPathsWhenOpen();
+    }
+
+    private void testApplyUpdateAppNameBlank() {
+        AuthApplyDTO authApplyDTO = new AuthApplyDTO();
+        authApplyDTO.setAppName("");
+        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyUpdate(authApplyDTO);
+        assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
+    }
+
+    private void testApplyUpdateMissingPathsWhenOpen() {
+        AuthApplyDTO authApplyDTO = new AuthApplyDTO();
+        authApplyDTO.setAppName("appName");
+        authApplyDTO.setOpen(true);
+        authApplyDTO.setPathList(Collections.emptyList());
+        ShenyuAdminResult parameterErrorResult = this.appAuthService.applyUpdate(authApplyDTO);
         assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
     }
 

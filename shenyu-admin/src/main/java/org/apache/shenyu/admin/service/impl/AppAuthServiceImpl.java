@@ -103,7 +103,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
-                || authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
+                || hasMissingPathsWhenOpen(authApplyDTO)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
@@ -142,7 +142,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName())
-                || authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
+                || hasMissingPathsWhenOpen(authApplyDTO)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
@@ -764,6 +764,16 @@ public class AppAuthServiceImpl implements AppAuthService {
                             dataList1.addAll(dataList2);
                             return dataList1;
                         }));
+    }
+
+    /**
+     * check whether the path list is empty when open.
+     *
+     * @param authApplyDTO auth apply dto
+     * @return true if the path list is empty when open
+     */
+    private boolean hasMissingPathsWhenOpen(final AuthApplyDTO authApplyDTO) {
+        return Boolean.TRUE.equals(authApplyDTO.getOpen()) && CollectionUtils.isEmpty(authApplyDTO.getPathList());
     }
 
 }
