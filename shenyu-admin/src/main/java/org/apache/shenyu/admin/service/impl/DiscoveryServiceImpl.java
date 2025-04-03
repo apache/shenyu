@@ -452,6 +452,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<DiscoveryDTO> discoveryList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(discoveryList)) {
             return ConfigImportResult.success();
