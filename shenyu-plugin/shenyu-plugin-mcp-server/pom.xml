@@ -27,8 +27,23 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-loadbalancer</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
