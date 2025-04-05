@@ -47,11 +47,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+#      - uses: dorny/paths-filter@v2
+#        id: filter
+#        with:
+#          filters: '.github/filters.yml'
+#          list-files: json
       - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
         id: restore-maven-cache
