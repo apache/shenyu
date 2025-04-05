@@ -39,11 +39,19 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD)
+          else
+            FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+          fi
+          
+          if echo "$FILES" | grep -q "^src/"; then
+            echo "src=true" >> $GITHUB_OUTPUT
+          else
+            echo "src=false" >> $GITHUB_OUTPUT
+          fi
 
   build-docker-images:
     needs: changes
