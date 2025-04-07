@@ -55,11 +55,11 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+#      - uses: dorny/paths-filter@v2
+#        id: filter
+#        with:
+#          filters: '.github/filters.yml'
+#          list-files: json
       - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
