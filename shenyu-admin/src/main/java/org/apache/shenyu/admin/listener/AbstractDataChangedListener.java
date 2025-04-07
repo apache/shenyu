@@ -18,6 +18,10 @@
 package org.apache.shenyu.admin.listener;
 
 import jakarta.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,10 +49,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
@@ -297,8 +297,16 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
         String json = GsonUtils.getInstance().toJson(data);
+        String newMd5 = DigestUtils.md5Hex(json);
+        ConfigDataCache oldConfig = CACHE.get(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name()));
+        if (Objects.nonNull(oldConfig) && StringUtils.isNotBlank(oldConfig.getMd5())) {
+            if (oldConfig.getMd5().equals(newMd5)) {
+                LOG.info("config cache[{}] is not changed, skip update.", group);
+                return;
+            }
+        }
         String configDataCacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
-        ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, DigestUtils.md5Hex(json), System.currentTimeMillis(), namespaceId);
+        ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, newMd5, System.currentTimeMillis(), namespaceId);
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOG.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
