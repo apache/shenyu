@@ -102,6 +102,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
         return StringUtils.isBlank(metaDataDTO.getId()) ? this.create(metaDataDTO) : this.update(metaDataDTO);
     }
