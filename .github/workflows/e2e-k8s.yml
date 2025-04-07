@@ -39,11 +39,11 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+#      - uses: dorny/paths-filter@v2
+#        id: filter
+#        with:
+#          filters: '.github/filters.yml'
+#          list-files: json
 
   build-docker-images:
     needs: changes
@@ -136,11 +136,11 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+#      - uses: dorny/paths-filter@v2
+#        id: filter
+#        with:
+#          filters: '.github/filters.yml'
+#          list-files: json
 
 #      - name: Install k8s
 #        if: steps.filter.outputs.changed == 'true'
@@ -240,11 +240,11 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: '.github/filters.yml'
-          list-files: json
+#      - uses: dorny/paths-filter@v2
+#        id: filter
+#        with:
+#          filters: '.github/filters.yml'
+#          list-files: json
 
 #      - name: Install k8s
 #        if: steps.filter.outputs.changed == 'true'
