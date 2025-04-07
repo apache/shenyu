@@ -140,6 +140,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName())
                 || hasMissingPathsWhenOpen(authApplyDTO)) {
@@ -212,6 +213,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
         if (Objects.isNull(appAuthDO)) {
