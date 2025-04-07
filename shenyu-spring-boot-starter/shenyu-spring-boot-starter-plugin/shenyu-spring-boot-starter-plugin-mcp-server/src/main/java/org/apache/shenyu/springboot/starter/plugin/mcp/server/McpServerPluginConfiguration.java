@@ -19,19 +19,25 @@ package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpSyncServer;
+import io.modelcontextprotocol.server.transport.WebFluxSseServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
-import io.modelcontextprotocol.spec.ServerMcpTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.mcp.server.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
 import org.apache.shenyu.plugin.mcp.server.ShenyuMcpToolsProvider;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.springframework.ai.mcp.McpToolUtils;
+import org.springframework.ai.mcp.server.autoconfigure.McpServerProperties;
 import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.server.WebFilter;
 
 /**
  * The type Mock plugin configuration.
@@ -60,6 +66,24 @@ public class McpServerPluginConfiguration {
         return new McpServerPluginDataHandler();
     }
     
+    @Bean
+    public RouterFunction<?> mcpRouterFunction(WebFluxSseServerTransportProvider transportProvider) {
+        return transportProvider.getRouterFunction();
+    }
+    
+    /**
+     * Health filter.
+     *
+     * @param dispatcherHandler the dispatcher handler
+     * @param mcpServerProperties the mcp server properties
+     * @return the web filter
+     */
+    @Bean
+    @Order(-99)
+    @ConditionalOnProperty(name = "shenyu.mcp.server.enabled", havingValue = "true", matchIfMissing = true)
+    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler, final McpServerProperties mcpServerProperties) {
+        return new McpServerFilter(dispatcherHandler, mcpServerProperties.getSseMessageEndpoint());
+    }
     
     @Bean
     public McpSyncServer mcpServer(McpServerTransportProvider transportProvider) { // @formatter:off
