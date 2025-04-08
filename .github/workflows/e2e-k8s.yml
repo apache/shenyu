@@ -47,7 +47,7 @@ jobs:
 
   build-docker-images:
     needs: changes
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
+#    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -107,7 +107,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -157,7 +158,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -183,7 +184,7 @@ jobs:
 #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
       - name: Run E2E Tests
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
@@ -198,7 +199,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -261,7 +263,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -309,7 +311,7 @@ jobs:
 #          detached: true
 
       - name: Run E2E Tests
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
@@ -321,7 +323,7 @@ jobs:
 
   requirement:
     name: e2e
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
+#    if: ${{ needs.changes.outputs.e2e == 'true' }}
     needs:
       - changes
       - e2e-storage
