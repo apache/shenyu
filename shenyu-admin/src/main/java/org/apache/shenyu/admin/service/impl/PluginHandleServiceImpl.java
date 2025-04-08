@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
@@ -163,6 +164,9 @@ public class PluginHandleServiceImpl implements PluginHandleService {
         for (Map.Entry<String, List<PluginHandleDTO>> pluginHandleEntry : importHandleMap.entrySet()) {
             // pluginId
             String pluginId = context.getPluginTemplateIdMapping().get(pluginHandleEntry.getKey());
+            if (StringUtils.isEmpty(pluginId)) {
+                continue;
+            }
             List<PluginHandleDTO> handles = pluginHandleEntry.getValue();
             if (CollectionUtils.isNotEmpty(handles)) {
                 if (existHandleMap.containsKey(pluginId)) {
