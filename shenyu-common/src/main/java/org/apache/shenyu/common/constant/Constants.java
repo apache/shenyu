@@ -950,16 +950,6 @@ public interface Constants {
      * The constant messages.
      */
     String MESSAGES = "messages";
-
-    /**
-     * The constant usedTokens.
-     */
-    String USED_TOKENS = "used-tokens";
-
-    /**
-     * The constant X-Client-ID.
-     */
-    String CLIENT_ID = "X-Client-ID";
     
     /**
      * The constant Content-Encoding.
@@ -981,8 +971,24 @@ public interface Constants {
     String ROLE = "role";
     
     /**
+     * The constant USAGE.
+     */
+    String USAGE = "usage";
+    
+    /**
+     * The constant COMPLETION_TOKENS.
+     */
+    String COMPLETION_TOKENS = "completion_tokens";
+    
+    /**
+     * The constant AI_MODEL.
+     */
+    String AI_MODEL = "ai_model";
+    
+    /**
      * String q.
      */
     default void findConstants() {
     }
+    
 }
