@@ -64,21 +64,21 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
         receiverDO.setDateUpdated(currentTime);
-        alertDispatchService.clearCache();
         alertReceiverMapper.insert(receiverDO);
+        alertDispatchService.clearCache();
     }
 
     @Override
     public void deleteReceiver(final List<String> ids) {
-        alertDispatchService.clearCache();
         alertReceiverMapper.deleteByIds(ids);
+        alertDispatchService.clearCache();
     }
 
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
         AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
-        alertDispatchService.clearCache();
         alertReceiverMapper.updateByPrimaryKey(receiverDO);
+        alertDispatchService.clearCache();
     }
     
     @Override
