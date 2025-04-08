@@ -357,3 +357,5 @@ VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{"required"
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+delete from plugin_handle where plugin_id = '8';
