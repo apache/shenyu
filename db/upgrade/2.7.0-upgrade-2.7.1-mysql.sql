@@ -182,3 +182,4 @@ INSERT INTO `permission` VALUES ('1697146861569542759', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
 INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 'description', 2, 2, 0, '{\"required\":\"1\",\"rule\":\"\",\"placeholder\":\"tools description\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
