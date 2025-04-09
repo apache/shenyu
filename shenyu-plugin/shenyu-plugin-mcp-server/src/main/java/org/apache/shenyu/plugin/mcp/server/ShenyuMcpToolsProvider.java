@@ -17,23 +17,25 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
+import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServer;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.ai.tool.ToolCallbacks;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
-import java.util.List;
-
+@ConditionalOnBean(McpSyncServer.class)
 public class ShenyuMcpToolsProvider {
     
-//    public void addTools(Object toolObjects) {
-//        SpringBeanUtils
-//                .getInstance()
-//                .getBean(McpSyncServer.class)
-//                .addTool(ToolCallbacks.from(toolObjects));
-//    }
+    public void addSyncTools() {
+        ShenyuPluginService pluginService = new ShenyuPluginService();
+        for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(ToolCallbacks.from(pluginService))) {
+            SpringBeanUtils
+                    .getInstance()
+                    .getBean(McpSyncServer.class)
+                    .addTool(syncToolSpecification);
+        }
+        
+    }
     
 }

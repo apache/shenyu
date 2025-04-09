@@ -17,24 +17,15 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.PluginTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.stereotype.Service;
 
-public class ShenyuPluginService {
+public class ShenyuDefaultTools {
     
-    @Tool(description = "return all plugin enums")
-    public String listAllPlugins() {
-        PluginEnum[] pluginEnums = PluginEnum.values();
-        return GsonUtils.getInstance().toJson(pluginEnums);
-    }
-    
-    @Tool(description = "return all plugin type enums")
-    public String listAllPluginTypeEnums() {
-        PluginTypeEnum[] pluginTypeEnums = PluginTypeEnum.values();
-        return GsonUtils.getInstance().toJson(pluginTypeEnums);
+    @Tool(description = "Get shenyu plugin data")
+    public String getPluginData() {
+        return GsonUtils.getInstance().toJson(BaseDataCache.getInstance().getPluginMap());
     }
     
 }

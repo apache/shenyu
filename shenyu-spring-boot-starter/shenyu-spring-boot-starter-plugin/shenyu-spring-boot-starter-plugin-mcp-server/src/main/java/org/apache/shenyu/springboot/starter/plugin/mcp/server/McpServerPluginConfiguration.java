@@ -21,8 +21,8 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
+import org.apache.shenyu.plugin.mcp.server.ShenyuDefaultTools;
 import org.apache.shenyu.plugin.mcp.server.ShenyuMcpToolsProvider;
-import org.apache.shenyu.plugin.mcp.server.WeatherApiClient;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.springframework.ai.mcp.server.autoconfigure.McpServerProperties;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -77,18 +77,15 @@ public class McpServerPluginConfiguration {
     }
 
     @Bean
+    public ToolCallbackProvider shenyuTools() {
+        return MethodToolCallbackProvider.builder().toolObjects(new ShenyuDefaultTools()).build();
+    }
+    
+    @Bean
     public ShenyuMcpToolsProvider shenyuMcpToolsProvider() {
-        return new ShenyuMcpToolsProvider();
-    }
-
-    @Bean
-    public ToolCallbackProvider pluginTools(final WeatherApiClient weatherApiClient) {
-        return MethodToolCallbackProvider.builder().toolObjects(weatherApiClient).build();
-    }
-
-    @Bean
-    public WeatherApiClient weatherApiClient() {
-        return new WeatherApiClient();
+        ShenyuMcpToolsProvider shenyuMcpToolsProvider = new ShenyuMcpToolsProvider();
+        shenyuMcpToolsProvider.addSyncTools();
+        return shenyuMcpToolsProvider;
     }
     
 }
