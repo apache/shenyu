@@ -17,23 +17,18 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
-import io.modelcontextprotocol.server.McpSyncServer;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.springframework.ai.mcp.McpToolUtils;
-import org.springframework.ai.tool.ToolCallbacks;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-public class ShenyuMcpToolsProvider {
+//@Service
+public class ShenyuPluginService {
     
-//    public void addTools(Object toolObjects) {
-//        SpringBeanUtils
-//                .getInstance()
-//                .getBean(McpSyncServer.class)
-//                .addTool(ToolCallbacks.from(toolObjects));
-//    }
+    @Tool(description = "return all plugin enums")
+    public String listAllPlugins() {
+        PluginEnum[] pluginEnums = PluginEnum.values();
+        return GsonUtils.getInstance().toJson(pluginEnums);
+    }
     
 }

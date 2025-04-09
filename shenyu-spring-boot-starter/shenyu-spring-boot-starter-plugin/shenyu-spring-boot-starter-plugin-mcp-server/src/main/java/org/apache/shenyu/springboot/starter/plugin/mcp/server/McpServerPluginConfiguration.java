@@ -17,33 +17,28 @@
 
 package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
-import io.modelcontextprotocol.server.McpServer;
-import io.modelcontextprotocol.server.McpSyncServer;
-import io.modelcontextprotocol.server.transport.WebFluxSseServerTransportProvider;
-import io.modelcontextprotocol.spec.McpSchema;
-import io.modelcontextprotocol.spec.McpServerTransportProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
 import org.apache.shenyu.plugin.mcp.server.ShenyuMcpToolsProvider;
+import org.apache.shenyu.plugin.mcp.server.WeatherApiClient;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
-import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.ai.mcp.server.autoconfigure.McpServerProperties;
-import org.springframework.ai.tool.ToolCallbacks;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.reactive.DispatcherHandler;
-import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.server.WebFilter;
 
 /**
  * The type Mock plugin configuration.
  */
 @Configuration
-@ConditionalOnProperty(value = {"shenyu.plugins.mcp.server.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = { "shenyu.plugins.mcp.server.enabled" }, havingValue = "true", matchIfMissing = true)
 public class McpServerPluginConfiguration {
 
     /**
@@ -65,42 +60,35 @@ public class McpServerPluginConfiguration {
     public PluginDataHandler mcpServerPluginDataHandler() {
         return new McpServerPluginDataHandler();
     }
-    
-    @Bean
-    public RouterFunction<?> mcpRouterFunction(WebFluxSseServerTransportProvider transportProvider) {
-        return transportProvider.getRouterFunction();
-    }
-    
+
     /**
      * Health filter.
      *
-     * @param dispatcherHandler the dispatcher handler
+     * @param dispatcherHandler   the dispatcher handler
      * @param mcpServerProperties the mcp server properties
      * @return the web filter
      */
     @Bean
     @Order(-99)
     @ConditionalOnProperty(name = "shenyu.mcp.server.enabled", havingValue = "true", matchIfMissing = true)
-    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler, final McpServerProperties mcpServerProperties) {
+    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler,
+            final McpServerProperties mcpServerProperties) {
         return new McpServerFilter(dispatcherHandler, mcpServerProperties.getSseMessageEndpoint());
     }
-    
+
     @Bean
-    public McpSyncServer mcpServer(McpServerTransportProvider transportProvider) { // @formatter:off
-        ShenyuMcpToolsProvider shenyuMcpToolsProvider = new ShenyuMcpToolsProvider();
-        // Configure server capabilities with resource support
-        var capabilities = McpSchema.ServerCapabilities.builder()
-                .tools(true) // Tool support with list changes notifications
-                .logging() // Logging support
-                .build();
-        
-        // Create the server with both tool and resource capabilities
-        McpSyncServer server = McpServer.sync(transportProvider)
-                .serverInfo("MCP Demo Weather Server", "1.0.0")
-                .capabilities(capabilities)
-                .tools(McpToolUtils.toSyncToolSpecifications(ToolCallbacks.from(shenyuMcpToolsProvider))) // Add @Tools
-                .build();
-        
-        return server; // @formatter:on
-    } // @formatter:on
+    public ShenyuMcpToolsProvider shenyuMcpToolsProvider() {
+        return new ShenyuMcpToolsProvider();
+    }
+
+    @Bean
+    public ToolCallbackProvider pluginTools(final WeatherApiClient weatherApiClient) {
+        return MethodToolCallbackProvider.builder().toolObjects(weatherApiClient).build();
+    }
+
+    @Bean
+    public WeatherApiClient weatherApiClient() {
+        return new WeatherApiClient();
+    }
+    
 }
