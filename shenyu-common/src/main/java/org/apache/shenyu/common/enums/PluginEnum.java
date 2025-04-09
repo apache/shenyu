@@ -281,6 +281,11 @@ public enum PluginEnum {
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Mcp-server plugin enum.
+     */
+    MCP_SERVER(180, 0, "mcpServer"),
     
     /**
      * Basic-auth plugin enum.
