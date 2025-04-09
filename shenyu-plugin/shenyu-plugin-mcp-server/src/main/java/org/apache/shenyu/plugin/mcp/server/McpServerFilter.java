@@ -43,7 +43,7 @@ public final class McpServerFilter extends AbstractWebFilter {
      * @param dispatcherHandler the dispatcher handler
      * @param sseMessageEndpoint the sseMessageEndpoint
      */
-    public McpServerFilter(final DispatcherHandler dispatcherHandler, String sseMessageEndpoint) {
+    public McpServerFilter(final DispatcherHandler dispatcherHandler, final String sseMessageEndpoint) {
         this.dispatcherHandler = dispatcherHandler;
         if (StringUtils.isEmpty(sseMessageEndpoint)) {
             this.paths = new HashSet<>(Arrays.asList("/sse"));

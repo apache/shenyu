@@ -29,6 +29,7 @@ import org.springframework.http.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class McpToolsManager {
@@ -38,9 +39,11 @@ public class McpToolsManager {
     private final Map<String, McpTool> toolsRegistry = new ConcurrentHashMap<>();
     
     /**
-     * 注册一个新的MCP工具
+     * 注册一个MCP工具.
+     *
+     * @param metaData 元数据
      */
-    public void registerTool(MetaData metaData) {
+    public void registerTool(final MetaData metaData) {
         try {
             McpTool tool = convertMetaDataToTool(metaData);
             toolsRegistry.put(tool.getName(), tool);
@@ -51,26 +54,33 @@ public class McpToolsManager {
     }
     
     /**
-     * 注销一个MCP工具
+     * 注销一个MCP工具.
+     *
+     * @param metaData 元数据
      */
-    public void unregisterTool(MetaData metaData) {
+    public void unregisterTool(final MetaData metaData) {
         String toolName = generateToolName(metaData);
-        if (toolsRegistry.remove(toolName) != null) {
+        if (Objects.nonNull(toolsRegistry.remove(toolName))) {
             LOG.info("Unregistered MCP tool: {}", toolName);
         }
     }
     
     /**
-     * 获取所有注册的MCP工具
+     * 获取指定工具.
+     *
+     * @return 工具实例
      */
     public List<McpTool> getAllTools() {
         return new ArrayList<>(toolsRegistry.values());
     }
     
     /**
-     * 转换ShenYu元数据到MCP工具
+     * 获取指定工具.
+     *
+     * @param metaData 元数据
+     * @return 工具实例
      */
-    private McpTool convertMetaDataToTool(MetaData metaData) {
+    private McpTool convertMetaDataToTool(final MetaData metaData) {
         String toolName = generateToolName(metaData);
         
         McpTool.Builder builder = McpTool.builder()
@@ -93,20 +103,23 @@ public class McpToolsManager {
     }
     
     /**
-     * 从元数据中提取参数信息
+     * 从元数据中提取参数信息.
+     *
+     * @param metaData 元数据
+     * @return 参数列表
      */
-    private List<McpToolParameter> extractParameters(MetaData metaData) {
+    private List<McpToolParameter> extractParameters(final MetaData metaData) {
         List<McpToolParameter> parameters = new ArrayList<>();
         
         // 尝试从元数据的rpcExt中解析参数信息
         try {
-            if (metaData.getRpcExt() != null) {
+            if (Objects.nonNull(metaData.getRpcExt())) {
                 Map<String, Object> rpcExtMap = GsonUtils.getInstance().toObjectMap(metaData.getRpcExt());
                 if (rpcExtMap.containsKey("parameterTypes")) {
                     String paramTypes = rpcExtMap.get("parameterTypes").toString();
-                    String[] paramNames = rpcExtMap.containsKey("paramNames") ?
-                            rpcExtMap.get("paramNames").toString().split(",") :
-                            new String[0];
+                    String[] paramNames = rpcExtMap.containsKey("paramNames")
+                            ? rpcExtMap.get("paramNames").toString().split(",")
+                            : new String[0];
                     
                     String[] types = paramTypes.split(",");
                     for (int i = 0; i < types.length; i++) {
@@ -126,27 +139,31 @@ public class McpToolsManager {
             LOG.warn("Error extracting parameters from metadata: {}", metaData.getPath(), e);
         }
         
-        // 如果无法从元数据中提取参数，则尝试使用AI生成可能的参数
-        if (parameters.isEmpty()) {
-            // TODO
-        }
-        
         return parameters;
     }
     
     /**
-     * 确定HTTP方法
+     * 确定HTTP方法.
+     *
+     * @param metaData 元数据
+     * @return HTTP方法
      */
-    private HttpMethod determineHttpMethod(MetaData metaData) {
+    private HttpMethod determineHttpMethod(final MetaData metaData) {
         // 基于方法名猜测HTTP方法
         String methodName = metaData.getMethodName().toLowerCase();
-        if (methodName.startsWith("get") || methodName.startsWith("query") || methodName.startsWith("find")) {
+        if (methodName.startsWith("get")
+                || methodName.startsWith("query")
+                || methodName.startsWith("find")) {
             return HttpMethod.GET;
-        } else if (methodName.startsWith("create") || methodName.startsWith("add") || methodName.startsWith("save")) {
+        } else if (methodName.startsWith("create")
+                || methodName.startsWith("add")
+                || methodName.startsWith("save")) {
             return HttpMethod.POST;
-        } else if (methodName.startsWith("update") || methodName.startsWith("modify")) {
+        } else if (methodName.startsWith("update")
+                || methodName.startsWith("modify")) {
             return HttpMethod.PUT;
-        } else if (methodName.startsWith("delete") || methodName.startsWith("remove")) {
+        } else if (methodName.startsWith("delete")
+                || methodName.startsWith("remove")) {
             return HttpMethod.DELETE;
         }
         
@@ -155,17 +172,23 @@ public class McpToolsManager {
     }
     
     /**
-     * 将Java类型映射到MCP类型
+     * 将Java类型映射到MCP类型.
+     *
+     * @param javaType Java类型
+     * @return MCP类型
      */
-    private String mapJavaTypeToMcpType(String javaType) {
-        javaType = javaType.trim();
-        if (javaType.contains("String") || javaType.contains("CharSequence")) {
+    private String mapJavaTypeToMcpType(final String javaType) {
+        String javaTypeTmp = javaType.trim();
+        if (javaTypeTmp.contains("String")
+                || javaTypeTmp.contains("CharSequence")) {
             return "string";
-        } else if (javaType.contains("Integer") || javaType.contains("Long") ||
-                javaType.contains("Double") || javaType.contains("Float") ||
-                javaType.contains("Number")) {
+        } else if (javaTypeTmp.contains("Integer")
+                || javaTypeTmp.contains("Long")
+                || javaTypeTmp.contains("Double")
+                || javaTypeTmp.contains("Float")
+                || javaTypeTmp.contains("Number")) {
             return "number";
-        } else if (javaType.contains("Boolean")) {
+        } else if (javaTypeTmp.contains("Boolean")) {
             return "boolean";
         } else {
             return "object";
@@ -173,9 +196,12 @@ public class McpToolsManager {
     }
     
     /**
-     * 生成工具名称
+     * 生成工具名称.
+     *
+     * @param metaData 元数据
+     * @return 工具名称
      */
-    private String generateToolName(MetaData metaData) {
+    private String generateToolName(final MetaData metaData) {
         // 使用服务名和方法名组合
         return metaData.getServiceName() + "_" + metaData.getMethodName();
     }

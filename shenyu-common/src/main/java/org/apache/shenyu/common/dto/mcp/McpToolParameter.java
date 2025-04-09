@@ -25,6 +25,7 @@ import java.util.Objects;
  * and a description of the parameter.
  */
 public class McpToolParameter {
+    
     /**
      * The name of the parameter.
      */
@@ -141,7 +142,7 @@ public class McpToolParameter {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         McpToolParameter that = (McpToolParameter) o;

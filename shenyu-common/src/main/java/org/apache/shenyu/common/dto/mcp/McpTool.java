@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.mcp;
 
 import java.util.List;
 import java.util.Objects;
+
 /**
  * McpTool represents a tool in the context of the Mcp system.
  * It contains information about the tool's name, description, endpoint,
@@ -189,7 +190,7 @@ public class McpTool {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         McpTool mcpTool = (McpTool) o;

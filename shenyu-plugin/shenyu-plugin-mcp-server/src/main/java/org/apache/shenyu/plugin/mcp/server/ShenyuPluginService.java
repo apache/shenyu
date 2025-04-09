@@ -21,7 +21,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.stereotype.Service;
 
 public class ShenyuPluginService {
     

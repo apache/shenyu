@@ -25,38 +25,38 @@ package org.apache.shenyu.common.dto.mcp;
 public class McpParameter {
     
     /**
-     * Parameter name
+     * Parameter name.
      */
     private String name;
 
     /**
-     * Parameter type
+     * Parameter type.
      */
     private String type;
 
     /**
-     * Parameter description
+     * Parameter description.
      */
     private String description;
 
     /**
-     * Whether the parameter is required
+     * Whether the parameter is required.
      */
     private boolean required;
 
     /**
-     * Default value of the parameter
+     * Default value of the parameter.
      */
     private String defaultValue;
 
     /**
-     * Constructor for McpParameter
+     * Constructor for McpParameter.
      */
     public McpParameter() {
     }
 
     /**
-     * Constructor for McpParameter
+     * Constructor for McpParameter.
      *
      * @param name        name
      * @param type        type
@@ -64,7 +64,7 @@ public class McpParameter {
      * @param required    required
      * @param defaultValue defaultValue
      */
-    public McpParameter(String name, String type, String description, boolean required, String defaultValue) {
+    public McpParameter(final String name, final String type, final String description, final boolean required, final String defaultValue) {
         this.name = name;
         this.type = type;
         this.description = description;
@@ -86,7 +86,7 @@ public class McpParameter {
      *
      * @param name name
      */         
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -104,7 +104,7 @@ public class McpParameter {
      *
      * @param type type
      */ 
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -122,7 +122,7 @@ public class McpParameter {
      *
      * @param description description
      */ 
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
 
@@ -140,7 +140,7 @@ public class McpParameter {
      *
      * @param required required
      */
-    public void setRequired(boolean required) {
+    public void setRequired(final boolean required) {
         this.required = required;
     }
 
@@ -158,7 +158,7 @@ public class McpParameter {
      *
      * @param defaultValue defaultValue
      */
-    public void setDefaultValue(String defaultValue) {
+    public void setDefaultValue(final String defaultValue) {
         this.defaultValue = defaultValue;
     }
 }

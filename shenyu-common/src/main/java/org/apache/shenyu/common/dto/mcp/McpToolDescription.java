@@ -29,32 +29,32 @@ import java.util.List;
 public class McpToolDescription {
     
     /**
-     * ID of the tool description
+     * ID of the tool description.
      */
     private String id;
     
     /**
-     * Name of the tool description
+     * Name of the tool description.
      */
     private String name;
     
     /**
-     * Version of the tool description
+     * Version of the tool description.
      */
     private String version;
     
     /**
-     * Description of the tool description
+     * Description of the tool description.
      */
     private String description;
     
     /**
-     * Parameters of the tool description
+     * Parameters of the tool description.
      */
     private List<McpParameter> parameters = Lists.newArrayList();
     
     /**
-     * Return type of the tool description
+     * Return type of the tool description.
      */
     private String returnType;
     
@@ -72,7 +72,7 @@ public class McpToolDescription {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
     
@@ -90,7 +90,7 @@ public class McpToolDescription {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
     
@@ -108,7 +108,7 @@ public class McpToolDescription {
      *
      * @param version version
      */
-    public void setVersion(String version) {
+    public void setVersion(final String version) {
         this.version = version;
     }
     
@@ -126,7 +126,7 @@ public class McpToolDescription {
      *
      * @param description description
      */
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
     
@@ -144,7 +144,7 @@ public class McpToolDescription {
      *
      * @param parameters parameters
      */
-    public void setParameters(List<McpParameter> parameters) {
+    public void setParameters(final List<McpParameter> parameters) {
         this.parameters = parameters;
     }
     
@@ -162,7 +162,7 @@ public class McpToolDescription {
      *
      * @param returnType returnType
      */
-    public void setReturnType(String returnType) {
+    public void setReturnType(final String returnType) {
         this.returnType = returnType;
     }
 }
