@@ -21,13 +21,33 @@ import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServer;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.ai.mcp.McpToolUtils;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbacks;
+import org.springframework.ai.tool.definition.DefaultToolDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
 @ConditionalOnBean(McpSyncServer.class)
-public class ShenyuMcpToolsProvider {
+public final class ShenyuMcpToolsProvider {
     
-    public void addSyncTools() {
+    public static void addSyncTools(final String name, final String description, final String inputSchema) {
+        DefaultToolDefinition defaultToolDefinition = new DefaultToolDefinition(name, description, inputSchema);
+        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(defaultToolDefinition);
+        for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(shenyuToolCallback)) {
+            SpringBeanUtils
+                    .getInstance()
+                    .getBean(McpSyncServer.class)
+                    .addTool(syncToolSpecification);
+        }
+    }
+    
+    public static void removeTools(final String name) {
+        SpringBeanUtils
+                .getInstance()
+                .getBean(McpSyncServer.class)
+                .removeTool(name);
+    }
+    
+    public static void addSyncTools() {
         ShenyuPluginService pluginService = new ShenyuPluginService();
         for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(ToolCallbacks.from(pluginService))) {
             SpringBeanUtils
@@ -35,7 +55,16 @@ public class ShenyuMcpToolsProvider {
                     .getBean(McpSyncServer.class)
                     .addTool(syncToolSpecification);
         }
-        
+    }
+    
+    public void removeTools() {
+        ShenyuPluginService pluginService = new ShenyuPluginService();
+        for (ToolCallback toolCallback : ToolCallbacks.from(pluginService)) {
+            SpringBeanUtils
+                    .getInstance()
+                    .getBean(McpSyncServer.class)
+                    .removeTool(toolCallback.getToolDefinition().name());
+        }
     }
     
 }

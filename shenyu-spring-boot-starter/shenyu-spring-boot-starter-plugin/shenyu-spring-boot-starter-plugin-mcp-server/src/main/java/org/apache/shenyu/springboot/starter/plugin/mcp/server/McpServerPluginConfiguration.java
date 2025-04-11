@@ -22,7 +22,6 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
 import org.apache.shenyu.plugin.mcp.server.ShenyuDefaultTools;
-import org.apache.shenyu.plugin.mcp.server.ShenyuMcpToolsProvider;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.springframework.ai.mcp.server.autoconfigure.McpServerProperties;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -79,13 +78,6 @@ public class McpServerPluginConfiguration {
     @Bean
     public ToolCallbackProvider shenyuTools() {
         return MethodToolCallbackProvider.builder().toolObjects(new ShenyuDefaultTools()).build();
-    }
-    
-    @Bean
-    public ShenyuMcpToolsProvider shenyuMcpToolsProvider() {
-        ShenyuMcpToolsProvider shenyuMcpToolsProvider = new ShenyuMcpToolsProvider();
-        shenyuMcpToolsProvider.addSyncTools();
-        return shenyuMcpToolsProvider;
     }
     
 }
