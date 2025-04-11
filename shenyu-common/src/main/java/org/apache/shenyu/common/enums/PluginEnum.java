@@ -285,7 +285,7 @@ public enum PluginEnum {
     /**
      * Mcp-server plugin enum.
      */
-    MCP_SERVER(180, 0, "mcpServer"),
+    MCP_SERVER(980, 0, "mcpServer"),
     
     /**
      * Basic-auth plugin enum.
