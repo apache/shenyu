@@ -32,15 +32,15 @@ import java.util.Set;
  * The type mcp server filter.
  */
 public final class McpServerFilter extends AbstractWebFilter {
-    
+
     private final DispatcherHandler dispatcherHandler;
-    
+
     private final Set<String> paths;
-    
+
     /**
      * Instantiates a new Mcp server filter.
      *
-     * @param dispatcherHandler the dispatcher handler
+     * @param dispatcherHandler  the dispatcher handler
      * @param sseMessageEndpoint the sseMessageEndpoint
      */
     public McpServerFilter(final DispatcherHandler dispatcherHandler, final String sseMessageEndpoint) {
@@ -51,20 +51,25 @@ public final class McpServerFilter extends AbstractWebFilter {
             this.paths = new HashSet<>(Arrays.asList("/sse", sseMessageEndpoint));
         }
     }
-    
+
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
         return Mono.just(paths.stream().anyMatch(path -> exchange.getRequest().getURI().getRawPath().startsWith(path)));
     }
-    
+
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
         try {
             if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
                 String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
                 if (StringUtils.isNotEmpty(sessionId)) {
-                    ShenyuMcpSessionHolder.setSessionId(sessionId);
+                    System.out.println("Setting sessionId in filter: " + sessionId);
                     ShenyuMcpExchangeHolder.put(sessionId, exchange);
+                    return dispatcherHandler.handle(exchange)
+                            .contextWrite(context -> {
+                                System.out.println("Writing sessionId to Context: " + sessionId);
+                                return context.put("sessionId", sessionId);
+                            });
                 }
             }
             return dispatcherHandler.handle(exchange);
@@ -72,9 +77,18 @@ public final class McpServerFilter extends AbstractWebFilter {
             if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
                 String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
                 if (StringUtils.isNotEmpty(sessionId)) {
+                    System.out.println("Removing sessionId in filter: " + sessionId);
                     ShenyuMcpExchangeHolder.remove(sessionId);
                 }
             }
         }
+    }
+
+    public static Mono<String> getSessionId() {
+        return Mono.deferContextual(context -> {
+            String sessionId = context.getOrDefault("sessionId", null);
+            System.out.println("Reading sessionId from Context: " + sessionId);
+            return Mono.justOrEmpty(sessionId);
+        });
     }
 }

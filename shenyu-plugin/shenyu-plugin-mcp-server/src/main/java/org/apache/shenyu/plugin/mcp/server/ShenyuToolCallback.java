@@ -54,16 +54,21 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     @Override
-    public String call(@NonNull final String input, final ToolContext context) {
+    public String call(@NonNull final String input, final ToolContext toolContext) {
         JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
-        String sessionId = ShenyuMcpSessionHolder.getSessionId();
-        if (sessionId == null) {
-            throw new IllegalArgumentException("Session ID is required");
-        }
-        ServerWebExchange exchange = createServerWebExchange(sessionId, inputJson);
 
+        return McpServerFilter.getSessionId()
+                .doOnNext(sessionId -> System.out.println("Got sessionId from Context: " + sessionId))
+                .switchIfEmpty(Mono.defer(() -> {
+                    System.out.println("No sessionId found in Context");
+                    return Mono.error(new IllegalArgumentException("Session ID is required"));
+                }))
+                .flatMap(sessionId -> {
+                    System.out.println("Using sessionId: " + sessionId);
+                    ServerWebExchange exchange = createServerWebExchange(sessionId, inputJson);
                     return shenyuWebHandler.handle(exchange)
-                            .then(Mono.just(exchange))
+                            .then(Mono.just(exchange));
+                })
                 .map(ex -> {
                     String responseBody = "Response processed";
                     DataBuffer buffer = ex.getResponse().bufferFactory()
@@ -71,14 +76,20 @@ public class ShenyuToolCallback implements ToolCallback {
                     return buffer.toString(StandardCharsets.UTF_8);
                 })
                 .doOnError(ex -> {
-                    if (sessionId != null) {
-                        ShenyuMcpExchangeHolder.remove(sessionId);
-                    }
                     ex.printStackTrace();
                     System.err.println("Error processing request: " + ex.getMessage());
                 })
-                .doFinally(signalType -> ShenyuMcpSessionHolder.clear())
                 .block();
+    }
+
+    private String getSessionId(final JsonObject inputJson) {
+        if (inputJson.has("headers")) {
+            JsonObject headers = inputJson.getAsJsonObject("headers");
+            if (headers.has("sessionId")) {
+                return headers.get("sessionId").getAsString();
+            }
+        }
+        return null;
     }
 
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson) {
@@ -88,26 +99,25 @@ public class ShenyuToolCallback implements ToolCallback {
         String method = inputJson.has("method") ? inputJson.get("method").getAsString() : "GET";
         String path = inputJson.has("path") ? inputJson.get("path").getAsString() : this.toolDefinition.name();
         String body = inputJson.has("body") ? inputJson.get("body").getAsString() : "";
-        return exchange.mutate().request(exchange.getRequest().mutate()
-                .method(HttpMethod.valueOf(method))
-                .path(path)
-                .header("sessionId", sessionId)
-                .build())
-                .build();
-        //        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.valueOf(method), path)
+        return exchange.mutate().request(exchange.getRequest().mutate().method(HttpMethod.valueOf(method)).path(path)
+                .header("sessionId", sessionId).build()).build();
+        // MockServerHttpRequest request =
+        // MockServerHttpRequest.method(HttpMethod.valueOf(method), path)
         // .remoteAddress(exchange.getRequest().getRemoteAddress())
         // .body(body);
         //
         // if (inputJson.has("headers")) {
         // JsonObject headers = inputJson.getAsJsonObject("headers");
         // headers.entrySet()
-        //                    .forEach(entry -> request.getHeaders().add(entry.getKey(), entry.getValue().getAsString()));
+        // .forEach(entry -> request.getHeaders().add(entry.getKey(),
+        // entry.getValue().getAsString()));
         // }
         //
         // if (inputJson.has("queryParams")) {
         // JsonObject params = inputJson.getAsJsonObject("queryParams");
         // params.entrySet()
-        //                    .forEach(entry -> request.getQueryParams().add(entry.getKey(), entry.getValue().getAsString()));
+        // .forEach(entry -> request.getQueryParams().add(entry.getKey(),
+        // entry.getValue().getAsString()));
         // }
         // return MockServerWebExchange.from(request);
     }
