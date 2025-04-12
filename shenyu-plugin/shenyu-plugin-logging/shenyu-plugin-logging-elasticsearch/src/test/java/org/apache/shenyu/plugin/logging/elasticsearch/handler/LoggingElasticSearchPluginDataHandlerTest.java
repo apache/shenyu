@@ -20,10 +20,18 @@ package org.apache.shenyu.plugin.logging.elasticsearch.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -31,9 +39,17 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * The Test Case For LoggingElasticSearchPluginDataHandler.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class LoggingElasticSearchPluginDataHandlerTest {
 
     private LoggingElasticSearchPluginDataHandler loggingElasticSearchPluginDataHandler;
@@ -46,7 +62,7 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        this.loggingElasticSearchPluginDataHandler = new LoggingElasticSearchPluginDataHandler();
+        this.loggingElasticSearchPluginDataHandler = Mockito.spy(new LoggingElasticSearchPluginDataHandler());
         selectorData.setId("1");
         selectorData.setType(1);
         selectorData.setHandle("{\"index\":\"test\", \"sampleRate\":\"1\", \"topic\":\"1\"}");
@@ -105,5 +121,59 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     @Test
     public void testGetSelectApiConfigMap() {
         Assertions.assertEquals(LoggingElasticSearchPluginDataHandler.getSelectApiConfigMap().getClass(), ConcurrentHashMap.class);
+    }
+
+    @Test
+    public void testHandlerPluginUpdateSameConfig() {
+        ElasticSearchLogCollectConfig.ElasticSearchLogConfig existingConfig = createValidConfig();
+        Singleton.INST.single(existingConfig.getClass(), existingConfig);
+
+        PluginData pluginData = createPluginData();
+        pluginData.setConfig(GsonUtils.getGson().toJson(existingConfig));
+
+        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
+
+        verify(loggingElasticSearchPluginDataHandler, never()).doRefreshConfig(any());
+    }
+
+    @Test
+    public void testHandlerPluginUpdateDifferentConfig() {
+        ElasticSearchLogCollectConfig.ElasticSearchLogConfig existingConfig = createValidConfig();
+        Singleton.INST.single(existingConfig.getClass(), existingConfig);
+
+        ElasticSearchLogCollectConfig.ElasticSearchLogConfig updatedConfig = createValidConfig();
+        updatedConfig.setUsername("updatedUsername");
+        updatedConfig.setPassword("updatedPassword");
+        updatedConfig.setAuthCache(false);
+        PluginData pluginData = createPluginData();
+        pluginData.setConfig(GsonUtils.getGson().toJson(updatedConfig));
+
+        doNothing().when(loggingElasticSearchPluginDataHandler).doRefreshConfig(any());
+
+        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
+
+        verify(loggingElasticSearchPluginDataHandler, times(1)).doRefreshConfig(any());
+    }
+
+    private PluginData createPluginData() {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
+        return pluginData;
+    }
+
+    private ElasticSearchLogCollectConfig.ElasticSearchLogConfig createValidConfig() {
+        ElasticSearchLogCollectConfig.ElasticSearchLogConfig config = new ElasticSearchLogCollectConfig.ElasticSearchLogConfig();
+        config.setHost("localhost");
+        config.setPort("9200");
+        config.setUsername("username");
+        config.setPassword("password");
+        config.setAuthCache(true);
+        config.setSampleRate("1");
+        config.setMaxResponseBody(1024);
+        config.setMaxRequestBody(1024);
+        config.setCompressAlg("none");
+        config.setIndexName("shenyu-access-logging");
+        return config;
     }
 }
