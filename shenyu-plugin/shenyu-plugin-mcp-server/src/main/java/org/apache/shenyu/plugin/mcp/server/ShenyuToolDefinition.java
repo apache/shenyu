@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
+import org.apache.shenyu.common.dto.RuleData;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.util.ToolUtils;
 import org.springframework.util.Assert;
@@ -30,13 +31,16 @@ public class ShenyuToolDefinition implements ToolDefinition {
     
     private final String inputSchema;
     
-    public ShenyuToolDefinition(final String name, final String description, final String inputSchema) {
+    private final RuleData ruleData;
+    
+    public ShenyuToolDefinition(final String name, final String description, final String inputSchema, final RuleData ruleData) {
         Assert.hasText(name, "name cannot be null or empty");
         Assert.hasText(description, "description cannot be null or empty");
         Assert.hasText(inputSchema, "inputSchema cannot be null or empty");
         this.name = name;
         this.description = description;
         this.inputSchema = inputSchema;
+        this.ruleData = ruleData;
     }
     
     public static ShenyuToolDefinition.Builder builder() {
@@ -55,6 +59,10 @@ public class ShenyuToolDefinition implements ToolDefinition {
         return this.inputSchema;
     }
     
+    public RuleData ruleData() {
+        return this.ruleData;
+    }
+    
     public static final class Builder {
         
         private String name;
@@ -62,6 +70,8 @@ public class ShenyuToolDefinition implements ToolDefinition {
         private String description;
         
         private String inputSchema;
+        
+        private RuleData ruleData;
         
         private Builder() {
         }
@@ -81,12 +91,17 @@ public class ShenyuToolDefinition implements ToolDefinition {
             return this;
         }
         
+        public ShenyuToolDefinition.Builder ruleData(final RuleData ruleData) {
+            this.ruleData = ruleData;
+            return this;
+        }
+        
         public ToolDefinition build() {
             if (!StringUtils.hasText(this.description)) {
                 this.description = ToolUtils.getToolDescriptionFromName(this.name);
             }
             
-            return new ShenyuToolDefinition(this.name, this.description, this.inputSchema);
+            return new ShenyuToolDefinition(this.name, this.description, this.inputSchema, this.ruleData);
         }
     }
 }

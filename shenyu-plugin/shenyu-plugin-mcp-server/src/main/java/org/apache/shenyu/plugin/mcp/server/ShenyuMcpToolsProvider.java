@@ -19,16 +19,18 @@ package org.apache.shenyu.plugin.mcp.server;
 
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServer;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
 @ConditionalOnBean(McpSyncServer.class)
 public final class ShenyuMcpToolsProvider {
     
-    public static void addSyncTools(final String name, final String description, final String inputSchema) {
-        ShenyuToolDefinition shenyuToolDefinition = new ShenyuToolDefinition(name, description, inputSchema);
-        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(shenyuToolDefinition);
+    public static void addSyncTools(final String name, final String description, final String inputSchema, final RuleData ruleData) {
+        ShenyuToolDefinition shenyuToolDefinition = new ShenyuToolDefinition(name, description, inputSchema, ruleData);
+        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
         for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(shenyuToolCallback)) {
             SpringBeanUtils
                     .getInstance()

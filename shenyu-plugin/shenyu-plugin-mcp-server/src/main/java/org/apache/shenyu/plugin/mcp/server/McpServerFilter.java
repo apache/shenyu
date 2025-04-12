@@ -59,6 +59,22 @@ public final class McpServerFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
-        return dispatcherHandler.handle(exchange);
+        try {
+            if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
+                String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
+                if (StringUtils.isNotEmpty(sessionId)) {
+                    ShenyuMcpSessionHolder.setSessionId(sessionId);
+                    ShenyuMcpExchangeHolder.put(sessionId, exchange);
+                }
+            }
+            return dispatcherHandler.handle(exchange);
+        } finally {
+            if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
+                String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
+                if (StringUtils.isNotEmpty(sessionId)) {
+                    ShenyuMcpExchangeHolder.remove(sessionId);
+                }
+            }
+        }
     }
 }

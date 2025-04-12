@@ -72,7 +72,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
 //            ShenyuMcpToolsProvider.addSyncTools();
-            ShenyuMcpToolsProvider.addSyncTools(ruleData.getName(), mcpServerRuleHandle.getDescription(), JsonSchemaUtil.emptySchema());
+            ShenyuMcpToolsProvider.addSyncTools(ruleData.getName(), mcpServerRuleHandle.getDescription(), JsonSchemaUtil.emptySchema(), ruleData);
         });
     }
     
