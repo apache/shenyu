@@ -209,12 +209,16 @@ public class ElasticSearchLogCollectConfig {
                     && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
                     && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
                     && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody())
-                    && Objects.equals(getIndexName(), that.getIndexName());
+                    && Objects.equals(getIndexName(), that.getIndexName())
+                    && Objects.equals(getUsername(), that.getUsername())
+                    && Objects.equals(getPassword(), that.getPassword())
+                    && Objects.equals(getAuthCache(), that.getAuthCache());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(host, compressAlg, port);
+            return Objects.hash(host, compressAlg, port, indexName, username, password, authCache,
+                    getSampleRate(), getBufferQueueSize(), getMaxRequestBody(), getMaxResponseBody());
         }
     }
 
