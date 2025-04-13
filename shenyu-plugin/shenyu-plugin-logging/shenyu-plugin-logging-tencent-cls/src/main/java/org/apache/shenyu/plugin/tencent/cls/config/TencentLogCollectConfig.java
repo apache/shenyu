@@ -427,14 +427,15 @@ public class TencentLogCollectConfig {
                     && Objects.equals(getRetries(), that.getRetries())
                     && Objects.equals(getMaxReservedAttempts(), that.getMaxReservedAttempts())
                     && Objects.equals(getBaseRetryBackoffMs(), that.getBaseRetryBackoffMs())
-                    && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs());
+                    && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs())
+                    && Objects.equals(getSampleRate(), that.getSampleRate());
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(secretId, secretKey, endpoint, topic, sendThreadCount, totalSizeInBytes,
                     maxSendThreadCount, maxBlockSec, maxBatchSize, maxBatchCount, lingerMs, retries,
-                    maxReservedAttempts, baseRetryBackoffMs, maxRetryBackoffMs);
+                    maxReservedAttempts, baseRetryBackoffMs, maxRetryBackoffMs, getSampleRate());
         }
     }
 }
