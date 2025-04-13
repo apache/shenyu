@@ -61,7 +61,7 @@ jobs:
 #          filters: '.github/filters.yml'
 #          list-files: json
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -69,35 +69,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - uses: actions/setup-java@v4
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
           distribution: 'temurin'
       - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Build examples
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
       - name: Start docker compose
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Disk space info
         run: |
           df --human-readable
       - name: Run test
         id: test
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
           if [[ ${{steps.test.outcome}} == "failure" ]]; then
