@@ -19,17 +19,33 @@ package org.apache.shenyu.plugin.tencent.cls.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
+import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * The Test Case For LoggingTencentClsPluginDataHandler.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LoggingTencentClsPluginDataHandlerTest {
 
     private LoggingTencentClsPluginDataHandler loggingTencentClsPluginDataHandler;
@@ -38,7 +54,7 @@ public class LoggingTencentClsPluginDataHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        this.loggingTencentClsPluginDataHandler = new LoggingTencentClsPluginDataHandler();
+        this.loggingTencentClsPluginDataHandler = Mockito.spy(new LoggingTencentClsPluginDataHandler());
         pluginData.setEnabled(true);
         pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"secretId\":\"test\", \"secretKey\":\"test\", "
@@ -63,5 +79,63 @@ public class LoggingTencentClsPluginDataHandlerTest {
     @Test
     public void testGetAliyunSlsLogCollectClient() {
         Assertions.assertEquals(LoggingTencentClsPluginDataHandler.getTencentClsLogCollectClient().getClass(), TencentClsLogCollectClient.class);
+    }
+
+    @Test
+    public void testHandlerPluginUpdateSameConfig() {
+        TencentLogCollectConfig.TencentClsLogConfig existingConfig = createValidConfig();
+        Singleton.INST.single(existingConfig.getClass(), existingConfig);
+
+        PluginData pluginData = createPluginData();
+        pluginData.setConfig(GsonUtils.getGson().toJson(existingConfig));
+
+        loggingTencentClsPluginDataHandler.handlerPlugin(pluginData);
+
+        verify(loggingTencentClsPluginDataHandler, never()).doRefreshConfig(any());
+    }
+
+    @Test
+    public void testHandlerPluginUpdateDifferentConfig() {
+        TencentLogCollectConfig.TencentClsLogConfig existingConfig = createValidConfig();
+        Singleton.INST.single(existingConfig.getClass(), existingConfig);
+
+        TencentLogCollectConfig.TencentClsLogConfig updatedConfig = createValidConfig();
+        updatedConfig.setSampleRate("0.1");
+        PluginData pluginData = createPluginData();
+        pluginData.setConfig(GsonUtils.getGson().toJson(updatedConfig));
+
+        doNothing().when(loggingTencentClsPluginDataHandler).doRefreshConfig(any());
+
+        loggingTencentClsPluginDataHandler.handlerPlugin(pluginData);
+
+        verify(loggingTencentClsPluginDataHandler, times(1)).doRefreshConfig(any());
+    }
+
+    private PluginData createPluginData() {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
+        return pluginData;
+    }
+
+    private TencentLogCollectConfig.TencentClsLogConfig createValidConfig() {
+        TencentLogCollectConfig.TencentClsLogConfig config = new TencentLogCollectConfig.TencentClsLogConfig();
+        config.setSecretId("test");
+        config.setSecretKey("test");
+        config.setEndpoint("ap-guangzhou.cls.tencentcs.com");
+        config.setTopic("shenyu-topic");
+        config.setSendThreadCount(1);
+        config.setTotalSizeInBytes("1024");
+        config.setMaxSendThreadCount("1");
+        config.setMaxBlockSec("60000");
+        config.setMaxBatchSize("1024");
+        config.setMaxBatchCount("1024");
+        config.setLingerMs("2000");
+        config.setRetries("10");
+        config.setMaxReservedAttempts("10");
+        config.setBaseRetryBackoffMs("100");
+        config.setMaxRetryBackoffMs("50000");
+        config.setSampleRate("1");
+        return config;
     }
 }
