@@ -46,7 +46,7 @@ jobs:
 #          list-files: json
 
       - name: Clean Space
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
@@ -54,7 +54,7 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Cache Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
@@ -63,7 +63,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - uses: actions/setup-java@v4
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
           distribution: 'temurin'
@@ -74,14 +74,14 @@ jobs:
           go-version: 1.17.x
 
       - name: Install k8s
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           go install sigs.k8s.io/kind@v0.14.0
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/${{ matrix.case }}/deploy/kind-config.yaml
 
       - name: Cache Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
@@ -90,41 +90,41 @@ jobs:
             ${{ runner.os }}-maven-
 
       - uses: actions/setup-java@v4
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         with:
           java-version: 17
           distribution: 'temurin'
 
       - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
       - name: Build integrated tests
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
 
       - name: Build examples
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
 
       - name: Build k8s Cluster
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/build_k8s_cluster.sh
 
       - name: Wait for k8s Cluster Start up
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         timeout-minutes: 15
         run: |
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
 
       - name: Run test
         id: test
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck
-        if: steps.filter.outputs.changed == 'true'
+#        if: steps.filter.outputs.changed == 'true'
         run: |
           echo "----------kubectl get all -o wide----------"
           kubectl get all -o wide
