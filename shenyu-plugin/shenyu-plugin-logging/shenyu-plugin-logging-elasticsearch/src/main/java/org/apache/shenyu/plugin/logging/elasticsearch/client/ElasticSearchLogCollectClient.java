@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,6 +53,8 @@ import java.util.Objects;
 public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
+    
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private RestClient restClient;
 
@@ -88,11 +92,8 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         client = new ElasticsearchClient(transport);
         indexName = StringUtils.isNoneBlank(config.getIndexName()) ? config.getIndexName() : GenericLoggingConstant.INDEX;
         LogUtils.info(LOG, "init ElasticSearchLogCollectClient success");
-        // Determine whether the index exists, and create it if it does not exist
-        if (!existsIndex(indexName)) {
-            createIndex(indexName);
-            LogUtils.info(LOG, "create index success");
-        }
+        
+        createOrUpdateIndexAlias(indexName);
     }
 
     /**
@@ -101,6 +102,13 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
      */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        String actualIndex = getActualIndexName();
+        // Ensure the current day's index exists
+        if (!existsIndex(actualIndex)) {
+            createIndex(actualIndex);
+            createOrUpdateIndexAlias(indexName);
+        }
+        
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
@@ -143,6 +151,38 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
             client.indices().create(c -> c.index(indexName));
         } catch (IOException e) {
             LogUtils.error(LOG, "create index error:", e);
+        }
+    }
+    
+    /**
+     * Get the actual index name for the current date.
+     *
+     * @return the actual index name with date suffix
+     */
+    private String getActualIndexName() {
+        String date = LocalDate.now().format(DATE_FORMAT);
+        return String.format("%s-%s", indexName, date);
+    }
+    
+    /**
+     * Create an index alias that points to all date-based indices.
+     *
+     * @param aliasName the alias name
+     */
+    private void createOrUpdateIndexAlias(final String aliasName) {
+        try {
+            String actualIndex = getActualIndexName();
+            // Create the actual index if it doesn't exist
+            if (!existsIndex(actualIndex)) {
+                createIndex(actualIndex);
+                LogUtils.info(LOG, "Created new date-based index: {}", actualIndex);
+            }
+            
+            // Create or update the alias to point to the current index
+            client.indices().putAlias(r -> r.index(actualIndex).name(aliasName));
+            LogUtils.info(LOG, "Updated alias {} to point to index {}", aliasName, actualIndex);
+        } catch (Exception e) {
+            LogUtils.error(LOG, "Failed to create/update alias: ", e);
         }
     }
 
