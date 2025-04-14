@@ -59,36 +59,19 @@ public final class McpServerFilter extends AbstractWebFilter {
 
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
-        try {
-            if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
-                String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
-                if (StringUtils.isNotEmpty(sessionId)) {
-                    System.out.println("Setting sessionId in filter: " + sessionId);
-                    ShenyuMcpExchangeHolder.put(sessionId, exchange);
-                    return dispatcherHandler.handle(exchange)
-                            .contextWrite(context -> {
-                                System.out.println("Writing sessionId to Context: " + sessionId);
-                                return context.put("sessionId", sessionId);
-                            });
-                }
-            }
-            return dispatcherHandler.handle(exchange);
-        } finally {
-            if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
-                String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
-                if (StringUtils.isNotEmpty(sessionId)) {
-                    System.out.println("Removing sessionId in filter: " + sessionId);
-                    ShenyuMcpExchangeHolder.remove(sessionId);
-                }
+        if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
+            String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
+            if (StringUtils.isNotEmpty(sessionId)) {
+                ShenyuMcpExchangeHolder.put(sessionId, exchange);
+                return dispatcherHandler.handle(exchange).doFinally(signalType -> {
+                    if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
+                        if (StringUtils.isNotEmpty(sessionId)) {
+                            ShenyuMcpExchangeHolder.remove(sessionId);
+                        }
+                    }
+                });
             }
         }
-    }
-
-    public static Mono<String> getSessionId() {
-        return Mono.deferContextual(context -> {
-            String sessionId = context.getOrDefault("sessionId", null);
-            System.out.println("Reading sessionId from Context: " + sessionId);
-            return Mono.justOrEmpty(sessionId);
-        });
+        return dispatcherHandler.handle(exchange);
     }
 }
