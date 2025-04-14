@@ -249,7 +249,7 @@ public class UpstreamCheckService {
      */
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
-            return true;
+            return false;
         }
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
