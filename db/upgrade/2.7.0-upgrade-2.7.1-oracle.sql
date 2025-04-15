@@ -329,7 +329,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (
 VALUES ('1722804548510507057', '51', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', sysdate, sysdate);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
-VALUES ('1679002911061737490', 'aiTokenLimitType', 'DEFAULT_KEY_RESOLVER', 'default', 'default', 'Rate limit by default', 0, 1, sysdate, sysdate);
+VALUES ('1679002911061737490', 'aiTokenLimitType', 'CONTEXT_PATH_KEY_RESOLVER', 'contextPath', 'contextPath', 'Rate limit by contextPath', 0, 1, sysdate, sysdate);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 VALUES ('1679002911061737491', 'aiTokenLimitType', 'IP_KEY_RESOLVER', 'ip', 'ip', 'Rate limit by request ip', 1, 1, sysdate, sysdate);
