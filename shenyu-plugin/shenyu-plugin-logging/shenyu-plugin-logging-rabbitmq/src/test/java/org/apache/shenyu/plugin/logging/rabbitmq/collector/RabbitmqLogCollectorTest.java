@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plulgin.logging.rabbitmq.collector;
+package org.apache.shenyu.plugin.logging.rabbitmq.collector;
 
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;

@@ -333,6 +333,8 @@ public class RabbitmqLogCollectConfig {
                     && Objects.equals(getExchangeName(), that.getExchangeName())
                     && Objects.equals(getHost(), that.getHost())
                     && Objects.equals(getPort(), that.getPort())
+                    && Objects.equals(getUsername(), that.getUsername())
+                    && Objects.equals(getPassword(), that.getPassword())
                     && Objects.equals(getExchangeType(), that.getExchangeType())
                     && Objects.equals(getVirtualHost(), that.getVirtualHost())
                     && Objects.equals(getDurable(), that.getDurable())
@@ -347,7 +349,8 @@ public class RabbitmqLogCollectConfig {
 
         @Override
         public int hashCode() {
-            return Objects.hash(routingKey, queueName, exchangeName, host, port, exchangeType, virtualHost, durable, autoDelete, exchangeType, args);
+            return Objects.hash(routingKey, queueName, exchangeName, host, port, exchangeType, virtualHost, durable, autoDelete, exchangeType, args,
+                    username, password, getSampleRate(), getBufferQueueSize(), getMaxResponseBody(), getMaxRequestBody());
         }
     }
 
