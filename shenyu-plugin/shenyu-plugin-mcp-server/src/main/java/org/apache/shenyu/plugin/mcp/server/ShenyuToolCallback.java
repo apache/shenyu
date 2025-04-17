@@ -46,7 +46,7 @@ public class ShenyuToolCallback implements ToolCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuToolCallback.class);
     
-    private static final long TIMEOUT_SECONDS = 30;
+    private static final long TIMEOUT_SECONDS = 60;
 
     private final ShenyuWebHandler shenyuWebHandler;
 

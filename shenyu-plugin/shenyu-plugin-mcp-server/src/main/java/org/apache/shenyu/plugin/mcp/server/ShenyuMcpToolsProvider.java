@@ -53,7 +53,7 @@ public final class ShenyuMcpToolsProvider {
                         .requestPath(requestPath)
                         .inputSchema(inputSchema)
                         .build();
-        LOGGER.info("Adding tool, name: {}, description: {}, requestMethod: {}, requestPath: {}, inputSchema: {}",
+        LOGGER.debug("Adding tool, name: {}, description: {}, requestMethod: {}, requestPath: {}, inputSchema: {}",
                 name, description, requestMethod, requestPath, inputSchema);
         ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
         for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(shenyuToolCallback)) {
@@ -65,7 +65,7 @@ public final class ShenyuMcpToolsProvider {
     }
     
     public static void removeTools(final String name) {
-        LOGGER.info("Removing tool, name: {}", name);
+        LOGGER.debug("Removing tool, name: {}", name);
         SpringBeanUtils
                 .getInstance()
                 .getBean(McpSyncServer.class)

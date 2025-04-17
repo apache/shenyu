@@ -64,8 +64,8 @@ public final class McpServerFilter extends AbstractWebFilter {
 
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
-        LOG.info("mcp server filter, path: {}", exchange.getRequest().getURI().getPath());
-        LOG.info("mcp server filter, headers: {}", GsonUtils.getGson().toJson(exchange.getRequest().getHeaders().toSingleValueMap()));
+        LOG.debug("mcp server filter, path: {}", exchange.getRequest().getURI().getPath());
+        LOG.debug("mcp server filter, headers: {}", GsonUtils.getGson().toJson(exchange.getRequest().getHeaders().toSingleValueMap()));
         if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
             String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
             if (StringUtils.isNotEmpty(sessionId)) {
