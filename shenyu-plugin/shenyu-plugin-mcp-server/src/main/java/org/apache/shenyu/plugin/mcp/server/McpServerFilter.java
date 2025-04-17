@@ -18,7 +18,10 @@
 package org.apache.shenyu.plugin.mcp.server;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.web.filter.AbstractWebFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
@@ -32,6 +35,8 @@ import java.util.Set;
  * The type mcp server filter.
  */
 public final class McpServerFilter extends AbstractWebFilter {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(McpServerFilter.class);
 
     private final DispatcherHandler dispatcherHandler;
 
@@ -59,6 +64,8 @@ public final class McpServerFilter extends AbstractWebFilter {
 
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
+        LOG.info("mcp server filter, path: {}", exchange.getRequest().getURI().getPath());
+        LOG.info("mcp server filter, headers: {}", GsonUtils.getGson().toJson(exchange.getRequest().getHeaders().toSingleValueMap()));
         if (exchange.getRequest().getQueryParams().containsKey("sessionId")) {
             String sessionId = exchange.getRequest().getQueryParams().getFirst("sessionId");
             if (StringUtils.isNotEmpty(sessionId)) {
