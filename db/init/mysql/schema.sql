@@ -1380,9 +1380,9 @@ INSERT INTO `plugin_handle` VALUES ('1899702472330051584', '51', 'keyName', 'key
 INSERT INTO `plugin_handle` VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 INSERT INTO `plugin_handle` VALUES ('1907263843073671167', '61', 'name', 'name', 2, 2, 0, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools name\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 'description', 2, 2, 0, '{\"required\":\"1\",\"rule\":\"\",\"placeholder\":\"tools description\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671169', '61', 'requestMethod', 'requestMethod', 2, 2, 1, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request method\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671170', '61', 'requestPath', 'requestPath', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request path\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 'description', 2, 2, 1, '{\"required\":\"1\",\"rule\":\"\",\"placeholder\":\"tools description\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1907263843073671169', '61', 'requestMethod', 'requestMethod', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request method\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1907263843073671170', '61', 'requestPath', 'requestPath', 2, 2, 3, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request path\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 
 -- ----------------------------
