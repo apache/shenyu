@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.mcp;
+package org.apache.shenyu.common.dto.convert.rule.impl;
 
 /**
  * McpParameter represents a parameter in the context of a tool description.

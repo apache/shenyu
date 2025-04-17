@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.plugin.mcp.server.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.McpServerRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.McpServerPluginRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -41,7 +42,7 @@ import java.util.function.Supplier;
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<CommonHandleCache<String, McpServerRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
@@ -52,7 +53,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
         if (!selectorData.getContinued()) {
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), McpServerRuleHandle.newInstance());
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), McpServerPluginRuleHandle.newInstance());
         }
     }
     
@@ -66,12 +67,19 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            McpServerRuleHandle mcpServerRuleHandle = GsonUtils.getInstance().fromJson(s, McpServerRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mcpServerRuleHandle);
+            McpServerPluginRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(s, McpServerPluginRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), ruleHandle);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
-            ShenyuMcpToolsProvider.addSyncTools(ruleData.getName(), mcpServerRuleHandle.getDescription(), JsonSchemaUtil.emptySchema(), ruleData);
+            
+            ShenyuMcpToolsProvider.addSyncTools(
+                    StringUtils.isBlank(ruleHandle.getName()) ? ruleData.getName() : ruleHandle.getName(),
+                    ruleHandle.getDescription(),
+                    StringUtils.isBlank(ruleHandle.getRequestMethod()) ? "GET" : ruleHandle.getRequestMethod(),
+                    StringUtils.isBlank(ruleHandle.getRequestPath()) ? ruleData.getName() : ruleHandle.getRequestPath(),
+                    // TODO : parameters
+                    JsonSchemaUtil.emptySchema());
         });
     }
     

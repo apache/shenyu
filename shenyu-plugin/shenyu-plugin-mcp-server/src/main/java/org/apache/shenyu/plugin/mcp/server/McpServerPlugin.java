@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.mcp.server;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.McpServerRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.McpServerPluginRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -80,7 +80,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
     
-    private McpServerRuleHandle buildRuleHandle(final RuleData rule) {
+    private McpServerPluginRuleHandle buildRuleHandle(final RuleData rule) {
         return McpServerPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 }

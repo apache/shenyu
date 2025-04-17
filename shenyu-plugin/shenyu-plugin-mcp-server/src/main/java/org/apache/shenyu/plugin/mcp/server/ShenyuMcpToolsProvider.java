@@ -19,17 +19,42 @@ package org.apache.shenyu.plugin.mcp.server;
 
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServer;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
+import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+
 
 @ConditionalOnBean(McpSyncServer.class)
 public final class ShenyuMcpToolsProvider {
     
-    public static void addSyncTools(final String name, final String description, final String inputSchema, final RuleData ruleData) {
-        ShenyuToolDefinition shenyuToolDefinition = new ShenyuToolDefinition(name, description, inputSchema, ruleData);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuMcpToolsProvider.class.getName());
+    
+    public static void addSyncTools(final String name,
+                                    final String description,
+                                    final String requestMethod,
+                                    final String requestPath,
+                                    final String inputSchema) {
+        // remove first for overwrite
+        try {
+            removeTools(name);
+        } catch (Exception ignored) {
+            // ignore
+        }
+        
+        ToolDefinition shenyuToolDefinition =
+                ShenyuToolDefinition.builder()
+                        .name(name)
+                        .description(description)
+                        .requestMethod(requestMethod)
+                        .requestPath(requestPath)
+                        .inputSchema(inputSchema)
+                        .build();
+        LOGGER.info("Adding tool, name: {}, description: {}, requestMethod: {}, requestPath: {}, inputSchema: {}",
+                name, description, requestMethod, requestPath, inputSchema);
         ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
         for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(shenyuToolCallback)) {
             SpringBeanUtils
@@ -40,6 +65,7 @@ public final class ShenyuMcpToolsProvider {
     }
     
     public static void removeTools(final String name) {
+        LOGGER.info("Removing tool, name: {}", name);
         SpringBeanUtils
                 .getInstance()
                 .getBean(McpSyncServer.class)

@@ -22,7 +22,7 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpServerSession;
-import org.apache.shenyu.common.dto.RuleData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
@@ -155,15 +155,13 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson) {
         ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
-        RuleData ruleData = shenyuToolDefinition.ruleData();
-        String method = inputJson.has("method") ? inputJson.get("method").getAsString() : "GET";
-        String path = inputJson.has("path") ? inputJson.get("path").getAsString() : this.toolDefinition.name();
-        String body = inputJson.has("body") ? inputJson.get("body").getAsString() : "";
+        String requestMethod = StringUtils.isNoneBlank(shenyuToolDefinition.requestMethod()) ? shenyuToolDefinition.requestMethod() : "GET";
+        String requestPath = StringUtils.isNoneBlank(shenyuToolDefinition.requestPath()) ? shenyuToolDefinition.requestPath() : this.toolDefinition.name();
 
         return exchange.mutate()
                 .request(exchange.getRequest().mutate()
-                        .method(HttpMethod.valueOf(method))
-                        .path(path)
+                        .method(HttpMethod.valueOf(requestMethod))
+                        .path(requestPath)
                         .header("sessionId", sessionId)
                         .header("Accept", "application/json")
                         .header("Content-Type", "application/json")

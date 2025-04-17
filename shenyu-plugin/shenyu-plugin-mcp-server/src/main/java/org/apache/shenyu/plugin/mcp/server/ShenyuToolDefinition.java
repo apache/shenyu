@@ -17,11 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
-import org.apache.shenyu.common.dto.RuleData;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.util.ToolUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 public class ShenyuToolDefinition implements ToolDefinition {
     
@@ -29,18 +28,21 @@ public class ShenyuToolDefinition implements ToolDefinition {
     
     private final String description;
     
+    private final String requestMethod;
+    
+    private final String requestPath;
+    
     private final String inputSchema;
     
-    private final RuleData ruleData;
-    
-    public ShenyuToolDefinition(final String name, final String description, final String inputSchema, final RuleData ruleData) {
+    public ShenyuToolDefinition(final String name, final String description, final String requestMethod, final String requestPath, final String inputSchema) {
         Assert.hasText(name, "name cannot be null or empty");
         Assert.hasText(description, "description cannot be null or empty");
         Assert.hasText(inputSchema, "inputSchema cannot be null or empty");
         this.name = name;
         this.description = description;
         this.inputSchema = inputSchema;
-        this.ruleData = ruleData;
+        this.requestMethod = StringUtils.isNoneBlank(requestMethod) ? requestMethod : "GET";
+        this.requestPath = StringUtils.isNoneBlank(requestPath) ? requestPath : name;
     }
     
     public static ShenyuToolDefinition.Builder builder() {
@@ -59,8 +61,12 @@ public class ShenyuToolDefinition implements ToolDefinition {
         return this.inputSchema;
     }
     
-    public RuleData ruleData() {
-        return this.ruleData;
+    public String requestMethod() {
+        return this.requestMethod;
+    }
+    
+    public String requestPath() {
+        return this.requestPath;
     }
     
     public static final class Builder {
@@ -69,9 +75,11 @@ public class ShenyuToolDefinition implements ToolDefinition {
         
         private String description;
         
-        private String inputSchema;
+        private String requestMethod;
         
-        private RuleData ruleData;
+        private String requestPath;
+        
+        private String inputSchema;
         
         private Builder() {
         }
@@ -86,22 +94,31 @@ public class ShenyuToolDefinition implements ToolDefinition {
             return this;
         }
         
+        public ShenyuToolDefinition.Builder requestMethod(final String requestMethod) {
+            this.requestMethod = requestMethod;
+            return this;
+        }
+        
+        public ShenyuToolDefinition.Builder requestPath(final String requestPath) {
+            this.requestPath = requestPath;
+            return this;
+        }
+        
         public ShenyuToolDefinition.Builder inputSchema(final String inputSchema) {
             this.inputSchema = inputSchema;
             return this;
         }
         
-        public ShenyuToolDefinition.Builder ruleData(final RuleData ruleData) {
-            this.ruleData = ruleData;
-            return this;
-        }
-        
         public ToolDefinition build() {
-            if (!StringUtils.hasText(this.description)) {
+            if (!StringUtils.isNoneBlank(this.description)) {
                 this.description = ToolUtils.getToolDescriptionFromName(this.name);
             }
             
-            return new ShenyuToolDefinition(this.name, this.description, this.inputSchema, this.ruleData);
+            return new ShenyuToolDefinition(this.name,
+                    this.description,
+                    this.requestMethod,
+                    this.requestPath,
+                    this.inputSchema);
         }
     }
 }
