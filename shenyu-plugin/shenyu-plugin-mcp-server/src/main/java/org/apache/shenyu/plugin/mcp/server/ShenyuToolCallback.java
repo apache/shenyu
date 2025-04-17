@@ -37,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -68,18 +69,18 @@ public class ShenyuToolCallback implements ToolCallback {
 
     @Override
     public String call(@NonNull final String input, final ToolContext toolContext) {
-        if (toolContext == null) {
+        if (Objects.isNull(toolContext)) {
             throw new IllegalArgumentException("ToolContext is required");
         }
 
         Map<String, Object> contextMap = toolContext.getContext();
 
-        if (contextMap == null || contextMap.isEmpty()) {
+        if (Objects.isNull(contextMap) || contextMap.isEmpty()) {
             throw new IllegalArgumentException("ToolContext is required");
         }
 
         McpSyncServerExchange mcpSyncServerExchange = (McpSyncServerExchange) contextMap.get("exchange");
-        if (mcpSyncServerExchange == null) {
+        if (Objects.isNull(mcpSyncServerExchange)) {
             throw new IllegalArgumentException("McpSyncServerExchange is required in ToolContext");
         }
 
@@ -96,7 +97,7 @@ public class ShenyuToolCallback implements ToolCallback {
 
             CompletableFuture<String> future = new CompletableFuture<>();
 
-            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(sessionId, future);
+            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(exchange.getResponse(), sessionId, future);
 
             ServerWebExchange decoratedExchange = exchange.mutate().response(responseDecorator).build();
 
@@ -134,7 +135,7 @@ public class ShenyuToolCallback implements ToolCallback {
         asyncExchangeField.setAccessible(true);
         Object asyncExchange = asyncExchangeField.get(mcpSyncServerExchange);
 
-        if (asyncExchange == null) {
+        if (Objects.isNull(asyncExchange)) {
             throw new IllegalArgumentException("McpAsyncServerExchange is required in McpSyncServerExchange");
         }
 
@@ -143,7 +144,7 @@ public class ShenyuToolCallback implements ToolCallback {
         sessionField.setAccessible(true);
         Object session = sessionField.get(mcpAsyncServerExchange);
 
-        if (null == session) {
+        if (Objects.isNull(session)) {
             throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
         }
         McpServerSession mcpServerSession = (McpServerSession) session;

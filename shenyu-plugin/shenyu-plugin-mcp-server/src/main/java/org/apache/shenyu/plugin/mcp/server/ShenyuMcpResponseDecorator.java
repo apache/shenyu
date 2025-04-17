@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,14 +41,14 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     
     private boolean isFirstChunk = true;
     
-    public ShenyuMcpResponseDecorator(final String sessionId, final CompletableFuture<String> future) {
-        super(null);
+    public ShenyuMcpResponseDecorator(final ServerHttpResponse response, final String sessionId, final CompletableFuture<String> future) {
+        super(response);
         this.sessionId = sessionId;
         this.future = future;
     }
     
     @Override
-    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+    public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
         LOG.debug("Writing response data for session: {}", sessionId);
         return super.writeWith(Flux.from(body).doOnNext(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
@@ -66,7 +67,7 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     }
     
     @Override
-    public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+    public Mono<Void> writeAndFlushWith(final Publisher<? extends Publisher<? extends DataBuffer>> body) {
         LOG.debug("Writing and flushing response data for session: {}", sessionId);
         return super.writeAndFlushWith(body);
     }
