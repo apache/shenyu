@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpServerSession;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
@@ -39,14 +38,10 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class ShenyuToolCallback implements ToolCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuToolCallback.class);
-    
-    private static final long TIMEOUT_SECONDS = 60;
 
     private final ShenyuWebHandler shenyuWebHandler;
 
@@ -69,22 +64,9 @@ public class ShenyuToolCallback implements ToolCallback {
 
     @Override
     public String call(@NonNull final String input, final ToolContext toolContext) {
-        if (Objects.isNull(toolContext)) {
-            throw new IllegalArgumentException("ToolContext is required");
-        }
-
-        Map<String, Object> contextMap = toolContext.getContext();
-
-        if (Objects.isNull(contextMap) || contextMap.isEmpty()) {
-            throw new IllegalArgumentException("ToolContext is required");
-        }
-
-        McpSyncServerExchange mcpSyncServerExchange = (McpSyncServerExchange) contextMap.get("exchange");
-        if (Objects.isNull(mcpSyncServerExchange)) {
-            throw new IllegalArgumentException("McpSyncServerExchange is required in ToolContext");
-        }
 
         try {
+            McpSyncServerExchange mcpSyncServerExchange = getMcpSyncServerExchange(toolContext);
             String sessionId = getSessionId(mcpSyncServerExchange);
             JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
             ServerWebExchange exchange = createServerWebExchange(sessionId, inputJson);
@@ -97,7 +79,8 @@ public class ShenyuToolCallback implements ToolCallback {
 
             CompletableFuture<String> future = new CompletableFuture<>();
 
-            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(exchange.getResponse(), sessionId, future);
+            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(exchange.getResponse(),
+                    sessionId, future);
 
             ServerWebExchange decoratedExchange = exchange.mutate().response(responseDecorator).build();
 
@@ -114,19 +97,36 @@ public class ShenyuToolCallback implements ToolCallback {
                     })
                     .subscribe();
 
-            LOG.debug("Waiting for response for session: {}", sessionId);
-            try {
-                String response = future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            // Return immediately and let the future complete asynchronously
+            return future.thenApply(response -> {
                 LOG.debug("Received response for session: {}, length: {}", sessionId, response.length());
                 return response;
-            } catch (TimeoutException e) {
-                LOG.error("Request timed out after {} seconds for session: {}", TIMEOUT_SECONDS, sessionId);
-                throw new RuntimeException("Request timed out after " + TIMEOUT_SECONDS + " seconds", e);
-            }
+            }).exceptionally(e -> {
+                LOG.error("Error processing request for session: {}", sessionId, e);
+                throw new RuntimeException("Error processing request: " + e.getMessage(), e);
+            }).join();
         } catch (Exception e) {
             LOG.error("Failed to process request", e);
             throw new RuntimeException("Failed to process request: " + e.getMessage(), e);
         }
+    }
+
+    private static McpSyncServerExchange getMcpSyncServerExchange(final ToolContext toolContext) {
+        if (Objects.isNull(toolContext)) {
+            throw new IllegalArgumentException("ToolContext is required");
+        }
+
+        Map<String, Object> contextMap = toolContext.getContext();
+
+        if (Objects.isNull(contextMap) || contextMap.isEmpty()) {
+            throw new IllegalArgumentException("ToolContext is required");
+        }
+
+        McpSyncServerExchange mcpSyncServerExchange = (McpSyncServerExchange) contextMap.get("exchange");
+        if (Objects.isNull(mcpSyncServerExchange)) {
+            throw new IllegalArgumentException("McpSyncServerExchange is required in ToolContext");
+        }
+        return mcpSyncServerExchange;
     }
 
     private static String getSessionId(final McpSyncServerExchange mcpSyncServerExchange)
@@ -155,9 +155,9 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson) {
         ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
-        String requestMethod = StringUtils.isNoneBlank(shenyuToolDefinition.requestMethod()) ? shenyuToolDefinition.requestMethod() : "GET";
-        String requestPath = StringUtils.isNoneBlank(shenyuToolDefinition.requestPath()) ? shenyuToolDefinition.requestPath() : this.toolDefinition.name();
-
+        String requestMethod = shenyuToolDefinition.requestMethod();
+        String requestPath = shenyuToolDefinition.requestPath();
+        LOG.info("requestMethod: {}, requestPath: {}", requestMethod, requestPath);
         return exchange.mutate()
                 .request(exchange.getRequest().mutate()
                         .method(HttpMethod.valueOf(requestMethod))
