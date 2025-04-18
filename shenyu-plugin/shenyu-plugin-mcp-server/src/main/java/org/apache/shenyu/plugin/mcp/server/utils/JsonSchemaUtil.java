@@ -1,0 +1,73 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.plugin.mcp.server.utils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.victools.jsonschema.generator.SchemaVersion;
+import org.springframework.ai.util.json.JsonParser;
+import org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption;
+
+import java.util.stream.Stream;
+
+public final class JsonSchemaUtil {
+    
+    public static String emptySchema(final SchemaOption... schemaOptions) {
+        ObjectNode schema = JsonParser.getObjectMapper().createObjectNode();
+        schema.put("$schema", SchemaVersion.DRAFT_2020_12.getIdentifier());
+        schema.put("type", "object");
+        processSchemaOptions(schemaOptions, schema);
+        return schema.toPrettyString();
+    }
+    
+    private static void processSchemaOptions(final SchemaOption[] schemaOptions, final ObjectNode schema) {
+        if (Stream.of(schemaOptions).noneMatch(option -> option == SchemaOption.ALLOW_ADDITIONAL_PROPERTIES_BY_DEFAULT)) {
+            schema.put("additionalProperties", false);
+        }
+        
+        if (Stream.of(schemaOptions).anyMatch(option -> option == SchemaOption.UPPER_CASE_TYPE_VALUES)) {
+            convertTypeValuesToUpperCase(schema);
+        }
+    }
+    
+    public static void convertTypeValuesToUpperCase(final ObjectNode node) {
+        if (node.isObject()) {
+            node.fields().forEachRemaining(entry -> {
+                JsonNode value = entry.getValue();
+                if (value.isObject()) {
+                    convertTypeValuesToUpperCase((ObjectNode) value);
+                } else if (value.isArray()) {
+                    value.elements().forEachRemaining(element -> {
+                        if (element.isObject() || element.isArray()) {
+                            convertTypeValuesToUpperCase((ObjectNode) element);
+                        }
+                    });
+                } else if (value.isTextual() && entry.getKey().equals("type")) {
+                    String oldValue = node.get("type").asText();
+                    node.put("type", oldValue.toUpperCase());
+                }
+            });
+        } else if (node.isArray()) {
+            node.elements().forEachRemaining(element -> {
+                if (element.isObject() || element.isArray()) {
+                    convertTypeValuesToUpperCase((ObjectNode) element);
+                }
+            });
+        }
+    }
+}
