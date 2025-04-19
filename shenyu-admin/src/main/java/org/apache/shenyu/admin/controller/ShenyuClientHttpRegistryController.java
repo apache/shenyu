@@ -19,9 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import jakarta.annotation.Resource;
 
-import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
-import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -45,9 +43,6 @@ public class ShenyuClientHttpRegistryController {
 
     @Resource
     private ShenyuClientServerRegisterPublisher publisher;
-
-    @Resource
-    private NamespaceService namespaceService;
 
     /**
      * Register metadata string.
@@ -125,11 +120,5 @@ public class ShenyuClientHttpRegistryController {
         publisher.publish(offlineDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-
-    public void checkClientNamespaceExist(final String namespaceId) {
-        NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
-        if (Objects.isNull(namespaceVO)) {
-            throw new IllegalArgumentException("namespaceId is not exist");
-        }
-    }
+    
 }

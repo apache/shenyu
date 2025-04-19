@@ -40,6 +40,8 @@ import java.util.Objects;
 public class WebsocketListener implements ServletRequestListener {
 
     public static final String CLIENT_IP_NAME = "ClientIP";
+    
+    public static final String CLIENT_PORT_NAME = "ClientPort";
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketListener.class);
 
@@ -51,6 +53,8 @@ public class WebsocketListener implements ServletRequestListener {
                 HttpSession session = request.getSession();
                 request.removeAttribute(CLIENT_IP_NAME);
                 session.removeAttribute(CLIENT_IP_NAME);
+                request.removeAttribute(CLIENT_PORT_NAME);
+                session.removeAttribute(CLIENT_PORT_NAME);
                 request.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
                 session.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
             }
@@ -67,6 +71,8 @@ public class WebsocketListener implements ServletRequestListener {
                 HttpSession session = request.getSession();
                 request.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
+                request.setAttribute(CLIENT_PORT_NAME, sre.getServletRequest().getRemotePort());
+                session.setAttribute(CLIENT_PORT_NAME, sre.getServletRequest().getRemotePort());
                 String namespace = request.getHeader(Constants.SHENYU_NAMESPACE_ID);
                 if (StringUtils.isNoneBlank(namespace)) {
                     request.setAttribute(Constants.SHENYU_NAMESPACE_ID, namespace);
