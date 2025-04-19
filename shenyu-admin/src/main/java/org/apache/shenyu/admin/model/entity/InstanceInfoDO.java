@@ -35,6 +35,8 @@ public final class InstanceInfoDO extends BaseDO {
     private String instanceType;
     
     private String instanceInfo;
+
+    private Integer instanceState;
     
     private String namespaceId;
     
@@ -112,6 +114,7 @@ public final class InstanceInfoDO extends BaseDO {
                 .instancePort(instanceInfoDTO.getInstancePort())
                 .instanceType(instanceInfoDTO.getInstanceType())
                 .instanceInfo(instanceInfoDTO.getInstanceInfo())
+                .instanceState(instanceInfoDTO.getInstanceState())
                 .namespaceId(instanceInfoDTO.getNamespaceId())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
@@ -189,7 +192,25 @@ public final class InstanceInfoDO extends BaseDO {
     public void setInstanceInfo(final String instanceInfo) {
         this.instanceInfo = instanceInfo;
     }
-    
+
+    /**
+     * get instanceState.
+     *
+     * @return instanceState
+     */
+    public Integer getInstanceState() {
+        return instanceState;
+    }
+
+    /**
+     * set instanceState.
+     *
+     * @param instanceState instanceState
+     */
+    public void setInstanceState(final Integer instanceState) {
+        this.instanceState = instanceState;
+    }
+
     /**
      * get namespaceId.
      *
@@ -233,12 +254,13 @@ public final class InstanceInfoDO extends BaseDO {
                 && Objects.equals(instancePort, instanceInfoDO.instancePort)
                 && Objects.equals(instanceType, instanceInfoDO.instanceType)
                 && Objects.equals(instanceInfo, instanceInfoDO.instanceInfo)
+                && Objects.equals(instanceState, instanceInfoDO.instanceState)
                 && Objects.equals(namespaceId, instanceInfoDO.namespaceId);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), instanceIp, instancePort, instanceType, instanceInfo, namespaceId);
+        return Objects.hash(super.hashCode(), instanceIp, instancePort, instanceType, instanceInfo, instanceState, namespaceId);
     }
     
     public static final class InstanceInfoDOBuilder {
@@ -256,6 +278,8 @@ public final class InstanceInfoDO extends BaseDO {
         private String instanceType;
         
         private String instanceInfo;
+
+        private Integer instanceState;
         
         private String namespaceId;
         
@@ -339,8 +363,18 @@ public final class InstanceInfoDO extends BaseDO {
             this.instanceInfo = instanceInfo;
             return this;
         }
-        
-        
+
+        /**
+         * instanceState.
+         *
+         * @param instanceState instanceState
+         * @return InstanceInfoDOBuilder
+         */
+        public InstanceInfoDOBuilder instanceState(final Integer instanceState) {
+            this.instanceState = instanceState;
+            return this;
+        }
+
         /**
          * namespaceId.
          *
@@ -367,6 +401,7 @@ public final class InstanceInfoDO extends BaseDO {
             instanceInfoDO.setInstancePort(instancePort);
             instanceInfoDO.setInstanceType(instanceType);
             instanceInfoDO.setInstanceInfo(instanceInfo);
+            instanceInfoDO.setInstanceState(instanceState);
             instanceInfoDO.setNamespaceId(namespaceId);
             return instanceInfoDO;
         }

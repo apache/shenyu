@@ -37,6 +37,7 @@
         instance_port,
         instance_type,
         instance_info,
+        instance_state,
         namespace_id,
         date_created,
         date_updated
@@ -50,7 +51,8 @@
           instance_ip = #{instanceIp, jdbcType=VARCHAR},
           instance_port = #{instancePort, jdbcType=VARCHAR},
           instance_type = #{instanceType, jdbcType=VARCHAR},
-          instance_info = #{instanceInfo, jdbcType=VARCHAR}
+          instance_info = #{instanceInfo, jdbcType=VARCHAR},
+          instance_state = #{instanceState, jdbcType=TINYINT}
         WHERE
           id = #{id, jdbcType=VARCHAR}
     </update>
@@ -102,9 +104,12 @@
         SElECT
         <include refid="Base_Column_List"/>
         FROM instance_info
-        WHERE namespace_id = #{namespaceId}
+        WHERE 1=1
         <if test="instanceIp != null and instanceIp != ''">
             AND instance_ip = #{instanceIp}
+        </if>
+        <if test="namespaceId != null and namespaceId != ''">
+            AND namespace_id = #{namespaceId}
         </if>
         <if test="instancePort != null and instancePort != ''">
             AND instance_port = #{instancePort}
@@ -112,9 +117,12 @@
         <if test="instanceType != null and instanceType != ''">
             AND instance_type = #{instanceType}
         </if>
+        <if test="instanceId != null and instanceId != ''">
+            AND id = #{instanceId}
+        </if>
         LIMIT 1
     </select>
-    
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
         INSERT INTO instance_info
         (id,
@@ -124,6 +132,7 @@
         instance_port,
         instance_type,
         instance_info,
+        instance_state,
         namespace_id)
         VALUES
         (#{id,jdbcType=VARCHAR},
@@ -133,7 +142,8 @@
         #{instancePort,jdbcType=VARCHAR},
         #{instanceType,jdbcType=VARCHAR},
         #{instanceInfo,jdbcType=VARCHAR},
-        #{namespaceId,jdbcType=TINYINT})
+        #{instanceState,jdbcType=TINYINT},
+        #{namespaceId,jdbcType=VARCHAR})
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">

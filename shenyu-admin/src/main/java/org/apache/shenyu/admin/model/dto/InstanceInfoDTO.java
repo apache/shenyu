@@ -30,34 +30,62 @@ import java.util.Objects;
 public class InstanceInfoDTO implements Serializable {
 
     private static final long serialVersionUID = 3644412439977354321L;
-    
+
+    /**
+     * instance id.
+     */
+    private String instanceId;
+
     /**
      * instance ip.
      */
     private String instanceIp;
-    
+
     /**
      * instance port.
      */
     private String instancePort;
-    
+
     /**
      * instance type.
      */
     private String instanceType;
-    
+
     /**
      * instance info.
      */
     private String instanceInfo;
-    
+
+    /**
+     * instance state.
+     */
+    private Integer instanceState;
+
     /**
      * namespaceId.
      */
     @NotBlank
     @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
     private String namespaceId;
-    
+
+    /**
+     * get getInstanceId.
+     *
+     * @return InstanceId
+     */
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    /**
+     * set instanceId.
+     *
+     * @param instanceId instanceId
+     */
+    public void setInstanceId(final String instanceId) {
+        this.instanceId = instanceId;
+    }
+
     /**
      * get instanceIp.
      *
@@ -66,7 +94,7 @@ public class InstanceInfoDTO implements Serializable {
     public String getInstanceIp() {
         return instanceIp;
     }
-    
+
     /**
      * set instanceIp.
      *
@@ -75,7 +103,7 @@ public class InstanceInfoDTO implements Serializable {
     public void setInstanceIp(final String instanceIp) {
         this.instanceIp = instanceIp;
     }
-    
+
     /**
      * get instancePort.
      *
@@ -84,7 +112,7 @@ public class InstanceInfoDTO implements Serializable {
     public String getInstancePort() {
         return instancePort;
     }
-    
+
     /**
      * set instancePort.
      *
@@ -93,7 +121,7 @@ public class InstanceInfoDTO implements Serializable {
     public void setInstancePort(final String instancePort) {
         this.instancePort = instancePort;
     }
-    
+
     /**
      * get instanceType.
      *
@@ -102,7 +130,7 @@ public class InstanceInfoDTO implements Serializable {
     public String getInstanceType() {
         return instanceType;
     }
-    
+
     /**
      * set instanceType.
      *
@@ -111,7 +139,7 @@ public class InstanceInfoDTO implements Serializable {
     public void setInstanceType(final String instanceType) {
         this.instanceType = instanceType;
     }
-    
+
     /**
      * get instanceInfo.
      *
@@ -120,7 +148,7 @@ public class InstanceInfoDTO implements Serializable {
     public String getInstanceInfo() {
         return instanceInfo;
     }
-    
+
     /**
      * set instanceInfo.
      *
@@ -129,7 +157,25 @@ public class InstanceInfoDTO implements Serializable {
     public void setInstanceInfo(final String instanceInfo) {
         this.instanceInfo = instanceInfo;
     }
-    
+
+    /**
+     * get instanceState.
+     *
+     * @return instanceState
+     */
+    public Integer getInstanceState() {
+        return instanceState;
+    }
+
+    /**
+     * set instanceState.
+     *
+     * @param instanceState instanceState
+     */
+    public void setInstanceState(final Integer instanceState) {
+        this.instanceState = instanceState;
+    }
+
     /**
      * get namespaceId.
      *

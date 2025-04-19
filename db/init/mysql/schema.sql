@@ -2579,6 +2579,7 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `namespace_user_rel`;
 CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key',
                                       `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace_id',
@@ -2587,13 +2588,15 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-CREATE TABLE IF NOT EXISTS instance_info (
+DROP TABLE IF EXISTS `instance_info`;
+CREATE TABLE IF NOT EXISTS `instance_info` (
                                              `id`            varchar(128)  NOT NULL COMMENT 'primary key',
     `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
     `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
     `instance_port`    varchar(128)  NOT NULL COMMENT 'instance_port',
     `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
     `instance_info`  text  NOT NULL COMMENT 'instance_info',
+    `instance_state`  tinyint(4)  NOT NULL COMMENT '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
     PRIMARY KEY (`id`)

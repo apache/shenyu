@@ -57,4 +57,6 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      * @return InstanceInfoVO
      */
     InstanceInfoVO findById(String id);
+
+    void offline(InstanceInfoDTO instanceInfoDTO);
 }

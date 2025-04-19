@@ -21,32 +21,37 @@ package org.apache.shenyu.admin.model.event.instance;
  * InstanceInfoReportDTO.
  */
 public class InstanceInfoReportEvent {
-    
+
     /**
      * instance ip.
      */
     private String instanceIp;
-    
+
     /**
      * instance port.
      */
     private String instancePort;
-    
+
     /**
      * instance type.
      */
     private String instanceType;
-    
+
     /**
      * instance info.
      */
     private String instanceInfo;
-    
+
+    /**
+     * instance state.
+     */
+    private Integer instanceState;
+
     /**
      * namespace id.
      */
     private String namespaceId;
-    
+
     public InstanceInfoReportEvent(final String instanceIp, final String instancePort, final String instanceType, final String instanceInfo, final String namespaceId) {
         this.instanceIp = instanceIp;
         this.instancePort = instancePort;
@@ -54,15 +59,16 @@ public class InstanceInfoReportEvent {
         this.instanceInfo = instanceInfo;
         this.namespaceId = namespaceId;
     }
-    
+
     private InstanceInfoReportEvent(final Builder builder) {
         this.instanceIp = builder.instanceIp;
         this.instancePort = builder.instancePort;
         this.instanceType = builder.instanceType;
         this.instanceInfo = builder.instanceInfo;
+        this.instanceState = builder.instanceSate;
         this.namespaceId = builder.namespaceId;
     }
-    
+
     /**
      * builder method.
      *
@@ -71,7 +77,7 @@ public class InstanceInfoReportEvent {
     public static InstanceInfoReportEvent.Builder builder() {
         return new InstanceInfoReportEvent.Builder();
     }
-    
+
     /**
      * get instance ip.
      *
@@ -80,7 +86,7 @@ public class InstanceInfoReportEvent {
     public String getInstanceIp() {
         return instanceIp;
     }
-    
+
     /**
      * set instance ip.
      *
@@ -89,7 +95,7 @@ public class InstanceInfoReportEvent {
     public void setInstanceIp(final String instanceIp) {
         this.instanceIp = instanceIp;
     }
-    
+
     /**
      * get instance port.
      *
@@ -98,7 +104,7 @@ public class InstanceInfoReportEvent {
     public String getInstancePort() {
         return instancePort;
     }
-    
+
     /**
      * set instance port.
      *
@@ -107,7 +113,7 @@ public class InstanceInfoReportEvent {
     public void setInstancePort(final String instancePort) {
         this.instancePort = instancePort;
     }
-    
+
     /**
      * get instance type.
      *
@@ -116,7 +122,7 @@ public class InstanceInfoReportEvent {
     public String getInstanceType() {
         return instanceType;
     }
-    
+
     /**
      * set instance type.
      *
@@ -125,7 +131,7 @@ public class InstanceInfoReportEvent {
     public void setInstanceType(final String instanceType) {
         this.instanceType = instanceType;
     }
-    
+
     /**
      * get instance info.
      *
@@ -134,7 +140,7 @@ public class InstanceInfoReportEvent {
     public String getInstanceInfo() {
         return instanceInfo;
     }
-    
+
     /**
      * set instance info.
      *
@@ -143,7 +149,25 @@ public class InstanceInfoReportEvent {
     public void setInstanceInfo(final String instanceInfo) {
         this.instanceInfo = instanceInfo;
     }
-    
+
+    /**
+     * get instanceState.
+     *
+     * @return instanceState
+     */
+    public Integer getInstanceState() {
+        return instanceState;
+    }
+
+    /**
+     * set instanceState.
+     *
+     * @param instanceState instanceState
+     */
+    public void setInstanceState(final Integer instanceState) {
+        this.instanceState = instanceState;
+    }
+
     /**
      * get namespace id.
      *
@@ -152,7 +176,7 @@ public class InstanceInfoReportEvent {
     public String getNamespaceId() {
         return namespaceId;
     }
-    
+
     /**
      * set namespace id.
      *
@@ -161,38 +185,43 @@ public class InstanceInfoReportEvent {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-    
-    
+
+
     public static final class Builder {
-        
+
         /**
          * instance ip.
          */
         private String instanceIp;
-        
+
         /**
          * instance port.
          */
         private String instancePort;
-        
+
         /**
          * instance type.
          */
         private String instanceType;
-        
+
         /**
          * instance info.
          */
         private String instanceInfo;
-        
+
+        /**
+         * instance state.
+         */
+        private Integer instanceSate;
+
         /**
          * namespace id.
          */
         private String namespaceId;
-        
+
         private Builder() {
         }
-        
+
         /**
          * instance type.
          *
@@ -203,7 +232,7 @@ public class InstanceInfoReportEvent {
             this.instanceType = instanceType;
             return this;
         }
-        
+
         /**
          * instance info.
          *
@@ -214,7 +243,7 @@ public class InstanceInfoReportEvent {
             this.instanceInfo = instanceInfo;
             return this;
         }
-        
+
         /**
          * instance ip.
          *
@@ -225,7 +254,7 @@ public class InstanceInfoReportEvent {
             this.instanceIp = instanceIp;
             return this;
         }
-        
+
         /**
          * instance port.
          *
@@ -236,7 +265,18 @@ public class InstanceInfoReportEvent {
             this.instancePort = instancePort;
             return this;
         }
-        
+
+        /**
+         * instance state.
+         *
+         * @param instanceState instance state
+         * @return InstanceInfoRegisterDTO.Builder
+         */
+        public InstanceInfoReportEvent.Builder instanceState(final Integer instanceState) {
+            this.instanceSate = instanceState;
+            return this;
+        }
+
         /**
          * namespace id.
          *
@@ -247,7 +287,7 @@ public class InstanceInfoReportEvent {
             this.namespaceId = namespaceId;
             return this;
         }
-        
+
         /**
          * build.
          *
@@ -256,6 +296,6 @@ public class InstanceInfoReportEvent {
         public InstanceInfoReportEvent build() {
             return new InstanceInfoReportEvent(this);
         }
-        
+
     }
 }

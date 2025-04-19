@@ -30,6 +30,11 @@ public class InstanceQuery implements Serializable {
     private static final long serialVersionUID = 6666008171280192709L;
 
     /**
+     * id.
+     */
+    private String instanceId;
+
+    /**
      * namespace id.
      */
     private String namespaceId;
@@ -65,7 +70,25 @@ public class InstanceQuery implements Serializable {
         this.instanceType = instanceType;
         this.pageParameter = pageParameter;
     }
-    
+
+    /**
+     * Gets the value of instanceId.
+     *
+     * @return the value of instanceId
+     */
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    /**
+     * Sets the instanceId.
+     *
+     * @param instanceId instanceId
+     */
+    public void setInstanceId(final String instanceId) {
+        this.instanceId = instanceId;
+    }
+
     /**
      * Gets the value of instanceType.
      *

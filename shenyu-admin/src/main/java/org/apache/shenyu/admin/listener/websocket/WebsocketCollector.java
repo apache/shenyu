@@ -167,6 +167,7 @@ public class WebsocketCollector {
                     .instancePort(getClientPort(session))
                     .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
                     .instanceInfo(GsonUtils.getInstance().toJson(o))
+                    .instanceState(1)
                     .namespaceId(namespaceId)
                     .build();
             SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
