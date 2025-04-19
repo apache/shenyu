@@ -47,9 +47,9 @@ public enum AiTokenLimiterEnum {
     COOKIE("cookie"),
     
     /**
-     * Default key resolver enum.
+     * contextPath key resolver enum.
      */
-    DEFAULT("default");
+    CONTEXT_PATH("contextPath");
     
     private final String name;
     
@@ -83,6 +83,6 @@ public enum AiTokenLimiterEnum {
                 return value;
             }
         }
-        return DEFAULT;
+        return CONTEXT_PATH;
     }
 }
