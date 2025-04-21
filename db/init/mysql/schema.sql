@@ -1379,11 +1379,6 @@ INSERT INTO `plugin_handle` VALUES ('1899702411294539776', '51', 'timeWindowSeco
 INSERT INTO `plugin_handle` VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
-INSERT INTO `plugin_handle` VALUES ('1907263843073671167', '61', 'name', 'name', 2, 2, 0, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools name\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 'description', 2, 2, 1, '{\"required\":\"1\",\"rule\":\"\",\"placeholder\":\"tools description\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671169', '61', 'requestMethod', 'requestMethod', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request method\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1907263843073671170', '61', 'requestPath', 'requestPath', 2, 2, 3, '{\"required\":\"0\",\"rule\":\"\",\"placeholder\":\"tools request path\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-
 
 -- ----------------------------
 -- Table structure for resource
@@ -2602,3 +2597,5 @@ CREATE TABLE `namespace_user_rel` (
                                       `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
+
+INSERT INTO `selector` (`id`, `plugin_id`, `name`, `match_mode`, `type`, `sort`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
