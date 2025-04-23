@@ -17,15 +17,22 @@
 
 package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
+import io.modelcontextprotocol.server.McpAsyncServer;
+import io.modelcontextprotocol.server.McpSyncServer;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
 import org.apache.shenyu.plugin.mcp.server.ShenyuDefaultTools;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpAsyncToolsManager;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpSyncToolsManager;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.springframework.ai.mcp.server.autoconfigure.McpServerProperties;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +65,20 @@ public class McpServerPluginConfiguration {
     @Bean
     public PluginDataHandler mcpServerPluginDataHandler() {
         return new McpServerPluginDataHandler();
+    }
+    
+    @Bean
+    @ConditionalOnBean(McpAsyncServer.class)
+    @ConditionalOnMissingBean(ShenyuMcpToolsManager.class)
+    public ShenyuMcpToolsManager shenyuMcpAsyncToolsManager(final McpAsyncServer mcpAsyncServer) {
+        return new ShenyuMcpAsyncToolsManager(mcpAsyncServer);
+    }
+    
+    @Bean
+    @ConditionalOnBean(McpSyncServer.class)
+    @ConditionalOnMissingBean(ShenyuMcpToolsManager.class)
+    public ShenyuMcpToolsManager shenyuMcpSyncToolsManager(final McpSyncServer mcpSyncServer) {
+        return new ShenyuMcpSyncToolsManager(mcpSyncServer);
     }
 
     /**

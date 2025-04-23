@@ -25,12 +25,13 @@ import org.apache.shenyu.common.dto.convert.rule.impl.McpServerPluginRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.mcp.server.ShenyuMcpToolsProvider;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 
 import java.util.Objects;
@@ -73,7 +74,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
             
-            ShenyuMcpToolsProvider.addSyncTools(
+            SpringBeanUtils.getInstance().getBean(ShenyuMcpToolsManager.class).addTool(
                     StringUtils.isBlank(ruleHandle.getName()) ? ruleData.getName() : ruleHandle.getName(),
                     ruleHandle.getDescription(),
                     StringUtils.isBlank(ruleHandle.getRequestMethod()) ? "GET" : ruleHandle.getRequestMethod(),
@@ -87,7 +88,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-            ShenyuMcpToolsProvider.removeTools(ruleData.getName());
+            SpringBeanUtils.getInstance().getBean(ShenyuMcpToolsManager.class).removeTool(ruleData.getName());
         });
         MetaDataCache.getInstance().clean();
     }

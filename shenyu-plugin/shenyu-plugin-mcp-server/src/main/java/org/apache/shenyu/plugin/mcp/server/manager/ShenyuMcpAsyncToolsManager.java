@@ -15,32 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server;
+package org.apache.shenyu.plugin.mcp.server.manager;
 
-import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
-import io.modelcontextprotocol.server.McpSyncServer;
+import io.modelcontextprotocol.server.McpAsyncServer;
+import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.mcp.server.ShenyuToolCallback;
+import org.apache.shenyu.plugin.mcp.server.ShenyuToolDefinition;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.ai.tool.definition.ToolDefinition;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
-
-@ConditionalOnBean(McpSyncServer.class)
-public final class ShenyuMcpToolsProvider {
+public class ShenyuMcpAsyncToolsManager implements ShenyuMcpToolsManager {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuMcpToolsProvider.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuMcpAsyncToolsManager.class);
     
-    public static void addSyncTools(final String name,
-                                    final String description,
-                                    final String requestMethod,
-                                    final String requestPath,
-                                    final String inputSchema) {
+    private final McpAsyncServer asyncServer;
+    
+    public ShenyuMcpAsyncToolsManager(final McpAsyncServer asyncServer) {
+        this.asyncServer = asyncServer;
+    }
+    
+    @Override
+    public void addTool(final String name,
+                  final String description,
+                  final String requestMethod,
+                  final String requestPath,
+                  final String inputSchema) {
         // remove first for overwrite
         try {
-            removeTools(name);
+            removeTool(name);
         } catch (Exception ignored) {
             // ignore
         }
@@ -56,20 +62,14 @@ public final class ShenyuMcpToolsProvider {
         LOGGER.debug("Adding tool, name: {}, description: {}, requestMethod: {}, requestPath: {}, inputSchema: {}",
                 name, description, requestMethod, requestPath, inputSchema);
         ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
-        for (SyncToolSpecification syncToolSpecification : McpToolUtils.toSyncToolSpecifications(shenyuToolCallback)) {
-            SpringBeanUtils
-                    .getInstance()
-                    .getBean(McpSyncServer.class)
-                    .addTool(syncToolSpecification);
+        for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
+            asyncServer.addTool(asyncToolSpecification).block();
         }
     }
     
-    public static void removeTools(final String name) {
+    @Override
+    public void removeTool(final String name) {
         LOGGER.debug("Removing tool, name: {}", name);
-        SpringBeanUtils
-                .getInstance()
-                .getBean(McpSyncServer.class)
-                .removeTool(name);
+        asyncServer.removeTool(name).block();
     }
-    
 }
