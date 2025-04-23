@@ -26,7 +26,6 @@ import java.time.Duration;
 /**
  * Retry Policy Interface.
  * @param <R> Request Response Type
- * @since 2025/3/23 08:27
  */
 public interface RetryStrategy<R> {
     /**
