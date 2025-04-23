@@ -29,7 +29,6 @@ import java.time.Duration;
 /**
  * Exponential Retry Backoff Strategy.
  *
- * @Date 2025/3/23 14:20
  */
 public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(ExponentialRetryBackoffStrategy.class);
