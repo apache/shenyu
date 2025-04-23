@@ -28,7 +28,6 @@ import java.time.Duration;
 /**
  * Fixed Retry Policy Class.
  *
- * @Date 2025/3/23 10:04
  */
 public class FixedRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(FixedRetryStrategy.class);

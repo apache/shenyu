@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono;
 /**
  *  Custom retry policy.
  *      Also please achieve your own
- *@Date 2025/3/23 14:27
  */
 public class CustomRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(CustomRetryStrategy.class);
