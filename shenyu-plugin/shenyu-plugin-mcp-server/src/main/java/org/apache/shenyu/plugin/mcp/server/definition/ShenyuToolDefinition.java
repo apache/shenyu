@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server;
+package org.apache.shenyu.plugin.mcp.server.definition;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.tool.definition.ToolDefinition;

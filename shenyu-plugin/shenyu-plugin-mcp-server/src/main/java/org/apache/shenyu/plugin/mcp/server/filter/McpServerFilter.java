@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server;
+package org.apache.shenyu.plugin.mcp.server.filter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.web.filter.AbstractWebFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

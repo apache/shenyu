@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server;
+package org.apache.shenyu.plugin.mcp.server.decorator;
 
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
