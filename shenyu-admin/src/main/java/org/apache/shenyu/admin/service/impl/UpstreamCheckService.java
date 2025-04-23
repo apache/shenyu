@@ -248,6 +248,9 @@ public class UpstreamCheckService {
      * @return whether this module handles
      */
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return false;
+        }
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
             this.submit(selectorId, commonUpstream);
