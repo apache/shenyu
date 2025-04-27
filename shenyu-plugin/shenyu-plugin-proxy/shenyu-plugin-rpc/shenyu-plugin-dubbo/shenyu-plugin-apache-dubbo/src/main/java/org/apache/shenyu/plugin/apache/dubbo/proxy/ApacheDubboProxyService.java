@@ -130,7 +130,7 @@ public class ApacheDubboProxyService {
                 : dubboUpstreams.stream().filter(u -> u.isStatus() && StringUtils.isNotBlank(u.getRegistry())).collect(Collectors.toList());
         // if dubboUpstreams is empty, use default plugin config
         if (CollectionUtils.isEmpty(dubboUpstreams)) {
-            referenceKey = StringUtils.isNotBlank(namespace) ? namespace + ":" + referenceKey : referenceKey;
+            referenceKey = StringUtils.isNotBlank(namespace) ? namespace + Constants.COLONS + referenceKey : referenceKey;
             ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(referenceKey);
             if (StringUtils.isEmpty(reference.getInterface())) {
                 ApacheDubboConfigCache.getInstance().invalidate(referenceKey);
@@ -142,9 +142,9 @@ public class ApacheDubboProxyService {
         List<Upstream> upstreams = this.convertUpstreamList(dubboUpstreams);
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreams, LoadBalanceEnum.RANDOM.getName(), ip);
-        DubboUpstream dubboUpstream = null;
+        DubboUpstream dubboUpstream = dubboUpstreams.get(0);
         for (DubboUpstream upstreamItem : dubboUpstreams) {
-            if (Objects.equals(upstreamItem.getRegistry(), upstreamItem.getRegistry())
+            if (Objects.equals(upstreamItem.getRegistry(), upstream.getUrl())
                     && Objects.equals(upstreamItem.getProtocol(), upstream.getProtocol())
                     && Objects.equals(upstreamItem.getVersion(), upstream.getVersion())
                     && Objects.equals(upstreamItem.getGroup(), upstream.getGroup())) {

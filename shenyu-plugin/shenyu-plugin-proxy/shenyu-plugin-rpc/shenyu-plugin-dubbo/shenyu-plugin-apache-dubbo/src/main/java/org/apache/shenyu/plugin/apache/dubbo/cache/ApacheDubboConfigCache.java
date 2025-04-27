@@ -360,18 +360,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             }
         }
         if (StringUtils.isNotBlank(namespace)) {
-            RegistryConfig registryConfig = new RegistryConfig();
-            registryConfig.setRegister(false);
-            if (!this.registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-                registryConfig.setAddress(this.registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace);
-                reference.setRegistry(registryConfig);
-            } else {
-                String newAddress = this.registryConfig.getAddress().substring(0, this.registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-                registryConfig.setAddress(newAddress);
-                reference.setRegistry(registryConfig);
-            }
-        } else {
-            reference.setRegistry(registryConfig);
+            changeRegistryAddressNamespace(this.registryConfig, reference, namespace);
         }
         return reference;
     }
@@ -402,14 +391,6 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         registryConfigTemp.setAddress(dubboUpstream.getRegistry());
         Optional.ofNullable(dubboUpstream.getGroup()).ifPresent(registryConfigTemp::setGroup);
         Optional.ofNullable(dubboUpstream.getVersion()).ifPresent(registryConfigTemp::setVersion);
-        if (StringUtils.isNotBlank(namespace)) {
-            if (!registryConfigTemp.getAddress().contains(Constants.NAMESPACE)) {
-                registryConfigTemp.setAddress(registryConfigTemp.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace);
-            } else {
-                String newAddress = registryConfigTemp.getAddress().substring(0, registryConfigTemp.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-                registryConfigTemp.setAddress(newAddress);
-            }
-        }
         reference.setRegistry(registryConfigTemp);
 
         DubboRuleHandle dubboRuleHandle = AbstractDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(ruleData.getId());
@@ -435,7 +416,29 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setParameters(parameters);
 
         this.configReferenceConfigWithMetaDataRpcExt(metaData.getRpcExt(), reference);
+        if (StringUtils.isNotBlank(namespace)) {
+            changeRegistryAddressNamespace(registryConfigTemp, reference, namespace);
+        }
         return reference;
+    }
+
+    /**
+     * changeRegistryAddressNamespace common method.
+     *
+     * @param currentRegistryConfig currentRegistryConfig
+     * @param reference             reference
+     * @param namespace             namespace
+     */
+    private void changeRegistryAddressNamespace(final RegistryConfig currentRegistryConfig, final ReferenceConfig<GenericService> reference, final String namespace) {
+        RegistryConfig registryConfigNew = new RegistryConfig();
+        registryConfigNew.setRegister(false);
+        if (!currentRegistryConfig.getAddress().contains(Constants.NAMESPACE)) {
+            registryConfigNew.setAddress(currentRegistryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace);
+        } else {
+            String newAddress = currentRegistryConfig.getAddress().substring(0, currentRegistryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
+            registryConfigNew.setAddress(newAddress);
+        }
+        reference.setRegistry(registryConfigNew);
     }
 
     /**
