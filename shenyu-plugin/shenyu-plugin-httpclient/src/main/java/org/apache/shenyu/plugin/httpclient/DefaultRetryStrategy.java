@@ -49,7 +49,6 @@ import reactor.util.retry.RetryBackoffSpec;
  * Default Retry Policy Class
  * Keep the original default request retry test without any changes.
  * @param <R> Request Response Type
- * @Date 2025/3/23 08:36
  */
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
