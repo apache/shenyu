@@ -97,9 +97,13 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             LOG.info("load api document No service registered.");
             return;
         }
-        final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        LOG.info("load api document, serviceList={}", JsonUtils.toJson(currentServices));
-        pullSwaggerDocService.pullApiDocument(currentServices);
+        try {
+            final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
+            LOG.info("load api document, serviceList={}", JsonUtils.toJson(currentServices));
+            pullSwaggerDocService.pullApiDocument(currentServices);
+        } catch (Exception e) {
+            LOG.error("load api document error", e);
+        }
     }
 
     @Override
