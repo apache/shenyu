@@ -58,6 +58,10 @@ public final class SofaPluginTest {
 
     private MetaData metaData;
 
+    private SelectorData selectorData;
+
+    private RuleData ruleData;
+
     private ServerWebExchange exchange;
 
     @Mock
@@ -73,8 +77,15 @@ public final class SofaPluginTest {
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
+        selectorData = new SelectorData();
+        selectorData.setId("1895390769043820544");
+        selectorData.setPluginId("11");
+        selectorData.setHandle("[]");
+        ruleData = new RuleData();
+        ruleData.setId("1895390769224175616");
+        ruleData.setHandle("{}");
         SofaProxyService sofaProxyService = mock(SofaProxyService.class);
-        when(sofaProxyService.genericInvoker(null, metaData, exchange)).thenReturn(Mono.empty());
+        when(sofaProxyService.genericInvoker(null, metaData,selectorData, ruleData, exchange)).thenReturn(Mono.empty());
         sofaPlugin = new SofaPlugin(sofaProxyService);
     }
 

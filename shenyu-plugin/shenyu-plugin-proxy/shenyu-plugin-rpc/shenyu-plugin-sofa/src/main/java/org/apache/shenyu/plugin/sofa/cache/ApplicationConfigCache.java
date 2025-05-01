@@ -32,7 +32,9 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.SofaUpstream;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -174,7 +176,7 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return the reference config
      */
-    public ConsumerConfig<GenericService> initRef(final MetaData metaData) {
+    public ConsumerConfig<GenericService> initRef(MetaData metaData) {
         try {
             ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterfaceId())) {
@@ -186,7 +188,43 @@ public final class ApplicationConfigCache {
         return build(metaData);
         
     }
-    
+
+    /**
+     * Init ref reference config use dubboUpstream.
+     *
+     * @param selectorId    the selectorId
+     * @param ruleData      the rule data
+     * @param metaData      the meta data
+     * @param namespace     namespace
+     * @return the reference config
+     */
+    public ConsumerConfig<GenericService> initRefN(final String selectorId, final RuleData ruleData, final MetaData metaData, final String namespace, final SofaUpstream sofaUpstream) {
+        try {
+            ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
+            if (StringUtils.isNoneBlank(referenceConfig.getInterfaceId())) {
+                return referenceConfig;
+            }
+        } catch (ExecutionException e) {
+            LOG.error("init sofa ref ex:{}", e.getMessage());
+        }
+        return build(metaData);
+
+    }
+
+    /**
+     * generate sofa upstream reference cache key.
+     *
+     * @param selectorId    selectorId
+     * @param ruleId        ruleId
+     * @param metaDataId    metaDataId
+     * @param namespace     namespace
+     * @param sofaUpstream  sofaUpstream
+     * @return the reference config cache key
+     */
+    public String generateUpstreamCacheKey(final String selectorId, final String ruleId, final String metaDataId, final String namespace, final SofaUpstream sofaUpstream) {
+        return " ";
+    }
+
     /**
      * Build reference config.
      *

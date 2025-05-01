@@ -27,6 +27,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -67,6 +69,10 @@ public final class SofaProxyServiceTest {
     private static final Object[] RIGHT = new Object[]{};
     
     private MetaData metaData;
+
+    private SelectorData selectorData;
+
+    private RuleData ruleData;
     
     private ServerWebExchange exchange;
     
@@ -81,6 +87,13 @@ public final class SofaProxyServiceTest {
         metaData.setMethodName(METHOD_NAME);
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
         metaData.setRpcExt("{\"loadbalance\": \"loadbalance\"}");
+        selectorData = new SelectorData();
+        selectorData.setId("1895390769043820544");
+        selectorData.setPluginId("11");
+        selectorData.setHandle("[]");
+        ruleData = new RuleData();
+        ruleData.setId("1895390769224175616");
+        ruleData.setHandle("{}");
     }
     
     @AfterEach
@@ -103,7 +116,7 @@ public final class SofaProxyServiceTest {
         assertTrue(cache instanceof LoadingCache);
         ((LoadingCache) cache).put(PATH, consumerConfig);
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
-        sofaProxyService.genericInvoker("", metaData, exchange);
+        sofaProxyService.genericInvoker("", metaData, selectorData, ruleData, exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
         final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
         sofaRegisterConfig.setThreadpool(Constants.SHARED);

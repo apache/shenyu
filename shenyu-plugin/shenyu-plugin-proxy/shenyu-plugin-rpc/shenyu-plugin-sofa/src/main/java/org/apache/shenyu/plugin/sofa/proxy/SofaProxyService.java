@@ -29,6 +29,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
@@ -63,14 +65,16 @@ public class SofaProxyService {
     /**
      * Generic invoker object.
      *
-     * @param body     the body
-     * @param metaData the meta data
-     * @param exchange the exchange
+     * @param body          the body
+     * @param metaData      the meta data
+     * @param selectorData  the selector data
+     * @param ruleData      the rule data
+     * @param exchange      the webExchange
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
-        ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) throws ShenyuException {
+        ConsumerConfig<GenericService> reference = this.getConsumerConfig(selectorData, ruleData, metaData, exchange);
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterfaceId())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
@@ -112,5 +116,9 @@ public class SofaProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return result;
         })).onErrorMap(ShenyuException::new);
+    }
+
+    private ConsumerConfig<GenericService> getConsumerConfig(final SelectorData selectorData, final RuleData ruleData, final MetaData metaData, final ServerWebExchange exchange) {
+        return ApplicationConfigCache.getInstance().get(metaData.getPath());
     }
 }
