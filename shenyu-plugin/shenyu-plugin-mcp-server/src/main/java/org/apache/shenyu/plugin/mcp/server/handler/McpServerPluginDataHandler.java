@@ -45,6 +45,12 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     
     public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
+    private final ShenyuMcpToolsManager shenyuMcpToolsManager;
+    
+    public McpServerPluginDataHandler(final ShenyuMcpToolsManager shenyuMcpToolsManager) {
+        this.shenyuMcpToolsManager = shenyuMcpToolsManager;
+    }
+    
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
@@ -74,7 +80,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
             
-            SpringBeanUtils.getInstance().getBean(ShenyuMcpToolsManager.class).addTool(
+            shenyuMcpToolsManager.addTool(
                     StringUtils.isBlank(ruleHandle.getName()) ? ruleData.getName() : ruleHandle.getName(),
                     ruleHandle.getDescription(),
                     StringUtils.isBlank(ruleHandle.getRequestMethod()) ? "GET" : ruleHandle.getRequestMethod(),
