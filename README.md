@@ -25,7 +25,7 @@
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
     </a>
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
-        <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
+        <img src="https://img.shields.io/badge/JDK-17+-green.svg" />
     </a>
     <a target="_blank" href="https://github.com/apache/shenyu/actions">
         <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
