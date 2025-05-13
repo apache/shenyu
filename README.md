@@ -48,6 +48,9 @@
   <a target="_blank" href="https://gitpod.io/#https://github.com/apache/shenyu">
     <image src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod&color=green"/>
   </a>
+  <a target="_blank" href="https://deepwiki.com/apache/shenyu">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+  </a>
 </p>
 <br/>
 
