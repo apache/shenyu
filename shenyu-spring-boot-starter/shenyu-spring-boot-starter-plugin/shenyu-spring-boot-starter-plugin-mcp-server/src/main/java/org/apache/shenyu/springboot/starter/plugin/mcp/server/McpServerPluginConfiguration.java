@@ -79,34 +79,30 @@ import java.util.stream.Collectors;
 /**
  * The type Mock plugin configuration.
  */
-@EnableConfigurationProperties({McpServerProperties.class })
+@EnableConfigurationProperties({McpServerProperties.class})
 @AutoConfiguration(after = McpServerAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "shenyu.plugins.mcp.server" , name = "enabled",havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "shenyu.plugins.mcp.server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class McpServerPluginConfiguration {
     
-    private static final Logger logger = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
     
     @Bean
     @ConditionalOnMissingBean
-    public WebFluxSseServerTransportProvider webFluxTransport(ObjectProvider<ObjectMapper> objectMapperProvider,
-                                                              McpServerProperties serverProperties) {
+    public WebFluxSseServerTransportProvider webFluxTransport(final ObjectProvider<ObjectMapper> objectMapperProvider, final McpServerProperties serverProperties) {
         ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
-        return new WebFluxSseServerTransportProvider(objectMapper, serverProperties.getSseMessageEndpoint(),
-                serverProperties.getSseEndpoint());
+        return new WebFluxSseServerTransportProvider(objectMapper, serverProperties.getSseMessageEndpoint(), serverProperties.getSseEndpoint());
     }
     
     // Router function for SSE transport used by Spring WebFlux to start an HTTP server.
     @Bean
-    public RouterFunction<?> webfluxMcpRouterFunction(WebFluxSseServerTransportProvider webFluxProvider) {
+    public RouterFunction<?> webfluxMcpRouterFunction(final WebFluxSseServerTransportProvider webFluxProvider) {
         return webFluxProvider.getRouterFunction();
     }
     
     
     @Bean
-    @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC",
-            matchIfMissing = true)
-    public List<SyncToolSpecification> syncTools(ObjectProvider<List<ToolCallback>> toolCalls,
-                                                 List<ToolCallback> toolCallbacksList, McpServerProperties serverProperties) {
+    @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC", matchIfMissing = true)
+    public List<SyncToolSpecification> syncTools(final ObjectProvider<List<ToolCallback>> toolCalls, final List<ToolCallback> toolCallbacksList, final McpServerProperties serverProperties) {
         
         List<ToolCallback> tools = new ArrayList<>(toolCalls.stream().flatMap(List::stream).toList());
         
@@ -117,83 +113,73 @@ public class McpServerPluginConfiguration {
         return this.toSyncToolSpecifications(tools, serverProperties);
     }
     
-    private List<McpServerFeatures.SyncToolSpecification> toSyncToolSpecifications(List<ToolCallback> tools,
-                                                                                   McpServerProperties serverProperties) {
+    private List<McpServerFeatures.SyncToolSpecification> toSyncToolSpecifications(final List<ToolCallback> tools, final McpServerProperties serverProperties) {
         
         // De-duplicate tools by their name, keeping the first occurrence of each tool
         // name
         return tools.stream()
-                .collect(Collectors.toMap(tool -> tool.getToolDefinition().name(), // Key:
+                // Key:
+                .collect(Collectors.toMap(tool -> tool.getToolDefinition().name(),
                         // tool
                         // name
-                        tool -> tool, // Value: the tool itself
-                        (existing, replacement) -> existing)) // On duplicate key, keep the
+                        // Value: the tool itself
+                        tool -> tool,
+                        // On duplicate key, keep the
+                        (existing, replacement) -> existing))
                 // existing tool
-                .values()
-                .stream()
-                .map(tool -> {
+                .values().stream().map(tool -> {
                     String toolName = tool.getToolDefinition().name();
-                    MimeType mimeType = (serverProperties.getToolResponseMimeType().containsKey(toolName))
-                            ? MimeType.valueOf(serverProperties.getToolResponseMimeType().get(toolName)) : null;
+                    MimeType mimeType = (serverProperties.getToolResponseMimeType().containsKey(toolName)) ? MimeType.valueOf(serverProperties.getToolResponseMimeType().get(toolName)) : null;
                     return McpToolUtils.toSyncToolSpecification(tool, mimeType);
-                })
-                .toList();
+                }).toList();
     }
     
     @Bean
-    @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC",
-            matchIfMissing = true)
-    public McpSyncServer mcpSyncServer(McpServerTransportProvider transportProvider,
-                                       McpSchema.ServerCapabilities.Builder capabilitiesBuilder, McpServerProperties serverProperties,
-                                       ObjectProvider<List<SyncToolSpecification>> tools,
-                                       ObjectProvider<List<SyncResourceSpecification>> resources,
-                                       ObjectProvider<List<SyncPromptSpecification>> prompts,
+    @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC", matchIfMissing = true)
+    public McpSyncServer mcpSyncServer(final McpServerTransportProvider transportProvider,
+                                       final McpSchema.ServerCapabilities.Builder capabilitiesBuilder,
+                                       final McpServerProperties serverProperties,
+                                       final ObjectProvider<List<SyncToolSpecification>> tools,
+                                       final ObjectProvider<List<SyncResourceSpecification>> resources,
+                                       final ObjectProvider<List<SyncPromptSpecification>> prompts,
                                        // ObjectProvider<List<SyncCompletionSpecification>> completions,
-                                       ObjectProvider<BiConsumer<McpSyncServerExchange, List<Root>>> rootsChangeConsumers,
-                                       List<ToolCallbackProvider> toolCallbackProvider) {
+                                       final ObjectProvider<BiConsumer<McpSyncServerExchange, List<Root>>> rootsChangeConsumers,
+                                       final List<ToolCallbackProvider> toolCallbackProvider) {
         
-        McpSchema.Implementation serverInfo = new Implementation(serverProperties.getName(),
-                serverProperties.getVersion());
+        McpSchema.Implementation serverInfo = new Implementation(serverProperties.getName(), serverProperties.getVersion());
         
         // Create the server with both tool and resource capabilities
         SyncSpecification serverBuilder = McpServer.sync(transportProvider).serverInfo(serverInfo);
         
         List<SyncToolSpecification> toolSpecifications = new ArrayList<>(tools.stream().flatMap(List::stream).toList());
         
-        List<ToolCallback> providerToolCallbacks = toolCallbackProvider.stream()
-                .map(pr -> List.of(pr.getToolCallbacks()))
-                .flatMap(List::stream)
-                .filter(Objects::nonNull)
-                .toList();
+        List<ToolCallback> providerToolCallbacks = toolCallbackProvider.stream().map(pr -> List.of(pr.getToolCallbacks())).flatMap(List::stream).filter(Objects::nonNull).toList();
         
         toolSpecifications.addAll(this.toSyncToolSpecifications(providerToolCallbacks, serverProperties));
         
         if (!CollectionUtils.isEmpty(toolSpecifications)) {
             serverBuilder.tools(toolSpecifications);
             capabilitiesBuilder.tools(serverProperties.isToolChangeNotification());
-            logger.info("Registered tools: " + toolSpecifications.size() + ", notification: "
-                    + serverProperties.isToolChangeNotification());
+            LOGGER.info("Registered tools: " + toolSpecifications.size() + ", notification: " + serverProperties.isToolChangeNotification());
         }
         
         List<SyncResourceSpecification> resourceSpecifications = resources.stream().flatMap(List::stream).toList();
         if (!CollectionUtils.isEmpty(resourceSpecifications)) {
             serverBuilder.resources(resourceSpecifications);
             capabilitiesBuilder.resources(false, serverProperties.isResourceChangeNotification());
-            logger.info("Registered resources: " + resourceSpecifications.size() + ", notification: "
-                    + serverProperties.isResourceChangeNotification());
+            LOGGER.info("Registered resources: " + resourceSpecifications.size() + ", notification: " + serverProperties.isResourceChangeNotification());
         }
         
         List<SyncPromptSpecification> promptSpecifications = prompts.stream().flatMap(List::stream).toList();
         if (!CollectionUtils.isEmpty(promptSpecifications)) {
             serverBuilder.prompts(promptSpecifications);
             capabilitiesBuilder.prompts(serverProperties.isPromptChangeNotification());
-            logger.info("Registered prompts: " + promptSpecifications.size() + ", notification: "
-                    + serverProperties.isPromptChangeNotification());
+            LOGGER.info("Registered prompts: " + promptSpecifications.size() + ", notification: " + serverProperties.isPromptChangeNotification());
         }
         
         rootsChangeConsumers.ifAvailable(consumer -> {
             serverBuilder.rootsChangeHandler(consumer);
-            logger.info("Registered roots change consumer");
+            LOGGER.info("Registered roots change consumer");
         });
         
         serverBuilder.capabilities(capabilitiesBuilder.build());
@@ -205,8 +191,9 @@ public class McpServerPluginConfiguration {
     
     @Bean
     @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "ASYNC")
-    public List<McpServerFeatures.AsyncToolSpecification> asyncTools(ObjectProvider<List<ToolCallback>> toolCalls,
-                                                                     List<ToolCallback> toolCallbackList, McpServerProperties serverProperties) {
+    public List<McpServerFeatures.AsyncToolSpecification> asyncTools(final ObjectProvider<List<ToolCallback>> toolCalls,
+                                                                     final List<ToolCallback> toolCallbackList,
+                                                                     final McpServerProperties serverProperties) {
         
         List<ToolCallback> tools = new ArrayList<>(toolCalls.stream().flatMap(List::stream).toList());
         if (!CollectionUtils.isEmpty(toolCallbackList)) {
@@ -216,76 +203,66 @@ public class McpServerPluginConfiguration {
         return this.toAsyncToolSpecification(tools, serverProperties);
     }
     
-    private List<McpServerFeatures.AsyncToolSpecification> toAsyncToolSpecification(List<ToolCallback> tools,
-                                                                                    McpServerProperties serverProperties) {
+    private List<McpServerFeatures.AsyncToolSpecification> toAsyncToolSpecification(final List<ToolCallback> tools, final McpServerProperties serverProperties) {
         // De-duplicate tools by their name, keeping the first occurrence of each tool
         // name
-        return tools.stream()
-                .collect(Collectors.toMap(tool -> tool.getToolDefinition().name(), // Key:
+        // Key:
+        return tools.stream().collect(Collectors.toMap(tool -> tool.getToolDefinition().name(),
                         // tool
                         // name
-                        tool -> tool, // Value: the tool itself
-                        (existing, replacement) -> existing)) // On duplicate key, keep the
+                        // Value: the tool itself
+                        tool -> tool,
+                        // On duplicate key, keep the
+                        (existing, replacement) -> existing))
                 // existing tool
-                .values()
-                .stream()
-                .map(tool -> {
+                .values().stream().map(tool -> {
                     String toolName = tool.getToolDefinition().name();
-                    MimeType mimeType = (serverProperties.getToolResponseMimeType().containsKey(toolName))
-                            ? MimeType.valueOf(serverProperties.getToolResponseMimeType().get(toolName)) : null;
+                    MimeType mimeType = (serverProperties.getToolResponseMimeType().containsKey(toolName)) ? MimeType.valueOf(serverProperties.getToolResponseMimeType().get(toolName)) : null;
                     return McpToolUtils.toAsyncToolSpecification(tool, mimeType);
-                })
-                .toList();
+                }).toList();
     }
     
     @Bean
     @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "ASYNC")
-    public McpAsyncServer mcpAsyncServer(McpServerTransportProvider transportProvider,
-                                         McpSchema.ServerCapabilities.Builder capabilitiesBuilder, McpServerProperties serverProperties,
-                                         ObjectProvider<List<AsyncToolSpecification>> tools,
-                                         ObjectProvider<List<AsyncResourceSpecification>> resources,
-                                         ObjectProvider<List<AsyncPromptSpecification>> prompts,
+    public McpAsyncServer mcpAsyncServer(final McpServerTransportProvider transportProvider,
+                                         final McpSchema.ServerCapabilities.Builder capabilitiesBuilder,
+                                         final McpServerProperties serverProperties,
+                                         final ObjectProvider<List<AsyncToolSpecification>> tools,
+                                         final ObjectProvider<List<AsyncResourceSpecification>> resources,
+                                         final ObjectProvider<List<AsyncPromptSpecification>> prompts,
                                          // ObjectProvider<List<AsyncCompletionSpecification>> completions,
-                                         ObjectProvider<BiConsumer<McpAsyncServerExchange, List<McpSchema.Root>>> rootsChangeConsumer,
-                                         List<ToolCallbackProvider> toolCallbackProvider) {
+                                         final ObjectProvider<BiConsumer<McpAsyncServerExchange,
+                                                 List<McpSchema.Root>>> rootsChangeConsumer,
+                                         final List<ToolCallbackProvider> toolCallbackProvider) {
         
-        McpSchema.Implementation serverInfo = new Implementation(serverProperties.getName(),
-                serverProperties.getVersion());
+        McpSchema.Implementation serverInfo = new Implementation(serverProperties.getName(), serverProperties.getVersion());
         
         // Create the server with both tool and resource capabilities
         AsyncSpecification serverBuilder = McpServer.async(transportProvider).serverInfo(serverInfo);
         
-        List<AsyncToolSpecification> toolSpecifications = new ArrayList<>(
-                tools.stream().flatMap(List::stream).toList());
-        List<ToolCallback> providerToolCallbacks = toolCallbackProvider.stream()
-                .map(pr -> List.of(pr.getToolCallbacks()))
-                .flatMap(List::stream)
-                .filter(Objects::nonNull)
-                .toList();
+        List<AsyncToolSpecification> toolSpecifications = new ArrayList<>(tools.stream().flatMap(List::stream).toList());
+        List<ToolCallback> providerToolCallbacks = toolCallbackProvider.stream().map(pr -> List.of(pr.getToolCallbacks())).flatMap(List::stream).filter(Objects::nonNull).toList();
         
         toolSpecifications.addAll(this.toAsyncToolSpecification(providerToolCallbacks, serverProperties));
         
         if (!CollectionUtils.isEmpty(toolSpecifications)) {
             serverBuilder.tools(toolSpecifications);
             capabilitiesBuilder.tools(serverProperties.isToolChangeNotification());
-            logger.info("Registered tools: " + toolSpecifications.size() + ", notification: "
-                    + serverProperties.isToolChangeNotification());
+            LOGGER.info("Registered tools: " + toolSpecifications.size() + ", notification: " + serverProperties.isToolChangeNotification());
         }
         
         List<AsyncResourceSpecification> resourceSpecifications = resources.stream().flatMap(List::stream).toList();
         if (!CollectionUtils.isEmpty(resourceSpecifications)) {
             serverBuilder.resources(resourceSpecifications);
             capabilitiesBuilder.resources(false, serverProperties.isResourceChangeNotification());
-            logger.info("Registered resources: " + resourceSpecifications.size() + ", notification: "
-                    + serverProperties.isResourceChangeNotification());
+            LOGGER.info("Registered resources: " + resourceSpecifications.size() + ", notification: " + serverProperties.isResourceChangeNotification());
         }
         
         List<AsyncPromptSpecification> promptSpecifications = prompts.stream().flatMap(List::stream).toList();
         if (!CollectionUtils.isEmpty(promptSpecifications)) {
             serverBuilder.prompts(promptSpecifications);
             capabilitiesBuilder.prompts(serverProperties.isPromptChangeNotification());
-            logger.info("Registered prompts: " + promptSpecifications.size() + ", notification: "
-                    + serverProperties.isPromptChangeNotification());
+            LOGGER.info("Registered prompts: " + promptSpecifications.size() + ", notification: " + serverProperties.isPromptChangeNotification());
         }
         
         rootsChangeConsumer.ifAvailable(consumer -> {
@@ -294,7 +271,7 @@ public class McpServerPluginConfiguration {
                 return Mono.empty();
             };
             serverBuilder.rootsChangeHandler(asyncConsumer);
-            logger.info("Registered roots change consumer");
+            LOGGER.info("Registered roots change consumer");
         });
         
         serverBuilder.capabilities(capabilitiesBuilder.build());
@@ -321,15 +298,14 @@ public class McpServerPluginConfiguration {
     /**
      * Health filter.
      *
-     * @param dispatcherHandler   the dispatcher handler
+     * @param dispatcherHandler the dispatcher handler
      * @param mcpServerProperties the mcp server properties
      * @return the web filter
      */
     @Bean
     @Order(-99)
     @ConditionalOnProperty(name = "shenyu.mcp.server.enabled", havingValue = "true", matchIfMissing = true)
-    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler,
-                               final McpServerProperties mcpServerProperties) {
+    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler, final McpServerProperties mcpServerProperties) {
         return new McpServerFilter(dispatcherHandler, mcpServerProperties.getSseMessageEndpoint());
     }
     
@@ -337,7 +313,7 @@ public class McpServerPluginConfiguration {
     public ToolCallbackProvider shenyuTools() {
         return MethodToolCallbackProvider.builder().toolObjects(new ShenyuDefaultTools()).build();
     }
-
+    
     /**
      * Mcp Server plugin.
      *
@@ -347,9 +323,10 @@ public class McpServerPluginConfiguration {
     public ShenyuPlugin mcpServerPlugin() {
         return new McpServerPlugin();
     }
-
+    
     /**
      * Mcp Server plugin data handler.
+     * @param shenyuMcpToolsManager the mcp tools manager
      *
      * @return the plugin data handler
      */
