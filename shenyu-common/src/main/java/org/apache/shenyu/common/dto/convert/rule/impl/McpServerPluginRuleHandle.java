@@ -31,27 +31,22 @@ import java.util.Objects;
 public class McpServerPluginRuleHandle {
     
     /**
-     * Name of the tool description.
+     * Name of the tool .
      */
     private String name;
     
     /**
-     * Description of the tool description.
+     * Description of the tool .
      */
     private String description;
     
     /**
-     * Request method of the tool description.
+     * requestTemplate of the tool .
      */
-    private String requestMethod;
+    private String requestTemplate;
     
     /**
-     * Request path of the tool description.
-     */
-    private String requestPath;
-    
-    /**
-     * Parameters of the tool description.
+     * Parameters of the tool .
      */
     private List<McpParameter> parameters = Lists.newArrayList();
     
@@ -92,40 +87,12 @@ public class McpServerPluginRuleHandle {
         this.description = description;
     }
     
-    /**
-     * Getter for requestMethod.
-     *
-     * @return requestMethod
-     */
-    public String getRequestMethod() {
-        return requestMethod;
+    public String getRequestTemplate() {
+        return requestTemplate;
     }
     
-    /**
-     * Setter for requestMethod.
-     *
-     * @param requestMethod requestMethod
-     */
-    public void setRequestMethod(final String requestMethod) {
-        this.requestMethod = requestMethod;
-    }
-    
-    /**
-     * Getter for requestPath.
-     *
-     * @return requestPath
-     */
-    public String getRequestPath() {
-        return requestPath;
-    }
-    
-    /**
-     * Setter for requestPath.
-     *
-     * @param requestPath requestPath
-     */
-    public void setRequestPath(final String requestPath) {
-        this.requestPath = requestPath;
+    public void setRequestTemplate(final String requestTemplate) {
+        this.requestTemplate = requestTemplate;
     }
     
     /**
@@ -151,8 +118,6 @@ public class McpServerPluginRuleHandle {
         McpServerPluginRuleHandle mcpServerPluginRuleHandle = new McpServerPluginRuleHandle();
         mcpServerPluginRuleHandle.setName("");
         mcpServerPluginRuleHandle.setDescription("");
-        mcpServerPluginRuleHandle.setRequestMethod("GET");
-        mcpServerPluginRuleHandle.setRequestPath("");
         mcpServerPluginRuleHandle.setParameters(new ArrayList<>(0));
         return mcpServerPluginRuleHandle;
     }
@@ -168,23 +133,21 @@ public class McpServerPluginRuleHandle {
         McpServerPluginRuleHandle that = (McpServerPluginRuleHandle) o;
         return Objects.equals(name, that.name)
                 && Objects.equals(description, that.description)
-                && Objects.equals(requestMethod, that.requestMethod)
-                && Objects.equals(requestPath, that.requestPath)
+                && Objects.equals(requestTemplate, that.requestTemplate)
                 && Objects.equals(parameters, that.parameters);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, requestMethod, requestPath, parameters);
+        return Objects.hash(name, description, requestTemplate, parameters);
     }
     
     @Override
     public String toString() {
-        return String.format("McpServerPluginRuleHandle: name: %s, description: %s, requestMethod: %s, requestPath: %s, parameters: %s",
+        return String.format("McpServerPluginRuleHandle: name: %s, description: %s, requestTemplate: %s, parameters: %s",
                 name,
                 description,
-                requestMethod,
-                requestPath,
+                requestTemplate,
                 parameters);
     }
 }

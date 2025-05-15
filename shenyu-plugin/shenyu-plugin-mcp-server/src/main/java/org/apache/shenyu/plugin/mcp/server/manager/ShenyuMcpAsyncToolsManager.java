@@ -41,8 +41,7 @@ public class ShenyuMcpAsyncToolsManager implements ShenyuMcpToolsManager {
     @Override
     public void addTool(final String name,
                   final String description,
-                  final String requestMethod,
-                  final String requestPath,
+                  final String requestTemplate,
                   final String inputSchema) {
         // remove first for overwrite
         try {
@@ -55,12 +54,11 @@ public class ShenyuMcpAsyncToolsManager implements ShenyuMcpToolsManager {
                 ShenyuToolDefinition.builder()
                         .name(name)
                         .description(description)
-                        .requestMethod(requestMethod)
-                        .requestPath(requestPath)
+                        .requestTemplate(requestTemplate)
                         .inputSchema(inputSchema)
                         .build();
-        LOGGER.debug("Adding tool, name: {}, description: {}, requestMethod: {}, requestPath: {}, inputSchema: {}",
-                name, description, requestMethod, requestPath, inputSchema);
+        LOGGER.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}",
+                name, description, requestTemplate, inputSchema);
         ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
         for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
             asyncServer.addTool(asyncToolSpecification).block();

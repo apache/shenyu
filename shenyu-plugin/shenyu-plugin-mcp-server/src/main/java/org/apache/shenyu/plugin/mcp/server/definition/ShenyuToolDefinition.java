@@ -28,21 +28,19 @@ public class ShenyuToolDefinition implements ToolDefinition {
     
     private final String description;
     
-    private final String requestMethod;
-    
-    private final String requestPath;
+    private final String requestTemplate;
     
     private final String inputSchema;
     
-    public ShenyuToolDefinition(final String name, final String description, final String requestMethod, final String requestPath, final String inputSchema) {
+    public ShenyuToolDefinition(final String name, final String description, final String requestTemplate, final String inputSchema) {
         Assert.hasText(name, "name cannot be null or empty");
         Assert.hasText(description, "description cannot be null or empty");
+        Assert.hasText(requestTemplate, "requestTemplate cannot be null or empty");
         Assert.hasText(inputSchema, "inputSchema cannot be null or empty");
         this.name = name;
         this.description = description;
         this.inputSchema = inputSchema;
-        this.requestMethod = StringUtils.isNoneBlank(requestMethod) ? requestMethod : "GET";
-        this.requestPath = StringUtils.isNoneBlank(requestPath) ? requestPath : name;
+        this.requestTemplate = requestTemplate;
     }
     
     public static ShenyuToolDefinition.Builder builder() {
@@ -61,12 +59,8 @@ public class ShenyuToolDefinition implements ToolDefinition {
         return this.inputSchema;
     }
     
-    public String requestMethod() {
-        return this.requestMethod;
-    }
-    
-    public String requestPath() {
-        return this.requestPath;
+    public String requestTemplate() {
+        return this.requestTemplate;
     }
     
     public static final class Builder {
@@ -75,9 +69,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
         
         private String description;
         
-        private String requestMethod;
-        
-        private String requestPath;
+        private String requestTemplate;
         
         private String inputSchema;
         
@@ -94,13 +86,8 @@ public class ShenyuToolDefinition implements ToolDefinition {
             return this;
         }
         
-        public ShenyuToolDefinition.Builder requestMethod(final String requestMethod) {
-            this.requestMethod = requestMethod;
-            return this;
-        }
-        
-        public ShenyuToolDefinition.Builder requestPath(final String requestPath) {
-            this.requestPath = requestPath;
+        public ShenyuToolDefinition.Builder requestTemplate(final String requestTemplate) {
+            this.requestTemplate = requestTemplate;
             return this;
         }
         
@@ -116,8 +103,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
             
             return new ShenyuToolDefinition(this.name,
                     this.description,
-                    this.requestMethod,
-                    this.requestPath,
+                    this.requestTemplate,
                     this.inputSchema);
         }
     }

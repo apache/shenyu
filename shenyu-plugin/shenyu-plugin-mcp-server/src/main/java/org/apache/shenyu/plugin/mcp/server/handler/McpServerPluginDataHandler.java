@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.McpParameter;
 import org.apache.shenyu.common.dto.convert.rule.impl.McpServerPluginRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -74,17 +76,19 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            McpServerPluginRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(s, McpServerPluginRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), ruleHandle);
+            McpServerPluginRuleHandle toolHandle = GsonUtils.getInstance().fromJson(s, McpServerPluginRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), toolHandle);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
             
+            List<McpParameter> parameters = toolHandle.getParameters();
+            
+            
             shenyuMcpToolsManager.addTool(
-                    StringUtils.isBlank(ruleHandle.getName()) ? ruleData.getName() : ruleHandle.getName(),
-                    ruleHandle.getDescription(),
-                    StringUtils.isBlank(ruleHandle.getRequestMethod()) ? "GET" : ruleHandle.getRequestMethod(),
-                    StringUtils.isBlank(ruleHandle.getRequestPath()) ? ruleData.getName() : ruleHandle.getRequestPath(),
+                    StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() : toolHandle.getName(),
+                    toolHandle.getDescription(),
+                    toolHandle.getRequestTemplate(),
                     // TODO : parameters
                     JsonSchemaUtil.emptySchema());
         });

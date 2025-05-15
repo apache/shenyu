@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.mcp.server.manager;
 
 public interface ShenyuMcpToolsManager {
     
-    void addTool(String name, String description, String requestMethod, String requestPath, String inputSchema);
+    void addTool(String name, String description, String requestTemplate, String inputSchema);
  
     void removeTool(String name);
 }
