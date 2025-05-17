@@ -54,7 +54,7 @@ public class ShenyuMcpAsyncToolsManager implements ShenyuMcpToolsManager {
                 ShenyuToolDefinition.builder()
                         .name(name)
                         .description(description)
-                        .requestTemplate(requestTemplate)
+                        .requestConfig(requestTemplate)
                         .inputSchema(inputSchema)
                         .build();
         LOGGER.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}",

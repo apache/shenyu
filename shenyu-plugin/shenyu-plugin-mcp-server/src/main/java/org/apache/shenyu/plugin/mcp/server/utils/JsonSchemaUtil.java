@@ -20,13 +20,16 @@ package org.apache.shenyu.plugin.mcp.server.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.dto.convert.rule.impl.McpParameter;
 import org.springframework.ai.util.json.JsonParser;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 public final class JsonSchemaUtil {
-    
+
     public static String emptySchema(final SchemaOption... schemaOptions) {
         ObjectNode schema = JsonParser.getObjectMapper().createObjectNode();
         schema.put("$schema", SchemaVersion.DRAFT_2020_12.getIdentifier());
@@ -34,17 +37,46 @@ public final class JsonSchemaUtil {
         processSchemaOptions(schemaOptions, schema);
         return schema.toPrettyString();
     }
-    
+
+    /**
+     * Create a JSON schema from a list of parameters.
+     *
+     * @param parameters    the parameter list
+     * @param schemaOptions optional schema options
+     * @return the JSON schema as a string
+     */
+    public static String createParameterSchema(final List<McpParameter> parameters,
+            final SchemaOption... schemaOptions) {
+        if (CollectionUtils.isEmpty(parameters)) {
+            return emptySchema(schemaOptions);
+        }
+
+        ObjectNode schema = JsonParser.getObjectMapper().createObjectNode();
+        schema.put("$schema", SchemaVersion.DRAFT_2020_12.getIdentifier());
+        schema.put("type", "object");
+
+        ObjectNode properties = schema.putObject("properties");
+        for (McpParameter parameter : parameters) {
+            ObjectNode property = properties.putObject(parameter.getName());
+            property.put("type", "string");
+            property.put("description", parameter.getDescription());
+        }
+
+        processSchemaOptions(schemaOptions, schema);
+        return schema.toPrettyString();
+    }
+
     private static void processSchemaOptions(final SchemaOption[] schemaOptions, final ObjectNode schema) {
-        if (Stream.of(schemaOptions).noneMatch(option -> option == SchemaOption.ALLOW_ADDITIONAL_PROPERTIES_BY_DEFAULT)) {
+        if (Stream.of(schemaOptions)
+                .noneMatch(option -> option == SchemaOption.ALLOW_ADDITIONAL_PROPERTIES_BY_DEFAULT)) {
             schema.put("additionalProperties", false);
         }
-        
+
         if (Stream.of(schemaOptions).anyMatch(option -> option == SchemaOption.UPPER_CASE_TYPE_VALUES)) {
             convertTypeValuesToUpperCase(schema);
         }
     }
-    
+
     public static void convertTypeValuesToUpperCase(final ObjectNode node) {
         if (node.isObject()) {
             node.fields().forEachRemaining(entry -> {

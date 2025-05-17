@@ -158,13 +158,12 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson) {
         ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
-        String requestMethod = shenyuToolDefinition.requestMethod();
-        String requestPath = shenyuToolDefinition.requestPath();
-        LOG.info("requestMethod: {}, requestPath: {}", requestMethod, requestPath);
+        String requestTemplate = shenyuToolDefinition.requestTemplate();
+        LOG.info("requestTemplate: {}", requestTemplate);
         return exchange.mutate()
                 .request(exchange.getRequest().mutate()
-                        .method(HttpMethod.valueOf(requestMethod))
-                        .path(requestPath)
+//                        .method(HttpMethod.valueOf(requestMethod))
+//                        .path(requestPath)
                         .header("sessionId", sessionId)
                         .header("Accept", "application/json")
                         .header("Content-Type", "application/json")

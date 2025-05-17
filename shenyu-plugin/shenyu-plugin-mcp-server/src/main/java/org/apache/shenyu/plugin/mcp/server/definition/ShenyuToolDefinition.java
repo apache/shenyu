@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.mcp.server.definition;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.tool.definition.ToolDefinition;
-import org.springframework.ai.tool.util.ToolUtils;
+import org.springframework.ai.tool.support.ToolUtils;
 import org.springframework.util.Assert;
 
 public class ShenyuToolDefinition implements ToolDefinition {
@@ -28,19 +28,19 @@ public class ShenyuToolDefinition implements ToolDefinition {
     
     private final String description;
     
-    private final String requestTemplate;
+    private final String requestConfig;
     
     private final String inputSchema;
     
-    public ShenyuToolDefinition(final String name, final String description, final String requestTemplate, final String inputSchema) {
+    public ShenyuToolDefinition(final String name, final String description, final String requestConfig, final String inputSchema) {
         Assert.hasText(name, "name cannot be null or empty");
         Assert.hasText(description, "description cannot be null or empty");
-        Assert.hasText(requestTemplate, "requestTemplate cannot be null or empty");
+        Assert.hasText(requestConfig, "requestTemplate cannot be null or empty");
         Assert.hasText(inputSchema, "inputSchema cannot be null or empty");
         this.name = name;
         this.description = description;
         this.inputSchema = inputSchema;
-        this.requestTemplate = requestTemplate;
+        this.requestConfig = requestConfig;
     }
     
     public static ShenyuToolDefinition.Builder builder() {
@@ -60,7 +60,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
     }
     
     public String requestTemplate() {
-        return this.requestTemplate;
+        return this.requestConfig;
     }
     
     public static final class Builder {
@@ -69,7 +69,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
         
         private String description;
         
-        private String requestTemplate;
+        private String requestConfig;
         
         private String inputSchema;
         
@@ -86,8 +86,8 @@ public class ShenyuToolDefinition implements ToolDefinition {
             return this;
         }
         
-        public ShenyuToolDefinition.Builder requestTemplate(final String requestTemplate) {
-            this.requestTemplate = requestTemplate;
+        public ShenyuToolDefinition.Builder requestConfig(final String requestConfig) {
+            this.requestConfig = requestConfig;
             return this;
         }
         
@@ -103,7 +103,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
             
             return new ShenyuToolDefinition(this.name,
                     this.description,
-                    this.requestTemplate,
+                    this.requestConfig,
                     this.inputSchema);
         }
     }

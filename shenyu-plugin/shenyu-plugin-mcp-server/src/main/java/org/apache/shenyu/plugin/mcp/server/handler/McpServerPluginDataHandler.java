@@ -44,15 +44,16 @@ import java.util.function.Supplier;
  * The type McpServer plugin data handler.
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
-    
-    public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-    
+
+    public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(
+            CommonHandleCache::new);
+
     private final ShenyuMcpToolsManager shenyuMcpToolsManager;
-    
+
     public McpServerPluginDataHandler(final ShenyuMcpToolsManager shenyuMcpToolsManager) {
         this.shenyuMcpToolsManager = shenyuMcpToolsManager;
     }
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
@@ -62,17 +63,18 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
         if (!selectorData.getContinued()) {
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), McpServerPluginRuleHandle.newInstance());
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE),
+                    McpServerPluginRuleHandle.newInstance());
         }
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
@@ -81,18 +83,20 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
-            
+
             List<McpParameter> parameters = toolHandle.getParameters();
-            
+
+            // Create JSON schema from parameters
+            String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
+
             shenyuMcpToolsManager.addTool(
                     StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() : toolHandle.getName(),
                     toolHandle.getDescription(),
-                    toolHandle.getRequestTemplate(),
-                    // TODO : parameters
-                    JsonSchemaUtil.emptySchema());
+                    toolHandle.getRequestConfig(),
+                    inputSchema);
         });
     }
-    
+
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
@@ -101,10 +105,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         });
         MetaDataCache.getInstance().clean();
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.MCP_SERVER.getName();
     }
-    
+
 }

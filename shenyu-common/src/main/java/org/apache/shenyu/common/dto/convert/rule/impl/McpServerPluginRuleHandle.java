@@ -43,7 +43,7 @@ public class McpServerPluginRuleHandle {
     /**
      * requestTemplate of the tool .
      */
-    private String requestTemplate;
+    private String requestConfig;
     
     /**
      * Parameters of the tool .
@@ -87,12 +87,22 @@ public class McpServerPluginRuleHandle {
         this.description = description;
     }
     
-    public String getRequestTemplate() {
-        return requestTemplate;
+    /**
+     * Getter for requestConfig.
+     *
+     * @return requestConfig
+     */
+    public String getRequestConfig() {
+        return requestConfig;
     }
     
-    public void setRequestTemplate(final String requestTemplate) {
-        this.requestTemplate = requestTemplate;
+    /**
+     * Setter for requestConfig.
+     *
+     * @param requestConfig requestConfig
+     */
+    public void setRequestConfig(final String requestConfig) {
+        this.requestConfig = requestConfig;
     }
     
     /**
@@ -133,21 +143,21 @@ public class McpServerPluginRuleHandle {
         McpServerPluginRuleHandle that = (McpServerPluginRuleHandle) o;
         return Objects.equals(name, that.name)
                 && Objects.equals(description, that.description)
-                && Objects.equals(requestTemplate, that.requestTemplate)
+                && Objects.equals(requestConfig, that.requestConfig)
                 && Objects.equals(parameters, that.parameters);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, requestTemplate, parameters);
+        return Objects.hash(name, description, requestConfig, parameters);
     }
     
     @Override
     public String toString() {
-        return String.format("McpServerPluginRuleHandle: name: %s, description: %s, requestTemplate: %s, parameters: %s",
+        return String.format("McpServerPluginRuleHandle: name: %s, description: %s, requestConfig: %s, parameters: %s",
                 name,
                 description,
-                requestTemplate,
+                requestConfig,
                 parameters);
     }
 }

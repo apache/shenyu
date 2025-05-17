@@ -60,7 +60,7 @@ public class JsonOperator implements Operator {
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingRuleHandle paramMappingRuleHandle) {
         ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-        Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.defer(() -> Mono.just(""))).flatMap(originalBody -> {
+        Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.just("")).flatMap(originalBody -> {
             LOG.info("get body data success data:{}", originalBody);
             //process entity
             String modify = operation(originalBody, paramMappingRuleHandle);
