@@ -61,7 +61,7 @@ public class FormDataOperator implements Operator {
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingRuleHandle paramMappingRuleHandle) {
         return exchange.getFormData()
-                .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
+                .switchIfEmpty(Mono.just(new LinkedMultiValueMap<>()))
                 .flatMap(multiValueMap -> {
                     if (Objects.isNull(multiValueMap) || multiValueMap.isEmpty()) {
                         return shenyuPluginChain.execute(exchange);
