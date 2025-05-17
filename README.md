@@ -148,7 +148,9 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
     }]
 }'
 ```
-
+> If the backend service handling the request is running on your host machine, please set `upstreamUrl` to `host.docker.internal:8080` or specify IP address  if reachable from the container in the above command.
+> 
+> Add `--network host` to docker run command instead of `--net shenyu` also works correctly.
 * Proxy request ：http://localhost:9195/helloworld 
 
 ```json
