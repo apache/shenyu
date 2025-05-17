@@ -122,16 +122,16 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, ob
 VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858');
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"1","defaultValue":"OpenAI","placeholder":"provider","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"0","defaultValue":"OpenAI","placeholder":"provider","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"1","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"1","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507044', '50', 'apiKey', 'apiKey', 2, 1, 3, '{"required":"1","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1722804548510507044', '50', 'apiKey', 'apiKey', 2, 1, 3, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507045', '50', 'temperature', 'temperature', 2, 1, 4, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
