@@ -84,7 +84,6 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             
             List<McpParameter> parameters = toolHandle.getParameters();
             
-            
             shenyuMcpToolsManager.addTool(
                     StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() : toolHandle.getName(),
                     toolHandle.getDescription(),
