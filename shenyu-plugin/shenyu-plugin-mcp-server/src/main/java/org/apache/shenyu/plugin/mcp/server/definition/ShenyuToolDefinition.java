@@ -59,7 +59,7 @@ public class ShenyuToolDefinition implements ToolDefinition {
         return this.inputSchema;
     }
     
-    public String requestTemplate() {
+    public String requestConfig() {
         return this.requestConfig;
     }
     

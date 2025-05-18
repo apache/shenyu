@@ -23,16 +23,15 @@ import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpServerSession;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.decorator.ShenyuMcpResponseDecorator;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
+import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
@@ -156,19 +155,95 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson) {
-        ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
-        ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
-        String requestTemplate = shenyuToolDefinition.requestTemplate();
-        LOG.info("requestTemplate: {}", requestTemplate);
-        return exchange.mutate()
-                .request(exchange.getRequest().mutate()
-//                        .method(HttpMethod.valueOf(requestMethod))
-//                        .path(requestPath)
-                        .header("sessionId", sessionId)
-                        .header("Accept", "application/json")
-                        .header("Content-Type", "application/json")
-                        .build())
-                .build();
+        final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
+        final ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
+        final String requestConfig = shenyuToolDefinition.requestConfig();
+        LOG.info("requestConfig: {}", requestConfig);
+
+        final JsonObject configJson = GsonUtils.getInstance().fromJson(requestConfig, JsonObject.class);
+        final JsonObject requestTemplate = configJson.getAsJsonObject("requestTemplate");
+        final String urlTemplate = requestTemplate.get("url").getAsString();
+        final String method = requestTemplate.has("method") ? requestTemplate.get("method").getAsString() : "GET";
+        final JsonObject argsPosition = configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition")
+                : new JsonObject();
+
+        final String path = buildPath(urlTemplate, argsPosition, inputJson, requestTemplate);
+        final org.springframework.http.server.reactive.ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
+                exchange, method, path, sessionId, requestTemplate);
+        final boolean argsToJsonBody = requestTemplate.has("argsToJsonBody")
+                && requestTemplate.get("argsToJsonBody").getAsBoolean();
+        final JsonObject bodyJson = buildBodyJson(argsToJsonBody, argsPosition, inputJson);
+
+        ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
+        if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
+            mutatedExchange = new org.apache.shenyu.plugin.mcp.server.utils.BodyWriterExchange(mutatedExchange,
+                    bodyJson.toString());
+        }
+        return mutatedExchange;
+    }
+
+    private String buildPath(final String urlTemplate, final JsonObject argsPosition, final JsonObject inputJson,
+            final JsonObject requestTemplate) {
+        String path = urlTemplate;
+        StringBuilder queryBuilder = new StringBuilder();
+        for (String key : argsPosition.keySet()) {
+            String position = argsPosition.get(key).getAsString();
+            if ("path".equals(position) && inputJson.has(key)) {
+                path = path.replace("{{." + key + "}}", inputJson.get(key).getAsString());
+            } else if ("query".equals(position) && inputJson.has(key)) {
+                if (queryBuilder.length() > 0) {
+                    queryBuilder.append("&");
+                }
+                queryBuilder.append(key).append("=").append(inputJson.get(key).getAsString());
+            }
+        }
+        path = path.replaceAll("\\{\\{\\.[^}]+}}", "");
+        boolean argsToUrlParam = requestTemplate.has("argsToUrlParam")
+                && requestTemplate.get("argsToUrlParam").getAsBoolean();
+        if (argsToUrlParam && queryBuilder.length() > 0) {
+            if (path.contains("?")) {
+                path = path + "&" + queryBuilder;
+            } else {
+                path = path + "?" + queryBuilder;
+            }
+        }
+        return path;
+    }
+
+    private org.springframework.http.server.reactive.ServerHttpRequest.Builder buildRequestBuilder(
+            final ServerWebExchange exchange, final String method, final String path, final String sessionId,
+            final JsonObject requestTemplate) {
+        org.springframework.http.server.reactive.ServerHttpRequest.Builder requestBuilder = exchange.getRequest()
+                .mutate()
+                .method(org.springframework.http.HttpMethod.valueOf(method))
+                .path(path)
+                .header("sessionId", sessionId)
+                .header("Accept", "application/json");
+        if (requestTemplate.has("headers")) {
+            for (var headerElem : requestTemplate.getAsJsonArray("headers")) {
+                JsonObject headerObj = headerElem.getAsJsonObject();
+                String key = headerObj.get("key").getAsString();
+                String value = headerObj.get("value").getAsString();
+                requestBuilder.header(key, value);
+            }
+        } else {
+            requestBuilder.header("Content-Type", "application/json");
+        }
+        return requestBuilder;
+    }
+
+    private JsonObject buildBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition,
+            final JsonObject inputJson) {
+        JsonObject bodyJson = new JsonObject();
+        if (argsToJsonBody) {
+            for (String key : argsPosition.keySet()) {
+                String position = argsPosition.get(key).getAsString();
+                if ("body".equals(position) && inputJson.has(key)) {
+                    bodyJson.add(key, inputJson.get(key));
+                }
+            }
+        }
+        return bodyJson;
     }
 
 }
