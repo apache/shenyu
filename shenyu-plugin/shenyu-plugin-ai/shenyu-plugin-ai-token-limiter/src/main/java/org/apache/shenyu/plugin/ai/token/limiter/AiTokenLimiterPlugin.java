@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -152,32 +153,22 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         String key;
         // Determine the key based on the configured key resolver type
         AiTokenLimiterEnum tokenLimiterEnum = AiTokenLimiterEnum.getByName(tokenLimitType);
-        
-        switch (tokenLimiterEnum) {
-            case IP:
-                key = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
-                break;
-            case URI:
-                key = request.getURI().getPath();
-                break;
-            case HEADER:
-                key = request.getHeaders().getFirst(keyName);
-                break;
-            case PARAMETER:
-                key = request.getQueryParams().getFirst(keyName);
-                break;
-            case COOKIE:
+
+        key = switch (tokenLimiterEnum) {
+            case IP -> Objects.requireNonNull(request.getRemoteAddress()).getHostString();
+            case URI -> request.getURI().getPath();
+            case HEADER -> request.getHeaders().getFirst(keyName);
+            case PARAMETER -> request.getQueryParams().getFirst(keyName);
+            case COOKIE -> {
                 HttpCookie cookie = request.getCookies().getFirst(keyName);
-                key = Objects.nonNull(cookie) ? cookie.getValue() : "";
-                break;
-            case CONTEXT_PATH:
-            default:
-                key = exchange.getAttribute(Constants.CONTEXT_PATH);
-        }
+                yield Objects.nonNull(cookie) ? cookie.getValue() : "";
+            }
+            default -> exchange.getAttribute(Constants.CONTEXT_PATH);
+        };
         
         return StringUtils.isBlank(key) ? "" : key;
     }
-    
+
     private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
         // Record token usage with expiration
         reactiveRedisTemplate.opsForValue()
@@ -219,36 +210,56 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
-            
-            BodyWriter writer = new BodyWriter();
+
+            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+            HttpHeaders headers = serverHttpResponse.getHeaders();
             return Flux.from(body).doOnNext(buffer -> {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
                     bufferIterator.forEachRemaining(byteBuffer -> {
-                        // Handle gzip encoded response
-                        if (serverHttpResponse.getHeaders().containsKey(Constants.CONTENT_ENCODING)
-                                && serverHttpResponse.getHeaders().getFirst(Constants.CONTENT_ENCODING).contains(Constants.HTTP_ACCEPT_ENCODING_GZIP)) {
-                            try {
-                                ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
-                                byte[] compressed = new byte[readOnlyBuffer.remaining()];
-                                readOnlyBuffer.get(compressed);
-                                
-                                // Decompress gzipped content
-                                byte[] decompressed = decompressGzip(compressed);
-                                writer.write(ByteBuffer.wrap(decompressed));
-                                
-                            } catch (IOException e) {
-                                LOG.error("Failed to decompress gzipped response", e);
-                                writer.write(byteBuffer.asReadOnlyBuffer());
-                            }
+                        ByteBuffer ro = byteBuffer.asReadOnlyBuffer();
+                        byte[] bytes = new byte[ro.remaining()];
+                        ro.get(bytes);
+                        if (headers.containsKey(Constants.CONTENT_ENCODING)
+                                && headers.getFirst(Constants.CONTENT_ENCODING)
+                                .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP)) {
+                            compressedStream.write(bytes, 0, bytes.length);
                         } else {
-                            writer.write(byteBuffer.asReadOnlyBuffer());
+                            // 如果不是 gzip，直接累积为明文
+                            compressedStream.write(bytes, 0, bytes.length);
                         }
                     });
+                } catch (Exception e) {
+                    LOG.error("Failed to accumulate bytes", e);
                 }
             }).doFinally(signal -> {
-                String responseBody = writer.output();
+                // One-time decompression after the flow is finished
+                String text;
+                HttpHeaders h = headers;
+                try {
+                    if (h.containsKey(Constants.CONTENT_ENCODING)
+                            && h.getFirst(Constants.CONTENT_ENCODING)
+                            .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP)) {
+                        // 全量解压
+                        try (GZIPInputStream gis = new GZIPInputStream(
+                                new ByteArrayInputStream(compressedStream.toByteArray()));
+                             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                            byte[] buf = new byte[4096];
+                            int len;
+                            while ((len = gis.read(buf)) > 0) {
+                                out.write(buf, 0, len);
+                            }
+                            text = out.toString(StandardCharsets.UTF_8);
+                        }
+                    } else {
+                        // 非 gzip，直接按 UTF-8 解析
+                        text = compressedStream.toString(StandardCharsets.UTF_8);
+                    }
+                } catch (IOException ex) {
+                    LOG.error("Bulk GZIP decompress failed", ex);
+                    text = new String(compressedStream.toByteArray(), StandardCharsets.UTF_8);
+                }
                 AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
-                long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(responseBody);
+                long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(text);
                 tokensRecorder.accept(tokens);
             });
         }
