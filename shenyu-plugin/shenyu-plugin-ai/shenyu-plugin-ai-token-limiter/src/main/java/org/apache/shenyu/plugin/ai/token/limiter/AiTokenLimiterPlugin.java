@@ -50,7 +50,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
-import java.io.ByteArrayInputStream;
+//import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -63,7 +63,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.zip.DataFormatException;
-import java.util.zip.GZIPInputStream;
+//import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 
 /**
@@ -231,7 +231,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 ro.get(inBytes);
 
                                 if (isGzip) {
-                                    int offset = 0, len = inBytes.length;
+                                    int offset = 0;
+                                    int len = inBytes.length;
                                     if (!headerSkipped.get()) {
                                         offset = skipGzipHeader(inBytes);
                                         headerSkipped.set(true);
@@ -255,7 +256,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     })
                     .doFinally(signal -> {
                         // release inflater
-                        if (inflater != null) {
+                        if (Objects.nonNull(inflater)) {
                             inflater.end();
                         }
                         String responseBody = writer.output();
@@ -265,19 +266,29 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     });
         }
 
-        private int skipGzipHeader(byte[] b) {
+        private int skipGzipHeader(final byte[] b) {
             int pos = 10;
-            int flg = b[3];
+            int flg = b[3] & 0xFF;
+
             if ((flg & 0x04) != 0) {
-                int xlen = (b[10] & 0xFF) | ((b[11] & 0xFF) << 8);
+                int xlen = (b[pos] & 0xFF) | ((b[pos + 1] & 0xFF) << 8);
                 pos += 2 + xlen;
             }
+
             if ((flg & 0x08) != 0) {
-                while (b[pos++] != 0) {}
+                while (b[pos] != 0) {
+                    pos++;
+                }
+                pos++;
             }
+
             if ((flg & 0x10) != 0) {
-                while (b[pos++] != 0) {}
+                while (b[pos] != 0) {
+                    pos++;
+                }
+                pos++;
             }
+
             if ((flg & 0x02) != 0) {
                 pos += 2;
             }
