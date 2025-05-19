@@ -62,7 +62,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
 
 /**
  * Shenyu ai token limiter plugin.
@@ -210,55 +212,78 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
-            // accumulate all response bytes (compressed or plaintext)
-            ByteArrayOutputStream accumulateStream = new ByteArrayOutputStream();
+            BodyWriter writer = new BodyWriter();
             HttpHeaders headers = serverHttpResponse.getHeaders();
+            boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
+                    && headers.getFirst(Constants.CONTENT_ENCODING)
+                    .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+
+            final Inflater inflater = isGzip ? new Inflater(true) : null;
+            final byte[] outBuf = new byte[4096];
+            final AtomicBoolean headerSkipped = new AtomicBoolean(!isGzip);
 
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
-                        // add every dataBuffer bytes into accumulateStream
                         try (DataBuffer.ByteBufferIterator it = buffer.readableByteBuffers()) {
                             it.forEachRemaining(bb -> {
                                 ByteBuffer ro = bb.asReadOnlyBuffer();
-                                byte[] bytes = new byte[ro.remaining()];
-                                ro.get(bytes);
-                                accumulateStream.write(bytes, 0, bytes.length);
+                                byte[] inBytes = new byte[ro.remaining()];
+                                ro.get(inBytes);
+
+                                if (isGzip) {
+                                    int offset = 0, len = inBytes.length;
+                                    if (!headerSkipped.get()) {
+                                        offset = skipGzipHeader(inBytes);
+                                        headerSkipped.set(true);
+                                    }
+                                    inflater.setInput(inBytes, offset, len - offset);
+                                    try {
+                                        int cnt;
+                                        while ((cnt = inflater.inflate(outBuf)) > 0) {
+                                            writer.write(ByteBuffer.wrap(outBuf, 0, cnt));
+                                        }
+                                    } catch (DataFormatException ex) {
+                                        LOG.error("inflater decompression failed", ex);
+                                    }
+                                } else {
+                                    writer.write(ro);
+                                }
                             });
                         } catch (Exception e) {
-                            LOG.error("failed to accumulate bytes", e);
+                            LOG.error("read dataBuffer error", e);
                         }
                     })
                     .doFinally(signal -> {
-                        boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
-                                && headers.getFirst(Constants.CONTENT_ENCODING)
-                                .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
-
-                        byte[] allBytes = accumulateStream.toByteArray();
-                        String text;
-                        if (isGzip) {
-                            // fully decompression
-                            try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(allBytes));
-                                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                                byte[] buf = new byte[4096];
-                                int len;
-                                while ((len = gis.read(buf)) > 0) {
-                                    out.write(buf, 0, len);
-                                }
-                                text = out.toString(StandardCharsets.UTF_8);
-                            } catch (IOException ex) {
-                                LOG.error("bulk GZIP decompress failed", ex);
-                                text = new String(allBytes, StandardCharsets.UTF_8);
-                            }
-                        } else {
-                            text = new String(allBytes, StandardCharsets.UTF_8);
+                        // release inflater
+                        if (inflater != null) {
+                            inflater.end();
                         }
-
+                        String responseBody = writer.output();
                         AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
-                        long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(text);
+                        long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(responseBody);
                         tokensRecorder.accept(tokens);
                     });
         }
-        
+
+        private int skipGzipHeader(byte[] b) {
+            int pos = 10;
+            int flg = b[3];
+            if ((flg & 0x04) != 0) {
+                int xlen = (b[10] & 0xFF) | ((b[11] & 0xFF) << 8);
+                pos += 2 + xlen;
+            }
+            if ((flg & 0x08) != 0) {
+                while (b[pos++] != 0) {}
+            }
+            if ((flg & 0x10) != 0) {
+                while (b[pos++] != 0) {}
+            }
+            if ((flg & 0x02) != 0) {
+                pos += 2;
+            }
+            return pos;
+        }
+
     }
     
     static class BodyWriter {
