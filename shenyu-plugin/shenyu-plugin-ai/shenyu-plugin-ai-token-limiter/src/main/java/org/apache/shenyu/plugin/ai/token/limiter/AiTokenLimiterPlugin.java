@@ -207,73 +207,56 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             return super.writeWith(appendResponse(body));
         }
-        
+
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
-
-            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+            // accumulate all response bytes (compressed or plaintext)
+            ByteArrayOutputStream accumulateStream = new ByteArrayOutputStream();
             HttpHeaders headers = serverHttpResponse.getHeaders();
-            return Flux.from(body).doOnNext(buffer -> {
-                try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
-                    bufferIterator.forEachRemaining(byteBuffer -> {
-                        ByteBuffer ro = byteBuffer.asReadOnlyBuffer();
-                        byte[] bytes = new byte[ro.remaining()];
-                        ro.get(bytes);
-                        if (headers.containsKey(Constants.CONTENT_ENCODING)
+
+            return Flux.<DataBuffer>from(body)
+                    .doOnNext(buffer -> {
+                        // add every dataBuffer bytes into accumulateStream
+                        try (DataBuffer.ByteBufferIterator it = buffer.readableByteBuffers()) {
+                            it.forEachRemaining(bb -> {
+                                ByteBuffer ro = bb.asReadOnlyBuffer();
+                                byte[] bytes = new byte[ro.remaining()];
+                                ro.get(bytes);
+                                accumulateStream.write(bytes, 0, bytes.length);
+                            });
+                        } catch (Exception e) {
+                            LOG.error("failed to accumulate bytes", e);
+                        }
+                    })
+                    .doFinally(signal -> {
+                        boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
                                 && headers.getFirst(Constants.CONTENT_ENCODING)
-                                .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP)) {
-                            compressedStream.write(bytes, 0, bytes.length);
-                        } else {
-                            // 如果不是 gzip，直接累积为明文
-                            compressedStream.write(bytes, 0, bytes.length);
-                        }
-                    });
-                } catch (Exception e) {
-                    LOG.error("Failed to accumulate bytes", e);
-                }
-            }).doFinally(signal -> {
-                // One-time decompression after the flow is finished
-                String text;
-                HttpHeaders h = headers;
-                try {
-                    if (h.containsKey(Constants.CONTENT_ENCODING)
-                            && h.getFirst(Constants.CONTENT_ENCODING)
-                            .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP)) {
-                        // 全量解压
-                        try (GZIPInputStream gis = new GZIPInputStream(
-                                new ByteArrayInputStream(compressedStream.toByteArray()));
-                             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                            byte[] buf = new byte[4096];
-                            int len;
-                            while ((len = gis.read(buf)) > 0) {
-                                out.write(buf, 0, len);
+                                .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+
+                        byte[] allBytes = accumulateStream.toByteArray();
+                        String text;
+                        if (isGzip) {
+                            // fully decompression
+                            try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(allBytes));
+                                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                                byte[] buf = new byte[4096];
+                                int len;
+                                while ((len = gis.read(buf)) > 0) {
+                                    out.write(buf, 0, len);
+                                }
+                                text = out.toString(StandardCharsets.UTF_8);
+                            } catch (IOException ex) {
+                                LOG.error("bulk GZIP decompress failed", ex);
+                                text = new String(allBytes, StandardCharsets.UTF_8);
                             }
-                            text = out.toString(StandardCharsets.UTF_8);
+                        } else {
+                            text = new String(allBytes, StandardCharsets.UTF_8);
                         }
-                    } else {
-                        // 非 gzip，直接按 UTF-8 解析
-                        text = compressedStream.toString(StandardCharsets.UTF_8);
-                    }
-                } catch (IOException ex) {
-                    LOG.error("Bulk GZIP decompress failed", ex);
-                    text = new String(compressedStream.toByteArray(), StandardCharsets.UTF_8);
-                }
-                AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
-                long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(text);
-                tokensRecorder.accept(tokens);
-            });
-        }
-        
-        private byte[] decompressGzip(final byte[] compressed) throws IOException {
-            try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(compressed));
-                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = gzipInputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, len);
-                }
-                return outputStream.toByteArray();
-            }
+
+                        AiModel aiModel = exchange.getAttribute(Constants.AI_MODEL);
+                        long tokens = Objects.requireNonNull(aiModel).getCompletionTokens(text);
+                        tokensRecorder.accept(tokens);
+                    });
         }
         
     }
