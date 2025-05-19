@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mcp.server.decorator;
 
+import com.google.gson.JsonObject;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,26 +28,31 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpResponseDecorator.class);
-    
+
     private final StringBuilder body = new StringBuilder();
-    
+
     private final CompletableFuture<String> future;
-    
+
     private final String sessionId;
-    
+
     private boolean isFirstChunk = true;
-    
-    public ShenyuMcpResponseDecorator(final ServerHttpResponse response, final String sessionId, final CompletableFuture<String> future) {
+
+    private final JsonObject responseTemplate;
+
+    public ShenyuMcpResponseDecorator(final ServerHttpResponse response, final String sessionId,
+            final CompletableFuture<String> future, final JsonObject responseTemplate) {
         super(response);
         this.sessionId = sessionId;
         this.future = future;
+        this.responseTemplate = responseTemplate;
     }
-    
+
     @Override
     public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
         LOG.debug("Writing response data for session: {}", sessionId);
@@ -61,25 +67,55 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
             LOG.debug("Received response chunk: {}", chunk);
             this.body.append(chunk);
             if (!future.isDone()) {
-                future.complete(this.body.toString());
+                future.complete(applyResponseTemplate(this.body.toString()));
             }
         }));
     }
-    
+
     @Override
     public Mono<Void> writeAndFlushWith(final Publisher<? extends Publisher<? extends DataBuffer>> body) {
         LOG.debug("Writing and flushing response data for session: {}", sessionId);
         return super.writeAndFlushWith(body);
     }
-    
+
     @Override
     public Mono<Void> setComplete() {
         LOG.debug("Response completed for session: {}", sessionId);
         String responseBody = this.body.toString();
         LOG.debug("Final response body length: {}", responseBody.length());
         if (!future.isDone()) {
-            future.complete(responseBody);
+            future.complete(applyResponseTemplate(responseBody));
         }
         return super.setComplete();
+    }
+
+    private String applyResponseTemplate(final String responseBody) {
+        if (Objects.isNull(responseTemplate)) {
+            return responseBody;
+        }
+        // For now, only support { "body": "{{.}}" } or { "body": "{{.field}}" }
+        if (responseTemplate.has("body")) {
+            String template = responseTemplate.get("body").getAsString();
+            if ("{{.}}".equals(template)) {
+                return responseBody;
+            }
+            // Support {{.field}} syntax
+            if (template.startsWith("{{.") && template.endsWith("}}")) {
+                String field = template.substring(3, template.length() - 2).trim();
+                if (!field.isEmpty()) {
+                    try {
+                        com.google.gson.JsonElement json = com.google.gson.JsonParser.parseString(responseBody);
+                        if (json.isJsonObject() && json.getAsJsonObject().has(field)) {
+                            return json.getAsJsonObject().get(field).toString();
+                        }
+                    } catch (Exception e) {
+                        LOG.warn("Failed to parse response body as JSON or extract field '{}': {}", field,
+                                e.getMessage());
+                    }
+                }
+            }
+        }
+        // Default fallback
+        return responseBody;
     }
 }
