@@ -19,14 +19,14 @@ package org.apache.shenyu.plugin.mcp.server.callback;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
-import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
-import io.modelcontextprotocol.spec.McpServerSession;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.mcp.server.decorator.ShenyuMcpResponseDecorator;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.utils.BodyWriterExchange;
+import org.apache.shenyu.plugin.mcp.server.utils.McpSessionHelper;
+import org.apache.shenyu.plugin.mcp.server.utils.RequestConfigHelper;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +39,6 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class ShenyuToolCallback implements ToolCallback {
@@ -69,17 +66,30 @@ public class ShenyuToolCallback implements ToolCallback {
 
     @Override
     public String call(@NonNull final String input, final ToolContext toolContext) {
-
         try {
-            McpSyncServerExchange mcpSyncServerExchange = getMcpSyncServerExchange(toolContext);
-            String sessionId = getSessionId(mcpSyncServerExchange);
+            McpSyncServerExchange mcpSyncServerExchange = McpSessionHelper.getMcpSyncServerExchange(toolContext);
+            String sessionId = McpSessionHelper.getSessionId(mcpSyncServerExchange);
             JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
-            
+            LOG.debug("inputJson: {}", inputJson);
+
             final ShenyuToolDefinition shenyuToolDefinition = (ShenyuToolDefinition) this.toolDefinition;
             final String requestConfig = shenyuToolDefinition.requestConfig();
-            LOG.info("requestConfig: {}", requestConfig);
-            
-            ServerWebExchange exchange = createServerWebExchange(sessionId, inputJson, requestConfig);
+            LOG.debug("requestConfig: {}", requestConfig);
+
+            RequestConfigHelper configHelper = new RequestConfigHelper(requestConfig);
+            final JsonObject requestTemplate = configHelper.getRequestTemplate();
+            final JsonObject argsPosition = configHelper.getArgsPosition();
+            final JsonObject responseTemplate = configHelper.getResponseTemplate();
+            final String urlTemplate = configHelper.getUrlTemplate();
+            final String method = configHelper.getMethod();
+            final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
+
+            ServerWebExchange exchange = createServerWebExchange(sessionId, inputJson, configHelper);
+
+            LOG.debug("query params: {}", exchange.getRequest().getQueryParams());
+            LOG.debug("argsPosition: {}", argsPosition);
+            final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
+            LOG.debug("buildPath result: {}", path);
 
             LOG.debug("Starting request processing for session: {}", sessionId);
             LOG.debug("Request method: {}, path: {}", exchange.getRequest().getMethod(),
@@ -88,22 +98,10 @@ public class ShenyuToolCallback implements ToolCallback {
             LOG.debug("Request query params: {}", exchange.getRequest().getQueryParams());
 
             CompletableFuture<String> future = new CompletableFuture<>();
-            final JsonObject configJson = GsonUtils.getInstance().fromJson(requestConfig, JsonObject.class);
-            final JsonObject requestTemplate = configJson.getAsJsonObject("requestTemplate");
-            final JsonObject responseTemplate = configJson.has("responseTemplate")
-                    ? configJson.getAsJsonObject("responseTemplate")
-                    : null;
-            final String urlTemplate = requestTemplate.get("url").getAsString();
-            final String method = requestTemplate.has("method") ? requestTemplate.get("method").getAsString() : "GET";
-            final JsonObject argsPosition = configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition")
-                    : new JsonObject();
 
-            final String path = buildPath(urlTemplate, argsPosition, inputJson, requestTemplate);
             final ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
                     exchange, method, path, sessionId, requestTemplate);
-            final boolean argsToJsonBody = requestTemplate.has("argsToJsonBody")
-                    && requestTemplate.get("argsToJsonBody").getAsBoolean();
-            final JsonObject bodyJson = buildBodyJson(argsToJsonBody, argsPosition, inputJson);
+            final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
 
             ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
             if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
@@ -114,7 +112,7 @@ public class ShenyuToolCallback implements ToolCallback {
             ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(exchange.getResponse(),
                     sessionId, future, responseTemplate);
 
-            ServerWebExchange decoratedExchange = exchange.mutate().response(responseDecorator).build();
+            ServerWebExchange decoratedExchange = mutatedExchange.mutate().response(responseDecorator).build();
 
             shenyuWebHandler.handle(decoratedExchange)
                     .doOnSubscribe(s -> LOG.debug("Subscribed to handle request for session: {}", sessionId))
@@ -143,63 +141,20 @@ public class ShenyuToolCallback implements ToolCallback {
         }
     }
 
-    private static McpSyncServerExchange getMcpSyncServerExchange(final ToolContext toolContext) {
-        if (Objects.isNull(toolContext)) {
-            throw new IllegalArgumentException("ToolContext is required");
-        }
-
-        Map<String, Object> contextMap = toolContext.getContext();
-
-        if (Objects.isNull(contextMap) || contextMap.isEmpty()) {
-            throw new IllegalArgumentException("ToolContext is required");
-        }
-
-        McpSyncServerExchange mcpSyncServerExchange = (McpSyncServerExchange) contextMap.get("exchange");
-        if (Objects.isNull(mcpSyncServerExchange)) {
-            throw new IllegalArgumentException("McpSyncServerExchange is required in ToolContext");
-        }
-        return mcpSyncServerExchange;
-    }
-
-    private static String getSessionId(final McpSyncServerExchange mcpSyncServerExchange)
-            throws NoSuchFieldException, IllegalAccessException {
-        Field asyncExchangeField = mcpSyncServerExchange.getClass().getDeclaredField("exchange");
-        asyncExchangeField.setAccessible(true);
-        Object asyncExchange = asyncExchangeField.get(mcpSyncServerExchange);
-
-        if (Objects.isNull(asyncExchange)) {
-            throw new IllegalArgumentException("McpAsyncServerExchange is required in McpSyncServerExchange");
-        }
-
-        McpAsyncServerExchange mcpAsyncServerExchange = (McpAsyncServerExchange) asyncExchange;
-        Field sessionField = mcpAsyncServerExchange.getClass().getDeclaredField("session");
-        sessionField.setAccessible(true);
-        Object session = sessionField.get(mcpAsyncServerExchange);
-
-        if (Objects.isNull(session)) {
-            throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
-        }
-        McpServerSession mcpServerSession = (McpServerSession) session;
-
-        return mcpServerSession.getId();
-    }
-
-    private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson, final String requestConfig) {
+    private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson,
+            final RequestConfigHelper configHelper) {
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
+        final JsonObject requestTemplate = configHelper.getRequestTemplate();
+        final JsonObject argsPosition = configHelper.getArgsPosition();
+        final String urlTemplate = configHelper.getUrlTemplate();
+        final String method = configHelper.getMethod();
+        final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
 
-        final JsonObject configJson = GsonUtils.getInstance().fromJson(requestConfig, JsonObject.class);
-        final JsonObject requestTemplate = configJson.getAsJsonObject("requestTemplate");
-        final String urlTemplate = requestTemplate.get("url").getAsString();
-        final String method = requestTemplate.has("method") ? requestTemplate.get("method").getAsString() : "GET";
-        final JsonObject argsPosition = configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition")
-                : new JsonObject();
-
-        final String path = buildPath(urlTemplate, argsPosition, inputJson, requestTemplate);
+        final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
+        LOG.debug("Now Calling path:{}, input:{}", path, inputJson.toString());
         final ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
                 exchange, method, path, sessionId, requestTemplate);
-        final boolean argsToJsonBody = requestTemplate.has("argsToJsonBody")
-                && requestTemplate.get("argsToJsonBody").getAsBoolean();
-        final JsonObject bodyJson = buildBodyJson(argsToJsonBody, argsPosition, inputJson);
+        final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
 
         ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
         if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
@@ -209,41 +164,12 @@ public class ShenyuToolCallback implements ToolCallback {
         return mutatedExchange;
     }
 
-    private String buildPath(final String urlTemplate, final JsonObject argsPosition, final JsonObject inputJson,
-            final JsonObject requestTemplate) {
-        String path = urlTemplate;
-        StringBuilder queryBuilder = new StringBuilder();
-        for (String key : argsPosition.keySet()) {
-            String position = argsPosition.get(key).getAsString();
-            if ("path".equals(position) && inputJson.has(key)) {
-                path = path.replace("{{." + key + "}}", inputJson.get(key).getAsString());
-            } else if ("query".equals(position) && inputJson.has(key)) {
-                if (!queryBuilder.isEmpty()) {
-                    queryBuilder.append("&");
-                }
-                queryBuilder.append(key).append("=").append(inputJson.get(key).getAsString());
-            }
-        }
-        path = path.replaceAll("\\{\\{\\.[^}]+}}", "");
-        boolean argsToUrlParam = requestTemplate.has("argsToUrlParam")
-                && requestTemplate.get("argsToUrlParam").getAsBoolean();
-        if (argsToUrlParam && !queryBuilder.isEmpty()) {
-            if (path.contains("?")) {
-                path = path + "&" + queryBuilder;
-            } else {
-                path = path + "?" + queryBuilder;
-            }
-        }
-        return path;
-    }
-
     private ServerHttpRequest.Builder buildRequestBuilder(
             final ServerWebExchange exchange, final String method, final String path, final String sessionId,
             final JsonObject requestTemplate) {
         ServerHttpRequest.Builder requestBuilder = exchange.getRequest()
                 .mutate()
                 .method(HttpMethod.valueOf(method))
-                .path(path)
                 .header("sessionId", sessionId)
                 .header("Accept", "application/json");
         if (requestTemplate.has("headers")) {
@@ -256,21 +182,15 @@ public class ShenyuToolCallback implements ToolCallback {
         } else {
             requestBuilder.header("Content-Type", "application/json");
         }
-        return requestBuilder;
-    }
-
-    private JsonObject buildBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition,
-            final JsonObject inputJson) {
-        JsonObject bodyJson = new JsonObject();
-        if (argsToJsonBody) {
-            for (String key : argsPosition.keySet()) {
-                String position = argsPosition.get(key).getAsString();
-                if ("body".equals(position) && inputJson.has(key)) {
-                    bodyJson.add(key, inputJson.get(key));
-                }
-            }
+        try {
+            java.net.URI oldUri = exchange.getRequest().getURI();
+            String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
+            java.net.URI newUri = new java.net.URI(newUriStr);
+            requestBuilder.uri(newUri);
+        } catch (java.net.URISyntaxException e) {
+            throw new RuntimeException("Invalid URI: " + e.getMessage(), e);
         }
-        return bodyJson;
+        return requestBuilder;
     }
 
 }

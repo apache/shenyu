@@ -33,18 +33,18 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BodyWriterExchange extends ServerWebExchangeDecorator {
-    
+
     private final String body;
-    
+
     private final String contentType;
-    
+
     public BodyWriterExchange(final ServerWebExchange delegate, final String body) {
         super(delegate);
         this.body = body;
         HttpHeaders headers = delegate.getRequest().getHeaders();
         this.contentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
     }
-    
+
     @Override
     public ServerHttpRequest getRequest() {
         return new ServerHttpRequestDecorator(super.getRequest()) {
@@ -57,7 +57,7 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
             }
         };
     }
-    
+
     private byte[] getBodyBytes() {
         if (Objects.isNull(contentType)) {
             return body.getBytes(StandardCharsets.UTF_8);
@@ -65,23 +65,25 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         if (contentType.contains("application/json")) {
             return body.getBytes(StandardCharsets.UTF_8);
         } else if (contentType.contains("application/x-www-form-urlencoded")) {
-            // body 需为 key1=val1&key2=val2 格式
+            // body must be in key1=val1&key2=val2 format
             return body.getBytes(StandardCharsets.UTF_8);
         } else if (contentType.contains("multipart/form-data")) {
-            // 这里只做简单处理，直接返回字符串，复杂场景建议用 MultipartBodyBuilder
+            // Simple handling here, just return the string. For complex scenarios, use
+            // MultipartBodyBuilder.
             return body.getBytes(StandardCharsets.UTF_8);
         } else {
             return body.getBytes(StandardCharsets.UTF_8);
         }
     }
-    
-    // 可选：辅助方法，将 Map<String, Object> 转为 x-www-form-urlencoded 字符串
+
+    // Optional: Helper method to convert Map<String, Object> to
+    // x-www-form-urlencoded string
     public static String toFormUrlEncoded(final Map<String, Object> map) {
         return map.entrySet().stream()
                 .map(e -> e.getKey() + "=" + urlEncode(e.getValue().toString()))
                 .collect(Collectors.joining("&"));
     }
-    
+
     private static String urlEncode(final String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
