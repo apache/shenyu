@@ -93,7 +93,7 @@ public class MotanProxyService {
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
             context.forEach((k, v) -> RpcContext.getContext().setRpcAttachment(k, v));
         });
-        RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
+        RefererConfig<CommonClient> reference = getConsumerConfig(selectorData, metaData);
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);

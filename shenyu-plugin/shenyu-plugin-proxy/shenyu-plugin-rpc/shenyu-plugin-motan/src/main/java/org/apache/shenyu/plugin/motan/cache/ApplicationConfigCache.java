@@ -155,6 +155,7 @@ public final class ApplicationConfigCache {
      */
     public RefererConfig<CommonClient> initRef(final String selectorId, final MetaData metaData, final MotanUpstream motanUpstream) {
         try {
+            setUpstream(selectorId, motanUpstream);
             RefererConfig<CommonClient> referenceConfig = cache.get(generateUpstreamCacheKey(selectorId, metaData.getId(), motanUpstream));
             if (StringUtils.isNoneBlank(referenceConfig.getServiceInterface())) {
                 return referenceConfig;
@@ -239,7 +240,7 @@ public final class ApplicationConfigCache {
         CommonClient obj = reference.getRef();
         if (Objects.nonNull(obj)) {
             LOG.info("init motan reference success there meteData is :{}", metaData);
-            cache.put(metaData.getPath(), reference);
+            cache.put(generateUpstreamCacheKey(selectorId, metaData.getId(), motanUpstream), reference);
         }
         return reference;
     }
