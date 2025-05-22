@@ -51,6 +51,7 @@ public class MotanMetaDataHandler implements MetaDataHandler {
             } else {
                 if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
                     // update
+                    ApplicationConfigCache.getInstance().invalidateWithMetadataId(metaData.getId());
                     ApplicationConfigCache.getInstance().build(metaData);
                 }
             }

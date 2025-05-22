@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.plugin.motan.proxy;
 
+import com.caucho.services.server.GenericService;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.util.MotanClientUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,10 +32,15 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.MotanUpstream;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
@@ -45,6 +52,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,6 +63,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 
 /**
@@ -74,11 +83,12 @@ public class MotanProxyService {
      * @param body     the body
      * @param metaData the meta data
      * @param exchange the exchange
+     * @param selectorData the selectorData
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
     @SuppressWarnings("all")
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange, final SelectorData selectorData) throws ShenyuException {
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
             context.forEach((k, v) -> RpcContext.getContext().setRpcAttachment(k, v));
@@ -116,6 +126,34 @@ public class MotanProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return result;
         })).onErrorMap(ShenyuException::new);
+    }
+
+    /**
+     * get motan reference config.
+     *
+     * @param selectorData  the selector data
+     * @param metaData      the meta data
+     * @return motan reference config
+     */
+    private RefererConfig<CommonClient> getConsumerConfig(final SelectorData selectorData, final MetaData metaData) {
+        String referenceKey = metaData.getPath();
+        MotanUpstream motanUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), MotanUpstream.class);
+        // if motanUpstream is empty, use default plugin config
+        if (Objects.isNull(motanUpstream)) {
+            RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+            if (StringUtils.isBlank(reference.getServiceInterface())) {
+                ApplicationConfigCache.getInstance().invalidate(referenceKey);
+                reference = ApplicationConfigCache.getInstance().initRef(metaData);
+            }
+            return reference;
+        }
+        referenceKey = ApplicationConfigCache.getInstance().generateUpstreamCacheKey(selectorData.getId(), metaData.getId(), motanUpstream);
+        RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+        if (StringUtils.isBlank(reference.getServiceInterface())) {
+            ApplicationConfigCache.getInstance().invalidate(referenceKey);
+            reference = ApplicationConfigCache.getInstance().initRef(selectorData.getId(), metaData, motanUpstream);
+        }
+        return reference;
     }
 
     private void initThreadPool() {
