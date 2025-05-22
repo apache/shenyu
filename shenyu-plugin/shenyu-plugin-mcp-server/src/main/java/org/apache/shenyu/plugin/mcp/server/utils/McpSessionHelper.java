@@ -30,6 +30,7 @@ import java.util.Objects;
  * Helper class for handling McpSession related operations.
  */
 public class McpSessionHelper {
+    
     /**
      * Get McpSyncServerExchange from ToolContext.
      *
@@ -63,6 +64,15 @@ public class McpSessionHelper {
             throws NoSuchFieldException, IllegalAccessException {
         Field asyncExchangeField = mcpSyncServerExchange.getClass().getDeclaredField("exchange");
         asyncExchangeField.setAccessible(true);
+        Object session = getSession(mcpSyncServerExchange, asyncExchangeField);
+        if (Objects.isNull(session)) {
+            throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
+        }
+        McpServerSession mcpServerSession = (McpServerSession) session;
+        return mcpServerSession.getId();
+    }
+    
+    private static Object getSession(final McpSyncServerExchange mcpSyncServerExchange, final Field asyncExchangeField) throws IllegalAccessException, NoSuchFieldException {
         Object asyncExchange = asyncExchangeField.get(mcpSyncServerExchange);
         if (Objects.isNull(asyncExchange)) {
             throw new IllegalArgumentException("McpAsyncServerExchange is required in McpSyncServerExchange");
@@ -70,11 +80,6 @@ public class McpSessionHelper {
         McpAsyncServerExchange mcpAsyncServerExchange = (McpAsyncServerExchange) asyncExchange;
         Field sessionField = mcpAsyncServerExchange.getClass().getDeclaredField("session");
         sessionField.setAccessible(true);
-        Object session = sessionField.get(mcpAsyncServerExchange);
-        if (Objects.isNull(session)) {
-            throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
-        }
-        McpServerSession mcpServerSession = (McpServerSession) session;
-        return mcpServerSession.getId();
+        return sessionField.get(mcpAsyncServerExchange);
     }
 }

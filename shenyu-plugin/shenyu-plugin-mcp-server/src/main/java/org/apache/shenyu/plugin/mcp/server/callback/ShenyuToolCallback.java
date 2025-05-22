@@ -53,17 +53,20 @@ public class ShenyuToolCallback implements ToolCallback {
         this.shenyuWebHandler = shenyuWebHandler;
         this.toolDefinition = toolDefinition;
     }
-
+    
+    @NonNull
     @Override
     public ToolDefinition getToolDefinition() {
         return this.toolDefinition;
     }
-
+    
+    @NonNull
     @Override
     public String call(@NonNull final String input) {
         return call(input, new ToolContext(Maps.newHashMap()));
     }
-
+    
+    @NonNull
     @Override
     public String call(@NonNull final String input, final ToolContext toolContext) {
         try {
@@ -98,18 +101,10 @@ public class ShenyuToolCallback implements ToolCallback {
             LOG.debug("Request query params: {}", exchange.getRequest().getQueryParams());
 
             CompletableFuture<String> future = new CompletableFuture<>();
-
-            final ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
-                    exchange, method, path, sessionId, requestTemplate);
-            final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
-
-            ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
-            if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
-                mutatedExchange = new BodyWriterExchange(mutatedExchange,
-                        bodyJson.toString());
-            }
-
-            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(exchange.getResponse(),
+            
+            ServerWebExchange mutatedExchange = buildServerWebExchange(sessionId, inputJson, requestTemplate, argsPosition, method, argsToJsonBody, exchange, path);
+            
+            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(mutatedExchange.getResponse(),
                     sessionId, future, responseTemplate);
 
             ServerWebExchange decoratedExchange = mutatedExchange.mutate().response(responseDecorator).build();
@@ -140,7 +135,7 @@ public class ShenyuToolCallback implements ToolCallback {
             throw new RuntimeException("Failed to process request: " + e.getMessage(), e);
         }
     }
-
+    
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson,
             final RequestConfigHelper configHelper) {
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
@@ -152,10 +147,21 @@ public class ShenyuToolCallback implements ToolCallback {
 
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
         LOG.debug("Now Calling path:{}, input:{}", path, inputJson.toString());
+        return buildServerWebExchange(sessionId, inputJson, requestTemplate, argsPosition, method, argsToJsonBody, exchange, path);
+    }
+    
+    private ServerWebExchange buildServerWebExchange(final String sessionId,
+                                                  final JsonObject inputJson,
+                                                  final JsonObject requestTemplate,
+                                                  final JsonObject argsPosition,
+                                                  final String method,
+                                                  final boolean argsToJsonBody,
+                                                  final ServerWebExchange exchange,
+                                                  final String path) {
         final ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
                 exchange, method, path, sessionId, requestTemplate);
         final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
-
+        
         ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
         if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
             mutatedExchange = new BodyWriterExchange(mutatedExchange,
