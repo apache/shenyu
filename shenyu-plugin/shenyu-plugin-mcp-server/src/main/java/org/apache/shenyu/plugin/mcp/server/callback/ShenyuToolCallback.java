@@ -39,6 +39,8 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
 
 public class ShenyuToolCallback implements ToolCallback {
@@ -53,19 +55,19 @@ public class ShenyuToolCallback implements ToolCallback {
         this.shenyuWebHandler = shenyuWebHandler;
         this.toolDefinition = toolDefinition;
     }
-    
+
     @NonNull
     @Override
     public ToolDefinition getToolDefinition() {
         return this.toolDefinition;
     }
-    
+
     @NonNull
     @Override
     public String call(@NonNull final String input) {
         return call(input, new ToolContext(Maps.newHashMap()));
     }
-    
+
     @NonNull
     @Override
     public String call(@NonNull final String input, final ToolContext toolContext) {
@@ -101,10 +103,12 @@ public class ShenyuToolCallback implements ToolCallback {
             LOG.debug("Request query params: {}", exchange.getRequest().getQueryParams());
 
             CompletableFuture<String> future = new CompletableFuture<>();
-            
-            ServerWebExchange mutatedExchange = buildServerWebExchange(sessionId, inputJson, requestTemplate, argsPosition, method, argsToJsonBody, exchange, path);
-            
-            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(mutatedExchange.getResponse(),
+
+            ServerWebExchange mutatedExchange = buildServerWebExchange(sessionId, inputJson, requestTemplate,
+                    argsPosition, method, argsToJsonBody, exchange, path);
+
+            ServerHttpResponseDecorator responseDecorator = new ShenyuMcpResponseDecorator(
+                    mutatedExchange.getResponse(),
                     sessionId, future, responseTemplate);
 
             ServerWebExchange decoratedExchange = mutatedExchange.mutate().response(responseDecorator).build();
@@ -135,7 +139,7 @@ public class ShenyuToolCallback implements ToolCallback {
             throw new RuntimeException("Failed to process request: " + e.getMessage(), e);
         }
     }
-    
+
     private ServerWebExchange createServerWebExchange(final String sessionId, final JsonObject inputJson,
             final RequestConfigHelper configHelper) {
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
@@ -147,21 +151,22 @@ public class ShenyuToolCallback implements ToolCallback {
 
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
         LOG.debug("Now Calling path:{}, input:{}", path, inputJson.toString());
-        return buildServerWebExchange(sessionId, inputJson, requestTemplate, argsPosition, method, argsToJsonBody, exchange, path);
+        return buildServerWebExchange(sessionId, inputJson, requestTemplate, argsPosition, method, argsToJsonBody,
+                exchange, path);
     }
-    
+
     private ServerWebExchange buildServerWebExchange(final String sessionId,
-                                                  final JsonObject inputJson,
-                                                  final JsonObject requestTemplate,
-                                                  final JsonObject argsPosition,
-                                                  final String method,
-                                                  final boolean argsToJsonBody,
-                                                  final ServerWebExchange exchange,
-                                                  final String path) {
+            final JsonObject inputJson,
+            final JsonObject requestTemplate,
+            final JsonObject argsPosition,
+            final String method,
+            final boolean argsToJsonBody,
+            final ServerWebExchange exchange,
+            final String path) {
         final ServerHttpRequest.Builder requestBuilder = buildRequestBuilder(
                 exchange, method, path, sessionId, requestTemplate);
         final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
-        
+
         ServerWebExchange mutatedExchange = exchange.mutate().request(requestBuilder.build()).build();
         if ("POST".equalsIgnoreCase(method) && argsToJsonBody && bodyJson.size() > 0) {
             mutatedExchange = new BodyWriterExchange(mutatedExchange,
@@ -186,14 +191,20 @@ public class ShenyuToolCallback implements ToolCallback {
                 requestBuilder.header(key, value);
             }
         } else {
-            requestBuilder.header("Content-Type", "application/json");
+            // Only set Content-Type for requests with a body
+            if ("POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "PATCH".equalsIgnoreCase(method)) {
+                requestBuilder.header("Content-Type", "application/json");
+            } else {
+                // For other methods, do not set Content-Type
+                requestBuilder.headers(httpHeaders -> httpHeaders.remove("Content-Type"));
+            }
         }
         try {
-            java.net.URI oldUri = exchange.getRequest().getURI();
+            URI oldUri = exchange.getRequest().getURI();
             String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
-            java.net.URI newUri = new java.net.URI(newUriStr);
+            URI newUri = new URI(newUriStr);
             requestBuilder.uri(newUri);
-        } catch (java.net.URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new RuntimeException("Invalid URI: " + e.getMessage(), e);
         }
         return requestBuilder;
