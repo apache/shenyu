@@ -105,6 +105,18 @@ INSERT INTO `shenyu_dict` VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
+CREATE TABLE IF NOT EXISTS instance_info (
+                                             `id`            varchar(128)  NOT NULL COMMENT 'primary key',
+    `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
+    `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
+    `instance_port`    varchar(128)  NOT NULL COMMENT 'instance_port',
+    `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
+    `instance_info`  text  NOT NULL COMMENT 'instance_info',
+    `instance_state`  tiny(4)  NOT NULL COMMENT 'instance_state',
+    `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    PRIMARY KEY (`id`)
+);
 INSERT INTO `plugin` VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
