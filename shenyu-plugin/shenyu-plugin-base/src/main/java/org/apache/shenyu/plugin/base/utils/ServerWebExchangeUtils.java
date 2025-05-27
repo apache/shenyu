@@ -51,7 +51,7 @@ public class ServerWebExchangeUtils {
         CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
 
         return serverRequest.bodyToMono(String.class)
-                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
+                .switchIfEmpty(Mono.just(""))
                 .flatMap(convert)
                 .flatMap(body -> {
                     BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(body);
