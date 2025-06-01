@@ -39,7 +39,7 @@ jobs:
         with:
           submodules: true
 
-      - uses: '.github/actions/paths-filter'
+      - uses: './.github/actions/paths-filter'
         id: filter
         with:
           filters: '.github/filters.yml'

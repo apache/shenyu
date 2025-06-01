@@ -39,7 +39,7 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-      - uses: '.github/actions/paths-filter'
+      - uses: './.github/actions/paths-filter'
         id: filter
         with:
           filters: '.github/filters.yml'
@@ -137,7 +137,7 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-      - uses: '.github/actions/paths-filter'
+      - uses: './.github/actions/paths-filter'
         id: filter
         with:
           filters: '.github/filters.yml'
@@ -242,7 +242,7 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-      - uses: '.github/actions/paths-filter'
+      - uses: './.github/actions/paths-filter'
         id: filter
         with:
           filters: '.github/filters.yml'
