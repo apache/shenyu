@@ -40,7 +40,7 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
       -
-        uses: './.github/actions/paths-filter'
+        uses: './actions/paths-filter'
         id: filter
         with:
           filters: '.github/filters.yml'
