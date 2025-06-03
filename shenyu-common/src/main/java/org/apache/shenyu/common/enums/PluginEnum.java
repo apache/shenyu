@@ -90,7 +90,7 @@ public enum PluginEnum {
     /**
      * AI Request Transformer plugin enum.
      */
-    AI_REQUEST_TRANSFORMER(70, 0, "aiRequestTransformer"),
+    AI_REQUEST_TRANSFORMER(65, 0, "aiRequestTransformer"),
 
     /**
      * Param mapping plugin enum.
