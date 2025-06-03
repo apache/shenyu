@@ -44,13 +44,14 @@ public class ChatClientCache {
 
     /**
      * Init.
-     *
+     *gi
      * @param aiRequestTransformerConfig the aiRequestTransformerConfig
      */
-    public void init(final AiRequestTransformerConfig aiRequestTransformerConfig) {
+    public ChatClient init(final String ruleId, final AiRequestTransformerConfig aiRequestTransformerConfig) {
         ChatModel chatModel = initAiModel(aiRequestTransformerConfig);
         ChatClient chatClient = ChatClient.builder(chatModel).build();
-        CHAT_CLIENT_MAP.put(aiRequestTransformerConfig.getProvider(), chatClient);
+        CHAT_CLIENT_MAP.put(ruleId + aiRequestTransformerConfig.getProvider(), chatClient);
+        return chatClient;
     }
 
 

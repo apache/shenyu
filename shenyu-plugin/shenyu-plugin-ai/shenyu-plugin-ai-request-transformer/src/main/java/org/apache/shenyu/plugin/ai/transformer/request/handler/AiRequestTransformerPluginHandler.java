@@ -50,7 +50,7 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
             if (Objects.isNull(aiRequestTransformerConfig)) {
                 return;
             }
-            ChatClientCache.getInstance().init(aiRequestTransformerConfig);
+            ChatClientCache.getInstance().init("", aiRequestTransformerConfig);
             Singleton.INST.single(AiCommonConfig.class, aiRequestTransformerConfig);
         }
     }
