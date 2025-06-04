@@ -79,7 +79,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
         AiRequestTransformerHandle aiRequestTransformerHandle = AiRequestTransformerPluginHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        ChatClient client = ChatClientCache.getInstance().getClient(aiRequestTransformerConfig.getProvider());
+        ChatClient client = ChatClientCache.getInstance().getClient("default");
         // Create final config with rule handle taking precedence
         if (Objects.nonNull(aiRequestTransformerHandle)) {
             Optional.ofNullable(aiRequestTransformerHandle.getProvider()).ifPresent(aiRequestTransformerConfig::setProvider);
@@ -87,7 +87,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             Optional.ofNullable(aiRequestTransformerHandle.getApiKey()).ifPresent(aiRequestTransformerConfig::setApiKey);
             Optional.ofNullable(aiRequestTransformerHandle.getModel()).ifPresent(aiRequestTransformerConfig::setModel);
             Optional.ofNullable(aiRequestTransformerHandle.getContent()).ifPresent(aiRequestTransformerConfig::setContent);
-            client = ChatClientCache.getInstance().getClient(rule.getId() + aiRequestTransformerConfig.getProvider());
+            client = ChatClientCache.getInstance().getClient(rule.getId());
         }
 
         if (Objects.isNull(aiRequestTransformerConfig.getBaseUrl())) {
@@ -100,7 +100,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
                 .createAiModel(AiRequestTransformerPluginHandler.convertConfig(aiRequestTransformerConfig));
 
         if (Objects.isNull(client)) {
-            client = ChatClientCache.getInstance().init(rule.getId(), aiModel, aiRequestTransformerConfig.getProvider());
+            client = ChatClientCache.getInstance().init(rule.getId(), aiModel);
         }
 
         AiRequestTransformerTemplate aiRequestTransformerTemplate = new AiRequestTransformerTemplate(aiRequestTransformerConfig.getContent(), exchange.getRequest());

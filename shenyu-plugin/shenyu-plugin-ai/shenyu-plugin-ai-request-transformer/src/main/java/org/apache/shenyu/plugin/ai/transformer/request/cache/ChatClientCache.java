@@ -38,12 +38,11 @@ public class ChatClientCache {
      *
      * @param ruleId the ruleId
      * @param chatModel the chatModel
-     * @param provider the provider
      * @return chatClient the chatClient
      */
-    public ChatClient init(final String ruleId, final ChatModel chatModel, final String provider) {
+    public ChatClient init(final String ruleId, final ChatModel chatModel) {
         ChatClient chatClient = ChatClient.builder(chatModel).build();
-        CHAT_CLIENT_MAP.put(ruleId + provider, chatClient);
+        CHAT_CLIENT_MAP.put(ruleId, chatClient);
         return chatClient;
     }
 
@@ -64,6 +63,15 @@ public class ChatClientCache {
      */
     public ChatClient getClient(final String key) {
         return CHAT_CLIENT_MAP.get(key);
+    }
+
+    /**
+     * Destroy chatClient.
+     *
+     * @param key key
+     */
+    public void destroyClient(final String key) {
+        CHAT_CLIENT_MAP.remove(key);
     }
 
     /**

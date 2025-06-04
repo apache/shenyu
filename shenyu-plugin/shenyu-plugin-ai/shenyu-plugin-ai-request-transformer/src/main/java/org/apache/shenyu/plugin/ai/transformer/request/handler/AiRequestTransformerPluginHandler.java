@@ -60,7 +60,7 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
                 return;
             }
             AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()));
-            ChatClientCache.getInstance().init("", factory.createAiModel(convertConfig(aiRequestTransformerConfig)), aiRequestTransformerConfig.getProvider());
+            ChatClientCache.getInstance().init("default", factory.createAiModel(convertConfig(aiRequestTransformerConfig)));
             Singleton.INST.single(AiCommonConfig.class, aiRequestTransformerConfig);
         }
     }
@@ -71,11 +71,14 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
             AiRequestTransformerHandle aiRequestTransformerHandle = GsonUtils.getInstance().fromJson(s, AiRequestTransformerHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), aiRequestTransformerHandle);
         });
+        ChatClientCache.getInstance().destroyClient(ruleData.getId());
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        AiRequestTransformerHandle aiRequestTransformerHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), AiRequestTransformerHandle.class);
+        ChatClientCache.getInstance().destroyClient(ruleData.getId() + aiRequestTransformerHandle.getProvider());
     }
 
     @Override
