@@ -47,14 +47,14 @@ public class AiRequestTransformerTemplate {
     /**
      * sysContent.
      */
-    public static final String SYS_CONTENT = "你是HTTP/1.1协议专家，回答只包含标准HTTP/1.1报文内容。  \n"
-            + "请返回完整的HTTP/1.1请求或响应报文，包括：  \n"
-            + "- 起始行  \n"
-            + "- 多个请求头（每行一个头部，格式为 Header-Name: Header-Value）  \n"
-            + "- 一个空行  \n"
-            + "- JSON格式的正文部分（正文必须是合法JSON文本）  \n"
-            + "不要包含任何额外说明、注释或文本。  \n"
-            + "示例：\n"
+    public static final String SYS_CONTENT = "You are an expert in HTTP/1.1 protocol. Your response should contain only standard HTTP/1.1 message content.  \n"
+            + "Please return a complete HTTP/1.1 request or response message, including:  \n"
+            + "- Start line  \n"
+            + "- Multiple headers (one header per line, format: Header-Name: Header-Value)  \n"
+            + "- A blank line  \n"
+            + "- A JSON-formatted body (the body must be valid JSON text)  \n"
+            + "Do not include any extra explanations, comments, or text.  \n"
+            + "Example:\n"
             + "\n"
             + "HTTP/1.1 200 OK\n"
             + "Content-Type: application/json\n"

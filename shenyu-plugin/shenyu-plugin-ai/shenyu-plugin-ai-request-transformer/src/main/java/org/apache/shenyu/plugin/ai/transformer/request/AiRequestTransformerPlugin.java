@@ -21,9 +21,11 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
 import org.apache.shenyu.common.dto.convert.rule.AiRequestTransformerHandle;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.request.handler.AiRequestTransformerPluginHandler;
 import org.apache.shenyu.plugin.ai.transformer.request.template.AiRequestTransformerTemplate;
@@ -34,6 +36,7 @@ import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
@@ -60,9 +63,11 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
+    private final AiModelFactoryRegistry aiModelFactoryRegistry;
 
-    public AiRequestTransformerPlugin(final List<HttpMessageReader<?>> messageReaders) {
+    public AiRequestTransformerPlugin(final List<HttpMessageReader<?>> messageReaders, final AiModelFactoryRegistry aiModelFactoryRegistry) {
         this.messageReaders = messageReaders;
+        this.aiModelFactoryRegistry = aiModelFactoryRegistry;
     }
 
     @Override
@@ -90,8 +95,12 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
+        ChatModel aiModel = aiModelFactoryRegistry
+                .getFactory(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()))
+                .createAiModel(AiRequestTransformerPluginHandler.convertConfig(aiRequestTransformerConfig));
+
         if (Objects.isNull(client)) {
-            client = ChatClientCache.getInstance().init(rule.getId(), aiRequestTransformerConfig);
+            client = ChatClientCache.getInstance().init(rule.getId(), aiModel, aiRequestTransformerConfig.getProvider());
         }
 
         AiRequestTransformerTemplate aiRequestTransformerTemplate = new AiRequestTransformerTemplate(aiRequestTransformerConfig.getContent(), exchange.getRequest());

@@ -17,20 +17,11 @@
 
 package org.apache.shenyu.plugin.ai.transformer.request.cache;
 
-import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
-import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.deepseek.DeepSeekChatModel;
-import org.springframework.ai.deepseek.DeepSeekChatOptions;
-import org.springframework.ai.deepseek.api.DeepSeekApi;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * this is chatClient cache.
@@ -44,50 +35,16 @@ public class ChatClientCache {
 
     /**
      * Init.
-     *gi
-     * @param aiRequestTransformerConfig the aiRequestTransformerConfig
-     */
-    public ChatClient init(final String ruleId, final AiRequestTransformerConfig aiRequestTransformerConfig) {
-        ChatModel chatModel = initAiModel(aiRequestTransformerConfig);
-        ChatClient chatClient = ChatClient.builder(chatModel).build();
-        CHAT_CLIENT_MAP.put(ruleId + aiRequestTransformerConfig.getProvider(), chatClient);
-        return chatClient;
-    }
-
-
-    /**
-     * Init chatModel.
      *
-     * @param aiRequestTransformerConfig the aiRequestTransformerConfig.
-     * @return chatModel.
+     * @param ruleId the ruleId
+     * @param chatModel the chatModel
+     * @param provider the provider
+     * @return chatClient the chatClient
      */
-    public ChatModel initAiModel(final AiRequestTransformerConfig aiRequestTransformerConfig) {
-        switch (Objects.requireNonNull(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()))) {
-            case DEEP_SEEK :
-                DeepSeekApi deepSeekApi = DeepSeekApi.builder()
-                        .baseUrl(aiRequestTransformerConfig.getBaseUrl())
-                        .apiKey(aiRequestTransformerConfig.getApiKey())
-                        .build();
-                return DeepSeekChatModel.builder().deepSeekApi(deepSeekApi)
-                         .defaultOptions(
-                                 DeepSeekChatOptions.builder()
-                                         .model(aiRequestTransformerConfig.getModel())
-                                         .build())
-                         .build();
-            case OPEN_AI:
-                OpenAiApi openAiApi = OpenAiApi.builder()
-                        .baseUrl(aiRequestTransformerConfig.getBaseUrl())
-                        .apiKey(aiRequestTransformerConfig.getApiKey())
-                        .build();
-                return OpenAiChatModel.builder().openAiApi(openAiApi)
-                        .defaultOptions(
-                                OpenAiChatOptions.builder()
-                                        .model(aiRequestTransformerConfig.getModel())
-                                        .build()
-                        ).build();
-            default:
-                return null;
-        }
+    public ChatClient init(final String ruleId, final ChatModel chatModel, final String provider) {
+        ChatClient chatClient = ChatClient.builder(chatModel).build();
+        CHAT_CLIENT_MAP.put(ruleId + provider, chatClient);
+        return chatClient;
     }
 
     /**
@@ -101,6 +58,7 @@ public class ChatClientCache {
 
     /**
      * Gets chatClient.
+     *
      * @param key key
      * @return the instance
      */

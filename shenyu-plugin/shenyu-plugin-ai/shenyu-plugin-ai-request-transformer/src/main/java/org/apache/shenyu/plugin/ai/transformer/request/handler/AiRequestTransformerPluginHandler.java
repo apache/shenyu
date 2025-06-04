@@ -22,10 +22,13 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
 import org.apache.shenyu.common.dto.convert.rule.AiRequestTransformerHandle;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
+import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -43,6 +46,12 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, AiRequestTransformerHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
+    private final AiModelFactoryRegistry aiModelFactoryRegistry;
+
+    public AiRequestTransformerPluginHandler(final AiModelFactoryRegistry aiModelFactoryRegistry) {
+        this.aiModelFactoryRegistry = aiModelFactoryRegistry;
+    }
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
@@ -50,7 +59,8 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
             if (Objects.isNull(aiRequestTransformerConfig)) {
                 return;
             }
-            ChatClientCache.getInstance().init("", aiRequestTransformerConfig);
+            AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()));
+            ChatClientCache.getInstance().init("", factory.createAiModel(convertConfig(aiRequestTransformerConfig)), aiRequestTransformerConfig.getProvider());
             Singleton.INST.single(AiCommonConfig.class, aiRequestTransformerConfig);
         }
     }
@@ -73,5 +83,14 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
         return PluginEnum.AI_REQUEST_TRANSFORMER.getName();
     }
 
-
+    public static AiCommonConfig convertConfig(final AiRequestTransformerConfig aiRequestTransformerConfig) {
+        AiCommonConfig aiCommonConfig = new AiCommonConfig();
+        Optional.ofNullable(aiCommonConfig.getBaseUrl()).ifPresent(aiCommonConfig::setBaseUrl);
+        Optional.ofNullable(aiCommonConfig.getProvider()).ifPresent(aiCommonConfig::setProvider);
+        Optional.ofNullable(aiCommonConfig.getTemperature()).ifPresent(aiCommonConfig::setTemperature);
+        Optional.ofNullable(aiCommonConfig.getModel()).ifPresent(aiCommonConfig::setModel);
+        Optional.ofNullable(aiCommonConfig.getApiKey()).ifPresent(aiCommonConfig::setApiKey);
+        Optional.ofNullable(aiCommonConfig.getMaxTokens()).ifPresent(aiCommonConfig::setMaxTokens);
+        return aiCommonConfig;
+    }
 }
