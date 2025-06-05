@@ -1414,7 +1414,7 @@ INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `con
 
 INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 170, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
-INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 170, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 
 
