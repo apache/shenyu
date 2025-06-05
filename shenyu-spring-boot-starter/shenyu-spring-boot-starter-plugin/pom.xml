@@ -77,5 +77,6 @@
         
         <module>shenyu-spring-boot-starter-plugin-ai-prompt</module>
         <module>shenyu-spring-boot-starter-plugin-ai-token-limiter</module>
+        <module>shenyu-spring-boot-starter-plugin-ai-request-transformer</module>
     </modules>
 </project>
