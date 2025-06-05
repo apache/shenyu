@@ -141,7 +141,7 @@ public class AiRequestTransformerTemplate {
     /**
      * assembleMessage .
      *
-     * @return assembleMessage
+     * @return message
      */
     public Mono<String> assembleMessage() {
         JsonNode headersJson = headersToJson(originalRequest.getHeaders());
