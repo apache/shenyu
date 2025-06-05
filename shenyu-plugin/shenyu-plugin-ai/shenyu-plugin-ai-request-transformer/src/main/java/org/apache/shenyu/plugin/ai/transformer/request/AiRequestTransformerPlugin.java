@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * this is ai request transformer plugin.
@@ -90,13 +91,21 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             client = ChatClientCache.getInstance().getClient(rule.getId());
         }
 
-        if (Objects.isNull(aiRequestTransformerConfig.getBaseUrl())) {
-            LOG.error("AI request transformer plugin: baseUrl is null");
+        String baseUrl = aiRequestTransformerConfig.getBaseUrl();
+        String apiKey = aiRequestTransformerConfig.getApiKey();
+        String provider = aiRequestTransformerConfig.getProvider();
+        if (Stream.of(baseUrl, apiKey, provider).anyMatch(Objects::isNull)) {
+            String missing = "";
+            missing += Objects.isNull(baseUrl) ? "baseUrl, " : "";
+            missing += Objects.isNull(apiKey) ? "apiKey, " : "";
+            missing += Objects.isNull(provider) ? "provider, " : "";
+
+            LOG.error("Missing configurations: {}", missing.substring(0, missing.length() - 2));
             return chain.execute(exchange);
         }
 
         ChatModel aiModel = aiModelFactoryRegistry
-                .getFactory(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()))
+                .getFactory(AiModelProviderEnum.getByName(provider))
                 .createAiModel(AiRequestTransformerPluginHandler.convertConfig(aiRequestTransformerConfig));
 
         if (Objects.isNull(client)) {
