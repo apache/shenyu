@@ -61,7 +61,7 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
             }
             AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiRequestTransformerConfig.getProvider()));
             ChatClientCache.getInstance().init("default", factory.createAiModel(convertConfig(aiRequestTransformerConfig)));
-            Singleton.INST.single(AiCommonConfig.class, aiRequestTransformerConfig);
+            Singleton.INST.single(AiRequestTransformerConfig.class, aiRequestTransformerConfig);
         }
     }
 
@@ -88,12 +88,10 @@ public class AiRequestTransformerPluginHandler implements PluginDataHandler {
 
     public static AiCommonConfig convertConfig(final AiRequestTransformerConfig aiRequestTransformerConfig) {
         AiCommonConfig aiCommonConfig = new AiCommonConfig();
-        Optional.ofNullable(aiCommonConfig.getBaseUrl()).ifPresent(aiCommonConfig::setBaseUrl);
-        Optional.ofNullable(aiCommonConfig.getProvider()).ifPresent(aiCommonConfig::setProvider);
-        Optional.ofNullable(aiCommonConfig.getTemperature()).ifPresent(aiCommonConfig::setTemperature);
-        Optional.ofNullable(aiCommonConfig.getModel()).ifPresent(aiCommonConfig::setModel);
-        Optional.ofNullable(aiCommonConfig.getApiKey()).ifPresent(aiCommonConfig::setApiKey);
-        Optional.ofNullable(aiCommonConfig.getMaxTokens()).ifPresent(aiCommonConfig::setMaxTokens);
+        Optional.ofNullable(aiRequestTransformerConfig.getBaseUrl()).ifPresent(aiCommonConfig::setBaseUrl);
+        Optional.ofNullable(aiRequestTransformerConfig.getProvider()).ifPresent(aiCommonConfig::setProvider);
+        Optional.ofNullable(aiRequestTransformerConfig.getModel()).ifPresent(aiCommonConfig::setModel);
+        Optional.ofNullable(aiRequestTransformerConfig.getApiKey()).ifPresent(aiCommonConfig::setApiKey);
         return aiCommonConfig;
     }
 }
