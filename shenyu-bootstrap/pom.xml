@@ -263,6 +263,14 @@
         </dependency>
         <!--Ai token limiter Plugin end-->
 
+        <!--Ai request transformer Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-request-transformer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai request transformer Plugin end-->
+
         <!--shenyu sofa plugin start-->
         <dependency>
             <groupId>com.alipay.sofa</groupId>

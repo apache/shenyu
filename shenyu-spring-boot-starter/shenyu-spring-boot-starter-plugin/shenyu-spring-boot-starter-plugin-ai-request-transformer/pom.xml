@@ -17,21 +17,22 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-plugin</artifactId>
+        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
         <version>2.7.0.2-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-ai</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>shenyu-plugin-ai-common</module>
-        <module>shenyu-plugin-ai-proxy</module>
-        <module>shenyu-plugin-ai-prompt</module>
-        <module>shenyu-plugin-ai-token-limiter</module>
-        <module>shenyu-plugin-ai-request-transformer</module>
-    </modules>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>shenyu-spring-boot-starter-plugin-ai-request-transformer</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-ai-request-transformer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+
 </project>
