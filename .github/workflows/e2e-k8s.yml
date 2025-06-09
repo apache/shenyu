@@ -334,4 +334,3 @@ jobs:
         run: |
           [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
           [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
-
