@@ -1378,11 +1378,11 @@ INSERT INTO `plugin_handle` VALUES ('1899702411294539776', '51', 'timeWindowSeco
 INSERT INTO `plugin_handle` VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
-INSERT INTO `plugin_handle` VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 2, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507243', '53', 'model', 'model', 2, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO `plugin_handle` VALUES ('1722804548510507244', '53', 'content', 'content', 2, 2, 4, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 -- ----------------------------
 -- Table structure for resource

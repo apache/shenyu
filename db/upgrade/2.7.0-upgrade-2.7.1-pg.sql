@@ -181,11 +181,11 @@ INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 
 
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507243', '53', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507244', '53', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 INSERT INTO "public"."resource" VALUES ('1844026099075564859', '1346775491550474240', 'aiRequestTransformer', 'aiRequestTransformer', '/plug/aiRequestTransformer', 'aiRequestTransformer', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075564860', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
