@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mcp.server.handler;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -66,6 +67,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             return;
         }
         
+        if (CollectionUtils.isEmpty(selectorData.getConditionList())) {
+            return;
+        }
+
         // Get the URI from selector data
         String uri = selectorData.getConditionList().stream()
                 .filter(condition -> Constants.URI.equals(condition.getParamType()))
