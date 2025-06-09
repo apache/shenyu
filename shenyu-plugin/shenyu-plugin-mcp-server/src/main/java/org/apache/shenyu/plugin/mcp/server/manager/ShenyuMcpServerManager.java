@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.mcp.server.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
@@ -26,13 +27,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
-import org.apache.shenyu.plugin.mcp.server.tools.ShenyuDefaultTools;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
-import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.HandlerFunction;
@@ -142,7 +141,7 @@ public class ShenyuMcpServerManager {
                 .async(transportProvider)
                 .serverInfo("MCP Shenyu Server", "1.0.0")
                 .capabilities(capabilities)
-                .tools(McpToolUtils.toAsyncToolSpecifications(ToolCallbacks.from(new ShenyuDefaultTools())))
+                .tools(Lists.newArrayList())
                 .build();
         
         mcpServerMap.put(path, server);
