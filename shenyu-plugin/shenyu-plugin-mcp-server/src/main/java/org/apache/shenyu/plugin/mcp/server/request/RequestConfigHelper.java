@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server.utils;
+package org.apache.shenyu.plugin.mcp.server.request;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;

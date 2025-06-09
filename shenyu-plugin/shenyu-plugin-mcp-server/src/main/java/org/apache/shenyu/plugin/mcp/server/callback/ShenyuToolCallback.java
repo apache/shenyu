@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.utils.BodyWriterExchange;
 import org.apache.shenyu.plugin.mcp.server.utils.McpSessionHelper;
-import org.apache.shenyu.plugin.mcp.server.utils.RequestConfigHelper;
+import org.apache.shenyu.plugin.mcp.server.request.RequestConfigHelper;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

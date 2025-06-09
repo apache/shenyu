@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.tools.ShenyuDefaultTools;
+import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
