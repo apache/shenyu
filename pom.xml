@@ -185,7 +185,7 @@
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
         <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
-        <spring-ai.version>1.0.0-RC1</spring-ai.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
         <mcp.version>0.10.0</mcp.version>
         <!-- dependency version end -->
     </properties>

@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.mcp.server.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.apache.shenyu.web.filter.AbstractWebFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The type mcp server filter.
@@ -41,26 +38,22 @@ public final class McpServerFilter extends AbstractWebFilter {
 
     private final DispatcherHandler dispatcherHandler;
 
-    private final Set<String> paths;
+    private final ShenyuMcpServerManager shenyuMcpServerManager;
 
     /**
      * Instantiates a new Mcp server filter.
      *
      * @param dispatcherHandler  the dispatcher handler
-     * @param sseMessageEndpoint the sseMessageEndpoint
+     * @param shenyuMcpServerManager the shenyu mcp server manager
      */
-    public McpServerFilter(final DispatcherHandler dispatcherHandler, final String sseMessageEndpoint) {
+    public McpServerFilter(final DispatcherHandler dispatcherHandler, final ShenyuMcpServerManager shenyuMcpServerManager) {
         this.dispatcherHandler = dispatcherHandler;
-        if (StringUtils.isEmpty(sseMessageEndpoint)) {
-            this.paths = new HashSet<>(Arrays.asList("/sse"));
-        } else {
-            this.paths = new HashSet<>(Arrays.asList("/sse", sseMessageEndpoint));
-        }
+        this.shenyuMcpServerManager = shenyuMcpServerManager;
     }
 
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(paths.stream().anyMatch(path -> exchange.getRequest().getURI().getRawPath().startsWith(path)));
+        return Mono.just(shenyuMcpServerManager.canRoute(exchange.getRequest().getURI().getRawPath()));
     }
 
     @Override

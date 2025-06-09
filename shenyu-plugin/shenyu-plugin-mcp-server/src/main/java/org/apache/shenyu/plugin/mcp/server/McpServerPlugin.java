@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -30,8 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Objects;
 
 /**
  * McpServer Plugin.
@@ -46,9 +42,9 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        Objects.requireNonNull(shenyuContext);
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+            final SelectorData selector, final RuleData rule) {
+        
         return chain.execute(exchange);
     }
 
@@ -68,13 +64,15 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange,
+            final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
     }
 
     @Override
-    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange,
+            final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
-    
+
 }

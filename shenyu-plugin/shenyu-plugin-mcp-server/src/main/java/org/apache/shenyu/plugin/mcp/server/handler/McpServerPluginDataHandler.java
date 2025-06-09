@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.mcp.server.handler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.McpParameter;
@@ -32,6 +33,7 @@ import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 
@@ -48,10 +50,11 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(
             CommonHandleCache::new);
 
-    private final ShenyuMcpToolsManager shenyuMcpToolsManager;
+    private final ShenyuMcpServerManager shenyuMcpServerManager;
 
-    public McpServerPluginDataHandler(final ShenyuMcpToolsManager shenyuMcpToolsManager) {
-        this.shenyuMcpToolsManager = shenyuMcpToolsManager;
+    public McpServerPluginDataHandler(
+            final ShenyuMcpServerManager shenyuMcpServerManager) {
+        this.shenyuMcpServerManager = shenyuMcpServerManager;
     }
 
     @Override
@@ -59,6 +62,19 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
+
+        // Get the URI from selector data
+        String uri = selectorData.getConditionList().stream()
+                .filter(condition -> Constants.URI.equals(condition.getParamType()))
+                .map(ConditionData::getParamValue)
+                .findFirst()
+                .orElse(null);
+
+        // Get or create McpServer for this URI
+        if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
+            shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
+        }
+
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
@@ -73,6 +89,22 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+
+        // Remove the McpServer for this URI
+        // First try to get URI from handle, then from condition list
+        String uri = selectorData.getHandle();
+        if (StringUtils.isBlank(uri)) {
+            // Try to get URI from condition list
+            uri = selectorData.getConditionList().stream()
+                    .filter(condition -> Constants.URI.equals(condition.getParamType()))
+                    .map(ConditionData::getParamValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (StringUtils.isNotBlank(uri) && shenyuMcpServerManager.hasMcpServer(uri)) {
+            shenyuMcpServerManager.removeMcpServer(uri);
+        }
     }
 
     @Override
@@ -89,11 +121,12 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // Create JSON schema from parameters
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
 
-            shenyuMcpToolsManager.addTool(
-                    StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() : toolHandle.getName(),
-                    toolHandle.getDescription(),
-                    toolHandle.getRequestConfig(),
-                    inputSchema);
+            // shenyuMcpToolsManager.addTool(
+            // StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() :
+            // toolHandle.getName(),
+            // toolHandle.getDescription(),
+            // toolHandle.getRequestConfig(),
+            // inputSchema);
         });
     }
 
