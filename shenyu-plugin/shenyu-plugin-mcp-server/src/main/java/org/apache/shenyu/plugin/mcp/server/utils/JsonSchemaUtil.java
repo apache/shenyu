@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.dto.convert.rule.impl.McpParameter;
+import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerToolParameter;
 import org.springframework.ai.util.json.JsonParser;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption;
 
@@ -45,7 +45,7 @@ public final class JsonSchemaUtil {
      * @param schemaOptions optional schema options
      * @return the JSON schema as a string
      */
-    public static String createParameterSchema(final List<McpParameter> parameters,
+    public static String createParameterSchema(final List<McpServerToolParameter> parameters,
             final SchemaOption... schemaOptions) {
         if (CollectionUtils.isEmpty(parameters)) {
             return emptySchema(schemaOptions);
@@ -56,7 +56,7 @@ public final class JsonSchemaUtil {
         schema.put("type", "object");
 
         ObjectNode properties = schema.putObject("properties");
-        for (McpParameter parameter : parameters) {
+        for (McpServerToolParameter parameter : parameters) {
             ObjectNode property = properties.putObject(parameter.getName());
             property.put("type", "string");
             property.put("description", parameter.getDescription());

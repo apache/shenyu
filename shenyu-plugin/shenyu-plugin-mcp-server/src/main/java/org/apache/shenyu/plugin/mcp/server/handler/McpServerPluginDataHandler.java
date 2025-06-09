@@ -22,19 +22,17 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.McpParameter;
-import org.apache.shenyu.common.dto.convert.rule.impl.McpServerPluginRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerToolParameter;
+import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerTool;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
-import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 
 import java.util.List;
@@ -46,50 +44,57 @@ import java.util.function.Supplier;
  * The type McpServer plugin data handler.
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
-
-    public static final Supplier<CommonHandleCache<String, McpServerPluginRuleHandle>> CACHED_HANDLE = new BeanHolder<>(
+    
+    public static final Supplier<CommonHandleCache<String, McpServerTool>> CACHED_TOOL = new BeanHolder<>(
             CommonHandleCache::new);
-
+    
+    public static final Supplier<CommonHandleCache<String, String>> CACHED_SERVER = new BeanHolder<>(
+            CommonHandleCache::new);
+    
+    private static final String SLASH = "/";
+    
     private final ShenyuMcpServerManager shenyuMcpServerManager;
-
+    
     public McpServerPluginDataHandler(
             final ShenyuMcpServerManager shenyuMcpServerManager) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
     }
-
+    
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
-
+        
         // Get the URI from selector data
         String uri = selectorData.getConditionList().stream()
                 .filter(condition -> Constants.URI.equals(condition.getParamType()))
                 .map(ConditionData::getParamValue)
                 .findFirst()
                 .orElse(null);
-
+        
+        String path = StringUtils.removeEnd(uri, SLASH);
+        
+        CACHED_SERVER.get().cachedHandle(
+                selectorData.getId(),
+                path);
+        
         // Get or create McpServer for this URI
         if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
             shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
         }
-
+        
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
-        if (!selectorData.getContinued()) {
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE),
-                    McpServerPluginRuleHandle.newInstance());
-        }
     }
-
+    
     @Override
     public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
-        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
-
+        CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+        
         // Remove the McpServer for this URI
         // First try to get URI from handle, then from condition list
         String uri = selectorData.getHandle();
@@ -101,47 +106,50 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                     .findFirst()
                     .orElse(null);
         }
-
+        
+        CACHED_SERVER.get().removeHandle(selectorData.getId());
+        
         if (StringUtils.isNotBlank(uri) && shenyuMcpServerManager.hasMcpServer(uri)) {
             shenyuMcpServerManager.removeMcpServer(uri);
         }
     }
-
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            McpServerPluginRuleHandle toolHandle = GsonUtils.getInstance().fromJson(s, McpServerPluginRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), toolHandle);
+            McpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, McpServerTool.class);
+            CACHED_TOOL.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mcpServerTool);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
-
-            List<McpParameter> parameters = toolHandle.getParameters();
-
+            
+            List<McpServerToolParameter> parameters = mcpServerTool.getParameters();
+            
             // Create JSON schema from parameters
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
-
-            // shenyuMcpToolsManager.addTool(
-            // StringUtils.isBlank(toolHandle.getName()) ? ruleData.getName() :
-            // toolHandle.getName(),
-            // toolHandle.getDescription(),
-            // toolHandle.getRequestConfig(),
-            // inputSchema);
+            String serverPath = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            shenyuMcpServerManager.addTool(serverPath,
+                    StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
+                            : mcpServerTool.getName(),
+                    mcpServerTool.getDescription(),
+                    mcpServerTool.getRequestConfig(),
+                    inputSchema);
         });
     }
-
+    
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-            SpringBeanUtils.getInstance().getBean(ShenyuMcpToolsManager.class).removeTool(ruleData.getName());
+            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+            String serverPath = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            shenyuMcpServerManager.removeTool(serverPath, ruleData.getName());
         });
         MetaDataCache.getInstance().clean();
     }
-
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.MCP_SERVER.getName();
     }
-
+    
 }

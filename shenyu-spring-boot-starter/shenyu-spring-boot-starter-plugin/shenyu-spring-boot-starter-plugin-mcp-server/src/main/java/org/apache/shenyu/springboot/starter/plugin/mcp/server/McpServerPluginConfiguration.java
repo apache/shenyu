@@ -17,19 +17,12 @@
 
 package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
-import io.modelcontextprotocol.server.McpAsyncServer;
-import io.modelcontextprotocol.server.McpSyncServer;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.filter.McpServerFilter;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
-import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpAsyncToolsManager;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
-import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpSyncToolsManager;
-import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpToolsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
@@ -43,28 +36,11 @@ import org.springframework.web.server.WebFilter;
 /**
  * The type Mock plugin configuration.
  */
-//@EnableConfigurationProperties({ McpServerProperties.class })
-//@AutoConfiguration(after = McpServerAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "shenyu.plugins.mcp.server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class McpServerPluginConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
 
-//    @Bean
-//    @ConditionalOnMissingBean
-//    public WebFluxSseServerTransportProvider webFluxTransport(final ObjectProvider<ObjectMapper> objectMapperProvider,
-//            final McpServerProperties serverProperties) {
-//        ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
-//        return new WebFluxSseServerTransportProvider(objectMapper, serverProperties.getSseMessageEndpoint(),
-//                serverProperties.getSseEndpoint());
-//    }
-
-    // Router function for SSE transport used by Spring WebFlux to start an HTTP
-    // server.
-//    @Bean
-//    public RouterFunction<?> webfluxMcpRouterFunction(final WebFluxSseServerTransportProvider webFluxProvider) {
-//        return webFluxProvider.getRouterFunction();
-//    }
 
 //    @Bean
 //    @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC", matchIfMissing = true)
@@ -264,19 +240,6 @@ public class McpServerPluginConfiguration {
 //        return serverBuilder.build();
 //    }
 
-    @Bean
-    @ConditionalOnBean(McpAsyncServer.class)
-    @ConditionalOnMissingBean(ShenyuMcpToolsManager.class)
-    public ShenyuMcpToolsManager shenyuMcpAsyncToolsManager(final McpAsyncServer mcpAsyncServer) {
-        return new ShenyuMcpAsyncToolsManager(mcpAsyncServer);
-    }
-
-    @Bean
-    @ConditionalOnBean(McpSyncServer.class)
-    @ConditionalOnMissingBean(ShenyuMcpToolsManager.class)
-    public ShenyuMcpToolsManager shenyuMcpSyncToolsManager(final McpSyncServer mcpSyncServer) {
-        return new ShenyuMcpSyncToolsManager(mcpSyncServer);
-    }
 
     /**
      * Health filter.

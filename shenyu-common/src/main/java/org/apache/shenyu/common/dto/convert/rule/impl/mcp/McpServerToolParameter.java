@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
+package org.apache.shenyu.common.dto.convert.rule.impl.mcp;
 
 /**
  * McpParameter represents a parameter in the context of a tool description.
  * It contains information about the parameter's name, type, description,
  * whether it is required, and its default value.
  */
-public class McpParameter {
+public class McpServerToolParameter {
     
     /**
      * Parameter name.
@@ -52,7 +52,7 @@ public class McpParameter {
     /**
      * Constructor for McpParameter.
      */
-    public McpParameter() {
+    public McpServerToolParameter() {
     }
 
     /**
@@ -64,7 +64,7 @@ public class McpParameter {
      * @param required    required
      * @param defaultValue defaultValue
      */
-    public McpParameter(final String name, final String type, final String description, final boolean required, final String defaultValue) {
+    public McpServerToolParameter(final String name, final String type, final String description, final boolean required, final String defaultValue) {
         this.name = name;
         this.type = type;
         this.description = description;

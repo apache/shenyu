@@ -20,13 +20,19 @@ package org.apache.shenyu.plugin.mcp.server.manager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpServer;
+import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
+import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.tools.ShenyuDefaultTools;
+import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.ai.support.ToolCallbacks;
+import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -42,16 +48,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class ShenyuMcpServerManager {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpServerManager.class);
     
     private static final String SLASH = "/";
-
+    
     /**
      * Map to store URI to McpServer mapping.
      */
     private final Map<String, McpAsyncServer> mcpServerMap = new ConcurrentHashMap<>();
-
+    
     /**
      * Map to store URI to McpServer mapping.
      */
@@ -69,8 +75,8 @@ public class ShenyuMcpServerManager {
     public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri) {
         return mcpServerTransportMap.computeIfAbsent(uri, this::createMcpServerTransport);
     }
-
-
+    
+    
     /**
      * Check if a McpServer exists for the given URI.
      *
@@ -90,7 +96,7 @@ public class ShenyuMcpServerManager {
     public boolean canRoute(final String uri) {
         return routeMap.containsKey(uri);
     }
-
+    
     /**
      * Remove a McpServer for the given URI.
      *
@@ -100,14 +106,15 @@ public class ShenyuMcpServerManager {
         LOG.info("Removed McpServer for URI: {}", uri);
         ShenyuSseServerTransportProvider transportProvider = mcpServerTransportMap.remove(uri);
         if (Objects.nonNull(transportProvider)) {
-            transportProvider.closeGracefully()
+            transportProvider
+                    .closeGracefully()
                     .doOnSuccess(aVoid -> LOG.info("Successfully closed McpServer for URI: {}", uri))
                     .doOnError(e -> LOG.error("Error closing McpServer for URI: {}", uri, e))
                     .subscribe();
         }
         mcpServerMap.remove(uri);
     }
-
+    
     /**
      * Create a new McpServer for the given URI.
      *
@@ -118,30 +125,25 @@ public class ShenyuMcpServerManager {
         String path = StringUtils.removeEnd(uri, SLASH);
         LOG.info("Creating new McpServer for URI: {}", path);
         String messageEndpoint = path + "/message";
-        ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
-                .objectMapper(new ObjectMapper())
-                .sseEndpoint(path)
-                .messageEndpoint(messageEndpoint)
-                .build();
+        ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder().objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messageEndpoint).build();
         
         LOG.debug("Registered RouterFunction for URI: {}", path);
-
+        
         // Configure server capabilities with resource support
         var capabilities = McpSchema.ServerCapabilities.builder()
                 // Tool support with list changes notifications
                 .tools(true)
                 // Logging support
-                .logging()
-                .build();
-
+                .logging().build();
+        
         // Create the server with both tool and resource capabilities
-        McpAsyncServer server = McpServer.async(transportProvider)
+        McpAsyncServer server = McpServer
+                .async(transportProvider)
                 .serverInfo("MCP Shenyu Server", "1.0.0")
                 .capabilities(capabilities)
                 .tools(McpToolUtils.toAsyncToolSpecifications(ToolCallbacks.from(new ShenyuDefaultTools())))
-                
                 .build();
-
+        
         mcpServerMap.put(path, server);
         
         routeMap.put(path, transportProvider::handleSseConnection);
@@ -158,5 +160,26 @@ public class ShenyuMcpServerManager {
         } else {
             return ServerResponse.notFound().build();
         }
+    }
+    
+    public void addTool(final String serverPath, final String name, final String description, final String requestTemplate, final String inputSchema) {
+        // remove first for overwrite
+        try {
+            removeTool(serverPath, name);
+        } catch (Exception ignored) {
+            // ignore
+        }
+        
+        ToolDefinition shenyuToolDefinition = ShenyuToolDefinition.builder().name(name).description(description).requestConfig(requestTemplate).inputSchema(inputSchema).build();
+        LOG.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}", name, description, requestTemplate, inputSchema);
+        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
+        for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
+            mcpServerMap.get(serverPath).addTool(asyncToolSpecification).block();
+        }
+    }
+    
+    public void removeTool(final String serverPath, final String name) {
+        LOG.debug("Removing tool, name: {}", name);
+        mcpServerMap.get(serverPath).removeTool(name).block();
     }
 }

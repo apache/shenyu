@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
+package org.apache.shenyu.common.dto.convert.rule.impl.mcp;
 
 import com.google.common.collect.Lists;
 
@@ -28,7 +28,7 @@ import java.util.Objects;
  * It contains information about the tool's ID, name, version, description, parameters,
  * and return type.
  */
-public class McpServerPluginRuleHandle {
+public class McpServerTool {
     
     /**
      * Name of the tool .
@@ -48,7 +48,7 @@ public class McpServerPluginRuleHandle {
     /**
      * Parameters of the tool .
      */
-    private List<McpParameter> parameters = Lists.newArrayList();
+    private List<McpServerToolParameter> parameters = Lists.newArrayList();
     
     
     /**
@@ -110,7 +110,7 @@ public class McpServerPluginRuleHandle {
      *
      * @return parameters
      */
-    public List<McpParameter> getParameters() {
+    public List<McpServerToolParameter> getParameters() {
         return parameters;
     }
     
@@ -119,13 +119,13 @@ public class McpServerPluginRuleHandle {
      *
      * @param parameters parameters
      */
-    public void setParameters(final List<McpParameter> parameters) {
+    public void setParameters(final List<McpServerToolParameter> parameters) {
         this.parameters = parameters;
     }
     
     
-    public static McpServerPluginRuleHandle newInstance() {
-        McpServerPluginRuleHandle mcpServerPluginRuleHandle = new McpServerPluginRuleHandle();
+    public static McpServerTool newInstance() {
+        McpServerTool mcpServerPluginRuleHandle = new McpServerTool();
         mcpServerPluginRuleHandle.setName("");
         mcpServerPluginRuleHandle.setDescription("");
         mcpServerPluginRuleHandle.setParameters(new ArrayList<>(0));
@@ -140,7 +140,7 @@ public class McpServerPluginRuleHandle {
         if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
-        McpServerPluginRuleHandle that = (McpServerPluginRuleHandle) o;
+        McpServerTool that = (McpServerTool) o;
         return Objects.equals(name, that.name)
                 && Objects.equals(description, that.description)
                 && Objects.equals(requestConfig, that.requestConfig)
