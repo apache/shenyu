@@ -27,6 +27,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieEventEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.TrieEvent;
@@ -195,12 +196,16 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     private <T> void subscribeDataHandler(final T classData, final DataEventTypeEnum dataType) {
-        if (dataType == DataEventTypeEnum.UPDATE) {
-            Optional.ofNullable(classData)
-                    .ifPresent(data -> updateCacheData(classData));
-        } else if (dataType == DataEventTypeEnum.DELETE) {
-            Optional.ofNullable(classData)
-                    .ifPresent(data -> removeCacheData(classData));
+        try {
+            if (dataType == DataEventTypeEnum.UPDATE) {
+                Optional.ofNullable(classData)
+                        .ifPresent(data -> updateCacheData(classData));
+            } else if (dataType == DataEventTypeEnum.DELETE) {
+                Optional.ofNullable(classData)
+                        .ifPresent(data -> removeCacheData(classData));
+            }
+        } catch (Exception e) {
+            LOG.error("subscribe data handler error, classData: {}, dataType: {}", JsonUtils.toJson(classData), dataType, e);
         }
     }
     
