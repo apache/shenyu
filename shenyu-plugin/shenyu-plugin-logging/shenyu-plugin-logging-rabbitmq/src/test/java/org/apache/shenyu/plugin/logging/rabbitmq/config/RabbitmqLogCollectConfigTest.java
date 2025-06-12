@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plulgin.logging.rabbitmq.config;
+package org.apache.shenyu.plugin.logging.rabbitmq.config;
 
 import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig.RabbitmqLogConfig;
 import org.junit.Assert;
