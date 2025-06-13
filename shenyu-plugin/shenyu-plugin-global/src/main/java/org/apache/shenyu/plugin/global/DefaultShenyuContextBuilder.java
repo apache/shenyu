@@ -87,7 +87,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         URI requestURI = request.getURI();
         shenyuContext.setPath(requestURI.getRawPath());
         shenyuContext.setStartDateTime(LocalDateTime.now());
-        Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
+        Optional.of(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }
 }

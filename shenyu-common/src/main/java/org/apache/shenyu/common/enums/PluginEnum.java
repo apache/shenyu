@@ -138,7 +138,7 @@ public enum PluginEnum {
     SENTINEL(140, 0, "sentinel"),
     
     /**
-     * Resilence4J plugin enum.
+     * Resilience4J plugin enum.
      */
     RESILIENCE4J(150, 0, "resilience4j"),
     
