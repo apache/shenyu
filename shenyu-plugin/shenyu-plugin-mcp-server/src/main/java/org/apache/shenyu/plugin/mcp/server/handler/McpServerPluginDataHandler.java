@@ -54,6 +54,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     
     private static final String SLASH = "/";
     
+    private static final String STAR = "/**";
+    
     private final ShenyuMcpServerManager shenyuMcpServerManager;
     
     public McpServerPluginDataHandler(
@@ -79,6 +81,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                 .orElse(null);
         
         String path = StringUtils.removeEnd(uri, SLASH);
+        path = StringUtils.removeEnd(path, STAR);
         
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),

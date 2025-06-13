@@ -17,58 +17,69 @@
 
 package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.mcp.server.filter.McpServerFilter;
+import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.reactive.DispatcherHandler;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.server.WebFilter;
+import org.springframework.http.codec.ServerCodecConfigurer;
 
 /**
  * The type Mock plugin configuration.
  */
 @ConditionalOnProperty(prefix = "shenyu.plugins.mcp.server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class McpServerPluginConfiguration {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
-
-    /**
-     * Health filter.
-     *
-     * @param dispatcherHandler   the dispatcher handler
-     * @param shenyuMcpServerManager the shenyu mcp server manager
-     * @return the web filter
-     */
-    @Bean
-    @Order(-99)
-    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler,
-                               final ShenyuMcpServerManager shenyuMcpServerManager) {
-        return new McpServerFilter(dispatcherHandler, shenyuMcpServerManager);
-    }
     
-    @Bean
-    public RouterFunction<ServerResponse> dynamicRouter(final ShenyuMcpServerManager shenyuMcpServerManager) {
-        return RouterFunctions.route(RequestPredicates.all(), shenyuMcpServerManager::dispatch);
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
+    
+//    /**
+//     * Health filter.
+//     *
+//     * @param dispatcherHandler   the dispatcher handler
+//     * @param shenyuMcpServerManager the shenyu mcp server manager
+//     * @return the web filter
+//     */
+//    @Bean
+//    @Order(-99)
+//    public WebFilter mcpFilter(final DispatcherHandler dispatcherHandler,
+//                               final ShenyuMcpServerManager shenyuMcpServerManager) {
+//        return new McpServerFilter(dispatcherHandler, shenyuMcpServerManager);
+//    }
+//
+//    @Bean
+//    public RouterFunction<ServerResponse> dynamicRouter(final ShenyuMcpServerManager shenyuMcpServerManager) {
+//        return RouterFunctions.route(RequestPredicates.all(), shenyuMcpServerManager::dispatch);
+//    }
     
     @Bean
     public ShenyuMcpServerManager shenyuMcpServerManager() {
         return new ShenyuMcpServerManager();
     }
 
+    /**
+     * Mcp Server plugin data handler.
+     *
+     * @param shenyuMcpServerManager the shenyu mcp server manager
+     * @return the plugin data handler
+     */
     @Bean
     public PluginDataHandler mcpServerPluginDataHandler(
             final ShenyuMcpServerManager shenyuMcpServerManager) {
         return new McpServerPluginDataHandler(shenyuMcpServerManager);
     }
-
+    
+    /**
+     * Mcp Server plugin.
+     *
+     * @return the shenyu plugin
+     */
+    @Bean
+    public ShenyuPlugin mcpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager,
+                                        final ServerCodecConfigurer configurer) {
+        return new McpServerPlugin(shenyuMcpServerManager, configurer.getReaders());
+    }
 }

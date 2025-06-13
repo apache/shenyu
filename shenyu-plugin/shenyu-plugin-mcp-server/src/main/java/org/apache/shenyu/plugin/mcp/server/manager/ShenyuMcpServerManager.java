@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
+
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
@@ -34,10 +35,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.reactive.function.server.HandlerFunction;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Objects;
@@ -48,35 +47,81 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class ShenyuMcpServerManager {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpServerManager.class);
-    
+
     private static final String SLASH = "/";
-    
+
+    /**
+     * AntPathMatcher for pattern matching.
+     */
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     /**
      * Map to store URI to McpServer mapping.
      */
     private final Map<String, McpAsyncServer> mcpServerMap = new ConcurrentHashMap<>();
-    
+
     /**
      * Map to store URI to McpServer mapping.
      */
     private final Map<String, ShenyuSseServerTransportProvider> mcpServerTransportMap = new ConcurrentHashMap<>();
-    
-    private final Map<String, HandlerFunction<ServerResponse>> routeMap = new ConcurrentHashMap<>();
-    
-    
+
+    private final Map<String, HandlerFunction<?>> routeMap = new ConcurrentHashMap<>();
+
     /**
      * Get or create a McpServer instance for the given URI.
+     * Uses pattern matching to find the best matching server.
      *
      * @param uri The URI to create or get a McpServer for
      * @return The McpServer for the URI
      */
     public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri) {
-        return mcpServerTransportMap.computeIfAbsent(uri, this::createMcpServerTransport);
+        // First try exact match
+        ShenyuSseServerTransportProvider transport = mcpServerTransportMap.get(uri);
+        if (Objects.nonNull(transport)) {
+            return transport;
+        }
+
+        // Then try to find existing transport that matches the pattern
+        String basePath = extractBasePath(uri);
+        transport = mcpServerTransportMap.get(basePath);
+        if (Objects.nonNull(transport)) {
+            LOG.debug("Found existing transport for base path '{}' for URI '{}'", basePath, uri);
+            return transport;
+        }
+
+        // Create new transport for the base path
+        return mcpServerTransportMap.computeIfAbsent(basePath, this::createMcpServerTransport);
     }
-    
-    
+
+    /**
+     * Extract the base path from a URI by removing the /message suffix and any
+     * sub-paths.
+     *
+     * @param uri The URI to extract base path from
+     * @return The base path
+     */
+    private String extractBasePath(final String uri) {
+        String basePath = uri;
+
+        // Remove /message suffix if present
+        if (basePath.endsWith("/message")) {
+            basePath = basePath.substring(0, basePath.length() - "/message".length());
+        }
+
+        // For sub-paths, extract the main MCP server path
+        // This assumes MCP server paths don't contain multiple levels
+        // You may need to adjust this logic based on your specific URL structure
+        String[] pathSegments = basePath.split("/");
+        if (pathSegments.length > 2) {
+            // Keep only the first two segments (empty + server-name)
+            basePath = "/" + pathSegments[1];
+        }
+
+        return basePath;
+    }
+
     /**
      * Check if a McpServer exists for the given URI.
      *
@@ -86,17 +131,57 @@ public class ShenyuMcpServerManager {
     public boolean hasMcpServer(final String uri) {
         return mcpServerMap.containsKey(uri);
     }
-    
+
     /**
      * Check if a McpServer can route requests for the given URI.
+     * Uses AntPathMatcher to support pattern matching.
      *
      * @param uri The URI to check
      * @return true if the URI is routable, false otherwise
      */
     public boolean canRoute(final String uri) {
-        return routeMap.containsKey(uri);
+        // First try exact match for performance
+        if (routeMap.containsKey(uri)) {
+            return true;
+        }
+
+        // Then try pattern matching for each registered pattern
+        for (String pattern : routeMap.keySet()) {
+            if (pathMatcher.match(pattern, uri)) {
+                LOG.debug("URI '{}' matches pattern '{}'", uri, pattern);
+                return true;
+            }
+        }
+
+        return false;
     }
-    
+
+    /**
+     * Get the handler function for the given URI.
+     * Uses AntPathMatcher to support pattern matching.
+     *
+     * @param uri The URI to get the handler for
+     * @return The handler function for the URI, or null if not found
+     */
+    public HandlerFunction<?> getHandler(final String uri) {
+        // First try exact match for performance
+        HandlerFunction<?> handler = routeMap.get(uri);
+        if (Objects.nonNull(handler)) {
+            return handler;
+        }
+
+        // Then try pattern matching for each registered pattern
+        for (Map.Entry<String, HandlerFunction<?>> entry : routeMap.entrySet()) {
+            String pattern = entry.getKey();
+            if (pathMatcher.match(pattern, uri)) {
+                LOG.debug("URI '{}' matches pattern '{}', returning handler", uri, pattern);
+                return entry.getValue();
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Remove a McpServer for the given URI.
      *
@@ -114,7 +199,7 @@ public class ShenyuMcpServerManager {
         }
         mcpServerMap.remove(uri);
     }
-    
+
     /**
      * Create a new McpServer for the given URI.
      *
@@ -125,59 +210,75 @@ public class ShenyuMcpServerManager {
         String path = StringUtils.removeEnd(uri, SLASH);
         LOG.info("Creating new McpServer for URI: {}", path);
         String messageEndpoint = path + "/message";
-        ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder().objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messageEndpoint).build();
-        
+        ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
+                .objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messageEndpoint).build();
+
         LOG.debug("Registered RouterFunction for URI: {}", path);
-        
+
         // Configure server capabilities with resource support
         var capabilities = McpSchema.ServerCapabilities.builder()
                 // Tool support with list changes notifications
                 .tools(true)
                 // Logging support
                 .logging().build();
-        
+
         // Create the server with both tool and resource capabilities
+        // Note: McpServer.async() automatically calls
+        // transportProvider.setSessionFactory()
         McpAsyncServer server = McpServer
                 .async(transportProvider)
                 .serverInfo("MCP Shenyu Server", "1.0.0")
                 .capabilities(capabilities)
                 .tools(Lists.newArrayList())
                 .build();
-        
+
+        // Verify that the session factory was properly set
+        LOG.debug("MCP server created successfully for URI: {}, session factory should be available", path);
+
         mcpServerMap.put(path, server);
-        
+
+        // Register both exact paths and wildcard patterns for flexible matching
         routeMap.put(path, transportProvider::handleSseConnection);
         routeMap.put(messageEndpoint, transportProvider::handleMessage);
-        
-        LOG.info("Created new McpServer for URI: {}", path);
+
+        // Add wildcard patterns to support sub-paths
+        routeMap.put(path + "/**", transportProvider::handleSseConnection);
+        routeMap.put(messageEndpoint + "/**", transportProvider::handleMessage);
+
+        LOG.info("Created new McpServer for URI: {} with patterns", path);
         return transportProvider;
     }
-    
-    public Mono<ServerResponse> dispatch(final ServerRequest serverRequest) {
-        HandlerFunction<ServerResponse> handler = routeMap.get(serverRequest.path());
-        if (Objects.nonNull(handler)) {
-            return handler.handle(serverRequest);
-        } else {
-            return ServerResponse.notFound().build();
-        }
-    }
-    
-    public void addTool(final String serverPath, final String name, final String description, final String requestTemplate, final String inputSchema) {
+
+    // public Mono<?> dispatch(final ServerRequest serverRequest) {
+    // HandlerFunction<?> handler = routeMap.get(serverRequest.path());
+    // if (Objects.nonNull(handler)) {
+    // return handler.handle(serverRequest);
+    // } else {
+    // return ServerResponse.notFound().build();
+    // }
+    // }
+
+    public void addTool(final String serverPath, final String name, final String description,
+            final String requestTemplate, final String inputSchema) {
         // remove first for overwrite
         try {
             removeTool(serverPath, name);
         } catch (Exception ignored) {
             // ignore
         }
-        
-        ToolDefinition shenyuToolDefinition = ShenyuToolDefinition.builder().name(name).description(description).requestConfig(requestTemplate).inputSchema(inputSchema).build();
-        LOG.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}", name, description, requestTemplate, inputSchema);
-        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
-        for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
+
+        ToolDefinition shenyuToolDefinition = ShenyuToolDefinition.builder().name(name).description(description)
+                .requestConfig(requestTemplate).inputSchema(inputSchema).build();
+        LOG.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}", name, description,
+                requestTemplate, inputSchema);
+        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(
+                SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
+        for (AsyncToolSpecification asyncToolSpecification : McpToolUtils
+                .toAsyncToolSpecifications(shenyuToolCallback)) {
             mcpServerMap.get(serverPath).addTool(asyncToolSpecification).block();
         }
     }
-    
+
     public void removeTool(final String serverPath, final String name) {
         LOG.debug("Removing tool, name: {}", name);
         mcpServerMap.get(serverPath).removeTool(name).block();

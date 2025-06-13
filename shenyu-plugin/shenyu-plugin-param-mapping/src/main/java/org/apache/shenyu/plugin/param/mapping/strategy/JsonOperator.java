@@ -62,11 +62,11 @@ public class JsonOperator implements Operator {
         ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
         Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.just(""))
                 .flatMap(originalBody -> {
-                    LOG.info("get body data success data:{}", originalBody);
+            LOG.info("get body data success data:{}", originalBody);
                     // process entity
-                    String modify = operation(originalBody, paramMappingRuleHandle);
-                    return Mono.just(modify);
-                });
+            String modify = operation(originalBody, paramMappingRuleHandle);
+            return Mono.just(modify);
+        });
         BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono,
                 String.class);
         HttpHeaders headers = new HttpHeaders();
@@ -89,8 +89,8 @@ public class JsonOperator implements Operator {
         private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
         ModifyServerHttpRequestDecorator(final HttpHeaders headers,
-                final ServerHttpRequest delegate,
-                final CachedBodyOutputMessage cachedBodyOutputMessage) {
+                                         final ServerHttpRequest delegate,
+                                         final CachedBodyOutputMessage cachedBodyOutputMessage) {
             super(delegate);
             this.headers = headers;
             this.cachedBodyOutputMessage = cachedBodyOutputMessage;
