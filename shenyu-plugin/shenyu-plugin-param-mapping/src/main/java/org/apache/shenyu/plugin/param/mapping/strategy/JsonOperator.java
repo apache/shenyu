@@ -42,11 +42,11 @@ import java.util.List;
  * ApplicationJsonStrategy.
  */
 public class JsonOperator implements Operator {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(JsonOperator.class);
-
+    
     private final List<HttpMessageReader<?>> messageReaders;
-
+    
     /**
      * JsonOperator.
      *
@@ -55,18 +55,18 @@ public class JsonOperator implements Operator {
     public JsonOperator(final List<HttpMessageReader<?>> messageReaders) {
         this.messageReaders = messageReaders;
     }
-
+    
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain,
-            final ParamMappingRuleHandle paramMappingRuleHandle) {
+                            final ParamMappingRuleHandle paramMappingRuleHandle) {
         ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
         Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.just(""))
                 .flatMap(originalBody -> {
-            LOG.info("get body data success data:{}", originalBody);
+                    LOG.info("get body data success data:{}", originalBody);
                     // process entity
-            String modify = operation(originalBody, paramMappingRuleHandle);
-            return Mono.just(modify);
-        });
+                    String modify = operation(originalBody, paramMappingRuleHandle);
+                    return Mono.just(modify);
+                });
         BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono,
                 String.class);
         HttpHeaders headers = new HttpHeaders();
@@ -81,13 +81,13 @@ public class JsonOperator implements Operator {
                 })).flatMap(shenyuPluginChain::execute)
                 .onErrorResume(throwable -> release(outputMessage, throwable));
     }
-
+    
     static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {
-
+        
         private final HttpHeaders headers;
-
+        
         private final CachedBodyOutputMessage cachedBodyOutputMessage;
-
+        
         ModifyServerHttpRequestDecorator(final HttpHeaders headers,
                                          final ServerHttpRequest delegate,
                                          final CachedBodyOutputMessage cachedBodyOutputMessage) {
@@ -95,7 +95,7 @@ public class JsonOperator implements Operator {
             this.headers = headers;
             this.cachedBodyOutputMessage = cachedBodyOutputMessage;
         }
-
+        
         @SuppressWarnings("NullableProblems")
         @Override
         public HttpHeaders getHeaders() {
@@ -109,7 +109,7 @@ public class JsonOperator implements Operator {
             }
             return httpHeaders;
         }
-
+        
         @SuppressWarnings("NullableProblems")
         @Override
         public Flux<DataBuffer> getBody() {
