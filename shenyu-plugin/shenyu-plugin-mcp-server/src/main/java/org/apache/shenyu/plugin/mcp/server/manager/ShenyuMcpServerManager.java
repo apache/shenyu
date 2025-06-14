@@ -24,12 +24,9 @@ import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
-
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
-import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
@@ -156,31 +153,6 @@ public class ShenyuMcpServerManager {
         return false;
     }
 
-    /**
-     * Get the handler function for the given URI.
-     * Uses AntPathMatcher to support pattern matching.
-     *
-     * @param uri The URI to get the handler for
-     * @return The handler function for the URI, or null if not found
-     */
-    public HandlerFunction<?> getHandler(final String uri) {
-        // First try exact match for performance
-        HandlerFunction<?> handler = routeMap.get(uri);
-        if (Objects.nonNull(handler)) {
-            return handler;
-        }
-
-        // Then try pattern matching for each registered pattern
-        for (Map.Entry<String, HandlerFunction<?>> entry : routeMap.entrySet()) {
-            String pattern = entry.getKey();
-            if (pathMatcher.match(pattern, uri)) {
-                LOG.debug("URI '{}' matches pattern '{}', returning handler", uri, pattern);
-                return entry.getValue();
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Remove a McpServer for the given URI.
@@ -249,15 +221,6 @@ public class ShenyuMcpServerManager {
         return transportProvider;
     }
 
-    // public Mono<?> dispatch(final ServerRequest serverRequest) {
-    // HandlerFunction<?> handler = routeMap.get(serverRequest.path());
-    // if (Objects.nonNull(handler)) {
-    // return handler.handle(serverRequest);
-    // } else {
-    // return ServerResponse.notFound().build();
-    // }
-    // }
-
     public void addTool(final String serverPath, final String name, final String description,
             final String requestTemplate, final String inputSchema) {
         // remove first for overwrite
@@ -271,8 +234,7 @@ public class ShenyuMcpServerManager {
                 .requestConfig(requestTemplate).inputSchema(inputSchema).build();
         LOG.debug("Adding tool, name: {}, description: {}, requestTemplate: {}, inputSchema: {}", name, description,
                 requestTemplate, inputSchema);
-        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(
-                SpringBeanUtils.getInstance().getBean(ShenyuWebHandler.class), shenyuToolDefinition);
+        ShenyuToolCallback shenyuToolCallback = new ShenyuToolCallback(shenyuToolDefinition);
         for (AsyncToolSpecification asyncToolSpecification : McpToolUtils
                 .toAsyncToolSpecifications(shenyuToolCallback)) {
             mcpServerMap.get(serverPath).addTool(asyncToolSpecification).block();

@@ -43,6 +43,11 @@ public interface Constants {
     String CONTEXT = "context";
     
     /**
+     * The constant chain.
+     */
+    String CHAIN = "chain";
+    
+    /**
      * The constant context path.
      */
     String CONTEXT_PATH = "contextPath";

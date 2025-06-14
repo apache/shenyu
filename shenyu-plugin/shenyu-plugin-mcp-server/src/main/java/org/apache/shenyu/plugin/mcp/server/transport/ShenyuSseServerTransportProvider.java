@@ -212,18 +212,6 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                 .doFirst(() -> LOGGER.debug("Initiating graceful shutdown with {} active sessions", sessions.size()))
                 .flatMap(McpServerSession::closeGracefully).then();
     }
-    //
-    // /**
-    // * Returns the RouterFunction that handles incoming requests for this
-    // transport.
-    // * This function is used to route requests to the appropriate handlers for SSE
-    // * connections and JSON-RPC messages.
-    // *
-    // * @return The RouterFunction instance for this transport
-    // */
-    // public RouterFunction<?> getRouterFunction() {
-    // return this.routerFunction;
-    // }
 
     /**
      * Handles new SSE connection requests from clients. Creates a new session for
@@ -277,17 +265,6 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                         sink.error(e);
                     }
                 }), ServerSentEvent.class);
-    }
-
-    /**
-     * Handles new SSE connection requests from clients. Creates a new session for
-     * each connection and sets up the SSE event stream.
-     *
-     * @param request The incoming server request
-     * @return A Mono that emits a ServerResponse with the SSE event stream
-     */
-    public Mono<ServerResponse> handleShenyuSseConnection(final ServerRequest request) {
-        return handleSseConnection(request);
     }
 
     /**
@@ -394,26 +371,13 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
     }
 
     /**
-     * Handles incoming JSON-RPC messages from clients. This method processes the
-     * message, validates the session ID, and routes the message to the appropriate
-     * session handler.
-     *
-     * @param request The incoming server request containing the JSON-RPC message
-     * @return A Mono that emits a ServerResponse indicating the result of
-     *         processing
-     */
-    public Mono<ServerResponse> handleShenyuMessage(final ServerRequest request) {
-        return handleMessage(request);
-    }
-
-    /**
      * Creates a direct message handling result for writing to exchange response.
      * This bypasses the ServerResponse wrapper for direct response writing.
      *
      * @param request The incoming server request containing the JSON-RPC message
      * @return A Mono that provides the response body and status information
      */
-    public Mono<MessageHandlingResult> handleMessageDirect(final ServerRequest request) {
+    public Mono<MessageHandlingResult> handleMessageEndpoint(final ServerRequest request) {
         if (isClosing) {
             LOGGER.warn("Server is shutting down, rejecting message request");
             return Mono.just(new MessageHandlingResult(503, "Server is shutting down"));

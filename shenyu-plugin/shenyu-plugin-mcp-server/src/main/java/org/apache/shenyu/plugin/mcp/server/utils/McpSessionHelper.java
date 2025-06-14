@@ -72,6 +72,25 @@ public class McpSessionHelper {
         return mcpServerSession.getId();
     }
     
+    /**
+     * Get sessionId from McpSyncServerExchange.
+     *
+     * @param mcpSyncServerExchange the McpSyncServerExchange instance
+     * @return the session id string
+     * @throws NoSuchFieldException if field not found
+     * @throws IllegalAccessException if field not accessible
+     */
+    public static McpServerSession getSession(final McpSyncServerExchange mcpSyncServerExchange)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field asyncExchangeField = mcpSyncServerExchange.getClass().getDeclaredField("exchange");
+        asyncExchangeField.setAccessible(true);
+        Object session = getSession(mcpSyncServerExchange, asyncExchangeField);
+        if (Objects.isNull(session)) {
+            throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
+        }
+        return (McpServerSession) session;
+    }
+    
     private static Object getSession(final McpSyncServerExchange mcpSyncServerExchange, final Field asyncExchangeField) throws IllegalAccessException, NoSuchFieldException {
         Object asyncExchange = asyncExchangeField.get(mcpSyncServerExchange);
         if (Objects.isNull(asyncExchange)) {
