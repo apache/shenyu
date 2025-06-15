@@ -75,6 +75,8 @@ public class McpServerPluginConfiguration {
     /**
      * Mcp Server plugin.
      *
+     * @param shenyuMcpServerManager the shenyu mcp server manager
+     * @param configurer the server codec configurer
      * @return the shenyu plugin
      */
     @Bean

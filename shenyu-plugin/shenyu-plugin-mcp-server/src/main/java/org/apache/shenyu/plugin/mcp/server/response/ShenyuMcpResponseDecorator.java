@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mcp.server.decorator;
+package org.apache.shenyu.plugin.mcp.server.response;
 
 import com.google.gson.JsonObject;
 import org.reactivestreams.Publisher;

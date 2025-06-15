@@ -109,47 +109,97 @@ public class RequestConfigHelper {
      * @param inputJson the input JSON object
      * @return the constructed request path
      */
-    public static String buildPath(final String urlTemplate, final JsonObject argsPosition, final JsonObject inputJson) {
-        String path = urlTemplate;
+    public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
+                                   final JsonObject inputJson) {
+        // 首先检查输入值是否已经是一个完整的 URL
+        for (String key : argsPosition.keySet()) {
+            if (inputJson.has(key)) {
+                String value = inputJson.get(key).getAsString();
+                // 如果输入值已经是一个完整的 URL，直接返回
+                if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                    return value;
+                }
+            }
+        }
+        
         StringBuilder queryBuilder = new StringBuilder();
+        
+        // 检查 URL 模板中是否已经包含查询参数
+        boolean hasExistingQuery = urlTemplate.contains("?");
+        String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
+        String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
+        
+        // 处理新的查询参数
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
             if ("path".equals(position) && inputJson.has(key)) {
-                path = path.replace("{{." + key + "}}", inputJson.get(key).getAsString());
+                // 处理路径参数
+                String value = inputJson.get(key).getAsString();
+                if (value.contains("?")) {
+                    value = value.substring(0, value.indexOf("?"));
+                }
+                value = value.replace("\"", "").trim();
+                basePath = basePath.replace("{{." + key + "}}", value);
             } else if ("query".equals(position) && inputJson.has(key)) {
-                if (!queryBuilder.isEmpty()) {
-                    queryBuilder.append("&");
+                // 处理查询参数
+                if (!existingQuery.contains(key + "=")) {
+                    if (!queryBuilder.isEmpty()) {
+                        queryBuilder.append("&");
+                    }
+                    String value = inputJson.get(key).getAsString();
+                    if (value.contains("?")) {
+                        value = value.substring(0, value.indexOf("?"));
+                    }
+                    value = value.replace("\"", "").trim();
+                    queryBuilder.append(key).append("=").append(value);
                 }
-                queryBuilder.append(key).append("=").append(inputJson.get(key).getAsString());
             }
         }
-        path = path.replaceAll("\\{\\{\\.[^}]+}}", "");
+        
+        // 清理未替换的模板变量
+        basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
+        
+        // 构建最终的 URL
+        StringBuilder finalPath = new StringBuilder(basePath);
+        
+        // 添加查询参数
         if (!queryBuilder.isEmpty()) {
-            if (path.contains("?")) {
-                if (path.endsWith("?") || path.endsWith("&")) {
-                    path = path + queryBuilder;
-                } else {
-                    path = path + "&" + queryBuilder;
-                }
+            if (hasExistingQuery) {
+                finalPath.append("&").append(queryBuilder);
             } else {
-                path = path + "?" + queryBuilder;
+                finalPath.append("?").append(queryBuilder);
             }
         }
-        if (path.endsWith("?")) {
-            path = path.substring(0, path.length() - 1);
+        
+        // 添加已存在的查询参数
+        if (hasExistingQuery && !existingQuery.isEmpty()) {
+            if (!queryBuilder.isEmpty()) {
+                finalPath.append("&").append(existingQuery);
+            } else {
+                finalPath.append("?").append(existingQuery);
+            }
         }
-        return path;
+        
+        String result = finalPath.toString();
+        // 移除末尾的问号
+        if (result.endsWith("?")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
     }
     
     /**
-     * Build the request body JSON object based on the argument positions and input JSON.
+     * Build the request body JSON object based on the argument positions and input
+     * JSON.
      *
      * @param argsToJsonBody whether to convert arguments to JSON body
      * @param argsPosition the argument position mapping
      * @param inputJson the input JSON object
      * @return the constructed body JSON object
      */
-    public static JsonObject buildBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson) {
+    public static JsonObject buildBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition,
+                                           final JsonObject inputJson) {
         JsonObject bodyJson = new JsonObject();
         if (argsToJsonBody) {
             for (String key : argsPosition.keySet()) {

@@ -31,7 +31,7 @@ public class RequestConfig {
     
     private boolean argsToJsonBody;
     
-    public RequestConfig(final String method, final String path, final JsonObject bodyJson, final JsonObject requestTemplate, boolean argsToJsonBody) {
+    public RequestConfig(final String method, final String path, final JsonObject bodyJson, final JsonObject requestTemplate, final boolean argsToJsonBody) {
         this.method = method;
         this.path = path;
         this.bodyJson = bodyJson;

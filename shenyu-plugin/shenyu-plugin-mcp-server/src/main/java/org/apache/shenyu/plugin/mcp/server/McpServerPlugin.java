@@ -55,8 +55,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     
     private final List<HttpMessageReader<?>> messageReaders;
     
-    public McpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager,
-                           final List<HttpMessageReader<?>> messageReaders) {
+    public McpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager, final List<HttpMessageReader<?>> messageReaders) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
         this.messageReaders = messageReaders;
     }
@@ -67,10 +66,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     }
     
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange,
-                                   final ShenyuPluginChain chain,
-                                   final SelectorData selector,
-                                   final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext, "ShenyuContext must not be null");
         
@@ -85,8 +81,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
             
             // Handle MCP SSE/message requests by delegating to the transport provider
             // directly
-            ShenyuSseServerTransportProvider transportProvider = shenyuMcpServerManager
-                    .getOrCreateMcpServerTransport(uri);
+            ShenyuSseServerTransportProvider transportProvider = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
             
             // Mark exchange to prevent further plugin processing
             shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
@@ -171,9 +166,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * This bypasses the ServerResponse complexity and writes directly to the
      * exchange.
      */
-    private Mono<Void> handleSseEndpoint(final ServerWebExchange exchange,
-                                         final ShenyuSseServerTransportProvider transportProvider,
-                                         final ServerRequest request) {
+    private Mono<Void> handleSseEndpoint(final ServerWebExchange exchange, final ShenyuSseServerTransportProvider transportProvider, final ServerRequest request) {
         LOG.debug("Handling SSE endpoint for request: {}", request.path());
         
         // Set SSE headers
@@ -181,7 +174,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         
         // Create SSE flux and write each event immediately to the exchange response
         return exchange.getResponse()
-                .writeWith(transportProvider.createSseFlux(request)
+                .writeWith(transportProvider
+                        .createSseFlux(request)
                         .doOnNext(event -> LOG.debug("SSE Event - Type: {}, Data: {}", event.event(), event.data()))
                         .map(event -> SseEventFormatter.formatEvent(event, exchange))
                         .doOnSubscribe(subscription -> LOG.debug("SSE stream subscribed"))
@@ -197,27 +191,22 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         LOG.debug("Configured SSE headers on exchange response");
     }
     
-    private Mono<Void> handleMessageEndpoint(final ServerWebExchange exchange,
-                                             final ShenyuSseServerTransportProvider transportProvider,
-                                             final ServerRequest request) {
+    private Mono<Void> handleMessageEndpoint(final ServerWebExchange exchange, final ShenyuSseServerTransportProvider transportProvider, final ServerRequest request) {
         
         return transportProvider.handleMessageEndpoint(request).flatMap(result -> {
-                    LOG.debug("Message handling result - Status: {}, Body: {}", result.getStatusCode(),
-                            result.getResponseBody());
-                    
-                    // Set response status
-                    exchange.getResponse().setStatusCode(HttpStatus.valueOf(result.getStatusCode()));
-                    // Set appropriate headers
-                    exchange.getResponse().getHeaders().add("Content-Type", "application/json");
-                    exchange.getResponse().getHeaders().add("Access-Control-Allow-Origin", "*");
-                    
-                    // Write response body
-                    String responseBody = String.format("{\"message\":\"%s\"}", result.getResponseBody());
-                    LOG.debug("Sending response body: {}", responseBody);
-                    
-                    return exchange.getResponse().writeWith(Mono
-                            .just(exchange.getResponse().bufferFactory().wrap(responseBody.getBytes())));
-                }).doOnSuccess(aVoid -> LOG.debug("Message response writing completed"))
-                .doOnError(error -> LOG.error("Error writing message response: {}", error.getMessage()));
+            LOG.debug("Message handling result - Status: {}, Body: {}", result.getStatusCode(), result.getResponseBody());
+            
+            // Set response status
+            exchange.getResponse().setStatusCode(HttpStatus.valueOf(result.getStatusCode()));
+            // Set appropriate headers
+            exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+            exchange.getResponse().getHeaders().add("Access-Control-Allow-Origin", "*");
+            
+            // Write response body
+            String responseBody = String.format("{\"message\":\"%s\"}", result.getResponseBody());
+            LOG.debug("Sending response body: {}", responseBody);
+            
+            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(responseBody.getBytes())));
+        }).doOnSuccess(aVoid -> LOG.debug("Message response writing completed")).doOnError(error -> LOG.error("Error writing message response: {}", error.getMessage()));
     }
 }
