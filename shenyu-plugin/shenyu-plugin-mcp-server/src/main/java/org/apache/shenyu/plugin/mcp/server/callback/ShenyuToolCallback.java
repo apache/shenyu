@@ -161,11 +161,10 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange buildExchange(final ServerWebExchange originExchange, final CompletableFuture<String> future, final String sessionId, final String configStr, final String input) {
         // Parse input parameters
         final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
+        
         if (Objects.isNull(inputJson)) {
             throw new IllegalArgumentException("Invalid input JSON format");
         }
-        LOG.debug("Input parameters: {}", inputJson);
-        
         // Parse request configuration
         final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
         final JsonObject requestTemplate = configHelper.getRequestTemplate();
@@ -204,8 +203,7 @@ public class ShenyuToolCallback implements ToolCallback {
         // Set URI
         try {
             final URI oldUri = originExchange.getRequest().getURI();
-            String newPath = requestConfig.getPath();
-            final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + newPath;
+            final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
             requestBuilder.uri(new URI(newUriStr));
         } catch (URISyntaxException e) {
             throw new RuntimeException("Invalid URI: " + e.getMessage(), e);
