@@ -20,11 +20,14 @@ package org.apache.shenyu.plugin.mcp.server.callback;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.mcp.server.response.ShenyuMcpResponseDecorator;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
@@ -223,9 +226,18 @@ public class ShenyuToolCallback implements ToolCallback {
         // Set context and attributes
         final ShenyuContext shenyuContext = originExchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(shenyuContext)) {
+            String decoratedPath = decoratedExchange.getRequest().getPath().value();
+            // TODO : Handle path decoration if necessary
+//            MetaData metaData = MetaDataCache.getInstance().obtain(decoratedPath);
+//            if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
+//                exchange.getAttributes().put(Constants.META_DATA, metaData);
+//                return Pair.of(metaData.getRpcType(), metaData);
+//            } else {
+//                return Pair.of(RpcTypeEnum.HTTP.getName(), new MetaData());
+//            }
             shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
-            shenyuContext.setPath(decoratedExchange.getRequest().getPath().value());
-            shenyuContext.setRealUrl(decoratedExchange.getRequest().getPath().value());
+            shenyuContext.setPath(decoratedPath);
+            shenyuContext.setRealUrl(decoratedPath);
             decoratedExchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         }
         
