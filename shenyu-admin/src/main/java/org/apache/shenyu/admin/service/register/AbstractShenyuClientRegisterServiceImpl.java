@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
@@ -37,11 +36,9 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
-import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -113,9 +110,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Resource
     private NamespacePluginRelMapper namespacePluginRelMapper;
-    
-    @Resource
-    private InstanceInfoReportEventPublisher publisher;
 
     /**
      * Selector handler string.
@@ -256,21 +250,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                     uriRegisterDTO.getNamespaceId());
             LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
-            
-            try {
-                // publish instance info event
-                publisher.publish(
-                        new InstanceInfoReportEvent(
-                                uriRegisterDTO.getHost(),
-                                String.valueOf(uriRegisterDTO.getPort()),
-                                InstanceTypeConstants.CLIENT_INSTANCE_TYPE,
-                                uriRegisterDTO.getInstanceInfo(),
-                                uriRegisterDTO.getNamespaceId()
-                        )
-                );
-            } catch (Exception e) {
-                LOG.error("publish instance info error", e);
-            }
         });
         DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.REFRESH, Collections.singletonList(discoverySyncData)));

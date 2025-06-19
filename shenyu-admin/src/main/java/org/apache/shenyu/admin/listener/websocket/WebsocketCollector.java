@@ -19,31 +19,28 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.ThreadLocalUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.RunningModeConstants;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.RunningModeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.ClusterProperties;
-import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
-import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
-import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.ThreadLocalUtils;
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.InstanceTypeConstants;
-import org.apache.shenyu.common.constant.RunningModeConstants;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.enums.RunningModeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -67,16 +64,6 @@ public class WebsocketCollector {
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
     
     private static final String SESSION_KEY = "sessionKey";
-    
-    private InstanceInfoReportEventPublisher publisher;
-    
-    public InstanceInfoReportEventPublisher getPublisher() {
-        return publisher;
-    }
-    
-    public void setPublisher(final InstanceInfoReportEventPublisher publisher) {
-        this.publisher = publisher;
-    }
     
     /**
      * On open.
@@ -112,20 +99,6 @@ public class WebsocketCollector {
                 .orElse(StringUtils.EMPTY);
     }
     
-    private static String getClientPort(final Session session) {
-        if (!session.isOpen()) {
-            return StringUtils.EMPTY;
-        }
-        Map<String, Object> userProperties = session.getUserProperties();
-        if (MapUtils.isEmpty(userProperties)) {
-            return StringUtils.EMPTY;
-        }
-        
-        return Optional.ofNullable(userProperties.get(WebsocketListener.CLIENT_PORT_NAME))
-                .map(Object::toString)
-                .orElse(StringUtils.EMPTY);
-    }
-    
     private static String getNamespaceId(final Session session) {
         if (!session.isOpen()) {
             LOG.warn("websocket session is closed, can not get namespaceId");
@@ -151,26 +124,7 @@ public class WebsocketCollector {
     @OnMessage
     public void onMessage(final String message, final Session session) {
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
-                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())
-                && !message.contains("bootstrapInstanceInfo")) {
-            return;
-        }
-        if (message.contains(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("bootstrap report instance info: {}", message);
-            }
-            String namespaceId = getNamespaceId(session);
-            Map<String, Object> infoMap = GsonUtils.getInstance().convertToMap(message);
-            Object o = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
-            InstanceInfoReportEvent instanceInfoRegisterDTO = InstanceInfoReportEvent.builder()
-                    .instanceIp(getClientIp(session))
-                    .instancePort(getClientPort(session))
-                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
-                    .instanceInfo(GsonUtils.getInstance().toJson(o))
-                    .instanceState(1)
-                    .namespaceId(namespaceId)
-                    .build();
-            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
+                && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())) {
             return;
         }
         

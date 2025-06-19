@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -30,7 +29,6 @@ import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -93,7 +91,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     ) {
         super(serverUri);
         this.namespaceId = namespaceId;
-        this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
+        this.addHeader("namespaceId", namespaceId);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
@@ -218,21 +216,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBlocking();
             } else {
                 this.sendPing();
-                send(getInstanceInfo());
+//                send(DataEventTypeEnum.RUNNING_MODE.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
-    }
-    
-    private String getInstanceInfo() {
-        // Combine instance and host information
-        Map<String, Object> combinedInfo = Map.of(
-                InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, SystemInfoUtils.getSystemInfo()
-        );
-        
-        return GsonUtils.getInstance().toJson(combinedInfo);
     }
     
     /**

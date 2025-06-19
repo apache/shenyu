@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 public class WebSocketSyncConfigurationTest {
     
@@ -34,8 +32,7 @@ public class WebSocketSyncConfigurationTest {
     @Test
     public void testWebsocketCollector() {
         WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
-        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
-        assertNotNull(websocketListener.websocketCollector(publisher));
+        assertNotNull(websocketListener.websocketCollector());
     }
     
     @Test

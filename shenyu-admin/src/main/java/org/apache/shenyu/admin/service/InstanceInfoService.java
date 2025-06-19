@@ -22,19 +22,8 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
-import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 
 public interface InstanceInfoService extends PageService<InstanceQueryCondition, InstanceInfoVO> {
-    
-    /**
-     * registerInstanceInfo.
-     * <p>
-     * instance info register info .
-     * </p>
-     *
-     * @param instanceInfoRegisterDTO instanceInfoRegisterDTO
-     */
-    void registerInstanceInfo(InstanceInfoReportEvent instanceInfoRegisterDTO);
     
     /**
      * Creates or updates an instance information record.
@@ -58,5 +47,4 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      */
     InstanceInfoVO findById(String id);
 
-    void offline(InstanceInfoDTO instanceInfoDTO);
 }

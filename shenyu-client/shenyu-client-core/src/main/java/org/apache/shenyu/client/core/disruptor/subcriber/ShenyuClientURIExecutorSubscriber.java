@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -64,13 +63,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
         executor = new ScheduledThreadPoolExecutor(1, requestFactory);
         
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                URIS.forEach(this::sendHeartbeat);
-            } catch (Exception e) {
-                LOG.error("send heartbeat error", e);
-            }
-        }, 30, 30, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> URIS.forEach(this::sendHeartbeat), 30, 30, TimeUnit.SECONDS);
     }
     
     @Override
@@ -123,7 +116,6 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
     
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
-        uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
         shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
     }
 }

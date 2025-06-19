@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.DiscoveryService;
-import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
@@ -58,9 +57,8 @@ public class RegisterClientServerDisruptorPublisher implements ShenyuClientServe
      *
      * @param shenyuClientRegisterService the shenyu client register service
      * @param discoveryService the discovery service
-     * @param instanceInfoService the instance info service
      */
-    public void start(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService, final InstanceInfoService instanceInfoService) {
+    public void start(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService) {
         RegisterServerExecutorFactory factory = new RegisterServerExecutorFactory();
         factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
         factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));

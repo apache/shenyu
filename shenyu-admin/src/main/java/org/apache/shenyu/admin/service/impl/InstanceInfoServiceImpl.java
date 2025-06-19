@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
-import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -29,17 +28,12 @@ import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.InstanceInfoService}.
@@ -49,28 +43,10 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     private static final Logger LOG = LoggerFactory.getLogger(InstanceInfoServiceImpl.class);
 
-    private static final long HEARTBEAT_TIMEOUT = 10_000;
-
     private final InstanceInfoMapper instanceInfoMapper;
-
-    private final ConcurrentHashMap<String, Long> bootStrapStatus = new ConcurrentHashMap<>();
-
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper) {
         this.instanceInfoMapper = instanceInfoMapper;
-        scheduler.scheduleAtFixedRate(this::checkTimeouts, 0, 60, TimeUnit.SECONDS);
-        List<InstanceInfoDO> instanceInfoDOS = this.instanceInfoMapper.selectAll();
-        instanceInfoDOS.forEach(instanceInfoDO -> {
-            bootStrapStatus.put(instanceInfoDO.getId(), instanceInfoDO.getDateUpdated().getTime());
-        });
-    }
-
-    @Override
-    public void registerInstanceInfo(final InstanceInfoReportEvent instanceInfoRegisterDTO) {
-        LOG.info("Instance info registered: {}", GsonUtils.getInstance().toJson(instanceInfoRegisterDTO));
-        InstanceInfoDTO instanceInfoDTO = buildInstanceInfoDTO(instanceInfoRegisterDTO);
-        createOrUpdate(instanceInfoDTO);
     }
 
     @Override
@@ -86,7 +62,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
             InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoDTO);
             try {
                 instanceInfoMapper.insert(instanceInfoDO);
-                bootStrapStatus.put(instanceInfoDO.getId(), System.currentTimeMillis());
             } catch (Exception e) {
                 LOG.error("Failed to register instance info", e);
             }
@@ -100,7 +75,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         infoDO.setDateUpdated(Timestamp.from(Instant.now()));
         infoDO.setInstanceState(instanceInfoDTO.getInstanceState());
         instanceInfoMapper.updateById(infoDO);
-        bootStrapStatus.put(infoDO.getId(), System.currentTimeMillis());
     }
 
     @Override
@@ -112,34 +86,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     @Override
     public InstanceInfoVO findById(final String id) {
         return null;
-    }
-
-    @Override
-    public void offline(final InstanceInfoDTO instanceInfoDTO) {
-        InstanceQuery instanceQuery = new InstanceQuery();
-        instanceQuery.setInstanceIp(instanceInfoDTO.getInstanceIp());
-        instanceQuery.setInstancePort(instanceInfoDTO.getInstancePort());
-        instanceQuery.setInstanceType(instanceInfoDTO.getInstanceType());
-        instanceQuery.setInstanceId(instanceInfoDTO.getInstanceId());
-        instanceQuery.setNamespaceId(instanceInfoDTO.getNamespaceId());
-        InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
-        if (!Objects.isNull(infoDO)) {
-            infoDO.setInstanceState(2);
-            instanceInfoMapper.updateById(infoDO);
-            bootStrapStatus.remove(infoDO.getId());
-            LOG.info("Offline instance info: {}", GsonUtils.getInstance().toJson(infoDO.getInstanceInfo()));
-        }
-    }
-
-    private InstanceInfoDTO buildInstanceInfoDTO(final InstanceInfoReportEvent instanceInfoRegisterDTO) {
-        InstanceInfoDTO instanceInfoDTO = new InstanceInfoDTO();
-        instanceInfoDTO.setInstanceIp(instanceInfoRegisterDTO.getInstanceIp());
-        instanceInfoDTO.setInstancePort(instanceInfoRegisterDTO.getInstancePort());
-        instanceInfoDTO.setInstanceType(instanceInfoRegisterDTO.getInstanceType());
-        instanceInfoDTO.setInstanceInfo(instanceInfoRegisterDTO.getInstanceInfo());
-        instanceInfoDTO.setInstanceState(instanceInfoRegisterDTO.getInstanceState());
-        instanceInfoDTO.setNamespaceId(instanceInfoRegisterDTO.getNamespaceId());
-        return instanceInfoDTO;
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
@@ -161,27 +107,5 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());
         instanceInfoVO.setDateUpdated(instanceInfoDO.getDateUpdated());
         return instanceInfoVO;
-    }
-
-    /**
-     * listen {@link InstanceInfoReportEvent} instance info report event.
-     *
-     * @param event event
-     */
-    @EventListener(InstanceInfoReportEvent.class)
-    public void onInstanceInfoReport(final InstanceInfoReportEvent event) {
-        InstanceInfoDTO instanceInfoDTO = buildInstanceInfoDTO(event);
-        createOrUpdate(instanceInfoDTO);
-    }
-
-    private void checkTimeouts() {
-        long currentTimeMillis = System.currentTimeMillis();
-        bootStrapStatus.forEach((bootstrapId, lastHeartbeats) -> {
-            if (currentTimeMillis - lastHeartbeats > HEARTBEAT_TIMEOUT) {
-                InstanceInfoDTO instanceInfoDTO = new InstanceInfoDTO();
-                instanceInfoDTO.setInstanceId(bootstrapId);
-                this.offline(instanceInfoDTO);
-            }
-        });
     }
 }
