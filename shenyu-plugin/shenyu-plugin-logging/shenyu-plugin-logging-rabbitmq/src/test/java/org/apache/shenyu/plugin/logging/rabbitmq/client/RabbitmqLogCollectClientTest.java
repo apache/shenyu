@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plulgin.logging.rabbitmq.client;
+package org.apache.shenyu.plugin.logging.rabbitmq.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rabbitmq.client.RabbitmqLogCollectClient;
 import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig;
 import org.junit.Assert;
 import org.junit.Before;
