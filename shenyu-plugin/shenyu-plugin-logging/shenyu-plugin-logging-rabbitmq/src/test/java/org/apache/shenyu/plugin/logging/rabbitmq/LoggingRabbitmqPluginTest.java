@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plulgin.logging.rabbitmq;
+package org.apache.shenyu.plugin.logging.rabbitmq;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -25,7 +25,6 @@ import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.logging.rabbitmq.LoggingRabbitmqPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
