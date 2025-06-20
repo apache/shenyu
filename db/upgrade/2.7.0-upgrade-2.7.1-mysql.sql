@@ -230,3 +230,5 @@ INSERT INTO `permission` VALUES ('1697146861569542760', '1346358560427216896', '
 
 INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 'description', 2, 2, 0, '{\"required\":\"1\",\"rule\":\"\",\"placeholder\":\"tools description\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
+INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
+UPDATE `plugin_handle` SET ext_obj = '{\"required\":\"0\",\"rule\":\"\"}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
