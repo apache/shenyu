@@ -383,7 +383,10 @@ VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{"required"
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+VALUES ('1529402613204173926', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","placeholder":"","rule":""}');
 
+UPDATE plugin_handle SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0);
