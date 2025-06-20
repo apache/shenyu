@@ -63,13 +63,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
         executor = new ScheduledThreadPoolExecutor(1, requestFactory);
         
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                URIS.forEach(this::sendHeartbeat);
-            } catch (Exception e) {
-                LOG.error("send heartbeat error", e);
-            }
-        }, 30, 30, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> URIS.forEach(this::sendHeartbeat), 30, 30, TimeUnit.SECONDS);
     }
     
     @Override
