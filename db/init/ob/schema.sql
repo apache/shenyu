@@ -1073,7 +1073,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172811', '6', 'protocol', 'pro
 INSERT INTO `plugin_handle` VALUES ('1529402613204172812', '6', 'status', 'status', 3, 1, 8, '{\"defaultValue\":\"true\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172813', '6', 'timestamp', 'startupTime', 1, 1, 7, '{\"defaultValue\":\"0\",\"placeholder\":\"startup timestamp\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172814', '6', 'upstreamHost', 'host', 2, 1, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172815', '6', 'upstreamUrl', 'ip:port', 2, 1, 1, '{\"required\":\"1\",\"placeholder\":\"\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172815', '6', 'upstreamUrl', 'ip:port', 2, 1, 1, '{\"required\":\"0\",\"placeholder\":\"\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172816', '6', 'version', 'version', 2, 1, 4, '{\"required\":\"0\",\"placeholder\":\"version\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172817', '6', 'warmup', 'warmupTime', 1, 1, 6, '{\"defaultValue\":\"0\",\"placeholder\":\"warmup time ms)\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172818', '6', 'weight', 'weight', 1, 1, 5, '{\"defaultValue\":\"50\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1083,6 +1083,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172821', '6', 'threads', 'thre
 INSERT INTO `plugin_handle` VALUES ('1529402613204172822', '6', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204173923', '6', 'retries', 'retries', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204173924', '6', 'timeout', 'timeout', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172823', '26', 'host', 'host', 2, 1, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172824', '26', 'protocol', 'protocol', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"ws://\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172825', '26', 'url', 'ip:port', 2, 1, 1, '{\"required\":\"1\",\"placeholder\":\"\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -2485,13 +2486,27 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 
 
 
-CREATE TABLE `namespace_user_rel` (
+CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key',
                                       `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace_id',
                                       `user_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user_id',
                                       `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
+
+
+CREATE TABLE IF NOT EXISTS instance_info (
+     `id`            varchar(128)  NOT NULL COMMENT 'primary key',
+    `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
+    `instance_port`    varchar(128)  NOT NULL COMMENT 'instance_port',
+    `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
+    `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
+    `instance_info`  text  NOT NULL COMMENT 'instance_info',
+    `instance_state`  tiny(4)  NOT NULL COMMENT 'instance_state',
+    `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    PRIMARY KEY (`id`)
+);
 
 INSERT INTO `permission` VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO `permission` VALUES ('1697146860569642742', '1346358560427216896', '1844026099075554851', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
@@ -2533,7 +2548,9 @@ INSERT INTO `shenyu_dict` VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
-INSERT INTO `shenyu_dict` VALUES ('1679002911061737490', 'aiTokenLimitType', 'CONTEXT_PATH_KEY_RESOLVER', 'contextPath', 'contextPath', 'Rate limit by contextPath', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737490', 'aiTokenLimitType', 'DEFAULT_KEY_RESOLVER', 'default', 'default', 'Rate limit by default', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
+INSERT INTO `shenyu_dict` VALUES ('1679002911061737496', 'aiTokenLimitType', 'CONTEXT_PATH_KEY_RESOLVER', 'contextPath', 'contextPath', 'Rate limit by contextPath', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737491', 'aiTokenLimitType', 'IP_KEY_RESOLVER', 'ip', 'ip', 'Rate limit by request ip', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737492', 'aiTokenLimitType', 'URI_KEY_RESOLVER', 'uri', 'uri', 'Rate limit by request uri', 2, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO `shenyu_dict` VALUES ('1679002911061737493', 'aiTokenLimitType', 'HEADER_KEY_RESOLVER', 'header', 'header', 'Rate limit by request header', 3, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');

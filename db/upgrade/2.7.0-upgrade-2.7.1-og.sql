@@ -69,6 +69,30 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507047', '50', 'strea
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 
 
+DROP TABLE IF EXISTS "public"."instance_info";
+CREATE TABLE "public"."instance_info" (
+    "id"            varchar(128)   NOT NULL,
+    "namespace_id"  varchar(50)    NOT NULL,
+    "instance_ip"   varchar(128)   NOT NULL,
+    "instance_port"   varchar(128)   NOT NULL,
+    "instance_type" varchar(128)   NOT NULL,
+    "instance_info" text          NOT NULL,
+    "instance_state" int2          NOT NULL,
+    "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
+COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';
+COMMENT ON COLUMN "public"."instance_info"."instance_ip" IS 'instance_ip';
+COMMENT ON COLUMN "public"."instance_info"."instance_port" IS 'instance_port';
+COMMENT ON COLUMN "public"."instance_info"."instance_type" IS 'instance_type';
+COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
+COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
+COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
+
+
 INSERT INTO "public"."permission" VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569642742', '1346358560427216896', '1844026099075554851', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
 INSERT INTO "public"."permission" VALUES ('1697146860569642743', '1346358560427216896', '1844026099075554852', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
@@ -104,6 +128,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737582', 'postRole', 'R
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
 INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+
 
 INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
@@ -187,3 +212,5 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742759', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
 DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","rule":""}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
+UPDATE "public"."plugin_handle" SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
