@@ -66,9 +66,24 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
+      - name: Install mvnd
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.2
+          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+      
+      - name: Verify mvnd installation
+        shell: bash
+        run: mvnd --version
+      
       - name: Build with Maven
         if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean test -Prelease
+        run: mvnd -B clean test -Prelease
       - uses: codecov/codecov-action@v1
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
