@@ -260,7 +260,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
                         .discoveryHandlerId(discoveryHandlerId)
-                        .namespaceId(discoveryUpstream.getNamespaceId())
+                        .namespaceId(proxySelectorAddDTO.getNamespaceId())
                         .protocol(discoveryUpstream.getProtocol())
                         .url(discoveryUpstream.getUrl())
                         .status(discoveryUpstream.getStatus())
