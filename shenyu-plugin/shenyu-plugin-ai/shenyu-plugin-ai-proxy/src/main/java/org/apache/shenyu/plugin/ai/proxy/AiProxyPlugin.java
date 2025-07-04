@@ -41,6 +41,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is ai proxy plugin.
@@ -71,13 +72,15 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         
         // Create final config with selector handle taking precedence
         if (Objects.nonNull(selectorHandle)) {
-            aiCommonConfig.setProvider(selectorHandle.getProvider());
-            aiCommonConfig.setBaseUrl(selectorHandle.getBaseUrl());
-            aiCommonConfig.setApiKey(selectorHandle.getApiKey());
-            aiCommonConfig.setModel(selectorHandle.getModel());
-            aiCommonConfig.setTemperature(selectorHandle.getTemperature());
-            aiCommonConfig.setMaxTokens(selectorHandle.getMaxTokens());
-            aiCommonConfig.setStream(selectorHandle.getStream());
+            AiCommonConfig tmp = new AiCommonConfig();
+            tmp.setProvider(Optional.ofNullable(selectorHandle.getProvider()).orElse(aiCommonConfig.getProvider()));
+            tmp.setBaseUrl(Optional.ofNullable(selectorHandle.getBaseUrl()).orElse(aiCommonConfig.getBaseUrl()));
+            tmp.setApiKey(Optional.ofNullable(selectorHandle.getApiKey()).orElse(aiCommonConfig.getApiKey()));
+            tmp.setModel(Optional.ofNullable(selectorHandle.getModel()).orElse(aiCommonConfig.getModel()));
+            tmp.setTemperature(Optional.ofNullable(selectorHandle.getTemperature()).orElse(aiCommonConfig.getTemperature()));
+            tmp.setMaxTokens(Optional.ofNullable(selectorHandle.getMaxTokens()).orElse(aiCommonConfig.getMaxTokens()));
+            tmp.setStream(Optional.ofNullable(selectorHandle.getStream()).orElse(aiCommonConfig.getStream()));
+            aiCommonConfig = tmp;
         }
         
         if (Objects.isNull(aiCommonConfig.getBaseUrl())) {
