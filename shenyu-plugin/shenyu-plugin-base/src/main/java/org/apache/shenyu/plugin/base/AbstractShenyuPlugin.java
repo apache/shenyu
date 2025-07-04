@@ -156,7 +156,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     protected String getRawPath(final ServerWebExchange exchange) {
         return exchange.getRequest().getURI().getRawPath();
     }
-    
     private void initCacheConfig() {
         if (Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
