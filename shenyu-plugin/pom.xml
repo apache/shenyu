@@ -50,6 +50,7 @@
         <module>shenyu-plugin-security</module>
         <module>shenyu-plugin-fault-tolerance</module>
         <module>shenyu-plugin-ai</module>
+        <module>shenyu-plugin-mcp-server</module>
     </modules>
 
     <dependencies>

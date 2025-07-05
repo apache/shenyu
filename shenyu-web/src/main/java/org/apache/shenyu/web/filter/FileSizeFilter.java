@@ -48,7 +48,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * The type File size filter.
@@ -61,7 +60,8 @@ public class FileSizeFilter implements WebFilter {
     private final List<HttpMessageReader<?>> messageReaders;
 
     public FileSizeFilter(final int fileMaxSize) {
-        HandlerStrategies handlerStrategies = HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1)).build();
+        HandlerStrategies handlerStrategies = HandlerStrategies.builder()
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1)).build();
         this.messageReaders = handlerStrategies.messageReaders();
         this.fileMaxSize = fileMaxSize;
     }
@@ -79,28 +79,32 @@ public class FileSizeFilter implements WebFilter {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE);
-                            LOG.info("The file size exceeds the limit. The actual size is {}M , response:{}", dataBuffer.capacity() / Constants.BYTES_PER_MB, error);
+                            LOG.info("The file size exceeds the limit. The actual size is {}M , response:{}",
+                                    dataBuffer.capacity() / Constants.BYTES_PER_MB, error);
                             return WebFluxResultUtils.result(exchange, error);
                         }
-                        BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(dataBuffer), DataBuffer.class);
+                        BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters
+                                .fromPublisher(Mono.just(dataBuffer), DataBuffer.class);
                         HttpHeaders headers = new HttpHeaders();
                         headers.putAll(exchange.getRequest().getHeaders());
                         headers.remove(HttpHeaders.CONTENT_LENGTH);
                         CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
                                 exchange, headers);
                         return bodyInsert.insert(outputMessage, new BodyInserterContext())
-                                .then(Mono.defer(() -> {
+                                .then(Mono.<Void>defer(() -> {
                                     ServerHttpRequest decorator = decorate(exchange, outputMessage);
                                     return chain.filter(exchange.mutate().request(decorator).build());
-                                })).doFinally(signalType -> DataBufferUtils.release(dataBuffer))
-                                .onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+                                }))
+                                .doFinally(signalType -> DataBufferUtils.release(dataBuffer))
+                                .onErrorResume(throwable -> ResponseUtils.release(outputMessage, throwable));
                     });
         }
         return chain.filter(exchange);
 
     }
 
-    private ServerHttpRequestDecorator decorate(final ServerWebExchange exchange, final CachedBodyOutputMessage outputMessage) {
+    private ServerHttpRequestDecorator decorate(final ServerWebExchange exchange,
+            final CachedBodyOutputMessage outputMessage) {
         return new ServerHttpRequestDecorator(exchange.getRequest()) {
             @Override
             public Flux<DataBuffer> getBody() {
