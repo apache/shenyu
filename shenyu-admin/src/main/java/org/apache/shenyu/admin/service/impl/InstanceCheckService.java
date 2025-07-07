@@ -40,13 +40,11 @@ public class InstanceCheckService {
     private InstanceInfoService instanceInfoService;
 
 
-    public InstanceCheckService(ScheduledThreadPoolExecutor executor, ScheduledFuture<?> scheduledFuture, int scheduledTime, ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo, long instanceHeartBeatTimeOut, long deleteTimeout, InstanceInfoService instanceInfoService) {
-        this.executor = executor;
-        this.scheduledFuture = scheduledFuture;
-        this.scheduledTime = scheduledTime;
-        this.instanceHealthBeatInfo = instanceHealthBeatInfo;
-        this.instanceHeartBeatTimeOut = instanceHeartBeatTimeOut;
-        this.deleteTimeout = deleteTimeout;
+    public InstanceCheckService(InstanceInfoService instanceInfoService) {
+        this.scheduledTime = 500;
+        this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
+        this.instanceHeartBeatTimeOut = 500;
+        this.deleteTimeout = 500;
         this.instanceInfoService = instanceInfoService;
     }
 
