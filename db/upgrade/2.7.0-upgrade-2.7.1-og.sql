@@ -155,3 +155,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1899702472330051584', '51', 'keyNa
 INSERT INTO "public"."plugin_handle" VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
+
+UPDATE "public"."plugin_handle" SET type = '1' WHERE plugin_id = 17 AND field = 'registerAddress';
+UPDATE "public"."plugin_handle" SET type = '1' WHERE plugin_id = 17 AND field = 'registerProtocol';

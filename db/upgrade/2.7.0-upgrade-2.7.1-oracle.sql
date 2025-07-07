@@ -359,3 +359,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (
 VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
 
 delete from plugin_handle where plugin_id = '8';
+
+UPDATE plugin_handle SET type = '1' WHERE plugin_id = 17 AND field = 'registerAddress';
+
+UPDATE plugin_handle SET type = '1' WHERE plugin_id = 17 AND field = 'registerProtocol';

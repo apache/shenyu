@@ -225,11 +225,9 @@ public final class ApplicationConfigCache {
         reference.setRegistry(this.registryConfig);
         if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())
                 && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())){
-            RegistryConfig registryConfig = new RegistryConfig();
-            registryConfig.setId("shenyu_motan_proxy");
-            registryConfig.setRegister(false);
-            registryConfig.setRegProtocol(motanUpstream.getRegisterProtocol());
-            registryConfig.setAddress(motanUpstream.getRegisterAddress());
+            RegistryConfig registryConfig = this.registryConfig;
+            Optional.ofNullable(motanUpstream.getRegisterProtocol()).ifPresent(registryConfig::setRegProtocol);
+            Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
             reference.setRegistry(registryConfig);
         }
         if (StringUtils.isNotEmpty(motanParamExtInfo.getRpcProtocol())) {
