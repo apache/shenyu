@@ -78,9 +78,37 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
 
     @Override
+    public void createOrUpdate(InstanceInfoVO instanceInfoVO) {
+        InstanceQuery instanceQuery = new InstanceQuery();
+        instanceQuery.setInstanceIp(instanceInfoVO.getInstanceIp());
+        instanceQuery.setInstancePort(instanceInfoVO.getInstancePort());
+        instanceQuery.setInstanceType(instanceInfoVO.getInstanceType());
+        instanceQuery.setNamespaceId(instanceInfoVO.getNamespaceId());
+        InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
+        if (Objects.isNull(infoDO)) {
+            LOG.info("update instance info fail: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
+            return;
+        }
+        LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
+        infoDO.setInstanceIp(instanceInfoVO.getInstanceIp());
+        infoDO.setInstanceType(instanceInfoVO.getInstanceType());
+        infoDO.setInstanceInfo(instanceInfoVO.getInstanceInfo());
+        infoDO.setNamespaceId(instanceInfoVO.getNamespaceId());
+        infoDO.setDateUpdated(Timestamp.from(Instant.now()));
+        infoDO.setInstanceState(instanceInfoVO.getInstanceState());
+        infoDO.setLastHeartBeatTime(instanceInfoVO.getLastHeartBeatTime());
+        instanceInfoMapper.updateById(infoDO);
+    }
+
+    @Override
     public CommonPager<InstanceInfoVO> listByPage(final InstanceQuery instanceQuery) {
         List<InstanceInfoDO> instanceInfoDOList = instanceInfoMapper.selectByQuery(instanceQuery);
         return PageResultUtils.result(instanceQuery.getPageParameter(), () -> this.buildInstanceInfoVO(instanceInfoDOList));
+    }
+
+    @Override
+    public List<InstanceInfoVO> list() {
+        return this.buildInstanceInfoVO(instanceInfoMapper.selectAll());
     }
 
     @Override

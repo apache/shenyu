@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.standalone.ShenyuStandaloneService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.slf4j.Logger;
@@ -47,11 +48,13 @@ public class StandaloneConfiguration {
     @ConditionalOnProperty(value = {"shenyu.cluster.enabled"}, havingValue = "false", matchIfMissing = true)
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final UpstreamCheckService upstreamCheckService,
+                                                             final InstanceCheckService instanceCheckService,
                                                              final LoadServiceDocEntry loadServiceDocEntry) {
         LOGGER.info("starting in standalone mode ...");
         return new ShenyuStandaloneService(
                 upstreamCheckService,
-                loadServiceDocEntry
+                loadServiceDocEntry,
+                instanceCheckService
         );
     }
     

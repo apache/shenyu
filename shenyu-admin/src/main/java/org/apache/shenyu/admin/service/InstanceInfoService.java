@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 
+import java.util.List;
+
 public interface InstanceInfoService extends PageService<InstanceQueryCondition, InstanceInfoVO> {
     
     /**
@@ -31,6 +33,13 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      * @param instanceInfoDTO the instance information data transfer object
      */
     void createOrUpdate(InstanceInfoDTO instanceInfoDTO);
+
+    /**
+     * Creates or updates an instance information record.
+     *
+     * @param instanceInfoVO the instance information data transfer object
+     */
+    void createOrUpdate(InstanceInfoVO instanceInfoVO);
     
     /**
      * List instance info by page.
@@ -39,6 +48,8 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      * @return CommonPager
      */
     CommonPager<InstanceInfoVO> listByPage(InstanceQuery instanceQuery);
+
+    List<InstanceInfoVO> list();
     
     /**
      * findById.

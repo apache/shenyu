@@ -39,6 +39,8 @@ public final class InstanceInfoDO extends BaseDO {
     private Integer instanceState;
     
     private String namespaceId;
+
+    private long lastHeartBeatTime;
     
     public InstanceInfoDO() {
         
@@ -228,7 +230,25 @@ public final class InstanceInfoDO extends BaseDO {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-    
+
+    /**
+     * get lastHeartBeatTime.
+     *
+     * @return lastHeartBeatTime
+     */
+    public long getLastHeartBeatTime() {
+        return lastHeartBeatTime;
+    }
+
+    /**
+     * set lastHeartBeatTime.
+     *
+     * @param lastHeartBeatTime lastHeartBeatTime
+     */
+    public void setLastHeartBeatTime(long lastHeartBeatTime) {
+        this.lastHeartBeatTime = lastHeartBeatTime;
+    }
+
     /**
      * builder.
      *
