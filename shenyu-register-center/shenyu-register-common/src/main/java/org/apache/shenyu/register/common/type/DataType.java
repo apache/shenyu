@@ -46,4 +46,9 @@ public enum DataType {
      * Discovery config type enum.
      */
     DISCOVERY_CONFIG,
+    
+    /**
+     * Instance info type enum.
+     */
+    INSTANCE_INFO,
 }

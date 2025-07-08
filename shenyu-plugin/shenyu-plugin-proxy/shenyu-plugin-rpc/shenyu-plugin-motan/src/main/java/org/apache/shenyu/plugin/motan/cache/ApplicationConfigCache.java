@@ -40,7 +40,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
-import java.util.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -52,11 +58,11 @@ public final class ApplicationConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
+    private static final Map<String, MotanUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
+
     private RegistryConfig registryConfig;
 
     private ProtocolConfig protocolConfig;
-
-    private static final Map<String,MotanUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
 
     private final LoadingCache<String, RefererConfig<CommonClient>> cache = CacheBuilder.newBuilder().maximumSize(Constants.CACHE_MAX_COUNT).removalListener(notification -> {
         RefererConfig<?> config = (RefererConfig<?>) notification.getValue();
@@ -224,7 +230,7 @@ public final class ApplicationConfigCache {
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(this.registryConfig);
         if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())
-                && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())){
+                && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
             RegistryConfig registryConfig = this.registryConfig;
             Optional.ofNullable(motanUpstream.getRegisterProtocol()).ifPresent(registryConfig::setRegProtocol);
             Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
@@ -246,13 +252,13 @@ public final class ApplicationConfigCache {
     /**
      * generate motan upstream reference cache key.
      *
-     * @param selectorId    selectorId
+     * @param selectorId      selectorId
      * @param metaDataPath    metaDataPath
-     * @param motanUpstream dubboUpstream
+     * @param motanUpstream   dubboUpstream
      * @return the reference config cache key
      */
     public String generateUpstreamCacheKey(final String selectorId, final String metaDataPath, final MotanUpstream motanUpstream) {
-        StringJoiner stringJoiner = new StringJoiner("_");// TODO Constants.SEPARATOR_UNDERLINE
+        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
         stringJoiner.add(selectorId);
         stringJoiner.add(metaDataPath);
         if (StringUtils.isNotBlank(motanUpstream.getProtocol())) {
@@ -265,7 +271,7 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * get motanUpstream
+     * get motanUpstream.
      *
      * @param path path
      * @return motanUpstream
@@ -275,9 +281,10 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * set motanUpstream
+     * set motanUpstream.
      *
      * @param path path
+     * @param motanUpstream motanUpstream
      * @return motanUpstream
      */
     public MotanUpstream setUpstream(final String path, final MotanUpstream motanUpstream) {
@@ -301,36 +308,36 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * Invalidate with metadataPath
+     * Invalidate with metadataPath.
      *
      * @param metadataPath metadataPath
      */
     public void invalidateWithMetadataPath(final String metadataPath) {
         ConcurrentMap<String, RefererConfig<CommonClient>> map = cache.asMap();
-        if (map.isEmpty()){
+        if (map.isEmpty()) {
             return;
         }
         Set<String> allKeys = map.keySet();
         Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataPath)).collect(Collectors.toSet());
-        if (needInvalidateKeys.isEmpty()){
+        if (needInvalidateKeys.isEmpty()) {
             return;
         }
         needInvalidateKeys.forEach(cache::invalidate);
     }
 
     /**
-     * invalidate with selectorId
+     * invalidate with selectorId.
      *
      * @param selectorId selectorId
      */
     public void invalidateWithSelectorId(final String selectorId) {
         ConcurrentMap<String, RefererConfig<CommonClient>> map = cache.asMap();
-        if (map.isEmpty()){
+        if (map.isEmpty()) {
             return;
         }
         Set<String> allKeys = map.keySet();
         Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
-        if (needInvalidateKeys.isEmpty()){
+        if (needInvalidateKeys.isEmpty()) {
             return;
         }
         needInvalidateKeys.forEach(cache::invalidate);

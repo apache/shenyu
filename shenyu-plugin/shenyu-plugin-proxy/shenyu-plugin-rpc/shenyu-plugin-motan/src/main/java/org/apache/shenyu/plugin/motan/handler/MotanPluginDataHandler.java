@@ -52,14 +52,14 @@ public class MotanPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
-    public void removePlugin(PluginData pluginData) {
+    public void removePlugin(final PluginData pluginData) {
         ApplicationConfigCache.getInstance().invalidateAll();
     }
 
     @Override
-    public void handlerSelector(SelectorData selectorData) {
+    public void handlerSelector(final SelectorData selectorData) {
         MotanUpstream motanUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), MotanUpstream.class);
-        if(Objects.equals(motanUpstream,ApplicationConfigCache
+        if (Objects.equals(motanUpstream, ApplicationConfigCache
                 .getInstance().getUpstream(selectorData.getId()))) {
             return;
         }
@@ -68,7 +68,7 @@ public class MotanPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
-    public void removeSelector(SelectorData selectorData) {
+    public void removeSelector(final SelectorData selectorData) {
         ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
     }
 

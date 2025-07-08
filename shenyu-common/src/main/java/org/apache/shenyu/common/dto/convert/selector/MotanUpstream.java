@@ -20,17 +20,17 @@ package org.apache.shenyu.common.dto.convert.selector;
 import java.util.Objects;
 
 /**
- * this is motan upstream
+ * this is motan upstream.
  */
-public class MotanUpstream extends CommonUpstream{
+public final class MotanUpstream extends CommonUpstream {
 
     /**
-     * registerAddress
+     * registerAddress.
      */
     private String registerAddress;
 
     /**
-     * registerProtocol
+     * registerProtocol.
      */
     private String registerProtocol;
 
@@ -94,7 +94,7 @@ public class MotanUpstream extends CommonUpstream{
      *
      * @param registerProtocol registerProtocol
      */
-    public void setRegisterProtocol(String registerProtocol) {
+    public void setRegisterProtocol(final String registerProtocol) {
         this.registerProtocol = registerProtocol;
     }
 
@@ -111,7 +111,7 @@ public class MotanUpstream extends CommonUpstream{
                 && Objects.equals(this.getProtocol(), that.getProtocol())
                 && Objects.equals(this.getUpstreamUrl(), that.getUpstreamUrl())
                 && Objects.equals(this.isGray(), that.isGray())
-                && Objects.equals(this.registerProtocol,that.registerProtocol);
+                && Objects.equals(this.registerProtocol, that.registerProtocol);
     }
 
     @Override
@@ -168,12 +168,12 @@ public class MotanUpstream extends CommonUpstream{
         private long timestamp;
 
         /**
-         * registerAddress
+         * registerAddress.
          */
         private String registerAddress;
 
         /**
-         * registerProtocol
+         * registerProtocol.
          */
         private String registerProtocol;
 
@@ -249,7 +249,7 @@ public class MotanUpstream extends CommonUpstream{
         }
 
         /**
-         * build registerAddress
+         * build registerAddress.
          *
          * @param registerAddress registerAddress
          * @return this
@@ -260,7 +260,7 @@ public class MotanUpstream extends CommonUpstream{
         }
 
         /**
-         * build r
+         * build registerAddress.
          *
          * @param registerProtocol registerProtocol
          * @return this

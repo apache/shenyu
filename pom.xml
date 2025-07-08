@@ -129,7 +129,7 @@
         <tars.version>1.7.2</tars.version>
         <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
-        <zookeeper.version>3.9.2</zookeeper.version>
+        <zookeeper.version>3.9.3</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
@@ -152,7 +152,7 @@
         <jackson-databind.version>2.15.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
-        <kafka-clients.version>3.7.1</kafka-clients.version>
+        <kafka-clients.version>3.9.1</kafka-clients.version>
         <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>2.0.2</eureka.version>
@@ -185,6 +185,7 @@
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
         <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
         <!-- dependency version end -->
     </properties>
 

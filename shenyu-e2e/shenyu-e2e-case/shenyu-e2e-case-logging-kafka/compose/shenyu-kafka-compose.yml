@@ -31,7 +31,7 @@ services:
       - shenyu
   
   shenyu-kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.9.0
     container_name: shenyu-kafka
     extra_hosts:
       - "shenyu-kafka:127.0.0.1"

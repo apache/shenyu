@@ -25,7 +25,7 @@
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
     </a>
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
-        <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
+        <img src="https://img.shields.io/badge/JDK-17+-green.svg" />
     </a>
     <a target="_blank" href="https://github.com/apache/shenyu/actions">
         <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
@@ -47,6 +47,9 @@
   </a>
   <a target="_blank" href="https://gitpod.io/#https://github.com/apache/shenyu">
     <image src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod&color=green"/>
+  </a>
+  <a target="_blank" href="https://deepwiki.com/apache/shenyu">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
   </a>
 </p>
 <br/>
@@ -145,7 +148,9 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
     }]
 }'
 ```
-
+> If the backend service handling the request is running on your host machine, please set `upstreamUrl` to `host.docker.internal:8080` or specify IP address  if reachable from the container in the above command.
+> 
+> Add `--network host` to docker run command instead of `--net shenyu` also works correctly.
 * Proxy request ：http://localhost:9195/helloworld 
 
 ```json
