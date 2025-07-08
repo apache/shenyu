@@ -156,7 +156,7 @@ public final class ApplicationConfigCache {
     public RefererConfig<CommonClient> initRef(final String selectorId, final MetaData metaData, final MotanUpstream motanUpstream) {
         try {
             setUpstream(selectorId, motanUpstream);
-            RefererConfig<CommonClient> referenceConfig = cache.get(generateUpstreamCacheKey(selectorId, metaData.getId(), motanUpstream));
+            RefererConfig<CommonClient> referenceConfig = cache.get(generateUpstreamCacheKey(selectorId, metaData.getPath(), motanUpstream));
             if (StringUtils.isNoneBlank(referenceConfig.getServiceInterface())) {
                 return referenceConfig;
             }
@@ -238,7 +238,7 @@ public final class ApplicationConfigCache {
         CommonClient obj = reference.getRef();
         if (Objects.nonNull(obj)) {
             LOG.info("init motan reference success there meteData is :{}", metaData);
-            cache.put(generateUpstreamCacheKey(selectorId, metaData.getId(), motanUpstream), reference);
+            cache.put(generateUpstreamCacheKey(selectorId, metaData.getPath(), motanUpstream), reference);
         }
         return reference;
     }
@@ -247,14 +247,14 @@ public final class ApplicationConfigCache {
      * generate motan upstream reference cache key.
      *
      * @param selectorId    selectorId
-     * @param metaDataId    metaDataId
+     * @param metaDataPath    metaDataPath
      * @param motanUpstream dubboUpstream
      * @return the reference config cache key
      */
-    public String generateUpstreamCacheKey(final String selectorId, final String metaDataId, final MotanUpstream motanUpstream) {
+    public String generateUpstreamCacheKey(final String selectorId, final String metaDataPath, final MotanUpstream motanUpstream) {
         StringJoiner stringJoiner = new StringJoiner("_");// TODO Constants.SEPARATOR_UNDERLINE
         stringJoiner.add(selectorId);
-        stringJoiner.add(metaDataId);
+        stringJoiner.add(metaDataPath);
         if (StringUtils.isNotBlank(motanUpstream.getProtocol())) {
             stringJoiner.add(motanUpstream.getProtocol());
         }
@@ -301,17 +301,17 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * Invalidate with metadataId
+     * Invalidate with metadataPath
      *
-     * @param metadataId metadataId
+     * @param metadataPath metadataPath
      */
-    public void invalidateWithMetadataId(final String metadataId) {
+    public void invalidateWithMetadataPath(final String metadataPath) {
         ConcurrentMap<String, RefererConfig<CommonClient>> map = cache.asMap();
         if (map.isEmpty()){
             return;
         }
         Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataId)).collect(Collectors.toSet());
+        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataPath)).collect(Collectors.toSet());
         if (needInvalidateKeys.isEmpty()){
             return;
         }

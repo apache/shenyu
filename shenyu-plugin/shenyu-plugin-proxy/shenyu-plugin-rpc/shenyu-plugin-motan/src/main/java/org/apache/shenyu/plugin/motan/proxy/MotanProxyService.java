@@ -147,7 +147,7 @@ public class MotanProxyService {
             }
             return reference;
         }
-        referenceKey = ApplicationConfigCache.getInstance().generateUpstreamCacheKey(selectorData.getId(), metaData.getId(), motanUpstream);
+        referenceKey = ApplicationConfigCache.getInstance().generateUpstreamCacheKey(selectorData.getId(), metaData.getPath(), motanUpstream);
         RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(referenceKey);
         if (StringUtils.isBlank(reference.getServiceInterface())) {
             ApplicationConfigCache.getInstance().invalidate(referenceKey);
