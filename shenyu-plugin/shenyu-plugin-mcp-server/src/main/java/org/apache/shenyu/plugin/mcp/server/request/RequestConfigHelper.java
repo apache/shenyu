@@ -111,11 +111,11 @@ public class RequestConfigHelper {
      */
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
-        // 首先检查输入值是否已经是一个完整的 URL
+        // First, check if the input value is already a complete URL
         for (String key : argsPosition.keySet()) {
             if (inputJson.has(key)) {
                 String value = inputJson.get(key).getAsString();
-                // 如果输入值已经是一个完整的 URL，直接返回
+                // If the input value is already a complete URL, return it directly
                 if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
                     return value;
                 }
@@ -124,12 +124,12 @@ public class RequestConfigHelper {
         
         StringBuilder queryBuilder = new StringBuilder();
         
-        // 检查 URL 模板中是否已经包含查询参数
+        // Check if the URL template already contains query parameters
         boolean hasExistingQuery = urlTemplate.contains("?");
         String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
         String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
         
-        // 处理新的查询参数
+        // handle new query parameters
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
             if ("path".equals(position) && inputJson.has(key)) {
@@ -141,7 +141,7 @@ public class RequestConfigHelper {
                 value = value.replace("\"", "").trim();
                 basePath = basePath.replace("{{." + key + "}}", value);
             } else if ("query".equals(position) && inputJson.has(key)) {
-                // 处理查询参数
+                // handle query parameters
                 if (!existingQuery.contains(key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
@@ -156,13 +156,13 @@ public class RequestConfigHelper {
             }
         }
         
-        // 清理未替换的模板变量
+        // clean up the base path by removing any placeholders that were not replaced
         basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
         
-        // 构建最终的 URL
+        // build the final path
         StringBuilder finalPath = new StringBuilder(basePath);
         
-        // 添加查询参数
+        // add new query parameters if any
         if (!queryBuilder.isEmpty()) {
             if (hasExistingQuery) {
                 finalPath.append("&").append(queryBuilder);
@@ -171,7 +171,7 @@ public class RequestConfigHelper {
             }
         }
         
-        // 添加已存在的查询参数
+        // add existing query parameters if any
         if (hasExistingQuery && !existingQuery.isEmpty()) {
             if (!queryBuilder.isEmpty()) {
                 finalPath.append("&").append(existingQuery);
@@ -181,7 +181,7 @@ public class RequestConfigHelper {
         }
         
         String result = finalPath.toString();
-        // 移除末尾的问号
+        // remove trailing question mark if it exists
         if (result.endsWith("?")) {
             result = result.substring(0, result.length() - 1);
         }
