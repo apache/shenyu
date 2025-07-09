@@ -42,12 +42,10 @@ import com.google.gson.JsonObject;
 public class SwaggerImportServiceImpl implements SwaggerImportService {
     
     private static final Logger LOG = LoggerFactory.getLogger(SwaggerImportServiceImpl.class);
-    
-    private static final HttpUtils HTTP_UTILS = new HttpUtils();
-    
+
     private final DocManager docManager;
     
-    public SwaggerImportServiceImpl(final DocManager docManager) {
+    public SwaggerImportServiceImpl(final DocManager docManager ) {
         this.docManager = docManager;
     }
     
@@ -86,8 +84,9 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     @Override
     public boolean testConnection(final String swaggerUrl) {
         try {
+            HttpUtils httpUtils = new HttpUtils();
             validateSwaggerUrl(swaggerUrl);
-            try (Response response = HTTP_UTILS.requestForResponse(swaggerUrl, 
+            try (Response response = httpUtils.requestForResponse(swaggerUrl, 
                     Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
                 return response.code() == 200;
             }
@@ -114,7 +113,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     }
     
     private String fetchSwaggerDoc(final String swaggerUrl) throws IOException {
-        try (Response response = HTTP_UTILS.requestForResponse(swaggerUrl, 
+        try (Response response = new HttpUtils().requestForResponse(swaggerUrl,
                 Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
             
             if (response.code() != 200) {

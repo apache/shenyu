@@ -270,10 +270,9 @@ public class SwaggerDocParser implements DocParser {
             return Collections.emptyList();
         }
         
-        JsonObject extProperties = responseObject.getAsJsonObject("properties");
+        JsonObject properties = responseObject.getAsJsonObject("properties");
         JsonArray requiredProperties = responseObject.getAsJsonArray("required");
         List<String> requiredFieldList = this.jsonArrayToStringList(requiredProperties);
-        JsonObject properties = responseObject.getAsJsonObject("properties");
         List<DocParameter> docParameterList = new ArrayList<>();
         
         if (Objects.isNull(properties)) {
@@ -286,17 +285,15 @@ public class SwaggerDocParser implements DocParser {
             DocParameter docParameter = GsonUtils.getInstance().fromJson(fieldInfo, DocParameter.class);
             docParameter.setName(fieldName);
             docParameter.setRequired(requiredFieldList.contains(fieldName));
-            
-            if (Objects.nonNull(extProperties)) {
-                JsonObject prop = extProperties.getAsJsonObject(fieldName);
-                if (Objects.nonNull(prop)) {
-                    docParameter.setMaxLength(Objects.isNull(prop.get("maxLength")) ? "-" : prop.get("maxLength").getAsString());
-                    if (Objects.nonNull(prop.get("required"))) {
-                        docParameter.setRequired(Boolean.parseBoolean(prop.get("required").getAsString()));
-                    }
+
+            JsonObject prop = properties.getAsJsonObject(fieldName);
+            if (Objects.nonNull(prop)) {
+                docParameter.setMaxLength(Objects.isNull(prop.get("maxLength")) ? "-" : prop.get("maxLength").getAsString());
+                if (Objects.nonNull(prop.get("required"))) {
+                    docParameter.setRequired(Boolean.parseBoolean(prop.get("required").getAsString()));
                 }
             }
-            
+
             docParameterList.add(docParameter);
             RefInfo refInfo = this.getRefInfo(fieldInfo, version);
             if (Objects.nonNull(refInfo) && doSubRef) {
