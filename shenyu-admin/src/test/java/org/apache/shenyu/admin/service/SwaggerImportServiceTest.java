@@ -41,12 +41,12 @@ public class SwaggerImportServiceTest {
     public void testConnection() {
         SwaggerImportService service = new SwaggerImportServiceImpl(docManager);
         
-        // 测试无效URL
+        // Test invalid URLs
         assertFalse(service.testConnection("invalid-url"));
         assertFalse(service.testConnection(""));
         assertFalse(service.testConnection(null));
         
-        // 测试有效URL格式但可能连接失败
+        // Test valid URL format but may fail to connect
         assertFalse(service.testConnection("http://invalid.example.com/swagger.json"));
     }
 } 

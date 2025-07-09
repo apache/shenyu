@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.manager.impl;
+package org.apache.shenyu.common.enums;
 
 /**
  * Swagger version enumeration.

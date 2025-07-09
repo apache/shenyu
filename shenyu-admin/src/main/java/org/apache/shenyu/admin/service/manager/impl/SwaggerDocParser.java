@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
+import org.apache.shenyu.common.enums.SwaggerVersion;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.ArrayList;
