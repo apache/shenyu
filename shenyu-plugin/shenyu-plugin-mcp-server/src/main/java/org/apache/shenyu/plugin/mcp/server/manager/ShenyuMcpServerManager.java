@@ -90,7 +90,7 @@ public class ShenyuMcpServerManager {
         }
 
         // Create new transport for the base path
-        return mcpServerTransportMap.computeIfAbsent(basePath, this::createMcpServerTransport);
+        return mcpServerTransportMap.putIfAbsent(basePath, createMcpServerTransport(uri, messageEndpoint));
     }
 
     /**
@@ -178,14 +178,15 @@ public class ShenyuMcpServerManager {
      * Create a new McpServer for the given URI.
      *
      * @param uri The URI to create a McpServer for
+     * @param messageEndpoint The message endpoint for the McpServer
      * @return The McpAsyncServer for the new McpServer
      */
-    private ShenyuSseServerTransportProvider createMcpServerTransport(final String uri) {
+    private ShenyuSseServerTransportProvider createMcpServerTransport(final String uri, final String messageEndpoint) {
         String path = StringUtils.removeEnd(uri, SLASH);
         LOG.info("Creating new McpServer for URI: {}", path);
-        String messageEndpoint = path + "/message";
+        String messagePath = path + "/messageEndpoint";
         ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
-                .objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messageEndpoint).build();
+                .objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messagePath).build();
 
         LOG.debug("Registered RouterFunction for URI: {}", path);
 
