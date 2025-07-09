@@ -122,7 +122,7 @@ public class RequestConfigHelper {
             if (inputJson.has(key)) {
                 String value = inputJson.get(key).getAsString();
                 // If the input value is already a complete URL, return it directly
-                if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                if (value.startsWith("http://") || value.startsWith("https://")) {
                     return value;
                 }
             }

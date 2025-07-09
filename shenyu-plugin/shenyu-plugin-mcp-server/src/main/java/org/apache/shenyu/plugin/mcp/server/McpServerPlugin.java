@@ -73,44 +73,46 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         String uri = exchange.getRequest().getURI().getRawPath();
         LOG.info("Processing request with URI: {}", uri);
         
-        if (shenyuMcpServerManager.canRoute(uri)) {
-            LOG.info("Handling MCP request for URI: {}", uri);
-            
-            // Extract sessionId from request if available
-            ServerRequest request = ServerRequest.create(exchange, messageReaders);
-            
-            // Handle MCP SSE/message requests by delegating to the transport provider
-            // directly
-            ShenyuSseServerTransportProvider transportProvider = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
-            
-            // Mark exchange to prevent further plugin processing
-            shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
-            exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-            
-            if (uri.endsWith("/message")) {
-                String sessionId = extractSessionId(exchange);
-                if (Objects.nonNull(sessionId)) {
-                    exchange.getAttributes().put("MCP_SESSION_ID", sessionId);
-                    exchange.getAttributes().put(Constants.CHAIN, chain);
-                    // Store sessionId in exchange attributes for later use
-                    ShenyuMcpExchangeHolder.put(sessionId, exchange);
-                    LOG.debug("Extracted sessionId: {}", sessionId);
-                }
-                // Handle JSON-RPC message endpoint
-                LOG.debug("Handling MCP message endpoint for URI: {} with sessionId: {}", uri, sessionId);
-                return handleMessageEndpoint(exchange, transportProvider, request);
-            } else {
-                // Handle SSE connection endpoint
-                LOG.debug("Handling MCP SSE connection for URI: {} ", uri);
-                
-                // Create a custom SSE handler that bypasses the ServerResponse complexity
-                return handleSseEndpoint(exchange, transportProvider, request);
-            }
+        if (!shenyuMcpServerManager.canRoute(uri)) {
+            // Continue the chain - the WebFlux infrastructure will route to the appropriate
+            // handler
+            return chain.execute(exchange);
         }
         
-        // Continue the chain - the WebFlux infrastructure will route to the appropriate
-        // handler
-        return chain.execute(exchange);
+        LOG.info("Handling MCP request for URI: {}", uri);
+        
+        // Extract sessionId from request if available
+        ServerRequest request = ServerRequest.create(exchange, messageReaders);
+        
+        // Handle MCP SSE/message requests by delegating to the transport provider
+        // directly
+        ShenyuSseServerTransportProvider transportProvider = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
+        
+        // Mark exchange to prevent further plugin processing
+        shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        
+        if (uri.endsWith("/message")) {
+            String sessionId = extractSessionId(exchange);
+            if (Objects.nonNull(sessionId)) {
+                exchange.getAttributes().put("MCP_SESSION_ID", sessionId);
+                exchange.getAttributes().put(Constants.CHAIN, chain);
+                // Store sessionId in exchange attributes for later use
+                ShenyuMcpExchangeHolder.put(sessionId, exchange);
+                LOG.debug("Extracted sessionId: {}", sessionId);
+            }
+            // Handle JSON-RPC message endpoint
+            LOG.debug("Handling MCP message endpoint for URI: {} with sessionId: {}", uri, sessionId);
+            return handleMessageEndpoint(exchange, transportProvider, request)
+                    .doFinally((signalType) -> ShenyuMcpExchangeHolder.remove(sessionId));
+        } else {
+            // Handle SSE connection endpoint
+            LOG.debug("Handling MCP SSE connection for URI: {} ", uri);
+            
+            // Create a custom SSE handler that bypasses the ServerResponse complexity
+            return handleSseEndpoint(exchange, transportProvider, request);
+        }
+        
     }
     
     @Override
