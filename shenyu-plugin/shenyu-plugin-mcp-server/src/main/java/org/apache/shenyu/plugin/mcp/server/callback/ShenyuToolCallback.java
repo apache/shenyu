@@ -159,24 +159,10 @@ public class ShenyuToolCallback implements ToolCallback {
     }
     
     private ServerWebExchange buildExchange(final ServerWebExchange originExchange, final CompletableFuture<String> future, final String sessionId, final String configStr, final String input) {
-        // Parse input parameters
-        final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
-        
-        if (Objects.isNull(inputJson)) {
-            throw new IllegalArgumentException("Invalid input JSON format");
-        }
-        // Parse request configuration
         final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
-        final JsonObject requestTemplate = configHelper.getRequestTemplate();
-        final JsonObject argsPosition = configHelper.getArgsPosition();
-        final String urlTemplate = configHelper.getUrlTemplate();
-        final String method = configHelper.getMethod();
-        final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
-        
-        final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
-        final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
-        
-        final RequestConfig requestConfig = new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody);
+        // Parse input parameters
+        buildRequestConfig result = getBuildRequestConfig(configHelper, input);
+        RequestConfig requestConfig = result.requestConfig();
         
         final ServerHttpRequest.Builder requestBuilder = originExchange
                 .getRequest()
@@ -203,7 +189,7 @@ public class ShenyuToolCallback implements ToolCallback {
         // Set URI
         try {
             final URI oldUri = originExchange.getRequest().getURI();
-            final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
+            final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + result.path();
             requestBuilder.uri(new URI(newUriStr));
         } catch (URISyntaxException e) {
             throw new RuntimeException("Invalid URI: " + e.getMessage(), e);
@@ -238,5 +224,28 @@ public class ShenyuToolCallback implements ToolCallback {
         }
         
         return decoratedExchange;
+    }
+    
+    private static buildRequestConfig getBuildRequestConfig(final RequestConfigHelper configHelper, final String input) {
+        final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
+        
+        if (Objects.isNull(inputJson)) {
+            throw new IllegalArgumentException("Invalid input JSON format");
+        }
+        // Parse request configuration
+        final JsonObject requestTemplate = configHelper.getRequestTemplate();
+        final JsonObject argsPosition = configHelper.getArgsPosition();
+        final String urlTemplate = configHelper.getUrlTemplate();
+        final String method = configHelper.getMethod();
+        final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
+        
+        final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
+        final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
+        
+        final RequestConfig requestConfig = new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody);
+        return new buildRequestConfig(path, requestConfig);
+    }
+    
+    private record buildRequestConfig(String path, RequestConfig requestConfig) {
     }
 }
