@@ -73,7 +73,7 @@ public class ShenyuMcpServerManager {
      * @param uri The URI to create or get a McpServer for
      * @return The McpServer for the URI
      */
-    public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri) {
+    public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri, final String messageEndpoint) {
         // First try exact match
         ShenyuSseServerTransportProvider transport = mcpServerTransportMap.get(uri);
         if (Objects.nonNull(transport)) {
@@ -81,7 +81,7 @@ public class ShenyuMcpServerManager {
         }
 
         // Then try to find existing transport that matches the pattern
-        String basePath = extractBasePath(uri);
+        String basePath = extractBasePath(uri, messageEndpoint);
         transport = mcpServerTransportMap.get(basePath);
         if (Objects.nonNull(transport)) {
             LOG.debug("Found existing transport for base path '{}' for URI '{}'", basePath, uri);
@@ -99,11 +99,11 @@ public class ShenyuMcpServerManager {
      * @param uri The URI to extract base path from
      * @return The base path
      */
-    private String extractBasePath(final String uri) {
+    private String extractBasePath(final String uri, final String messageEndpoint) {
         String basePath = uri;
 
         // Remove /message suffix if present
-        if (basePath.endsWith("/message")) {
+        if (basePath.endsWith(messageEndpoint)) {
             basePath = basePath.substring(0, basePath.length() - "/message".length());
         }
 

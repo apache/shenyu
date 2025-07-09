@@ -26,8 +26,11 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
+import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.SseEventFormatter;
 import org.slf4j.Logger;
@@ -70,6 +73,12 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext, "ShenyuContext must not be null");
         
+        ShenyuMcpServer server = McpServerPluginDataHandler.CACHED_SERVER.get().obtainHandle(selector.getId());
+        
+        if (Objects.isNull(server)) {
+            return chain.execute(exchange);
+        }
+        
         String uri = exchange.getRequest().getURI().getRawPath();
         LOG.info("Processing request with URI: {}", uri);
         
@@ -86,13 +95,16 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         
         // Handle MCP SSE/message requests by delegating to the transport provider
         // directly
-        ShenyuSseServerTransportProvider transportProvider = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
+        String messageEndpoint = server.getMessageEndpoint();
+        
+        ShenyuSseServerTransportProvider transportProvider
+                = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
         
         // Mark exchange to prevent further plugin processing
         shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         
-        if (uri.endsWith("/message")) {
+        if (uri.endsWith(messageEndpoint)) {
             String sessionId = extractSessionId(exchange);
             if (Objects.nonNull(sessionId)) {
                 exchange.getAttributes().put("MCP_SESSION_ID", sessionId);

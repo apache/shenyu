@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerToolParameter;
+import org.apache.shenyu.plugin.mcp.server.model.McpServerToolParameter;
 import org.springframework.ai.util.json.JsonParser;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption;
 

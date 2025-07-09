@@ -23,8 +23,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerToolParameter;
-import org.apache.shenyu.common.dto.convert.rule.impl.mcp.McpServerTool;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -34,6 +32,9 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
+import org.apache.shenyu.plugin.mcp.server.model.McpServerToolParameter;
+import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
+import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServerTool;
 import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 
 import java.util.List;
@@ -46,10 +47,10 @@ import java.util.function.Supplier;
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
     
-    public static final Supplier<CommonHandleCache<String, McpServerTool>> CACHED_TOOL = new BeanHolder<>(
+    public static final Supplier<CommonHandleCache<String, ShenyuMcpServerTool>> CACHED_TOOL = new BeanHolder<>(
             CommonHandleCache::new);
     
-    public static final Supplier<CommonHandleCache<String, String>> CACHED_SERVER = new BeanHolder<>(
+    public static final Supplier<CommonHandleCache<String, ShenyuMcpServer>> CACHED_SERVER = new BeanHolder<>(
             CommonHandleCache::new);
     
     private static final String SLASH = "/";
@@ -82,14 +83,15 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         
         String path = StringUtils.removeEnd(uri, SLASH);
         path = StringUtils.removeEnd(path, STAR);
-        
+        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(selectorData.getHandle(), ShenyuMcpServer.class);
+        shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),
-                path);
-        
+                shenyuMcpServer);
+        String messageEndpoint = shenyuMcpServer.getMessageEndpoint();
         // Get or create McpServer for this URI
         if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
-            shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
+            shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
         }
         
         // the update is also need to clean, but there is no way to
@@ -125,7 +127,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            McpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, McpServerTool.class);
+            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
             CACHED_TOOL.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mcpServerTool);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
@@ -135,13 +137,15 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             
             // Create JSON schema from parameters
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
-            String serverPath = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            shenyuMcpServerManager.addTool(serverPath,
-                    StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
-                            : mcpServerTool.getName(),
-                    mcpServerTool.getDescription(),
-                    mcpServerTool.getRequestConfig(),
-                    inputSchema);
+            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            if (Objects.nonNull(server)) {
+                shenyuMcpServerManager.addTool(server.getPath(),
+                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
+                                : mcpServerTool.getName(),
+                        mcpServerTool.getDescription(),
+                        mcpServerTool.getRequestConfig(),
+                        inputSchema);
+            }
         });
     }
     
@@ -149,8 +153,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-            String serverPath = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            shenyuMcpServerManager.removeTool(serverPath, ruleData.getName());
+            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            shenyuMcpServerManager.removeTool(server.getPath(), ruleData.getName());
         });
         MetaDataCache.getInstance().clean();
     }

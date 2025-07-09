@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl.mcp;
+package org.apache.shenyu.plugin.mcp.server.model;
 
 import com.google.common.collect.Lists;
 
@@ -28,7 +28,7 @@ import java.util.Objects;
  * It contains information about the tool's ID, name, version, description, parameters,
  * and return type.
  */
-public class McpServerTool {
+public class ShenyuMcpServerTool {
     
     /**
      * Name of the tool .
@@ -124,8 +124,8 @@ public class McpServerTool {
     }
     
     
-    public static McpServerTool newInstance() {
-        McpServerTool mcpServerPluginRuleHandle = new McpServerTool();
+    public static ShenyuMcpServerTool newInstance() {
+        ShenyuMcpServerTool mcpServerPluginRuleHandle = new ShenyuMcpServerTool();
         mcpServerPluginRuleHandle.setName("");
         mcpServerPluginRuleHandle.setDescription("");
         mcpServerPluginRuleHandle.setParameters(new ArrayList<>(0));
@@ -140,7 +140,7 @@ public class McpServerTool {
         if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
-        McpServerTool that = (McpServerTool) o;
+        ShenyuMcpServerTool that = (ShenyuMcpServerTool) o;
         return Objects.equals(name, that.name)
                 && Objects.equals(description, that.description)
                 && Objects.equals(requestConfig, that.requestConfig)
