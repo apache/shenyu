@@ -184,7 +184,7 @@ public class ShenyuMcpServerManager {
     private ShenyuSseServerTransportProvider createMcpServerTransport(final String uri, final String messageEndpoint) {
         String path = StringUtils.removeEnd(uri, SLASH);
         LOG.info("Creating new McpServer for URI: {}", path);
-        String messagePath = path + "/messageEndpoint";
+        String messagePath = path + messageEndpoint;
         ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
                 .objectMapper(new ObjectMapper()).sseEndpoint(path).messageEndpoint(messagePath).build();
 
@@ -214,11 +214,11 @@ public class ShenyuMcpServerManager {
 
         // Register both exact paths and wildcard patterns for flexible matching
         routeMap.put(path, transportProvider::handleSseConnection);
-        routeMap.put(messageEndpoint, transportProvider::handleMessage);
+        routeMap.put(messagePath, transportProvider::handleMessage);
 
         // Add wildcard patterns to support sub-paths
         routeMap.put(path + "/**", transportProvider::handleSseConnection);
-        routeMap.put(messageEndpoint + "/**", transportProvider::handleMessage);
+        routeMap.put(messagePath + "/**", transportProvider::handleMessage);
 
         LOG.info("Created new McpServer for URI: {} with patterns", path);
         return transportProvider;
