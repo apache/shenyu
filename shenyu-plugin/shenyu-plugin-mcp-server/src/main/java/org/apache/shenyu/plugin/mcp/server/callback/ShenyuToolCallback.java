@@ -161,7 +161,7 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange buildExchange(final ServerWebExchange originExchange, final CompletableFuture<String> future, final String sessionId, final String configStr, final String input) {
         final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
         // Parse input parameters
-        buildRequestConfig result = getBuildRequestConfig(configHelper, input);
+        BuildRequestConfigResult result = getBuildRequestConfig(configHelper, input);
         RequestConfig requestConfig = result.requestConfig();
         
         final ServerHttpRequest.Builder requestBuilder = originExchange
@@ -226,7 +226,7 @@ public class ShenyuToolCallback implements ToolCallback {
         return decoratedExchange;
     }
     
-    private static buildRequestConfig getBuildRequestConfig(final RequestConfigHelper configHelper, final String input) {
+    private static BuildRequestConfigResult getBuildRequestConfig(final RequestConfigHelper configHelper, final String input) {
         final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
         
         if (Objects.isNull(inputJson)) {
@@ -243,9 +243,9 @@ public class ShenyuToolCallback implements ToolCallback {
         final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
         
         final RequestConfig requestConfig = new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody);
-        return new buildRequestConfig(path, requestConfig);
+        return new BuildRequestConfigResult(path, requestConfig);
     }
     
-    private record buildRequestConfig(String path, RequestConfig requestConfig) {
+    private record BuildRequestConfigResult(String path, RequestConfig requestConfig) {
     }
 }
