@@ -71,6 +71,7 @@ public class ShenyuMcpServerManager {
      * Uses pattern matching to find the best matching server.
      *
      * @param uri The URI to create or get a McpServer for
+     * @param messageEndpoint The message endpoint to use
      * @return The McpServer for the URI
      */
     public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri, final String messageEndpoint) {
