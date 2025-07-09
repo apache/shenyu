@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.mcp.server.request;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.mcp.server.constants.RequestConstants;
 
 /**
  * Helper class for parsing and handling requestConfig.
@@ -220,8 +219,8 @@ public class RequestConfigHelper {
     }
     
     public static boolean isRequestBodyMethod(final String method) {
-        return RequestConstants.METHOD_POST.equalsIgnoreCase(method)
-                || RequestConstants.METHOD_PUT.equalsIgnoreCase(method)
-                || RequestConstants.METHOD_PATCH.equalsIgnoreCase(method);
+        return METHOD_POST.equalsIgnoreCase(method)
+                || METHOD_PUT.equalsIgnoreCase(method)
+                || METHOD_PATCH.equalsIgnoreCase(method);
     }
 }
