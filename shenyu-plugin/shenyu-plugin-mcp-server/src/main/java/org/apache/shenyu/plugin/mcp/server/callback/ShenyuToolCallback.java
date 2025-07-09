@@ -194,7 +194,7 @@ public class ShenyuToolCallback implements ToolCallback {
         }
         
         // Set Content-Type
-        if (isRequestBodyMethod(requestConfig.getMethod())) {
+        if (RequestConfigHelper.isRequestBodyMethod(requestConfig.getMethod())) {
             requestBuilder.header("Content-Type", "application/json");
         } else {
             requestBuilder.headers(httpHeaders -> httpHeaders.remove("Content-Type"));
@@ -216,7 +216,8 @@ public class ShenyuToolCallback implements ToolCallback {
         final ServerWebExchange decoratedExchange = originExchange.mutate().request(requestBuilder.build()).response(responseDecorator).build();
         
         // Handle request body
-        if (isRequestBodyMethod(requestConfig.getMethod()) && requestConfig.getBodyJson().size() > 0) {
+        if (RequestConfigHelper.isRequestBodyMethod(requestConfig.getMethod())
+                && requestConfig.getBodyJson().size() > 0) {
             return new BodyWriterExchange(decoratedExchange, requestConfig.getBodyJson().toString());
         }
         
@@ -237,9 +238,5 @@ public class ShenyuToolCallback implements ToolCallback {
         }
         
         return decoratedExchange;
-    }
-    
-    private boolean isRequestBodyMethod(final String method) {
-        return "POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "PATCH".equalsIgnoreCase(method);
     }
 }

@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.mcp.server.transport;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.modelcontextprotocol.server.transport.WebFluxSseServerTransportProvider;
 import io.modelcontextprotocol.spec.McpError;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.Exceptions;
@@ -52,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ShenyuSseServerTransportProvider implements McpServerTransportProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebFluxSseServerTransportProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuSseServerTransportProvider.class);
 
     /**
      * Event type for JSON-RPC messages sent through the SSE connection.
