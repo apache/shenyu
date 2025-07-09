@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.service.SwaggerImportService;
 import org.apache.shenyu.admin.service.impl.SwaggerImportServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.apache.shenyu.admin.service.manager.DocManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test for SwaggerImportService.

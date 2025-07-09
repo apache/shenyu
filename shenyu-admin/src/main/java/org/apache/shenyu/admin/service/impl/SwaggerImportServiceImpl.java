@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import com.google.gson.JsonObject;
 
@@ -45,7 +46,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
 
     private final DocManager docManager;
     
-    public SwaggerImportServiceImpl(final DocManager docManager ) {
+    public SwaggerImportServiceImpl(final DocManager docManager) {
         this.docManager = docManager;
     }
     
@@ -97,7 +98,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     }
     
     private void validateSwaggerUrl(final String swaggerUrl) {
-        if (swaggerUrl == null || swaggerUrl.trim().isEmpty()) {
+        if (Objects.isNull(swaggerUrl) || swaggerUrl.trim().isEmpty()) {
             throw new IllegalArgumentException("Swagger URL cannot be empty");
         }
         

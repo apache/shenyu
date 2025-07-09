@@ -30,9 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Swagger Import Controller.
  */
@@ -45,15 +42,18 @@ public class SwaggerImportController {
 
     private final SwaggerImportService swaggerImportService;
 
-    public SwaggerImportController(SwaggerImportService swaggerImportService) {
+    public SwaggerImportController(final SwaggerImportService swaggerImportService) {
         this.swaggerImportService = swaggerImportService;
     }
 
     /**
      * Import swagger documentation.
+     *
+     * @param request the swagger import request
+     * @return the result of swagger import
      */
     @PostMapping("/import")
-    public ShenyuAdminResult importSwagger(@Valid @RequestBody SwaggerImportRequest request) {
+    public ShenyuAdminResult importSwagger(@Valid @RequestBody final SwaggerImportRequest request) {
         LOG.info("Received Swagger import request: {}", request);
 
         try {
@@ -69,9 +69,12 @@ public class SwaggerImportController {
 
     /**
      * Test connection to swagger URL.
+     *
+     * @param swaggerUrl the swagger URL to test
+     * @return the result of connection test
      */
     @PostMapping("/test-connection")
-    public ShenyuAdminResult testConnection(@RequestParam String swaggerUrl) {
+    public ShenyuAdminResult testConnection(@RequestParam final String swaggerUrl) {
         LOG.info("Testing Swagger URL connection: {}", swaggerUrl);
 
         try {

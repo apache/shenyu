@@ -261,12 +261,12 @@ public class SwaggerDocParser implements DocParser {
     protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot, 
                                                    final boolean doSubRef, final SwaggerVersion version) {
         JsonObject schemaDefinitions = getSchemaDefinitions(docRoot, version);
-        if (schemaDefinitions == null) {
+        if (Objects.isNull(schemaDefinitions)) {
             return Collections.emptyList();
         }
         
         JsonObject responseObject = schemaDefinitions.getAsJsonObject(ref);
-        if (responseObject == null) {
+        if (Objects.isNull(responseObject)) {
             return Collections.emptyList();
         }
         
@@ -419,7 +419,7 @@ public class SwaggerDocParser implements DocParser {
             return docRoot.getAsJsonObject("definitions");
         } else {
             JsonObject components = docRoot.getAsJsonObject("components");
-            if (components == null) {
+            if (Objects.isNull(components)) {
                 return null;
             }
             return components.getAsJsonObject("schemas");

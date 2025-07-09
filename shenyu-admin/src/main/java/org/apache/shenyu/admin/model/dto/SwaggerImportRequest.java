@@ -39,7 +39,7 @@ public class SwaggerImportRequest {
         return swaggerUrl;
     }
     
-    public void setSwaggerUrl(String swaggerUrl) {
+    public void setSwaggerUrl(final String swaggerUrl) {
         this.swaggerUrl = swaggerUrl;
     }
     
@@ -47,7 +47,7 @@ public class SwaggerImportRequest {
         return projectName;
     }
     
-    public void setProjectName(String projectName) {
+    public void setProjectName(final String projectName) {
         this.projectName = projectName;
     }
     
@@ -55,16 +55,16 @@ public class SwaggerImportRequest {
         return projectDescription;
     }
     
-    public void setProjectDescription(String projectDescription) {
+    public void setProjectDescription(final String projectDescription) {
         this.projectDescription = projectDescription;
     }
     
     @Override
     public String toString() {
-        return "SwaggerImportRequest{" +
-                "swaggerUrl='" + swaggerUrl + '\'' +
-                ", projectName='" + projectName + '\'' +
-                ", projectDescription='" + projectDescription + '\'' +
-                '}';
+        return "SwaggerImportRequest{"
+                + "swaggerUrl='" + swaggerUrl + '\''
+                + ", projectName='" + projectName + '\''
+                + ", projectDescription='" + projectDescription + '\''
+                + '}';
     }
 } 
