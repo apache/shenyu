@@ -26,7 +26,6 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
@@ -116,7 +115,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
             // Handle JSON-RPC message endpoint
             LOG.debug("Handling MCP message endpoint for URI: {} with sessionId: {}", uri, sessionId);
             return handleMessageEndpoint(exchange, transportProvider, request)
-                    .doFinally((signalType) -> ShenyuMcpExchangeHolder.remove(sessionId));
+                    .doFinally(signalType -> ShenyuMcpExchangeHolder.remove(sessionId));
         } else {
             // Handle SSE connection endpoint
             LOG.debug("Handling MCP SSE connection for URI: {} ", uri);

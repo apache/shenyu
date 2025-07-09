@@ -97,6 +97,7 @@ public class ShenyuMcpServerManager {
      * sub-paths.
      *
      * @param uri The URI to extract base path from
+     * @param messageEndpoint Endpoint for the MCP Server
      * @return The base path
      */
     private String extractBasePath(final String uri, final String messageEndpoint) {
@@ -104,7 +105,7 @@ public class ShenyuMcpServerManager {
 
         // Remove /message suffix if present
         if (basePath.endsWith(messageEndpoint)) {
-            basePath = basePath.substring(0, basePath.length() - "/message".length());
+            basePath = basePath.substring(0, basePath.length() - messageEndpoint.length());
         }
 
         // For sub-paths, extract the main MCP server path
