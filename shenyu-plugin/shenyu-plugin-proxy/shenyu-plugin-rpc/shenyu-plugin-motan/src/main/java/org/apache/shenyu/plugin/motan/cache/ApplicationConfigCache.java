@@ -106,9 +106,9 @@ public final class ApplicationConfigCache {
             registryConfig = new RegistryConfig();
             registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
-            registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
-            registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         }
+        registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
+        registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2");
@@ -229,13 +229,14 @@ public final class ApplicationConfigCache {
         reference.setVersion("1.0");
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
         reference.setRegistry(this.registryConfig);
-        if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())
-                && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
-            RegistryConfig registryConfig = this.registryConfig;
+        RegistryConfig registryConfig = this.registryConfig;
+        if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())) {
             Optional.ofNullable(motanUpstream.getRegisterProtocol()).ifPresent(registryConfig::setRegProtocol);
-            Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
-            reference.setRegistry(registryConfig);
         }
+        if (StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
+            Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
+        }
+        reference.setRegistry(registryConfig);
         if (StringUtils.isNotEmpty(motanParamExtInfo.getRpcProtocol())) {
             protocolConfig.setName(motanParamExtInfo.getRpcProtocol());
             protocolConfig.setId(motanParamExtInfo.getRpcProtocol());
@@ -265,8 +266,10 @@ public final class ApplicationConfigCache {
             stringJoiner.add(motanUpstream.getProtocol());
         }
         // use registry hash to short reference cache key
-        String registryHash = DigestUtils.md5Hex(motanUpstream.getRegisterAddress());
-        stringJoiner.add(registryHash);
+        if (StringUtils.isNotBlank(motanUpstream.getRegisterAddress())) {
+            String registryHash = DigestUtils.md5Hex(motanUpstream.getRegisterAddress());
+            stringJoiner.add(registryHash);
+        }
         return stringJoiner.toString();
     }
 
