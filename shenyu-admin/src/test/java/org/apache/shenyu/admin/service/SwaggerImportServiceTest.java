@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.service.impl.SwaggerImportServiceImpl;
+import org.apache.shenyu.admin.utils.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,9 +36,12 @@ public class SwaggerImportServiceTest {
     @Mock
     private DocManager docManager;
     
+    @Mock
+    private HttpUtils httpUtils;
+    
     @Test
     public void testConnection() {
-        SwaggerImportService service = new SwaggerImportServiceImpl(docManager);
+        SwaggerImportService service = new SwaggerImportServiceImpl(docManager, httpUtils);
         
         // Test invalid URLs
         assertFalse(service.testConnection("invalid-url"));

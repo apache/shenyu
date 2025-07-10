@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.common.enums.SwaggerVersion;
 import org.apache.shenyu.common.utils.GsonUtils;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,9 +61,7 @@ public class SwaggerDocParser implements DocParser {
         // Detect Swagger version
         SwaggerVersion version = detectSwaggerVersion(docRoot);
         
-        final String basePath = Optional.ofNullable(docRoot.get("basePath"))
-            .map(JsonElement::getAsString)
-            .orElse("/");
+        final String basePath = extractBasePath(docRoot, version);
         final String title = Optional.ofNullable(docRoot.getAsJsonObject("info")).map(jsonObject -> jsonObject.get("title").getAsString()).orElse(basePath);
         final List<DocItem> docItems = new ArrayList<>();
 
@@ -381,6 +380,67 @@ public class SwaggerDocParser implements DocParser {
         refInfo.isArray = isArray;
         refInfo.ref = ref;
         return refInfo;
+    }
+
+    /**
+     * Extract base path based on Swagger version.
+     *
+     * @param docRoot docRoot
+     * @param version version
+     * @return base path
+     */
+    private String extractBasePath(final JsonObject docRoot, final SwaggerVersion version) {
+        if (version == SwaggerVersion.V2) {
+            // Swagger 2.0: use basePath field
+            return Optional.ofNullable(docRoot.get("basePath"))
+                .map(JsonElement::getAsString)
+                .orElse("/");
+        } else {
+            // OpenAPI 3.0: use servers[0].url
+            return Optional.ofNullable(docRoot.getAsJsonArray("servers"))
+                .filter(servers -> !servers.isEmpty())
+                .map(servers -> servers.get(0).getAsJsonObject())
+                .map(server -> server.get("url"))
+                .map(JsonElement::getAsString)
+                .map(this::extractPathFromUrl)
+                .orElse("/");
+        }
+    }
+
+    /**
+     * Extract path from server URL.
+     * For example: "https://api.example.com/v1" -> "/v1"
+     *
+     * @param url server URL
+     * @return path part of URL
+     */
+    private String extractPathFromUrl(final String url) {
+        if (Objects.isNull(url) || url.trim().isEmpty()) {
+            return "/";
+        }
+        
+        try {
+            // Handle relative URLs
+            if (url.startsWith("/")) {
+                return url;
+            }
+            
+            // Handle absolute URLs
+            URL parsedUrl = new URL(url);
+            String path = parsedUrl.getPath();
+            return Objects.isNull(path) || path.trim().isEmpty() ? "/" : path;
+        } catch (Exception e) {
+            // If URL parsing fails, try to extract path manually
+            int protocolIndex = url.indexOf("://");
+            if (protocolIndex != -1) {
+                String afterProtocol = url.substring(protocolIndex + 3);
+                int pathIndex = afterProtocol.indexOf("/");
+                if (pathIndex != -1) {
+                    return afterProtocol.substring(pathIndex);
+                }
+            }
+            return "/";
+        }
     }
 
     /**

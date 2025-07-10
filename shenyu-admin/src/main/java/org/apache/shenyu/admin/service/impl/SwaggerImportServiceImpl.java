@@ -33,7 +33,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import com.google.gson.JsonObject;
 
 /**
@@ -46,8 +45,11 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
 
     private final DocManager docManager;
     
-    public SwaggerImportServiceImpl(final DocManager docManager) {
+    private final HttpUtils httpUtils;
+    
+    public SwaggerImportServiceImpl(final DocManager docManager, final HttpUtils httpUtils) {
         this.docManager = docManager;
+        this.httpUtils = httpUtils;
     }
     
     @Override
@@ -68,10 +70,9 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             UpstreamInstance instance = createVirtualInstance(request);
             
             // 5. Parse and save document
-            AtomicReference<String> docMd5 = new AtomicReference<>();
             docManager.addDocInfo(instance, swaggerJson, null, docInfo -> {
-                docMd5.set(docInfo.getDocMd5());
-                LOG.info("Successfully imported swagger document: {}", request.getProjectName());
+                LOG.info("Successfully imported swagger document: {} with MD5: {}", 
+                    request.getProjectName(), docInfo.getDocMd5());
             });
             
             return "Import successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
@@ -85,7 +86,6 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     @Override
     public boolean testConnection(final String swaggerUrl) {
         try {
-            HttpUtils httpUtils = new HttpUtils();
             validateSwaggerUrl(swaggerUrl);
             try (Response response = httpUtils.requestForResponse(swaggerUrl, 
                     Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
@@ -114,7 +114,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     }
     
     private String fetchSwaggerDoc(final String swaggerUrl) throws IOException {
-        try (Response response = new HttpUtils().requestForResponse(swaggerUrl,
+        try (Response response = httpUtils.requestForResponse(swaggerUrl,
                 Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
             
             if (response.code() != 200) {
