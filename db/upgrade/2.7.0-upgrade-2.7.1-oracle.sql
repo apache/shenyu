@@ -469,6 +469,8 @@ VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required"
 
 delete from plugin_handle where plugin_id = '8';
 
-UPDATE plugin_handle SET type = '1' WHERE plugin_id = 17 AND field = 'registerAddress';
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1818229897214468142', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}');
 
-UPDATE plugin_handle SET type = '1' WHERE plugin_id = 17 AND field = 'registerProtocol';
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1879002911061737473', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}');

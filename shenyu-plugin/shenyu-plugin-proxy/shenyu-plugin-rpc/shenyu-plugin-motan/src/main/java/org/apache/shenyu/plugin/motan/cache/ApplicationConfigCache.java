@@ -228,12 +228,12 @@ public final class ApplicationConfigCache {
         reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
         reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
-        reference.setRegistry(this.registryConfig);
-        RegistryConfig registryConfig = this.registryConfig;
-        if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())) {
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setId("shenyu_motan_proxy");
+        registryConfig.setRegister(false);
+        if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())
+                && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
             Optional.ofNullable(motanUpstream.getRegisterProtocol()).ifPresent(registryConfig::setRegProtocol);
-        }
-        if (StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
             Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
         }
         reference.setRegistry(registryConfig);
