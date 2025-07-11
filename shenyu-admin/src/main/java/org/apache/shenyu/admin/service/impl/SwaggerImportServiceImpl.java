@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.utils.HttpUtils;
+import org.apache.shenyu.admin.utils.UrlSecurityUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             
         } catch (Exception e) {
             LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
-            throw new RuntimeException("Import failed: " + e.getMessage());
+            throw new RuntimeException("Import failed: " + e.getMessage(),e);
         }
     }
     
@@ -98,19 +99,8 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     }
     
     private void validateSwaggerUrl(final String swaggerUrl) {
-        if (Objects.isNull(swaggerUrl) || swaggerUrl.trim().isEmpty()) {
-            throw new IllegalArgumentException("Swagger URL cannot be empty");
-        }
-        
-        try {
-            URL url = new URL(swaggerUrl);
-            String protocol = url.getProtocol();
-            if (!"http".equals(protocol) && !"https".equals(protocol)) {
-                throw new IllegalArgumentException("Swagger URL must be HTTP or HTTPS protocol");
-            }
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid Swagger URL: " + e.getMessage());
-        }
+        // Use UrlSecurityUtils for SSRF protection
+        UrlSecurityUtils.validateUrlForSSRF(swaggerUrl);
     }
     
     private String fetchSwaggerDoc(final String swaggerUrl) throws IOException {
