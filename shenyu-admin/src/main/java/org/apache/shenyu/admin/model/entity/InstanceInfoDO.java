@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -260,6 +261,27 @@ public final class InstanceInfoDO extends BaseDO {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), instanceIp, instancePort, instanceType, instanceInfo, instanceState, namespaceId);
+    }
+
+    /**
+     * build InstanceInfoDO.
+     *
+     * @param instanceInfoVO instanceInfoVO
+     * @return InstanceInfoDO
+     */
+    public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoVO instanceInfoVO) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return InstanceInfoDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .instanceIp(instanceInfoVO.getInstanceIp())
+                .instancePort(instanceInfoVO.getInstancePort())
+                .instanceType(instanceInfoVO.getInstanceType())
+                .instanceInfo(instanceInfoVO.getInstanceInfo())
+                .instanceState(instanceInfoVO.getInstanceState())
+                .namespaceId(instanceInfoVO.getNamespaceId())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
     }
     
     public static final class InstanceInfoDOBuilder {

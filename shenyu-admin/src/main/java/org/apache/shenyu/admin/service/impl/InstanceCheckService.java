@@ -43,10 +43,10 @@ public class InstanceCheckService {
 
 
     public InstanceCheckService(InstanceInfoService instanceInfoService) {
-        this.scheduledTime = 500;
+        this.scheduledTime = 10;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
-        this.instanceHeartBeatTimeOut = 500;
-        this.deleteTimeout = 500;
+        this.instanceHeartBeatTimeOut =  1000 * 20;
+        this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
     }
 
@@ -56,7 +56,8 @@ public class InstanceCheckService {
     public void setup() {
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-task", false));
-        scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
     }
 
     /**
@@ -84,7 +85,7 @@ public class InstanceCheckService {
 
     public void handleBeatInfo(InstanceBeatInfoDTO instanceBeatInfoDTO){
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
-        if (instanceHealthBeatInfo.contains(instanceKey)){
+        if (instanceHealthBeatInfo.containsKey(instanceKey)){
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
         }else {
@@ -96,6 +97,7 @@ public class InstanceCheckService {
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
+            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceHealthBeatInfo.put(instanceKey,instanceInfoVO);
         }
     }
@@ -115,6 +117,9 @@ public class InstanceCheckService {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!", instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(2);
                 }
+            }else{
+                LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} online!", instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
+                instance.setInstanceState(1);
             }
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
                 if (2 == instance.getInstanceState()) {

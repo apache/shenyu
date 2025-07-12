@@ -60,7 +60,13 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceQuery.setNamespaceId(instanceInfoVO.getNamespaceId());
         InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
         if (Objects.isNull(infoDO)) {
-            LOG.info("update instance info fail: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
+            LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceQuery));
+            InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoVO);
+            try {
+                instanceInfoMapper.insert(instanceInfoDO);
+            } catch (Exception e) {
+                LOG.error("Failed to register instance info", e);
+            }
             return;
         }
         LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
