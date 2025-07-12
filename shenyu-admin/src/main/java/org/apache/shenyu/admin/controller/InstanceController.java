@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.InstanceBeatInfoDTO;
@@ -34,6 +35,7 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -97,11 +99,11 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     /**
      * receive beat.
      *
-     * @param id instance id.
+     * @param instanceBeatInfoDTO instanceBeatInfoDTO.
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/beat")
-    public ShenyuAdminResult beat(@PathVariable("id") final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public ShenyuAdminResult beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         //todo:admin集群模式下，请求转发给master节点
         instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, null);

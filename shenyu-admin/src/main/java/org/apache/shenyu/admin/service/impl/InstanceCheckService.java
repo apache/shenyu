@@ -3,11 +3,13 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import jakarta.annotation.PreDestroy;
 import org.apache.shenyu.admin.model.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -135,5 +137,25 @@ public class InstanceCheckService {
     public void close() {
         syncDB();
         executor.shutdown();
+    }
+    /**
+     * listen {@link InstanceInfoReportEvent} instance info report event.
+     *
+     * @param event event
+     */
+    @EventListener(InstanceInfoReportEvent.class)
+    public void onInstanceInfoReport(final InstanceInfoReportEvent event) {
+        InstanceBeatInfoDTO InstanceBeatInfoDTO = buildInstanceInfoDTO(event);
+        handleBeatInfo(InstanceBeatInfoDTO);
+    }
+
+    private InstanceBeatInfoDTO buildInstanceInfoDTO(final InstanceInfoReportEvent instanceInfoRegisterDTO) {
+        InstanceBeatInfoDTO instanceInfoDTO = new InstanceBeatInfoDTO();
+        instanceInfoDTO.setInstanceIp(instanceInfoRegisterDTO.getInstanceIp());
+        instanceInfoDTO.setInstancePort(instanceInfoRegisterDTO.getInstancePort());
+        instanceInfoDTO.setInstanceType(instanceInfoRegisterDTO.getInstanceType());
+        instanceInfoDTO.setInstanceInfo(instanceInfoRegisterDTO.getInstanceInfo());
+        instanceInfoDTO.setNamespaceId(instanceInfoRegisterDTO.getNamespaceId());
+        return instanceInfoDTO;
     }
 }

@@ -18,8 +18,9 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
-import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
+import org.apache.shenyu.admin.model.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -28,6 +29,7 @@ import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -47,34 +49,6 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper) {
         this.instanceInfoMapper = instanceInfoMapper;
-    }
-
-    @Override
-    public void createOrUpdate(final InstanceInfoDTO instanceInfoDTO) {
-        InstanceQuery instanceQuery = new InstanceQuery();
-        instanceQuery.setInstanceIp(instanceInfoDTO.getInstanceIp());
-        instanceQuery.setInstancePort(instanceInfoDTO.getInstancePort());
-        instanceQuery.setInstanceType(instanceInfoDTO.getInstanceType());
-        instanceQuery.setNamespaceId(instanceInfoDTO.getNamespaceId());
-        InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
-        if (Objects.isNull(infoDO)) {
-            LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceInfoDTO));
-            InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoDTO);
-            try {
-                instanceInfoMapper.insert(instanceInfoDO);
-            } catch (Exception e) {
-                LOG.error("Failed to register instance info", e);
-            }
-            return;
-        }
-        LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoDTO));
-        infoDO.setInstanceIp(instanceInfoDTO.getInstanceIp());
-        infoDO.setInstanceType(instanceInfoDTO.getInstanceType());
-        infoDO.setInstanceInfo(instanceInfoDTO.getInstanceInfo());
-        infoDO.setNamespaceId(instanceInfoDTO.getNamespaceId());
-        infoDO.setDateUpdated(Timestamp.from(Instant.now()));
-        infoDO.setInstanceState(instanceInfoDTO.getInstanceState());
-        instanceInfoMapper.updateById(infoDO);
     }
 
     @Override

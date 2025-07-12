@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -101,27 +100,7 @@ public final class InstanceInfoDO extends BaseDO {
         this.instanceInfo = instanceInfo;
         this.namespaceId = namespaceId;
     }
-    
-    /**
-     * build InstanceInfoDO.
-     *
-     * @param instanceInfoDTO instanceInfoDTO
-     * @return InstanceInfoDO
-     */
-    public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoDTO instanceInfoDTO) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return InstanceInfoDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .instanceIp(instanceInfoDTO.getInstanceIp())
-                .instancePort(instanceInfoDTO.getInstancePort())
-                .instanceType(instanceInfoDTO.getInstanceType())
-                .instanceInfo(instanceInfoDTO.getInstanceInfo())
-                .instanceState(instanceInfoDTO.getInstanceState())
-                .namespaceId(instanceInfoDTO.getNamespaceId())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
-    }
+
     
     /**
      * get instanceIp.
