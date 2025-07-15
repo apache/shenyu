@@ -42,6 +42,8 @@ public class ShenyuConfig {
     private ExcludePath exclude = new ExcludePath();
     
     private Health health = new Health();
+    
+    private Mcp mcp = new Mcp();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -107,6 +109,24 @@ public class ShenyuConfig {
      */
     public void setHealth(final Health health) {
         this.health = health;
+    }
+    
+    /**
+     * Gets mcp.
+     *
+     * @return the mcp
+     */
+    public Mcp getMcp() {
+        return mcp;
+    }
+    
+    /**
+     * Sets mcp.
+     *
+     * @param mcp the mcp
+     */
+    public void setMcp(final Mcp mcp) {
+        this.mcp = mcp;
     }
     
     /**
@@ -885,6 +905,62 @@ public class ShenyuConfig {
          */
         public List<String> getPaths() {
             return paths;
+        }
+    }
+    
+    /**
+     * The type mcp.
+     */
+    public static class Mcp {
+        
+        /**
+         * mcp server.
+         */
+        private McpServer server = new McpServer();
+        
+        /**
+         * Gets server.
+         *
+         * @return the server
+         */
+        public McpServer getServer() {
+            return server;
+        }
+        
+        /**
+         * Sets server.
+         *
+         * @param server the server
+         */
+        public void setServer(final McpServer server) {
+            this.server = server;
+        }
+        
+    }
+    
+    /**
+     * The type McpServer.
+     */
+    public static class McpServer {
+        
+        private Boolean enabled = Boolean.TRUE;
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
         }
     }
     
