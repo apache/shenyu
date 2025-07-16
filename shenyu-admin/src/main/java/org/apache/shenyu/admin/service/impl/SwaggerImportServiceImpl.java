@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.gson.JsonObject;
+import okhttp3.Response;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
@@ -27,14 +29,10 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import okhttp3.Response;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.Objects;
-import com.google.gson.JsonObject;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SwaggerImportService}.
@@ -80,7 +78,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             
         } catch (Exception e) {
             LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
-            throw new RuntimeException("Import failed: " + e.getMessage(),e);
+            throw new RuntimeException("Import failed: " + e.getMessage(), e);
         }
     }
     
