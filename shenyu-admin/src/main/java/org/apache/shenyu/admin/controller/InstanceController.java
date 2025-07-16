@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.model.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -103,10 +103,10 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/beat")
-    public ShenyuAdminResult beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         //todo:admin集群模式下，请求转发给master节点
         instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, null);
+        return ShenyuResultMessage.SUCCESS;
     }
 
 

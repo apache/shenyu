@@ -627,6 +627,11 @@ public interface Constants {
      * When register by http, the uri path.
      */
     String URI_PATH = "/shenyu-client/register-uri";
+
+    /**
+     * When register by http, the uri path.
+     */
+    String BEAT_URI_PATH = "/instance/beat";
     
     /**
      * When register by http, the offline path.

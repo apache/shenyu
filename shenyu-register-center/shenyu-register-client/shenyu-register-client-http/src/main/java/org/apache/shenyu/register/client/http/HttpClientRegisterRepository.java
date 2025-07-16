@@ -32,6 +32,7 @@ import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -138,7 +139,11 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         heartbeatDTO.setEventType(EventType.HEARTBEAT);
         doHeartbeat(heartbeatDTO, Constants.URI_PATH);
     }
-    
+
+    @Override
+    public void sendHeartbeat(InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        doHeartbeat(instanceBeatInfoDTO, Constants.BEAT_URI_PATH);
+    }
     /**
      * doPersistApiDoc.
      *

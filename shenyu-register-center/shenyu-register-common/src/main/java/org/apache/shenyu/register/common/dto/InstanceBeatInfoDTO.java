@@ -1,4 +1,4 @@
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.register.common.dto;
 
 public class InstanceBeatInfoDTO {
     /**
