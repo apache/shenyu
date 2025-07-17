@@ -994,6 +994,16 @@ public interface Constants {
      * The constant USAGE.
      */
     String USAGE = "usage";
+
+    /**
+     * The include_usage for stream.
+     */
+    String INCLUDE_USAGE = "include_usage";
+
+    /**
+     * The stream_options.
+     */
+    String STREAM_OPTIONS = "stream_options";
     
     /**
      * The constant COMPLETION_TOKENS.
