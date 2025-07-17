@@ -48,6 +48,11 @@ public interface Constants {
     String CONTEXT = "context";
     
     /**
+     * The constant chain.
+     */
+    String CHAIN = "chain";
+    
+    /**
      * The constant context path.
      */
     String CONTEXT_PATH = "contextPath";
@@ -994,6 +999,16 @@ public interface Constants {
      * The constant USAGE.
      */
     String USAGE = "usage";
+
+    /**
+     * The include_usage for stream.
+     */
+    String INCLUDE_USAGE = "include_usage";
+
+    /**
+     * The stream_options.
+     */
+    String STREAM_OPTIONS = "stream_options";
     
     /**
      * The constant COMPLETION_TOKENS.
