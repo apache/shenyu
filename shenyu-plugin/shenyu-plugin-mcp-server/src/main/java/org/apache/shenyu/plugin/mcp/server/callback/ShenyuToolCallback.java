@@ -153,23 +153,10 @@ public class ShenyuToolCallback implements ToolCallback {
             // Execute the tool call through the plugin chain
             final String result = executeToolCall(originExchange, chain, sessionId, configStr, input);
 
-            // Clean up temporary session from tool context if needed
-            cleanupTemporarySessionFromContext(sessionId, toolContext);
-
             return result;
 
         } catch (Exception e) {
             LOG.error("Failed to process tool call: {}", e.getMessage(), e);
-
-            // Try to clean up any temporary session on error
-            try {
-                final String tempSessionId = (String) toolContext.getContext().get("TEMP_SESSION_ID");
-                if (tempSessionId != null) {
-                    cleanupTemporarySessionFromContext(tempSessionId, toolContext);
-                }
-            } catch (Exception cleanupException) {
-                LOG.warn("Failed to cleanup temporary session on error: {}", cleanupException.getMessage());
-            }
 
             throw new RuntimeException("Tool execution failed: " + e.getMessage(), e);
         }
@@ -194,137 +181,18 @@ public class ShenyuToolCallback implements ToolCallback {
     private String extractSessionIdWithFallback(final McpSyncServerExchange mcpExchange,
                                                 final ToolContext toolContext) {
         try {
-            // Attempt normal session ID extraction
+            // Directly extract session ID; it must already exist because handleMessageEndpoint
+            // has stored it together with the corresponding ServerWebExchange.
             final String sessionId = McpSessionHelper.getSessionId(mcpExchange);
             if (StringUtils.hasText(sessionId)) {
                 LOG.debug("Extracted session ID: {}", sessionId);
                 return sessionId;
-            } else {
-                // Check if we can create temporary session based on protocol
-                return handleMissingSessionId(toolContext, "Session ID is empty");
             }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            LOG.warn("Failed to extract session ID from MCP exchange: {}", e.getMessage());
-            return handleMissingSessionId(toolContext, "Failed to extract session ID: " + e.getMessage());
+            // If we reach here it means required correlation data is missing – this should not happen
+            throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
         } catch (Exception e) {
-            LOG.warn("Unexpected error extracting session ID: {}", e.getMessage());
-            return handleMissingSessionId(toolContext, "Unexpected error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Handles missing session ID based on the detected protocol.
-     * <p>
-     * For Streamable HTTP: Creates temporary session (supports stateless operations)
-     * For SSE: Throws exception (requires real persistent session)
-     * </p>
-     *
-     * @param toolContext the tool context
-     * @param reason the reason for missing session ID
-     * @return temporary session ID for Streamable HTTP protocol
-     * @throws IllegalStateException for SSE protocol or when protocol cannot be determined
-     */
-    private String handleMissingSessionId(final ToolContext toolContext, final String reason) {
-        // Try to determine protocol from context or create a test exchange to check
-        final boolean isStreamableHttp = isStreamableHttpProtocolContext(toolContext);
-
-        if (isStreamableHttp) {
-            LOG.info("Creating temporary session for Streamable HTTP tool call - reason: {}", reason);
-            return createTemporarySessionForToolCall(toolContext);
-        } else {
-            // SSE protocol requires real session - don't create temporary session
-            final String errorMsg = String.format(
-                    "SSE protocol requires a valid session ID for tool calls. %s. " +
-                            "Please ensure the SSE connection is properly established before calling tools.",
-                    reason);
-            LOG.error(errorMsg);
-            throw new IllegalStateException(errorMsg);
-        }
-    }
-
-    /**
-     * Determines if the current context is for Streamable HTTP protocol.
-     * <p>
-     * This method attempts to detect the protocol by checking available context information.
-     * Since we may not have a complete exchange at this point, we use heuristics.
-     * </p>
-     *
-     * @param toolContext the tool context
-     * @return true if Streamable HTTP protocol is detected, false if SSE or unknown
-     */
-    private boolean isStreamableHttpProtocolContext(final ToolContext toolContext) {
-        try {
-            // Try to get any protocol hints from tool context
-            final Object protocolHint = toolContext.getContext().get("PROTOCOL_TYPE");
-            if (protocolHint != null) {
-                final String protocol = protocolHint.toString();
-                LOG.debug("Found protocol hint in context: {}", protocol);
-                return "STREAMABLE_HTTP".equals(protocol) || "HTTP_STREAM".equals(protocol);
-            }
-
-            // Check if there's any indication of Streamable HTTP in the context
-            final Object pathHint = toolContext.getContext().get("REQUEST_PATH");
-            if (pathHint != null) {
-                final String path = pathHint.toString();
-                final boolean isStreamable = path.contains(STREAMABLE_HTTP_PATH) || path.endsWith(STREAMABLE_HTTP_PATH);
-                LOG.debug("Checking path hint for protocol: {} -> isStreamable: {}", path, isStreamable);
-                return isStreamable;
-            }
-
-            // Try to extract protocol from MCP exchange if available
-            try {
-                final McpSyncServerExchange mcpExchange = McpSessionHelper.getMcpSyncServerExchange(toolContext);
-                if (mcpExchange != null) {
-                    final boolean protocolFromExchange = extractProtocolFromMcpExchange(mcpExchange);
-                    if (protocolFromExchange) {
-                        LOG.debug("Detected Streamable HTTP from MCP exchange analysis");
-                        return true;
-                    }
-                }
-            } catch (Exception e) {
-                LOG.debug("Could not extract protocol from MCP exchange: {}", e.getMessage());
-            }
-
-            // If no clear indicators, default to false (SSE) for safety
-            // This prevents creating temporary sessions for SSE protocol
-            LOG.debug("No protocol hints found, defaulting to SSE (no temporary session)");
-            return false;
-
-        } catch (Exception e) {
-            LOG.warn("Error detecting protocol context: {}, defaulting to SSE", e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Attempts to extract protocol information from the MCP exchange.
-     * <p>
-     * This method uses reflection and heuristics to determine if the underlying
-     * exchange indicates Streamable HTTP protocol.
-     * </p>
-     *
-     * @param mcpExchange the MCP sync server exchange
-     * @return true if Streamable HTTP is detected, false otherwise
-     */
-    private boolean extractProtocolFromMcpExchange(final McpSyncServerExchange mcpExchange) {
-        try {
-            // Try to get session ID first - if we can get it, check associated exchange
-            final String sessionId = McpSessionHelper.getSessionId(mcpExchange);
-            if (StringUtils.hasText(sessionId)) {
-                final ServerWebExchange associatedExchange = ShenyuMcpExchangeHolder.get(sessionId);
-                if (associatedExchange != null) {
-                    final boolean isStreamable = isStreamableHttpProtocol(associatedExchange);
-                    LOG.debug("Protocol detection from associated exchange for session {}: {}", sessionId, isStreamable);
-                    return isStreamable;
-                }
-            }
-
-            // If no associated exchange found, we cannot determine protocol reliably
-            return false;
-
-        } catch (Exception e) {
-            LOG.debug("Error extracting protocol from MCP exchange: {}", e.getMessage());
-            return false;
+            LOG.error("Failed to extract session ID from MCP exchange: {}", e.getMessage(), e);
+            throw new IllegalStateException("Failed to extract session ID: " + e.getMessage(), e);
         }
     }
 
@@ -345,265 +213,14 @@ public class ShenyuToolCallback implements ToolCallback {
      * @throws IllegalStateException if exchange cannot be created for SSE protocol
      */
     private ServerWebExchange getOrCreateOriginExchange(final String sessionId, final ToolContext toolContext) {
-        // Try to get existing exchange
-        ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
-
+        // A valid exchange must already be correlated with the session ID by handleMessageEndpoint.
+        final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         if (exchange != null) {
             LOG.debug("Found existing exchange for session: {}", sessionId);
             return exchange;
         }
-
-        // Check if this is a temporary session (only allowed for Streamable HTTP)
-        if (sessionId.startsWith("temp_")) {
-            LOG.info("Creating minimal exchange context for temporary session: {}", sessionId);
-            return createMinimalExchangeContext(sessionId, toolContext);
-        }
-
-        // Session ID exists but no exchange found - check protocol before restoring
-        if (isStreamableHttpProtocolContext(toolContext)) {
-            LOG.info("Session {} found but no exchange available, restoring session context for Streamable HTTP", sessionId);
-            return restoreSessionContext(sessionId, toolContext);
-        } else {
-            // SSE protocol - cannot restore session without proper SSE connection
-            final String errorMsg = String.format(
-                    "SSE protocol session '%s' has no associated exchange. " +
-                            "This typically means the SSE connection was lost. " +
-                            "Please re-establish the SSE connection before calling tools.",
-                    sessionId);
-            LOG.error(errorMsg);
-            throw new IllegalStateException(errorMsg);
-        }
-    }
-
-    /**
-     * Creates a temporary session for tool calls when no session ID is available.
-     * <p>
-     * Temporary sessions are created with the prefix "temp_" and are designed
-     * for stateless tool operations that don't require persistent session state.
-     * </p>
-     *
-     * @param toolContext the tool context for session creation
-     * @return the temporary session ID
-     */
-    private String createTemporarySessionForToolCall(final ToolContext toolContext) {
-        final String tempSessionId = "temp_" + java.util.UUID.randomUUID().toString();
-        LOG.info("Created temporary session for tool call: {}", tempSessionId);
-
-        // Store the temporary session ID in the tool context for later cleanup
-        toolContext.getContext().put("TEMP_SESSION_ID", tempSessionId);
-
-        return tempSessionId;
-    }
-
-    /**
-     * Creates a minimal exchange context for temporary sessions.
-     * <p>
-     * This method creates a basic ServerWebExchange with minimal required attributes
-     * for tool execution. It's used when no existing exchange is available.
-     * </p>
-     *
-     * @param sessionId   the session identifier
-     * @param toolContext the tool context
-     * @return a minimal ServerWebExchange instance
-     */
-    private ServerWebExchange createMinimalExchangeContext(final String sessionId, final ToolContext toolContext) {
-        try {
-            // Get or create a basic exchange from Spring context
-            final ServerWebExchange minimalExchange = createBasicExchange();
-
-            // Configure basic attributes for tool execution
-            configureMinimalExchangeAttributes(minimalExchange, sessionId);
-
-            // Store the exchange for potential reuse during this tool call
-            ShenyuMcpExchangeHolder.put(sessionId, minimalExchange);
-
-            LOG.debug("Created minimal exchange context for session: {}", sessionId);
-            return minimalExchange;
-
-        } catch (Exception e) {
-            LOG.error("Failed to create minimal exchange context for session {}: {}", sessionId, e.getMessage(), e);
-            throw new RuntimeException("Unable to create exchange context for tool execution: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Restores session context when session ID exists but no exchange is found.
-     * <p>
-     * This handles scenarios where a session was previously created but the exchange
-     * was lost (e.g., server restart, session timeout). A new exchange is created
-     * and associated with the existing session ID.
-     * </p>
-     *
-     * @param sessionId   the session identifier to restore
-     * @param toolContext the tool context
-     * @return the restored ServerWebExchange
-     */
-    private ServerWebExchange restoreSessionContext(final String sessionId, final ToolContext toolContext) {
-        try {
-            // Create new exchange for the existing session
-            final ServerWebExchange restoredExchange = createBasicExchange();
-
-            // Configure attributes for restored session
-            configureRestoredExchangeAttributes(restoredExchange, sessionId);
-
-            // Re-associate the exchange with the session
-            ShenyuMcpExchangeHolder.put(sessionId, restoredExchange);
-
-            LOG.info("Restored session context for session: {}", sessionId);
-            return restoredExchange;
-
-        } catch (Exception e) {
-            LOG.error("Failed to restore session context for session {}: {}", sessionId, e.getMessage(), e);
-            throw new RuntimeException("Unable to restore session context: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Creates a basic ServerWebExchange instance for tool execution.
-     * <p>
-     * This method uses Spring's infrastructure to create a minimal but functional
-     * ServerWebExchange that can be used for plugin chain execution.
-     * </p>
-     *
-     * @return a basic ServerWebExchange instance
-     */
-    private ServerWebExchange createBasicExchange() {
-        try {
-            // Try to get an existing exchange from current context if available
-            final ServerWebExchange currentExchange = getCurrentExchangeFromContext();
-            if (currentExchange != null) {
-                return currentExchange;
-            }
-
-            // Create a new basic exchange using Spring Boot's infrastructure
-            return createNewBasicExchange();
-
-        } catch (Exception e) {
-            LOG.warn("Could not create basic exchange through normal means, using fallback: {}", e.getMessage());
-            return createFallbackExchange();
-        }
-    }
-
-    /**
-     * Attempts to get the current exchange from the reactive context.
-     * <p>
-     * Since getting exchange from reactive context is complex and error-prone,
-     * this method now returns null and lets other methods handle exchange creation.
-     * </p>
-     *
-     * @return null (simplified implementation)
-     */
-    private ServerWebExchange getCurrentExchangeFromContext() {
-        // Simplified implementation - return null to let other methods handle exchange creation
-        // This avoids complex reactive context operations that may not work in all scenarios
-        LOG.debug("Skipping reactive context exchange lookup, will create new exchange");
-        return null;
-    }
-
-    /**
-     * Creates a new basic exchange using Spring infrastructure.
-     *
-     * @return a new ServerWebExchange instance
-     */
-    private ServerWebExchange createNewBasicExchange() {
-        // For tool calls, we create a minimal HTTP exchange using Mock objects
-        try {
-            final org.springframework.mock.http.server.reactive.MockServerHttpRequest request =
-                    org.springframework.mock.http.server.reactive.MockServerHttpRequest
-                            .post("http://localhost/tool-call")
-                            .header("Content-Type", "application/json")
-                            .build();
-
-            // Create exchange from mock request - this provides a working ServerWebExchange
-            return org.springframework.mock.web.server.MockServerWebExchange.from(request);
-
-        } catch (Exception e) {
-            LOG.warn("Failed to create new basic exchange: {}", e.getMessage());
-            throw new RuntimeException("Unable to create basic exchange: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Creates a fallback exchange when normal creation methods fail.
-     *
-     * @return a fallback ServerWebExchange instance
-     */
-    private ServerWebExchange createFallbackExchange() {
-        // This is a last resort - create a minimal mock exchange using Spring Mock
-        try {
-            final org.springframework.mock.http.server.reactive.MockServerHttpRequest request =
-                    org.springframework.mock.http.server.reactive.MockServerHttpRequest
-                            .post("/tool-call")
-                            .header("Content-Type", "application/json")
-                            .build();
-
-            final org.springframework.mock.http.server.reactive.MockServerHttpResponse response =
-                    new org.springframework.mock.http.server.reactive.MockServerHttpResponse();
-
-            // Create the exchange using Mock objects
-            return org.springframework.mock.web.server.MockServerWebExchange.from(request);
-
-        } catch (Exception e) {
-            LOG.error("All exchange creation methods failed: {}", e.getMessage());
-            throw new RuntimeException("Cannot create any form of ServerWebExchange for tool execution", e);
-        }
-    }
-
-    /**
-     * Configures minimal attributes for a temporary session exchange.
-     *
-     * @param exchange  the exchange to configure
-     * @param sessionId the session identifier
-     */
-    private void configureMinimalExchangeAttributes(final ServerWebExchange exchange, final String sessionId) {
-        // Create basic Shenyu context
-        final ShenyuContext shenyuContext = new ShenyuContext();
-        shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
-        shenyuContext.setPath("/tool-call");
-        shenyuContext.setRealUrl("/tool-call");
-
-        // Set required attributes
-        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        exchange.getAttributes().put(MCP_TOOL_CALL_ATTR, true);
-        exchange.getAttributes().put(MCP_SESSION_ID_ATTR, sessionId);
-
-        LOG.debug("Configured minimal attributes for temporary session: {}", sessionId);
-    }
-
-    /**
-     * Configures attributes for a restored session exchange.
-     *
-     * @param exchange  the exchange to configure
-     * @param sessionId the session identifier
-     */
-    private void configureRestoredExchangeAttributes(final ServerWebExchange exchange, final String sessionId) {
-        // Create restored Shenyu context
-        final ShenyuContext shenyuContext = new ShenyuContext();
-        shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
-        shenyuContext.setPath("/tool-call-restored");
-        shenyuContext.setRealUrl("/tool-call-restored");
-
-        // Set attributes for restored session
-        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        exchange.getAttributes().put(MCP_TOOL_CALL_ATTR, true);
-        exchange.getAttributes().put(MCP_SESSION_ID_ATTR, sessionId);
-
-        LOG.debug("Configured restored attributes for session: {}", sessionId);
-    }
-
-    /**
-     * Extracts the MCP sync server exchange from the tool context.
-     *
-     * @param toolContext the tool context containing MCP session information
-     * @return the MCP sync server exchange
-     * @throws IllegalStateException if exchange cannot be retrieved
-     */
-    private McpSyncServerExchange extractMcpExchange(final ToolContext toolContext) {
-        final McpSyncServerExchange exchange = McpSessionHelper.getMcpSyncServerExchange(toolContext);
-        if (Objects.isNull(exchange)) {
-            throw new IllegalStateException("Failed to retrieve MCP sync server exchange from context");
-        }
-        return exchange;
+        throw new IllegalStateException("No ServerWebExchange found for session '" + sessionId
+                + "'. It should have been stored by handleMessageEndpoint before the tool was invoked.");
     }
 
     /**
@@ -1003,24 +620,17 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     /**
-     * Cleans up temporary session information from the ToolContext.
-     * <p>
-     * This method removes temporary session data from the tool context to prevent
-     * memory leaks and ensure proper cleanup of temporary resources.
-     * </p>
+     * Extracts the MCP sync server exchange from the tool context.
      *
-     * @param sessionId   the session identifier
-     * @param toolContext the tool context to clean up
+     * @param toolContext the tool context containing MCP session information
+     * @return the MCP sync server exchange
+     * @throws IllegalStateException if exchange cannot be retrieved
      */
-    private void cleanupTemporarySessionFromContext(final String sessionId, final ToolContext toolContext) {
-        if (sessionId != null && sessionId.startsWith("temp_")) {
-            try {
-                // Remove temporary session ID from context
-                toolContext.getContext().remove("TEMP_SESSION_ID");
-                LOG.debug("Cleaned up temporary session from tool context: {}", sessionId);
-            } catch (Exception e) {
-                LOG.warn("Failed to cleanup temporary session from context {}: {}", sessionId, e.getMessage());
-            }
+    private McpSyncServerExchange extractMcpExchange(final ToolContext toolContext) {
+        final McpSyncServerExchange exchange = McpSessionHelper.getMcpSyncServerExchange(toolContext);
+        if (Objects.isNull(exchange)) {
+            throw new IllegalStateException("Failed to retrieve MCP sync server exchange from context");
         }
+        return exchange;
     }
 }
