@@ -163,9 +163,6 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
 
         LOG.debug("Handling MCP request for URI: {}", uri);
 
-        // Configure context for MCP processing
-        configureMcpContext(shenyuContext, exchange);
-
         // Create server request for processing
         final ServerRequest request = ServerRequest.create(exchange, messageReaders);
 
@@ -195,18 +192,6 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         return PluginEnum.MCP_SERVER.getCode();
     }
 
-    /**
-     * Configures Shenyu context for MCP processing.
-     *
-     * @param shenyuContext the Shenyu context to configure
-     * @param exchange      the server web exchange
-     */
-    private void configureMcpContext(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
-        // Mark exchange for MCP processing (prevents further plugin processing)
-        shenyuContext.setRpcType(RpcTypeEnum.AI.getName());
-        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        LOG.debug("Configured context for MCP processing with RpcType: {}", RpcTypeEnum.AI.getName());
-    }
 
     /**
      * Routes the request based on detected protocol type.
@@ -569,7 +554,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                 .flatMap(result -> {
                     LOG.debug("Message handling result - Status: {}, Body length: {} chars",
                             result.getStatusCode(),
-                            result.getResponseBody() != null ? result.getResponseBody().toString().length() : 0);
+                            result.getResponseBody() != null ? result.getResponseBody().length() : 0);
 
                     // Configure response
                     exchange.getResponse().setStatusCode(HttpStatus.valueOf(result.getStatusCode()));
@@ -665,24 +650,4 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         );
     }
 
-    /**
-     * Extracts the base path from a URI by removing endpoint suffixes.
-     *
-     * @param uri the URI to process
-     * @return the base path
-     */
-    private String extractBasePath(final String uri) {
-        String processedUri = uri;
-
-        if (processedUri.endsWith(MESSAGE_ENDPOINT)) {
-            processedUri = processedUri.substring(0, processedUri.length() - MESSAGE_ENDPOINT.length());
-        }
-
-        final String[] pathSegments = processedUri.split("/");
-        if (pathSegments.length > 2) {
-            return "/" + pathSegments[1];
-        }
-
-        return processedUri;
-    }
 }

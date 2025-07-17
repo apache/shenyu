@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -35,7 +34,6 @@ import org.apache.shenyu.plugin.mcp.server.request.RequestConfigHelper;
 import org.apache.shenyu.plugin.mcp.server.response.ShenyuMcpResponseDecorator;
 import org.apache.shenyu.plugin.mcp.server.response.NonCommittingMcpResponseDecorator;
 import org.apache.shenyu.plugin.mcp.server.session.McpSessionHelper;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
@@ -48,7 +46,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -94,11 +91,6 @@ public class ShenyuToolCallback implements ToolCallback {
      * Default timeout for tool execution in seconds.
      */
     private static final int DEFAULT_TIMEOUT_SECONDS = 30;
-
-    /**
-     * Reduced timeout for testing and quick operations.
-     */
-    private static final int QUICK_TIMEOUT_SECONDS = 2;
 
     /**
      * MCP tool call attribute marker to prevent infinite loops.
@@ -162,9 +154,7 @@ public class ShenyuToolCallback implements ToolCallback {
             final ShenyuPluginChain chain = getPluginChain(originExchange);
 
             // Execute the tool call through the plugin chain
-            final String result = executeToolCall(originExchange, chain, sessionId, configStr, input);
-
-            return result;
+            return executeToolCall(originExchange, chain, sessionId, configStr, input);
 
         } catch (Exception e) {
             LOG.error("Failed to process tool call for '{}': {}", toolDefinition.name(), e.getMessage(), e);
@@ -264,7 +254,7 @@ public class ShenyuToolCallback implements ToolCallback {
 
         // Wait for the response with timeout
         try {
-            final String result = responseFuture.get(QUICK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            final String result = responseFuture.get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             LOG.debug("Tool call completed successfully for session: {}", sessionId);
             return result;
         } catch (Exception e) {
@@ -321,15 +311,14 @@ public class ShenyuToolCallback implements ToolCallback {
                 .request(decoratedRequest)
                 .response(responseDecorator)
                 .build();
-
         // Handle request body if needed
         final ServerWebExchange finalExchange = handleRequestBody(decoratedExchange, requestConfig);
 
         // Configure Shenyu context and metadata
-        configureShenyuContext(finalExchange, sessionId, requestConfig.getPath());
-
+        configureShenyuContext(finalExchange, sessionId, requestConfig.getPath(), configStr);
         return finalExchange;
     }
+
 
     /**
      * Parses the input JSON string into a JsonObject.
@@ -421,7 +410,7 @@ public class ShenyuToolCallback implements ToolCallback {
      * Configures content type based on HTTP method.
      *
      * @param requestBuilder the request builder
-     * @param method        the HTTP method
+     * @param method         the HTTP method
      */
     private void configureContentType(final ServerHttpRequest.Builder requestBuilder, final String method) {
         if (isRequestBodyMethod(method)) {
@@ -436,7 +425,7 @@ public class ShenyuToolCallback implements ToolCallback {
      *
      * @param requestBuilder the request builder
      * @param originExchange the original exchange
-     * @param path          the target path
+     * @param path           the target path
      */
     private void setTargetUri(final ServerHttpRequest.Builder requestBuilder,
                               final ServerWebExchange originExchange,
@@ -497,20 +486,26 @@ public class ShenyuToolCallback implements ToolCallback {
      * Configures Shenyu context and metadata for the decorated exchange.
      *
      * @param decoratedExchange the decorated exchange
-     * @param sessionId        the session identifier
-     * @param decoratedPath    the decorated request path
+     * @param sessionId         the session identifier
+     * @param decoratedPath     the decorated request path
+     * @param configStr  configStr.
      */
     private void configureShenyuContext(final ServerWebExchange decoratedExchange,
                                         final String sessionId,
-                                        final String decoratedPath) {
+                                        final String decoratedPath,
+                                        final String configStr) {
 
         final ShenyuContext shenyuContext = decoratedExchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(shenyuContext)) {
             // Set metadata if available
             configureMetadata(decoratedExchange, decoratedPath, shenyuContext);
 
-            // Configure RPC type and context
-            shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
+            final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
+            MetaData metaData = MetaDataCache.getInstance().obtain(configHelper.getUrlTemplate());
+            if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
+                decoratedExchange.getAttributes().put(Constants.META_DATA, metaData);
+                shenyuContext.setRpcType(metaData.getRpcType());
+            }
             shenyuContext.setPath(decoratedPath);
             shenyuContext.setRealUrl(decoratedPath);
 
@@ -528,8 +523,8 @@ public class ShenyuToolCallback implements ToolCallback {
      * Configures metadata for the request if available.
      *
      * @param decoratedExchange the decorated exchange
-     * @param decoratedPath    the request path
-     * @param shenyuContext    the Shenyu context
+     * @param decoratedPath     the request path
+     * @param shenyuContext     the Shenyu context
      */
     private void configureMetadata(final ServerWebExchange decoratedExchange,
                                    final String decoratedPath,
