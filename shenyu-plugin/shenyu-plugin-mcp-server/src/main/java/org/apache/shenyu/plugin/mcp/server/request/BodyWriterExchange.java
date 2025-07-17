@@ -17,11 +17,16 @@
 
 package org.apache.shenyu.plugin.mcp.server.request;
 
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Flux;
@@ -35,14 +40,45 @@ import java.util.stream.Collectors;
 public class BodyWriterExchange extends ServerWebExchangeDecorator {
 
     private final String body;
-
     private final String contentType;
+    private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
     public BodyWriterExchange(final ServerWebExchange delegate, final String body) {
         super(delegate);
         this.body = body;
         HttpHeaders headers = delegate.getRequest().getHeaders();
         this.contentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+
+        // 使用 Shenyu 的标准方式创建 CachedBodyOutputMessage
+        HttpHeaders newHeaders = new HttpHeaders();
+        newHeaders.putAll(headers);
+        this.cachedBodyOutputMessage = ResponseUtils.newCachedBodyOutputMessage(delegate);
+
+        // 使用 BodyInserter 正确地写入请求体
+        initializeBody();
+    }
+
+    private void initializeBody() {
+        String bodyContent = getFormattedBody();
+        BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(bodyContent);
+
+        // 使用 BodyInserter 写入内容，这样可以确保正确的 DataBuffer 管理
+        bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext()).subscribe();
+    }
+
+    private String getFormattedBody() {
+        if (Objects.isNull(contentType)) {
+            return body;
+        }
+        if (contentType.contains("application/json")) {
+            return body;
+        } else if (contentType.contains("application/x-www-form-urlencoded")) {
+            return body;
+        } else if (contentType.contains("multipart/form-data")) {
+            return body;
+        } else {
+            return body;
+        }
     }
 
     @Override
@@ -50,30 +86,25 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         return new ServerHttpRequestDecorator(super.getRequest()) {
             @Override
             public Flux<DataBuffer> getBody() {
-                DataBufferFactory bufferFactory = BodyWriterExchange.this.getResponse().bufferFactory();
-                byte[] bytes = getBodyBytes();
-                DataBuffer buffer = bufferFactory.wrap(bytes);
-                return Flux.just(buffer);
+                // 直接返回 CachedBodyOutputMessage 的 body，它已经正确管理了 DataBuffer
+                return cachedBodyOutputMessage.getBody();
+            }
+
+            @Override
+            public HttpHeaders getHeaders() {
+                HttpHeaders originalHeaders = super.getHeaders();
+                HttpHeaders newHeaders = new HttpHeaders();
+                newHeaders.putAll(originalHeaders);
+
+                // 更新 Content-Length 如果需要
+                if (body != null) {
+                    byte[] bodyBytes = getFormattedBody().getBytes(StandardCharsets.UTF_8);
+                    newHeaders.setContentLength(bodyBytes.length);
+                }
+
+                return newHeaders;
             }
         };
-    }
-
-    private byte[] getBodyBytes() {
-        if (Objects.isNull(contentType)) {
-            return body.getBytes(StandardCharsets.UTF_8);
-        }
-        if (contentType.contains("application/json")) {
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else if (contentType.contains("application/x-www-form-urlencoded")) {
-            // body must be in key1=val1&key2=val2 format
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else if (contentType.contains("multipart/form-data")) {
-            // Simple handling here, just return the string. For complex scenarios, use
-            // MultipartBodyBuilder.
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else {
-            return body.getBytes(StandardCharsets.UTF_8);
-        }
     }
 
     // Optional: Helper method to convert Map<String, Object> to
