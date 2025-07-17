@@ -150,7 +150,7 @@ public class ShenyuMcpServerManager {
         /**
          * Registers a session for protocol-specific tracking.
          *
-         * @param protocol the protocol name
+         * @param protocol  the protocol name
          * @param sessionId the session identifier
          */
         public void registerSession(String protocol, String sessionId) {
@@ -162,7 +162,7 @@ public class ShenyuMcpServerManager {
         /**
          * Unregisters a session from protocol tracking.
          *
-         * @param protocol the protocol name
+         * @param protocol  the protocol name
          * @param sessionId the session identifier
          */
         public void unregisterSession(String protocol, String sessionId) {
@@ -336,8 +336,8 @@ public class ShenyuMcpServerManager {
     /**
      * Adds a transport provider to the shared server infrastructure.
      *
-     * @param normalizedPath the normalized server path
-     * @param protocol the protocol name
+     * @param normalizedPath    the normalized server path
+     * @param protocol          the protocol name
      * @param transportProvider the transport provider instance
      */
     private void addTransportToSharedServer(String normalizedPath, String protocol, Object transportProvider) {
@@ -386,9 +386,6 @@ public class ShenyuMcpServerManager {
                     .capabilities(capabilities)
                     .tools(Lists.newArrayList())
                     .build();
-
-            // Add default test tool
-            addDefaultTestTool(path, server);
 
             LOG.info("Created shared MCP server for path: {} with multi-protocol support", path);
             return server;
@@ -532,37 +529,13 @@ public class ShenyuMcpServerManager {
     }
 
     /**
-     * Add a default test tool to ensure tools/list returns at least one tool for testing.
-     */
-    private void addDefaultTestTool(String serverPath, McpAsyncServer server) {
-        try {
-            ToolDefinition testToolDefinition = ShenyuToolDefinition.builder()
-                    .name("shenyu_echo")
-                    .description("A simple echo tool for testing MCP functionality")
-                    .requestConfig("{\"method\":\"GET\",\"uri\":\"/echo\",\"timeout\":30000}")
-                    .inputSchema("{\"type\":\"object\",\"properties\":{\"message\":{\"type\":\"string\",\"description\":\"Message to echo back\"}},\"required\":[\"message\"]}")
-                    .build();
-
-            ShenyuToolCallback testToolCallback = new ShenyuToolCallback(testToolDefinition);
-
-            for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(testToolCallback)) {
-                server.addTool(asyncToolSpecification).block();
-            }
-
-            LOG.info("Added default test tool 'shenyu_echo' to shared server for path: {}", serverPath);
-        } catch (Exception e) {
-            LOG.error("Failed to add default test tool for path: {}", serverPath, e);
-        }
-    }
-
-    /**
      * Adds a tool to the shared server instance, automatically available across all protocols.
      *
-     * @param serverPath the server path
-     * @param name the tool name
-     * @param description the tool description
+     * @param serverPath      the server path
+     * @param name            the tool name
+     * @param description     the tool description
      * @param requestTemplate the request template
-     * @param inputSchema the input schema
+     * @param inputSchema     the input schema
      */
     public void addTool(final String serverPath, final String name, final String description,
                         final String requestTemplate, final String inputSchema) {
@@ -609,7 +582,7 @@ public class ShenyuMcpServerManager {
      * Removes a tool from the shared server instance.
      *
      * @param serverPath the server path
-     * @param name the tool name
+     * @param name       the tool name
      */
     public void removeTool(final String serverPath, final String name) {
         String normalizedPath = normalizeServerPath(serverPath);
@@ -687,7 +660,7 @@ public class ShenyuMcpServerManager {
      * Get transport provider for a specific protocol and path.
      *
      * @param serverPath the server path
-     * @param protocol the protocol name ("SSE" or "Streamable HTTP")
+     * @param protocol   the protocol name ("SSE" or "Streamable HTTP")
      * @return the transport provider instance, or null if not found
      */
     public Object getTransportProvider(String serverPath, String protocol) {
