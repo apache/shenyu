@@ -76,6 +76,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
     private static final String REDIS_KEY_PREFIX = "SHENYU:AI:TOKENLIMIT:";
 
+    private static final Pattern COMPLETION_TOKENS_PATTERN = Pattern.compile("\"completion_tokens\"\\s*:\\s*(\\d+)");
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -245,7 +247,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] processedBytes;
                                 if (isGzip) {
                                     int offset = 0;
-                                    if (!headerSkipped.getAndSet(true)) {
+                                    if (headerSkipped.compareAndSet(false, true)) {
                                         offset = skipGzipHeader(inBytes);
                                     }
                                     inflater.setInput(inBytes, offset, inBytes.length - offset);
@@ -283,7 +285,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                             streamingUsageRecorded.set(true);
                                         }
                                     } catch (Exception e) {
-                                        LOG.error("parse ai resp error", e);
+                                        LOG.error("Failed to parse AI response JSON payload", e);
                                     }
                                 }
                                 writer.write(ByteBuffer.wrap(processedBytes));
@@ -305,8 +307,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         }
 
         private long extractUsageTokensFromSse(final String sse) {
-            Pattern p = Pattern.compile("\"completion_tokens\"\\s*:\\s*(\\d+)");
-            Matcher m = p.matcher(sse);
+            Matcher m = COMPLETION_TOKENS_PATTERN.matcher(sse);
             long last = 0L;
             while (m.find()) {
                 last = Long.parseLong(m.group(1));
