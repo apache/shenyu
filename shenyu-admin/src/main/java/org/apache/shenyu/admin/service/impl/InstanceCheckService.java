@@ -1,11 +1,28 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.service.impl;
 
 import jakarta.annotation.PreDestroy;
-import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -13,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -27,8 +43,6 @@ public class InstanceCheckService {
 
     private ScheduledThreadPoolExecutor executor;
 
-    private ScheduledFuture<?> scheduledFuture;
-
     private final int scheduledTime;
 
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
@@ -40,10 +54,10 @@ public class InstanceCheckService {
     private InstanceInfoService instanceInfoService;
 
 
-    public InstanceCheckService(InstanceInfoService instanceInfoService) {
+    public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
-        this.instanceHeartBeatTimeOut =  1000 * 20;
+        this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
     }
@@ -65,28 +79,28 @@ public class InstanceCheckService {
         List<InstanceInfoVO> list = instanceInfoService.list();
         list.forEach(instanceInfoVO -> {
             String instanceKey = getInstanceKey(instanceInfoVO);
-            instanceHealthBeatInfo.put(instanceKey,instanceInfoVO);
+            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         });
     }
 
-    public String getInstanceKey(InstanceInfoVO instanceInfoVO){
-        return instanceInfoVO.getInstanceIp()+":"+instanceInfoVO.getInstancePort()+"@"+instanceInfoVO.getInstanceType()+"#"+instanceInfoVO.getNamespaceId();
+    public String getInstanceKey(final InstanceInfoVO instanceInfoVO) {
+        return instanceInfoVO.getInstanceIp() + ":" + instanceInfoVO.getInstancePort() + "@" + instanceInfoVO.getInstanceType() + "#" + instanceInfoVO.getNamespaceId();
     }
 
-    public String getInstanceKey(InstanceBeatInfoDTO instanceBeatInfoDTO){
-        return instanceBeatInfoDTO.getInstanceIp()+":"+instanceBeatInfoDTO.getInstancePort()+"@"+instanceBeatInfoDTO.getInstanceType()+"#"+instanceBeatInfoDTO.getNamespaceId();
+    public String getInstanceKey(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        return instanceBeatInfoDTO.getInstanceIp() + ":" + instanceBeatInfoDTO.getInstancePort() + "@" + instanceBeatInfoDTO.getInstanceType() + "#" + instanceBeatInfoDTO.getNamespaceId();
     }
 
-    public InstanceInfoVO getInstanceHealthBeatInfo(InstanceBeatInfoDTO instanceBeatInfoDTO){
+    public InstanceInfoVO getInstanceHealthBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         return instanceHealthBeatInfo.get(getInstanceKey(instanceBeatInfoDTO));
     }
 
-    public void handleBeatInfo(InstanceBeatInfoDTO instanceBeatInfoDTO){
+    public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
-        if (instanceHealthBeatInfo.containsKey(instanceKey)){
+        if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
-        }else {
+        } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
             instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
             instanceInfoVO.setInstanceState(1);
@@ -96,7 +110,7 @@ public class InstanceCheckService {
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
-            instanceHealthBeatInfo.put(instanceKey,instanceInfoVO);
+            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
     }
 
@@ -112,27 +126,31 @@ public class InstanceCheckService {
         instanceHealthBeatInfo.values().forEach(instance -> {
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
                 if (1 == instance.getInstanceState()) {
-                    LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!", instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
+                    LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
+                            instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(2);
                 }
-            }else{
-                LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} online!", instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
+            } else {
+                LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} online!",
+                        instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                 instance.setInstanceState(1);
             }
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
                 if (2 == instance.getInstanceState()) {
-                    LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!", instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
+                    LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
+                            instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(0);
                 }
             }
         });
     }
 
-    public void syncDB(){
-        instanceHealthBeatInfo.values().forEach(vo->{
+    public void syncDB() {
+        instanceHealthBeatInfo.values().forEach(vo -> {
             instanceInfoService.createOrUpdate(vo);
         });
     }
+
     /**
      * Close relative resource on container destroy.
      */
@@ -141,6 +159,7 @@ public class InstanceCheckService {
         syncDB();
         executor.shutdown();
     }
+
     /**
      * listen {@link InstanceInfoReportEvent} instance info report event.
      *
@@ -148,8 +167,8 @@ public class InstanceCheckService {
      */
     @EventListener(InstanceInfoReportEvent.class)
     public void onInstanceInfoReport(final InstanceInfoReportEvent event) {
-        InstanceBeatInfoDTO InstanceBeatInfoDTO = buildInstanceInfoDTO(event);
-        handleBeatInfo(InstanceBeatInfoDTO);
+        InstanceBeatInfoDTO instanceBeatInfoDTO = buildInstanceInfoDTO(event);
+        handleBeatInfo(instanceBeatInfoDTO);
     }
 
     private InstanceBeatInfoDTO buildInstanceInfoDTO(final InstanceInfoReportEvent instanceInfoRegisterDTO) {

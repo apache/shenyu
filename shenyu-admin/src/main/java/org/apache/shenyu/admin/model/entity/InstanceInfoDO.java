@@ -225,7 +225,7 @@ public final class InstanceInfoDO extends BaseDO {
      *
      * @param lastHeartBeatTime lastHeartBeatTime
      */
-    public void setLastHeartBeatTime(long lastHeartBeatTime) {
+    public void setLastHeartBeatTime(final long lastHeartBeatTime) {
         this.lastHeartBeatTime = lastHeartBeatTime;
     }
 

@@ -49,7 +49,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
 
     @Override
-    public void createOrUpdate(InstanceInfoVO instanceInfoVO) {
+    public void createOrUpdate(final InstanceInfoVO instanceInfoVO) {
         InstanceQuery instanceQuery = new InstanceQuery();
         instanceQuery.setInstanceIp(instanceInfoVO.getInstanceIp());
         instanceQuery.setInstancePort(instanceInfoVO.getInstancePort());

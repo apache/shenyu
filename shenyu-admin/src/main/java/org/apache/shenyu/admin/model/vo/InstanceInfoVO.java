@@ -213,7 +213,7 @@ public class InstanceInfoVO implements Serializable {
      *
      * @param instanceState instanceState
      */
-    public void setInstanceState(int instanceState) {
+    public void setInstanceState(final int instanceState) {
         this.instanceState = instanceState;
     }
 
@@ -231,7 +231,7 @@ public class InstanceInfoVO implements Serializable {
      *
      * @param lastHeartBeatTime lastHeartBeatTime
      */
-    public void setLastHeartBeatTime(long lastHeartBeatTime) {
+    public void setLastHeartBeatTime(final long lastHeartBeatTime) {
         this.lastHeartBeatTime = lastHeartBeatTime;
     }
 

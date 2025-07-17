@@ -51,6 +51,7 @@ public class ClusterConfiguration {
      *
      * @param shenyuClusterSelectMasterService shenyu cluster select master service
      * @param upstreamCheckService upstream check service
+     * @param instanceCheckService instance check service
      * @param loadServiceDocEntry load service doc entry
      * @param clusterProperties cluster properties
      * @return Shenyu cluster service

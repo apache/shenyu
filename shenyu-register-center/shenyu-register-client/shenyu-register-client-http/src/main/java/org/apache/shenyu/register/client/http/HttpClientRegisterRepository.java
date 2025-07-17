@@ -141,9 +141,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     @Override
-    public void sendHeartbeat(InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public void sendHeartbeat(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         doHeartbeat(instanceBeatInfoDTO, Constants.BEAT_URI_PATH);
     }
+
     /**
      * doPersistApiDoc.
      *

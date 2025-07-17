@@ -41,6 +41,7 @@ public class StandaloneConfiguration {
      * Shenyu running mode standalone service.
      *
      * @param upstreamCheckService upstream check service
+     * @param instanceCheckService instance check service
      * @param loadServiceDocEntry load service doc entry
      * @return Shenyu standalone service
      */
