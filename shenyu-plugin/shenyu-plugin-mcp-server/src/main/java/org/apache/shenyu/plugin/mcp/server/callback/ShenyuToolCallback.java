@@ -61,19 +61,29 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * This callback handles tool invocations within the MCP (Model Context Protocol) framework,
  * allowing AI models to interact with Shenyu Gateway services through defined tools.
+ * The callback requires that session context and ServerWebExchange correlation has been
+ * properly established by the transport provider before tool invocation.
  * </p>
- * <p>
- * Key responsibilities:
+ *
+ * <h3>Key Features:</h3>
  * <ul>
- *   <li>Execute tool calls by routing them through the Shenyu plugin chain</li>
- *   <li>Manage MCP session context and exchange correlation</li>
- *   <li>Handle protocol-specific response processing (SSE vs Streamable HTTP)</li>
- *   <li>Provide proper error handling and timeout management</li>
+ *   <li><strong>Session-based Execution:</strong> Routes tool calls through established MCP sessions</li>
+ *   <li><strong>Plugin Chain Integration:</strong> Executes tools via Shenyu's plugin architecture</li>
+ *   <li><strong>Protocol Agnostic:</strong> Supports both SSE and Streamable HTTP transports</li>
+ *   <li><strong>Response Correlation:</strong> Properly correlates responses back to MCP sessions</li>
+ *   <li><strong>Error Handling:</strong> Comprehensive error handling with timeout management</li>
  * </ul>
- * </p>
+ *
+ * <h3>Prerequisites:</h3>
+ * <ul>
+ *   <li>MCP session must be established and initialized</li>
+ *   <li>ServerWebExchange must be stored in ShenyuMcpExchangeHolder via sessionId</li>
+ *   <li>Tool definition must be properly configured with request details</li>
+ * </ul>
  *
  * @see org.springframework.ai.tool.ToolCallback
  * @see org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition
+ * @see org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder
  * @since 1.0.0
  */
 public class ShenyuToolCallback implements ToolCallback {
@@ -135,19 +145,20 @@ public class ShenyuToolCallback implements ToolCallback {
         Objects.requireNonNull(input, "Input cannot be null");
         Objects.requireNonNull(toolContext, "ToolContext cannot be null");
 
-        LOG.debug("Executing tool call with input length: {} chars", input.length());
+        LOG.debug("Executing tool call for definition '{}' with input length: {} chars",
+                toolDefinition.name(), input.length());
 
         try {
-            // Extract MCP session context with enhanced handling
+            // Extract MCP session context (must be pre-established)
             final McpSyncServerExchange mcpExchange = extractMcpExchange(toolContext);
-            final String sessionId = extractSessionIdWithFallback(mcpExchange, toolContext);
+            final String sessionId = extractSessionId(mcpExchange);
 
             // Validate and extract tool configuration
             final ShenyuToolDefinition shenyuTool = validateToolDefinition();
             final String configStr = extractRequestConfig(shenyuTool);
 
-            // Get or create exchange and plugin chain with enhanced handling
-            final ServerWebExchange originExchange = getOrCreateOriginExchange(sessionId, toolContext);
+            // Get pre-stored exchange and plugin chain
+            final ServerWebExchange originExchange = getOriginExchange(sessionId);
             final ShenyuPluginChain chain = getPluginChain(originExchange);
 
             // Execute the tool call through the plugin chain
@@ -156,71 +167,10 @@ public class ShenyuToolCallback implements ToolCallback {
             return result;
 
         } catch (Exception e) {
-            LOG.error("Failed to process tool call: {}", e.getMessage(), e);
+            LOG.error("Failed to process tool call for '{}': {}", toolDefinition.name(), e.getMessage(), e);
 
             throw new RuntimeException("Tool execution failed: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * Enhanced session ID extraction with fallback mechanism.
-     * <p>
-     * This method attempts to extract session ID with the following fallback strategy:
-     * <ol>
-     *   <li>Try to extract from MCP exchange normally</li>
-     *   <li>If extraction fails and protocol is Streamable HTTP, create a temporary session</li>
-     *   <li>If extraction fails and protocol is SSE, throw exception (SSE requires real sessions)</li>
-     * </ol>
-     * </p>
-     *
-     * @param mcpExchange the MCP sync server exchange
-     * @param toolContext the tool context for session creation
-     * @return the session ID (existing, restored, or temporary for Streamable HTTP only)
-     * @throws IllegalStateException if session ID cannot be extracted for SSE protocol
-     */
-    private String extractSessionIdWithFallback(final McpSyncServerExchange mcpExchange,
-                                                final ToolContext toolContext) {
-        try {
-            // Directly extract session ID; it must already exist because handleMessageEndpoint
-            // has stored it together with the corresponding ServerWebExchange.
-            final String sessionId = McpSessionHelper.getSessionId(mcpExchange);
-            if (StringUtils.hasText(sessionId)) {
-                LOG.debug("Extracted session ID: {}", sessionId);
-                return sessionId;
-            }
-            // If we reach here it means required correlation data is missing – this should not happen
-            throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
-        } catch (Exception e) {
-            LOG.error("Failed to extract session ID from MCP exchange: {}", e.getMessage(), e);
-            throw new IllegalStateException("Failed to extract session ID: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Gets or creates the origin ServerWebExchange with enhanced fallback handling.
-     * <p>
-     * This method handles the following scenarios:
-     * <ol>
-     *   <li>Session exists with valid exchange - return existing exchange</li>
-     *   <li>Session exists but no exchange found - create new session and exchange (Streamable HTTP only)</li>
-     *   <li>Temporary session - create minimal exchange context (Streamable HTTP only)</li>
-     * </ol>
-     * </p>
-     *
-     * @param sessionId   the session identifier
-     * @param toolContext the tool context for exchange creation
-     * @return the origin ServerWebExchange
-     * @throws IllegalStateException if exchange cannot be created for SSE protocol
-     */
-    private ServerWebExchange getOrCreateOriginExchange(final String sessionId, final ToolContext toolContext) {
-        // A valid exchange must already be correlated with the session ID by handleMessageEndpoint.
-        final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
-        if (exchange != null) {
-            LOG.debug("Found existing exchange for session: {}", sessionId);
-            return exchange;
-        }
-        throw new IllegalStateException("No ServerWebExchange found for session '" + sessionId
-                + "'. It should have been stored by handleMessageEndpoint before the tool was invoked.");
     }
 
     /**
@@ -632,5 +582,43 @@ public class ShenyuToolCallback implements ToolCallback {
             throw new IllegalStateException("Failed to retrieve MCP sync server exchange from context");
         }
         return exchange;
+    }
+
+    /**
+     * Extracts the session ID from the MCP sync server exchange.
+     *
+     * @param mcpExchange the MCP sync server exchange
+     * @return the session ID
+     * @throws IllegalStateException if session ID cannot be extracted
+     */
+    private String extractSessionId(final McpSyncServerExchange mcpExchange) {
+        final String sessionId;
+        try {
+            sessionId = McpSessionHelper.getSessionId(mcpExchange);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        if (StringUtils.hasText(sessionId)) {
+            LOG.debug("Extracted session ID: {}", sessionId);
+            return sessionId;
+        }
+        throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
+    }
+
+    /**
+     * Gets the origin ServerWebExchange for the given session ID.
+     *
+     * @param sessionId the session ID
+     * @return the origin ServerWebExchange
+     * @throws IllegalStateException if exchange cannot be retrieved
+     */
+    private ServerWebExchange getOriginExchange(final String sessionId) {
+        final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
+        if (exchange != null) {
+            LOG.debug("Found existing exchange for session: {}", sessionId);
+            return exchange;
+        }
+        throw new IllegalStateException("No ServerWebExchange found for session '" + sessionId
+                + "'. It should have been stored by handleMessageEndpoint before the tool was invoked.");
     }
 }
