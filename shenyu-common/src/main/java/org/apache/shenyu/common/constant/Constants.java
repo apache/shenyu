@@ -996,12 +996,12 @@ public interface Constants {
     String USAGE = "usage";
 
     /**
-     * The include_usage for stream
+     * The include_usage for stream.
      */
     String INCLUDE_USAGE = "include_usage";
 
     /**
-     * The stream_options
+     * The stream_options.
      */
     String STREAM_OPTIONS = "stream_options";
     

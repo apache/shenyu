@@ -191,14 +191,13 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     }
 
     static class AiStatisticServerHttpResponse extends ServerHttpResponseDecorator {
+        private static final ObjectMapper MAPPER = new ObjectMapper();
 
         private final ServerWebExchange exchange;
 
         private final ServerHttpResponse serverHttpResponse;
 
         private final Consumer<Long> tokensRecorder;
-
-        private static final ObjectMapper MAPPER = new ObjectMapper();
 
         private final AtomicBoolean streamingUsageRecorded = new AtomicBoolean(false);
 
@@ -269,7 +268,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                         continue;
                                     }
                                     String payload = line.substring("data:".length()).trim();
-                                    if (payload.isEmpty() || payload.equals("[DONE]")) {
+                                    if (payload.isEmpty() || "[DONE]".equals(payload)) {
                                         continue;
                                     }
                                     if (!payload.startsWith("{")) {
@@ -278,7 +277,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                     try {
                                         JsonNode node = MAPPER.readTree(payload);
                                         JsonNode usage = node.get(Constants.USAGE);
-                                        if (usage != null && usage.has(Constants.COMPLETION_TOKENS)) {
+                                        if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
                                             long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
                                             tokensRecorder.accept(c);
                                             streamingUsageRecorded.set(true);
@@ -294,7 +293,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         }
                     })
                     .doFinally(signal -> {
-                        // release inflater
                         if (Objects.nonNull(inflater)) {
                             inflater.end();
                         }
