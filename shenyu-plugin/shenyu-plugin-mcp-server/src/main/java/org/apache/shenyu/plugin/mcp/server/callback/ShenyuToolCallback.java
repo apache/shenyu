@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.mcp.server.callback;
 
 import com.google.common.collect.Maps;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
@@ -29,6 +30,7 @@ import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.request.BodyWriterExchange;
+import org.apache.shenyu.plugin.mcp.server.request.ParameterFormatter;
 import org.apache.shenyu.plugin.mcp.server.request.RequestConfig;
 import org.apache.shenyu.plugin.mcp.server.request.RequestConfigHelper;
 import org.apache.shenyu.plugin.mcp.server.response.ShenyuMcpResponseDecorator;
@@ -319,7 +321,6 @@ public class ShenyuToolCallback implements ToolCallback {
         return finalExchange;
     }
 
-
     /**
      * Parses the input JSON string into a JsonObject.
      *
@@ -328,11 +329,16 @@ public class ShenyuToolCallback implements ToolCallback {
      * @throws IllegalArgumentException if input is not valid JSON
      */
     private JsonObject parseInput(final String input) {
-        final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
-        if (Objects.isNull(inputJson)) {
-            throw new IllegalArgumentException("Invalid input JSON format");
+        try {
+            final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
+            if (Objects.isNull(inputJson)) {
+                throw new IllegalArgumentException("Invalid input JSON format");
+            }
+            return inputJson;
+        } catch (Exception e) {
+            LOG.error("Failed to parse input JSON: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid JSON format: " + e.getMessage(), e);
         }
-        return inputJson;
     }
 
     /**
@@ -350,10 +356,92 @@ public class ShenyuToolCallback implements ToolCallback {
         final String method = configHelper.getMethod();
         final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
 
+        // Build path and query parameters (no formatting needed for URLs)
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
-        final JsonObject bodyJson = RequestConfigHelper.buildBodyJson(argsToJsonBody, argsPosition, inputJson);
+
+        // Build body with parameter formatting (only format body parameters that need it)
+        final JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
 
         return new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody);
+    }
+
+    /**
+     * Build body JSON with parameter formatting for specific types.
+     * Only formats parameters that are mapped to body and need type conversion.
+     *
+     * @param argsToJsonBody whether to convert arguments to JSON body
+     * @param argsPosition   the argument position mapping
+     * @param inputJson      the input JSON object
+     * @return the constructed body JSON object
+     */
+    private JsonObject buildFormattedBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson) {
+        JsonObject bodyJson = new JsonObject();
+
+        if (!argsToJsonBody) {
+            return bodyJson;
+        }
+
+        for (String key : argsPosition.keySet()) {
+            String position = argsPosition.get(key).getAsString();
+            if (position.startsWith("body") && inputJson.has(key)) {
+                JsonElement value = inputJson.get(key);
+
+                // Format the value if it's a JSON string that should be parsed
+                JsonElement formattedValue = formatBodyParameterValue(value, key);
+
+                if ("body".equals(position)) {
+                    bodyJson.add(key, formattedValue);
+                } else if (position.startsWith("body.")) {
+                    String[] pathParts = position.substring(5).split("\\.");
+                    setNestedValue(bodyJson, pathParts, formattedValue);
+                }
+            }
+        }
+
+        return bodyJson;
+    }
+
+    /**
+     * Format body parameter value. Only handles JSON string parsing for complex types.
+     *
+     * @param value the parameter value
+     * @param paramName the parameter name for error messages
+     * @return the formatted value
+     */
+    private JsonElement formatBodyParameterValue(final JsonElement value, final String paramName) {
+        // If it's a string, try to parse it as JSON (for array/object types)
+        if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+            String stringValue = value.getAsString();
+            JsonElement parsed = ParameterFormatter.tryParseJsonString(stringValue);
+
+            // If parsing succeeded (returned different object), log it
+            if (!parsed.equals(value)) {
+                LOG.debug("Parsed JSON string parameter '{}' into {}", paramName,
+                        parsed.isJsonArray() ? "array" : "object");
+            }
+
+            return parsed;
+        }
+
+        // Return as-is for all other cases
+        return value;
+    }
+
+    /**
+     * Set nested value in JSON object.
+     */
+    private void setNestedValue(final JsonObject jsonObject, final String[] pathParts, final JsonElement value) {
+        JsonObject current = jsonObject;
+
+        for (int i = 0; i < pathParts.length - 1; i++) {
+            String part = pathParts[i];
+            if (!current.has(part)) {
+                current.add(part, new JsonObject());
+            }
+            current = current.getAsJsonObject(part);
+        }
+
+        current.add(pathParts[pathParts.length - 1], value);
     }
 
     /**
