@@ -59,11 +59,11 @@ public abstract class AbstractDubboMetaDataHandler implements MetaDataHandler {
 
     @Override
     public void remove(final MetaData metaData) {
-        invalidateReference(metaData);
+        invalidateReference(metaData.getPath());
         META_DATA.remove(metaData.getPath());
     }
 
-    protected abstract void invalidateReference(MetaData path);
+    protected abstract void invalidateReference(String path);
 
     @Override
     public String rpcType() {
