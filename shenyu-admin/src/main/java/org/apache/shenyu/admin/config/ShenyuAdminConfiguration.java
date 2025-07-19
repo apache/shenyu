@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
+import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -61,5 +63,10 @@ public class ShenyuAdminConfiguration {
         final AcceptHeaderLocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
         localeResolver.setSupportedLocales(Stream.of(Locale.US, Locale.SIMPLIFIED_CHINESE).collect(Collectors.toList()));
         return localeResolver;
+    }
+
+    @Bean
+    public InstanceInfoReportEventPublisher instanceInfoReportEventPublisher(final ApplicationEventPublisher publisher) {
+        return new InstanceInfoReportEventPublisher(publisher);
     }
 }
