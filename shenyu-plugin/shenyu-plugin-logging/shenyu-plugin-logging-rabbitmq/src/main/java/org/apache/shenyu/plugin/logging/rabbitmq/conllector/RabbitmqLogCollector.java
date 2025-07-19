@@ -57,7 +57,7 @@ public class RabbitmqLogCollector extends AbstractLogCollector<RabbitmqLogCollec
     @Override
     public RabbitmqLogCollectClient getLogConsumeClient(final String path) {
         RabbitmqLogCollectClient rabbitmqClient = RabbitmqClientCache.getInstance().getRabbitmqClient(path);
-        if (Objects.isNull(rabbitmqClient)) {git
+        if (Objects.isNull(rabbitmqClient)) {
             return getLogConsumeClient();
         }
         return rabbitmqClient;
