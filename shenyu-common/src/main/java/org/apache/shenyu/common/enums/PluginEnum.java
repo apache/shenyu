@@ -86,7 +86,12 @@ public enum PluginEnum {
      * Rate limiter plugin enum.
      */
     RATE_LIMITER(60, 0, "rateLimiter"),
-    
+
+    /**
+     * AI Request Transformer plugin enum.
+     */
+    AI_REQUEST_TRANSFORMER(65, 0, "aiRequestTransformer"),
+
     /**
      * Param mapping plugin enum.
      */
@@ -133,7 +138,7 @@ public enum PluginEnum {
     SENTINEL(140, 0, "sentinel"),
     
     /**
-     * Resilence4J plugin enum.
+     * Resilience4J plugin enum.
      */
     RESILIENCE4J(150, 0, "resilience4j"),
     
@@ -141,7 +146,7 @@ public enum PluginEnum {
      * Logging console plugin enum.
      */
     LOGGING_CONSOLE(160, 0, "loggingConsole"),
-    
+
     /**
      * AI Prompt plugin enum.
      */
@@ -281,6 +286,11 @@ public enum PluginEnum {
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Mcp-server plugin enum.
+     */
+    MCP_SERVER(180, 0, "mcpServer"),
     
     /**
      * Basic-auth plugin enum.

@@ -59,14 +59,38 @@ INSERT INTO "public"."permission" VALUES ('1697146860569542748', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569542749', '1346358560427216896', '1844026099075534857', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO "public"."permission" VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"1","defaultValue":"OpenAI","placeholder":"provider","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"1","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"1","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507044', '50', 'apiKey', 'apiKey', 2, 1, 3, '{"required":"1","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"0","defaultValue":"OpenAI","placeholder":"provider","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507044', '50', 'apiKey', 'apiKey', 2, 1, 3, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507045', '50', 'temperature', 'temperature', 2, 1, 4, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507046', '50', 'maxTokens', 'maxTokens', 2, 1, 5, '{"required":"0","rule":"", "placeholder":"optional,0,0.01~1"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+
+
+DROP TABLE IF EXISTS "public"."instance_info";
+CREATE TABLE "public"."instance_info" (
+    "id"            varchar(128)   NOT NULL,
+    "namespace_id"  varchar(50)    NOT NULL,
+    "instance_ip"   varchar(128)   NOT NULL,
+    "instance_port"   varchar(128)   NOT NULL,
+    "instance_type" varchar(128)   NOT NULL,
+    "instance_info" text          NOT NULL,
+    "instance_state" int2          NOT NULL,
+    "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
+COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';
+COMMENT ON COLUMN "public"."instance_info"."instance_ip" IS 'instance_ip';
+COMMENT ON COLUMN "public"."instance_info"."instance_port" IS 'instance_port';
+COMMENT ON COLUMN "public"."instance_info"."instance_type" IS 'instance_type';
+COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
+COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
+COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
 
 
 INSERT INTO "public"."permission" VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
@@ -104,6 +128,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737582', 'postRole', 'R
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
 INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+
 
 INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
@@ -169,3 +194,63 @@ INSERT INTO "public"."plugin_handle" VALUES ('1822804180904927232', '45', 'durab
 INSERT INTO "public"."plugin_handle" VALUES ('1822804370575548416', '45', 'exclusive', 'exclusive', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO "public"."plugin_handle" VALUES ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO "public"."plugin_handle" VALUES ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"args json","rule":""}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+
+INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+
+INSERT INTO "public"."resource" VALUES ('1844026099075564859', '1346775491550474240', 'aiRequestTransformer', 'aiRequestTransformer', '/plug/aiRequestTransformer', 'aiRequestTransformer', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564860', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564861', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564862', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564863', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564864', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564865', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564866', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerrRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564867', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075564868', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformer:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+
+INSERT INTO "public"."permission" VALUES ('1697146860569742751', '1346358560427216896', '1844026099075564859', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697146860569742752', '1346358560427216896', '1844026099075564860', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146860569742753', '1346358560427216896', '1844026099075564861', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146860569742754', '1346358560427216896', '1844026099075564862', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146860569742755', '1346358560427216896', '1844026099075564863', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569742756', '1346358560427216896', '1844026099075564864', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569742757', '1346358560427216896', '1844026099075564865', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569742758', '1346358560427216896', '1844026099075564866', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569742759', '1346358560427216896', '1844026099075564867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","rule":""}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
+UPDATE "public"."plugin_handle" SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
+
+INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
+INSERT INTO "public"."resource" VALUES ('1844026199075534860', '1346775491550474240', 'mcpServer', 'mcpServer', '/plug/mcpServer', 'mcpServer', 1, 0, 'pic-left', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534861', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534862', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534863', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534864', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534865', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534866', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534867', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534868', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026199075534869', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServer:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+
+INSERT INTO "public"."permission" VALUES ('1697146861569542751', '1346358560427216896', '1844026199075534860', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1697146861569542752', '1346358560427216896', '1844026199075534861', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146861569542753', '1346358560427216896', '1844026199075534862', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO "public"."permission" VALUES ('1697146861569542754', '1346358560427216896', '1844026199075534863', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO "public"."permission" VALUES ('1697146861569542755', '1346358560427216896', '1844026199075534864', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146861569542756', '1346358560427216896', '1844026199075534865', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146861569542757', '1346358560427216896', '1844026199075534866', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO "public"."permission" VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', '2023-08-31 07:18:37', '2023-08-31 07:18:37');

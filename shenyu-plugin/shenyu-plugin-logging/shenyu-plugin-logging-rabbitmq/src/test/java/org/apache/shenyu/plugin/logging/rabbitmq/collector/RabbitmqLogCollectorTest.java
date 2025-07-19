@@ -38,6 +38,7 @@ public class RabbitmqLogCollectorTest {
     public void setUp() {
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
+        shenyuRequestLog.setSelectorId("1332017966661636096");
     }
 
     @Test
