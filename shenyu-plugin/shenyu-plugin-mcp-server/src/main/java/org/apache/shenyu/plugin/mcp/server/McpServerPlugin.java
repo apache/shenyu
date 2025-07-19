@@ -49,31 +49,13 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * MCP (Model Context Protocol) Server Plugin for Shenyu Gateway.
- * <p>
- * This plugin provides comprehensive MCP server-side functionality, supporting both
- * SSE (Server-Sent Events) and Streamable HTTP transport protocols for AI model interactions.
- * </p>
- * <p>
- * Key features:
- * <ul>
- *   <li>Dual protocol support: SSE and Streamable HTTP</li>
- *   <li>Session management with automatic exchange correlation</li>
- *   <li>Tool call prevention to avoid infinite loops</li>
- *   <li>CORS support for cross-origin requests</li>
- *   <li>Proper error handling and status code management</li>
- * </ul>
- * </p>
  *
- * <p>Protocol Detection:</p>
- * <ul>
- *   <li>Streamable HTTP: URIs containing "/streamablehttp"</li>
- *   <li>SSE: URIs containing "/sse" or ending with "/message"</li>
- *   <li>Default: Falls back to SSE for backward compatibility</li>
- * </ul>
+ * Provides MCP server functionality supporting both SSE and Streamable HTTP transport protocols.
+ * Enables AI models to interact with Shenyu Gateway services through standardized MCP tool definitions.
  *
  * @see org.apache.shenyu.plugin.base.AbstractShenyuPlugin
  * @see org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager
- * @since 1.0.0
+ * @since 2.7.0.2
  */
 public class McpServerPlugin extends AbstractShenyuPlugin {
 

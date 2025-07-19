@@ -56,34 +56,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Implementation of Spring AI's ToolCallback interface for Shenyu Gateway integration.
- * <p>
- * This callback handles tool invocations within the MCP (Model Context Protocol) framework,
- * allowing AI models to interact with Shenyu Gateway services through defined tools.
- * The callback requires that session context and ServerWebExchange correlation has been
- * properly established by the transport provider before tool invocation.
- * </p>
+ * Tool Callback Implementation for Shenyu Gateway MCP Integration.
+ * 
+ * Handles tool invocations within the MCP framework, enabling AI models to interact
+ * with Shenyu Gateway services through defined tools. Requires pre-established session
+ * context and ServerWebExchange correlation.
  *
- * <h3>Key Features:</h3>
- * <ul>
- *   <li><strong>Session-based Execution:</strong> Routes tool calls through established MCP sessions</li>
- *   <li><strong>Plugin Chain Integration:</strong> Executes tools via Shenyu's plugin architecture</li>
- *   <li><strong>Protocol Agnostic:</strong> Supports both SSE and Streamable HTTP transports</li>
- *   <li><strong>Response Correlation:</strong> Properly correlates responses back to MCP sessions</li>
- *   <li><strong>Error Handling:</strong> Comprehensive error handling with timeout management</li>
- * </ul>
- *
- * <h3>Prerequisites:</h3>
- * <ul>
- *   <li>MCP session must be established and initialized</li>
- *   <li>ServerWebExchange must be stored in ShenyuMcpExchangeHolder via sessionId</li>
- *   <li>Tool definition must be properly configured with request details</li>
- * </ul>
- *
- * @see org.springframework.ai.tool.ToolCallback
- * @see org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition
- * @see org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder
- * @since 1.0.0
+ * @see ToolCallback
+ * @see ToolDefinition
+ * @since 2.7.0.2
  */
 public class ShenyuToolCallback implements ToolCallback {
 
@@ -274,14 +255,9 @@ public class ShenyuToolCallback implements ToolCallback {
 
     /**
      * Builds a decorated ServerWebExchange for tool execution.
-     * <p>
-     * This method creates a new exchange with:
-     * <ul>
-     *   <li>Modified request (method, path, headers, body)</li>
-     *   <li>Response decorator based on protocol type</li>
-     *   <li>Updated Shenyu context and metadata</li>
-     * </ul>
-     * </p>
+     * 
+     * Creates a new exchange with modified request (method, path, headers, body),
+     * response decorator based on protocol type, and updated Shenyu context and metadata.
      *
      * @param originExchange the original exchange
      * @param responseFuture the future for capturing response

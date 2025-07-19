@@ -45,22 +45,12 @@ import java.util.Collections;
 
 /**
  * Enhanced Manager for MCP servers supporting shared server instances across multiple transport protocols.
- * <p>
- * This manager implements a unified architecture where SSE and Streamable HTTP protocols share:
- * <ul>
- *   <li>Same McpAsyncServer instance per path</li>
- *   <li>Shared tool sets and capabilities</li>
- *   <li>Unified session management with protocol-specific transport layers</li>
- * </ul>
- * </p>
+ * 
+ * This manager implements a unified architecture where SSE and Streamable HTTP protocols share
+ * the same McpAsyncServer instance per path, with shared tool sets and capabilities.
+ * Provides centralized server and tool management with protocol-specific transport layers.
  *
- * <h3>Architecture Benefits:</h3>
- * <ul>
- *   <li><strong>Resource Efficiency:</strong> Single server instance handles multiple protocols</li>
- *   <li><strong>Consistency:</strong> Tools and capabilities automatically synchronized across protocols</li>
- *   <li><strong>Scalability:</strong> Easy to add new transport protocols</li>
- *   <li><strong>Maintainability:</strong> Centralized server and tool management</li>
- * </ul>
+ * @since 2.7.0.2
  */
 @Component
 public class ShenyuMcpServerManager {

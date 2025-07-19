@@ -44,54 +44,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Shenyu Streamable HTTP Server Transport Provider for MCP (Model Context Protocol).
- * <p>
- * This transport provider implements the Streamable HTTP MCP transport protocol, which is an 
- * upgraded version of SSE that supports unified endpoint with dynamic streaming capabilities.
- * Unlike traditional SSE that requires separate endpoints for different operations, Streamable HTTP
- * uses a single endpoint to handle all MCP operations through HTTP POST requests.
- * </p>
- *
- * <h3>Key Features:</h3>
- * <ul>
- *   <li><strong>Unified Endpoint:</strong> Single endpoint (/mcp) handles all MCP requests</li>
- *   <li><strong>Advanced Session Management:</strong> Supports session creation, restoration, and reconnection</li>
- *   <li><strong>Protocol Upgrade:</strong> Dynamic switching between regular HTTP and streaming responses</li>
- *   <li><strong>Exchange Correlation:</strong> Automatic ServerWebExchange binding for tool callback support</li>
- *   <li><strong>Async Initialization:</strong> Non-blocking session initialization for Netty compatibility</li>
- *   <li><strong>Session Recovery:</strong> Automatic session restoration and exchange re-binding</li>
- *   <li><strong>Error Handling:</strong> Comprehensive error handling with JSON-RPC 2.0 compliance</li>
- * </ul>
- *
- * <h3>Protocol Flow:</h3>
- * <ol>
- *   <li><strong>Initialization:</strong> Client sends initialize request, server creates session</li>
- *   <li><strong>Session Binding:</strong> ServerWebExchange is bound to session ID for tool callbacks</li>
- *   <li><strong>Business Requests:</strong> Subsequent requests are correlated via session ID</li>
- *   <li><strong>Auto-Recovery:</strong> Lost sessions are automatically restored with new session IDs</li>
- *   <li><strong>Tool Execution:</strong> Tool callbacks can access bound exchange via session ID</li>
- * </ol>
- *
- * <h3>Session Management Scenarios:</h3>
- * <ul>
- *   <li><strong>New Session:</strong> First-time initialize creates session with ID correlation</li>
- *   <li><strong>Session Restoration:</strong> Invalid session IDs trigger new session creation</li>
- *   <li><strong>Temporary Sessions:</strong> Requests without session IDs get temporary sessions</li>
- *   <li><strong>Reconnection:</strong> Exchange re-binding for sessions that lost correlation</li>
- * </ul>
- *
- * <h3>Supported Operations:</h3>
- * <ul>
- *   <li>initialize - Creates new MCP session</li>
- *   <li>tools/list - Lists available tools</li>
- *   <li>tools/call - Executes tool calls</li>
- *   <li>Custom operations - Any JSON-RPC method through session context</li>
- * </ul>
+ * Streamable HTTP Server Transport Provider for MCP (Model Context Protocol).
+ * 
+ * Implements the Streamable HTTP MCP transport protocol with unified endpoint for all MCP operations.
+ * Provides advanced session management with automatic recovery and reconnection capabilities.
  *
  * @see McpServerTransportProvider
  * @see McpServerSession
  * @see org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder
- * @since 1.0.0
+ * @since 2.7.0.2
  */
 public class ShenyuStreamableHttpServerTransportProvider implements McpServerTransportProvider {
 
@@ -222,6 +183,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Unified endpoint for Streamable HTTP protocol. Handles GET (stream) and POST (message).
+     * 
+     * @param request the server request
+     * @return a Mono containing the server response
      */
     public Mono<ServerResponse> handleUnifiedEndpoint(final ServerRequest request) {
         if (isClosing) {
@@ -277,11 +241,10 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Returns error response for unsupported GET streaming requests.
-     * <p>
+     * 
      * Streamable HTTP protocol does not support GET streaming connections. This method
      * provides a graceful error response in SSE format for compatibility with existing
      * infrastructure that may attempt to establish streaming connections.
-     * </p>
      *
      * @param request the server request
      * @return a Flux containing a single error event explaining the unsupported operation
@@ -300,26 +263,13 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Handles POST requests for message processing in Streamable HTTP protocol.
-     * <p>
-     * This method processes all MCP operations including:
-     * <ul>
-     *   <li>initialize - Creates new sessions</li>
-     *   <li>tools/list - Lists available tools</li>
-     *   <li>tools/call - Executes tool operations</li>
-     *   <li>Other custom operations</li>
-     * </ul>
-     * </p>
-     * <p>
-     * Enhanced to support:
-     * <ul>
-     *   <li>Requests without sessionId - creates temporary sessions</li>
-     *   <li>Invalid sessionId - creates new session and re-stores it</li>
-     * </ul>
-     * </p>
-     * <p>
+     * 
+     * This method processes all MCP operations including initialize, tools/list, tools/call,
+     * and other custom operations. Enhanced to support requests without sessionId (creates
+     * temporary sessions) and invalid sessionId (creates new session and re-stores it).
+     * 
      * The method distinguishes between initialize requests (which create new sessions)
      * and regular requests (which require existing session correlation or temporary session creation).
-     * </p>
      *
      * @param exchange the server web exchange
      * @param request  the server request containing the message
@@ -425,23 +375,10 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Handles regular (non-initialize) requests with comprehensive session management.
-     * <p>
-     * This method implements a robust session management strategy that handles:
-     * <ol>
-     *   <li><strong>Missing Session ID:</strong> Creates temporary session for stateless operations</li>
-     *   <li><strong>Invalid Session ID:</strong> Creates new session using MCP framework's session ID</li>
-     *   <li><strong>Valid Session ID:</strong> Processes normally with exchange re-binding if needed</li>
-     * </ol>
-     * </p>
-     * <p>
-     * <strong>Key Features:</strong>
-     * <ul>
-     *   <li>Automatic session recovery for disconnected clients</li>
-     *   <li>ServerWebExchange correlation for tool callback support</li>
-     *   <li>Async session initialization to avoid blocking Netty threads</li>
-     *   <li>Proper cleanup for temporary sessions</li>
-     * </ul>
-     * </p>
+     * 
+     * Implements session management strategy for missing session ID (creates temporary session),
+     * invalid session ID (creates new session), and valid session ID (processes normally).
+     * Provides automatic session recovery and ServerWebExchange correlation for tool callbacks.
      *
      * @param exchange the server web exchange
      * @param message the JSON-RPC message
@@ -500,21 +437,17 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Creates a temporary session for stateless requests.
-     * <p>
+     * 
      * This method handles requests that arrive without a session ID by creating a temporary
      * session that is automatically cleaned up after the request completes. The session is
      * fully initialized using async methods to avoid blocking the Netty event loop.
-     * </p>
-     * <p>
-     * <strong>Process Flow:</strong>
-     * <ol>
-     *   <li>Create session with auto-generated ID from MCP framework</li>
-     *   <li>Bind ServerWebExchange to session ID before initialization</li>
-     *   <li>Perform async session initialization (initialize + notification)</li>
-     *   <li>Process the business request</li>
-     *   <li>Clean up session and exchange binding after completion</li>
-     * </ol>
-     * </p>
+     * 
+     * Process Flow:
+     * - Create session with auto-generated ID from MCP framework
+     * - Bind ServerWebExchange to session ID before initialization
+     * - Perform async session initialization (initialize + notification)
+     * - Process the business request
+     * - Clean up session and exchange binding after completion
      *
      * @param exchange the server web exchange
      * @param message the JSON-RPC message
@@ -566,17 +499,15 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Creates a new session for session restoration scenarios.
-     * <p>
+     * 
      * This method handles scenarios where a client provides a session ID that no longer
      * exists on the server (e.g., server restart, session timeout, network disconnection).
      * A new session is created using the MCP framework, which generates its own session ID.
      * The client receives the new session ID for subsequent requests.
-     * </p>
-     * <p>
-     * <strong>Important:</strong> The MCP framework generates its own session IDs, so the
+     * 
+     * Important: The MCP framework generates its own session IDs, so the
      * client's requested session ID may differ from the actual session ID returned.
      * The response includes the actual session ID that should be used for future requests.
-     * </p>
      *
      * @param exchange the server web exchange
      * @param message the JSON-RPC message
@@ -632,10 +563,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Processes a message with an existing session.
-     * <p>
+     * 
      * This method contains the core message processing logic that is shared
      * between regular requests, temporary sessions, and restored sessions.
-     * </p>
      *
      * @param session the MCP server session
      * @param sessionId the session identifier
@@ -921,10 +851,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
         /**
          * Gets the last message sent through this transport.
-         * <p>
+         * 
          * This is used for Streamable HTTP response correlation, allowing the
          * transport provider to capture and return responses sent by the MCP framework.
-         * </p>
          *
          * @return the last sent message, or null if no message has been sent
          */
@@ -1002,10 +931,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Result object for message handling operations.
-     * <p>
+     * 
      * This class encapsulates the result of processing a Streamable HTTP message,
      * including the HTTP status code, response body, and session correlation information.
-     * </p>
      */
     public static class MessageHandlingResult {
 
@@ -1055,11 +983,10 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
         /**
          * Converts the response body to a JSON string for HTTP response transmission.
-         * <p>
+         * 
          * If the response body is already a string, returns it as-is. Otherwise,
          * attempts to serialize it to JSON using ObjectMapper. On serialization failure,
          * returns a standard JSON-RPC error response.
-         * </p>
          *
          * @return the response body as JSON string
          */
@@ -1079,19 +1006,16 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Builder class for constructing instances of ShenyuStreamableHttpServerTransportProvider.
-     * <p>
+     * 
      * This builder provides a fluent interface for configuring transport provider instances
      * with proper validation and default values.
-     * </p>
-     *
-     * <h3>Usage Example:</h3>
-     * <pre>
+     * 
+     * Usage Example:
      * ShenyuStreamableHttpServerTransportProvider provider =
      *     ShenyuStreamableHttpServerTransportProvider.builder()
      *         .objectMapper(new ObjectMapper())
      *         .endpoint("/mcp")
      *         .build();
-     * </pre>
      */
     public static class Builder {
 
@@ -1175,11 +1099,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Waits for and retrieves the transport response for correlation with HTTP response.
-     * <p>
-     * This method checks if the transport has captured a response from the MCP framework
-     * and returns it as a MessageHandlingResult. If no response is available, it returns
-     * a default success response to prevent hanging.
-     * </p>
+     *
+     * Checks if the transport has captured a response from the MCP framework and returns it as a MessageHandlingResult.
+     * If no response is available, returns a default success response to prevent hanging.
      *
      * @param transport the session transport to check for responses
      * @param sessionId the session identifier for logging
@@ -1205,19 +1127,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Performs backend session initialization using async MCP protocol handshake.
-     * <p>
-     * This method initializes a session by simulating a complete MCP initialize cycle:
-     * <ol>
-     *   <li>Creates a proper initialize request with required parameters</li>
-     *   <li>Processes the request through the session (triggers state transition)</li>
-     *   <li>Sends initialized notification to complete the handshake</li>
-     *   <li>Uses reflection fallback to ensure session state is properly set</li>
-     * </ol>
-     * </p>
-     * <p>
-     * <strong>Async Design:</strong> All operations use async methods (.subscribe()) instead of
-     * blocking calls to avoid blocking the Netty event loop threads.
-     * </p>
+     * 
+     * Simulates complete initialize request-response cycle to ensure session's internal
+     * state machine transitions correctly. Uses async operations to avoid blocking Netty threads.
      *
      * @param session the MCP server session
      * @param sessionId the session identifier
@@ -1276,6 +1188,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Creates a proper initialize request JSON for backend session initialization.
+     *
+     * @return the initialize request JSON string
      */
     private String createInitializeRequest() {
         final Map<String, Object> params = new java.util.HashMap<>();
@@ -1362,6 +1276,9 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     /**
      * Completes the handshake by sending a notification to finalize session state asynchronously.
+     * 
+     * Uses multiple strategies to ensure session state is properly set, including sending
+     * initialized notifications and using reflection as fallback.
      *
      * @param session the MCP server session
      * @param sessionId the session identifier

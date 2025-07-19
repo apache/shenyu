@@ -32,23 +32,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Non-committing MCP response decorator specifically designed for Streamable HTTP protocol.
- * <p>
- * Unlike {@link org.apache.shenyu.plugin.mcp.server.response.ShenyuMcpResponseDecorator}, 
- * this decorator only intercepts response data without actually writing to the original response,
- * thus avoiding premature response commitment issues that can occur with Streamable HTTP protocol.
- * </p>
- * <p>
- * This decorator is used when:
- * <ul>
- *   <li>The protocol requires capturing response data for processing</li>
- *   <li>The response must be transformed or templated before final output</li>
- *   <li>Response commitment timing needs to be controlled externally</li>
- * </ul>
- * </p>
+ * Non-committing MCP response decorator for Streamable HTTP protocol.
+ * Intercepts response data without writing to the original response, avoiding premature
+ * response commitment issues. Used for capturing response data for processing and transformation
+ * before final output.
  *
  * @see org.apache.shenyu.plugin.mcp.server.response.ShenyuMcpResponseDecorator
- * @since 1.0.0
+ * @since 2.7.0.2
  */
 public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorator {
 
@@ -110,14 +100,9 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Processes the collected response data buffers and completes the response future.
-     * <p>
-     * This method:
-     * <ol>
-     *   <li>Aggregates all data buffers into a single response string</li>
-     *   <li>Applies response template transformations if configured</li>
-     *   <li>Completes the response future with the processed result</li>
-     * </ol>
-     * </p>
+     * 
+     * Aggregates all data buffers into a single response string, applies response template
+     * transformations if configured, and completes the response future with the processed result.
      *
      * @param dataBuffers the collected response data buffers
      */
@@ -169,11 +154,10 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Processes response data by applying response template transformations.
-     * <p>
+     * 
      * If no response template is configured, returns the original response body unchanged.
      * If a template is provided, attempts to parse the response as JSON and apply template
      * transformations including placeholder substitution.
-     * </p>
      *
      * @param responseBody the original response body to process
      * @return the processed response body
@@ -261,9 +245,8 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Applies placeholder substitution to a text template using response data.
-     * <p>
+     * 
      * Supports simple placeholder format: ${fieldName}
-     * </p>
      *
      * @param template     the text template containing placeholders
      * @param responseData the JSON object containing substitution values

@@ -37,6 +37,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Body Writer Exchange for MCP tool requests.
+ * 
+ * Decorates ServerWebExchange to properly handle request body writing for different content types.
+ * Supports JSON, form-urlencoded, and multipart form data formats.
+ *
+ * @since 2.7.0.2
+ */
 public class BodyWriterExchange extends ServerWebExchangeDecorator {
 
     private final String body;
@@ -81,6 +89,11 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         }
     }
 
+    /**
+     * Returns a decorated ServerHttpRequest with the correct body and headers for downstream processing.
+     *
+     * @return the decorated ServerHttpRequest
+     */
     @Override
     public ServerHttpRequest getRequest() {
         return new ServerHttpRequestDecorator(super.getRequest()) {
