@@ -26,8 +26,10 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
+import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuStreamableHttpServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.SseEventFormatter;
@@ -167,7 +169,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         final ServerRequest request = ServerRequest.create(exchange, messageReaders);
 
         // Route based on protocol type
-        return routeByProtocol(exchange, chain, request, uri);
+        return routeByProtocol(exchange, chain, request, selector, uri);
     }
 
     @Override
@@ -205,16 +207,17 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     private Mono<Void> routeByProtocol(final ServerWebExchange exchange,
                                        final ShenyuPluginChain chain,
                                        final ServerRequest request,
+                                       final SelectorData selector,
                                        final String uri) {
 
         if (isStreamableHttpProtocol(uri)) {
             return handleStreamableHttpRequest(exchange, chain, request, uri);
         } else if (isSseProtocol(uri)) {
-            return handleSseRequest(exchange, chain, request, uri);
+            return handleSseRequest(exchange, chain, request, selector, uri);
         } else {
             // Default to SSE for backward compatibility
             LOG.debug("Using default SSE protocol for URI: {}", uri);
-            return handleSseRequest(exchange, chain, request, uri);
+            return handleSseRequest(exchange, chain, request, selector, uri);
         }
     }
 
@@ -318,14 +321,24 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     private Mono<Void> handleSseRequest(final ServerWebExchange exchange,
                                         final ShenyuPluginChain chain,
                                         final ServerRequest request,
+                                        final SelectorData selector,
                                         final String uri) {
 
         LOG.debug("Handling SSE MCP request for URI: {}", uri);
+        ShenyuMcpServer server = McpServerPluginDataHandler.CACHED_SERVER.get().obtainHandle(selector.getId());
 
-        final ShenyuSseServerTransportProvider transportProvider =
-                shenyuMcpServerManager.getOrCreateMcpServerTransport(uri);
+        if (Objects.isNull(server)) {
+            return chain.execute(exchange);
+        }
+        // Handle MCP SSE/message requests by delegating to the transport provider
+        // directly
+        String messageEndpoint = server.getMessageEndpoint();
 
-        if (uri.endsWith(MESSAGE_ENDPOINT)) {
+        ShenyuSseServerTransportProvider transportProvider
+                = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
+
+
+        if (uri.endsWith(messageEndpoint)) {
             setupSessionContext(exchange, chain);
             return handleMessageEndpoint(exchange, transportProvider, request);
         } else {
@@ -356,8 +369,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * according to the Streamable HTTP protocol specification.
      * </p>
      *
-     * @param exchange           the server web exchange
-     * @param transportProvider  the Streamable HTTP transport provider
+     * @param exchange          the server web exchange
+     * @param transportProvider the Streamable HTTP transport provider
      * @param request           the server request
      * @return a Mono representing the processing result
      */
@@ -397,8 +410,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     /**
      * Handles Streamable HTTP POST requests for message processing.
      *
-     * @param exchange           the server web exchange
-     * @param transportProvider  the transport provider
+     * @param exchange          the server web exchange
+     * @param transportProvider the transport provider
      * @param request           the server request
      * @return a Mono representing the processing result
      */
@@ -495,8 +508,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     /**
      * Creates SSE response by setting up the SSE stream.
      *
-     * @param exchange           the server web exchange
-     * @param transportProvider  the SSE transport provider
+     * @param exchange          the server web exchange
+     * @param transportProvider the SSE transport provider
      * @param request           the server request
      * @return a Mono representing the SSE stream
      */
@@ -539,8 +552,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     /**
      * Handles message endpoint requests for SSE protocol.
      *
-     * @param exchange           the server web exchange
-     * @param transportProvider  the SSE transport provider
+     * @param exchange          the server web exchange
+     * @param transportProvider the SSE transport provider
      * @param request           the server request
      * @return a Mono representing the processing result
      */
@@ -588,10 +601,10 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     /**
      * Sets up error response configuration.
      *
-     * @param exchange     the server web exchange
-     * @param status       the HTTP status
-     * @param allowHeader  the Allow header value (nullable)
-     * @param errorBody    the error response body
+     * @param exchange    the server web exchange
+     * @param status      the HTTP status
+     * @param allowHeader the Allow header value (nullable)
+     * @param errorBody   the error response body
      */
     private void setErrorResponse(final ServerWebExchange exchange,
                                   final HttpStatus status,
@@ -616,8 +629,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * @return a Mono representing the write operation
      */
     private Mono<Void> writeJsonResponse(final ServerWebExchange exchange) {
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> errorBody = (Map<String, Object>) exchange.getAttributes().get("errorBody");
+        @SuppressWarnings("unchecked") final Map<String, Object> errorBody = (Map<String, Object>) exchange.getAttributes().get("errorBody");
 
         if (Objects.isNull(errorBody)) {
             return Mono.empty();

@@ -46,30 +46,32 @@ import java.util.function.Supplier;
  * The type McpServer plugin data handler.
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
-    
+
+    private static final String DEFAULT_MESSAGE_ENDPOINT = "{\"messageEndpoint\":\"/message\"}";
+
     public static final Supplier<CommonHandleCache<String, ShenyuMcpServerTool>> CACHED_TOOL = new BeanHolder<>(
             CommonHandleCache::new);
-    
+
     public static final Supplier<CommonHandleCache<String, ShenyuMcpServer>> CACHED_SERVER = new BeanHolder<>(
             CommonHandleCache::new);
-    
+
     private static final String SLASH = "/";
-    
+
     private static final String STAR = "/**";
-    
+
     private final ShenyuMcpServerManager shenyuMcpServerManager;
-    
+
     public McpServerPluginDataHandler(
             final ShenyuMcpServerManager shenyuMcpServerManager) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
     }
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
-        
+
         if (CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
@@ -80,10 +82,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                 .map(ConditionData::getParamValue)
                 .findFirst()
                 .orElse(null);
-        
+
         String path = StringUtils.removeEnd(uri, SLASH);
         path = StringUtils.removeEnd(path, STAR);
-        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(selectorData.getHandle(), ShenyuMcpServer.class);
+        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(selectorData.getHandle() == null ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),
@@ -93,18 +95,18 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
             shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
         }
-        
+
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
-        
+
         // Remove the McpServer for this URI
         // First try to get URI from handle, then from condition list
         String uri = selectorData.getHandle();
@@ -116,14 +118,14 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                     .findFirst()
                     .orElse(null);
         }
-        
+
         CACHED_SERVER.get().removeHandle(selectorData.getId());
-        
+
         if (StringUtils.isNotBlank(uri) && shenyuMcpServerManager.hasMcpServer(uri)) {
             shenyuMcpServerManager.removeMcpServer(uri);
         }
     }
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
@@ -132,9 +134,9 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
-            
+
             List<McpServerToolParameter> parameters = mcpServerTool.getParameters();
-            
+
             // Create JSON schema from parameters
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
@@ -148,7 +150,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             }
         });
     }
-    
+
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
@@ -158,10 +160,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         });
         MetaDataCache.getInstance().clean();
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.MCP_SERVER.getName();
     }
-    
+
 }

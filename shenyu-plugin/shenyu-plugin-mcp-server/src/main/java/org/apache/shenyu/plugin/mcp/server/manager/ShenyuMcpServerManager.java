@@ -24,7 +24,6 @@ import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
@@ -67,8 +66,6 @@ import java.util.Collections;
 public class ShenyuMcpServerManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpServerManager.class);
-
-    private static final String SLASH = "/";
 
     /**
      * AntPathMatcher for pattern matching.
@@ -133,44 +130,8 @@ public class ShenyuMcpServerManager {
             LOG.debug("Added transport '{}' to composite provider", protocol);
         }
 
-        public void removeTransport(String protocol) {
-            Object removed = transports.remove(protocol);
-            Set<String> sessions = protocolSessions.remove(protocol);
-
-            if (removed != null) {
-                LOG.info("Removed transport '{}' with {} active sessions", protocol,
-                        sessions != null ? sessions.size() : 0);
-            }
-        }
-
         public Set<String> getSupportedProtocols() {
             return new HashSet<>(transports.keySet());
-        }
-
-        /**
-         * Registers a session for protocol-specific tracking.
-         *
-         * @param protocol  the protocol name
-         * @param sessionId the session identifier
-         */
-        public void registerSession(String protocol, String sessionId) {
-            protocolSessions.computeIfAbsent(protocol, k -> Collections.synchronizedSet(new HashSet<>()))
-                    .add(sessionId);
-            LOG.debug("Registered session '{}' for protocol '{}'", sessionId, protocol);
-        }
-
-        /**
-         * Unregisters a session from protocol tracking.
-         *
-         * @param protocol  the protocol name
-         * @param sessionId the session identifier
-         */
-        public void unregisterSession(String protocol, String sessionId) {
-            Set<String> sessions = protocolSessions.get(protocol);
-            if (sessions != null) {
-                sessions.remove(sessionId);
-                LOG.debug("Unregistered session '{}' from protocol '{}'", sessionId, protocol);
-            }
         }
 
         /**
@@ -295,20 +256,25 @@ public class ShenyuMcpServerManager {
      * @param uri The URI to create or get a server for
      * @return The SSE transport provider for the URI
      */
-    public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri) {
+    public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri, final String messageEndPoint) {
         String normalizedPath = normalizeServerPath(extractBasePath(uri));
-
-        // Get or create SSE transport
-        ShenyuSseServerTransportProvider sseTransport = sseTransportMap.get(normalizedPath);
-        if (sseTransport == null) {
-            sseTransport = createSseTransport(normalizedPath);
-            sseTransportMap.put(normalizedPath, sseTransport);
-
-            // Add to shared server infrastructure
-            addTransportToSharedServer(normalizedPath, "SSE", sseTransport);
+        // First try exact match
+        ShenyuSseServerTransportProvider transport = sseTransportMap.get(uri);
+        if (Objects.nonNull(transport)) {
+            return transport;
         }
 
-        return sseTransport;
+        // Then try to find existing transport that matches the pattern
+        String basePath = extractBasePath(uri, messageEndPoint);
+        transport = sseTransportMap.get(basePath);
+        if (transport == null) {
+            transport = createSseTransport(normalizedPath, messageEndPoint);
+            sseTransportMap.put(normalizedPath, transport);
+            // Add to shared server infrastructure
+            addTransportToSharedServer(normalizedPath, "SSE", transport);
+        }
+        // Create new transport for the base path
+        return transport;
     }
 
     /**
@@ -395,8 +361,8 @@ public class ShenyuMcpServerManager {
     /**
      * Creates SSE transport provider.
      */
-    private ShenyuSseServerTransportProvider createSseTransport(String normalizedPath) {
-        String messageEndpoint = normalizedPath + "/message";
+    private ShenyuSseServerTransportProvider createSseTransport(String normalizedPath, final String messageEndPoint) {
+        String messageEndpoint = normalizedPath + messageEndPoint;
         ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
                 .objectMapper(new ObjectMapper())
                 .sseEndpoint(normalizedPath)
@@ -442,6 +408,30 @@ public class ShenyuMcpServerManager {
         // Remove /message suffix if present
         if (basePath.endsWith("/message")) {
             basePath = basePath.substring(0, basePath.length() - "/message".length());
+        }
+
+        // For sub-paths, extract the main MCP server path
+        String[] pathSegments = basePath.split("/");
+        if (pathSegments.length > 2) {
+            // Keep only the first two segments (empty + server-name)
+            basePath = "/" + pathSegments[1];
+        }
+
+        return basePath;
+    }
+
+    /**
+     * Extract the base path from a URI by removing the /message suffix and any sub-paths.
+     *
+     * @param uri The URI to extract base path from
+     * @return The base path
+     */
+    private String extractBasePath(final String uri, final String messageEndPoint) {
+        String basePath = uri;
+
+        // Remove /message suffix if present
+        if (basePath.endsWith(messageEndPoint)) {
+            basePath = basePath.substring(0, basePath.length() - messageEndPoint.length());
         }
 
         // For sub-paths, extract the main MCP server path
@@ -605,13 +595,6 @@ public class ShenyuMcpServerManager {
     }
 
     /**
-     * Get all registered server paths.
-     */
-    public Set<String> getRegisteredServerPaths() {
-        return new HashSet<>(sharedServerMap.keySet());
-    }
-
-    /**
      * Get supported protocols for a server path.
      *
      * @param serverPath The server path
@@ -634,40 +617,6 @@ public class ShenyuMcpServerManager {
         return protocols.contains("SSE") && protocols.contains("Streamable HTTP");
     }
 
-    /**
-     * Get protocol statistics for all servers.
-     *
-     * @return Map of server path to supported protocols
-     */
-    public Map<String, Set<String>> getProtocolStatistics() {
-        Map<String, Set<String>> stats = new ConcurrentHashMap<>();
-        protocolMap.forEach((path, protocols) -> stats.put(path, new HashSet<>(protocols)));
-        return stats;
-    }
-
-    /**
-     * Get the shared server instance for a given path.
-     *
-     * @param serverPath the server path
-     * @return the shared McpAsyncServer instance, or null if not found
-     */
-    public McpAsyncServer getSharedServer(String serverPath) {
-        String normalizedPath = normalizeServerPath(serverPath);
-        return sharedServerMap.get(normalizedPath);
-    }
-
-    /**
-     * Get transport provider for a specific protocol and path.
-     *
-     * @param serverPath the server path
-     * @param protocol   the protocol name ("SSE" or "Streamable HTTP")
-     * @return the transport provider instance, or null if not found
-     */
-    public Object getTransportProvider(String serverPath, String protocol) {
-        String normalizedPath = normalizeServerPath(serverPath);
-        Map<String, Object> transports = transportProviderMap.get(normalizedPath);
-        return transports != null ? transports.get(protocol) : null;
-    }
 
     /**
      * Normalize the server path by removing protocol-specific suffixes.
@@ -691,198 +640,4 @@ public class ShenyuMcpServerManager {
         return normalizedPath;
     }
 
-    /**
-     * Gets comprehensive health status of all managed servers and transports.
-     *
-     * @return health status map
-     */
-    public Map<String, Object> getHealthStatus() {
-        Map<String, Object> healthStatus = new java.util.HashMap<>();
-
-        // Overall statistics
-        healthStatus.put("totalSharedServers", sharedServerMap.size());
-        healthStatus.put("totalSseTransports", sseTransportMap.size());
-        healthStatus.put("totalStreamableHttpTransports", streamableHttpTransportMap.size());
-        healthStatus.put("timestamp", System.currentTimeMillis());
-
-        // Per-server details
-        Map<String, Object> serverDetails = new java.util.HashMap<>();
-        for (Map.Entry<String, McpAsyncServer> entry : sharedServerMap.entrySet()) {
-            String path = entry.getKey();
-
-            Map<String, Object> serverStatus = new java.util.HashMap<>();
-            serverStatus.put("supportedProtocols", getSupportedProtocols(path));
-            serverStatus.put("supportsBothProtocols", supportsBothProtocols(path));
-
-            // Get transport status from composite provider
-            CompositeTransportProvider compositeTransport = compositeTransportMap.get(path);
-            if (compositeTransport != null) {
-                serverStatus.put("transportStatus", compositeTransport.getTransportStatus());
-            }
-
-            serverDetails.put(path, serverStatus);
-        }
-        healthStatus.put("serverDetails", serverDetails);
-
-        // Protocol distribution statistics
-        Map<String, Integer> protocolCounts = new java.util.HashMap<>();
-        protocolCounts.put("sseOnly", 0);
-        protocolCounts.put("streamableHttpOnly", 0);
-        protocolCounts.put("bothProtocols", 0);
-
-        for (String path : sharedServerMap.keySet()) {
-            Set<String> protocols = getSupportedProtocols(path);
-            if (protocols.contains("SSE") && protocols.contains("Streamable HTTP")) {
-                protocolCounts.put("bothProtocols", protocolCounts.get("bothProtocols") + 1);
-            } else if (protocols.contains("SSE")) {
-                protocolCounts.put("sseOnly", protocolCounts.get("sseOnly") + 1);
-            } else if (protocols.contains("Streamable HTTP")) {
-                protocolCounts.put("streamableHttpOnly", protocolCounts.get("streamableHttpOnly") + 1);
-            }
-        }
-        healthStatus.put("protocolDistribution", protocolCounts);
-
-        return healthStatus;
-    }
-
-    /**
-     * Performs health check on a specific server path.
-     *
-     * @param serverPath the server path to check
-     * @return health check result
-     */
-    public Map<String, Object> checkServerHealth(String serverPath) {
-        String normalizedPath = normalizeServerPath(serverPath);
-        Map<String, Object> health = new java.util.HashMap<>();
-
-        health.put("serverPath", normalizedPath);
-        health.put("exists", sharedServerMap.containsKey(normalizedPath));
-
-        if (sharedServerMap.containsKey(normalizedPath)) {
-            health.put("supportedProtocols", getSupportedProtocols(normalizedPath));
-            health.put("supportsBothProtocols", supportsBothProtocols(normalizedPath));
-
-            // Check composite transport health
-            CompositeTransportProvider compositeTransport = compositeTransportMap.get(normalizedPath);
-            if (compositeTransport != null) {
-                health.put("transportStatus", compositeTransport.getTransportStatus());
-                health.put("healthy", true);
-            } else {
-                health.put("healthy", false);
-                health.put("error", "Composite transport provider not found");
-            }
-        } else {
-            health.put("healthy", false);
-            health.put("error", "Server not found");
-        }
-
-        return health;
-    }
-
-    /**
-     * Gets session statistics across all servers and protocols.
-     *
-     * @return session statistics map
-     */
-    public Map<String, Object> getSessionStatistics() {
-        Map<String, Object> stats = new java.util.HashMap<>();
-
-        int totalSessions = 0;
-        Map<String, Map<String, Integer>> sessionsByServerAndProtocol = new java.util.HashMap<>();
-
-        for (Map.Entry<String, CompositeTransportProvider> entry : compositeTransportMap.entrySet()) {
-            String serverPath = entry.getKey();
-            CompositeTransportProvider compositeTransport = entry.getValue();
-
-            Map<String, Integer> protocolSessions = new java.util.HashMap<>();
-            for (String protocol : compositeTransport.getSupportedProtocols()) {
-                int sessionCount = compositeTransport.getActiveSessionCount(protocol);
-                protocolSessions.put(protocol, sessionCount);
-                totalSessions += sessionCount;
-            }
-
-            sessionsByServerAndProtocol.put(serverPath, protocolSessions);
-        }
-
-        stats.put("totalActiveSessions", totalSessions);
-        stats.put("sessionsByServerAndProtocol", sessionsByServerAndProtocol);
-        stats.put("timestamp", System.currentTimeMillis());
-
-        return stats;
-    }
-
-    /**
-     * Validates the consistency of the shared server architecture.
-     * <p>
-     * This method checks for potential inconsistencies that could indicate
-     * problems with the shared server implementation.
-     * </p>
-     *
-     * @return validation result with any detected issues
-     */
-    public Map<String, Object> validateArchitectureConsistency() {
-        Map<String, Object> validation = new java.util.HashMap<>();
-        java.util.List<String> issues = new java.util.ArrayList<>();
-        java.util.List<String> warnings = new java.util.ArrayList<>();
-
-        // Check if every shared server has a corresponding composite transport
-        for (String serverPath : sharedServerMap.keySet()) {
-            if (!compositeTransportMap.containsKey(serverPath)) {
-                issues.add("Shared server at path '" + serverPath + "' missing composite transport");
-            }
-        }
-
-        // Check if every composite transport has a corresponding shared server
-        for (String serverPath : compositeTransportMap.keySet()) {
-            if (!sharedServerMap.containsKey(serverPath)) {
-                issues.add("Composite transport at path '" + serverPath + "' missing shared server");
-            }
-        }
-
-        // Check transport provider mapping consistency
-        for (Map.Entry<String, Map<String, Object>> entry : transportProviderMap.entrySet()) {
-            String serverPath = entry.getKey();
-            Map<String, Object> transports = entry.getValue();
-
-            // Check if SSE transport is properly mapped
-            if (transports.containsKey("SSE") && !sseTransportMap.containsKey(serverPath)) {
-                warnings.add("SSE transport provider mapping inconsistent for path: " + serverPath);
-            }
-
-            // Check if Streamable HTTP transport is properly mapped
-            if (transports.containsKey("Streamable HTTP") && !streamableHttpTransportMap.containsKey(serverPath)) {
-                warnings.add("Streamable HTTP transport provider mapping inconsistent for path: " + serverPath);
-            }
-        }
-
-        // Check protocol tracking consistency
-        for (Map.Entry<String, Set<String>> entry : protocolMap.entrySet()) {
-            String serverPath = entry.getKey();
-            Set<String> protocols = entry.getValue();
-
-            if (!transportProviderMap.containsKey(serverPath)) {
-                issues.add("Protocol tracking exists but no transport providers for path: " + serverPath);
-            } else {
-                Set<String> actualProtocols = transportProviderMap.get(serverPath).keySet();
-                if (!protocols.equals(actualProtocols)) {
-                    warnings.add("Protocol tracking mismatch for path '" + serverPath +
-                            "' - tracked: " + protocols + ", actual: " + actualProtocols);
-                }
-            }
-        }
-
-        validation.put("isValid", issues.isEmpty());
-        validation.put("issues", issues);
-        validation.put("warnings", warnings);
-        validation.put("checkedAt", System.currentTimeMillis());
-
-        if (!issues.isEmpty()) {
-            LOG.error("Architecture consistency issues detected: {}", issues);
-        }
-        if (!warnings.isEmpty()) {
-            LOG.warn("Architecture consistency warnings: {}", warnings);
-        }
-
-        return validation;
-    }
 }
