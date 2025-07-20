@@ -1,0 +1,151 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.plugin.ai.proxy.enhanced;
+
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * AI proxy plugin.
+ * This plugin is used to proxy requests to AI services.
+ */
+public class AiProxyPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AiProxyPlugin.class);
+
+    private final AiModelFactoryRegistry aiModelFactoryRegistry;
+
+    private final AiProxyConfigService aiProxyConfigService;
+
+    private final AiProxyExecutorService aiProxyExecutorService;
+
+    private final ChatClientCache chatClientCache;
+
+    private final AiProxyPluginHandler aiProxyPluginHandler;
+
+    public AiProxyPlugin(final AiModelFactoryRegistry aiModelFactoryRegistry,
+                         final AiProxyConfigService aiProxyConfigService,
+                         final AiProxyExecutorService aiProxyExecutorService,
+                         final ChatClientCache chatClientCache,
+                         final AiProxyPluginHandler aiProxyPluginHandler) {
+        this.aiModelFactoryRegistry = aiModelFactoryRegistry;
+        this.aiProxyConfigService = aiProxyConfigService;
+        this.aiProxyExecutorService = aiProxyExecutorService;
+        this.chatClientCache = chatClientCache;
+        this.aiProxyPluginHandler = aiProxyPluginHandler;
+    }
+
+    @Override
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
+        final AiProxyHandle selectorHandle = aiProxyPluginHandler.getSelectorCachedHandle()
+                .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+
+        return DataBufferUtils.join(exchange.getRequest().getBody())
+                .flatMap(dataBuffer -> {
+                    final String requestBody = dataBuffer.toString(StandardCharsets.UTF_8);
+                    DataBufferUtils.release(dataBuffer);
+
+                    final AiCommonConfig primaryConfig = aiProxyConfigService.resolvePrimaryConfig(selectorHandle);
+                    final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
+
+                    // Determine fallback strategy: dynamic first, then admin-configured.
+                    Optional<ChatClient> fallbackClient = aiProxyConfigService
+                            .resolveDynamicFallbackConfig(primaryConfig, requestBody)
+                            .map(this::createDynamicFallbackClient)
+                            .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(primaryConfig, selectorHandle)
+                                    .map(adminFallbackConfig -> createAdminFallbackClient(selector.getId(), adminFallbackConfig)));
+
+                    return aiProxyExecutorService.execute(mainClient, fallbackClient, requestBody)
+                        .flatMap(response -> {
+                            byte[] jsonBytes = JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
+                            return WebFluxResultUtils.result(exchange, jsonBytes);
+                        });
+                });
+    }
+
+    private ChatClient createMainChatClient(final String selectorId, final AiCommonConfig config) {
+        return chatClientCache.computeIfAbsent(selectorId,
+                () -> {
+                    LOG.info("Creating and caching main model for selector: {}", selectorId);
+                    return createChatModel(config);
+                });
+    }
+
+    private ChatClient createAdminFallbackClient(final String selectorId, final AiCommonConfig fallbackConfig) {
+        final String fallbackCacheKey = selectorId + ":fallback";
+        return chatClientCache.computeIfAbsent(fallbackCacheKey, () -> {
+            LOG.info("Creating and caching admin fallback model for selector: {}", selectorId);
+            return createChatModel(fallbackConfig);
+        });
+    }
+
+    private ChatClient createDynamicFallbackClient(final AiCommonConfig fallbackConfig) {
+        LOG.info("Creating non-cached dynamic fallback model.");
+        return ChatClient.builder(createChatModel(fallbackConfig)).build();
+    }
+
+    private ChatModel createChatModel(final AiCommonConfig config) {
+        final AiModelProviderEnum provider = AiModelProviderEnum.getByName(config.getProvider());
+        if (Objects.isNull(provider)) {
+            throw new IllegalArgumentException("Invalid AI model provider in config: " + config.getProvider());
+        }
+        final var factory = aiModelFactoryRegistry.getFactory(provider);
+        if (Objects.isNull(factory)) {
+            throw new IllegalArgumentException("AI model factory not found for provider: " + provider.getName());
+        }
+        return Objects.requireNonNull(factory.createAiModel(config),
+                "The AI model created by the factory must not be null");
+    }
+
+    @Override
+    public int getOrder() {
+        return PluginEnum.AI_PROXY.getCode();
+    }
+
+    @Override
+    public String named() {
+        return PluginEnum.AI_PROXY.getName();
+    }
+}
