@@ -58,6 +58,13 @@ public class ShenyuMcpServerManager {
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpServerManager.class);
 
     /**
+     * Protocol names for transport identification.
+     */
+    private static final String SSE_PROTOCOL = "SSE";
+
+    private static final String STREAMABLE_HTTP_PROTOCOL = "Streamable HTTP";
+
+    /**
      * AntPathMatcher for pattern matching.
      */
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -67,22 +74,6 @@ public class ShenyuMcpServerManager {
      * Key: normalized server path, Value: shared McpAsyncServer instance
      */
     private final Map<String, McpAsyncServer> sharedServerMap = new ConcurrentHashMap<>();
-
-    /**
-     * Map to store normalized path to supported transport providers.
-     * Key: normalized server path, Value: Map of protocol name -> transport provider
-     */
-    private final Map<String, Map<String, Object>> transportProviderMap = new ConcurrentHashMap<>();
-
-    /**
-     * Map to store URI to SSE transport provider mapping.
-     */
-    private final Map<String, ShenyuSseServerTransportProvider> sseTransportMap = new ConcurrentHashMap<>();
-
-    /**
-     * Map to store URI to Streamable HTTP transport provider mapping.
-     */
-    private final Map<String, ShenyuStreamableHttpServerTransportProvider> streamableHttpTransportMap = new ConcurrentHashMap<>();
 
     /**
      * Map to store route handlers for different endpoints.
@@ -108,22 +99,17 @@ public class ShenyuMcpServerManager {
      */
     public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri, final String messageEndPoint) {
         String normalizedPath = normalizeServerPath(extractBasePath(uri));
-        // First try exact match
-        ShenyuSseServerTransportProvider transport = sseTransportMap.get(uri);
-        if (Objects.nonNull(transport)) {
-            return transport;
-        }
-
-        // Then try to find existing transport that matches the pattern
-        String basePath = extractBasePath(uri, messageEndPoint);
-        transport = sseTransportMap.get(basePath);
+        
+        // Get or create composite transport provider
+        CompositeTransportProvider compositeTransport = getOrCreateCompositeTransport(normalizedPath);
+        
+        // Check if SSE transport already exists
+        ShenyuSseServerTransportProvider transport = compositeTransport.getSseTransport();
         if (Objects.isNull(transport)) {
             transport = createSseTransport(normalizedPath, messageEndPoint);
-            sseTransportMap.put(normalizedPath, transport);
-            // Add to shared server infrastructure
-            addTransportToSharedServer(normalizedPath, "SSE", transport);
+            addTransportToSharedServer(normalizedPath, SSE_PROTOCOL, transport);
         }
-        // Create new transport for the base path
+        
         return transport;
     }
 
@@ -136,17 +122,30 @@ public class ShenyuMcpServerManager {
     public ShenyuStreamableHttpServerTransportProvider getOrCreateStreamableHttpTransport(final String uri) {
         String normalizedPath = normalizeServerPath(extractBasePath(uri));
 
-        // Get or create Streamable HTTP transport
-        ShenyuStreamableHttpServerTransportProvider streamableTransport = streamableHttpTransportMap.get(normalizedPath);
+        // Get or create composite transport provider
+        CompositeTransportProvider compositeTransport = getOrCreateCompositeTransport(normalizedPath);
+        
+        // Check if Streamable HTTP transport already exists
+        ShenyuStreamableHttpServerTransportProvider streamableTransport = compositeTransport.getStreamableHttpTransport();
         if (Objects.isNull(streamableTransport)) {
             streamableTransport = createStreamableHttpTransport(normalizedPath, uri);
-            streamableHttpTransportMap.put(normalizedPath, streamableTransport);
-
-            // Add to shared server infrastructure
-            addTransportToSharedServer(normalizedPath, "Streamable HTTP", streamableTransport);
+            addTransportToSharedServer(normalizedPath, STREAMABLE_HTTP_PROTOCOL, streamableTransport);
         }
 
         return streamableTransport;
+    }
+
+    /**
+     * Gets or creates a composite transport provider for the given normalized path.
+     *
+     * @param normalizedPath the normalized server path
+     * @return the composite transport provider
+     */
+    private CompositeTransportProvider getOrCreateCompositeTransport(final String normalizedPath) {
+        return compositeTransportMap.computeIfAbsent(normalizedPath, path -> {
+            LOG.debug("Creating composite transport provider for path: {}", path);
+            return new CompositeTransportProvider();
+        });
     }
 
     /**
@@ -169,9 +168,6 @@ public class ShenyuMcpServerManager {
         // Track protocol support
         protocolMap.computeIfAbsent(normalizedPath, k -> Collections.synchronizedSet(new HashSet<>())).add(protocol);
 
-        // Store transport provider reference
-        transportProviderMap.computeIfAbsent(normalizedPath, k -> new ConcurrentHashMap<>()).put(protocol, transportProvider);
-
         LOG.info("Added {} transport to shared server at path: {}", protocol, normalizedPath);
     }
 
@@ -185,9 +181,8 @@ public class ShenyuMcpServerManager {
         return sharedServerMap.computeIfAbsent(normalizedPath, path -> {
             LOG.info("Creating shared MCP server for path: {}", path);
 
-            // Create composite transport provider
-            CompositeTransportProvider compositeTransport = new CompositeTransportProvider();
-            compositeTransportMap.put(path, compositeTransport);
+            // Get or create composite transport provider
+            CompositeTransportProvider compositeTransport = getOrCreateCompositeTransport(path);
 
             // Configure server capabilities
             var capabilities = McpSchema.ServerCapabilities.builder()
@@ -272,30 +267,6 @@ public class ShenyuMcpServerManager {
     }
 
     /**
-     * Extract the base path from a URI by removing the /message suffix and any sub-paths.
-     *
-     * @param uri The URI to extract base path from
-     * @return The base path
-     */
-    private String extractBasePath(final String uri, final String messageEndPoint) {
-        String basePath = uri;
-
-        // Remove /message suffix if present
-        if (basePath.endsWith(messageEndPoint)) {
-            basePath = basePath.substring(0, basePath.length() - messageEndPoint.length());
-        }
-
-        // For sub-paths, extract the main MCP server path
-        String[] pathSegments = basePath.split("/");
-        if (pathSegments.length > 2) {
-            // Keep only the first two segments (empty + server-name)
-            basePath = "/" + pathSegments[1];
-        }
-
-        return basePath;
-    }
-
-    /**
      * Check if a McpServer exists for the given URI.
      *
      * @param uri The URI to check
@@ -347,26 +318,12 @@ public class ShenyuMcpServerManager {
                     .subscribe();
         }
 
-        // Remove individual transports
-        ShenyuSseServerTransportProvider sseTransport = sseTransportMap.remove(normalizedPath);
-        if (Objects.nonNull(sseTransport)) {
-            sseTransport.closeGracefully().subscribe();
-        }
-
-        ShenyuStreamableHttpServerTransportProvider streamableTransport = streamableHttpTransportMap.remove(normalizedPath);
-        if (Objects.nonNull(streamableTransport)) {
-            streamableTransport.closeGracefully().subscribe();
-        }
-
         // Remove server and tracking
         sharedServerMap.remove(normalizedPath);
-        transportProviderMap.remove(normalizedPath);
         protocolMap.remove(normalizedPath);
 
         // Clean up routes - this is tricky as we need to remove all related routes
-        routeMap.entrySet().removeIf(entry -> {
-            return entry.getKey().startsWith(Objects.requireNonNull(normalizedPath)) || entry.getKey().startsWith(uri);
-        });
+        routeMap.entrySet().removeIf(entry -> entry.getKey().startsWith(Objects.requireNonNull(normalizedPath)) || entry.getKey().startsWith(uri));
 
         LOG.info("Removed MCP server for path: {}", normalizedPath);
     }
@@ -483,7 +440,8 @@ public class ShenyuMcpServerManager {
 
     /**
      * Composite transport provider that delegates to multiple transport implementations.
-          * Enhanced with protocol-aware session management and improved error handling.
+     * Enhanced with protocol-aware session management and improved error handling.
+     * Provides unified access to different transport protocols.
      */
     private static class CompositeTransportProvider implements io.modelcontextprotocol.spec.McpServerTransportProvider {
 
@@ -504,6 +462,28 @@ public class ShenyuMcpServerManager {
             }
 
             LOG.debug("Added transport '{}' to composite provider", protocol);
+        }
+
+        /**
+         * Gets the SSE transport provider.
+         *
+         * @return the SSE transport provider, or null if not available
+         */
+        public ShenyuSseServerTransportProvider getSseTransport() {
+            Object transport = transports.get(SSE_PROTOCOL);
+            return transport instanceof ShenyuSseServerTransportProvider 
+                ? (ShenyuSseServerTransportProvider) transport : null;
+        }
+
+        /**
+         * Gets the Streamable HTTP transport provider.
+         *
+         * @return the Streamable HTTP transport provider, or null if not available
+         */
+        public ShenyuStreamableHttpServerTransportProvider getStreamableHttpTransport() {
+            Object transport = transports.get(STREAMABLE_HTTP_PROTOCOL);
+            return transport instanceof ShenyuStreamableHttpServerTransportProvider 
+                ? (ShenyuStreamableHttpServerTransportProvider) transport : null;
         }
 
         @Override
