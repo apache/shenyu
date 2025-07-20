@@ -58,9 +58,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tool Callback Implementation for Shenyu Gateway MCP Integration.
  * 
- * Handles tool invocations within the MCP framework, enabling AI models to interact
+ * <p>Handles tool invocations within the MCP framework, enabling AI models to interact
  * with Shenyu Gateway services through defined tools. Requires pre-established session
- * context and ServerWebExchange correlation.
+ * context and ServerWebExchange correlation.</p>
  *
  * @see ToolCallback
  * @see ToolDefinition
@@ -255,9 +255,8 @@ public class ShenyuToolCallback implements ToolCallback {
 
     /**
      * Builds a decorated ServerWebExchange for tool execution.
-     * 
-     * Creates a new exchange with modified request (method, path, headers, body),
-     * response decorator based on protocol type, and updated Shenyu context and metadata.
+     * <p>Creates a new exchange with modified request (method, path, headers, body),
+     * response decorator based on protocol type, and updated Shenyu context and metadata.</p>
      *
      * @param originExchange the original exchange
      * @param responseFuture the future for capturing response
@@ -673,7 +672,7 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private ServerWebExchange getOriginExchange(final String sessionId) {
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
-        if (exchange != null) {
+        if (Objects.nonNull(exchange)) {
             LOG.debug("Found existing exchange for session: {}", sessionId);
             return exchange;
         }

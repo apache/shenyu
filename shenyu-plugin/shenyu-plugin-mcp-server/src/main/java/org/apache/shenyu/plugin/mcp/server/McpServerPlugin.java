@@ -50,8 +50,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * MCP (Model Context Protocol) Server Plugin for Shenyu Gateway.
  *
- * Provides MCP server functionality supporting both SSE and Streamable HTTP transport protocols.
- * Enables AI models to interact with Shenyu Gateway services through standardized MCP tool definitions.
+ * <p>Provides MCP server functionality supporting both SSE and Streamable HTTP transport protocols.
+ * Enables AI models to interact with Shenyu Gateway services through standardized MCP tool definitions.</p>
  *
  * @see org.apache.shenyu.plugin.base.AbstractShenyuPlugin
  * @see org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager
@@ -95,7 +95,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * Session ID header names (in order of preference).
      */
     private static final String[] SESSION_ID_HEADERS = {
-            "X-Session-Id", "Mcp-Session-Id"
+            "X-Session-Id", "Mcp-Session-Id",
     };
 
     /**
@@ -109,6 +109,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final ShenyuMcpServerManager shenyuMcpServerManager;
+
     private final List<HttpMessageReader<?>> messageReaders;
 
     /**
@@ -205,15 +206,13 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
 
     /**
      * Extracts session ID from request parameters or headers.
-     * <p>
-     * Searches in the following order:
+          * Searches in the following order:
      * <ol>
      *   <li>Query parameter "sessionId"</li>
      *   <li>Header "X-Session-Id"</li>
      *   <li>Header "Mcp-Session-Id"</li>
      *   <li>Authorization header (Bearer token)</li>
      * </ol>
-     * </p>
      *
      * @param exchange the ServerWebExchange containing the request
      * @return the sessionId if found, null otherwise
@@ -319,7 +318,6 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         ShenyuSseServerTransportProvider transportProvider
                 = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
 
-
         if (uri.endsWith(messageEndpoint)) {
             setupSessionContext(exchange, chain);
             return handleMessageEndpoint(exchange, transportProvider, request);
@@ -346,10 +344,8 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
 
     /**
      * Processes Streamable HTTP unified endpoint requests.
-     * <p>
-     * Handles both GET (stream establishment) and POST (message processing) requests
+          * Handles both GET (stream establishment) and POST (message processing) requests
      * according to the Streamable HTTP protocol specification.
-     * </p>
      *
      * @param exchange          the server web exchange
      * @param transportProvider the Streamable HTTP transport provider
@@ -510,7 +506,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                         .createSseFlux(request)
                         .doOnNext(event -> {
                             String eventType = event.event();
-                            LOG.debug("SSE Event - Type: {}", eventType != null ? eventType : "data");
+                            LOG.debug("SSE Event - Type: {}", Objects.isNull(eventType) ? "data" : eventType);
                         })
                         .map(event -> SseEventFormatter.formatEvent(event, exchange))
                         .doOnSubscribe(subscription -> LOG.debug("SSE stream subscribed"))
@@ -549,7 +545,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                 .flatMap(result -> {
                     LOG.debug("Message handling result - Status: {}, Body length: {} chars",
                             result.getStatusCode(),
-                            result.getResponseBody() != null ? result.getResponseBody().length() : 0);
+                            Objects.nonNull(result.getResponseBody()) ? result.getResponseBody().length() : 0);
 
                     // Configure response
                     exchange.getResponse().setStatusCode(HttpStatus.valueOf(result.getStatusCode()));

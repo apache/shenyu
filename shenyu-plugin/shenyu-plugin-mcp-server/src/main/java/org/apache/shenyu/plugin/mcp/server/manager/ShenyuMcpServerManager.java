@@ -46,9 +46,9 @@ import java.util.Collections;
 /**
  * Enhanced Manager for MCP servers supporting shared server instances across multiple transport protocols.
  * 
- * This manager implements a unified architecture where SSE and Streamable HTTP protocols share
+ * <p>This manager implements a unified architecture where SSE and Streamable HTTP protocols share
  * the same McpAsyncServer instance per path, with shared tool sets and capabilities.
- * Provides centralized server and tool management with protocol-specific transport layers.
+ * Provides centralized server and tool management with protocol-specific transport layers.</p>
  *
  * @since 2.7.0.2
  */
@@ -95,147 +95,6 @@ public class ShenyuMcpServerManager {
     private final Map<String, Set<String>> protocolMap = new ConcurrentHashMap<>();
 
     /**
-     * Composite transport provider that delegates to multiple transport implementations.
-     * <p>
-     * Enhanced with protocol-aware session management and improved error handling.
-     * </p>
-     */
-    private static class CompositeTransportProvider implements io.modelcontextprotocol.spec.McpServerTransportProvider {
-
-        private final Map<String, Object> transports = new ConcurrentHashMap<>();
-        private volatile McpServerSession.Factory sessionFactory;
-
-        // Track active sessions per protocol for isolation
-        private final Map<String, Set<String>> protocolSessions = new ConcurrentHashMap<>();
-
-        public void addTransport(String protocol, Object transportProvider) {
-            transports.put(protocol, transportProvider);
-            protocolSessions.put(protocol, Collections.synchronizedSet(new HashSet<>()));
-
-            // Set session factory on the new transport if available
-            if (sessionFactory != null && transportProvider instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
-                ((io.modelcontextprotocol.spec.McpServerTransportProvider) transportProvider).setSessionFactory(sessionFactory);
-            }
-
-            LOG.debug("Added transport '{}' to composite provider", protocol);
-        }
-
-        public Set<String> getSupportedProtocols() {
-            return new HashSet<>(transports.keySet());
-        }
-
-        /**
-         * Gets active session count for a specific protocol.
-         *
-         * @param protocol the protocol name
-         * @return the number of active sessions
-         */
-        public int getActiveSessionCount(String protocol) {
-            Set<String> sessions = protocolSessions.get(protocol);
-            return sessions != null ? sessions.size() : 0;
-        }
-
-        @Override
-        public void setSessionFactory(McpServerSession.Factory sessionFactory) {
-            this.sessionFactory = sessionFactory;
-            // Set session factory on all existing transports atomically
-            synchronized (transports) {
-                for (Object transport : transports.values()) {
-                    if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
-                        try {
-                            ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport).setSessionFactory(sessionFactory);
-                        } catch (Exception e) {
-                            LOG.error("Failed to set session factory on transport: {}", transport.getClass().getSimpleName(), e);
-                        }
-                    }
-                }
-            }
-            LOG.debug("Session factory set on composite transport with {} transports", transports.size());
-        }
-
-        @Override
-        public reactor.core.publisher.Mono<Void> notifyClients(String method, Object params) {
-            if (transports.isEmpty()) {
-                LOG.debug("No transports available for client notification");
-                return reactor.core.publisher.Mono.empty();
-            }
-
-            LOG.debug("Broadcasting notification '{}' to {} transports", method, transports.size());
-
-            return reactor.core.publisher.Flux.fromIterable(transports.entrySet())
-                    .flatMap(entry -> {
-                        String protocol = entry.getKey();
-                        Object transport = entry.getValue();
-
-                        if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
-                            return ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport)
-                                    .notifyClients(method, params)
-                                    .doOnSuccess(aVoid -> LOG.debug("Successfully notified {} clients", protocol))
-                                    .doOnError(e -> LOG.warn("Failed to notify {} clients: {}", protocol, e.getMessage()))
-                                    .onErrorComplete(); // Continue with other transports even if one fails
-                        } else {
-                            LOG.warn("Transport '{}' does not implement McpServerTransportProvider", protocol);
-                            return reactor.core.publisher.Mono.empty();
-                        }
-                    })
-                    .then()
-                    .doOnSuccess(aVoid -> LOG.debug("Client notification broadcast completed"));
-        }
-
-        @Override
-        public reactor.core.publisher.Mono<Void> closeGracefully() {
-            if (transports.isEmpty()) {
-                return reactor.core.publisher.Mono.empty();
-            }
-
-            LOG.info("Initiating graceful shutdown of {} transports", transports.size());
-
-            return reactor.core.publisher.Flux.fromIterable(transports.entrySet())
-                    .flatMap(entry -> {
-                        String protocol = entry.getKey();
-                        Object transport = entry.getValue();
-
-                        if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
-                            return ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport)
-                                    .closeGracefully()
-                                    .doOnSuccess(aVoid -> LOG.info("Successfully closed {} transport", protocol))
-                                    .doOnError(e -> LOG.error("Error closing {} transport: {}", protocol, e.getMessage()))
-                                    .onErrorComplete(); // Don't fail entire shutdown if one transport fails
-                        } else {
-                            LOG.warn("Transport '{}' does not implement graceful shutdown", protocol);
-                            return reactor.core.publisher.Mono.empty();
-                        }
-                    })
-                    .then()
-                    .doOnSuccess(aVoid -> {
-                        // Clear all tracking data after successful shutdown
-                        transports.clear();
-                        protocolSessions.clear();
-                        LOG.info("Graceful shutdown completed - all transports and sessions cleared");
-                    });
-        }
-
-        /**
-         * Gets comprehensive status of all transports.
-         *
-         * @return status map with protocol statistics
-         */
-        public Map<String, Object> getTransportStatus() {
-            Map<String, Object> status = new java.util.HashMap<>();
-            status.put("totalTransports", transports.size());
-            status.put("supportedProtocols", getSupportedProtocols());
-
-            Map<String, Integer> sessionCounts = new java.util.HashMap<>();
-            for (String protocol : transports.keySet()) {
-                sessionCounts.put(protocol, getActiveSessionCount(protocol));
-            }
-            status.put("activeSessionsByProtocol", sessionCounts);
-
-            return status;
-        }
-    }
-
-    /**
      * Map to store composite transport providers for shared servers.
      */
     private final Map<String, CompositeTransportProvider> compositeTransportMap = new ConcurrentHashMap<>();
@@ -244,6 +103,7 @@ public class ShenyuMcpServerManager {
      * Get or create a shared MCP server for the given path, supporting multiple transport protocols.
      *
      * @param uri The URI to create or get a server for
+     * @param messageEndPoint The message endpoint path
      * @return The SSE transport provider for the URI
      */
     public ShenyuSseServerTransportProvider getOrCreateMcpServerTransport(final String uri, final String messageEndPoint) {
@@ -257,7 +117,7 @@ public class ShenyuMcpServerManager {
         // Then try to find existing transport that matches the pattern
         String basePath = extractBasePath(uri, messageEndPoint);
         transport = sseTransportMap.get(basePath);
-        if (transport == null) {
+        if (Objects.isNull(transport)) {
             transport = createSseTransport(normalizedPath, messageEndPoint);
             sseTransportMap.put(normalizedPath, transport);
             // Add to shared server infrastructure
@@ -278,7 +138,7 @@ public class ShenyuMcpServerManager {
 
         // Get or create Streamable HTTP transport
         ShenyuStreamableHttpServerTransportProvider streamableTransport = streamableHttpTransportMap.get(normalizedPath);
-        if (streamableTransport == null) {
+        if (Objects.isNull(streamableTransport)) {
             streamableTransport = createStreamableHttpTransport(normalizedPath, uri);
             streamableHttpTransportMap.put(normalizedPath, streamableTransport);
 
@@ -296,13 +156,13 @@ public class ShenyuMcpServerManager {
      * @param protocol          the protocol name
      * @param transportProvider the transport provider instance
      */
-    private void addTransportToSharedServer(String normalizedPath, String protocol, Object transportProvider) {
+    private void addTransportToSharedServer(final String normalizedPath, final String protocol, final Object transportProvider) {
         // Get or create shared server
-        McpAsyncServer sharedServer = getOrCreateSharedServer(normalizedPath);
+        getOrCreateSharedServer(normalizedPath);
 
         // Add transport to composite provider
         CompositeTransportProvider compositeTransport = compositeTransportMap.get(normalizedPath);
-        if (compositeTransport != null) {
+        if (Objects.nonNull(compositeTransport)) {
             compositeTransport.addTransport(protocol, transportProvider);
         }
 
@@ -321,7 +181,7 @@ public class ShenyuMcpServerManager {
      * @param normalizedPath the normalized server path
      * @return the shared McpAsyncServer instance
      */
-    private McpAsyncServer getOrCreateSharedServer(String normalizedPath) {
+    private McpAsyncServer getOrCreateSharedServer(final String normalizedPath) {
         return sharedServerMap.computeIfAbsent(normalizedPath, path -> {
             LOG.info("Creating shared MCP server for path: {}", path);
 
@@ -351,7 +211,7 @@ public class ShenyuMcpServerManager {
     /**
      * Creates SSE transport provider.
      */
-    private ShenyuSseServerTransportProvider createSseTransport(String normalizedPath, final String messageEndPoint) {
+    private ShenyuSseServerTransportProvider createSseTransport(final String normalizedPath, final String messageEndPoint) {
         String messageEndpoint = normalizedPath + messageEndPoint;
         ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
                 .objectMapper(new ObjectMapper())
@@ -372,10 +232,11 @@ public class ShenyuMcpServerManager {
     /**
      * Creates Streamable HTTP transport provider.
      */
-    private ShenyuStreamableHttpServerTransportProvider createStreamableHttpTransport(String normalizedPath, String originalUri) {
+    private ShenyuStreamableHttpServerTransportProvider createStreamableHttpTransport(final String normalizedPath, final String originalUri) {
         ShenyuStreamableHttpServerTransportProvider transportProvider = ShenyuStreamableHttpServerTransportProvider.builder()
                 .objectMapper(new ObjectMapper())
-                .endpoint(originalUri)  // Keep original URI for routing
+                // Keep original URI for routing
+                .endpoint(originalUri)
                 .build();
 
         // Register routes for original URI
@@ -479,7 +340,7 @@ public class ShenyuMcpServerManager {
 
         // Close composite transport gracefully
         CompositeTransportProvider compositeTransport = compositeTransportMap.remove(normalizedPath);
-        if (compositeTransport != null) {
+        if (Objects.nonNull(compositeTransport)) {
             compositeTransport.closeGracefully()
                     .doOnSuccess(aVoid -> LOG.info("Successfully closed composite transport for path: {}", normalizedPath))
                     .doOnError(e -> LOG.error("Error closing composite transport for path: {}", normalizedPath, e))
@@ -488,12 +349,12 @@ public class ShenyuMcpServerManager {
 
         // Remove individual transports
         ShenyuSseServerTransportProvider sseTransport = sseTransportMap.remove(normalizedPath);
-        if (sseTransport != null) {
+        if (Objects.nonNull(sseTransport)) {
             sseTransport.closeGracefully().subscribe();
         }
 
         ShenyuStreamableHttpServerTransportProvider streamableTransport = streamableHttpTransportMap.remove(normalizedPath);
-        if (streamableTransport != null) {
+        if (Objects.nonNull(streamableTransport)) {
             streamableTransport.closeGracefully().subscribe();
         }
 
@@ -503,7 +364,9 @@ public class ShenyuMcpServerManager {
         protocolMap.remove(normalizedPath);
 
         // Clean up routes - this is tricky as we need to remove all related routes
-        routeMap.entrySet().removeIf(entry -> entry.getKey().startsWith(normalizedPath) || entry.getKey().startsWith(uri));
+        routeMap.entrySet().removeIf(entry -> {
+            return entry.getKey().startsWith(Objects.requireNonNull(normalizedPath)) || entry.getKey().startsWith(uri);
+        });
 
         LOG.info("Removed MCP server for path: {}", normalizedPath);
     }
@@ -541,7 +404,7 @@ public class ShenyuMcpServerManager {
 
         // Add tool to shared server (automatically available across all protocols)
         McpAsyncServer sharedServer = sharedServerMap.get(normalizedPath);
-        if (sharedServer != null) {
+        if (Objects.nonNull(sharedServer)) {
             try {
                 for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
                     sharedServer.addTool(asyncToolSpecification).block();
@@ -569,7 +432,7 @@ public class ShenyuMcpServerManager {
         LOG.debug("Removing tool from shared server - name: {}, path: {}", name, normalizedPath);
 
         McpAsyncServer sharedServer = sharedServerMap.get(normalizedPath);
-        if (sharedServer != null) {
+        if (Objects.nonNull(sharedServer)) {
             try {
                 sharedServer.removeTool(name).block();
 
@@ -590,23 +453,11 @@ public class ShenyuMcpServerManager {
      * @param serverPath The server path
      * @return Set of supported protocols
      */
-    public Set<String> getSupportedProtocols(String serverPath) {
+    public Set<String> getSupportedProtocols(final String serverPath) {
         String normalizedPath = normalizeServerPath(serverPath);
         Set<String> protocols = protocolMap.get(normalizedPath);
-        return protocols != null ? new HashSet<>(protocols) : new HashSet<>();
+        return Objects.nonNull(protocols) ? new HashSet<>(protocols) : new HashSet<>();
     }
-
-    /**
-     * Check if a server path supports both SSE and Streamable HTTP protocols.
-     *
-     * @param serverPath The server path
-     * @return true if both protocols are supported
-     */
-    public boolean supportsBothProtocols(String serverPath) {
-        Set<String> protocols = getSupportedProtocols(serverPath);
-        return protocols.contains("SSE") && protocols.contains("Streamable HTTP");
-    }
-
 
     /**
      * Normalize the server path by removing protocol-specific suffixes.
@@ -615,7 +466,7 @@ public class ShenyuMcpServerManager {
      * @return The normalized path for shared server usage
      */
     private String normalizeServerPath(final String path) {
-        if (path == null) {
+        if (Objects.isNull(path)) {
             return null;
         }
 
@@ -628,6 +479,114 @@ public class ShenyuMcpServerManager {
         }
 
         return normalizedPath;
+    }
+
+    /**
+     * Composite transport provider that delegates to multiple transport implementations.
+          * Enhanced with protocol-aware session management and improved error handling.
+     */
+    private static class CompositeTransportProvider implements io.modelcontextprotocol.spec.McpServerTransportProvider {
+
+        private final Map<String, Object> transports = new ConcurrentHashMap<>();
+
+        private volatile McpServerSession.Factory sessionFactory;
+
+        // Track active sessions per protocol for isolation
+        private final Map<String, Set<String>> protocolSessions = new ConcurrentHashMap<>();
+
+        public void addTransport(final String protocol, final Object transportProvider) {
+            transports.put(protocol, transportProvider);
+            protocolSessions.put(protocol, Collections.synchronizedSet(new HashSet<>()));
+
+            // Set session factory on the new transport if available
+            if (Objects.nonNull(sessionFactory) && transportProvider instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
+                ((io.modelcontextprotocol.spec.McpServerTransportProvider) transportProvider).setSessionFactory(sessionFactory);
+            }
+
+            LOG.debug("Added transport '{}' to composite provider", protocol);
+        }
+
+        @Override
+        public void setSessionFactory(final McpServerSession.Factory sessionFactory) {
+            this.sessionFactory = sessionFactory;
+            // Set session factory on all existing transports atomically
+            synchronized (transports) {
+                for (Object transport : transports.values()) {
+                    if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
+                        try {
+                            ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport).setSessionFactory(sessionFactory);
+                        } catch (Exception e) {
+                            LOG.error("Failed to set session factory on transport: {}", transport.getClass().getSimpleName(), e);
+                        }
+                    }
+                }
+            }
+            LOG.debug("Session factory set on composite transport with {} transports", transports.size());
+        }
+
+        @Override
+        public reactor.core.publisher.Mono<Void> notifyClients(final String method, final Object params) {
+            if (transports.isEmpty()) {
+                LOG.debug("No transports available for client notification");
+                return reactor.core.publisher.Mono.empty();
+            }
+
+            LOG.debug("Broadcasting notification '{}' to {} transports", method, transports.size());
+
+            return reactor.core.publisher.Flux.fromIterable(transports.entrySet())
+                    .flatMap(entry -> {
+                        String protocol = entry.getKey();
+                        Object transport = entry.getValue();
+
+                        if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
+                            return ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport)
+                                    .notifyClients(method, params)
+                                    .doOnSuccess(aVoid -> LOG.debug("Successfully notified {} clients", protocol))
+                                    .doOnError(e -> LOG.warn("Failed to notify {} clients: {}", protocol, e.getMessage()))
+                                    // Continue with other transports even if one fails
+                                    .onErrorComplete();
+                        } else {
+                            LOG.warn("Transport '{}' does not implement McpServerTransportProvider", protocol);
+                            return reactor.core.publisher.Mono.empty();
+                        }
+                    })
+                    .then()
+                    .doOnSuccess(aVoid -> LOG.debug("Client notification broadcast completed"));
+        }
+
+        @Override
+        public reactor.core.publisher.Mono<Void> closeGracefully() {
+            if (transports.isEmpty()) {
+                return reactor.core.publisher.Mono.empty();
+            }
+
+            LOG.info("Initiating graceful shutdown of {} transports", transports.size());
+
+            return reactor.core.publisher.Flux.fromIterable(transports.entrySet())
+                    .flatMap(entry -> {
+                        String protocol = entry.getKey();
+                        Object transport = entry.getValue();
+
+                        if (transport instanceof io.modelcontextprotocol.spec.McpServerTransportProvider) {
+                            return ((io.modelcontextprotocol.spec.McpServerTransportProvider) transport)
+                                    .closeGracefully()
+                                    .doOnSuccess(aVoid -> LOG.info("Successfully closed {} transport", protocol))
+                                    .doOnError(e -> LOG.error("Error closing {} transport: {}", protocol, e.getMessage()))
+                                    // Don't fail entire shutdown if one transport fails
+                                    .onErrorComplete();
+                        } else {
+                            LOG.warn("Transport '{}' does not implement graceful shutdown", protocol);
+                            return reactor.core.publisher.Mono.empty();
+                        }
+                    })
+                    .then()
+                    .doOnSuccess(aVoid -> {
+                        // Clear all tracking data after successful shutdown
+                        transports.clear();
+                        protocolSessions.clear();
+                        LOG.info("Graceful shutdown completed - all transports and sessions cleared");
+                    });
+        }
     }
 
 }

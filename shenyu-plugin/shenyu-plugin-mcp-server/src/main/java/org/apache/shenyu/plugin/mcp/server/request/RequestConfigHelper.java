@@ -98,18 +98,8 @@ public class RequestConfigHelper {
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
         // 首先检查输入值是否已经是一个完整的 URL
-        for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
-                try {
-                    String value = inputJson.get(key).getAsString();
-                    // 如果输入值已经是一个完整的 URL，直接返回
-                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
-                        return value;
-                    }
-                } catch (Exception ig){
-                    //ig
-                }
-            }
+        if (isCompleteUrl(argsPosition, inputJson)) {
+            return getCompleteUrl(argsPosition, inputJson);
         }
 
         StringBuilder queryBuilder = new StringBuilder();
@@ -120,6 +110,73 @@ public class RequestConfigHelper {
         String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
 
         // 处理新的查询参数
+        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder);
+
+        // 清理未替换的模板变量
+        basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
+
+        // 构建最终的 URL
+        return buildFinalPath(basePath, queryBuilder, hasExistingQuery, existingQuery);
+    }
+
+    /**
+     * Check if input contains a complete URL.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @return true if input contains a complete URL
+     */
+    private static boolean isCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
+        for (String key : argsPosition.keySet()) {
+            if (inputJson.has(key)) {
+                try {
+                    String value = inputJson.get(key).getAsString();
+                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                        return true;
+                    }
+                } catch (Exception exception) {
+                    // Ignore exception
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the complete URL from input.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @return the complete URL
+     */
+    private static String getCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
+        for (String key : argsPosition.keySet()) {
+            if (inputJson.has(key)) {
+                try {
+                    String value = inputJson.get(key).getAsString();
+                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                        return value;
+                    }
+                } catch (Exception exception) {
+                    // Ignore exception
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Process arguments for path and query parameters.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @param basePath the base path to modify
+     * @param queryBuilder the query builder to append to
+     * @return the modified base path
+     */
+    private static String processArguments(final JsonObject argsPosition, final JsonObject inputJson,
+                                       final String basePath, final StringBuilder queryBuilder) {
+        String modifiedBasePath = basePath;
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
             if ("path".equals(position) && inputJson.has(key)) {
@@ -129,10 +186,10 @@ public class RequestConfigHelper {
                     value = value.substring(0, value.indexOf("?"));
                 }
                 value = value.replace("\"", "").trim();
-                basePath = basePath.replace("{{." + key + "}}", value);
+                modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", value);
             } else if ("query".equals(position) && inputJson.has(key)) {
                 // 处理查询参数
-                if (!existingQuery.contains(key + "=")) {
+                if (!modifiedBasePath.contains(key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
                     }
@@ -145,11 +202,20 @@ public class RequestConfigHelper {
                 }
             }
         }
+        return modifiedBasePath;
+    }
 
-        // 清理未替换的模板变量
-        basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
-
-        // 构建最终的 URL
+    /**
+     * Build the final path with query parameters.
+     *
+     * @param basePath the base path
+     * @param queryBuilder the query builder
+     * @param hasExistingQuery whether there are existing query parameters
+     * @param existingQuery the existing query string
+     * @return the final path
+     */
+    private static String buildFinalPath(final String basePath, final StringBuilder queryBuilder,
+                                       final boolean hasExistingQuery, final String existingQuery) {
         StringBuilder finalPath = new StringBuilder(basePath);
 
         // 添加查询参数

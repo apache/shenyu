@@ -47,13 +47,13 @@ import java.util.function.Supplier;
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
 
-    private static final String DEFAULT_MESSAGE_ENDPOINT = "{\"messageEndpoint\":\"/message\"}";
+    public static final Supplier<CommonHandleCache<String, ShenyuMcpServer>> CACHED_SERVER = new BeanHolder<>(
+            CommonHandleCache::new);
 
     public static final Supplier<CommonHandleCache<String, ShenyuMcpServerTool>> CACHED_TOOL = new BeanHolder<>(
             CommonHandleCache::new);
 
-    public static final Supplier<CommonHandleCache<String, ShenyuMcpServer>> CACHED_SERVER = new BeanHolder<>(
-            CommonHandleCache::new);
+    private static final String DEFAULT_MESSAGE_ENDPOINT = "{\"messageEndpoint\":\"/message\"}";
 
     private static final String SLASH = "/";
 
@@ -85,7 +85,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
         String path = StringUtils.removeEnd(uri, SLASH);
         path = StringUtils.removeEnd(path, STAR);
-        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(selectorData.getHandle() == null ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
+        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(Objects.isNull(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),

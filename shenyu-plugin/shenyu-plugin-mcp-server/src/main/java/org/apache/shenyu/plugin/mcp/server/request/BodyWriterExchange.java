@@ -31,24 +31,23 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Flux;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Body Writer Exchange for MCP tool requests.
  * 
- * Decorates ServerWebExchange to properly handle request body writing for different content types.
- * Supports JSON, form-urlencoded, and multipart form data formats.
+ * <p>Decorates ServerWebExchange to properly handle request body writing for different content types.
+ * Supports JSON, form-urlencoded, and multipart form data formats.</p>
  *
  * @since 2.7.0.2
  */
 public class BodyWriterExchange extends ServerWebExchangeDecorator {
 
     private final String body;
+
     private final String contentType;
+
     private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
     public BodyWriterExchange(final ServerWebExchange delegate, final String body) {
@@ -57,12 +56,8 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         HttpHeaders headers = delegate.getRequest().getHeaders();
         this.contentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
 
-        // 使用 Shenyu 的标准方式创建 CachedBodyOutputMessage
-        HttpHeaders newHeaders = new HttpHeaders();
-        newHeaders.putAll(headers);
         this.cachedBodyOutputMessage = ResponseUtils.newCachedBodyOutputMessage(delegate);
 
-        // 使用 BodyInserter 正确地写入请求体
         initializeBody();
     }
 
@@ -70,7 +65,6 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         String bodyContent = getFormattedBody();
         BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(bodyContent);
 
-        // 使用 BodyInserter 写入内容，这样可以确保正确的 DataBuffer 管理
         bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext()).subscribe();
     }
 
@@ -99,7 +93,6 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
         return new ServerHttpRequestDecorator(super.getRequest()) {
             @Override
             public Flux<DataBuffer> getBody() {
-                // 直接返回 CachedBodyOutputMessage 的 body，它已经正确管理了 DataBuffer
                 return cachedBodyOutputMessage.getBody();
             }
 
@@ -109,8 +102,7 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
                 HttpHeaders newHeaders = new HttpHeaders();
                 newHeaders.putAll(originalHeaders);
 
-                // 更新 Content-Length 如果需要
-                if (body != null) {
+                if (Objects.nonNull(body)) {
                     byte[] bodyBytes = getFormattedBody().getBytes(StandardCharsets.UTF_8);
                     newHeaders.setContentLength(bodyBytes.length);
                 }
@@ -118,17 +110,5 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
                 return newHeaders;
             }
         };
-    }
-
-    // Optional: Helper method to convert Map<String, Object> to
-    // x-www-form-urlencoded string
-    public static String toFormUrlEncoded(final Map<String, Object> map) {
-        return map.entrySet().stream()
-                .map(e -> e.getKey() + "=" + urlEncode(e.getValue().toString()))
-                .collect(Collectors.joining("&"));
-    }
-
-    private static String urlEncode(final String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

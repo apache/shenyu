@@ -30,6 +30,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
 
 /**
  * Non-committing MCP response decorator for Streamable HTTP protocol.
@@ -48,10 +49,13 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
      * Template placeholder pattern for variable substitution.
      */
     private static final String PLACEHOLDER_PREFIX = "${";
+
     private static final String PLACEHOLDER_SUFFIX = "}";
 
     private final String sessionId;
+
     private final CompletableFuture<String> responseFuture;
+
     private final JsonObject responseTemplate;
 
     /**
@@ -100,8 +104,8 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Processes the collected response data buffers and completes the response future.
-     * 
-     * Aggregates all data buffers into a single response string, applies response template
+     *
+     * <p>Aggregates all data buffers into a single response string, applies response template
      * transformations if configured, and completes the response future with the processed result.
      *
      * @param dataBuffers the collected response data buffers
@@ -154,8 +158,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Processes response data by applying response template transformations.
-     * 
-     * If no response template is configured, returns the original response body unchanged.
+          * If no response template is configured, returns the original response body unchanged.
      * If a template is provided, attempts to parse the response as JSON and apply template
      * transformations including placeholder substitution.
      *
@@ -164,13 +167,13 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
      */
     private String processResponse(final String responseBody) {
         try {
-            if (responseTemplate == null || responseTemplate.size() == 0) {
+            if (Objects.isNull(responseTemplate) || responseTemplate.size() == 0) {
                 return responseBody;
             }
 
             // Attempt to parse response as JSON for template processing
             final JsonObject responseJson = parseResponseAsJson(responseBody);
-            if (responseJson == null) {
+            if (Objects.isNull(responseJson)) {
                 LOG.debug("Response is not valid JSON for session: {}, returning unchanged", sessionId);
                 return responseBody;
             }
@@ -245,15 +248,14 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Applies placeholder substitution to a text template using response data.
-     * 
-     * Supports simple placeholder format: ${fieldName}
+          * Supports simple placeholder format: ${fieldName}
      *
      * @param template     the text template containing placeholders
      * @param responseData the JSON object containing substitution values
      * @return the text with placeholders replaced by actual values
      */
     private String applyPlaceholderSubstitution(final String template, final JsonObject responseData) {
-        if (responseData == null) {
+        if (Objects.isNull(responseData)) {
             return template;
         }
 

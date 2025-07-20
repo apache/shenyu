@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 /**
  * Simple parameter formatting utilities.
  */
@@ -40,12 +42,12 @@ public class ParameterFormatter {
      */
     public static JsonElement tryParseJsonString(final String jsonString) {
         if (!StringUtils.hasText(jsonString)) {
-            return new JsonPrimitive(jsonString == null ? "" : jsonString);
+            return new JsonPrimitive(Objects.isNull(jsonString) ? "" : jsonString);
         }
 
         String trimmed = jsonString.trim();
-        if ((trimmed.startsWith("[") && trimmed.endsWith("]")) ||
-                (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")
+                || trimmed.startsWith("{") && trimmed.endsWith("}")) {
             try {
                 return GsonUtils.getInstance().fromJson(jsonString, JsonElement.class);
             } catch (Exception e) {
