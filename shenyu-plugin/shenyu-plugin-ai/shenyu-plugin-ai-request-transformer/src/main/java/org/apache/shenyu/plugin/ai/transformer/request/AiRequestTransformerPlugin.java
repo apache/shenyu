@@ -84,6 +84,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         ChatClient client = ChatClientCache.getInstance().getClient("default");
         // Create final config with rule handle taking precedence
         if (Objects.nonNull(aiRequestTransformerHandle)) {
+            aiRequestTransformerConfig = new AiRequestTransformerConfig();
             Optional.ofNullable(aiRequestTransformerHandle.getProvider()).ifPresent(aiRequestTransformerConfig::setProvider);
             Optional.ofNullable(aiRequestTransformerHandle.getBaseUrl()).ifPresent(aiRequestTransformerConfig::setBaseUrl);
             Optional.ofNullable(aiRequestTransformerHandle.getApiKey()).ifPresent(aiRequestTransformerConfig::setApiKey);
@@ -105,11 +106,10 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        ChatModel aiModel = aiModelFactoryRegistry
-                .getFactory(AiModelProviderEnum.getByName(provider))
-                .createAiModel(AiRequestTransformerPluginHandler.convertConfig(aiRequestTransformerConfig));
-
         if (Objects.isNull(client)) {
+            ChatModel aiModel = aiModelFactoryRegistry
+                    .getFactory(AiModelProviderEnum.getByName(provider))
+                    .createAiModel(AiRequestTransformerPluginHandler.convertConfig(aiRequestTransformerConfig));
             client = ChatClientCache.getInstance().init(rule.getId(), aiModel);
         }
 
