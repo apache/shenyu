@@ -24,15 +24,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
  * Helper class for parsing and handling requestConfig.
  */
 public class RequestConfigHelper {
-    
-    public static final String METHOD_POST = "POST";
-    
-    public static final String METHOD_PUT = "PUT";
-    
-    public static final String METHOD_PATCH = "PATCH";
-    
+
     private final JsonObject configJson;
-    
+
     /**
      * Constructor.
      *
@@ -41,16 +35,7 @@ public class RequestConfigHelper {
     public RequestConfigHelper(final String requestConfig) {
         this.configJson = GsonUtils.getInstance().fromJson(requestConfig, JsonObject.class);
     }
-    
-    /**
-     * Get the config json object.
-     *
-     * @return the config json object
-     */
-    public JsonObject getConfigJson() {
-        return configJson;
-    }
-    
+
     /**
      * Get the request template json object.
      *
@@ -59,7 +44,7 @@ public class RequestConfigHelper {
     public JsonObject getRequestTemplate() {
         return configJson.getAsJsonObject("requestTemplate");
     }
-    
+
     /**
      * Get the argument position mapping.
      *
@@ -68,7 +53,7 @@ public class RequestConfigHelper {
     public JsonObject getArgsPosition() {
         return configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition") : new JsonObject();
     }
-    
+
     /**
      * Get the response template json object.
      *
@@ -77,7 +62,7 @@ public class RequestConfigHelper {
     public JsonObject getResponseTemplate() {
         return configJson.has("responseTemplate") ? configJson.getAsJsonObject("responseTemplate") : null;
     }
-    
+
     /**
      * Get the url template string.
      *
@@ -86,7 +71,7 @@ public class RequestConfigHelper {
     public String getUrlTemplate() {
         return getRequestTemplate().get("url").getAsString();
     }
-    
+
     /**
      * Get the HTTP method string.
      *
@@ -96,17 +81,12 @@ public class RequestConfigHelper {
         JsonObject requestTemplate = getRequestTemplate();
         return requestTemplate.has("method") ? requestTemplate.get("method").getAsString() : "GET";
     }
-    
+
     public boolean isArgsToJsonBody() {
         JsonObject requestTemplate = getRequestTemplate();
         return requestTemplate.has("argsToJsonBody") && requestTemplate.get("argsToJsonBody").getAsBoolean();
     }
-    
-    public boolean isArgsToUrlParam() {
-        JsonObject requestTemplate = getRequestTemplate();
-        return requestTemplate.has("argsToUrlParam") && requestTemplate.get("argsToUrlParam").getAsBoolean();
-    }
-    
+
     /**
      * Build the request path based on the URL template and argument positions.
      *
@@ -118,37 +98,98 @@ public class RequestConfigHelper {
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
         // First, check if the input value is already a complete URL
-        for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
-                String value = inputJson.get(key).getAsString();
-                // If the input value is already a complete URL, return it directly
-                if (value.startsWith("http://") || value.startsWith("https://")) {
-                    return value;
-                }
-            }
+        if (isCompleteUrl(argsPosition, inputJson)) {
+            return getCompleteUrl(argsPosition, inputJson);
         }
-        
+
         StringBuilder queryBuilder = new StringBuilder();
-        
-        // Check if the URL template already contains query parameters
+
+        // Check whether the URL template already contains the query parameters
         boolean hasExistingQuery = urlTemplate.contains("?");
         String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
         String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
-        
-        // handle new query parameters
+
+        // Handle new query parameters
+        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder);
+
+        // Clear the template variables that have not been replaced
+        basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
+
+        // Build the final URL
+        return buildFinalPath(basePath, queryBuilder, hasExistingQuery, existingQuery);
+    }
+
+    /**
+     * Check if input contains a complete URL.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @return true if input contains a complete URL
+     */
+    private static boolean isCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
+        for (String key : argsPosition.keySet()) {
+            if (inputJson.has(key)) {
+                try {
+                    String value = inputJson.get(key).getAsString();
+                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                        return true;
+                    }
+                } catch (Exception exception) {
+                    // Ignore exception
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the complete URL from input.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @return the complete URL
+     */
+    private static String getCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
+        for (String key : argsPosition.keySet()) {
+            if (inputJson.has(key)) {
+                try {
+                    String value = inputJson.get(key).getAsString();
+                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                        return value;
+                    }
+                } catch (Exception exception) {
+                    // Ignore exception
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Process arguments for path and query parameters.
+     *
+     * @param argsPosition the argument position mapping
+     * @param inputJson the input JSON object
+     * @param basePath the base path to modify
+     * @param queryBuilder the query builder to append to
+     * @return the modified base path
+     */
+    private static String processArguments(final JsonObject argsPosition, final JsonObject inputJson,
+                                       final String basePath, final StringBuilder queryBuilder) {
+        String modifiedBasePath = basePath;
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
             if ("path".equals(position) && inputJson.has(key)) {
-                // 处理路径参数
+                // Process path parameters
                 String value = inputJson.get(key).getAsString();
                 if (value.contains("?")) {
                     value = value.substring(0, value.indexOf("?"));
                 }
                 value = value.replace("\"", "").trim();
-                basePath = basePath.replace("{{." + key + "}}", value);
+                modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", value);
             } else if ("query".equals(position) && inputJson.has(key)) {
-                // handle query parameters
-                if (!existingQuery.contains(key + "=")) {
+                // Handle query parameters
+                if (!modifiedBasePath.contains(key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
                     }
@@ -161,14 +202,23 @@ public class RequestConfigHelper {
                 }
             }
         }
-        
-        // clean up the base path by removing any placeholders that were not replaced
-        basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
-        
-        // build the final path
+        return modifiedBasePath;
+    }
+
+    /**
+     * Build the final path with query parameters.
+     *
+     * @param basePath the base path
+     * @param queryBuilder the query builder
+     * @param hasExistingQuery whether there are existing query parameters
+     * @param existingQuery the existing query string
+     * @return the final path
+     */
+    private static String buildFinalPath(final String basePath, final StringBuilder queryBuilder,
+                                       final boolean hasExistingQuery, final String existingQuery) {
         StringBuilder finalPath = new StringBuilder(basePath);
-        
-        // add new query parameters if any
+
+        // Add query parameters
         if (!queryBuilder.isEmpty()) {
             if (hasExistingQuery) {
                 finalPath.append("&").append(queryBuilder);
@@ -176,8 +226,8 @@ public class RequestConfigHelper {
                 finalPath.append("?").append(queryBuilder);
             }
         }
-        
-        // add existing query parameters if any
+
+        // Add existing query parameters
         if (hasExistingQuery && !existingQuery.isEmpty()) {
             if (!queryBuilder.isEmpty()) {
                 finalPath.append("&").append(existingQuery);
@@ -185,42 +235,14 @@ public class RequestConfigHelper {
                 finalPath.append("?").append(existingQuery);
             }
         }
-        
+
         String result = finalPath.toString();
-        // remove trailing question mark if it exists
+        // Remove the question mark at the end
         if (result.endsWith("?")) {
             result = result.substring(0, result.length() - 1);
         }
-        
+
         return result;
     }
-    
-    /**
-     * Build the request body JSON object based on the argument positions and input
-     * JSON.
-     *
-     * @param argsToJsonBody whether to convert arguments to JSON body
-     * @param argsPosition the argument position mapping
-     * @param inputJson the input JSON object
-     * @return the constructed body JSON object
-     */
-    public static JsonObject buildBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition,
-                                           final JsonObject inputJson) {
-        JsonObject bodyJson = new JsonObject();
-        if (argsToJsonBody) {
-            for (String key : argsPosition.keySet()) {
-                String position = argsPosition.get(key).getAsString();
-                if ("body".equals(position) && inputJson.has(key)) {
-                    bodyJson.add(key, inputJson.get(key));
-                }
-            }
-        }
-        return bodyJson;
-    }
-    
-    public static boolean isRequestBodyMethod(final String method) {
-        return METHOD_POST.equalsIgnoreCase(method)
-                || METHOD_PUT.equalsIgnoreCase(method)
-                || METHOD_PATCH.equalsIgnoreCase(method);
-    }
+
 }
