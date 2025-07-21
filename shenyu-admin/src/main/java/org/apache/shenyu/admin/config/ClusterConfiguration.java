@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.mode.cluster.service.ShenyuClusterService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class ClusterConfiguration {
      *
      * @param shenyuClusterSelectMasterService shenyu cluster select master service
      * @param upstreamCheckService upstream check service
+     * @param instanceCheckService instance check service
      * @param loadServiceDocEntry load service doc entry
      * @param clusterProperties cluster properties
      * @return Shenyu cluster service
@@ -58,11 +60,13 @@ public class ClusterConfiguration {
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final UpstreamCheckService upstreamCheckService,
+                                                             final InstanceCheckService instanceCheckService,
                                                              final LoadServiceDocEntry loadServiceDocEntry,
                                                              final ClusterProperties clusterProperties) {
         LOGGER.info("starting in cluster mode ...");
         return new ShenyuClusterService(shenyuClusterSelectMasterService,
                 upstreamCheckService,
+                instanceCheckService,
                 loadServiceDocEntry,
                 clusterProperties
         );
