@@ -158,7 +158,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Processes response data by applying response template transformations.
-          * If no response template is configured, returns the original response body unchanged.
+     * If no response template is configured, returns the original response body unchanged.
      * If a template is provided, attempts to parse the response as JSON and apply template
      * transformations including placeholder substitution.
      *
@@ -248,7 +248,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     /**
      * Applies placeholder substitution to a text template using response data.
-          * Supports simple placeholder format: ${fieldName}
+     * Supports simple placeholder format: ${fieldName}
      *
      * @param template     the text template containing placeholders
      * @param responseData the JSON object containing substitution values

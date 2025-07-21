@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuStreamableHttpServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.SseEventFormatter;
+import org.apache.shenyu.plugin.mcp.server.transport.MessageHandlingResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -206,7 +207,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
 
     /**
      * Extracts session ID from request parameters or headers.
-          * Searches in the following order:
+     * Searches in the following order:
      * <ol>
      *   <li>Query parameter "sessionId"</li>
      *   <li>Header "X-Session-Id"</li>
@@ -413,7 +414,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * @return a Mono representing the response writing
      */
     private Mono<Void> processStreamableHttpResult(final ServerWebExchange exchange,
-                                                   final ShenyuStreamableHttpServerTransportProvider.MessageHandlingResult result) {
+                                                   final MessageHandlingResult result) {
 
         LOG.debug("Processing Streamable HTTP result - Status: {}, SessionId: {}",
                 result.getStatusCode(), result.getSessionId());
@@ -440,7 +441,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * @param result   the message handling result
      */
     private void configureStreamableHttpResponse(final ServerWebExchange exchange,
-                                                 final ShenyuStreamableHttpServerTransportProvider.MessageHandlingResult result) {
+                                                 final MessageHandlingResult result) {
 
         // Set response status
         exchange.getResponse().setStatusCode(HttpStatus.valueOf(result.getStatusCode()));

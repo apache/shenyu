@@ -97,25 +97,25 @@ public class RequestConfigHelper {
      */
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
-        // 首先检查输入值是否已经是一个完整的 URL
+        // First, check if the input value is already a complete URL
         if (isCompleteUrl(argsPosition, inputJson)) {
             return getCompleteUrl(argsPosition, inputJson);
         }
 
         StringBuilder queryBuilder = new StringBuilder();
 
-        // 检查 URL 模板中是否已经包含查询参数
+        // Check whether the URL template already contains the query parameters
         boolean hasExistingQuery = urlTemplate.contains("?");
         String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
         String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
 
-        // 处理新的查询参数
+        // Handle new query parameters
         basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder);
 
-        // 清理未替换的模板变量
+        // Clear the template variables that have not been replaced
         basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
 
-        // 构建最终的 URL
+        // Build the final URL
         return buildFinalPath(basePath, queryBuilder, hasExistingQuery, existingQuery);
     }
 
@@ -180,7 +180,7 @@ public class RequestConfigHelper {
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
             if ("path".equals(position) && inputJson.has(key)) {
-                // 处理路径参数
+                // Process path parameters
                 String value = inputJson.get(key).getAsString();
                 if (value.contains("?")) {
                     value = value.substring(0, value.indexOf("?"));
@@ -188,7 +188,7 @@ public class RequestConfigHelper {
                 value = value.replace("\"", "").trim();
                 modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", value);
             } else if ("query".equals(position) && inputJson.has(key)) {
-                // 处理查询参数
+                // Handle query parameters
                 if (!modifiedBasePath.contains(key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
@@ -218,7 +218,7 @@ public class RequestConfigHelper {
                                        final boolean hasExistingQuery, final String existingQuery) {
         StringBuilder finalPath = new StringBuilder(basePath);
 
-        // 添加查询参数
+        // Add query parameters
         if (!queryBuilder.isEmpty()) {
             if (hasExistingQuery) {
                 finalPath.append("&").append(queryBuilder);
@@ -227,7 +227,7 @@ public class RequestConfigHelper {
             }
         }
 
-        // 添加已存在的查询参数
+        // Add existing query parameters
         if (hasExistingQuery && !existingQuery.isEmpty()) {
             if (!queryBuilder.isEmpty()) {
                 finalPath.append("&").append(existingQuery);
@@ -237,7 +237,7 @@ public class RequestConfigHelper {
         }
 
         String result = finalPath.toString();
-        // 移除末尾的问号
+        // Remove the question mark at the end
         if (result.endsWith("?")) {
             result = result.substring(0, result.length() - 1);
         }
