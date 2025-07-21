@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.motan.handler;
 
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.selector.MotanUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -47,6 +49,27 @@ public class MotanPluginDataHandler implements PluginDataHandler {
             }
             Singleton.INST.single(MotanRegisterConfig.class, motanRegisterConfig);
         }
+    }
+
+    @Override
+    public void removePlugin(final PluginData pluginData) {
+        ApplicationConfigCache.getInstance().invalidateAll();
+    }
+
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        MotanUpstream motanUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), MotanUpstream.class);
+        if (Objects.equals(motanUpstream, ApplicationConfigCache
+                .getInstance().getUpstream(selectorData.getId()))) {
+            return;
+        }
+        ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
+        ApplicationConfigCache.getInstance().setUpstream(selectorData.getId(), motanUpstream);
+    }
+
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
     }
 
     @Override
