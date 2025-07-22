@@ -38,8 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -88,21 +93,54 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     DataBufferUtils.release(dataBuffer);
 
                     final AiCommonConfig primaryConfig = aiProxyConfigService.resolvePrimaryConfig(selectorHandle);
-                    final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
 
-                    // Determine fallback strategy: dynamic first, then admin-configured.
-                    Optional<ChatClient> fallbackClient = aiProxyConfigService
-                            .resolveDynamicFallbackConfig(primaryConfig, requestBody)
-                            .map(this::createDynamicFallbackClient)
-                            .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(primaryConfig, selectorHandle)
-                                    .map(adminFallbackConfig -> createAdminFallbackClient(selector.getId(), adminFallbackConfig)));
-
-                    return aiProxyExecutorService.execute(mainClient, fallbackClient, requestBody)
-                        .flatMap(response -> {
-                            byte[] jsonBytes = JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
-                            return WebFluxResultUtils.result(exchange, jsonBytes);
-                        });
+                    if (Boolean.TRUE.equals(primaryConfig.getStream())) {
+                        return handleStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
+                    } else {
+                        return handleNonStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
+                    }
                 });
+    }
+
+    private Mono<Void> handleStreamRequest(final ServerWebExchange exchange, final SelectorData selector,
+                                           final String requestBody, final AiCommonConfig primaryConfig,
+                                           final AiProxyHandle selectorHandle) {
+        final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
+        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle, selector.getId(), requestBody);
+        final ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+
+        final Flux<ChatResponse> chatResponseFlux = aiProxyExecutorService.executeStream(mainClient, fallbackClient, requestBody);
+
+        final Flux<DataBuffer> sseFlux = chatResponseFlux.map(chatResponse -> {
+            final String json = JsonUtils.toJson(chatResponse);
+            final String sseData = "data: " + json + "\n\n";
+            return response.bufferFactory().wrap(sseData.getBytes(StandardCharsets.UTF_8));
+        });
+
+        return response.writeWith(sseFlux);
+    }
+
+    private Mono<Void> handleNonStreamRequest(final ServerWebExchange exchange, final SelectorData selector,
+                                              final String requestBody, final AiCommonConfig primaryConfig,
+                                              final AiProxyHandle selectorHandle) {
+        final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
+        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle, selector.getId(), requestBody);
+
+        return aiProxyExecutorService.execute(mainClient, fallbackClient, requestBody)
+                .flatMap(response -> {
+                    byte[] jsonBytes = JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
+                    return WebFluxResultUtils.result(exchange, jsonBytes);
+                });
+    }
+
+    private Optional<ChatClient> resolveFallbackClient(final AiCommonConfig primaryConfig, final AiProxyHandle selectorHandle,
+                                                       final String selectorId, final String requestBody) {
+        return aiProxyConfigService
+                .resolveDynamicFallbackConfig(primaryConfig, requestBody)
+                .map(this::createDynamicFallbackClient)
+                .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(primaryConfig, selectorHandle)
+                        .map(adminFallbackConfig -> createAdminFallbackClient(selectorId, adminFallbackConfig)));
     }
 
     private ChatClient createMainChatClient(final String selectorId, final AiCommonConfig config) {
@@ -127,6 +165,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     }
 
     private ChatModel createChatModel(final AiCommonConfig config) {
+        LOG.info("Creating chat model with config: {}", config);
         final AiModelProviderEnum provider = AiModelProviderEnum.getByName(config.getProvider());
         if (Objects.isNull(provider)) {
             throw new IllegalArgumentException("Invalid AI model provider in config: " + config.getProvider());

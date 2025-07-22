@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.common.strategy;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -35,4 +36,14 @@ public interface FallbackStrategy {
      * @return a Mono containing the fallback ChatResponse
      */
     Mono<ChatResponse> fallback(ChatClient fallbackClient, String requestBody, Throwable originalError);
+
+    /**
+     * Execute the fallback strategy for stream.
+     *
+     * @param fallbackClient the pre-configured and cached chat client for fallback
+     * @param requestBody    the original request body as a string
+     * @param originalError  the original error that triggered the fallback
+     * @return a Flux containing the fallback ChatResponse
+     */
+    Flux<ChatResponse> fallbackStream(ChatClient fallbackClient, String requestBody, Throwable originalError);
 }

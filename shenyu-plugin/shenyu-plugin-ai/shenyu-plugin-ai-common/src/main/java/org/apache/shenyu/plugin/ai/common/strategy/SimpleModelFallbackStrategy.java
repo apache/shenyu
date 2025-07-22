@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -50,5 +51,18 @@ public final class SimpleModelFallbackStrategy implements FallbackStrategy {
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnSuccess(response -> LOG.info("Fallback call successful."))
                 .doOnError(fallbackError -> LOG.error("Fallback call also failed.", fallbackError));
+    }
+
+    @Override
+    public Flux<ChatResponse> fallbackStream(final ChatClient fallbackClient, final String requestBody, final Throwable originalError) {
+        LOG.warn("Executing simple model fallback stream strategy due to error: {}", originalError.getMessage());
+
+        return Flux.defer(() -> fallbackClient.prompt()
+                        .user(requestBody)
+                        .stream()
+                        .chatResponse())
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnComplete(() -> LOG.info("Fallback stream completed successfully."))
+                .doOnError(fallbackError -> LOG.error("Fallback stream also failed.", fallbackError));
     }
 }
