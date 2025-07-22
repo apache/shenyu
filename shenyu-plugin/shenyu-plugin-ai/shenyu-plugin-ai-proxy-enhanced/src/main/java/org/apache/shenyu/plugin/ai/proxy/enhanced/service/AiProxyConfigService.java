@@ -38,7 +38,7 @@ public class AiProxyConfigService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyConfigService.class);
 
-    private static final String FALLBACK_OPTIONS = "fallbackOptions";
+    private static final String FALLBACK_CONFIG = "fallbackConfig";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -113,9 +113,9 @@ public class AiProxyConfigService {
         }
         try {
             JsonNode jsonNode = objectMapper.readTree(requestBody);
-            if (jsonNode.has(FALLBACK_OPTIONS)) {
+            if (jsonNode.has(FALLBACK_CONFIG)) {
                 AiProxyHandle.FallbackConfig fallbackConfig = objectMapper.treeToValue(
-                        jsonNode.get(FALLBACK_OPTIONS), AiProxyHandle.FallbackConfig.class);
+                        jsonNode.get(FALLBACK_CONFIG), AiProxyHandle.FallbackConfig.class);
                 AiCommonConfig config = new AiCommonConfig();
                 config.setProvider(fallbackConfig.getProvider());
                 config.setModel(fallbackConfig.getModel());
@@ -126,7 +126,7 @@ public class AiProxyConfigService {
                 return Optional.of(config);
             }
         } catch (IOException e) {
-            LOG.error("Error parsing request body for fallbackOptions, proceeding without dynamic fallback.", e);
+            LOG.error("Error parsing request body for fallbackConfig, proceeding without dynamic fallback.", e);
         }
         return Optional.empty();
     }
