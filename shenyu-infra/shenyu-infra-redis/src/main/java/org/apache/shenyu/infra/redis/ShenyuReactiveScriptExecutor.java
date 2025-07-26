@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.token.limiter.redis;
+package org.apache.shenyu.infra.redis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

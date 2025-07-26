@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.redis;
+package org.apache.shenyu.infra.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.jupiter.api.BeforeEach;

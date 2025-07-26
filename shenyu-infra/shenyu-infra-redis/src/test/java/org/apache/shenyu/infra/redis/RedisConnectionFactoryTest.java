@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.redis;
+package org.apache.shenyu.infra.redis;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.Duration;
 
@@ -33,7 +34,7 @@ public class RedisConnectionFactoryTest {
 
     @Test
     public void redisConnectionFactoryTest() {
-        final RedisConfigProperties redisConfigProperties = mock(RedisConfigProperties.class);
+        final RedisConfigProperties redisConfigProperties = Mockito.mock(RedisConfigProperties.class);
         when(redisConfigProperties.getMode()).thenReturn(RedisModeEnum.SENTINEL.getName());
         when(redisConfigProperties.getMaster()).thenReturn("master");
         when(redisConfigProperties.getUrl()).thenReturn("localhost:6379");
