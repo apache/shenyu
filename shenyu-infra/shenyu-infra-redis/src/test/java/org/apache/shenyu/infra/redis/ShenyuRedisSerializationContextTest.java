@@ -15,26 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.token.limiter.redis.serializer;
+package org.apache.shenyu.infra.redis;
 
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
-import org.springframework.lang.Nullable;
+import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
- * ByteArrayRedisSerializer.
+ * ShenyuRedisSerializationContextTest.
  */
-public class ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
+public class ShenyuRedisSerializationContextTest {
 
-    @Override
-    @Nullable
-    public byte[] serialize(final @Nullable byte[] bytes) throws SerializationException {
-        return bytes;
-    }
-
-    @Override
-    @Nullable
-    public byte[] deserialize(final @Nullable byte[] bytes) throws SerializationException {
-        return bytes;
+    @Test
+    public void modeDefaultValueTest() {
+        Assertions.assertNotNull(ShenyuRedisSerializationContext.stringSerializationContext());
     }
 }

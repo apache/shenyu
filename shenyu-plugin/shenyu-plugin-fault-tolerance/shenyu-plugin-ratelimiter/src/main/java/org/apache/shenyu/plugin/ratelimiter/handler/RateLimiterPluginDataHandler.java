@@ -25,13 +25,14 @@ import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.infra.redis.RedisConfigProperties;
+import org.apache.shenyu.infra.redis.RedisConnectionFactory;
+import org.apache.shenyu.infra.redis.ShenyuReactiveRedisTemplate;
+import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
-import org.apache.shenyu.plugin.cache.redis.RedisConnectionFactory;
-import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationContext;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.util.Objects;

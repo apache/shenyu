@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cache.redis;
+package org.apache.shenyu.infra.redis;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
