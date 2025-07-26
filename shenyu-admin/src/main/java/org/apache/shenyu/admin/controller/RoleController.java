@@ -78,7 +78,7 @@ public class RoleController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     @RequiresPermissions("system:role:list")
     public ShenyuAdminResult queryRole(final String roleName,
                                        @RequestParam @NotNull final Integer currentPage,
@@ -110,7 +110,7 @@ public class RoleController {
      * @param roleDTO role
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:role:add")
     public ShenyuAdminResult createRole(@Valid @RequestBody final RoleDTO roleDTO) {
         if (SUPER.equals(roleDTO.getRoleName())) {
