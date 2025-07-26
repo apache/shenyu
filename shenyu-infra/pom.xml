@@ -27,11 +27,11 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>shenyu-infra-redis</module>
-        <module>shenyu-infra-zookeeper</module>
         <module>shenyu-infra-etcd</module>
         <module>shenyu-infra-nacos</module>
+        <module>shenyu-infra-redis</module>
         <module>shenyu-infra-x-module</module>
+        <module>shenyu-infra-zookeeper</module>
     </modules>
 
 </project>

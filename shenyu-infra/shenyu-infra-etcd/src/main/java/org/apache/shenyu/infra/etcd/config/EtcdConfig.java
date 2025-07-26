@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.etcd;
+package org.apache.shenyu.infra.etcd.config;
 
 import java.util.StringJoiner;
 
