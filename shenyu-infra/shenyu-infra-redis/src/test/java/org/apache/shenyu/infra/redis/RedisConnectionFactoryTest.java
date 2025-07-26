@@ -24,7 +24,6 @@ import org.mockito.Mockito;
 
 import java.time.Duration;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
