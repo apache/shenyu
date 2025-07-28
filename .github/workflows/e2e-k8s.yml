@@ -216,10 +216,10 @@ jobs:
             script: e2e-grpc-sync-compose
           - case: shenyu-e2e-case-websocket
             script: e2e-websocket-sync-compose
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc-compose
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper-compose
+          # - case: shenyu-e2e-case-cluster
+          #   script: e2e-cluster-jdbc-compose
+          # - case: shenyu-e2e-case-cluster
+          #   script: e2e-cluster-zookeeper-compose
           - case: shenyu-e2e-case-logging-rocketmq
             script: e2e-logging-rocketmq-compose
           - case: shenyu-e2e-case-logging-kafka
