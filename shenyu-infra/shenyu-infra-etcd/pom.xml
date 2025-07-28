@@ -19,19 +19,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu</artifactId>
+        <artifactId>shenyu-infra</artifactId>
         <version>2.7.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-infra</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>shenyu-infra-etcd</module>
-        <module>shenyu-infra-nacos</module>
-        <module>shenyu-infra-redis</module>
-        <module>shenyu-infra-x-module</module>
-        <module>shenyu-infra-zookeeper</module>
-    </modules>
-
+    <artifactId>shenyu-infra-etcd</artifactId>
 </project>
