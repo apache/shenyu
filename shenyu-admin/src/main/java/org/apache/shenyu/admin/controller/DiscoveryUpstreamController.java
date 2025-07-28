@@ -51,7 +51,7 @@ public class DiscoveryUpstreamController {
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createDiscoveryUpstream(@Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         return ShenyuAdminResult.success(discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
     }
