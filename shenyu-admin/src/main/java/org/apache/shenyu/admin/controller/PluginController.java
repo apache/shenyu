@@ -69,7 +69,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -109,7 +109,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      * @param pluginDTO plugin.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:plugin:add")
     public ShenyuAdminResult createPlugin(@Valid @ModelAttribute final PluginDTO pluginDTO) {
         return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
