@@ -18,9 +18,13 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AesUtilsTest {
 
@@ -39,7 +43,7 @@ class AesUtilsTest {
 
         // Decrypt the data
         String decryptedData = AesUtils.cbcDecrypt(secretKey, iv, encryptedData);
-        assertNotNull(decryptedData, "Decrypted data should not be null");
+        Assertions.assertNotNull(decryptedData, "Decrypted data should not be null");
         assertEquals(data, decryptedData, "Decrypted data should match the original");
     }
 
@@ -56,13 +60,10 @@ class AesUtilsTest {
             AesUtils.cbcEncrypt(invalidKey, iv, data);
         });
 
-        // Print the actual exception message for debugging
-        // System.out.println("Actual exception message: " + exception.getMessage());
-
         // Update the assertion to match the actual exception message
-        assertTrue(exception.getMessage().contains("Invalid AES key length") ||
-                exception.getMessage().contains("Given final block not properly padded") ||
-                exception.getMessage().contains("Key length not 128/192/256 bits"));
+        assertTrue(exception.getMessage().contains("Invalid AES key length")
+                || exception.getMessage().contains("Given final block not properly padded")
+                || exception.getMessage().contains("Key length not 128/192/256 bits"));
     }
 
     @Test
@@ -78,13 +79,10 @@ class AesUtilsTest {
             AesUtils.cbcDecrypt(secretKey, iv, invalidData);
         });
 
-        // Print the actual exception message for debugging
-        // System.out.println("Actual exception message: " + exception.getMessage());
-
         // Update the assertion to match the actual exception message
-        assertTrue(exception.getMessage().contains("Illegal base64 character") ||
-                exception.getMessage().contains("Input byte array has wrong 4-byte ending unit") ||
-                exception.getMessage().contains("Last unit does not have enough valid bits"));
+        assertTrue(exception.getMessage().contains("Illegal base64 character")
+                || exception.getMessage().contains("Input byte array has wrong 4-byte ending unit")
+                || exception.getMessage().contains("Last unit does not have enough valid bits"));
     }
 
 }
