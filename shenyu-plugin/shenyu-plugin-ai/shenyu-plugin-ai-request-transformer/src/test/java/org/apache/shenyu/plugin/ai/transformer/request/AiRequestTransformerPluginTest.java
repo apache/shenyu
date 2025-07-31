@@ -82,12 +82,6 @@ class AiRequestTransformerPluginTest {
     @Test
     void testDoExecuteWithValidConfigurations() {
 
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"key\":\"value\"}"));
-        SelectorData selector = new SelectorData();
-        RuleData rule = new RuleData();
-
         AiRequestTransformerConfig config = new AiRequestTransformerConfig();
         config.setBaseUrl("http://test.com");
         config.setApiKey("test-api-key");
@@ -104,11 +98,16 @@ class AiRequestTransformerPluginTest {
         ChatModel mockModel = mock(ChatModel.class);
         AiModelFactory mockFactory = mock(AiModelFactory.class);
 
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{\"key\":\"value\"}"));
         when(aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName("TEST_PROVIDER"))).thenReturn(mockFactory);
         when(mockFactory.createAiModel(any())).thenReturn(mockModel);
         when(chatClientCache.getClient("default")).thenReturn(mockClient);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
+        SelectorData selector = new SelectorData();
+        RuleData rule = new RuleData();
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule))
                 .verifyComplete();
 
