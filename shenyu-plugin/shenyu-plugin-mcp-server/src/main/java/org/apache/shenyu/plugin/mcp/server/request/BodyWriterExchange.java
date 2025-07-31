@@ -17,74 +17,98 @@
 
 package org.apache.shenyu.plugin.mcp.server.request;
 
+import org.apache.shenyu.plugin.base.support.BodyInserterContext;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Flux;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+/**
+ * Body Writer Exchange for MCP tool requests.
+ * 
+ * <p>Decorates ServerWebExchange to properly handle request body writing for different content types.
+ * Supports JSON, form-urlencoded, and multipart form data formats.</p>
+ *
+ * @since 2.7.0.2
+ */
 public class BodyWriterExchange extends ServerWebExchangeDecorator {
 
     private final String body;
 
     private final String contentType;
 
+    private final CachedBodyOutputMessage cachedBodyOutputMessage;
+
     public BodyWriterExchange(final ServerWebExchange delegate, final String body) {
         super(delegate);
         this.body = body;
         HttpHeaders headers = delegate.getRequest().getHeaders();
         this.contentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+
+        this.cachedBodyOutputMessage = ResponseUtils.newCachedBodyOutputMessage(delegate);
+
+        initializeBody();
     }
 
+    private void initializeBody() {
+        String bodyContent = getFormattedBody();
+        BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(bodyContent);
+
+        bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext()).subscribe();
+    }
+
+    private String getFormattedBody() {
+        if (Objects.isNull(contentType)) {
+            return body;
+        }
+        if (contentType.contains("application/json")) {
+            return body;
+        } else if (contentType.contains("application/x-www-form-urlencoded")) {
+            return body;
+        } else if (contentType.contains("multipart/form-data")) {
+            return body;
+        } else {
+            return body;
+        }
+    }
+
+    /**
+     * Returns a decorated ServerHttpRequest with the correct body and headers for downstream processing.
+     *
+     * @return the decorated ServerHttpRequest
+     */
     @Override
     public ServerHttpRequest getRequest() {
         return new ServerHttpRequestDecorator(super.getRequest()) {
             @Override
             public Flux<DataBuffer> getBody() {
-                DataBufferFactory bufferFactory = BodyWriterExchange.this.getResponse().bufferFactory();
-                byte[] bytes = getBodyBytes();
-                DataBuffer buffer = bufferFactory.wrap(bytes);
-                return Flux.just(buffer);
+                return cachedBodyOutputMessage.getBody();
+            }
+
+            @Override
+            public HttpHeaders getHeaders() {
+                HttpHeaders originalHeaders = super.getHeaders();
+                HttpHeaders newHeaders = new HttpHeaders();
+                newHeaders.putAll(originalHeaders);
+
+                if (Objects.nonNull(body)) {
+                    byte[] bodyBytes = getFormattedBody().getBytes(StandardCharsets.UTF_8);
+                    newHeaders.setContentLength(bodyBytes.length);
+                }
+
+                return newHeaders;
             }
         };
-    }
-
-    private byte[] getBodyBytes() {
-        if (Objects.isNull(contentType)) {
-            return body.getBytes(StandardCharsets.UTF_8);
-        }
-        if (contentType.contains("application/json")) {
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else if (contentType.contains("application/x-www-form-urlencoded")) {
-            // body must be in key1=val1&key2=val2 format
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else if (contentType.contains("multipart/form-data")) {
-            // Simple handling here, just return the string. For complex scenarios, use
-            // MultipartBodyBuilder.
-            return body.getBytes(StandardCharsets.UTF_8);
-        } else {
-            return body.getBytes(StandardCharsets.UTF_8);
-        }
-    }
-
-    // Optional: Helper method to convert Map<String, Object> to
-    // x-www-form-urlencoded string
-    public static String toFormUrlEncoded(final Map<String, Object> map) {
-        return map.entrySet().stream()
-                .map(e -> e.getKey() + "=" + urlEncode(e.getValue().toString()))
-                .collect(Collectors.joining("&"));
-    }
-
-    private static String urlEncode(final String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }
