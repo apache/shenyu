@@ -68,7 +68,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
                                                                @RequestParam @NotNull final Integer currentPage,
                                                                @RequestParam @NotNull final Integer pageSize,
@@ -103,7 +103,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param selectorDTO selector.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, selectorDTO.getId());

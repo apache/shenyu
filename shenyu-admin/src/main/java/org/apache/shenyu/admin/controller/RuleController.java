@@ -67,7 +67,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public AdminResult<CommonPager<RuleVO>> queryRules(final String selectorId, final String name,
                                                        @RequestParam @NotNull final Integer currentPage,
                                                        @RequestParam @NotNull final Integer pageSize,
@@ -100,7 +100,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @param ruleDTO rule.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createRule(@Valid @RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
