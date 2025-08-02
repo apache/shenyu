@@ -90,6 +90,9 @@ public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         Map<String, Object> kafkaJsonMap = GsonUtils.getInstance().convertToMap(selectorData.getHandle());
+        if (Objects.isNull(kafkaJsonMap)) {
+            return;
+        }
         Object hostObj = kafkaJsonMap.get("bootstrapServer");
         if (Objects.isNull(hostObj) || !(hostObj instanceof String) || ((String) hostObj).trim().isEmpty()) {
             KafkaClientCache.getInstance().invalidate(selectorData.getId());
@@ -104,9 +107,6 @@ public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<
             return;
         }
         KafkaClientCache.getInstance().invalidate(selectorData.getId());
-        if (Objects.isNull(nConfig)) {
-            return;
-        }
         KafkaClientCache.getInstance().initRabbitmqClient(selectorData.getId(), nConfig);
         MULTI_CLIENT.set(true);
         if (StringUtils.isNotEmpty(nConfig.getSampleRate())) {
