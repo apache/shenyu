@@ -3487,6 +3487,20 @@ VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0"
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', sysdate, sysdate);
 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507245', '53', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507246', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507247', '53', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507248', '53', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', sysdate, sysdate);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
