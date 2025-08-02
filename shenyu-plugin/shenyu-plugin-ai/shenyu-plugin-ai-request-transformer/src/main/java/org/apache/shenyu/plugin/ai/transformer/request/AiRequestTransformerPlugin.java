@@ -142,11 +142,17 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     }
 
-    private static String convertBodyJson(final String aiResponse) {
+    /**
+     * For unit test.
+     */
+    static String convertBodyJson(final String aiResponse) {
         return extractJsonBodyFromHttpResponse(aiResponse);
     }
 
-    private static String convertBodyFormData(final String aiResponse) {
+    /**
+     * For unit test.
+     */
+    static String convertBodyFormData(final String aiResponse) {
         Map<String, Object> formDataMap = GsonUtils.getInstance().toObjectMap(extractJsonBodyFromHttpResponse(aiResponse));
         return mapToFormUrlEncoded(formDataMap);
     }
@@ -212,7 +218,10 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         return Mono.just(exchange);
     }
 
-    private static HttpHeaders extractHeadersFromAiResponse(final String aiResponse) {
+    /**
+     * For unit test.
+     */
+    static HttpHeaders extractHeadersFromAiResponse(final String aiResponse) {
         HttpHeaders headers = new HttpHeaders();
         if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
             return headers;
