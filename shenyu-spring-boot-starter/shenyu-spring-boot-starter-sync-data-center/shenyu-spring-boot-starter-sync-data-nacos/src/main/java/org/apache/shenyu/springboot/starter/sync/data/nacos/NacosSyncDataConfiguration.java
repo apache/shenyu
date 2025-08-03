@@ -119,8 +119,9 @@ public class NacosSyncDataConfiguration {
      * @return the http config
      */
     @Bean
-    @ConfigurationProperties(prefix = "shenyu.sync.nacos")
+    @ConditionOnSyncNacos
     public NacosConfig nacosConfig() {
-        return new NacosConfig();
+
+        return NacosConfig.builder().build();
     }
 }

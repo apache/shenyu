@@ -76,8 +76,8 @@ public final class NacosSyncDataConfigurationTest {
     @Test
     public void nacosConfigServiceTest() {
         try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
-            final NacosConfig nacosConfig2 = new NacosConfig();
-            final NacosACMConfig nacosACMConfig = new NacosACMConfig();
+            final NacosConfig nacosConfig2 = NacosConfig.builder().build();
+            final NacosACMConfig nacosACMConfig = NacosACMConfig.builder().build();
             nacosConfig2.setAcm(nacosACMConfig);
             nacosFactoryMockedStatic.when(() -> NacosFactory.createConfigService(any(Properties.class))).thenReturn(mock(ConfigService.class));
             nacosConfig2.setUrl("url");

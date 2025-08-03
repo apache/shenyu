@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.infra.nacos.autoconfig;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.infra.common.InfraConstants;
 import org.apache.shenyu.infra.common.InfraParentProperties;
 import org.apache.shenyu.infra.nacos.config.NacosConfig;
@@ -31,7 +32,7 @@ import static org.apache.shenyu.infra.nacos.autoconfig.NacosProperties.CONFIG_PR
 @ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
 public class NacosProperties extends InfraParentProperties {
 
-    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + InfraConstants.SHENYU_NACOS;
+    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_NACOS;
 
     @NestedConfigurationProperty
     private NacosConfig nacos = NacosConfig.builder().build();
