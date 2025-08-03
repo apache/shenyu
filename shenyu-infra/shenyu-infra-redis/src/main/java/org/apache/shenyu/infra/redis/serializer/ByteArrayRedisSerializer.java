@@ -15,7 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.redis;
+package org.apache.shenyu.infra.redis.serializer;
 
-public class RedisPropertiesTest {
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.lang.Nullable;
+
+/**
+ * ByteArrayRedisSerializer.
+ */
+public class ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
+
+    @Override
+    @Nullable
+    public byte[] serialize(final @Nullable byte[] bytes) throws SerializationException {
+        return bytes;
+    }
+
+    @Override
+    @Nullable
+    public byte[] deserialize(final @Nullable byte[] bytes) throws SerializationException {
+        return bytes;
+    }
 }
