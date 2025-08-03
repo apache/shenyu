@@ -73,8 +73,9 @@ public class EtcdClient {
 
         this.ttl = ttl;
         this.timeout = timeout;
-        initLease();
         this.client = client;
+
+        initLease();
     }
 
     /**
