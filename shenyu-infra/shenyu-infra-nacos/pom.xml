@@ -27,6 +27,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-infra-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
         </dependency>
