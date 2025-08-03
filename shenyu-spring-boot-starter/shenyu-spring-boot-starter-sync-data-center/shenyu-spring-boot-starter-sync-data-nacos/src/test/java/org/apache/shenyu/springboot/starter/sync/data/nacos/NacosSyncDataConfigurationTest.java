@@ -21,9 +21,9 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.nacos.config.NacosACMConfig;
+import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.nacos.config.NacosACMConfig;
-import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
