@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.config;
 
 import io.etcd.jetcd.Client;
-import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataChangedInit;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
+import org.apache.shenyu.infra.etcd.EtcdClient;
+import org.apache.shenyu.infra.etcd.EtcdProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,20 +37,6 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
 @EnableConfigurationProperties(EtcdProperties.class)
 public class EtcdSyncConfiguration {
-
-    /**
-     * Init etcd client.
-     *
-     * @param etcdProperties etcd properties
-     * @return Etcd Client
-     */
-    @Bean
-    public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
-        Client client = Client.builder()
-                .endpoints(etcdProperties.getUrl().split(","))
-                .build();
-        return new EtcdClient(client);
-    }
 
     /**
      * Config event listener data changed listener.

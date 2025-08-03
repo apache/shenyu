@@ -15,26 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.etcd;
+package org.apache.shenyu.infra.etcd;
 
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.kv.GetResponse;
+import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
+import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
+import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -57,7 +66,19 @@ public class EtcdClient {
 
     private final ConcurrentHashMap<String, Watch.Watcher> watchChildCache = new ConcurrentHashMap<>();
 
-    public EtcdClient(final Client client) {
+    private final Client client;
+
+    private final long ttl;
+
+    private final long timeout;
+
+    private long globalLeaseId;
+
+    public EtcdClient(final Client client, final long ttl, final long timeout) {
+
+        this.ttl = ttl;
+        this.timeout = timeout;
+        initLease();
         this.client = client;
     }
 
@@ -248,4 +269,175 @@ public class EtcdClient {
             watchChildCache.remove(key);
         }
     }
+
+    /**
+     * check node exists.
+     * @param key node name
+     * @return bool
+     */
+    public Boolean exists(final String key) {
+        try {
+            GetOption option = GetOption.newBuilder()
+                    .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
+                    .build();
+            List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
+            return !keyValues.isEmpty();
+        } catch (Exception e) {
+            LOG.error("check node exists error", e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * update value of node.
+     * @param key node name
+     * @param value node value
+     */
+    public void put(final String key, final String value) {
+        try {
+            client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
+        } catch (Exception e) {
+            LOG.error("update value of node error.", e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * delete node.
+     * @param key node name
+     */
+    public void delete(final String key) {
+        client.getKVClient().delete(ByteSequence.from(key, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * delete node of recursive.
+     * @param path parent node name
+     */
+    public void deleteEtcdPathRecursive(final String path) {
+        DeleteOption option = DeleteOption.newBuilder()
+                .withPrefix(ByteSequence.from(path, StandardCharsets.UTF_8))
+                .build();
+        try {
+            client.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8), option).get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LOG.error("delete node of recursive error.", e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    private void initLease() {
+        try {
+            this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
+            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
+                @Override
+                public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
+                }
+
+                @Override
+                public void onError(final Throwable throwable) {
+                    LOG.error("keep alive error", throwable);
+                }
+
+                @Override
+                public void onCompleted() {
+                }
+            });
+        } catch (InterruptedException | ExecutionException e) {
+            LOG.error("initLease error.", e);
+        }
+    }
+
+
+    /**
+     * watchKeyChanges.
+     *
+     * @param key key
+     * @param listener listener
+     * @return {@link Watch.Watcher}
+     */
+    public Watch.Watcher watchKeyChanges(final String key, final Watch.Listener listener) {
+        WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
+
+        return client.getWatchClient().watch(bytesOf(key), option, listener);
+    }
+
+    /**
+     * get keyResponse.
+     * @param key watch key.
+     * @param getOption get option.
+     * @return key response.
+     */
+    public GetResponse getRange(final String key, final GetOption getOption) {
+        try {
+            return this.client.getKVClient().get(bytesOf(key), getOption).get();
+        } catch (ExecutionException | InterruptedException e) {
+            LOG.error("etcd getRange key {} error", key, e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * put data as ephemeral.
+     * @param key key
+     * @param value value
+     */
+    public void putEphemeral(final String key, final String value) {
+        try {
+            KV kvClient = client.getKVClient();
+            kvClient.put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8),
+                            PutOption.newBuilder().withLeaseId(globalLeaseId).build())
+                    .get(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.error("putEphemeral(key:{},value:{}) error.", key, value, e);
+        }
+    }
+
+    /**
+     * Create a new {@link Builder} instance for building an {@link EtcdClient}.
+     * @return a new {@link Builder} instance
+     */
+    public static Builder builder() {
+
+        return Builder.builder();
+    }
+
+    public static class Builder {
+
+        private Builder() {
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * etcd client.
+         */
+        private Client client;
+
+        private long ttl = 60;
+
+        private long timeout = 5000;
+
+        public Builder client(final Client client) {
+            this.client = client;
+            return this;
+        }
+
+        public Builder ttl(final long ttl) {
+            this.ttl = ttl;
+            return this;
+        }
+
+        public Builder timeout(final long timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public EtcdClient build() {
+            return new EtcdClient(client, ttl, timeout);
+        }
+    }
+
 }

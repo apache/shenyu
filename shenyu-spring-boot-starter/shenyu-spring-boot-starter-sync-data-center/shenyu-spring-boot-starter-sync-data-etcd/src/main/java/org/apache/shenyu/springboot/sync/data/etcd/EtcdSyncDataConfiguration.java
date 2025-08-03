@@ -19,13 +19,14 @@ package org.apache.shenyu.springboot.sync.data.etcd;
 
 import io.etcd.jetcd.Client;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.etcd.EtcdClient;
+import org.apache.shenyu.infra.etcd.config.EtcdConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.etcd.EtcdClient;
 import org.apache.shenyu.sync.data.etcd.EtcdSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,9 +89,9 @@ public class EtcdSyncDataConfiguration {
      */
     @Bean
     public EtcdClient etcdClient(final EtcdConfig etcdConfig) {
-        Client client = Client.builder()
+
+        return new EtcdClient(Client.builder()
                 .endpoints(etcdConfig.getUrl().split(","))
-                .build();
-        return new EtcdClient(client);
+                .build());
     }
 }
