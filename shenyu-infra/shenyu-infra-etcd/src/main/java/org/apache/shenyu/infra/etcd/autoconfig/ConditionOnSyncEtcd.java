@@ -15,28 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.infra.etcd.autoconfig;
 
-import org.apache.shenyu.infra.etcd.client.EtcdClient;
-import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class EtcdSyncConfigurationTest {
-    
-    @Test
-    public void testEtcdDataChangedListener() {
-        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
-        EtcdClient client = mock(EtcdClient.class);
-        assertNotNull(etcdListener.etcdDataChangedListener(client));
-    }
-    
-    @Test
-    public void testEtcdDataInit() {
-        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
-        EtcdClient client = mock(EtcdClient.class);
-        assertNotNull(etcdListener.etcdDataChangedInit(client));
-    }
-    
+/**
+ * Enable etcd data sync.
+ */
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(prefix = EtcdProperties.CONFIG_PREFIX, name = "url")
+public @interface ConditionOnSyncEtcd {
 }

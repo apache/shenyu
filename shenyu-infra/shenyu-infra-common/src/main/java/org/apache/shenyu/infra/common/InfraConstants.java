@@ -15,28 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config;
+package org.apache.shenyu.infra.common;
 
-import org.apache.shenyu.infra.etcd.client.EtcdClient;
-import org.junit.jupiter.api.Test;
+/**
+ * Apache Shenyu Infra module name Constants.
+ */
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
+public interface InfraConstants {
 
-public class EtcdSyncConfigurationTest {
-    
-    @Test
-    public void testEtcdDataChangedListener() {
-        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
-        EtcdClient client = mock(EtcdClient.class);
-        assertNotNull(etcdListener.etcdDataChangedListener(client));
+    String SHENYU_NACOS = "nacos";
+
+    String SHENYU_ETCD = "etcd";
+
+    String SHENYU_ZOOKEEPER = "zookeeper";
+
+    String SHENYU_REDIS = "redis";
+
+    String SHENYU_X = "x";
+
+    default void findConstants() {
     }
-    
-    @Test
-    public void testEtcdDataInit() {
-        EtcdSyncConfiguration etcdListener = new EtcdSyncConfiguration();
-        EtcdClient client = mock(EtcdClient.class);
-        assertNotNull(etcdListener.etcdDataChangedInit(client));
-    }
-    
+
 }

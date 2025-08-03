@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.sync.data.etcd;
 
 import io.etcd.jetcd.Client;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.infra.etcd.EtcdClient;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.infra.etcd.config.EtcdConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;

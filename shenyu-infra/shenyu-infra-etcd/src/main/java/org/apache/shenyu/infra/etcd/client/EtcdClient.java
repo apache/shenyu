@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.etcd;
+package org.apache.shenyu.infra.etcd.client;
 
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
@@ -55,16 +55,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class EtcdClient {
 
-    /**
-     * logger.
-     */
     private static final Logger LOG = LoggerFactory.getLogger(EtcdClient.class);
-
-    private final Client client;
-
-    private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
-
-    private final ConcurrentHashMap<String, Watch.Watcher> watchChildCache = new ConcurrentHashMap<>();
 
     private final Client client;
 
@@ -73,6 +64,10 @@ public class EtcdClient {
     private final long timeout;
 
     private long globalLeaseId;
+
+    private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, Watch.Watcher> watchChildCache = new ConcurrentHashMap<>();
 
     public EtcdClient(final Client client, final long ttl, final long timeout) {
 
@@ -402,14 +397,7 @@ public class EtcdClient {
         return Builder.builder();
     }
 
-    public static class Builder {
-
-        private Builder() {
-        }
-
-        public static Builder builder() {
-            return new Builder();
-        }
+    public static final class Builder {
 
         /**
          * etcd client.
@@ -419,6 +407,13 @@ public class EtcdClient {
         private long ttl = 60;
 
         private long timeout = 5000;
+
+        private Builder() {
+        }
+
+        private static Builder builder() {
+            return new Builder();
+        }
 
         public Builder client(final Client client) {
             this.client = client;

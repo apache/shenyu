@@ -15,7 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.etcd;
+package org.apache.shenyu.common.constant;
 
-public class EtcdTests {
+/**
+ * Apache Shenyu Module Constants.
+ */
+
+public interface ShenyuModuleConstants {
+
+    String SYNC = "sync";
+
+    String DATABASE = "database";
+
+    String INFRA = "infra";
+
+    default void findConstants() {
+    }
+
 }

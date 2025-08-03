@@ -22,7 +22,7 @@ import java.util.StringJoiner;
 /**
  * The type etcd configuration.
  */
-public class EtcdConfig {
+public final class EtcdConfig {
 
     private String url;
 
@@ -31,6 +31,15 @@ public class EtcdConfig {
     private Integer connectionTimeout;
 
     private String serializer;
+
+    public EtcdConfig(final String url, final Integer session,
+                      final Integer connection, final String serializer) {
+
+        this.url = url;
+        this.sessionTimeout = session;
+        this.connectionTimeout = connection;
+        this.serializer = serializer;
+    }
 
     /**
      * Get url.
@@ -112,6 +121,53 @@ public class EtcdConfig {
                 .add("connectionTimeout=" + connectionTimeout)
                 .add("serializer='" + serializer + "'")
                 .toString();
+    }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private String url;
+
+        private Integer sessionTimeout;
+
+        private Integer connectionTimeout;
+
+        private String serializer;
+
+        /**
+         * private constructor. not allow to create instance.
+         */
+        private Builder() {
+        }
+
+        public Builder url(final String url) {
+            this.url = url;
+            return this;
+        }
+
+        public Builder sessionTimeout(final Integer sessionTimeout) {
+            this.sessionTimeout = sessionTimeout;
+            return this;
+        }
+
+        public Builder connectionTimeout(final Integer connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder serializer(final String serializer) {
+            this.serializer = serializer;
+            return this;
+        }
+
+        public EtcdConfig build() {
+
+            return new EtcdConfig(url, sessionTimeout, connectionTimeout, serializer);
+        }
     }
 
 }

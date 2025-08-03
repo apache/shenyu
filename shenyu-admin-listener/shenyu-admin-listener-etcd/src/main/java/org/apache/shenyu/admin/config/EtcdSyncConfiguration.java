@@ -17,25 +17,27 @@
 
 package org.apache.shenyu.admin.config;
 
-import io.etcd.jetcd.Client;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataChangedInit;
 import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
-import org.apache.shenyu.infra.etcd.EtcdClient;
-import org.apache.shenyu.infra.etcd.EtcdProperties;
+import org.apache.shenyu.infra.etcd.autoconfig.ConditionOnSyncEtcd;
+import org.apache.shenyu.infra.etcd.autoconfig.EtcdConfiguration;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Etcd listener.
  */
+
 @Configuration
-@ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
-@EnableConfigurationProperties(EtcdProperties.class)
+@ConditionOnSyncEtcd
+@AutoConfiguration(after = { EtcdConfiguration.class })
+@ImportAutoConfiguration(EtcdConfiguration.class)
 public class EtcdSyncConfiguration {
 
     /**
@@ -47,6 +49,7 @@ public class EtcdSyncConfiguration {
     @Bean
     @ConditionalOnMissingBean(EtcdDataDataChangedListener.class)
     public DataChangedListener etcdDataChangedListener(final EtcdClient etcdClient) {
+
         return new EtcdDataDataChangedListener(etcdClient);
     }
 
@@ -59,6 +62,7 @@ public class EtcdSyncConfiguration {
     @Bean
     @ConditionalOnMissingBean(EtcdDataChangedInit.class)
     public DataChangedInit etcdDataChangedInit(final EtcdClient etcdClient) {
+
         return new EtcdDataChangedInit(etcdClient);
     }
 }
