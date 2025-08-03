@@ -40,7 +40,7 @@ public final class NacosConfigTest {
 
     private static final String CONTEXT_PATH = "nacos";
 
-    private static final NacosACMConfig ACM = new NacosACMConfig();
+    private static final NacosACMConfig ACM = NacosACMConfig.builder().build();
 
     private NacosConfig nacosConfig;
 
@@ -48,20 +48,22 @@ public final class NacosConfigTest {
 
     @BeforeEach
     public void setUp() {
-        nacosConfig = new NacosConfig();
-        nacosConfig.setUrl(URL);
-        nacosConfig.setNamespace(NAMESPACE);
-        nacosConfig.setPassword(PASSWORD);
-        nacosConfig.setUsername(USERNAME);
-        nacosConfig.setContextPath(CONTEXT_PATH);
-        nacosConfig.setAcm(ACM);
-        that = new NacosConfig();
-        that.setUrl(URL);
-        that.setNamespace(NAMESPACE);
-        that.setPassword(PASSWORD);
-        that.setUsername(USERNAME);
-        that.setContextPath(CONTEXT_PATH);
-        that.setAcm(ACM);
+
+        nacosConfig = NacosConfig.builder()
+                .acm(ACM)
+                .contextPath(CONTEXT_PATH)
+                .password(PASSWORD)
+                .username(USERNAME)
+                .url(URL)
+                .build();
+
+        that = NacosConfig.builder()
+                .acm(ACM)
+                .contextPath(CONTEXT_PATH)
+                .password(PASSWORD)
+                .username(USERNAME)
+                .url(URL)
+                .build();
     }
 
     @Test

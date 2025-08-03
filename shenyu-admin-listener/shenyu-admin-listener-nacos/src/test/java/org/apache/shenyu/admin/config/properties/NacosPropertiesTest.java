@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
 import org.apache.shenyu.infra.nacos.config.NacosACMConfig;
 import org.junit.jupiter.api.Test;
 
@@ -48,12 +49,13 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
     public void testNacosPropertiesSpecified() {
         final String url = "localhost:8848";
         final String namespace = "1c10d748-af86-43b9-8265-75f487d20c6c";
-        NacosACMConfig acm = new NacosACMConfig();
-        acm.setEnabled(false);
-        acm.setEndpoint("acm.aliyun.com");
-        acm.setAccessKey("accessKey");
-        acm.setNamespace("namespace");
-        acm.setSecretKey("secretKey");
+        NacosACMConfig acm = NacosACMConfig.builder()
+                .enabled(false)
+                .accessKey("accessKey")
+                .secretKey("secretKey")
+                .endpoint("acm.aliyun.com")
+                .namespace("namespace")
+                .build();
         assertEquals(acm.getAccessKey(), "accessKey");
         assertEquals(acm.getNamespace(), "namespace");
         assertEquals(acm.getSecretKey(), "secretKey");

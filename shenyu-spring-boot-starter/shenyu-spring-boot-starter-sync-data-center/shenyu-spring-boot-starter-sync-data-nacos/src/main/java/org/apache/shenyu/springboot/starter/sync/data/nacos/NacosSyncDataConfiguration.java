@@ -22,6 +22,7 @@ import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.nacos.autoconfig.ConditionOnSyncNacos;
 import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -47,9 +48,10 @@ import java.util.Properties;
 /**
  * Nacos sync data configuration for spring boot.
  */
+
 @Configuration
-@ConditionalOnClass(NacosSyncDataService.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
+@ConditionOnSyncNacos
+@ConditionalOnClass({NacosSyncDataService.class, ConfigService.class})
 public class NacosSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosSyncDataConfiguration.class);

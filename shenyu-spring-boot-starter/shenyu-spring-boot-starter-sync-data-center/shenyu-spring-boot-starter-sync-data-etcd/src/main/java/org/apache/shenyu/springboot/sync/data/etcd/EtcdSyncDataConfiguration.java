@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.sync.data.etcd;
 
 import io.etcd.jetcd.Client;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.etcd.autoconfig.ConditionOnSyncEtcd;
+import org.apache.shenyu.infra.etcd.autoconfig.EtcdProperties;
 import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.infra.etcd.config.EtcdConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -43,10 +45,11 @@ import java.util.List;
 /**
  * Etcd sync data configuration for spring boot.
  */
+
 @Configuration
-@ConditionalOnClass(EtcdSyncDataConfiguration.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
-@EnableConfigurationProperties(EtcdConfig.class)
+@ConditionOnSyncEtcd
+@EnableConfigurationProperties(EtcdProperties.class)
+@ConditionalOnClass({EtcdSyncDataConfiguration.class, Client.class})
 public class EtcdSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdSyncDataConfiguration.class);
@@ -71,6 +74,7 @@ public class EtcdSyncDataConfiguration {
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+
         LOGGER.info("you use etcd sync shenyu data.......");
         return new EtcdSyncDataService(shenyuConfig.getIfAvailable(),
                 etcdClients.getIfAvailable(),
@@ -81,17 +85,4 @@ public class EtcdSyncDataConfiguration {
                 discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList));
     }
 
-    /**
-     * register etcd Client in spring ioc.
-     *
-     * @param etcdConfig the etcd configuration
-     * @return EtcdClient {@linkplain EtcdClient}
-     */
-    @Bean
-    public EtcdClient etcdClient(final EtcdConfig etcdConfig) {
-
-        return new EtcdClient(Client.builder()
-                .endpoints(etcdConfig.getUrl().split(","))
-                .build());
-    }
 }

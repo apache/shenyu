@@ -15,20 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config.properties;
+package org.apache.shenyu.infra.nacos.autoconfig;
 
+import org.apache.shenyu.infra.common.InfraConstants;
+import org.apache.shenyu.infra.common.InfraParentProperties;
 import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
+import static org.apache.shenyu.infra.nacos.autoconfig.NacosProperties.CONFIG_PREFIX;
+
 /**
  * The type Nacos config.
  */
-@ConfigurationProperties(prefix = "shenyu.sync")
-public class NacosProperties {
+@ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
+public class NacosProperties extends InfraParentProperties {
+
+    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + InfraConstants.SHENYU_NACOS;
 
     @NestedConfigurationProperty
-    private NacosConfig nacos = new NacosConfig();
+    private NacosConfig nacos = NacosConfig.builder().build();
 
     public NacosConfig getNacos() {
         return nacos;

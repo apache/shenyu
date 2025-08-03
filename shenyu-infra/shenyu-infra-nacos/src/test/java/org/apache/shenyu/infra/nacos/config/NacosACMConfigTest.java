@@ -46,28 +46,35 @@ public final class NacosACMConfigTest {
 
     @BeforeEach
     public void setUp() {
-        nacosACMConfig = new NacosACMConfig();
-        nacosACMConfig.setAccessKey(ACCESS_KEY);
-        nacosACMConfig.setEnabled(ENABLE);
-        nacosACMConfig.setEndpoint(ENDPOINT);
-        nacosACMConfig.setNamespace(NAMESPACE);
-        nacosACMConfig.setSecretKey(SECRE_KEY);
-        that = new NacosACMConfig();
-        that.setAccessKey(ACCESS_KEY);
-        that.setEnabled(ENABLE);
-        that.setEndpoint(ENDPOINT);
-        that.setNamespace(NAMESPACE);
-        that.setSecretKey(SECRE_KEY);
+
+        nacosACMConfig = NacosACMConfig.builder()
+                .namespace(NAMESPACE)
+                .endpoint(ENDPOINT)
+                .secretKey(SECRE_KEY)
+                .accessKey(ACCESS_KEY)
+                .enabled(ENABLE)
+                .build();
+
+        that = NacosACMConfig.builder()
+                .namespace(NAMESPACE)
+                .endpoint(ENDPOINT)
+                .secretKey(SECRE_KEY)
+                .accessKey(ACCESS_KEY)
+                .enabled(ENABLE)
+                .build();
     }
 
     @Test
     public void testGetterSetter() {
-        NacosACMConfig nacosACMConfig = new NacosACMConfig();
-        nacosACMConfig.setAccessKey(ACCESS_KEY);
-        nacosACMConfig.setEnabled(ENABLE);
-        nacosACMConfig.setEndpoint(ENDPOINT);
-        nacosACMConfig.setNamespace(NAMESPACE);
-        nacosACMConfig.setSecretKey(SECRE_KEY);
+
+        var nacosACMConfig = NacosACMConfig.builder()
+                .namespace(NAMESPACE)
+                .endpoint(ENDPOINT)
+                .secretKey(SECRE_KEY)
+                .accessKey(ACCESS_KEY)
+                .enabled(ENABLE)
+                .build();
+
         assertEquals(ACCESS_KEY, nacosACMConfig.getAccessKey());
         assertEquals(ENABLE, nacosACMConfig.isEnabled());
         assertEquals(ENDPOINT, nacosACMConfig.getEndpoint());

@@ -21,13 +21,13 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
+import org.apache.shenyu.infra.nacos.autoconfig.ConditionOnSyncNacos;
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +38,9 @@ import java.util.Properties;
 /**
  * The type Nacos listener.
  */
+
 @Configuration
-@ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
+@ConditionOnSyncNacos
 @EnableConfigurationProperties(NacosProperties.class)
 public class NacosSyncConfiguration {
 
