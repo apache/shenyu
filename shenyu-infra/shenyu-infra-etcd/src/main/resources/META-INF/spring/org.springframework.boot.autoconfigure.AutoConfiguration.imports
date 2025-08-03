@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-org.apache.shenyu.infra.etcd.autoconfigure.EtcdConfiguration
+org.apache.shenyu.infra.etcd.autoconfig.EtcdConfiguration
