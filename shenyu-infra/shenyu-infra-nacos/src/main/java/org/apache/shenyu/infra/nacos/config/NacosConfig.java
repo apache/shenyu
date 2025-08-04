@@ -19,7 +19,7 @@ package org.apache.shenyu.infra.nacos.config;
 
 import java.util.Objects;
 
-public final class NacosConfig {
+public class NacosConfig {
 
     private String url;
 
@@ -207,7 +207,7 @@ public final class NacosConfig {
         return new Builder();
     }
 
-    public static final class Builder {
+    public static class Builder {
 
         private String url;
 

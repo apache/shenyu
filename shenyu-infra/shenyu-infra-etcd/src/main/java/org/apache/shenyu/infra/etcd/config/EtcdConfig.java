@@ -22,7 +22,7 @@ import java.util.StringJoiner;
 /**
  * The type etcd configuration.
  */
-public final class EtcdConfig {
+public class EtcdConfig {
 
     private String url;
 
@@ -128,7 +128,7 @@ public final class EtcdConfig {
         return new Builder();
     }
 
-    public static final class Builder {
+    public static class Builder {
 
         private String url;
 

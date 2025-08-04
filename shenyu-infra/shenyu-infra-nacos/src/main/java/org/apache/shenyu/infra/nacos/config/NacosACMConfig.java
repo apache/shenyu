@@ -19,7 +19,7 @@ package org.apache.shenyu.infra.nacos.config;
 
 import java.util.Objects;
 
-public final class NacosACMConfig {
+public class NacosACMConfig {
 
     private boolean enabled;
 
