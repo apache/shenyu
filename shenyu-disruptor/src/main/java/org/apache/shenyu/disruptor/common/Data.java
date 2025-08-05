@@ -15,14 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.disruptor.consumer;
+package org.apache.shenyu.disruptor.common;
 
-import org.apache.shenyu.disruptor.common.Data;
+public class Data<T> {
 
-/**
- * The type Queue consumer executor.
- *
- * @param <T> the type parameter
- */
-public abstract class QueueConsumerExecutor<T> extends Data<T> implements Runnable {
+    private T data;
+
+    /**
+     * get data.
+     * @return data
+     */
+    public T getData() {
+        return data;
+    }
+
+    /**
+     * set data.
+     * @param data data
+     */
+    public void setData(final T data) {
+        this.data = data;
+    }
+
 }
