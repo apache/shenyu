@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.common.cache;
+package org.apache.shenyu.plugin.ai.transformer.response.cache;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * this is chatClient cache.
+ * this is chatClient cache for ai response transformer.
  */
 public class ChatClientCache {
 

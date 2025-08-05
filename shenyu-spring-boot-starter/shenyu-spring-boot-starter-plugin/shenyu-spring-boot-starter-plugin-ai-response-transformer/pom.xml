@@ -32,11 +32,5 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-base</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 </project> 

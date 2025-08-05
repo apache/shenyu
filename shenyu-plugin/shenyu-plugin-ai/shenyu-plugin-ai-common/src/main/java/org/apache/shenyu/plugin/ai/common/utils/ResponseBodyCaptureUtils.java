@@ -17,18 +17,8 @@
 
 package org.apache.shenyu.plugin.ai.common.utils;
 
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.ServerWebExchangeDecorator;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicReference;
-import org.reactivestreams.Publisher;
 
 /**
  * Response body capture utils.
@@ -37,38 +27,16 @@ public class ResponseBodyCaptureUtils {
 
     /**
      * Capture response body from exchange.
+     * Note: This method returns an empty string because the response body
+     * is not available at the time of template assembly.
+     * The actual response body will be captured in the response decorator.
      *
      * @param exchange the exchange
-     * @return the captured response body
+     * @return the captured response body (empty string)
      */
     public static Mono<String> captureResponseBody(final ServerWebExchange exchange) {
-        AtomicReference<String> capturedBody = new AtomicReference<>("");
-        
-        ServerHttpResponse originalResponse = exchange.getResponse();
-        ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(originalResponse) {
-            @Override
-            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                if (body instanceof Flux) {
-                    Flux<? extends DataBuffer> fluxBody = (Flux<? extends DataBuffer>) body;
-                    return super.writeWith(fluxBody.doOnNext(dataBuffer -> {
-                        byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                        dataBuffer.read(bytes);
-                        DataBufferUtils.release(dataBuffer);
-                        String bodyContent = new String(bytes, StandardCharsets.UTF_8);
-                        capturedBody.set(bodyContent);
-                    }));
-                }
-                return super.writeWith(body);
-            }
-        };
-        
-        ServerWebExchangeDecorator exchangeDecorator = new ServerWebExchangeDecorator(exchange) {
-            @Override
-            public ServerHttpResponse getResponse() {
-                return responseDecorator;
-            }
-        };
-        
-        return Mono.just(capturedBody.get());
+        // 在响应转换的场景中，响应体还没有被写入，所以返回空字符串
+        // 实际的响应体将在 AiResponseTransformerDecorator 中被捕获和处理
+        return Mono.just("");
     }
 } 

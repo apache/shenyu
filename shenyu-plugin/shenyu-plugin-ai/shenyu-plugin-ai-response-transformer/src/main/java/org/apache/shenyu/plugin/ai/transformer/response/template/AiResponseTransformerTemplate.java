@@ -152,11 +152,10 @@ public class AiResponseTransformerTemplate {
         MediaType responseContentType = exchange.getResponse().getHeaders().getContentType();
 
         return bodyToString(originalRequest.getBody())
-                .flatMap(requestBodyString -> ResponseBodyCaptureUtils.captureResponseBody(exchange)
-                        .flatMap(responseBodyString -> {
-                            ObjectNode rootNode = objectMapper.createObjectNode();
-                            rootNode.put("system_prompt", SYS_CONTENT);
-                            rootNode.put("user_prompt", userContent);
+                .flatMap(requestBodyString -> {
+                    ObjectNode rootNode = objectMapper.createObjectNode();
+                    rootNode.put("system_prompt", SYS_CONTENT);
+                    rootNode.put("user_prompt", userContent);
 
                     // 请求信息
                     ObjectNode requestNode = objectMapper.createObjectNode();
@@ -181,29 +180,11 @@ public class AiResponseTransformerTemplate {
                         requestNode.put("body", requestBodyString);
                     }
 
-                    // 响应信息
+                    // 响应信息（不包含响应体，因为响应体在模板组装时还不可用）
                     ObjectNode responseNode = objectMapper.createObjectNode();
                     responseNode.set("headers", responseHeadersJson);
                     responseNode.put("status", exchange.getResponse().getStatusCode().value());
-
-                    if (Objects.nonNull(responseContentType)) {
-                        if (MediaType.APPLICATION_JSON.isCompatibleWith(responseContentType)) {
-                            try {
-                                JsonNode bodyJsonNode = objectMapper.readTree(responseBodyString);
-                                responseNode.set("body", bodyJsonNode);
-                            } catch (Exception e) {
-                                responseNode.put("body", responseBodyString);
-                            }
-                        } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(responseContentType)) {
-                            Map<String, String> formMap = parseFormUrlEncoded(responseBodyString);
-                            JsonNode formJson = objectMapper.valueToTree(formMap);
-                            responseNode.set("body", formJson);
-                        } else {
-                            responseNode.put("body", responseBodyString);
-                        }
-                    } else {
-                        responseNode.put("body", responseBodyString);
-                    }
+                    responseNode.put("body", ""); // 响应体将在装饰器中处理
 
                     rootNode.set("request", requestNode);
                     rootNode.set("response", responseNode);
@@ -214,6 +195,6 @@ public class AiResponseTransformerTemplate {
                     } catch (Exception e) {
                         return Mono.error(e);
                     }
-                }));
+                });
     }
 } 

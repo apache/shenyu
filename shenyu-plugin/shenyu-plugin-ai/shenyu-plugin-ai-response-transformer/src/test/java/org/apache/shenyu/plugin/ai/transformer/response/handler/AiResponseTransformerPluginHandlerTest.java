@@ -19,14 +19,15 @@ package org.apache.shenyu.plugin.ai.transformer.response.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.plugin.AiResponseTransformerConfig;
+import org.apache.shenyu.common.dto.convert.rule.AiResponseTransformerHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.ai.common.cache.ChatClientCache;
+import org.apache.shenyu.plugin.ai.transformer.response.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
-import org.apache.shenyu.plugin.ai.transformer.response.config.AiResponseTransformerConfig;
-import org.apache.shenyu.plugin.ai.transformer.response.handle.AiResponseTransformerHandle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +37,8 @@ import org.springframework.ai.chat.model.ChatModel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -111,7 +112,7 @@ class AiResponseTransformerPluginHandlerTest {
         handler.handlerRule(ruleData);
 
         // 验证规则是否被正确缓存
-        assertNotNull(AiResponseTransformerPluginHandler.CACHED_HANDLE.get().obtainHandle("test-rule-id"));
+        assertNotNull(AiResponseTransformerPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test
@@ -131,7 +132,7 @@ class AiResponseTransformerPluginHandlerTest {
         handler.removeRule(ruleData);
 
         // 验证规则是否被正确移除
-        assertEquals(0, AiResponseTransformerPluginHandler.CACHED_HANDLE.get().getCachedHandle().size());
+        assertNull(AiResponseTransformerPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test
