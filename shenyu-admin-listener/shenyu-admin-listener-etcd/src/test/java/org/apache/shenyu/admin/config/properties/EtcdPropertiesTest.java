@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.infra.etcd.autoconfig.EtcdProperties;
+import org.apache.shenyu.infra.etcd.config.EtcdConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -27,14 +29,20 @@ public class EtcdPropertiesTest {
     
     @Test
     public void etcdPropertiesTest() {
+
         final EtcdProperties etcdProperties = new EtcdProperties();
-        etcdProperties.setUrl("url");
-        etcdProperties.setSerializer("serializer");
-        etcdProperties.setConnectionTimeout(0);
-        etcdProperties.setSessionTimeout(0);
-        Assertions.assertEquals(etcdProperties.getUrl(), "url");
-        Assertions.assertEquals(etcdProperties.getSerializer(), "serializer");
-        Assertions.assertEquals(etcdProperties.getConnectionTimeout(), 0);
-        Assertions.assertEquals(etcdProperties.getSessionTimeout(), 0);
+        etcdProperties.setEtcd(
+                EtcdConfig.builder()
+                        .url("url")
+                        .sessionTimeout(0)
+                        .connectionTimeout(0)
+                        .serializer("serializer")
+                        .build()
+        );
+
+        Assertions.assertEquals(etcdProperties.getEtcd().getUrl(), "url");
+        Assertions.assertEquals(etcdProperties.getEtcd().getSerializer(), "serializer");
+        Assertions.assertEquals(etcdProperties.getEtcd().getConnectionTimeout(), 0);
+        Assertions.assertEquals(etcdProperties.getEtcd().getSessionTimeout(), 0);
     }
 }
