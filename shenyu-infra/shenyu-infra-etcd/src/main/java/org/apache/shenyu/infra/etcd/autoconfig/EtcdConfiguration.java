@@ -22,9 +22,12 @@ import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.xml.datatype.Duration;
 
 @Configuration
 @ConditionOnSyncEtcd
@@ -41,6 +44,7 @@ public class EtcdConfiguration {
      * @return Etcd Client
      */
     @Bean
+    @ConditionalOnMissingBean
     public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
 
         log.info("Initializing Etcd Client with URL: {}", etcdProperties.getEtcd().getUrl());

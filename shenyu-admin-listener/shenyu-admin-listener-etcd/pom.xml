@@ -27,10 +27,6 @@
     <artifactId>shenyu-admin-listener-etcd</artifactId>
 
     <dependencies>
-        <dependency>
-            <artifactId>grpc-netty</artifactId>
-            <groupId>io.grpc</groupId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
