@@ -33,6 +33,22 @@ public class NacosConfig {
 
     private NacosACMConfig acm;
 
+    public NacosConfig(final String url,
+                       final String namespace,
+                       final String username,
+                       final String password,
+                       final String contextPath,
+                       final NacosACMConfig acm
+    ) {
+
+        this.url = url;
+        this.namespace = namespace;
+        this.username = username;
+        this.password = password;
+        this.contextPath = contextPath;
+        this.acm = acm;
+    }
+
     /**
      * get url.
      *
@@ -185,4 +201,60 @@ public class NacosConfig {
                 + acm
                 + '}';
     }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private String url;
+
+        private String namespace;
+
+        private String username;
+
+        private String password;
+
+        private String contextPath;
+
+        private NacosACMConfig acm;
+
+        public Builder url(final String url) {
+            this.url = url;
+            return this;
+        }
+
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+            return this;
+        }
+
+        public Builder username(final String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Builder password(final String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        public Builder acm(final NacosACMConfig acm) {
+            this.acm = acm;
+            return this;
+        }
+
+        public NacosConfig build() {
+            return new NacosConfig(url, namespace, username, password, contextPath, acm);
+        }
+
+    }
+
 }

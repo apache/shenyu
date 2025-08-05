@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class EtcdClientTest {
     public void setUp() {
         KV kvClient = mock(KV.class);
         when(client.getKVClient()).thenReturn(kvClient);
-        etcdClient = new EtcdClient(client);
+        etcdClient = EtcdClient.builder().client(client).build();
         assertNotNull(etcdClient);
     }
 
