@@ -28,6 +28,7 @@ import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchResponse;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -172,7 +173,7 @@ public class EtcdClientTest {
     @Test
     public void testEtcdClient() throws ExecutionException, InterruptedException {
         final Client client = mock(Client.class);
-        final EtcdClient etcdClient = new EtcdClient(client);
+        final EtcdClient etcdClient = EtcdClient.builder().client(client).build();
         assertDoesNotThrow(etcdClient::close);
         final KV mockKV = mock(KV.class);
         when(client.getKVClient()).thenReturn(mockKV);
