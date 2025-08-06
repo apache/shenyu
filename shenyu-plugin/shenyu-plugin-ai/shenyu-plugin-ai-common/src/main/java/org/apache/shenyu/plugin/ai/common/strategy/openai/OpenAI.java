@@ -35,6 +35,7 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,7 +67,7 @@ public class OpenAI implements AiModel {
                     return Mono.error(error);
                 });
     }
-    
+
     @Override
     public Long getCompletionTokens(final String responseBody) {
         try {
@@ -101,6 +102,11 @@ public class OpenAI implements AiModel {
         Map<String, Object> requestBodyMap = GsonUtils.getInstance().convertToMap(originalBody);
         requestBodyMap.put(Constants.MODEL, aiCommonConfig.getModel());
         requestBodyMap.put(Constants.STREAM, aiCommonConfig.getStream());
+        if (aiCommonConfig.getStream()) {
+            Map<String, Object> streamOptions = new HashMap<>();
+            streamOptions.put(Constants.INCLUDE_USAGE, true);
+            requestBodyMap.put(Constants.STREAM_OPTIONS, streamOptions);
+        }
         return GsonUtils.getInstance().toJson(requestBodyMap);
     }
     

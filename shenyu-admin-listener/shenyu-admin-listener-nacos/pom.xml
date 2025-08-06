@@ -40,8 +40,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-infra-nacos</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

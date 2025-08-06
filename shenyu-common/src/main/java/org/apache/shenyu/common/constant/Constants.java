@@ -21,6 +21,16 @@ package org.apache.shenyu.common.constant;
  * Constants.
  */
 public interface Constants {
+
+    /**
+     * The constant Apache SHENYU.
+     */
+    String SHENYU = "shenyu";
+
+    /**
+     * The constant string dot.
+     */
+    String DOT = ".";
     
     /**
      * The constant string separator.
@@ -46,6 +56,11 @@ public interface Constants {
      * The constant context.
      */
     String CONTEXT = "context";
+    
+    /**
+     * The constant chain.
+     */
+    String CHAIN = "chain";
     
     /**
      * The constant context path.
@@ -989,6 +1004,16 @@ public interface Constants {
      * The constant USAGE.
      */
     String USAGE = "usage";
+
+    /**
+     * The include_usage for stream.
+     */
+    String INCLUDE_USAGE = "include_usage";
+
+    /**
+     * The stream_options.
+     */
+    String STREAM_OPTIONS = "stream_options";
     
     /**
      * The constant COMPLETION_TOKENS.

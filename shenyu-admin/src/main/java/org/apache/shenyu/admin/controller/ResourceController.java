@@ -68,7 +68,7 @@ public class ResourceController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     @RequiresPermissions("system:resource:list")
     public ShenyuAdminResult queryResource(final String title,
                                            @RequestParam @NotNull final Integer currentPage,
@@ -131,7 +131,7 @@ public class ResourceController {
      * @param createResourceDTO resource dto
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions(value = {"system:resource:addMenu", "system:resource:addButton"}, logical = Logical.OR)
     public ShenyuAdminResult createResource(@Valid @RequestBody final CreateResourceDTO createResourceDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.create(createResourceDTO));
