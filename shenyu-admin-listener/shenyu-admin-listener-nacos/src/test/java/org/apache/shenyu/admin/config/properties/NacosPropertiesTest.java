@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
+import org.apache.shenyu.infra.nacos.config.NacosACMConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,25 +36,26 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
     public void testNacosPropertiesDefault() {
         load(NacosPropertiesTest.NacosPropertiesConfiguration.class);
         NacosProperties nacosProperties = getContext().getBean(NacosProperties.class);
-        nacosProperties.setPassword("password");
-        nacosProperties.setUsername("username");
-        assertNull(nacosProperties.getUrl());
-        assertNull(nacosProperties.getNamespace());
-        assertNull(nacosProperties.getAcm());
-        assertEquals(nacosProperties.getPassword(), "password");
-        assertEquals(nacosProperties.getUsername(), "username");
+        nacosProperties.getNacos().setPassword("password");
+        nacosProperties.getNacos().setUsername("username");
+        assertNull(nacosProperties.getNacos().getUrl());
+        assertNull(nacosProperties.getNacos().getNamespace());
+        assertNull(nacosProperties.getNacos().getAcm());
+        assertEquals(nacosProperties.getNacos().getPassword(), "password");
+        assertEquals(nacosProperties.getNacos().getUsername(), "username");
     }
     
     @Test
     public void testNacosPropertiesSpecified() {
         final String url = "localhost:8848";
         final String namespace = "1c10d748-af86-43b9-8265-75f487d20c6c";
-        NacosProperties.NacosACMProperties acm = new NacosProperties.NacosACMProperties();
-        acm.setEnabled(false);
-        acm.setEndpoint("acm.aliyun.com");
-        acm.setAccessKey("accessKey");
-        acm.setNamespace("namespace");
-        acm.setSecretKey("secretKey");
+        NacosACMConfig acm = NacosACMConfig.builder()
+                .enabled(false)
+                .accessKey("accessKey")
+                .secretKey("secretKey")
+                .endpoint("acm.aliyun.com")
+                .namespace("namespace")
+                .build();
         assertEquals(acm.getAccessKey(), "accessKey");
         assertEquals(acm.getNamespace(), "namespace");
         assertEquals(acm.getSecretKey(), "secretKey");
@@ -62,14 +65,15 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
                 "shenyu.sync.nacos.acm.enabled=false",
                 "shenyu.sync.nacos.acm.endpoint=acm.aliyun.com");
         NacosProperties nacosProperties = getContext().getBean(NacosProperties.class);
-        assertEquals(nacosProperties.getUrl(), url);
-        assertEquals(nacosProperties.getNamespace(), namespace);
-        assertEquals(nacosProperties.getAcm().isEnabled(), acm.isEnabled());
-        assertEquals(nacosProperties.getAcm().getEndpoint(), acm.getEndpoint());
+        assertEquals(nacosProperties.getNacos().getUrl(), url);
+        assertEquals(nacosProperties.getNacos().getNamespace(), namespace);
+        assertEquals(nacosProperties.getNacos().getAcm().isEnabled(), acm.isEnabled());
+        assertEquals(nacosProperties.getNacos().getAcm().getEndpoint(), acm.getEndpoint());
     }
     
     @Configuration
     @EnableConfigurationProperties(NacosProperties.class)
     static class NacosPropertiesConfiguration {
     }
+
 }
