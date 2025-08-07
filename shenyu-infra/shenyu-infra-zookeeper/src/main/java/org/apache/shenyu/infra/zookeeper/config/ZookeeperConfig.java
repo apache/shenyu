@@ -23,7 +23,7 @@ public class ZookeeperConfig {
      * zookeeper server list.
      * e.g. host1:2181,host2:2181
      */
-    private final String serverLists;
+    private String serverLists;
 
     /**
      * zookeeper namespace.
@@ -87,6 +87,11 @@ public class ZookeeperConfig {
      */
     public String getServerLists() {
         return serverLists;
+    }
+
+    public ZookeeperConfig setServerLists(final String serverLists) {
+        this.serverLists = serverLists;
+        return this;
     }
 
     /**

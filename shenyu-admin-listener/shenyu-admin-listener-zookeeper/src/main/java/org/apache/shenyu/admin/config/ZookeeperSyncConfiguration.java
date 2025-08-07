@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.infra.zookeeper.autoconfig.ConditionOnSyncZk;
 import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperConfiguration;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
@@ -29,6 +30,8 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Objects;
 
 /**
  * The type Zookeeper listener.
@@ -49,6 +52,9 @@ public class ZookeeperSyncConfiguration {
     @ConditionalOnMissingBean(ZookeeperDataChangedListener.class)
     public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
 
+        if (Objects.isNull(zkClient)) {
+            throw new ShenyuException("ZookeeperClient must not be null");
+        }
         return new ZookeeperDataChangedListener(zkClient);
     }
 
@@ -62,6 +68,9 @@ public class ZookeeperSyncConfiguration {
     @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
     public DataChangedInit zookeeperDataChangedInit(final ZookeeperClient zkClient) {
 
+        if (Objects.isNull(zkClient)) {
+            throw new ShenyuException("ZookeeperClient must not be null");
+        }
         return new ZookeeperDataChangedInit(zkClient);
     }
 

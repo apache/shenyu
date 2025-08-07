@@ -22,10 +22,12 @@ import org.apache.shenyu.infra.common.InfraConstants;
 import org.apache.shenyu.infra.common.InfraParentProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import static org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties.CONFIG_PREFIX;
+
 /**
  * The type Zookeeper configuration.
  */
-@ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
+@ConfigurationProperties(CONFIG_PREFIX)
 public class ZookeeperProperties extends InfraParentProperties {
 
     public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ZOOKEEPER;

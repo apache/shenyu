@@ -20,6 +20,8 @@ package org.apache.shenyu.infra.zookeeper.autoconfig;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,6 +36,8 @@ import java.util.Objects;
 @ConditionalOnClass(CuratorFrameworkFactory.Builder.class)
 public class ZookeeperConfiguration {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperConfiguration.class);
+
     /**
      * register ZookeeperClient in spring ioc.
      *
@@ -47,11 +51,15 @@ public class ZookeeperConfiguration {
         int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
         int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
 
-        ZookeeperConfig zkConfig = ZookeeperConfig.builder().serverLists(zookeeperProp.getUrl()).build();
-        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
+        LOG.info("zk client init: url: {}", zookeeperProp.getUrl());
+        ZookeeperClient client = ZookeeperClient.builder()
+                .config(ZookeeperConfig.builder()
+                        .serverLists(zookeeperProp.getUrl())
+                        .sessionTimeoutMilliseconds(sessionTimeout)
+                        .connectionTimeoutMilliseconds(connectionTimeout)
+                        .build()
+                ).build();
 
-        ZookeeperClient client = ZookeeperClient.builder().config(zkConfig).build();
         client.start();
 
         return client;
