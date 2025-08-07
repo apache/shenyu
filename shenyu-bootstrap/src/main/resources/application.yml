@@ -194,10 +194,12 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   register:
-    enabled: false
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    enable: true
+    registerType: http
+    serverLists: http://localhost:9095
     props:
+      username: admin
+      password: 123456
   cross:
     enabled: true
     allowedHeaders:

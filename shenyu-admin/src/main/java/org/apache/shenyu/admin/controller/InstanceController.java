@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -27,10 +29,13 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.PageService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -41,8 +46,11 @@ public class InstanceController implements PagedController<InstanceQueryConditio
 
     private final InstanceInfoService instanceInfoService;
 
-    public InstanceController(final InstanceInfoService instanceInfoService) {
+    private final InstanceCheckService instanceCheckService;
+
+    public InstanceController(final InstanceInfoService instanceInfoService, final InstanceCheckService instanceCheckService) {
         this.instanceInfoService = instanceInfoService;
+        this.instanceCheckService = instanceCheckService;
     }
 
     /**
@@ -87,6 +95,22 @@ public class InstanceController implements PagedController<InstanceQueryConditio
         InstanceInfoVO instanceInfoVO = instanceInfoService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, instanceInfoVO);
     }
+
+    /**
+     * receive beat.
+     *
+     * @param instanceBeatInfoDTO instanceBeatInfoDTO.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("/beat")
+    public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        //todo:admin集群模式下，请求转发给master节点
+        instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+
+
 
 
     @Override
