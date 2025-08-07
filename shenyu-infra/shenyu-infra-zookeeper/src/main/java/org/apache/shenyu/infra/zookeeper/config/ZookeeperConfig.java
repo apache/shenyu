@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.zookeeper;
+package org.apache.shenyu.infra.zookeeper.config;
 
 public class ZookeeperConfig {
+
     /**
      * zookeeper server list.
      * e.g. host1:2181,host2:2181
@@ -27,40 +28,55 @@ public class ZookeeperConfig {
     /**
      * zookeeper namespace.
      */
-    private String namespace = "";
+    private String namespace;
 
     /**
      * initial amount of time to wait between retries.
      */
-    private int baseSleepTimeMilliseconds = 1000;
+    private Integer baseSleepTimeMilliseconds;
 
     /**
      * max time in ms to sleep on each retry.
      */
-    private int maxSleepTimeMilliseconds = Integer.MAX_VALUE;
+    private Integer maxSleepTimeMilliseconds= Integer.MAX_VALUE;
 
     /**
      * max number of times to retry.
      */
-    private int maxRetries = 3;
+    private Integer maxRetries;
 
     /**
      * session timeout.
      */
-    private int sessionTimeoutMilliseconds = 60 * 1000;
+    private Integer sessionTimeoutMilliseconds;
 
     /**
      * connection timeout.
      */
-    private int connectionTimeoutMilliseconds = 15 * 1000;
+    private Integer connectionTimeoutMilliseconds;
 
     /**
      * auth token digest. no auth by default.
      */
     private String digest;
 
-    public ZookeeperConfig(final String serverLists) {
+    public ZookeeperConfig(
+            String serverLists,
+            String namespace,
+            Integer baseSleepTimeMilliseconds,
+            Integer maxRetries,
+            Integer sessionTimeoutMilliseconds,
+            Integer connectionTimeoutMilliseconds,
+            String digest
+    ) {
+
         this.serverLists = serverLists;
+        this.namespace = namespace;
+        this.baseSleepTimeMilliseconds = baseSleepTimeMilliseconds;
+        this.maxRetries = maxRetries;
+        this.sessionTimeoutMilliseconds = sessionTimeoutMilliseconds;
+        this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
+        this.digest = digest;
     }
 
     /**
@@ -196,4 +212,85 @@ public class ZookeeperConfig {
         this.digest = digest;
         return this;
     }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private String serverLists;
+
+        private String namespace;
+
+        private Integer baseSleepTimeMilliseconds = 1000;
+
+        private Integer maxSleepTimeMilliseconds;
+
+        private Integer maxRetries = 3;
+
+        private Integer sessionTimeoutMilliseconds = 60 * 1000;
+
+        private Integer connectionTimeoutMilliseconds = 15 * 1000;
+
+        private String digest;
+
+        private Builder() {
+        }
+
+        public Builder serverLists(final String serverLists) {
+            this.serverLists = serverLists;
+            return this;
+        }
+
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+            return this;
+        }
+
+        public Builder baseSleepTimeMilliseconds(final Integer baseSleepTimeMilliseconds) {
+            this.baseSleepTimeMilliseconds = baseSleepTimeMilliseconds;
+            return this;
+        }
+
+        public Builder maxSleepTimeMilliseconds(final Integer maxSleepTimeMilliseconds) {
+            this.maxSleepTimeMilliseconds = maxSleepTimeMilliseconds;
+            return this;
+        }
+
+        public Builder maxRetries(final Integer maxRetries) {
+            this.maxRetries = maxRetries;
+            return this;
+        }
+
+        public Builder sessionTimeoutMilliseconds(final Integer sessionTimeoutMilliseconds) {
+            this.sessionTimeoutMilliseconds = sessionTimeoutMilliseconds;
+            return this;
+        }
+
+        public Builder connectionTimeoutMilliseconds(final Integer connectionTimeoutMilliseconds) {
+            this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
+            return this;
+        }
+
+        public Builder digest(final String digest) {
+            this.digest = digest;
+            return this;
+        }
+
+        public ZookeeperConfig build() {
+
+            return new ZookeeperConfig(
+                    serverLists,
+                    namespace,
+                    baseSleepTimeMilliseconds,
+                    maxRetries,
+                    sessionTimeoutMilliseconds,
+                    connectionTimeoutMilliseconds,
+                    digest
+            );
+        }
+    }
+
 }

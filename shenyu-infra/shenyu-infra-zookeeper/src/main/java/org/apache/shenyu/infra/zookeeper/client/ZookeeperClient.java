@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.zookeeper;
+package org.apache.shenyu.infra.zookeeper.client;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,18 +28,18 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ZookeeperClient implements AutoCloseable {
+public class ZookeeperClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
 
@@ -49,22 +49,10 @@ public class ZookeeperClient implements AutoCloseable {
 
     private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
 
-    public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
+    public ZookeeperClient(final ZookeeperConfig zookeeperConfig, final CuratorFramework client) {
+
         this.config = zookeeperConfig;
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(config.getBaseSleepTimeMilliseconds(), config.getMaxRetries(), config.getMaxSleepTimeMilliseconds());
-
-        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                .connectString(config.getServerLists())
-                .retryPolicy(retryPolicy)
-                .connectionTimeoutMs(config.getConnectionTimeoutMilliseconds())
-                .sessionTimeoutMs(config.getSessionTimeoutMilliseconds())
-                .namespace(config.getNamespace());
-
-        if (!StringUtils.isEmpty(config.getDigest())) {
-            builder.authorization("digest", config.getDigest().getBytes(StandardCharsets.UTF_8));
-        }
-
-        this.client = builder.build();
+        this.client = client;
     }
 
     /**
@@ -83,7 +71,6 @@ public class ZookeeperClient implements AutoCloseable {
     /**
      * start.
      */
-    @Override
     public void close() {
         // close all caches
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
@@ -112,7 +99,7 @@ public class ZookeeperClient implements AutoCloseable {
         try {
             return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
-            throw new ShenyuException(e);
+            return false;
         }
     }
 
@@ -138,7 +125,7 @@ public class ZookeeperClient implements AutoCloseable {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        TreeCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
@@ -148,7 +135,7 @@ public class ZookeeperClient implements AutoCloseable {
         }
         return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
-    
+
     /**
      * create or update key with value.
      *
@@ -213,8 +200,7 @@ public class ZookeeperClient implements AutoCloseable {
         try {
             return client.getChildren().forPath(key);
         } catch (Exception e) {
-            LOG.error("zookeeper get child error=", e);
-            return Collections.emptyList();
+            throw new ShenyuException(e);
         }
     }
 
@@ -254,7 +240,7 @@ public class ZookeeperClient implements AutoCloseable {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
+    private TreeCache findFromCache(final String key) {
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
@@ -262,4 +248,58 @@ public class ZookeeperClient implements AutoCloseable {
         }
         return null;
     }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private ZookeeperConfig config;
+
+        private CuratorFramework client;
+
+        private Builder() {
+        }
+
+        public Builder config(final ZookeeperConfig zookeeperConfig) {
+            this.config = zookeeperConfig;
+            return this;
+        }
+
+        public Builder client(final CuratorFramework client) {
+            this.client = client;
+            return this;
+        }
+
+        public ZookeeperClient build() {
+
+            if (Objects.isNull(client)) {
+
+                ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(
+                        config.getBaseSleepTimeMilliseconds(),
+                        config.getMaxRetries(),
+                        config.getMaxSleepTimeMilliseconds()
+                );
+                CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
+                        .connectString(config.getServerLists())
+                        .retryPolicy(retryPolicy)
+                        .connectionTimeoutMs(config.getConnectionTimeoutMilliseconds())
+                        .sessionTimeoutMs(config.getSessionTimeoutMilliseconds())
+                        .namespace(config.getNamespace()
+                        );
+
+                if (!StringUtils.isEmpty(config.getDigest())) {
+                    builder.authorization("digest", config.getDigest().getBytes(StandardCharsets.UTF_8));
+                }
+
+                this.client = builder.build();
+            }
+
+            return new ZookeeperClient(config, client);
+        }
+
+    }
+
 }

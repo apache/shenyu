@@ -17,47 +17,27 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.config.properties.ZookeeperConfig;
-import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperClient;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ConditionOnSyncZk;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperConfiguration;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Objects;
 
 /**
  * The type Zookeeper listener.
  */
 @Configuration
-@ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
-@EnableConfigurationProperties(ZookeeperProperties.class)
+@ConditionOnSyncZk
+@AutoConfiguration(after = { ZookeeperConfiguration.class })
+@ImportAutoConfiguration(ZookeeperConfiguration.class)
 public class ZookeeperSyncConfiguration {
-
-    /**
-     * register ZookeeperClient in spring ioc.
-     *
-     * @param zookeeperProp the zookeeper configuration
-     * @return ZookeeperClient {@linkplain ZookeeperClient}
-     */
-    @Bean
-    @ConditionalOnMissingBean(ZookeeperClient.class)
-    public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProp) {
-        int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
-        int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
-        ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProp.getUrl());
-        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
-        ZookeeperClient client = new ZookeeperClient(zkConfig);
-        client.start();
-        return client;
-    }
 
     /**
      * Config event listener data changed listener.
@@ -68,6 +48,7 @@ public class ZookeeperSyncConfiguration {
     @Bean
     @ConditionalOnMissingBean(ZookeeperDataChangedListener.class)
     public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
+
         return new ZookeeperDataChangedListener(zkClient);
     }
 
@@ -80,6 +61,8 @@ public class ZookeeperSyncConfiguration {
     @Bean
     @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
     public DataChangedInit zookeeperDataChangedInit(final ZookeeperClient zkClient) {
+
         return new ZookeeperDataChangedInit(zkClient);
     }
+
 }

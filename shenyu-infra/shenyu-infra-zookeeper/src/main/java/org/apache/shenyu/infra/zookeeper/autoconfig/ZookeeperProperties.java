@@ -15,21 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config.properties;
+package org.apache.shenyu.infra.zookeeper.autoconfig;
 
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.infra.common.InfraConstants;
+import org.apache.shenyu.infra.common.InfraParentProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * The type Zookeeper configuration.
  */
-@ConfigurationProperties(prefix = "shenyu.sync.zookeeper")
-public class ZookeeperProperties {
+@ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
+public class ZookeeperProperties extends InfraParentProperties {
+
+    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ZOOKEEPER;
 
     private String url;
 
     private Integer sessionTimeout;
 
     private Integer connectionTimeout;
+
+    private String serializer;
 
     /**
      * Gets the value of url.
@@ -84,4 +91,23 @@ public class ZookeeperProperties {
     public void setConnectionTimeout(final Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
+
+    /**
+     * Get serializer.
+     *
+     * @return serializer
+     */
+    public String getSerializer() {
+        return serializer;
+    }
+
+    /**
+     * Set serializer.
+     *
+     * @param serializer serializer
+     */
+    public void setSerializer(final String serializer) {
+        this.serializer = serializer;
+    }
+
 }

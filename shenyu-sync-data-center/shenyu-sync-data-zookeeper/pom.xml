@@ -33,17 +33,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-infra-zookeeper</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
+
 </project>

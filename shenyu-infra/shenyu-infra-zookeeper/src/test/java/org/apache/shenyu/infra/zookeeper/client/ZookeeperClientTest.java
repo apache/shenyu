@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.zookeeper;
+package org.apache.shenyu.infra.zookeeper.client;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -32,6 +32,7 @@ import org.apache.curator.framework.imps.ExistsBuilderImpl;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.junit.jupiter.api.AfterEach;
@@ -47,6 +48,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,15 +80,12 @@ class ZookeeperClientTest {
             when(builder.sessionTimeoutMs(anyInt())).thenReturn(builder);
             when(builder.namespace(anyString())).thenReturn(builder);
             when(builder.build()).thenReturn(curatorFramework);
-            ZookeeperConfig config = new ZookeeperConfig("services");
-            config.setNamespace("namespace");
-            config.setDigest("digest");
-            config.setBaseSleepTimeMilliseconds(1);
-            config.setMaxSleepTimeMilliseconds(1);
-            config.setMaxRetries(1);
-            config.setSessionTimeoutMilliseconds(1);
-            config.setConnectionTimeoutMilliseconds(1);
-            client = new ZookeeperClient(config);
+            ZookeeperConfig config = ZookeeperConfig.builder()
+                    .serverLists("service")
+                    .namespace("namespace")
+                    .digest("digest")
+                    .build();
+            client = ZookeeperClient.builder().config(config).build();
             client.start();
             doThrow(InterruptedException.class).when(curatorFramework).blockUntilConnected();
             assertDoesNotThrow(() -> client.start());
@@ -108,7 +107,7 @@ class ZookeeperClientTest {
 
     @Test
     void isExist() throws Exception {
-        assertThrows(ShenyuException.class, () -> client.isExist("/test"));
+        assertFalse(() -> client.isExist("/test"));
         ExistsBuilderImpl existsBuilder = mock(ExistsBuilderImpl.class);
         when(curatorFramework.checkExists()).thenReturn(existsBuilder);
         when(existsBuilder.forPath(anyString())).thenReturn(new Stat());
@@ -144,7 +143,7 @@ class ZookeeperClientTest {
 
     @Test
     void getChildren() throws Exception {
-        assertTrue(client.getChildren("/test").isEmpty());
+        assertThrows(ShenyuException.class, () -> client.getChildren("/test"));
         GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
         when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
         when(getChildrenBuilder.forPath(anyString())).thenReturn(new ArrayList<>());
@@ -194,4 +193,5 @@ class ZookeeperClientTest {
         Assertions.assertThrows(ShenyuException.class, () -> client.addCache("/path"));
         treeCacheMockedStatic.close();
     }
+
 }
