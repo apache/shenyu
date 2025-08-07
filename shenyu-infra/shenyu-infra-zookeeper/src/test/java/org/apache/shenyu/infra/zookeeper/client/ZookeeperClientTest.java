@@ -29,6 +29,8 @@ import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.ProtectACLCreateModeStatPathAndBytesable;
 import org.apache.curator.framework.imps.ExistsBuilderImpl;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -172,7 +174,7 @@ class ZookeeperClientTest {
 
     @Test
     void cacheTest() throws Exception {
-        assertThrows(ShenyuException.class, () -> client.addCache("/path", mock(TreeCacheListener.class), mock(TreeCacheListener.class)));
+        assertThrows(ShenyuException.class, () -> client.addCache("/path", mock(CuratorCacheListener.class), mock(CuratorCacheListener.class)));
         Field clientField = ZookeeperClient.class.getDeclaredField("client");
         clientField.setAccessible(true);
         CuratorFramework curatorFramework = mock(CuratorFramework.class);

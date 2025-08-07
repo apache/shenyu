@@ -21,7 +21,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -37,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
@@ -47,7 +51,7 @@ public class ZookeeperClient {
 
     private final CuratorFramework client;
 
-    private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
+    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig, final CuratorFramework client) {
 
@@ -73,7 +77,7 @@ public class ZookeeperClient {
      */
     public void close() {
         // close all caches
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());
         }
         // close client
@@ -125,15 +129,15 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromCache(key);
+        CuratorCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
-        ChildData data = cache.getCurrentData(key);
+        Optional<ChildData> data = cache.get(key);
         if (Objects.isNull(data)) {
             return getDirectly(key);
         }
-        return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
+        return new String(data.get().getData(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -209,7 +213,7 @@ public class ZookeeperClient {
      * @param path path.
      * @return cache.
      */
-    public TreeCache getCache(final String path) {
+    public CuratorCache getCache(final String path) {
         return caches.get(path);
     }
 
@@ -219,12 +223,12 @@ public class ZookeeperClient {
      * @param listeners listeners.
      * @return cache.
      */
-    public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
-        TreeCache cache = TreeCache.newBuilder(client, path).build();
+    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
+        CuratorCache cache = CuratorCache.build(client, path);
         caches.put(path, cache);
         if (ArrayUtils.isNotEmpty(listeners)) {
-            for (TreeCacheListener listener : listeners) {
-                cache.getListenable().addListener(listener);
+            for (CuratorCacheListener listener : listeners) {
+                cache.listenable().addListener(listener);
             }
         }
         try {
@@ -235,13 +239,28 @@ public class ZookeeperClient {
         return cache;
     }
 
+
+    /**
+     * add children watcher.
+     * @param key selectKey
+     * @param curatorWatcher watcher
+     * @return children List
+     */
+    public List<String> subscribeChildrenChanges(final String key, final CuratorWatcher curatorWatcher) {
+        try {
+            return client.getChildren().usingWatcher(curatorWatcher).forPath(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
     /**
      * find cache with  key.
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromCache(final String key) {
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+    private CuratorCache findFromCache(final String key) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
             }

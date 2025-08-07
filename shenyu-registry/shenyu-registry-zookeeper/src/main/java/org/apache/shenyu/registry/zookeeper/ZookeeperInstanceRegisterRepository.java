@@ -27,6 +27,8 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -79,18 +81,19 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
         watchPath = props.getProperty("watchPath", null);
 
-        ZookeeperConfig zkConfig = new ZookeeperConfig(config.getServerLists());
-        zkConfig.setBaseSleepTimeMilliseconds(baseSleepTime)
-                .setMaxRetries(maxRetries)
-                .setMaxSleepTimeMilliseconds(maxSleepTime)
-                .setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
-
+        var zkConfig = ZookeeperConfig.builder()
+                .serverLists(config.getServerLists())
+                .baseSleepTimeMilliseconds(baseSleepTime)
+                .maxSleepTimeMilliseconds(maxSleepTime)
+                .maxRetries(maxRetries)
+                .sessionTimeoutMilliseconds(sessionTimeout)
+                .connectionTimeoutMilliseconds(connectionTimeout)
+                .build();
         String digest = props.getProperty("digest");
         if (!StringUtils.isEmpty(digest)) {
             zkConfig.setDigest(digest);
         }
-        this.client = new ZookeeperClient(zkConfig);
+        this.client = ZookeeperClient.builder().config(zkConfig).build();
         this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
                 nodeDataMap.forEach((k, v) -> {

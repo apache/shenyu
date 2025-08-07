@@ -38,7 +38,7 @@ public class ZookeeperConfig {
     /**
      * max time in ms to sleep on each retry.
      */
-    private Integer maxSleepTimeMilliseconds= Integer.MAX_VALUE;
+    private Integer maxSleepTimeMilliseconds;
 
     /**
      * max number of times to retry.
@@ -61,19 +61,21 @@ public class ZookeeperConfig {
     private String digest;
 
     public ZookeeperConfig(
-            String serverLists,
-            String namespace,
-            Integer baseSleepTimeMilliseconds,
-            Integer maxRetries,
-            Integer sessionTimeoutMilliseconds,
-            Integer connectionTimeoutMilliseconds,
-            String digest
+            final String serverLists,
+            final String namespace,
+            final Integer baseSleepTimeMilliseconds,
+            final Integer maxSleepTimeMilliseconds,
+            final Integer maxRetries,
+            final Integer sessionTimeoutMilliseconds,
+            final Integer connectionTimeoutMilliseconds,
+            final String digest
     ) {
 
         this.serverLists = serverLists;
         this.namespace = namespace;
         this.baseSleepTimeMilliseconds = baseSleepTimeMilliseconds;
         this.maxRetries = maxRetries;
+        this.maxSleepTimeMilliseconds = maxSleepTimeMilliseconds;
         this.sessionTimeoutMilliseconds = sessionTimeoutMilliseconds;
         this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
         this.digest = digest;
@@ -226,7 +228,7 @@ public class ZookeeperConfig {
 
         private Integer baseSleepTimeMilliseconds = 1000;
 
-        private Integer maxSleepTimeMilliseconds;
+        private Integer maxSleepTimeMilliseconds = Integer.MAX_VALUE;
 
         private Integer maxRetries = 3;
 
@@ -285,6 +287,7 @@ public class ZookeeperConfig {
                     serverLists,
                     namespace,
                     baseSleepTimeMilliseconds,
+                    maxSleepTimeMilliseconds,
                     maxRetries,
                     sessionTimeoutMilliseconds,
                     connectionTimeoutMilliseconds,
