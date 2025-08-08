@@ -1164,7 +1164,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172889', '32', 'indexName', 'i
 INSERT INTO `plugin_handle` VALUES ('1529402613204172890', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172891', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172892', '33', 'topic', 'topic', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"shenyu-access-logging\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172893', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"localhost:9092\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172893', '33', 'bootstrapServer', 'bootstrapServer', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"localhost:9092\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172894', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172895', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172896', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
@@ -1173,6 +1173,12 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172898', '33', 'securityProtoc
 INSERT INTO `plugin_handle` VALUES ('1529402613204172899', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9,'{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172900', '33', 'userName', 'userName', 2, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172901', '33', 'passWord', 'passWord', 2, 3, 11, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172893', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172897', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172898', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172899', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9,'{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172900', '33', 'userName', 'userName', 2, 1, 10, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172901', '33', 'passWord', 'passWord', 2, 1, 11, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172902', '34', 'accessId', 'accessId', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172903', '34', 'accessKey', 'accessKey', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172904', '34', 'host', 'host', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
