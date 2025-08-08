@@ -87,8 +87,9 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
 
             if (converter.getJwtVal().contains(".")) {
                 headers.add(converter.getHeaderVal(), parse(body, converter.getJwtVal().split("\\."), new AtomicInteger(0)));
+            } else {
+                headers.add(converter.getHeaderVal(), String.valueOf(body.get(converter.getJwtVal())));
             }
-            headers.add(converter.getHeaderVal(), String.valueOf(body.get(converter.getJwtVal())));
 
         }
     }
