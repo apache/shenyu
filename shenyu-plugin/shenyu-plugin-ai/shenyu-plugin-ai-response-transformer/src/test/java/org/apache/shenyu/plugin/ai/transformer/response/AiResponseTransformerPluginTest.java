@@ -230,4 +230,4 @@ class AiResponseTransformerPluginTest {
         String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
         assertEquals("[{\"id\":1,\"name\":\"test\"}]", body);
     }
-} 
+}
