@@ -50,13 +50,13 @@ public class RabbitmqLogCollectConfigTest {
     private final String exchangeType = "direct";
 
     private final String virtualHost = "/";
-    
+
     private final Boolean durable = Boolean.TRUE;
-    
+
     private final Boolean exclusive = Boolean.FALSE;
-    
+
     private final Boolean autoDelete = Boolean.FALSE;
-    
+
     private final Map<String, Object> args = new HashMap<>();
 
     @Test
