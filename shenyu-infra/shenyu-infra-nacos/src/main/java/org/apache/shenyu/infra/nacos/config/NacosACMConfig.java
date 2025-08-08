@@ -31,6 +31,15 @@ public class NacosACMConfig {
 
     private String secretKey;
 
+    public NacosACMConfig(final boolean enabled, final String endpoint, final String namespace, final String accessKey, final String secretKey) {
+
+        this.enabled = enabled;
+        this.endpoint = endpoint;
+        this.namespace = namespace;
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
+    }
+
     /**
      * get enabled.
      *
@@ -161,4 +170,57 @@ public class NacosACMConfig {
                 + '\''
                 + '}';
     }
+
+    public static Builder builder() {
+
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private boolean enabled;
+
+        private String endpoint;
+
+        private String namespace;
+
+        private String accessKey;
+
+        private String secretKey;
+
+        private Builder() {
+        }
+
+        public Builder enabled(final boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public Builder endpoint(final String endpoint) {
+            this.endpoint = endpoint;
+            return this;
+        }
+
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+            return this;
+        }
+
+        public Builder accessKey(final String accessKey) {
+            this.accessKey = accessKey;
+            return this;
+        }
+
+        public Builder secretKey(final String secretKey) {
+            this.secretKey = secretKey;
+            return this;
+        }
+
+        public NacosACMConfig build() {
+
+            return new NacosACMConfig(enabled, endpoint, namespace, accessKey, secretKey);
+        }
+
+    }
+
 }
