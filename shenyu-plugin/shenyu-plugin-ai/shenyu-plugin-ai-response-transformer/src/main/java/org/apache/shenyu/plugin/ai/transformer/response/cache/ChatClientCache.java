@@ -84,4 +84,4 @@ public class ChatClientCache {
         private ApplicationConfigCacheInstance() {
         }
     }
-} 
+}
