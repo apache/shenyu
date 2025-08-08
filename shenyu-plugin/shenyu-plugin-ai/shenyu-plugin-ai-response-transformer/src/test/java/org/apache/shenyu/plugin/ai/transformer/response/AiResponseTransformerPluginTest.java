@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
-import org.apache.shenyu.plugin.ai.transformer.response.cache.ChatClientCache;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,19 +34,14 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.adapter.DefaultServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
@@ -73,7 +67,7 @@ class AiResponseTransformerPluginTest {
         plugin = new AiResponseTransformerPlugin(Collections.emptyList(), aiModelFactoryRegistry);
         
         // 创建测试用的请求和响应
-        MockServerHttpRequest request = MockServerHttpRequest
+        final MockServerHttpRequest request = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/json")
                 .body("{\"test\":\"data\"}");
@@ -122,8 +116,49 @@ class AiResponseTransformerPluginTest {
     }
 
     @Test
+    void testExtractBodyFromAiResponseWithCodeBlock() {
+        // 测试被代码块包裹的响应
+        String aiResponse = "```\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}\n```";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("{\"status\":\"success\"}", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithCodeBlockAndExtraContent() {
+        // 测试被代码块包裹的响应，包含额外内容
+        String aiResponse = "Here is the response:\n```\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}\n```\nEnd of response";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("{\"status\":\"success\"}", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithJsonOnly() {
+        // 测试纯 JSON 响应（没有 HTTP 头）
+        String aiResponse = "{\"status\":\"success\",\"data\":{\"message\":\"test\"}}";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("{\"status\":\"success\",\"data\":{\"message\":\"test\"}}", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithJsonOnlyInCodeBlock() {
+        // 测试被代码块包裹的纯 JSON 响应
+        String aiResponse = "```\n{\"status\":\"success\",\"data\":{\"message\":\"test\"}}\n```";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("{\"status\":\"success\",\"data\":{\"message\":\"test\"}}", body);
+    }
+
+    @Test
     void testExtractHeadersFromAiResponse() {
         String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: no-cache\n\n{\"status\":\"success\"}";
+        HttpHeaders headers = AiResponseTransformerPlugin.extractHeadersFromAiResponse(aiResponse);
+        assertEquals("application/json", headers.getFirst("Content-Type"));
+        assertEquals("no-cache", headers.getFirst("Cache-Control"));
+    }
+
+    @Test
+    void testExtractHeadersFromAiResponseWithCodeBlock() {
+        // 测试被代码块包裹的响应头提取
+        String aiResponse = "```\nHTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: no-cache\n\n{\"status\":\"success\"}\n```";
         HttpHeaders headers = AiResponseTransformerPlugin.extractHeadersFromAiResponse(aiResponse);
         assertEquals("application/json", headers.getFirst("Content-Type"));
         assertEquals("no-cache", headers.getFirst("Cache-Control"));
@@ -142,5 +177,57 @@ class AiResponseTransformerPluginTest {
         HttpHeaders headers = AiResponseTransformerPlugin.extractHeadersFromAiResponse(aiResponse);
         assertNotNull(headers);
         assertEquals(0, headers.size());
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithInvalidJson() {
+        // 测试无效的 JSON 格式
+        String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{invalid json}";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertNull(body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithEmptyResponse() {
+        String aiResponse = "";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertNull(body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithNullResponse() {
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(null);
+        assertNull(body);
+    }
+
+    @Test
+    void testExtractHeadersFromAiResponseWithEmptyResponse() {
+        String aiResponse = "";
+        HttpHeaders headers = AiResponseTransformerPlugin.extractHeadersFromAiResponse(aiResponse);
+        assertNotNull(headers);
+        assertEquals(0, headers.size());
+    }
+
+    @Test
+    void testExtractHeadersFromAiResponseWithNullResponse() {
+        HttpHeaders headers = AiResponseTransformerPlugin.extractHeadersFromAiResponse(null);
+        assertNotNull(headers);
+        assertEquals(0, headers.size());
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithArrayJson() {
+        // 测试 JSON 数组格式
+        String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n[{\"id\":1,\"name\":\"test\"}]";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("[{\"id\":1,\"name\":\"test\"}]", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseWithArrayJsonInCodeBlock() {
+        // 测试被代码块包裹的 JSON 数组
+        String aiResponse = "```\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n[{\"id\":1,\"name\":\"test\"}]\n```";
+        String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
+        assertEquals("[{\"id\":1,\"name\":\"test\"}]", body);
     }
 } 

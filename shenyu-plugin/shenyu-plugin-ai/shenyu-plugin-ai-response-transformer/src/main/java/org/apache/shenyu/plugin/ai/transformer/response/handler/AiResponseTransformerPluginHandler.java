@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -42,8 +44,9 @@ import java.util.function.Supplier;
  * this is ai response transformer plugin.
  */
 public class AiResponseTransformerPluginHandler implements PluginDataHandler {
-
     public static final Supplier<CommonHandleCache<String, AiResponseTransformerHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+
+    private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPluginHandler.class);
 
     private final AiModelFactoryRegistry aiModelFactoryRegistry;
 
@@ -54,21 +57,33 @@ public class AiResponseTransformerPluginHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
-            AiResponseTransformerConfig aiResponseTransformerConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), AiResponseTransformerConfig.class);
-            if (Objects.isNull(aiResponseTransformerConfig)) {
+            try {
+                AiResponseTransformerConfig aiResponseTransformerConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), AiResponseTransformerConfig.class);
+                if (Objects.isNull(aiResponseTransformerConfig)) {
+                    return;
+                }
+                AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiResponseTransformerConfig.getProvider()));
+                ChatClientCache.getInstance().init("default", factory.createAiModel(convertConfig(aiResponseTransformerConfig)));
+                Singleton.INST.single(AiResponseTransformerConfig.class, aiResponseTransformerConfig);
+            } catch (Exception e) {
+
                 return;
             }
-            AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiResponseTransformerConfig.getProvider()));
-            ChatClientCache.getInstance().init("default", factory.createAiModel(convertConfig(aiResponseTransformerConfig)));
-            Singleton.INST.single(AiResponseTransformerConfig.class, aiResponseTransformerConfig);
         }
     }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            AiResponseTransformerHandle aiResponseTransformerHandle = GsonUtils.getInstance().fromJson(s, AiResponseTransformerHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), aiResponseTransformerHandle);
+            try {
+                AiResponseTransformerHandle aiResponseTransformerHandle = GsonUtils.getInstance().fromJson(s, AiResponseTransformerHandle.class);
+                if (Objects.nonNull(aiResponseTransformerHandle)) {
+                    CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), aiResponseTransformerHandle);
+                }
+            } catch (Exception e) {
+                LOG.error("AiResponseTransformerPluginHandler handle rule error", e);
+                return;
+            }
         });
         ChatClientCache.getInstance().destroyClient(ruleData.getId());
     }
@@ -76,8 +91,15 @@ public class AiResponseTransformerPluginHandler implements PluginDataHandler {
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
-        AiResponseTransformerHandle aiResponseTransformerHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), AiResponseTransformerHandle.class);
-        ChatClientCache.getInstance().destroyClient(ruleData.getId() + aiResponseTransformerHandle.getProvider());
+        try {
+            AiResponseTransformerHandle aiResponseTransformerHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), AiResponseTransformerHandle.class);
+            if (Objects.nonNull(aiResponseTransformerHandle) && Objects.nonNull(aiResponseTransformerHandle.getProvider())) {
+                ChatClientCache.getInstance().destroyClient(ruleData.getId() + aiResponseTransformerHandle.getProvider());
+            }
+        } catch (Exception e) {
+            LOG.error("AiResponseTransformerPluginHandler remove rule error", e);
+            return;
+        }
     }
 
     @Override

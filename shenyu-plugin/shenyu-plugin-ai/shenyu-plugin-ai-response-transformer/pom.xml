@@ -37,12 +37,6 @@
             <artifactId>shenyu-plugin-ai-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-ai-request-transformer</artifactId>
-            <version>2.7.0.2-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
 
     </dependencies>
 </project> 

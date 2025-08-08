@@ -25,7 +25,6 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.apache.shenyu.plugin.ai.common.utils.ResponseBodyCaptureUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * this is the aiResponseTransformerTemplate.
@@ -62,6 +63,10 @@ public class AiResponseTransformerTemplate {
             + "\n"
             + "{\"status\":\"success\",\"data\":{\"message\":\"Hello World\"}}";
 
+    private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerTemplate.class);
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * userContent.
      */
@@ -71,8 +76,6 @@ public class AiResponseTransformerTemplate {
      * originalRequest.
      */
     private ServerHttpRequest originalRequest;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AiResponseTransformerTemplate(final String userContent, final ServerHttpRequest originalRequest) {
         this.userContent = userContent;
@@ -149,15 +152,15 @@ public class AiResponseTransformerTemplate {
         JsonNode responseHeadersJson = headersToJson(exchange.getResponse().getHeaders());
         
         MediaType requestContentType = originalRequest.getHeaders().getContentType();
-        MediaType responseContentType = exchange.getResponse().getHeaders().getContentType();
 
         return bodyToString(originalRequest.getBody())
                 .flatMap(requestBodyString -> {
+                    
                     ObjectNode rootNode = objectMapper.createObjectNode();
                     rootNode.put("system_prompt", SYS_CONTENT);
                     rootNode.put("user_prompt", userContent);
 
-                    // 请求信息
+                    // request info
                     ObjectNode requestNode = objectMapper.createObjectNode();
                     requestNode.set("headers", requestHeadersJson);
 
@@ -180,19 +183,22 @@ public class AiResponseTransformerTemplate {
                         requestNode.put("body", requestBodyString);
                     }
 
-                    // 响应信息（不包含响应体，因为响应体在模板组装时还不可用）
+                    // Response information (does not contain the response body,
+                    // as the response body is not yet available when the template is assembled)
                     ObjectNode responseNode = objectMapper.createObjectNode();
                     responseNode.set("headers", responseHeadersJson);
                     responseNode.put("status", exchange.getResponse().getStatusCode().value());
-                    responseNode.put("body", ""); // 响应体将在装饰器中处理
+                    responseNode.put("body", "");
 
                     rootNode.set("request", requestNode);
                     rootNode.set("response", responseNode);
 
                     try {
                         String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+                        LOG.debug("Assembled message: {}", jsonString);
                         return Mono.just(jsonString);
                     } catch (Exception e) {
+                        LOG.error("Failed to assemble message", e);
                         return Mono.error(e);
                     }
                 });

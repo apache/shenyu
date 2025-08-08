@@ -35,6 +35,7 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test for AiResponseTransformerTemplate.
@@ -43,8 +44,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AiResponseTransformerTemplateTest {
 
     private AiResponseTransformerTemplate template;
+
     private ServerWebExchange exchange;
+
     private MockServerHttpRequest request;
+
     private MockServerHttpResponse response;
 
     @BeforeEach
@@ -85,6 +89,7 @@ class AiResponseTransformerTemplateTest {
                     assertTrue(message.contains("response"));
                     assertTrue(message.contains("headers"));
                     assertTrue(message.contains("body"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -107,14 +112,12 @@ class AiResponseTransformerTemplateTest {
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 打印消息以便调试
-                    System.out.println("JSON test - Generated message: " + message);
                     // 验证JSON请求体被正确解析
-                    // 由于MockServerHttpRequest的body()方法在测试中可能不工作，我们只验证基本结构
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -137,14 +140,12 @@ class AiResponseTransformerTemplateTest {
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 打印消息以便调试
-                    System.out.println("Form test - Generated message: " + message);
                     // 验证form数据被正确解析
-                    // 由于MockServerHttpRequest的body()方法在测试中可能不工作，我们只验证基本结构
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -166,14 +167,12 @@ class AiResponseTransformerTemplateTest {
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 打印消息以便调试
-                    System.out.println("Empty body test - Generated message: " + message);
                     // 验证空请求体被正确处理
-                    // 由于MockServerHttpRequest的body()方法在测试中可能不工作，我们只验证基本结构
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -199,11 +198,11 @@ class AiResponseTransformerTemplateTest {
                 .assertNext(message -> {
                     assertNotNull(message);
                     // 验证多个头被正确处理
-                    // 由于MockServerHttpRequest的body()方法在测试中可能不工作，我们只验证基本结构
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -231,11 +230,11 @@ class AiResponseTransformerTemplateTest {
                 .assertNext(message -> {
                     assertNotNull(message);
                     // 验证URL解码正确
-                    // 由于MockServerHttpRequest的body()方法在测试中可能不工作，我们只验证基本结构
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
                 })
                 .verifyComplete();
     }
@@ -271,9 +270,115 @@ class AiResponseTransformerTemplateTest {
         }
     }
 
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true but was false");
-        }
+    @Test
+    void testAssembleMessageWithGzipResponse() {
+        // 测试 GZIP 压缩的响应处理
+        MockServerHttpResponse gzipResponse = new MockServerHttpResponse();
+        gzipResponse.setStatusCode(HttpStatus.OK);
+        gzipResponse.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        gzipResponse.getHeaders().set("Content-Encoding", "gzip");
+
+        ServerWebExchange gzipExchange = mock(ServerWebExchange.class);
+        lenient().when(gzipExchange.getRequest()).thenReturn(request);
+        lenient().when(gzipExchange.getResponse()).thenReturn(gzipResponse);
+
+        // 执行测试
+        Mono<String> result = template.assembleMessage(gzipExchange);
+
+        // 验证结果
+        StepVerifier.create(result)
+                .assertNext(message -> {
+                    assertNotNull(message);
+                    // 验证 GZIP 响应被正确处理
+                    assertTrue(message.contains("system_prompt"));
+                    assertTrue(message.contains("user_prompt"));
+                    assertTrue(message.contains("request"));
+                    assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
+                    // 验证响应头包含 Content-Encoding
+                    assertTrue(message.contains("Content-Encoding"));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void testAssembleMessageWithComplexHeaders() {
+        // 测试复杂的响应头
+        MockServerHttpResponse complexResponse = new MockServerHttpResponse();
+        complexResponse.setStatusCode(HttpStatus.OK);
+        complexResponse.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        complexResponse.getHeaders().set("Cache-Control", "no-cache, no-store, must-revalidate");
+        complexResponse.getHeaders().set("Pragma", "no-cache");
+        complexResponse.getHeaders().set("Expires", "0");
+        complexResponse.getHeaders().set("X-Custom-Header", "custom-value");
+
+        ServerWebExchange complexExchange = mock(ServerWebExchange.class);
+        lenient().when(complexExchange.getRequest()).thenReturn(request);
+        lenient().when(complexExchange.getResponse()).thenReturn(complexResponse);
+
+        // 执行测试
+        Mono<String> result = template.assembleMessage(complexExchange);
+
+        // 验证结果
+        StepVerifier.create(result)
+                .assertNext(message -> {
+                    assertNotNull(message);
+                    // 验证复杂响应头被正确处理
+                    assertTrue(message.contains("system_prompt"));
+                    assertTrue(message.contains("user_prompt"));
+                    assertTrue(message.contains("request"));
+                    assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
+                    // 验证响应头信息
+                    assertTrue(message.contains("Cache-Control"));
+                    assertTrue(message.contains("Pragma"));
+                    assertTrue(message.contains("Expires"));
+                    assertTrue(message.contains("X-Custom-Header"));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void testAssembleMessageWithEmptyUserContent() {
+        // 测试空的用户内容
+        AiResponseTransformerTemplate emptyContentTemplate = new AiResponseTransformerTemplate("", request);
+
+        // 执行测试
+        Mono<String> result = emptyContentTemplate.assembleMessage(exchange);
+
+        // 验证结果
+        StepVerifier.create(result)
+                .assertNext(message -> {
+                    assertNotNull(message);
+                    // 验证空用户内容被正确处理
+                    assertTrue(message.contains("system_prompt"));
+                    assertTrue(message.contains("user_prompt"));
+                    assertTrue(message.contains("request"));
+                    assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void testAssembleMessageWithNullUserContent() {
+        // 测试 null 用户内容
+        AiResponseTransformerTemplate nullContentTemplate = new AiResponseTransformerTemplate(null, request);
+
+        // 执行测试
+        Mono<String> result = nullContentTemplate.assembleMessage(exchange);
+
+        // 验证结果
+        StepVerifier.create(result)
+                .assertNext(message -> {
+                    assertNotNull(message);
+                    // 验证 null 用户内容被正确处理
+                    assertTrue(message.contains("system_prompt"));
+                    assertTrue(message.contains("user_prompt"));
+                    assertTrue(message.contains("request"));
+                    assertTrue(message.contains("response"));
+                    assertTrue(message.contains("status"));
+                })
+                .verifyComplete();
     }
 } 

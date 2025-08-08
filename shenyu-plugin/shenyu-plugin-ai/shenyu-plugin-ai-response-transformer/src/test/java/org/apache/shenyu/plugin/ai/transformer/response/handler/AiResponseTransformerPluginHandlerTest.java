@@ -95,6 +95,32 @@ class AiResponseTransformerPluginHandlerTest {
     }
 
     @Test
+    void testHandlerPluginWithEnhancedContent() {
+        // 创建测试配置，包含增强的内容
+        AiResponseTransformerConfig config = new AiResponseTransformerConfig();
+        config.setProvider("openai");
+        config.setBaseUrl("https://api.openai.com/v1");
+        config.setApiKey("test-api-key");
+        config.setModel("gpt-4");
+        config.setContent("请将LLM的响应转换为标准API格式。要求： 1. 保持HTTP状态码为200 2. 设置Content-Type为application/json 3. 将LLM的文本响应包装在{\"data\": {\"content\": \"LLM响应内容\"}, \"status\": \"success\"}的JSON结构中");
+
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig(GsonUtils.getInstance().toJson(config));
+
+        // 模拟AI模型工厂
+        when(aiModelFactoryRegistry.getFactory(any())).thenReturn(aiModelFactory);
+        when(aiModelFactory.createAiModel(any(AiCommonConfig.class))).thenReturn(chatModel);
+
+        // 执行测试
+        handler.handlerPlugin(pluginData);
+
+        // 验证ChatClientCache是否被正确初始化
+        ChatClientCache cache = ChatClientCache.getInstance();
+        assertNotNull(cache.getClient("default"));
+    }
+
+    @Test
     void testHandlerRule() {
         // 创建测试规则数据
         AiResponseTransformerHandle handle = new AiResponseTransformerHandle();
@@ -103,6 +129,27 @@ class AiResponseTransformerPluginHandlerTest {
         handle.setApiKey("test-api-key");
         handle.setModel("gpt-3.5-turbo");
         handle.setContent("Transform the response");
+
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-rule-id");
+        ruleData.setHandle(GsonUtils.getInstance().toJson(handle));
+
+        // 执行测试
+        handler.handlerRule(ruleData);
+
+        // 验证规则是否被正确缓存
+        assertNotNull(AiResponseTransformerPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+    }
+
+    @Test
+    void testHandlerRuleWithEnhancedContent() {
+        // 创建测试规则数据，包含增强的内容
+        AiResponseTransformerHandle handle = new AiResponseTransformerHandle();
+        handle.setProvider("openai");
+        handle.setBaseUrl("https://api.openai.com/v1");
+        handle.setApiKey("test-api-key");
+        handle.setModel("gpt-4");
+        handle.setContent("请将响应转换为标准JSON格式，包含status和data字段");
 
         RuleData ruleData = new RuleData();
         ruleData.setId("test-rule-id");
@@ -155,6 +202,25 @@ class AiResponseTransformerPluginHandlerTest {
     }
 
     @Test
+    void testConvertConfigWithNullValues() {
+        // 创建测试配置，包含null值
+        AiResponseTransformerConfig config = new AiResponseTransformerConfig();
+        config.setProvider("openai");
+        config.setBaseUrl(null);
+        config.setApiKey("test-api-key");
+        config.setModel(null);
+
+        // 执行转换
+        AiCommonConfig commonConfig = AiResponseTransformerPluginHandler.convertConfig(config);
+
+        // 验证转换结果
+        assertEquals("openai", commonConfig.getProvider());
+        assertNull(commonConfig.getBaseUrl());
+        assertEquals("test-api-key", commonConfig.getApiKey());
+        assertNull(commonConfig.getModel());
+    }
+
+    @Test
     void testHandlerPluginWithNullConfig() {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
@@ -171,5 +237,70 @@ class AiResponseTransformerPluginHandlerTest {
 
         // 执行测试，不应该初始化ChatClient
         handler.handlerPlugin(pluginData);
+    }
+
+    @Test
+    void testHandlerPluginWithInvalidConfig() {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig("invalid json config");
+
+        // 执行测试，不应该抛出异常
+        handler.handlerPlugin(pluginData);
+    }
+
+    @Test
+    void testHandlerRuleWithNullHandle() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-rule-id");
+        ruleData.setHandle(null);
+
+        // 执行测试，不应该抛出异常
+        handler.handlerRule(ruleData);
+    }
+
+    @Test
+    void testHandlerRuleWithInvalidHandle() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-rule-id");
+        ruleData.setHandle("invalid json handle");
+
+        // 执行测试，不应该抛出异常
+        handler.handlerRule(ruleData);
+    }
+
+    @Test
+    void testRemoveRuleWithNullHandle() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-rule-id");
+        ruleData.setHandle(null);
+
+        // 执行测试，不应该抛出异常
+        handler.removeRule(ruleData);
+    }
+
+    @Test
+    void testRemoveRuleWithInvalidHandle() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-rule-id");
+        ruleData.setHandle("invalid json handle");
+
+        // 执行测试，不应该抛出异常
+        handler.removeRule(ruleData);
+    }
+
+    @Test
+    void testConvertConfigWithEmptyConfig() {
+        // 创建空的测试配置
+        AiResponseTransformerConfig config = new AiResponseTransformerConfig();
+
+        // 执行转换
+        AiCommonConfig commonConfig = AiResponseTransformerPluginHandler.convertConfig(config);
+
+        // 验证转换结果，所有字段都应该是null
+        assertNull(commonConfig.getProvider());
+        assertNull(commonConfig.getBaseUrl());
+        assertNull(commonConfig.getApiKey());
+        assertNull(commonConfig.getModel());
     }
 } 
