@@ -93,6 +93,11 @@ public enum PluginEnum {
     AI_REQUEST_TRANSFORMER(65, 0, "aiRequestTransformer"),
 
     /**
+     * AI Response Transformer plugin enum.
+     */
+    AI_RESPONSE_TRANSFORMER(66, 0, "aiResponseTransformer"),
+
+    /**
      * Param mapping plugin enum.
      */
     PARAM_MAPPING(70, 0, "paramMapping"),
