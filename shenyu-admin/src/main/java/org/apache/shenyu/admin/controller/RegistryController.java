@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.vo.RegistryVO;
 import org.apache.shenyu.admin.service.impl.RegistryServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,6 +94,7 @@ public class RegistryController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/insertOrUpdate")
+    @RequiresPermissions(value = {"system:registry:add", "system:registry:edit"}, logical = Logical.OR)
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final RegistryDTO registryDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, registryService.createOrUpdate(registryDTO));
     }
@@ -104,6 +106,7 @@ public class RegistryController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:registry:delete")
     public ShenyuAdminResult delete(@RequestBody final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, registryService.delete(ids));
     }

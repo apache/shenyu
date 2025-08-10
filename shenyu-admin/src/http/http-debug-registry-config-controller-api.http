@@ -2,7 +2,7 @@
 POST http://localhost:9095/registry/insertOrUpdate
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc3YTU4ZTRjOGZiMWE4YTI5MTQ0ZThhNzcyIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDU1NTE4OX0.2VYA-n1VCoOjziijteN8r2IOdyErZ9FtmBkOYScwdWM
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjhmMmE2ZDQ2YzU4ODRhODViNGViY2NiMTM5NTJiODQzIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDkwNTIzMH0.YA5XcsMcsAQnmQZPhjAB1Dz1woIxQB0sFv9mbAc8rcY
 
 {
   "registryId": "nacos-2",
@@ -18,10 +18,10 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc
 POST http://localhost:9095/registry/insertOrUpdate
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc3YTU4ZTRjOGZiMWE4YTI5MTQ0ZThhNzcyIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDU1NTE4OX0.2VYA-n1VCoOjziijteN8r2IOdyErZ9FtmBkOYScwdWM
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjhmMmE2ZDQ2YzU4ODRhODViNGViY2NiMTM5NTJiODQzIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDkwNTIzMH0.YA5XcsMcsAQnmQZPhjAB1Dz1woIxQB0sFv9mbAc8rcY
 
 {
-  "id": "1953013210989879296",
+  "id": "1954478410339516416",
   "registryId": "nacos-1",
   "protocol": "nacos",
   "address": "127.0.0.1:8848",
@@ -35,21 +35,21 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc
 GET http://localhost:9095/registry/findPageByQuery?currentPage=1&pageSize=10&registryId=nacos&address=127.0.0.1
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc3YTU4ZTRjOGZiMWE4YTI5MTQ0ZThhNzcyIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDU1NTE4OX0.2VYA-n1VCoOjziijteN8r2IOdyErZ9FtmBkOYScwdWM
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjhmMmE2ZDQ2YzU4ODRhODViNGViY2NiMTM5NTJiODQzIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDkwNTIzMH0.YA5XcsMcsAQnmQZPhjAB1Dz1woIxQB0sFv9mbAc8rcY
 
 ### regisrty list
 GET http://localhost:9095/registry/list
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc3YTU4ZTRjOGZiMWE4YTI5MTQ0ZThhNzcyIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDU1NTE4OX0.2VYA-n1VCoOjziijteN8r2IOdyErZ9FtmBkOYScwdWM
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjhmMmE2ZDQ2YzU4ODRhODViNGViY2NiMTM5NTJiODQzIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDkwNTIzMH0.YA5XcsMcsAQnmQZPhjAB1Dz1woIxQB0sFv9mbAc8rcY
 
 ### regisrty detail
-GET http://localhost:9095/registry/1953018066451435520
+GET http://localhost:9095/registry/1954478410339516416
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6ImEzY2NhMzc3YTU4ZTRjOGZiMWE4YTI5MTQ0ZThhNzcyIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDU1NTE4OX0.2VYA-n1VCoOjziijteN8r2IOdyErZ9FtmBkOYScwdWM
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRJZCI6IjhmMmE2ZDQ2YzU4ODRhODViNGViY2NiMTM5NTJiODQzIiwidXNlck5hbWUiOiJhZG1pbiIsImV4cCI6MTc1NDkwNTIzMH0.YA5XcsMcsAQnmQZPhjAB1Dz1woIxQB0sFv9mbAc8rcY
 
-### regisrty deltet
+### regisrty delete
 DELETE http://localhost:9095/registry/batch
 Accept: application/json
 Content-Type: application/json
