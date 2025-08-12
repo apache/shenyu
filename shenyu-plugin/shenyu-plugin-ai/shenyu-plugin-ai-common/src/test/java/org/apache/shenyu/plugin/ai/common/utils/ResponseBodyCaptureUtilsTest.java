@@ -34,10 +34,9 @@ class ResponseBodyCaptureUtilsTest {
 
     @Test
     void testCaptureResponseBodyWithNullExchange() {
-        // 测试空exchange的情况
+        // Test the case of an empty exchange
         Mono<String> result = ResponseBodyCaptureUtils.captureResponseBody(null);
 
-        // 验证结果
         StepVerifier.create(result)
                 .assertNext(body -> {
                     assertNotNull(body);

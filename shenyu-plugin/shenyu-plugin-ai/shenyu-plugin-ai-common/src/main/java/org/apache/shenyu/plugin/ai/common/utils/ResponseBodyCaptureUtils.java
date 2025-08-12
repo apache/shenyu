@@ -35,8 +35,6 @@ public class ResponseBodyCaptureUtils {
      * @return the captured response body (empty string)
      */
     public static Mono<String> captureResponseBody(final ServerWebExchange exchange) {
-        // 在响应转换的场景中，响应体还没有被写入，所以返回空字符串
-        // 实际的响应体将在 AiResponseTransformerDecorator 中被捕获和处理
         return Mono.just("");
     }
 } 
