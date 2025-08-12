@@ -53,14 +53,14 @@ class AiResponseTransformerTemplateTest {
 
     @BeforeEach
     void setUp() {
-        // 创建测试用的请求
+        // Create test request
         request = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer test-token")
                 .body("{\"test\":\"data\"}");
 
-        // 创建测试用的响应
+        // Create test response
         response = new MockServerHttpResponse();
         response.setStatusCode(HttpStatus.OK);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -75,14 +75,14 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessage() {
-        // 执行测试
+        // Execute test
         Mono<String> result = template.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证消息包含必要的字段
+                    // Verify message contains necessary fields
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -96,23 +96,23 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithJsonRequest() {
-        // 创建JSON请求
+        // Create JSON request
         MockServerHttpRequest jsonRequest = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/json")
                 .body("{\"name\":\"test\",\"value\":123}");
 
-        // 创建使用新请求的模板
+        // Create template using new request
         AiResponseTransformerTemplate jsonTemplate = new AiResponseTransformerTemplate("Transform JSON", jsonRequest);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = jsonTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证JSON请求体被正确解析
+                    // Verify JSON request body is properly parsed
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -124,23 +124,23 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithFormUrlEncodedRequest() {
-        // 创建form-urlencoded请求
+        // Create form-urlencoded request
         MockServerHttpRequest formRequest = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .body("name=test&value=123");
 
-        // 创建使用新请求的模板
+        // Create template using new request
         AiResponseTransformerTemplate formTemplate = new AiResponseTransformerTemplate("Transform form", formRequest);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = formTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证form数据被正确解析
+                    // Verify form data is properly parsed
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -152,22 +152,22 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithEmptyBody() {
-        // 创建空请求体
+        // Create empty request body
         MockServerHttpRequest emptyRequest = MockServerHttpRequest
                 .method(HttpMethod.GET, "/test")
                 .build();
 
-        // 创建使用新请求的模板
+        // Create template using new request
         AiResponseTransformerTemplate emptyTemplate = new AiResponseTransformerTemplate("Transform empty", emptyRequest);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = emptyTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证空请求体被正确处理
+                    // Verify empty request body is properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -179,7 +179,7 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testHeadersToJson() {
-        // 创建带多个头的请求
+        // Create request with multiple headers
         MockServerHttpRequest multiHeaderRequest = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/json")
@@ -187,17 +187,17 @@ class AiResponseTransformerTemplateTest {
                 .header("X-Custom", "value1", "value2")
                 .body("{\"test\":\"data\"}");
 
-        // 创建使用新请求的模板
+        // Create template using new request
         AiResponseTransformerTemplate multiHeaderTemplate = new AiResponseTransformerTemplate("Transform", multiHeaderRequest);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = multiHeaderTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证多个头被正确处理
+                    // Verify multiple headers are properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -209,27 +209,27 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testParseFormUrlEncoded() {
-        // 测试URL解码
+        // Test URL decoding
         String formData = "name=test%20user&value=123%2B456";
         
-        // 通过反射调用私有方法进行测试
-        // 这里我们通过assembleMessage方法来间接测试
+        // Test private method through reflection
+        // Here we test indirectly through assembleMessage method
         MockServerHttpRequest formRequest = MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .body(formData);
 
-        // 创建使用新请求的模板
+        // Create template using new request
         AiResponseTransformerTemplate formTemplate = new AiResponseTransformerTemplate("Transform", formRequest);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = formTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证URL解码正确
+                    // Verify URL decoding is correct
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -241,17 +241,17 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testBodyToStringWithMockDataBuffer() {
-        // 测试 bodyToString 方法是否能正确处理 DataBuffer
+        // Test if bodyToString method can properly handle DataBuffer
         String testBody = "{\"name\":\"test\",\"value\":123}";
         
-        // 创建 DataBuffer
+        // Create DataBuffer
         org.springframework.core.io.buffer.DataBuffer dataBuffer = 
             org.springframework.core.io.buffer.DefaultDataBufferFactory.sharedInstance.wrap(testBody.getBytes());
         
-        // 创建 Flux<DataBuffer>
+        // Create Flux<DataBuffer>
         Flux<org.springframework.core.io.buffer.DataBuffer> bodyFlux = Flux.just(dataBuffer);
         
-        // 使用反射调用私有方法
+        // Use reflection to call private method
         try {
             java.lang.reflect.Method bodyToStringMethod = AiResponseTransformerTemplate.class
                 .getDeclaredMethod("bodyToString", Flux.class);
@@ -272,7 +272,7 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithGzipResponse() {
-        // 测试 GZIP 压缩的响应处理
+        // Test GZIP compressed response handling
         MockServerHttpResponse gzipResponse = new MockServerHttpResponse();
         gzipResponse.setStatusCode(HttpStatus.OK);
         gzipResponse.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -282,20 +282,20 @@ class AiResponseTransformerTemplateTest {
         lenient().when(gzipExchange.getRequest()).thenReturn(request);
         lenient().when(gzipExchange.getResponse()).thenReturn(gzipResponse);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = template.assembleMessage(gzipExchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证 GZIP 响应被正确处理
+                    // Verify GZIP response is properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
                     assertTrue(message.contains("status"));
-                    // 验证响应头包含 Content-Encoding
+                    // Verify response headers contain Content-Encoding
                     assertTrue(message.contains("Content-Encoding"));
                 })
                 .verifyComplete();
@@ -303,7 +303,7 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithComplexHeaders() {
-        // 测试复杂的响应头
+        // Test complex response headers
         MockServerHttpResponse complexResponse = new MockServerHttpResponse();
         complexResponse.setStatusCode(HttpStatus.OK);
         complexResponse.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -316,20 +316,20 @@ class AiResponseTransformerTemplateTest {
         lenient().when(complexExchange.getRequest()).thenReturn(request);
         lenient().when(complexExchange.getResponse()).thenReturn(complexResponse);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = template.assembleMessage(complexExchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证复杂响应头被正确处理
+                    // Verify complex response headers are properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
                     assertTrue(message.contains("response"));
                     assertTrue(message.contains("status"));
-                    // 验证响应头信息
+                    // Verify response header information
                     assertTrue(message.contains("Cache-Control"));
                     assertTrue(message.contains("Pragma"));
                     assertTrue(message.contains("Expires"));
@@ -340,17 +340,17 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithEmptyUserContent() {
-        // 测试空的用户内容
+        // Test empty user content
         AiResponseTransformerTemplate emptyContentTemplate = new AiResponseTransformerTemplate("", request);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = emptyContentTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证空用户内容被正确处理
+                    // Verify empty user content is properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
@@ -362,17 +362,17 @@ class AiResponseTransformerTemplateTest {
 
     @Test
     void testAssembleMessageWithNullUserContent() {
-        // 测试 null 用户内容
+        // Test null user content
         AiResponseTransformerTemplate nullContentTemplate = new AiResponseTransformerTemplate(null, request);
 
-        // 执行测试
+        // Execute test
         Mono<String> result = nullContentTemplate.assembleMessage(exchange);
 
-        // 验证结果
+        // Verify result
         StepVerifier.create(result)
                 .assertNext(message -> {
                     assertNotNull(message);
-                    // 验证 null 用户内容被正确处理
+                    // Verify null user content is properly handled
                     assertTrue(message.contains("system_prompt"));
                     assertTrue(message.contains("user_prompt"));
                     assertTrue(message.contains("request"));
