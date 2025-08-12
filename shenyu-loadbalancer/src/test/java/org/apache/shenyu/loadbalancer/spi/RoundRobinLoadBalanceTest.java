@@ -36,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public final class RoundRobinLoadBalanceTest {
 
+    private static final int SELECTION_ITERATIONS = 30;
+
     /**
      * Round robin load balance test.
      */
@@ -130,7 +132,7 @@ public final class RoundRobinLoadBalanceTest {
         
         // Test multiple selections to verify round-robin behavior
         Map<String, Integer> countMap = new HashMap<>();
-        IntStream.range(0, 30).forEach(i -> {
+        IntStream.range(0, SELECTION_ITERATIONS).forEach(i -> {
             Upstream result = roundRobinLoadBalancer.select(upstreamList2, "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
