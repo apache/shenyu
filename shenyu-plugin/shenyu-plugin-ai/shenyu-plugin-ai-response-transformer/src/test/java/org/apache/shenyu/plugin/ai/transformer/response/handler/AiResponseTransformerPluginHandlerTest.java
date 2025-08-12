@@ -102,7 +102,9 @@ class AiResponseTransformerPluginHandlerTest {
         config.setBaseUrl("https://api.openai.com/v1");
         config.setApiKey("test-api-key");
         config.setModel("gpt-4");
-        config.setContent("Please transform the LLM response to standard API format. Requirements: 1. Keep HTTP status code as 200 2. Set Content-Type to application/json 3. Wrap the LLM text response in {\"data\": {\"content\": \"LLM response content\"}, \"status\": \"success\"} JSON structure");
+        config.setContent("Please transform the LLM response to standard API format. Requirements: "
+                + "1. Keep HTTP status code as 200 2. Set Content-Type to application/json 3. Wrap the LLM text response in "
+                + "{\"data\": {\"content\": \"LLM response content\"}, \"status\": \"success\"} JSON structure");
 
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
