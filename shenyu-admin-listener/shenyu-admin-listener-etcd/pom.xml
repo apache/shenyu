@@ -27,25 +27,16 @@
     <artifactId>shenyu-admin-listener-etcd</artifactId>
 
     <dependencies>
-        <dependency>
-            <artifactId>grpc-netty</artifactId>
-            <groupId>io.grpc</groupId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.etcd</groupId>
-            <artifactId>jetcd-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-api</artifactId>
+            <artifactId>shenyu-infra-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-common</artifactId>
+            <artifactId>shenyu-admin-listener-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

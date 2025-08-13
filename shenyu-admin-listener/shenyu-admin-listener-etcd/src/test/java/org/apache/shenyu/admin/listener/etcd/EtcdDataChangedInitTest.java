@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.etcd;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
