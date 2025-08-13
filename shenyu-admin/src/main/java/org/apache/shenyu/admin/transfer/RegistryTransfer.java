@@ -32,7 +32,7 @@ public enum RegistryTransfer {
      * mapToVo.
      *
      * @param registryDO registryDO
-     * @return NamespaceVO
+     * @return RegistryVO
      */
     public RegistryVO mapToVo(RegistryDO registryDO) {
         return Optional.ofNullable(registryDO).map(data -> {

@@ -50,7 +50,7 @@ public class RegistryDTO implements Serializable {
     @Length(max = 100, message = "The maximum length is 100")
     private String namespace;
 
-    @Length(max = 20, message = "The maximum length is 100")
+    @Length(max = 20, message = "The maximum length is 20")
     private String group;
 
     /**

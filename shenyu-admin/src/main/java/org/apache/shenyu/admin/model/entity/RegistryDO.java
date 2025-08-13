@@ -55,14 +55,14 @@ public class RegistryDO extends BaseDO {
     private String namespace;
 
     /**
-     * the model code.
+     * the model group.
      */
     private String group;
 
     /**
-     * Gets the value of code.
+     * Gets the value of registryId.
      *
-     * @return the value of code
+     * @return the value of registryId
      */
     public String getRegistryId() {
         return registryId;

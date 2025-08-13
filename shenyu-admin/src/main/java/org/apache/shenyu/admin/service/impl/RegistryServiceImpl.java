@@ -85,7 +85,7 @@ public class RegistryServiceImpl implements RegistryService {
 
 
     private RegistryVO create(final RegistryDTO registryDTO) {
-        RegistryDO existRegistryDO = registryMapper.selectByRegistryId(registryDTO.getId());
+        RegistryDO existRegistryDO = registryMapper.selectByRegistryId(registryDTO.getRegistryId());
         if (Objects.nonNull(existRegistryDO)) {
             throw new ShenyuAdminException("registry_id is already exist");
         }
