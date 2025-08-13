@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.config;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.client.config.NacosConfigService;
-import org.apache.shenyu.admin.config.properties.NacosProperties;
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
+import org.apache.shenyu.infra.nacos.config.NacosACMConfig;
+import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -49,22 +51,30 @@ public class NacosSyncConfigurationTest {
     @Test
     public void nacosConfigServiceTest() {
         try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
-            final NacosProperties nacosProperties = new NacosProperties();
-            final NacosProperties.NacosACMProperties nacosACMProperties = new NacosProperties.NacosACMProperties();
-            nacosProperties.setAcm(nacosACMProperties);
+
+            var nacosProperties = new NacosProperties();
+            nacosProperties.setNacos(NacosConfig.builder()
+                            .namespace("url")
+                            .username("username")
+                            .password("password")
+                            .acm(NacosACMConfig.builder()
+                                    .endpoint("acm.aliyun.com")
+                                    .accessKey("accessKey")
+                                    .secretKey("secretKey")
+                                    .namespace("namespace")
+                                    .build())
+                    .build());
+
             nacosFactoryMockedStatic.when(() -> NacosFactory.createConfigService(any(Properties.class))).thenReturn(mock(ConfigService.class));
             NacosSyncConfiguration nacosListener = new NacosSyncConfiguration();
-            nacosProperties.setUrl("url");
+
+            nacosProperties.getNacos().setUrl("url");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
-            nacosProperties.setNamespace("url");
-            nacosProperties.setUsername("username");
-            nacosProperties.setPassword("password");
+
+            nacosProperties.getNacos().setNamespace("url");
+            nacosProperties.getNacos().setUsername("username");
+            nacosProperties.getNacos().setPassword("password");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
-            nacosACMProperties.setEnabled(true);
-            nacosACMProperties.setEndpoint("acm.aliyun.com");
-            nacosACMProperties.setAccessKey("accessKey");
-            nacosACMProperties.setNamespace("namespace");
-            nacosACMProperties.setSecretKey("secretKey");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
         }
     }
