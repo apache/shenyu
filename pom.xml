@@ -48,6 +48,7 @@
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
+        <module>shenyu-infra/shenyu-infra-common</module>
     </modules>
 
     <licenses>

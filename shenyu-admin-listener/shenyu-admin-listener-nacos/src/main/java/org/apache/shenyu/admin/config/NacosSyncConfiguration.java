@@ -21,13 +21,13 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
+import org.apache.shenyu.infra.nacos.autoconfig.ConditionOnSyncNacos;
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +38,9 @@ import java.util.Properties;
 /**
  * The type Nacos listener.
  */
+
 @Configuration
-@ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
+@ConditionOnSyncNacos
 @EnableConfigurationProperties(NacosProperties.class)
 public class NacosSyncConfiguration {
 
@@ -54,26 +55,26 @@ public class NacosSyncConfiguration {
     @ConditionalOnMissingBean(ConfigService.class)
     public ConfigService nacosConfigService(final NacosProperties nacosProp) throws Exception {
         Properties properties = new Properties();
-        if (Objects.nonNull(nacosProp.getAcm()) && nacosProp.getAcm().isEnabled()) {
+        if (Objects.nonNull(nacosProp.getNacos().getAcm()) && nacosProp.getNacos().getAcm().isEnabled()) {
             // Use aliyun ACM service
-            properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getAcm().getEndpoint());
-            properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getAcm().getNamespace());
+            properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getNacos().getAcm().getEndpoint());
+            properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNacos().getAcm().getNamespace());
             // Use subaccount ACM administrative authority
-            properties.put(PropertyKeyConst.ACCESS_KEY, nacosProp.getAcm().getAccessKey());
-            properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
+            properties.put(PropertyKeyConst.ACCESS_KEY, nacosProp.getNacos().getAcm().getAccessKey());
+            properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getNacos().getAcm().getSecretKey());
         } else {
-            properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
-            if (StringUtils.isNotBlank(nacosProp.getNamespace())) {
-                properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+            properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getNacos().getUrl());
+            if (StringUtils.isNotBlank(nacosProp.getNacos().getNamespace())) {
+                properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNacos().getNamespace());
             }
-            if (StringUtils.isNotBlank(nacosProp.getUsername())) {
-                properties.put(PropertyKeyConst.USERNAME, nacosProp.getUsername());
+            if (StringUtils.isNotBlank(nacosProp.getNacos().getUsername())) {
+                properties.put(PropertyKeyConst.USERNAME, nacosProp.getNacos().getUsername());
             }
-            if (StringUtils.isNotBlank(nacosProp.getPassword())) {
-                properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
+            if (StringUtils.isNotBlank(nacosProp.getNacos().getPassword())) {
+                properties.put(PropertyKeyConst.PASSWORD, nacosProp.getNacos().getPassword());
             }
-            if (StringUtils.isNotBlank(nacosProp.getContextPath())) {
-                properties.put(PropertyKeyConst.CONTEXT_PATH, nacosProp.getContextPath());
+            if (StringUtils.isNotBlank(nacosProp.getNacos().getContextPath())) {
+                properties.put(PropertyKeyConst.CONTEXT_PATH, nacosProp.getNacos().getContextPath());
             }
         }
         return NacosFactory.createConfigService(properties);

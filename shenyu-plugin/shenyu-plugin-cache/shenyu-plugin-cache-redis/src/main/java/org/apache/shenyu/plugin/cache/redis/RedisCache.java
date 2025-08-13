@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.cache.redis;
 
+import org.apache.shenyu.infra.redis.RedisConfigProperties;
+import org.apache.shenyu.infra.redis.RedisConnectionFactory;
+import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.cache.ICache;
-import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationContext;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
