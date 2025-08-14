@@ -21,6 +21,16 @@ package org.apache.shenyu.common.constant;
  * Constants.
  */
 public interface Constants {
+
+    /**
+     * The constant Apache SHENYU.
+     */
+    String SHENYU = "shenyu";
+
+    /**
+     * The constant string dot.
+     */
+    String DOT = ".";
     
     /**
      * The constant string separator.
