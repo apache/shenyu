@@ -90,7 +90,7 @@ public final class JsonUtils {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException e) {
-            LOG.warn("write to json string error: {}", object, e);
+            LOG.warn("Failed to serialize object of type: {}", object.getClass().getSimpleName(), e);
             return Constants.EMPTY_JSON;
         }
     }
@@ -107,7 +107,7 @@ public final class JsonUtils {
             final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
             return MAPPER.readValue(json, mapType);
         } catch (IOException e) {
-            LOG.warn("write to map error: {}", object, e);
+            LOG.warn("Failed to serialize object of type: {}", object.getClass().getSimpleName(), e);
             return new LinkedHashMap<>();
         }
     }
