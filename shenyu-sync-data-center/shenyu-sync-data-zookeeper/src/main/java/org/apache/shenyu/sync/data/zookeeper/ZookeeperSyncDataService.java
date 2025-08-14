@@ -19,11 +19,10 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -83,12 +82,11 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
 
     private void watcherData0(final String registerPath) {
         String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
-        zkClient.addCache(registerPath, (curatorFramework, treeCacheEvent) -> {
-            ChildData childData = treeCacheEvent.getData();
-            if (Objects.isNull(childData)) {
+        zkClient.addCache(registerPath, (type, oldData, newData) -> {
+            if (Objects.isNull(newData) && Objects.isNull(oldData)) {
                 return;
             }
-            String path = childData.getPath();
+            String path = Objects.nonNull(newData) ? newData.getPath() : oldData.getPath();
             if (Strings.isNullOrEmpty(path)) {
                 return;
             }
@@ -100,8 +98,8 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
                 return;
             }
 
-            EventType eventType = treeCacheEvent.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
-            final String updateData = Objects.nonNull(childData.getData()) ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
+            EventType eventType = Objects.isNull(newData) ? EventType.DELETE : EventType.PUT;
+            final String updateData = Objects.nonNull(newData) ? new String(newData.getData(), StandardCharsets.UTF_8) : null;
             this.event(configNamespace, path, updateData, registerPath, eventType);
         });
     }
