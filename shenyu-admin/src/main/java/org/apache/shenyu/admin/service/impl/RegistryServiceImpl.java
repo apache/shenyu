@@ -62,7 +62,6 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public String delete(final List<String> ids) {
-        // todo check selector handle
         registryMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }

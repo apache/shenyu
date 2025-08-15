@@ -525,18 +525,18 @@ INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VA
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', sysdate, sysdate);
 
-CREATE TABLE "public"."registry_config"  (
-                                             id            varchar2(128) NOT NULL,
-                                             registry_id   varchar2(50)  NOT NULL,
-                                             protocol      varchar2(128) NOT NULL,
-                                             address       varchar2(512) NOT NULL,
-                                             username      varchar2(50),
-                                             password      varchar2(100),
-                                             namespace     varchar2(100),
-                                             group         varchar2(20),
-                                             date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
-                                             date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
-                                             CONSTRAINT registry_config_pk PRIMARY KEY (id)
+CREATE TABLE registry_config (
+    id            varchar2(128) NOT NULL,
+    registry_id   varchar2(50)  NOT NULL,
+    protocol      varchar2(128) NOT NULL,
+    address       varchar2(512) NOT NULL,
+    username      varchar2(50),
+    password      varchar2(100),
+    namespace     varchar2(100),
+    group         varchar2(20),
+    date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT registry_config_pk PRIMARY KEY (id)
 );
 
 COMMENT ON TABLE registry_config IS 'registry config information table';

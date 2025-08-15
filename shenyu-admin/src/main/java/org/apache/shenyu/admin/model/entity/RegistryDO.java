@@ -220,15 +220,6 @@ public class RegistryDO extends BaseDO {
         }
 
         /**
-         * builder.
-         *
-         * @return RegistryDO.RegistryDOBuilder
-         */
-        public static RegistryDOBuilder builder() {
-            return new RegistryDOBuilder();
-        }
-
-        /**
          * id.
          *
          * @param id the id.
