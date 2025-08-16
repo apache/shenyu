@@ -95,7 +95,7 @@ public class AiProxyExecutorService {
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             LOG.warn("Retrying stream once failed. Attempts: {}. Triggering fallback.",
                                     retrySignal.totalRetries(), retrySignal.failure());
-                            return new NonTransientAiException("Stream failed after 1 retry. Triggering fallback.");
+                            return new NonTransientAiException("Stream failed after 1 retry. Triggering fallback.", retrySignal.failure());
                         }))
                 .onErrorResume(NonTransientAiException.class,
                         throwable -> handleFallbackStream(throwable, fallbackClientOpt, requestBody));
