@@ -269,7 +269,20 @@ public class AiProxyHandle {
         if (Objects.isNull(apiKey) || apiKey.length() <= 7) {
             return apiKey;
         }
-        return apiKey.substring(0, 3) + "****" + apiKey.substring(apiKey.length() - 4);
+        if (Objects.isNull(apiKey) || apiKey.isEmpty()) {
+            return apiKey;
+        }
+        int len = apiKey.length();
+        if (len <= 4) {
+            // Show only the first character, mask the rest
+            return apiKey.substring(0, 1) + "***";
+        } else if (len <= 7) {
+            // Show first and last character, mask the middle
+            return apiKey.substring(0, 1) + "***" + apiKey.substring(len - 1);
+        } else {
+            // Show first 3 and last 4 characters, mask the middle
+            return apiKey.substring(0, 3) + "****" + apiKey.substring(len - 4);
+        }
     }
 
     /**
