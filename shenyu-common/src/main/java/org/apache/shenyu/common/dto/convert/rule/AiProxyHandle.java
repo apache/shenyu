@@ -269,7 +269,7 @@ public class AiProxyHandle {
         if (Objects.isNull(apiKey) || apiKey.length() <= 7) {
             return apiKey;
         }
-        if (Objects.isNull(apiKey) || apiKey.isEmpty()) {
+        if (apiKey.isEmpty()) {
             return apiKey;
         }
         int len = apiKey.length();
