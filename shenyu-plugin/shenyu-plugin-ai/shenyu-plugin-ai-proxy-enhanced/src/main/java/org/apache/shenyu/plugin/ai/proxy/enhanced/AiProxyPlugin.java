@@ -168,7 +168,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         LOG.info("Creating chat model with config: {}", config);
         final AiModelProviderEnum provider = AiModelProviderEnum.getByName(config.getProvider());
         if (Objects.isNull(provider)) {
-            throw new IllegalArgumentException("Invalid AI model provider in config: " + config.getProvider());
+            throw new IllegalArgumentException("Invalid AI model provider in config.");
         }
         final var factory = aiModelFactoryRegistry.getFactory(provider);
         if (Objects.isNull(factory)) {
