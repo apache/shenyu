@@ -112,6 +112,10 @@ public class RegistryServiceImpl implements RegistryService {
         if (Objects.isNull(registryDTO) || Objects.isNull(registryDTO.getId())) {
             throw new ShenyuAdminException("registry is not exist");
         }
+        RegistryDO existRegistryDO = registryMapper.selectByRegistryId(registryDTO.getRegistryId());
+        if (Objects.nonNull(existRegistryDO) && !existRegistryDO.getId().equals(registryDTO.getId())) {
+            throw new ShenyuAdminException("registry_id is already exist");
+        }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         RegistryDO registryDO = RegistryDO.builder()
                 .id(registryDTO.getId())
