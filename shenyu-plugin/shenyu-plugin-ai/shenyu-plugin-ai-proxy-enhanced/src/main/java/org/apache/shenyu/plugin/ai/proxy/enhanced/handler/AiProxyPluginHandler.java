@@ -47,7 +47,7 @@ public class AiProxyPluginHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         // Note: The logic for handling global plugin configuration with Singleton has been removed
         // as it's part of the legacy pattern we are moving away from.
-        // Global configs should be managed as Spring beans if needed.
+        // No global plugin configuration handling is performed.
     }
 
     @Override
