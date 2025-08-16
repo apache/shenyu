@@ -266,10 +266,7 @@ public class AiProxyHandle {
     }
 
     public static String maskApiKey(final String apiKey) {
-        if (Objects.isNull(apiKey) || apiKey.length() <= 7) {
-            return apiKey;
-        }
-        if (apiKey.isEmpty()) {
+        if (Objects.isNull(apiKey) || apiKey.isEmpty()) {
             return apiKey;
         }
         int len = apiKey.length();
