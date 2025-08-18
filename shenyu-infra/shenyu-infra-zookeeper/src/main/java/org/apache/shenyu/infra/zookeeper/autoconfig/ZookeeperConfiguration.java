@@ -48,8 +48,8 @@ public class ZookeeperConfiguration {
     @ConditionalOnMissingBean(ZookeeperClient.class)
     public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProp) {
 
-        int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
-        int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
+        int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 60 * 1000 : zookeeperProp.getSessionTimeout();
+        int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 15 * 1000 : zookeeperProp.getConnectionTimeout();
 
         LOG.info("zk client init: url: {}", zookeeperProp.getUrl());
         ZookeeperClient client = ZookeeperClient.builder()
