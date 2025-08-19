@@ -64,6 +64,11 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
                                     final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                     final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
         super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+
+        if (!zkClient.isConnection()) {
+            throw new IllegalStateException("Zookeeper client is not connected.");
+        }
+
         this.zkClient = zkClient;
         this.shenyuConfig = shenyuConfig;
         watcherData();

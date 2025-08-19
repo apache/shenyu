@@ -105,8 +105,10 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
             }
         });
 
-        LOGGER.info("zookeeper registry init...");
         client.start();
+        if (client.isConnection()) {
+            LOGGER.info("zookeeper registry init...");
+        }
     }
 
     @Override

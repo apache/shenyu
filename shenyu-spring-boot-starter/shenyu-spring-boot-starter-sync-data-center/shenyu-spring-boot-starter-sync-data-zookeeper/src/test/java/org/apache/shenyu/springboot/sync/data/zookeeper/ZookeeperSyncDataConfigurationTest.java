@@ -55,9 +55,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public final class ZookeeperSyncDataConfigurationTest {
 
     @Autowired
-    private ZookeeperProperties zookeeperConfig;
-
-    @Autowired
     private SyncDataService syncDataService;
 
     /**
@@ -69,13 +66,4 @@ public final class ZookeeperSyncDataConfigurationTest {
         assertTrue(syncDataService instanceof ZookeeperSyncDataService);
     }
 
-    /**
-     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperProperties}.
-     */
-    @Test
-    public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {
-        assertThat(zookeeperConfig.getUrl(), is("localhost:2181"));
-        assertThat(zookeeperConfig.getSessionTimeout(), is(30000));
-        assertThat(zookeeperConfig.getConnectionTimeout(), is(500));
-    }
 }

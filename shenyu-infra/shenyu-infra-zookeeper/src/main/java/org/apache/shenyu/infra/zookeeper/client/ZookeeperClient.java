@@ -71,9 +71,19 @@ public class ZookeeperClient {
     }
 
     /**
+     * Get zk connection status.
+     * @return true if connected, false otherwise.
+     */
+    public Boolean isConnection() {
+
+        return this.client.getZookeeperClient().isConnected();
+    }
+
+    /**
      * start.
      */
     public void close() {
+        
         // close all caches
         for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());

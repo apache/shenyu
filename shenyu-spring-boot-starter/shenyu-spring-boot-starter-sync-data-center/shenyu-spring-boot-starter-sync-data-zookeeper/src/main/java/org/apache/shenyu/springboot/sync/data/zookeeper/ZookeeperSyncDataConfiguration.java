@@ -75,27 +75,17 @@ public class ZookeeperSyncDataConfiguration {
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+
         LOGGER.info("you use zookeeper sync shenyu data.......");
+
+        // check zk client
+        if (Objects.isNull(zookeeperClient.getIfAvailable()) || zookeeperClient.getIfAvailable().isConnection()) {
+            throw new IllegalStateException("ZookeeperClient is not available, please check your Zookeeper configuration.");
+        }
+
         return new ZookeeperSyncDataService(shenyuConfig.getIfAvailable(), zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList));
     }
 
-    /**
-     * register zkClient in spring ioc.
-     *
-     * @param zookeeperProps the zookeeper configuration
-     * @return ZookeeperClient {@linkplain ZookeeperClient}
-     */
-    @Bean
-    public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProps) {
-        int sessionTimeout = Objects.isNull(zookeeperProps.getSessionTimeout()) ? 3000 : zookeeperProps.getSessionTimeout();
-        int connectionTimeout = Objects.isNull(zookeeperProps.getConnectionTimeout()) ? 3000 : zookeeperProps.getConnectionTimeout();
-        ZookeeperConfig zkConfig = ZookeeperConfig.builder().serverLists(zookeeperProps.getUrl()).build();
-        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
-        ZookeeperClient client = ZookeeperClient.builder().config(zkConfig).build();
-        client.start();
-        return client;
-    }
 }
