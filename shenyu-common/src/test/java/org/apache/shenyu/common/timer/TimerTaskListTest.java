@@ -24,7 +24,10 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TimerTaskListTest {
 
@@ -37,20 +40,6 @@ class TimerTaskListTest {
 
         counter = new AtomicInteger(0);
         list = new TimerTaskList(counter);
-    }
-
-    static class TestTimerTask extends TimerTask {
-
-        boolean executed = false;
-
-        public TestTimerTask(long delayMs) {
-            super(delayMs);
-        }
-
-        @Override
-        public void run(TaskEntity taskEntity) {
-            executed = true;
-        }
     }
 
     @Test
@@ -110,6 +99,18 @@ class TimerTaskListTest {
         long delay = list.getDelay(TimeUnit.MILLISECONDS);
 
         assertTrue(delay >= 0);
+    }
+
+    static final class TestTimerTask extends TimerTask {
+
+        private TestTimerTask(final long delayMs) {
+            super(delayMs);
+        }
+
+        @Override
+        public void run(final TaskEntity taskEntity) {
+            boolean executed = true;
+        }
     }
 
 }
