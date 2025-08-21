@@ -80,6 +80,13 @@ public class InstanceController implements PagedController<InstanceQueryConditio
                     namespaceId
             )
         );
+        commonPager.getDataList().forEach(instanceInfoVO -> {
+            String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
+            InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+            instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+            instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+            instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+        });
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -107,6 +114,17 @@ public class InstanceController implements PagedController<InstanceQueryConditio
         //todo:admin集群模式下，请求转发给master节点
         instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
         return ShenyuResultMessage.SUCCESS;
+    }
+
+    /**
+     * visual instance info.
+     *
+     * @param namespaceId namespace id.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/analysis/{namespaceId}")
+    public ShenyuAdminResult getInstanceDataVisual(@PathVariable("namespaceId") final String namespaceId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, instanceCheckService.getInstanceDataVisual(namespaceId));
     }
 
 

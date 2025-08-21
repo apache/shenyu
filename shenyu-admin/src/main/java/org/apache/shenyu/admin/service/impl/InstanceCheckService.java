@@ -18,7 +18,10 @@
 package org.apache.shenyu.admin.service.impl;
 
 import jakarta.annotation.PreDestroy;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
+import org.apache.shenyu.admin.model.vo.InstanceDataVisualLineVO;
+import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -27,11 +30,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This is the client check service.
@@ -53,6 +65,9 @@ public class InstanceCheckService {
 
     private InstanceInfoService instanceInfoService;
 
+    private final Map<Integer, Deque<Long>> stateHistoryMap;
+
+    private static final int MAX_HISTORY_SIZE = 20;
 
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
@@ -60,6 +75,7 @@ public class InstanceCheckService {
         this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
+        this.stateHistoryMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -93,6 +109,10 @@ public class InstanceCheckService {
 
     public InstanceInfoVO getInstanceHealthBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         return instanceHealthBeatInfo.get(getInstanceKey(instanceBeatInfoDTO));
+    }
+
+    public InstanceInfoVO getInstanceHealthBeatInfo(final String instanceKey) {
+        return instanceHealthBeatInfo.get(instanceKey);
     }
 
     public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
@@ -142,6 +162,7 @@ public class InstanceCheckService {
                     instance.setInstanceState(0);
                 }
             }
+            collectStateData();
         });
     }
 
@@ -179,5 +200,59 @@ public class InstanceCheckService {
         instanceInfoDTO.setInstanceInfo(instanceInfoRegisterDTO.getInstanceInfo());
         instanceInfoDTO.setNamespaceId(instanceInfoRegisterDTO.getNamespaceId());
         return instanceInfoDTO;
+    }
+
+    private void collectStateData() {
+        if (!CollectionUtils.isEmpty(instanceHealthBeatInfo)) {
+            Map<Integer, Long> pieData = instanceHealthBeatInfo.values().stream().collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
+            updateStateHistory(pieData);
+        }
+    }
+
+    public InstanceDataVisualVO getInstanceDataVisual(String namespaceId) {
+        InstanceDataVisualVO instanceDataVisualVO = new InstanceDataVisualVO();
+        List<InstanceInfoVO> instanceInfoVOS = instanceHealthBeatInfo.values().stream().toList();
+        if (StringUtils.isNotBlank(namespaceId)) {
+            instanceInfoVOS = instanceInfoVOS.stream().filter(vo -> namespaceId.equals(vo.getNamespaceId())).collect(Collectors.toList());
+        }
+        Map<Integer, Long> pieData = instanceInfoVOS.stream().collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
+        List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
+        for (Integer state : Arrays.asList(0, 1, 2)) {
+            Deque<Long> queue = stateHistoryMap.get(state);
+            List<Long> data = new ArrayList<>(queue);
+            while (data.size() < MAX_HISTORY_SIZE) {
+                data.add(0, 0L);
+            }
+            InstanceDataVisualLineVO dto = new InstanceDataVisualLineVO(
+                    state + "",
+                    data
+            );
+            lineList.add(dto);
+        }
+        instanceDataVisualVO.setPieData(pieData);
+        instanceDataVisualVO.setLineList(lineList);
+        return instanceDataVisualVO;
+    }
+
+
+    private void updateStateHistory(Map<Integer, Long> currentData) {
+        ensureStateQueues();
+        for (Integer state : Arrays.asList(0, 1, 2)) {
+            Long count = currentData.getOrDefault(state, 0L);
+            Deque<Long> queue = stateHistoryMap.get(state);
+            queue.addLast(count);
+            while (queue.size() > MAX_HISTORY_SIZE) {
+                queue.removeFirst();
+            }
+        }
+    }
+
+    /**
+     * 确保所有状态都有对应的数据队列
+     */
+    private void ensureStateQueues() {
+        for (Integer state : Arrays.asList(0, 1, 2)) {
+            stateHistoryMap.putIfAbsent(state, new ConcurrentLinkedDeque<>());
+        }
     }
 }
