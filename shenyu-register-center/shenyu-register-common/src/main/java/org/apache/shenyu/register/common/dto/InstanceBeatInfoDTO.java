@@ -15,27 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.register.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
-
-import java.io.Serializable;
-import java.util.Objects;
-
-/**
- * InstanceInfoDTO.
- */
-public class InstanceInfoDTO implements Serializable {
-
-    private static final long serialVersionUID = 3644412439977354321L;
-
-    /**
-     * instance id.
-     */
-    private String instanceId;
-
+public class InstanceBeatInfoDTO {
     /**
      * instance ip.
      */
@@ -57,34 +39,9 @@ public class InstanceInfoDTO implements Serializable {
     private String instanceInfo;
 
     /**
-     * instance state.
-     */
-    private Integer instanceState;
-
-    /**
      * namespaceId.
      */
-    @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
     private String namespaceId;
-
-    /**
-     * get getInstanceId.
-     *
-     * @return InstanceId
-     */
-    public String getInstanceId() {
-        return instanceId;
-    }
-
-    /**
-     * set instanceId.
-     *
-     * @param instanceId instanceId
-     */
-    public void setInstanceId(final String instanceId) {
-        this.instanceId = instanceId;
-    }
 
     /**
      * get instanceIp.
@@ -159,24 +116,6 @@ public class InstanceInfoDTO implements Serializable {
     }
 
     /**
-     * get instanceState.
-     *
-     * @return instanceState
-     */
-    public Integer getInstanceState() {
-        return instanceState;
-    }
-
-    /**
-     * set instanceState.
-     *
-     * @param instanceState instanceState
-     */
-    public void setInstanceState(final Integer instanceState) {
-        this.instanceState = instanceState;
-    }
-
-    /**
      * get namespaceId.
      *
      * @return namespaceId
@@ -194,24 +133,4 @@ public class InstanceInfoDTO implements Serializable {
         this.namespaceId = namespaceId;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (Objects.isNull(o) || getClass() != o.getClass()) {
-            return false;
-        }
-
-        InstanceInfoDTO that = (InstanceInfoDTO) o;
-        return Objects.equals(instanceIp, that.instanceIp)
-                && Objects.equals(instanceType, that.instanceType)
-                && Objects.equals(instanceInfo, that.instanceInfo)
-                && Objects.equals(namespaceId, that.namespaceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(instanceIp, instanceType, instanceInfo, namespaceId);
-    }
 }
