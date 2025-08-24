@@ -18,30 +18,36 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.shenyu.admin.config.properties.ZookeeperConfig;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ZookeeperSyncConfigurationTest {
-    
+
     private static TestingServer zkServer;
     
     private static ZookeeperClient zkClient;
     
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
+
         zkServer = new TestingServer();
-        ZookeeperConfig config = new ZookeeperConfig(zkServer.getConnectString());
-        zkClient = new ZookeeperClient(config);
+        zkClient = ZookeeperClient.builder()
+                .config(ZookeeperConfig.builder()
+                        .serverLists(zkServer.getConnectString())
+                        .build()
+                ).build();
     }
     
     @AfterAll
-    public static void tearDown() throws Exception {
+    public static void tearDown() throws IOException {
         zkClient.close();
         zkServer.stop();
     }

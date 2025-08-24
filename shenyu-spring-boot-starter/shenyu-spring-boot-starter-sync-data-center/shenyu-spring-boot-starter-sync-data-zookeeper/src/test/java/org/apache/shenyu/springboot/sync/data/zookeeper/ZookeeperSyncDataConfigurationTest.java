@@ -23,9 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,9 +55,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public final class ZookeeperSyncDataConfigurationTest {
 
     @Autowired
-    private ZookeeperProperties zookeeperConfig;
-
-    @Autowired
     private SyncDataService syncDataService;
 
     /**
@@ -68,13 +66,4 @@ public final class ZookeeperSyncDataConfigurationTest {
         assertTrue(syncDataService instanceof ZookeeperSyncDataService);
     }
 
-    /**
-     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperProperties}.
-     */
-    @Test
-    public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {
-        assertThat(zookeeperConfig.getUrl(), is("localhost:2181"));
-        assertThat(zookeeperConfig.getSessionTimeout(), is(30000));
-        assertThat(zookeeperConfig.getConnectionTimeout(), is(500));
-    }
 }
