@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.plugin.cache;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.CacheUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.cache.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.reactivestreams.Publisher;
@@ -48,7 +52,8 @@ public class CachePlugin extends AbstractShenyuPlugin {
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
-        ICache cache = CacheUtils.getCache();
+        CacheUpstream cacheUpstream = GsonUtils.getInstance().fromJson(selector.getHandle(), CacheUpstream.class);
+        ICache cache = getCache(selector.getId(), cacheUpstream);
         if (Objects.nonNull(cache)) {
             return cache.getData(CacheUtils.dataKey(exchange))
                     .zipWith(cache.getData(CacheUtils.contentTypeKey(exchange)))
@@ -63,11 +68,29 @@ public class CachePlugin extends AbstractShenyuPlugin {
                                     .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
                         }
                         CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
-                        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
+                        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId())).build());
                     });
         }
         CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
-        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
+        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId())).build());
+    }
+
+    /**
+     * get and init ICache.
+     *
+     * @param selectorId selectorId
+     * @param cacheUpstream cacheUpstream
+     * @return ICache
+     */
+    private ICache getCache(final String selectorId, final CacheUpstream cacheUpstream) {
+        if (Objects.isNull(cacheUpstream) || StringUtils.isBlank(cacheUpstream.getUrl())) {
+            return CacheUtils.getCache();
+        }
+        ICache cache = ApplicationConfigCache.getInstance().get(selectorId);
+        if (Objects.isNull(cache)) {
+            cache = ApplicationConfigCache.getInstance().init(selectorId, cacheUpstream);
+        }
+        return cache;
     }
 
     @Override
@@ -86,15 +109,19 @@ public class CachePlugin extends AbstractShenyuPlugin {
 
     static class CacheHttpResponse extends ServerHttpResponseDecorator {
 
+        private final String selectorId;
+
         private final ServerWebExchange exchange;
 
         private final CacheRuleHandle cacheRuleHandle;
 
         CacheHttpResponse(final ServerWebExchange exchange,
-                          final CacheRuleHandle cacheRuleHandle) {
+                          final CacheRuleHandle cacheRuleHandle,
+                          final String selectorId) {
             super(exchange.getResponse());
             this.exchange = exchange;
             this.cacheRuleHandle = cacheRuleHandle;
+            this.selectorId = selectorId;
         }
 
         @Override
@@ -110,7 +137,9 @@ public class CachePlugin extends AbstractShenyuPlugin {
 
         @NonNull
         private byte[] cacheResponse(final byte[] bodyBytes) {
-            final ICache cache = CacheUtils.getCache();
+            ICache cache;
+            ICache selectorCache = ApplicationConfigCache.getInstance().get(selectorId);
+            cache = Objects.isNull(selectorCache) ? CacheUtils.getCache() : selectorCache;
             if (Objects.nonNull(cache)) {
                 final MediaType contentType = this.getHeaders().getContentType();
                 cache.cacheData(CacheUtils.dataKey(this.exchange), bodyBytes,
