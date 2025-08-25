@@ -55,6 +55,7 @@ public final class NacosConfigTest {
                 .password(PASSWORD)
                 .username(USERNAME)
                 .url(URL)
+                .namespace(NAMESPACE)
                 .build();
 
         that = NacosConfig.builder()
@@ -63,6 +64,7 @@ public final class NacosConfigTest {
                 .password(PASSWORD)
                 .username(USERNAME)
                 .url(URL)
+                .namespace(NAMESPACE)
                 .build();
     }
 
