@@ -200,7 +200,7 @@ create table rule
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
     sort          NUMBER(10) not null,
-    handle        VARCHAR2(1024),
+    handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
 );
