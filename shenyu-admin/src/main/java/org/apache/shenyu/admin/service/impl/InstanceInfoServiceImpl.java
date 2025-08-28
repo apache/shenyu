@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
-import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -50,16 +49,16 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
 
     @Override
-    public void createOrUpdate(final InstanceInfoDTO instanceInfoDTO) {
+    public void createOrUpdate(final InstanceInfoVO instanceInfoVO) {
         InstanceQuery instanceQuery = new InstanceQuery();
-        instanceQuery.setInstanceIp(instanceInfoDTO.getInstanceIp());
-        instanceQuery.setInstancePort(instanceInfoDTO.getInstancePort());
-        instanceQuery.setInstanceType(instanceInfoDTO.getInstanceType());
-        instanceQuery.setNamespaceId(instanceInfoDTO.getNamespaceId());
+        instanceQuery.setInstanceIp(instanceInfoVO.getInstanceIp());
+        instanceQuery.setInstancePort(instanceInfoVO.getInstancePort());
+        instanceQuery.setInstanceType(instanceInfoVO.getInstanceType());
+        instanceQuery.setNamespaceId(instanceInfoVO.getNamespaceId());
         InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
         if (Objects.isNull(infoDO)) {
-            LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceInfoDTO));
-            InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoDTO);
+            LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceQuery));
+            InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoVO);
             try {
                 instanceInfoMapper.insert(instanceInfoDO);
             } catch (Exception e) {
@@ -67,13 +66,14 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
             }
             return;
         }
-        LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoDTO));
-        infoDO.setInstanceIp(instanceInfoDTO.getInstanceIp());
-        infoDO.setInstanceType(instanceInfoDTO.getInstanceType());
-        infoDO.setInstanceInfo(instanceInfoDTO.getInstanceInfo());
-        infoDO.setNamespaceId(instanceInfoDTO.getNamespaceId());
+        LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
+        infoDO.setInstanceIp(instanceInfoVO.getInstanceIp());
+        infoDO.setInstanceType(instanceInfoVO.getInstanceType());
+        infoDO.setInstanceInfo(instanceInfoVO.getInstanceInfo());
+        infoDO.setNamespaceId(instanceInfoVO.getNamespaceId());
         infoDO.setDateUpdated(Timestamp.from(Instant.now()));
-        infoDO.setInstanceState(instanceInfoDTO.getInstanceState());
+        infoDO.setInstanceState(instanceInfoVO.getInstanceState());
+        infoDO.setLastHeartBeatTime(instanceInfoVO.getLastHeartBeatTime());
         instanceInfoMapper.updateById(infoDO);
     }
 
@@ -81,6 +81,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     public CommonPager<InstanceInfoVO> listByPage(final InstanceQuery instanceQuery) {
         List<InstanceInfoDO> instanceInfoDOList = instanceInfoMapper.selectByQuery(instanceQuery);
         return PageResultUtils.result(instanceQuery.getPageParameter(), () -> this.buildInstanceInfoVO(instanceInfoDOList));
+    }
+
+    @Override
+    public List<InstanceInfoVO> list() {
+        return this.buildInstanceInfoVO(instanceInfoMapper.selectAll());
     }
 
     @Override
