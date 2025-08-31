@@ -21,8 +21,10 @@ package org.apache.shenyu.admin.model.vo;
 import java.util.List;
 
 public class InstanceDataVisualVO {
-    List<Entry> pieData;
-    List<InstanceDataVisualLineVO> lineData;
+
+    private List<Entry> pieData;
+
+    private List<InstanceDataVisualLineVO> lineData;
 
     /**
      * Gets the value of pieData.
@@ -38,7 +40,7 @@ public class InstanceDataVisualVO {
      *
      * @param pieData pieData
      */
-    public void setPieData(List<Entry> pieData) {
+    public void setPieData(final List<Entry> pieData) {
         this.pieData = pieData;
     }
 
@@ -56,14 +58,17 @@ public class InstanceDataVisualVO {
      *
      * @param lineData lineData
      */
-    public void setLineData(List<InstanceDataVisualLineVO> lineData) {
+    public void setLineData(final List<InstanceDataVisualLineVO> lineData) {
         this.lineData = lineData;
     }
+
     public static class Entry {
+
         private String name;
+
         private Long value;
 
-        public Entry(String name, Long value) {
+        public Entry(final String name, final Long value) {
             this.name = name;
             this.value = value;
         }
@@ -82,7 +87,7 @@ public class InstanceDataVisualVO {
          *
          * @param name name
          */
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -100,7 +105,7 @@ public class InstanceDataVisualVO {
          *
          * @param value value
          */
-        public void setValue(Long value) {
+        public void setValue(final Long value) {
             this.value = value;
         }
     }

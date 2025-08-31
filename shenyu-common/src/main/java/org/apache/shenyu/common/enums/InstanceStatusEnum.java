@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import java.util.function.Function;
-
 public enum InstanceStatusEnum {
 
     /**
@@ -40,7 +38,7 @@ public enum InstanceStatusEnum {
 
     private final String name;
 
-    InstanceStatusEnum(int code, String name) {
+    InstanceStatusEnum(final int code, final String name) {
         this.code = code;
         this.name = name;
     }
@@ -53,7 +51,7 @@ public enum InstanceStatusEnum {
         return name;
     }
 
-    public static String getNameByCode(int code) {
+    public static String getNameByCode(final int code) {
         for (InstanceStatusEnum status : values()) {
             if (status.getCode() == code) {
                 return status.getName();

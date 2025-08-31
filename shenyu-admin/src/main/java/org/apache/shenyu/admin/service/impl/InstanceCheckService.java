@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
 @Component
 public class InstanceCheckService {
 
+    private static final int MAX_HISTORY_SIZE = 20;
+
     private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckService.class);
 
     private ScheduledThreadPoolExecutor executor;
@@ -66,8 +68,6 @@ public class InstanceCheckService {
     private InstanceInfoService instanceInfoService;
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
-
-    private static final int MAX_HISTORY_SIZE = 20;
 
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
@@ -209,7 +209,7 @@ public class InstanceCheckService {
         }
     }
 
-    public InstanceDataVisualVO getInstanceDataVisual(String namespaceId) {
+    public InstanceDataVisualVO getInstanceDataVisual(final String namespaceId) {
         InstanceDataVisualVO instanceDataVisualVO = new InstanceDataVisualVO();
         List<InstanceInfoVO> instanceInfoVOS = instanceHealthBeatInfo.values().stream().toList();
         if (StringUtils.isNotBlank(namespaceId)) {
@@ -232,7 +232,7 @@ public class InstanceCheckService {
         List<InstanceDataVisualVO.Entry> pieDataList = pieData.entrySet().stream()
                 .map(entry -> {
                     Integer stateCode = entry.getKey();
-                    String stateName = InstanceStatusEnum.getNameByCode(stateCode); // 需要添加这个方法
+                    String stateName = InstanceStatusEnum.getNameByCode(stateCode);
                     return new InstanceDataVisualVO.Entry(stateName, entry.getValue());
                 })
                 .collect(Collectors.toList());
@@ -241,7 +241,7 @@ public class InstanceCheckService {
         return instanceDataVisualVO;
     }
 
-    private void updateStateHistory(Map<Integer, Long> currentData) {
+    private void updateStateHistory(final Map<Integer, Long> currentData) {
         ensureStateQueues();
         for (Integer state : Arrays.asList(0, 1, 2)) {
             Long count = currentData.getOrDefault(state, 0L);

@@ -21,17 +21,17 @@ import java.util.List;
 
 public class InstanceDataVisualLineVO {
 
+    private String name;
+
+    private List<Long> data;
+
     public InstanceDataVisualLineVO() {
     }
 
-    public InstanceDataVisualLineVO(String name, List<Long> data) {
+    public InstanceDataVisualLineVO(final String name, final List<Long> data) {
         this.name = name;
         this.data = data;
     }
-
-    private String name;
-    private List<Long> data;
-
 
     /**
      * Gets the value of name.
@@ -47,7 +47,7 @@ public class InstanceDataVisualLineVO {
      *
      * @param name name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -65,7 +65,7 @@ public class InstanceDataVisualLineVO {
      *
      * @param data data
      */
-    public void setData(List<Long> data) {
+    public void setData(final List<Long> data) {
         this.data = data;
     }
 
