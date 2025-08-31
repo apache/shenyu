@@ -15,58 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.vo;
+package org.apache.shenyu.common.enums;
 
-import java.util.List;
+import java.util.function.Function;
 
-public class InstanceDataVisualLineVO {
-
-    public InstanceDataVisualLineVO() {
-    }
-
-    public InstanceDataVisualLineVO(String name, List<Long> data) {
-        this.name = name;
-        this.data = data;
-    }
-
-    private String name;
-    private List<Long> data;
-
+public enum InstanceStatusEnum {
 
     /**
-     * Gets the value of name.
-     *
-     * @return the value of name
+     * OFFLINE.
      */
+    OFFLINE(2, "OFFLINE"),
+
+    /**
+     * ONLINE.
+     */
+    ONLINE(1, "ONLINE"),
+
+    /**
+     * DELETED.
+     */
+    DELETED(0, "DELETED");
+
+    private final int code;
+
+    private final String name;
+
+    InstanceStatusEnum(int code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
     public String getName() {
         return name;
     }
 
-    /**
-     * set name.
-     *
-     * @param name name
-     */
-    public void setName(String name) {
-        this.name = name;
+    public static String getNameByCode(int code) {
+        for (InstanceStatusEnum status : values()) {
+            if (status.getCode() == code) {
+                return status.getName();
+            }
+        }
+        return "UNKNOWN";
     }
-
-    /**
-     * Gets the value of data.
-     *
-     * @return the value of data
-     */
-    public List<Long> getData() {
-        return data;
-    }
-
-    /**
-     * set data.
-     *
-     * @param data data
-     */
-    public void setData(List<Long> data) {
-        this.data = data;
-    }
-
 }

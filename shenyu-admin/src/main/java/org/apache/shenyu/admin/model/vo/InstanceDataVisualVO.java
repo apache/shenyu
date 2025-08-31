@@ -1,25 +1,107 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.model.vo;
 
+
 import java.util.List;
-import java.util.Map;
 
 public class InstanceDataVisualVO {
-    Map<Integer, Long> pieData;
-    List<InstanceDataVisualLineVO> lineList;
+    List<Entry> pieData;
+    List<InstanceDataVisualLineVO> lineData;
 
-    public Map<Integer, Long> getPieData() {
+    /**
+     * Gets the value of pieData.
+     *
+     * @return the value of pieData
+     */
+    public List<Entry> getPieData() {
         return pieData;
     }
 
-    public void setPieData(Map<Integer, Long> pieData) {
+    /**
+     * set pieData.
+     *
+     * @param pieData pieData
+     */
+    public void setPieData(List<Entry> pieData) {
         this.pieData = pieData;
     }
 
-    public List<InstanceDataVisualLineVO> getLineList() {
-        return lineList;
+    /**
+     * Gets the value of lineData.
+     *
+     * @return the value of lineData
+     */
+    public List<InstanceDataVisualLineVO> getLineData() {
+        return lineData;
     }
 
-    public void setLineList(List<InstanceDataVisualLineVO> lineList) {
-        this.lineList = lineList;
+    /**
+     * set lineData.
+     *
+     * @param lineData lineData
+     */
+    public void setLineData(List<InstanceDataVisualLineVO> lineData) {
+        this.lineData = lineData;
+    }
+    public static class Entry {
+        private String name;
+        private Long value;
+
+        public Entry(String name, Long value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        /**
+         * Gets the value of name.
+         *
+         * @return the value of name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * set name.
+         *
+         * @param name name
+         */
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        /**
+         * Gets the value .
+         *
+         * @return the value
+         */
+        public Long getValue() {
+            return value;
+        }
+
+        /**
+         * set value.
+         *
+         * @param value value
+         */
+        public void setValue(Long value) {
+            this.value = value;
+        }
     }
 }

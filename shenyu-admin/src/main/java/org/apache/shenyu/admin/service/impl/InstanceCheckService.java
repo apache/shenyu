@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -145,21 +145,21 @@ public class InstanceCheckService {
     private void doCheck() {
         instanceHealthBeatInfo.values().forEach(instance -> {
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
-                if (1 == instance.getInstanceState()) {
+                if (InstanceStatusEnum.ONLINE.getCode() == instance.getInstanceState()) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
-                    instance.setInstanceState(2);
+                    instance.setInstanceState(InstanceStatusEnum.OFFLINE.getCode());
                 }
             } else {
                 LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} online!",
                         instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
-                instance.setInstanceState(1);
+                instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             }
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
-                if (2 == instance.getInstanceState()) {
+                if (InstanceStatusEnum.OFFLINE.getCode() == instance.getInstanceState()) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
-                    instance.setInstanceState(0);
+                    instance.setInstanceState(InstanceStatusEnum.DELETED.getCode());
                 }
             }
             collectStateData();
@@ -218,22 +218,28 @@ public class InstanceCheckService {
         Map<Integer, Long> pieData = instanceInfoVOS.stream().collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
         List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
         for (Integer state : Arrays.asList(0, 1, 2)) {
-            Deque<Long> queue = stateHistoryMap.get(state);
+            Deque<Long> queue = stateHistoryMap.getOrDefault(state, new ArrayDeque<>(MAX_HISTORY_SIZE));
             List<Long> data = new ArrayList<>(queue);
             while (data.size() < MAX_HISTORY_SIZE) {
                 data.add(0, 0L);
             }
             InstanceDataVisualLineVO dto = new InstanceDataVisualLineVO(
-                    state + "",
+                    InstanceStatusEnum.getNameByCode(state),
                     data
             );
             lineList.add(dto);
         }
-        instanceDataVisualVO.setPieData(pieData);
-        instanceDataVisualVO.setLineList(lineList);
+        List<InstanceDataVisualVO.Entry> pieDataList = pieData.entrySet().stream()
+                .map(entry -> {
+                    Integer stateCode = entry.getKey();
+                    String stateName = InstanceStatusEnum.getNameByCode(stateCode); // 需要添加这个方法
+                    return new InstanceDataVisualVO.Entry(stateName, entry.getValue());
+                })
+                .collect(Collectors.toList());
+        instanceDataVisualVO.setPieData(pieDataList);
+        instanceDataVisualVO.setLineData(lineList);
         return instanceDataVisualVO;
     }
-
 
     private void updateStateHistory(Map<Integer, Long> currentData) {
         ensureStateQueues();
@@ -247,9 +253,6 @@ public class InstanceCheckService {
         }
     }
 
-    /**
-     * 确保所有状态都有对应的数据队列
-     */
     private void ensureStateQueues() {
         for (Integer state : Arrays.asList(0, 1, 2)) {
             stateHistoryMap.putIfAbsent(state, new ConcurrentLinkedDeque<>());
