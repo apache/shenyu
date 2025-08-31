@@ -1,0 +1,1550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>shenyu-bom</artifactId>
+    <packaging>pom</packaging>
+    <version>${revision}</version>
+    <name>Apache Shenyu Bom</name>
+    <description>Apache Shenyu Bom</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>false</skipTests>
+
+        <!-- maven plugin version start -->
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+        <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
+        <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
+        <apache-rat-plugin.version>0.15</apache-rat-plugin.version>
+        <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
+        <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
+        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+        <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
+        <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
+        <!-- maven plugin version end -->
+
+        <!-- dependency version start -->
+        <jasypt.version>1.9.2</jasypt.version>
+        <mybatis.starter.version>3.0.3</mybatis.starter.version>
+        <mysql.version>8.3.0</mysql.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <guava.version>32.0.0-jre</guava.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <disruptor.version>3.4.0</disruptor.version>
+        <consul.api.version>1.4.5</consul.api.version>
+        <consul.version>2.2.6.RELEASE</consul.version>
+        <hessian.version>4.0.38</hessian.version>
+        <protostuff.version>1.0.8</protostuff.version>
+        <kryo.version>4.0.0</kryo.version>
+        <pagehelper.version>5.3.3</pagehelper.version>
+        <apache.dubbo.version>3.2.14</apache.dubbo.version>
+        <gson.version>2.9.0</gson.version>
+        <okhttp.version>4.9.3</okhttp.version>
+        <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
+        <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <sofa.rpc.version>5.13.0</sofa.rpc.version>
+        <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
+        <tars.version>1.7.2</tars.version>
+        <curator.version>5.7.0</curator.version>
+        <wiremock.version>3.0.1</wiremock.version>
+        <zookeeper.version>3.9.3</zookeeper.version>
+        <zkclient.version>0.10</zkclient.version>
+        <shiro.version>1.13.0</shiro.version>
+        <jwt.version>3.12.0</jwt.version>
+        <motan.version>1.2.1</motan.version>
+        <aspectjweaver.version>1.9.6</aspectjweaver.version>
+        <h2.version>1.4.200</h2.version>
+        <jetcd-core.version>0.7.3</jetcd-core.version>
+        <java-websocket.version>1.5.0</java-websocket.version>
+        <mockito.version>5.11.0</mockito.version>
+        <awaitility.version>4.0.3</awaitility.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <nacos-client.version>2.2.4</nacos-client.version>
+        <spring-security.version>6.3.0</spring-security.version>
+        <grpc.version>1.65.1</grpc.version>
+        <rocketmq-client.version>4.9.3</rocketmq-client.version>
+        <pulsar-client.version>2.10.1</pulsar-client.version>
+        <lz4-java.version>1.8.0</lz4-java.version>
+        <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
+        <jackson-databind.version>2.15.3</jackson-databind.version>
+        <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
+        <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
+        <kafka-clients.version>3.9.1</kafka-clients.version>
+        <amqp-client.version>5.16.0</amqp-client.version>
+        <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
+        <eureka.version>2.0.2</eureka.version>
+        <javatuples.version>1.2</javatuples.version>
+        <k8s-client.version>17.0.2</k8s-client.version>
+        <polaris.version>1.13.0</polaris.version>
+        <bytebuddy.version>1.14.11</bytebuddy.version>
+        <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
+        <jaxb.api.version>2.3.1</jaxb.api.version>
+        <mail-api.version>2.1.3</mail-api.version>
+        <mail.version>2.0.1</mail.version>
+        <ojdbc8.version>19.3.0.0</ojdbc8.version>
+        <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
+        <spring-cloud.version>4.1.2</spring-cloud.version>
+        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
+        <caffeine.version>2.9.3</caffeine.version>
+        <httpasyncclient.version>4.1.5</httpasyncclient.version>
+        <asm.version>9.2</asm.version>
+        <apollo.version>2.1.0</apollo.version>
+        <resilience.version>1.7.1</resilience.version>
+        <sentinel.version>1.8.3</sentinel.version>
+        <lettuce.version>6.1.2.RELEASE</lettuce.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
+        <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
+        <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
+        <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
+        <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
+        <wasmtime-java.version>0.19.0</wasmtime-java.version>
+        <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
+        <oceanbase.version>2.4.12</oceanbase.version>
+        <!-- dependency version end -->
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- Apache Shenyu Depend pom dependencies -->
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${bytebuddy.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.weibo</groupId>
+                <artifactId>motan-core</artifactId>
+                <version>${motan.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.weibo</groupId>
+                <artifactId>motan-transport-netty4</artifactId>
+                <version>${motan.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.weibo</groupId>
+                <artifactId>motan-registry-zookeeper</artifactId>
+                <version>${motan.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.weibo</groupId>
+                <artifactId>motan-springsupport</artifactId>
+                <version>${motan.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient</artifactId>
+                <version>${prometheus-java-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_httpserver</artifactId>
+                <version>${prometheus-java-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_hotspot</artifactId>
+                <version>${prometheus-java-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.prometheus.jmx</groupId>
+                <artifactId>collector</artifactId>
+                <version>${prometheus-jmx.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${apache.dubbo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alipay.sofa</groupId>
+                <artifactId>sofa-rpc-all</artifactId>
+                <version>${sofa.rpc.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>net.jcip</groupId>
+                        <artifactId>jcip-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-api</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty-shaded</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.lmax</groupId>
+                <artifactId>disruptor</artifactId>
+                <version>${disruptor.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis.starter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons-collections4.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>${hessian.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.esotericsoftware</groupId>
+                <artifactId>kryo-shaded</artifactId>
+                <version>${kryo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${protostuff.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${protostuff.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>log4j</artifactId>
+                        <groupId>log4j</groupId>
+                    </exclusion>
+                </exclusions>
+                <version>${zookeeper.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-openapi</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tencent.polaris</groupId>
+                <artifactId>polaris-all</artifactId>
+                <version>${polaris.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper</artifactId>
+                <version>${pagehelper.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tencent.tars</groupId>
+                <artifactId>tars-spring-boot-starter</artifactId>
+                <version>${tars.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.mail</groupId>
+                <artifactId>jakarta.mail-api</artifactId>
+                <version>${mail-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>jakarta.mail</artifactId>
+                <version>${mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-test</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>${ojdbc8.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-commons</artifactId>
+                <version>${spring-cloud-commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>${spring-cloud.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter</artifactId>
+                <version>${spring-cloud.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch-rest-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.json</groupId>
+                <artifactId>jakarta.json-api</artifactId>
+                <version>${jakarta.json-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.etcd</groupId>
+                <artifactId>jetcd-core</artifactId>
+                <version>${jetcd-core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>grpc-protobuf</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-stub</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.grpc</groupId>
+                        <artifactId>grpc-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>grpc-netty</artifactId>
+                        <groupId>io.grpc</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-protobuf</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-stub</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-netty</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>grpc-okhttp</artifactId>
+                <groupId>io.grpc</groupId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.netflix.eureka</groupId>
+                <artifactId>eureka-client</artifactId>
+                <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.kubernetes</groupId>
+                <artifactId>client-java-spring-integration</artifactId>
+                <version>${k8s-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.kawamuray.wasmtime</groupId>
+                <artifactId>wasmtime-java</artifactId>
+                <version>${wasmtime-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oceanbase</groupId>
+                <artifactId>oceanbase-client</artifactId>
+                <version>${oceanbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- Apache Shenyu Owner -->
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sdk-feign</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sdk-httpclient</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sdk-okhttp</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sdk-spring</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-protocol-grpc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-protocol-tcp</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-protocol-mqtt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-ai-prompt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-ai-proxy</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-ai-request-transformer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-ai-response-transformer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-ai-token-limiter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ai-token-limiter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-cache</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-context-path</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-global</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-httpclient</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-logging</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-mcp-server</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-metrics</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-mock</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-modify-response</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-param-mapping</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-proxy</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-redirect</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-request</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-response</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-rewrite</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-security</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-uri</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-waf</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-wasm-base</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-plugin-wasm-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-loadbalancer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-kubernetes-controller</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-infra-x-module</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-infra-etcd</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-infra-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-infra-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-infra-zookeeper</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-disruptor</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-dubbo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-grpc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-http</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-motan</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-sofa</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-tars</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-client-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-apollo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-consul</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-etcd</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-polaris</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-admin-listener-zookeeper</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-apollo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-consul</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-etcd</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-http</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-polaris</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-sync-data-zookeeper</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-web</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- Apache Shenyu Owner Starts -->
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-apache-dubbo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-grpc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-motan</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-sofa</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-spring-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-springmvc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-client-tars</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-gateway</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-k8s</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-registry</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sdk-feign</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-apollo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-http</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-polaris</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ai-prompt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ai-proxy</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ai-request-transformer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ai-response-transformer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-cache</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-casdoor</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-context-path</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-cryptor</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-dubbo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-general-context</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-global</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-grpc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-key-auth</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-clickhouse</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-console</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-kafka</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-rabbitmq</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-rocketmq</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-logging-tencent-cls</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-mcp-server</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-metrics</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-modify-response</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-mqtt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-oauth2</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-param-mapping</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-ratelimiter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-redirect</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-resilience4j</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-response</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-rewrite</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-sentinel</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-sign</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-tcp</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-transform</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-uri</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-waf</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-spring-boot-starter-plugin-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <sourcepath>src/main/java</sourcepath>
+                    <detectJavaApiLink>false</detectJavaApiLink>
+                    <detectOfflineLinks>false</detectOfflineLinks>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <configLocation>/script/shenyu_checkstyle.xml</configLocation>
+                    <headerLocation>/script/checkstyle-header.txt</headerLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <excludes>**/transfer/**/*</excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <version>${apache-rat-plugin.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/target/**</exclude>
+                        <exclude>**/logs/**</exclude>
+                        <exclude>**/*.log</exclude>
+                        <exclude>**/*.tar.gz</exclude>
+                        <exclude>**/spring.factories</exclude>
+                        <exclude>**/spring.provides</exclude>
+                        <exclude>/script/**</exclude>
+                        <exclude>**/*.json</exclude>
+                        <!-- IDE files -->
+                        <exclude>**/*.iml</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>**/*.classpath</exclude>
+                        <exclude>**/.project</exclude>
+                        <exclude>**/.settings/**</exclude>
+                        <exclude>**/dependency-reduced-pom.xml</exclude>
+                        <!-- git files -->
+                        <exclude>**/.gitignore</exclude>
+                        <exclude>**/.gitmodules</exclude>
+                        <exclude>**/.git/**</exclude>
+                        <!-- CI files -->
+                        <exclude>**/.travis.yml</exclude>
+                        <exclude>**/.codecov.yml</exclude>
+                        <exclude>**/.mvn/jvm.config</exclude>
+                        <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>
+                        <!-- GitHub files -->
+                        <exclude>**/.github/**</exclude>
+                        <!-- Gitpod files -->
+                        <exclude>**/.gitpod.Dockerfile</exclude>
+                        <exclude>**/.gitpod.yml</exclude>
+                        <!-- document files -->
+                        <exclude>**/*.md</exclude>
+                        <excldue>**/*.MD</excldue>
+                        <exclude>**/*.txt</exclude>
+                        <exclude>**/docs/**</exclude>
+                        <!-- UI files -->
+                        <exclude>**/.babelrc</exclude>
+                        <exclude>**/.editorconfig</exclude>
+                        <exclude>**/.eslintignore</exclude>
+                        <exclude>**/assets/**</exclude>
+                        <exclude>**/dist/**</exclude>
+                        <exclude>**/etc/**</exclude>
+                        <exclude>**/node/**</exclude>
+                        <exclude>**/node_modules/**</exclude>
+                        <exclude>**/test/coverage/**</exclude>
+                        <exclude>**/resources/static/</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
