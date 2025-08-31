@@ -83,7 +83,7 @@
     </issueManagement>
 
     <properties>
-        <revision>2.7.0.2-SNAPSHOT</revision>
+        <revision>2.7.0.3-SNAPSHOT</revision>
 
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
