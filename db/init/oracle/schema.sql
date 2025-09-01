@@ -200,7 +200,7 @@ create table rule
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
     sort          NUMBER(10) not null,
-    handle        VARCHAR2(1024),
+    handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
 );
@@ -3625,3 +3625,46 @@ INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VA
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', sysdate, sysdate);
+
+CREATE TABLE "public"."registry_config"  (
+    id            varchar2(128) NOT NULL,
+    registry_id   varchar2(50)  NOT NULL,
+    protocol      varchar2(128) NOT NULL,
+    address       varchar2(512) NOT NULL,
+    username      varchar2(50),
+    password      varchar2(100),
+    namespace     varchar2(100),
+    group         varchar2(20),
+    date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT registry_config_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE registry_config IS 'registry config information table';
+COMMENT ON COLUMN registry_config.id IS 'primary key';
+COMMENT ON COLUMN registry_config.registry_id IS 'registry_id';
+COMMENT ON COLUMN registry_config.protocol IS 'protocol';
+COMMENT ON COLUMN registry_config.address IS 'address';
+COMMENT ON COLUMN registry_config.username IS 'username';
+COMMENT ON COLUMN registry_config.password IS 'password';
+COMMENT ON COLUMN registry_config.namespace IS 'namespace';
+COMMENT ON COLUMN registry_config.group IS 'group';
+COMMENT ON COLUMN registry_config.date_created IS 'create time';
+COMMENT ON COLUMN registry_config.date_updated IS 'update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116900', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.REGISTRY', 'registry', '/config/registry', 'registry', 1, 7, 'ordered-list', 0, 0, '', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116901', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:registry:add', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116902', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:registry:list', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116903', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:registry:delete', 1,'2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116904', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 3, '', 1, 0, 'system:registry:edit', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303901', '1346358560427216896', '1953048313980116900', sysdate, sysdate);
+INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303902', '1346358560427216896', '1953048313980116901', sysdate, sysdate);
+INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', sysdate, sysdate);
+INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', sysdate, sysdate);
+INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', sysdate, sysdate);
