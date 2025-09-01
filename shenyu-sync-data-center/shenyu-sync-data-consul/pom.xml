@@ -20,27 +20,22 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-sync-data-center</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sync-data-consul</artifactId>
-
-    <properties>
-        <consul.version>2.2.6.RELEASE</consul.version>
-    </properties>
 
     <dependencies>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-sync-data-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
-            <version>${consul.api.version}</version>
         </dependency>
     </dependencies>
 

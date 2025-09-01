@@ -21,7 +21,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-admin-listener</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>shenyu-admin-listener-consul</artifactId>
@@ -30,13 +31,11 @@
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
-            <version>${consul.api.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -45,4 +44,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
 </project>

@@ -20,7 +20,8 @@
     <parent>
         <artifactId>shenyu-registry</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-registry-consul</artifactId>
@@ -29,12 +30,10 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
-            <version>${consul.api.version}</version>
         </dependency>
     </dependencies>
 </project>

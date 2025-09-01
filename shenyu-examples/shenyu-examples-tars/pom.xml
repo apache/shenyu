@@ -22,7 +22,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-tars</artifactId>
@@ -41,13 +42,11 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-examples-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-tars</artifactId>
-            <version>${project.version}</version>
 <!--            <exclusions>-->
 <!--                <exclusion>-->
 <!--                    <artifactId>guava</artifactId>-->
@@ -66,7 +65,6 @@
         <dependency>
             <groupId>com.tencent.tars</groupId>
             <artifactId>tars-spring-boot-starter</artifactId>
-            <version>1.7.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>

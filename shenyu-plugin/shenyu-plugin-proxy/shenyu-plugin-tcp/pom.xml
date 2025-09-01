@@ -21,7 +21,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin-proxy</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>shenyu-plugin-tcp</artifactId>
@@ -30,8 +31,7 @@
         <dependency>
             <artifactId>shenyu-protocol-tcp</artifactId>
             <groupId>org.apache.shenyu</groupId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
     </dependencies>
 

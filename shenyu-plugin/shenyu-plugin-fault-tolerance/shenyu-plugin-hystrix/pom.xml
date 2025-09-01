@@ -20,33 +20,29 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin-fault-tolerance</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-hystrix</artifactId>
-
-    <properties>
-        <hystrix-core.version>1.5.18</hystrix-core.version>
-        <hystrix-metrics-event-stream.version>1.5.18</hystrix-metrics-event-stream.version>
-        <rxjava-reactive-streams.version>1.2.1</rxjava-reactive-streams.version>
-    </properties>
 
     <dependencies>
 
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-core</artifactId>
-            <version>${hystrix-core.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-metrics-event-stream</artifactId>
-            <version>${hystrix-metrics-event-stream.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-reactive-streams</artifactId>
-            <version>${rxjava-reactive-streams.version}</version>
         </dependency>
+
     </dependencies>
+
 </project>

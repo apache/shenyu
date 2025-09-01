@@ -22,7 +22,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-integrated-test</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>shenyu-integrated-test-k8s-ingress-motan</artifactId>
@@ -33,8 +34,7 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>com.weibo</groupId>
@@ -64,39 +64,33 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-global</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-uri</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-general-context</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <!-- shenyu kubernetes controller begin -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-k8s</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
         <!-- shenyu kubernetes controller end -->
     </dependencies>
 

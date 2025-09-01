@@ -21,7 +21,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-admin-listener</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>shenyu-admin-listener-nacos</artifactId>
@@ -30,7 +31,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -42,7 +42,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-infra-nacos</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

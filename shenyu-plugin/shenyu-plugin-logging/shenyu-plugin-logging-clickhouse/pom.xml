@@ -20,7 +20,8 @@
     <parent>
         <artifactId>shenyu-plugin-logging</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-logging-clickhouse</artifactId>
@@ -29,14 +30,12 @@
         <dependency>
             <groupId>com.clickhouse</groupId>
             <artifactId>clickhouse-http-client</artifactId>
-            <version>${clickhouse-http-client.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-logging-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
     </dependencies>
 

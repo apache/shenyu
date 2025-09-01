@@ -20,7 +20,8 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin-logging</artifactId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-logging-tencent-cls</artifactId>
@@ -29,13 +30,11 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-logging-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>com.tencentcloudapi.cls</groupId>
             <artifactId>tencentcloud-cls-sdk-java</artifactId>
-            <version>${tencent-log-sdk.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

@@ -20,6 +20,7 @@
         <groupId>org.apache</groupId>
         <artifactId>apache</artifactId>
         <version>21</version>
+        <relativePath/>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.shenyu</groupId>
@@ -31,10 +32,11 @@
     <modules>
         <module>shenyu-admin</module>
         <module>shenyu-admin-listener</module>
+        <module>shenyu-bom</module>
+        <module>shenyu-bootstrap</module>
         <module>shenyu-common</module>
         <module>shenyu-web</module>
         <module>shenyu-spring-boot-starter</module>
-        <module>shenyu-bootstrap</module>
         <module>shenyu-client</module>
         <module>shenyu-plugin</module>
         <module>shenyu-sync-data-center</module>
@@ -50,7 +52,6 @@
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
         <module>shenyu-infra/shenyu-infra-common</module>
-        <module>shenyu-bom</module>
     </modules>
 
     <licenses>
@@ -111,6 +112,8 @@
         <!-- maven plugin version end -->
 
         <spring-boot.version>3.3.1</spring-boot.version>
+        <spring-cloud.version>2023.0.2</spring-cloud.version>
+
         <spring-ai.version>1.0.0</spring-ai.version>
         <mcp.version>0.10.0</mcp.version>
 
@@ -123,6 +126,22 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-bom</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

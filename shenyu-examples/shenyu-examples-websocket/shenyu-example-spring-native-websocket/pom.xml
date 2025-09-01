@@ -21,7 +21,8 @@
     <parent>
         <artifactId>shenyu-examples-websocket</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.7.0.3-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-example-spring-native-websocket</artifactId>
@@ -31,14 +32,12 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-spring-websocket</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-springmvc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
