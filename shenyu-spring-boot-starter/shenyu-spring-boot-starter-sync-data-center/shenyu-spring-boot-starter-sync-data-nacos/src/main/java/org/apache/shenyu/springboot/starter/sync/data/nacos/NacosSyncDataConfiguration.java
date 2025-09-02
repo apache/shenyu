@@ -117,6 +117,7 @@ public class NacosSyncDataConfiguration {
     /**
      * nacos config.
      *
+     * @param nacosProperties the nacos properties
      * @return the nacos config
      */
     @Bean
