@@ -115,7 +115,8 @@
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
             <classifier>jakarta</classifier>
-            <!-- 排除仍使用了jakarta.servlet的依赖 -->
+            <version>${shiro.version}</version>
+            <!-- Exclude the dependency of jakarta.servlet that is still used -->
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.shiro</groupId>
