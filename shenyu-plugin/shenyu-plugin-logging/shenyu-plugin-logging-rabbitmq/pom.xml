@@ -33,12 +33,10 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>${amqp-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lz4</groupId>
             <artifactId>lz4-java</artifactId>
-            <version>${lz4-java.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
@@ -46,4 +44,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
 </project>

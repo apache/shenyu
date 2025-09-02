@@ -25,10 +25,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-client-sofa</artifactId>
-
-    <properties>
-        <runtime-sofa-boot-starter.version>4.3.0</runtime-sofa-boot-starter.version>
-    </properties>
     
     <dependencies>
         <dependency>
@@ -45,4 +41,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
 </project>

@@ -39,8 +39,9 @@
         </dependency>
 
         <dependency>
-            <artifactId>grpc-api</artifactId>
             <groupId>io.grpc</groupId>
+            <artifactId>grpc-api</artifactId>
         </dependency>
     </dependencies>
+
 </project>

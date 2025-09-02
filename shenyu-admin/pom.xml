@@ -26,10 +26,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-admin</artifactId>
 
-    <properties>
-        <orai18n.version>19.7.0.0</orai18n.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -208,7 +204,6 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
-        
         
         <dependency>
             <groupId>com.h2database</groupId>
