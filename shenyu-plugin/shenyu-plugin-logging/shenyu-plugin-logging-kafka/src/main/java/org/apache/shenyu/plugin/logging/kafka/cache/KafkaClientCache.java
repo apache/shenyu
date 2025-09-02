@@ -41,7 +41,7 @@ public class KafkaClientCache {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
 
-    public void initRabbitmqClient(final String selectorId, final KafkaLogCollectConfig.LogApiConfig kafkaUpstream) {
+    public void initKafkaClient(final String selectorId, final KafkaLogCollectConfig.LogApiConfig kafkaUpstream) {
         KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = Singleton.INST.get(KafkaLogCollectConfig.KafkaLogConfig.class);
         if (Objects.nonNull(kafkaUpstream) && Objects.nonNull(kafkaUpstream.getBootstrapServer())) {
             globalLogConfig = copyConfig(kafkaUpstream);

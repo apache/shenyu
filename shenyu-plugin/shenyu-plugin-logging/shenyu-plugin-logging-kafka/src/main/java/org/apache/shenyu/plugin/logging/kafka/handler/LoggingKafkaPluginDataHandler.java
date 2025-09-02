@@ -107,7 +107,7 @@ public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<
             return;
         }
         KafkaClientCache.getInstance().invalidate(selectorData.getId());
-        KafkaClientCache.getInstance().initRabbitmqClient(selectorData.getId(), nConfig);
+        KafkaClientCache.getInstance().initKafkaClient(selectorData.getId(), nConfig);
         MULTI_CLIENT.set(true);
         if (StringUtils.isNotEmpty(nConfig.getSampleRate())) {
             nConfig.setSampler(LogCollectConfigUtils.setSampler(nConfig.getSampleRate()));
