@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -365,7 +366,7 @@ public class ShenyuMcpServerManager {
      * @param requestTemplate the request template
      * @param inputSchema     the input schema
      */
-    public void addTool(final String serverPath, final String name, final String description,
+    public synchronized void addTool(final String serverPath, final String name, final String description,
                         final String requestTemplate, final String inputSchema) {
         String normalizedPath = normalizeServerPath(serverPath);
 
@@ -392,14 +393,20 @@ public class ShenyuMcpServerManager {
         if (Objects.nonNull(sharedServer)) {
             try {
                 for (AsyncToolSpecification asyncToolSpecification : McpToolUtils.toAsyncToolSpecifications(shenyuToolCallback)) {
-                    sharedServer.addTool(asyncToolSpecification).block();
+                    // Use non-blocking approach with timeout to prevent hanging
+                    sharedServer.addTool(asyncToolSpecification)
+                            .timeout(Duration.ofSeconds(10))
+                            .doOnSuccess(v -> LOG.debug("Successfully added tool '{}' to server for path: {}", name, normalizedPath))
+                            .doOnError(e -> LOG.error("Failed to add tool '{}' to server for path: {}: {}", name, normalizedPath, e.getMessage()))
+                            .block();
                 }
 
                 Set<String> protocols = getSupportedProtocols(normalizedPath);
                 LOG.info("Added tool '{}' to shared server for path: {} (available across protocols: {})",
                         name, normalizedPath, protocols);
             } catch (Exception e) {
-                LOG.error("Failed to add tool '{}' to shared server for path: {}", name, normalizedPath, e);
+                LOG.error("Failed to add tool '{}' to shared server for path: {}:", name, normalizedPath, e);
+                // Don't throw exception to prevent affecting other tools
             }
         } else {
             LOG.warn("No shared server found for path: {}", normalizedPath);
