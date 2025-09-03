@@ -1,0 +1,11 @@
+# Test configuration for MCP Server Plugin
+logging:
+  level:
+    org.apache.shenyu.plugin.mcp.server: DEBUG
+    reactor: WARN
+    io.netty: WARN
+
+# Disable banner for cleaner test output
+spring:
+  main:
+    banner-mode: "off"
