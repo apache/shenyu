@@ -37,9 +37,9 @@ public class HeartbeatListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(HeartbeatListener.class);
 
-    private static final int INITIAL_DELAY=0;
+    private static final int INITIAL_DELAY = 0;
 
-    private static final int CHECK_PERIOD=5;
+    private static final int CHECK_PERIOD = 5;
 
     private ScheduledThreadPoolExecutor executor;
 
