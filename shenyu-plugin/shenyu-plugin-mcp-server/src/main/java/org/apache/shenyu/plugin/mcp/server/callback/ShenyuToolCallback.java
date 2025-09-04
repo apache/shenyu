@@ -72,8 +72,9 @@ public class ShenyuToolCallback implements ToolCallback {
 
     /**
      * Default timeout for tool execution in seconds.
+     * Increased to handle multiple concurrent tool executions.
      */
-    private static final int DEFAULT_TIMEOUT_SECONDS = 30;
+    private static final int DEFAULT_TIMEOUT_SECONDS = 60;
 
     /**
      * MCP tool call attribute marker to prevent infinite loops.
@@ -219,12 +220,16 @@ public class ShenyuToolCallback implements ToolCallback {
                 .doOnSubscribe(s -> LOG.debug("Plugin chain subscribed for session: {}", sessionId))
                 .doOnError(e -> {
                     LOG.error("Plugin chain execution failed for session {}: {}", sessionId, e.getMessage(), e);
-                    responseFuture.completeExceptionally(e);
+                    if (!responseFuture.isDone()) {
+                        responseFuture.completeExceptionally(e);
+                    }
                 })
                 .doOnSuccess(v -> LOG.debug("Plugin chain completed successfully for session: {}", sessionId))
                 .doOnCancel(() -> {
                     LOG.warn("Plugin chain execution cancelled for session: {}", sessionId);
-                    responseFuture.completeExceptionally(new RuntimeException("Execution was cancelled"));
+                    if (!responseFuture.isDone()) {
+                        responseFuture.completeExceptionally(new RuntimeException("Execution was cancelled"));
+                    }
                 })
                 .doFinally(signalType -> {
                     // Clean up temporary sessions after execution
