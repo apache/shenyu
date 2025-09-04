@@ -567,3 +567,10 @@ INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VA
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', sysdate, sysdate);
+
+-- update rule.handle field type from varchar2 to clob
+ALTER TABLE rule ADD (handle_new CLOB);
+UPDATE rule SET handle_new = handle;
+COMMIT;
+ALTER TABLE rule DROP COLUMN handle;
+ALTER TABLE rule RENAME COLUMN handle_new TO handle;
