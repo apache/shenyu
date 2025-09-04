@@ -37,6 +37,10 @@ public class HeartbeatListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(HeartbeatListener.class);
 
+    private static final int INITIAL_DELAY=0;
+
+    private static final int CHECK_PERIOD=5;
+
     private ScheduledThreadPoolExecutor executor;
 
     private final ShenyuClientRegisterRepository httpClientRegisterRepository;
@@ -57,7 +61,7 @@ public class HeartbeatListener {
             instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
             instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
             httpClientRegisterRepository.sendHeartbeat(instanceBeatInfoDTO);
-            }, 0, 5, TimeUnit.SECONDS
+            }, INITIAL_DELAY, CHECK_PERIOD, TimeUnit.SECONDS
         );
     }
 

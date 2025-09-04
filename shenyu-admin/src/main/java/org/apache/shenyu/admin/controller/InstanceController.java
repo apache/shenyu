@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,9 +60,9 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      * @param instanceType instance type.
      * @param instanceIp   instance ip.
      * @param instancePort instance port.
-     * @param namespaceId namespace id.
-     * @param currentPage current page.
-     * @param pageSize    page size.
+     * @param namespaceId  namespace id.
+     * @param currentPage  current page.
+     * @param pageSize     page size.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping
@@ -72,21 +73,23 @@ public class InstanceController implements PagedController<InstanceQueryConditio
                                           @NotNull @RequestParam(name = "currentPage") final Integer currentPage,
                                           @NotNull @RequestParam(name = "pageSize") final Integer pageSize) {
         CommonPager<InstanceInfoVO> commonPager = instanceInfoService.listByPage(
-            new InstanceQuery(
-                new PageParameter(currentPage, pageSize),
-                    instanceType,
-                    instanceIp,
-                    instancePort,
-                    namespaceId
-            )
+                new InstanceQuery(
+                        new PageParameter(currentPage, pageSize),
+                        instanceType,
+                        instanceIp,
+                        instancePort,
+                        namespaceId
+                )
         );
-        commonPager.getDataList().forEach(instanceInfoVO -> {
-            String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
-            InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
-            instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
-            instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
-            instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
-        });
+        if (!CollectionUtils.isEmpty(commonPager.getDataList())) {
+            commonPager.getDataList().forEach(instanceInfoVO -> {
+                String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
+                InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+                instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+                instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+                instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+            });
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -111,7 +114,6 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      */
     @PostMapping("/beat")
     public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
-        //todo:admin集群模式下，请求转发给master节点
         instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
         return ShenyuResultMessage.SUCCESS;
     }
@@ -126,9 +128,6 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     public ShenyuAdminResult getInstanceDataVisual(@PathVariable("namespaceId") final String namespaceId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, instanceCheckService.getInstanceDataVisual(namespaceId));
     }
-
-
-
 
 
     @Override
