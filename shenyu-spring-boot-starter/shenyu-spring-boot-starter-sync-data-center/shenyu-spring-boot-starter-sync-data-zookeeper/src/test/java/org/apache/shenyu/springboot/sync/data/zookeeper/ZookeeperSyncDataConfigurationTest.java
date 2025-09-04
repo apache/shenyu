@@ -17,13 +17,10 @@
 
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
