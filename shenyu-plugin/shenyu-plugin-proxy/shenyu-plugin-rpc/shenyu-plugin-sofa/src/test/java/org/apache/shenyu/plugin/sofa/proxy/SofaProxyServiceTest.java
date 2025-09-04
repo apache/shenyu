@@ -27,6 +27,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -57,19 +58,19 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public final class SofaProxyServiceTest {
-    
+
     private static final String PATH = "/sofa/findAll";
-    
+
     private static final String METHOD_NAME = "findAll";
-    
+
     private static final String[] LEFT = new String[]{};
-    
+
     private static final Object[] RIGHT = new Object[]{};
-    
+
     private MetaData metaData;
-    
+
     private ServerWebExchange exchange;
-    
+
     @BeforeEach
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -82,12 +83,12 @@ public final class SofaProxyServiceTest {
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
         metaData.setRpcExt("{\"loadbalance\": \"loadbalance\"}");
     }
-    
+
     @AfterEach
     public void after() {
         ApplicationConfigCache.getInstance().invalidateAll();
     }
-    
+
     @Test
     @SuppressWarnings("all")
     public void testGenericInvoker() throws IllegalAccessException {
@@ -103,7 +104,7 @@ public final class SofaProxyServiceTest {
         assertTrue(cache instanceof LoadingCache);
         ((LoadingCache) cache).put(PATH, consumerConfig);
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
-        sofaProxyService.genericInvoker("", metaData, exchange);
+        sofaProxyService.genericInvoker("", metaData, new SelectorData(), exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
         final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
         sofaRegisterConfig.setThreadpool(Constants.SHARED);
@@ -146,9 +147,9 @@ public final class SofaProxyServiceTest {
         applicationConfigCache.init(sofaRegisterConfig);
         applicationConfigCache.build(metaData);
     }
-    
+
     static class SofaParamResolveServiceImpl implements SofaParamResolveService {
-        
+
         @Override
         @NonNull
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
