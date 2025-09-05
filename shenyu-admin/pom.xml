@@ -115,7 +115,6 @@
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
             <classifier>jakarta</classifier>
-            <version>${shiro.version}</version>
             <!-- Exclude the dependency of jakarta.servlet that is still used -->
             <exclusions>
                 <exclusion>
@@ -243,6 +242,7 @@
         <dependency>
             <groupId>com.oracle.database.nls</groupId>
             <artifactId>orai18n</artifactId>
+            <version>21.9.0.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -317,6 +317,11 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

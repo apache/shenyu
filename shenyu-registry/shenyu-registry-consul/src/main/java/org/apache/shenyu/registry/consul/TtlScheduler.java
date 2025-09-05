@@ -18,8 +18,8 @@
 package org.apache.shenyu.registry.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TtlScheduler {
 
-    private static final Log log = LogFactory.getLog(TtlScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(TtlScheduler.class);
 
     private final Map<String, ScheduledFuture<?>> serviceHeartbeats = new ConcurrentHashMap<>();
 

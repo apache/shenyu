@@ -116,13 +116,15 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     
     @Override
     public V get(final Object key) {
-        return cache.getIfPresent(key);
+        K typedKey = (K) key;
+        return cache.getIfPresent(typedKey);
     }
     
     @Override
     public V remove(final Object key) {
-        V value = cache.getIfPresent(key);
-        cache.invalidate(key);
+        K typedKey = (K) key;
+        V value = cache.getIfPresent(typedKey);
+        cache.invalidate(typedKey);
         cache.cleanUp();
         return value;
     }
