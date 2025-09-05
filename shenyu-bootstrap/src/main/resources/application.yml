@@ -236,9 +236,9 @@ shenyu:
 #      env: dev
 #      clusterName: test
 #      namespace: application
-#   zookeeper:
-#     url: localhost:2181
-#     sessionTimeout: 5000
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
 3     connectionTimeout: 2000
 #    http:
 #      url: http://localhost:9095
