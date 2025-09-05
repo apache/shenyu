@@ -26,16 +26,25 @@
     <artifactId>shenyu-registry-api</artifactId>
 
     <dependencies>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>
