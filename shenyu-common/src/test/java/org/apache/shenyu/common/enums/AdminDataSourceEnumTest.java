@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

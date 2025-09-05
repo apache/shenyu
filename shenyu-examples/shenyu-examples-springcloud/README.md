@@ -13,8 +13,7 @@ add etcd register center dependency in shenyu-admin:
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-server-etcd</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         </dependency>
 ```
 
 set etcd register config in shenyu-admin:
