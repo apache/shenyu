@@ -77,7 +77,7 @@ public class ZookeeperSyncDataConfiguration {
         LOGGER.info("you use zookeeper sync shenyu data.......");
 
         // check zk client
-        if (Objects.isNull(zookeeperClient.getIfAvailable()) || zookeeperClient.getIfAvailable().isConnection()) {
+        if (Objects.isNull(zookeeperClient.getIfAvailable()) || !zookeeperClient.getIfAvailable().isConnection()) {
             throw new IllegalStateException("ZookeeperClient is not available, please check your Zookeeper configuration.");
         }
 
