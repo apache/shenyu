@@ -36,7 +36,7 @@ import java.util.Objects;
 @ConditionalOnClass(CuratorFrameworkFactory.Builder.class)
 public class ZookeeperConfiguration {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(ZookeeperConfiguration.class);
 
     /**
      * register ZookeeperClient in spring ioc.
@@ -51,7 +51,7 @@ public class ZookeeperConfiguration {
         int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 60 * 1000 : zookeeperProp.getSessionTimeout();
         int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 15 * 1000 : zookeeperProp.getConnectionTimeout();
 
-        LOG.info("zk client init: url: {}", zookeeperProp.getUrl());
+        log.info("zk client init: url: {}", zookeeperProp.getUrl());
         ZookeeperClient client = ZookeeperClient.builder()
                 .config(ZookeeperConfig.builder()
                         .serverLists(zookeeperProp.getUrl())

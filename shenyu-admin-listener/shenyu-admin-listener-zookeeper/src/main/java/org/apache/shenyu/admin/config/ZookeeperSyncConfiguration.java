@@ -52,7 +52,7 @@ public class ZookeeperSyncConfiguration {
     @ConditionalOnMissingBean(ZookeeperDataChangedListener.class)
     public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
 
-        if (Objects.isNull(zkClient)) {
+        if (Objects.isNull(zkClient) || !zkClient.isConnection()) {
             throw new ShenyuException("ZookeeperClient must not be null");
         }
         return new ZookeeperDataChangedListener(zkClient);
@@ -68,7 +68,7 @@ public class ZookeeperSyncConfiguration {
     @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
     public DataChangedInit zookeeperDataChangedInit(final ZookeeperClient zkClient) {
 
-        if (Objects.isNull(zkClient) || zkClient.isConnection()) {
+        if (Objects.isNull(zkClient) || !zkClient.isConnection()) {
             throw new ShenyuException("ZookeeperClient must not be null");
         }
 
