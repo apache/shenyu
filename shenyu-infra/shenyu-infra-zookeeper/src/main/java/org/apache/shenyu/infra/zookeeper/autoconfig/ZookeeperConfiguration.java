@@ -51,7 +51,7 @@ public class ZookeeperConfiguration {
         int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 60 * 1000 : zookeeperProp.getSessionTimeout();
         int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 15 * 1000 : zookeeperProp.getConnectionTimeout();
 
-        log.info("zk client init: url: {}", zookeeperProp.getUrl());
+
         ZookeeperClient client = ZookeeperClient.builder()
                 .config(ZookeeperConfig.builder()
                         .serverLists(zookeeperProp.getUrl())
@@ -60,6 +60,7 @@ public class ZookeeperConfiguration {
                         .build()
                 ).build();
 
+        log.info("zk client init: {}, url: {}, sessionTimeOut: {}, connectionTimeout: {}", client, zookeeperProp.getUrl(), sessionTimeout, connectionTimeout);
         client.start();
 
         return client;

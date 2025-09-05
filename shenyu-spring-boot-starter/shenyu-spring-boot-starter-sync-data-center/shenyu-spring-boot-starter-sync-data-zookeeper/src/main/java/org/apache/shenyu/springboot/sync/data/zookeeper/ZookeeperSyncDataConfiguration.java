@@ -74,7 +74,7 @@ public class ZookeeperSyncDataConfiguration {
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
 
-        LOGGER.info("you use zookeeper sync shenyu data.......");
+        LOGGER.info("you use zookeeper sync shenyu data, zk client: {}", zookeeperClient.getIfAvailable());
 
         // check zk client
         if (Objects.isNull(zookeeperClient.getIfAvailable()) || !zookeeperClient.getIfAvailable().isConnection()) {
