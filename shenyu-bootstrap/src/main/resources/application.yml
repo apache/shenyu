@@ -239,7 +239,7 @@ shenyu:
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
-3     connectionTimeout: 2000
+#      connectionTimeout: 2000
 #    http:
 #      url: http://localhost:9095
 #      username:
