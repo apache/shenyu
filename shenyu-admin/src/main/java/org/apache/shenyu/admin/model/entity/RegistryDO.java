@@ -57,7 +57,7 @@ public class RegistryDO extends BaseDO {
     /**
      * the model group.
      */
-    private String group;
+    private String registryGroup;
 
     /**
      * Gets the value of registryId.
@@ -172,17 +172,17 @@ public class RegistryDO extends BaseDO {
      *
      * @return the value of group
      */
-    public String getGroup() {
-        return group;
+    public String getRegistryGroup() {
+        return registryGroup;
     }
 
     /**
      * Sets the group.
      *
-     * @param group group
+     * @param registryGroup group
      */
-    public void setGroup(final String group) {
-        this.group = group;
+    public void setRegistryGroup(final String registryGroup) {
+        this.registryGroup = registryGroup;
     }
 
     /**
@@ -214,7 +214,7 @@ public class RegistryDO extends BaseDO {
 
         private String namespace;
 
-        private String group;
+        private String registryGroup;
 
         private RegistryDOBuilder() {
         }
@@ -321,11 +321,11 @@ public class RegistryDO extends BaseDO {
         /**
          * group.
          *
-         * @param group the group.
+         * @param registryGroup the group.
          * @return RegistryDOBuilder.
          */
-        public RegistryDOBuilder group(final String group) {
-            this.group = group;
+        public RegistryDOBuilder registryGroup(final String registryGroup) {
+            this.registryGroup = registryGroup;
             return this;
         }
 
@@ -345,7 +345,7 @@ public class RegistryDO extends BaseDO {
             registryDO.setUsername(username);
             registryDO.setPassword(password);
             registryDO.setNamespace(namespace);
-            registryDO.setGroup(group);
+            registryDO.setRegistryGroup(registryGroup);
             return registryDO;
         }
     }
