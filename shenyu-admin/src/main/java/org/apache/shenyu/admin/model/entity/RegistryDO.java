@@ -179,7 +179,7 @@ public class RegistryDO extends BaseDO {
     /**
      * Sets the group.
      *
-     * @param registryGroup group
+     * @param registryGroup registryGroup
      */
     public void setRegistryGroup(final String registryGroup) {
         this.registryGroup = registryGroup;
@@ -321,11 +321,11 @@ public class RegistryDO extends BaseDO {
         /**
          * group.
          *
-         * @param registryGroup the group.
+         * @param group the group.
          * @return RegistryDOBuilder.
          */
-        public RegistryDOBuilder registryGroup(final String registryGroup) {
-            this.registryGroup = registryGroup;
+        public RegistryDOBuilder registryGroup(final String group) {
+            this.registryGroup = group;
             return this;
         }
 
