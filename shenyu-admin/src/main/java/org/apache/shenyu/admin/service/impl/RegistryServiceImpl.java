@@ -99,7 +99,7 @@ public class RegistryServiceImpl implements RegistryService {
                 .namespace(registryDTO.getNamespace())
                 .username(registryDTO.getUsername())
                 .password(registryDTO.getPassword())
-                .group(registryDTO.getGroup())
+                .registryGroup(registryDTO.getGroup())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
@@ -125,7 +125,7 @@ public class RegistryServiceImpl implements RegistryService {
                 .namespace(registryDTO.getNamespace())
                 .username(registryDTO.getUsername())
                 .password(registryDTO.getPassword())
-                .group(registryDTO.getGroup())
+                .registryGroup(registryDTO.getGroup())
                 .dateUpdated(currentTime)
                 .build();
         return registryMapper.updateSelective(registryDO) > 0

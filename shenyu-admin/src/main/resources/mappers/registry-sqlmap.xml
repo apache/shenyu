@@ -26,7 +26,7 @@
         <result column="username" jdbcType="VARCHAR" property="username"/>
         <result column="password" jdbcType="VARCHAR" property="password"/>
         <result column="namespace" jdbcType="VARCHAR" property="namespace"/>
-        <result column="group" jdbcType="VARCHAR" property="group"/>
+        <result column="registry_group" jdbcType="VARCHAR" property="registryGroup"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -39,7 +39,7 @@
         username,
         password,
         namespace,
-        `group`,
+        registry_group,
         date_created,
         date_updated
     </sql>
@@ -80,7 +80,7 @@
         username,
         password,
         namespace,
-        `group`,
+        registry_group,
         date_created,
         date_updated
         )
@@ -92,7 +92,7 @@
         #{username, jdbcType=VARCHAR},
         #{password, jdbcType=VARCHAR},
         #{namespace, jdbcType=VARCHAR},
-        #{group, jdbcType=VARCHAR},
+        #{registryGroup, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP}
         )
@@ -120,8 +120,8 @@
             <if test="namespace != null">
                 namespace,
             </if>
-            <if test="group != null">
-                `group`,
+            <if test="registryGroup != null">
+                registry_group,
             </if>
             <if test="dateCreated != null">
                 date_created,
@@ -150,8 +150,8 @@
             <if test="namespace != null">
                 #{namespace, jdbcType=VARCHAR},
             </if>
-            <if test="group != null">
-                #{group, jdbcType=VARCHAR},
+            <if test="registryGroup != null">
+                #{registryGroup, jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
                 #{dateCreated, jdbcType=TIMESTAMP},
@@ -170,7 +170,7 @@
         username = #{username, jdbcType=VARCHAR},
         password = #{password, jdbcType=VARCHAR},
         namespace = #{namespace, jdbcType=VARCHAR},
-        `group` = #{group, jdbcType=VARCHAR},
+        registry_group = #{registryGroup, jdbcType=VARCHAR},
         date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id = #{id, jdbcType=VARCHAR}
@@ -197,8 +197,8 @@
             <if test="namespace != null">
                 namespace = #{namespace, jdbcType=VARCHAR},
             </if>
-            <if test="group != null">
-                `group` = #{group, jdbcType=VARCHAR},
+            <if test="registryGroup != null">
+                registry_group = #{registryGroup, jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
                 date_created = #{dateCreated, jdbcType=TIMESTAMP},

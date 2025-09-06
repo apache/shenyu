@@ -43,7 +43,7 @@ public enum RegistryTransfer {
             vo.setAddress(data.getAddress());
             vo.setUsername(data.getUsername());
             vo.setPassword(data.getPassword());
-            vo.setGroup(data.getGroup());
+            vo.setGroup(data.getRegistryGroup());
             vo.setNamespace(data.getNamespace());
             return vo;
         }).orElse(null);

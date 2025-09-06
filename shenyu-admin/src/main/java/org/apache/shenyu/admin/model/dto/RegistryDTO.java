@@ -29,15 +29,15 @@ public class RegistryDTO implements Serializable {
 
     private String id;
 
-    @Length(max = 128, message = "The maximum length is 128")
+    @Length(max = 50, message = "The maximum length is 50")
     @NotNull(message = "registry code not null")
     private String registryId;
 
-    @Length(max = 128, message = "The maximum length is 128")
+    @Length(max = 50, message = "The maximum length is 50")
     @NotNull(message = "registry protocol not null")
     private String protocol;
 
-    @Length(max = 100, message = "The maximum length is 100")
+    @Length(max = 256, message = "The maximum length is 256")
     @NotNull(message = "address null")
     private String address;
 

@@ -1535,3 +1535,29 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382723', '1346358560427216896', '1346778036402483303', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382724', '1346358560427216896', '1346778036402483304', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382725', '1346358560427216896', '1346778036402483305', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+CREATE TABLE IF NOT EXISTS `registry_config`  (
+    `id`            varchar(128) NOT NULL COMMENT 'primary key id',
+    `registry_id`   varchar(50) NOT NULL COMMENT 'registry_id',
+    `protocol`      varchar(128) NOT NULL COMMENT 'protocol',
+    `address`       varchar(512) NOT NULL COMMENT 'address',
+    `username`      varchar(50)  COMMENT 'username',
+    `password`      varchar(100) COMMENT 'password',
+    `namespace`     varchar(100) COMMENT 'namespace',
+    `registry_group` varchar(20) COMMENT 'group',
+    `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    PRIMARY KEY (`id`)
+);
+
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116900', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.REGISTRY', 'registry', '/config/registry', 'registry', 1, 7, 'ordered-list', 0, 0, '', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116901', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:registry:add', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116902', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:registry:list', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116903', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:registry:delete', 1,'2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116904', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 3, '', 1, 0, 'system:registry:edit', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303901', '1346358560427216896', '1953048313980116900', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303902', '1346358560427216896', '1953048313980116901', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
