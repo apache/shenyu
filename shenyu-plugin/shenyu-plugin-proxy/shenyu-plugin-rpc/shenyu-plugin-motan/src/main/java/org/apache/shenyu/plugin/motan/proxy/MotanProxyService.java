@@ -129,7 +129,7 @@ public class MotanProxyService {
      * @param metaData      the meta data
      * @return motan reference config
      */
-    private RefererConfig<CommonClient> getConsumerConfig(final SelectorData selectorData, final MetaData metaData) {
+    public RefererConfig<CommonClient> getConsumerConfig(final SelectorData selectorData, final MetaData metaData) {
         String referenceKey = metaData.getPath();
         MotanUpstream motanUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), MotanUpstream.class);
         // if motanUpstream is empty, use default plugin config
