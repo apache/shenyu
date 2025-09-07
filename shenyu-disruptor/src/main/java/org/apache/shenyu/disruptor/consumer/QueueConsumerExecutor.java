@@ -17,28 +17,12 @@
 
 package org.apache.shenyu.disruptor.consumer;
 
+import org.apache.shenyu.disruptor.common.Data;
+
 /**
  * The type Queue consumer executor.
  *
  * @param <T> the type parameter
  */
-public abstract class QueueConsumerExecutor<T> implements Runnable {
-
-    private T data;
-
-    /**
-     * get data.
-     * @return data
-     */
-    public T getData() {
-        return data;
-    }
-
-    /**
-     * set data.
-     * @param data data
-     */
-    public void setData(final T data) {
-        this.data = data;
-    }
+public abstract class QueueConsumerExecutor<T> extends Data<T> implements Runnable {
 }

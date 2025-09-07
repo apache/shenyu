@@ -236,6 +236,7 @@ The text of each license is the standard Apache 2.0 license.
     commons-collections4 4.4: https://github.com/apache/commons-collections, Apache 2.0
     commons-io 2.11.0：https://commons.apache.org/proper/commons-io, Apache 2.0
     commons-lang3 3.12.0: https://github.com/apache/commons-lang, Apache 2.0
+    commons-lang3 3.18.0: https://github.com/apache/commons-lang, Apache 2.0
     commons-compress 1.22: https://github.com/apache/commons-compress, Apache 2.0
     disruptor 3.4.0: https://github.com/LMAX-Exchange/disruptor , Apache 2.0
     error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
@@ -421,7 +422,9 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-embed-websocket 10.1.25: https://tomcat.apache.org, Apache 2.0
     unbescape 1.1.6.RELEASE: http://www.unbescape.org, Apache 2.0
     zookeeper 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
     vertx-core 4.3.2: https://vertx.io/, Apache 2.0
     vertx-grpc 4.3.2: https://vertx.io/, Apache 2.0
     curator-client 5.7.0: https://github.com/apache/curator, Apache 2.0

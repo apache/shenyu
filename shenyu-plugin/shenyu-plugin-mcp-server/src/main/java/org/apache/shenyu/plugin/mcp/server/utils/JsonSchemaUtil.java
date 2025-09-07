@@ -46,7 +46,7 @@ public final class JsonSchemaUtil {
      * @return the JSON schema as a string
      */
     public static String createParameterSchema(final List<McpServerToolParameter> parameters,
-            final SchemaOption... schemaOptions) {
+                                               final SchemaOption... schemaOptions) {
         if (CollectionUtils.isEmpty(parameters)) {
             return emptySchema(schemaOptions);
         }
@@ -58,7 +58,7 @@ public final class JsonSchemaUtil {
         ObjectNode properties = schema.putObject("properties");
         for (McpServerToolParameter parameter : parameters) {
             ObjectNode property = properties.putObject(parameter.getName());
-            property.put("type", "string");
+            property.put("type", parameter.getType());
             property.put("description", parameter.getDescription());
         }
 
