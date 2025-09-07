@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.0.2-SNAPSHOT</version>
+    <version>2.7.0.3-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -48,6 +48,7 @@
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
+        <module>shenyu-infra/shenyu-infra-common</module>
     </modules>
 
     <licenses>
