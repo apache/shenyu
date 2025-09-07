@@ -29,7 +29,7 @@ import java.util.Map;
 import static org.junit.Assert.assertNotNull;
 
 /**
- *
+ * KafkaClientCacheTest.
  */
 public class KafkaClientCacheTest {
 
