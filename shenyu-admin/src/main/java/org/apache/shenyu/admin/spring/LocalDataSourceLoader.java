@@ -71,8 +71,9 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             // because the shenyu database does not need to be specified when executing the SQL file,
             // otherwise the shenyu database will be disconnected when the shenyu database does not exist
             String jdbcUrl = StringUtils.replace(properties.getUrl(), "/shenyu?", "?");
-            Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
-            this.execute(connection, dataBaseProperties.getInitScript());
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword())) {
+                this.execute(connection, dataBaseProperties.getInitScript());
+            }
         } catch (Exception e) {
             LOG.error("Datasource init error.", e);
             throw new ShenyuException(e.getMessage());
@@ -81,32 +82,30 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     protected void execute(final Connection conn, final String script) throws Exception {
         ScriptRunner runner = new ScriptRunner(conn);
-        try {
-            // doesn't print logger
-            runner.setLogWriter(null);
-            runner.setAutoCommit(true);
-            runner.setFullLineDelimiter(false);
-            runner.setSendFullScript(false);
-            runner.setStopOnError(false);
-            Resources.setCharset(StandardCharsets.UTF_8);
-            List<String> initScripts = Splitter.on(";").splitToList(script);
-            for (String sqlScript : initScripts) {
-                if (sqlScript.startsWith(PRE_FIX)) {
-                    String sqlFile = sqlScript.substring(PRE_FIX.length());
-                    try (Reader fileReader = getResourceAsReader(sqlFile)) {
-                        LOG.info("execute shenyu schema sql: {}", sqlFile);
-                        runner.runScript(fileReader);
-                    }
-                } else {
-                    try (Reader fileReader = Resources.getResourceAsReader(sqlScript)) {
-                        LOG.info("execute shenyu schema sql: {}", sqlScript);
-                        runner.runScript(fileReader);
-                    }
+        // doesn't print logger
+        runner.setLogWriter(null);
+        runner.setAutoCommit(true);
+        runner.setFullLineDelimiter(false);
+        runner.setSendFullScript(false);
+        runner.setStopOnError(false);
+        Resources.setCharset(StandardCharsets.UTF_8);
+        List<String> initScripts = Splitter.on(";").splitToList(script);
+        for (String sqlScript : initScripts) {
+            if (sqlScript.startsWith(PRE_FIX)) {
+                String sqlFile = sqlScript.substring(PRE_FIX.length());
+                try (Reader fileReader = getResourceAsReader(sqlFile)) {
+                    LOG.info("execute shenyu schema sql: {}", sqlFile);
+                    runner.runScript(fileReader);
+                }
+            } else {
+                try (Reader fileReader = Resources.getResourceAsReader(sqlScript)) {
+                    LOG.info("execute shenyu schema sql: {}", sqlScript);
+                    runner.runScript(fileReader);
                 }
             }
-        } finally {
-            runner.closeConnection();
         }
+        // Note: Connection will be automatically closed by try-with-resources in init() method
+        // No need to call runner.closeConnection() here to avoid double closing
     }
 
     private static Reader getResourceAsReader(final String resource) throws IOException {

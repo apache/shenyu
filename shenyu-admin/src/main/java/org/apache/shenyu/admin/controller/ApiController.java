@@ -65,7 +65,7 @@ public class ApiController {
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public ShenyuAdminResult queryApis(final String apiPath, final Integer state,
                                        final String tagId,
                                        @NotNull final Integer currentPage,
@@ -94,7 +94,7 @@ public class ApiController {
      * @param apiDTO api.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:api:add")
     public ShenyuAdminResult createApi(@Valid @RequestBody final ApiDTO apiDTO) {
         return ShenyuAdminResult.success(apiService.createOrUpdate(apiDTO));
