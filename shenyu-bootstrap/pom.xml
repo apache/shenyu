@@ -603,7 +603,7 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu basic-auth plugin end -->
-        
+
     </dependencies>
     <profiles>
         <profile>
