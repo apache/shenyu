@@ -68,8 +68,8 @@ public class SelectorChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getHandle(), after.getHandle())) {
             builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
         }
-        if (!Objects.equals(before.getType(), after.getType())) {
-            builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
+        if (!Objects.equals(before.getSelectorType(), after.getSelectorType())) {
+            builder.append(String.format("type[%s => %s] ", before.getSelectorType(), after.getSelectorType()));
         }
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));

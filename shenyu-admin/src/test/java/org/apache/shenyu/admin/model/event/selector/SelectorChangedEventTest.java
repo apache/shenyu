@@ -83,7 +83,7 @@ public final class SelectorChangedEventTest {
         final StringBuilder builder = new StringBuilder();
         builder.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
         builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
-        builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
+        builder.append(String.format("type[%s => %s] ", before.getSelectorType(), after.getSelectorType()));
         builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
         builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));

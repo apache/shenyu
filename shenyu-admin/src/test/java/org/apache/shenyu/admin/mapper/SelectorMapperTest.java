@@ -230,7 +230,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .pluginId("test-plugin-id")
                 .name("test-name")
                 .matchMode(1)
-                .type(1)
+                .selectorType(1)
                 .sort(1)
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)

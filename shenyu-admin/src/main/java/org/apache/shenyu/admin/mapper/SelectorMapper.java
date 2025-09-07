@@ -208,7 +208,7 @@ public interface SelectorMapper extends ExistProvider {
      * @param condition condition
      * @return view data list
      */
-    List<SelectorVO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
+    List<SelectorDO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
 
     /**
      * selectByDiscoveryHandlerId.

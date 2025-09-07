@@ -2030,7 +2030,7 @@ CREATE TABLE `selector`  (
   `plugin_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
   `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name',
   `match_mode` int(0) NOT NULL COMMENT 'matching mode (0 and 1 or)',
-  `type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
+  `selector_type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
   `sort` int(0) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',

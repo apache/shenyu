@@ -152,7 +152,8 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
-        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        final List<SelectorDO> dolist = selectorMapper.selectByCondition(condition);
+        List<SelectorVO> list = dolist.stream().map(SelectorVO::buildSelectorVO).collect(Collectors.toList());
         for (SelectorVO selector : list) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
             selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));

@@ -574,3 +574,4 @@ UPDATE rule SET handle_new = handle;
 COMMIT;
 ALTER TABLE rule DROP COLUMN handle;
 ALTER TABLE rule RENAME COLUMN handle_new TO handle;
+ALTER TABLE selector RENAME COLUMN type TO selector_type;

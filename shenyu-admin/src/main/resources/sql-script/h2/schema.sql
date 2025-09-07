@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
   `name` varchar(64) NOT NULL COMMENT 'selector name',
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
-  `type` int(4) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
+  `selector_type` int(4) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
   `sort` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',

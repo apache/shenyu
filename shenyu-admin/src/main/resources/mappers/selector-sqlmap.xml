@@ -25,7 +25,7 @@
         <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
-        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="selector_type" jdbcType="INTEGER" property="selectorType"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
@@ -42,7 +42,7 @@
         plugin_id,
         name,
         match_mode,
-        type,
+        selector_type,
         sort,
         enabled,
         loged,
@@ -59,7 +59,7 @@
         ${alis}.plugin_id,
         ${alis}.name,
         ${alis}.match_mode,
-        ${alis}.type,
+        ${alis}.selector_type,
         ${alis}.sort,
         ${alis}.enabled,
         ${alis}.loged,
@@ -213,7 +213,7 @@
          LIMIT 1
     </select>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.SelectorVO">
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO">
         SELECT
         <include refid="Base_Column_List"/>
         FROM selector
@@ -278,7 +278,7 @@
                     plugin_id,
                     name,
                     match_mode,
-                    type,
+                    selector_type,
                     sort,
                     enabled,
                     loged,
@@ -293,7 +293,7 @@
                     #{pluginId, jdbcType=VARCHAR},
                     #{name, jdbcType=VARCHAR},
                     #{matchMode, jdbcType=INTEGER},
-                    #{type, jdbcType=INTEGER},
+                    #{selectorType, jdbcType=INTEGER},
                     #{sort, jdbcType=INTEGER},
                     #{enabled, jdbcType=TINYINT},
                     #{loged, jdbcType=TINYINT},
@@ -322,8 +322,8 @@
             <if test="matchMode != null">
                 match_mode,
             </if>
-            <if test="type != null">
-                type,
+            <if test="selectorType != null">
+                selector_type,
             </if>
             <if test="sort != null">
                 sort,
@@ -364,8 +364,8 @@
             <if test="matchMode != null">
                 #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="type != null">
-                #{type, jdbcType=INTEGER},
+            <if test="selectorType != null">
+                #{selectorType, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 #{sort, jdbcType=INTEGER},
@@ -399,7 +399,7 @@
                plugin_id = #{pluginId, jdbcType=VARCHAR},
                name = #{name, jdbcType=VARCHAR},
                match_mode = #{matchMode, jdbcType=INTEGER},
-               type = #{type, jdbcType=INTEGER},
+               selector_type = #{selectorType, jdbcType=INTEGER},
                sort = #{sort, jdbcType=INTEGER},
                enabled = #{enabled, jdbcType=TINYINT},
                loged = #{loged, jdbcType=TINYINT},
@@ -427,8 +427,8 @@
             <if test="matchMode != null">
                 match_mode = #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="type != null">
-                type = #{type, jdbcType=INTEGER},
+            <if test="selectorType != null">
+                selector_type = #{selectorType, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 sort = #{sort, jdbcType=INTEGER},
