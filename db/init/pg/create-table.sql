@@ -2046,7 +2046,7 @@ CREATE TABLE "public"."rule" (
   "match_restful" int2 NOT NULL,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "sort" int4 NOT NULL,
-  "handle" varchar(1024) COLLATE "pg_catalog"."default",
+  "handle" text COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )

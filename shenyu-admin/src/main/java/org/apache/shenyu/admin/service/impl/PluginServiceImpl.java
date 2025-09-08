@@ -32,7 +32,6 @@ import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
-import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
@@ -48,12 +47,12 @@ import org.apache.shenyu.common.utils.JarDependencyUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.opengauss.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -77,17 +76,13 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginEventPublisher pluginEventPublisher;
 
-    private final PluginHandleService pluginHandleService;
-
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginEventPublisher pluginEventPublisher,
-                             final PluginHandleService pluginHandleService,
                              final NamespacePluginRelMapper namespacePluginRelMapper) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
-        this.pluginHandleService = pluginHandleService;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
     }
 
@@ -298,7 +293,7 @@ public class PluginServiceImpl implements PluginService {
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), "create" + AdminConstants.PLUGIN_NAME_IS_EXIST + pluginDTO.getName());
         if (Objects.nonNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
+            Assert.isTrue(checkFile(Base64.getDecoder().decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
@@ -318,7 +313,7 @@ public class PluginServiceImpl implements PluginService {
     private String update(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST + pluginDTO.getName());
         if (Objects.nonNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(Base64.decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
+            Assert.isTrue(checkFile(Base64.getDecoder().decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
