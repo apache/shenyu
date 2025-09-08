@@ -230,8 +230,8 @@ public abstract class AbstractNodeDataSyncService {
     protected void unCacheSelectorData(final String removeKey) {
         final SelectorData selectorData = new SelectorData();
         final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        selectorData.setPluginName(ruleKeys[1]);
-        selectorData.setId(ruleKeys[2]);
+        selectorData.setPluginName(ruleKeys[2]);
+        selectorData.setId(ruleKeys[3]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
         removeListener(removeKey);
     }
