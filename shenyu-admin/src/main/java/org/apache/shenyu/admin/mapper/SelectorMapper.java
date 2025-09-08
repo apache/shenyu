@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
-import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;

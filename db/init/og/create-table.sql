@@ -1975,10 +1975,10 @@ DROP TABLE IF EXISTS "public"."selector";
 CREATE TABLE "public"."selector" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "selector_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
   "match_mode" int4 NOT NULL,
   "selector_type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
+  "sort_code" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,

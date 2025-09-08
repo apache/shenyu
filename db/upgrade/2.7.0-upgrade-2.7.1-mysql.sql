@@ -268,3 +268,5 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 
 ALTER TABLE `rule` MODIFY COLUMN `handle` text;
 ALTER TABLE `selector` CHANGE COLUMN `type` `selector_type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)';
+ALTER TABLE `selector` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 'sort';
+ALTER TABLE `selector` CHANGE COLUMN `name` `selector_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name';

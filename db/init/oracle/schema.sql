@@ -116,10 +116,10 @@ create table selector
 (
     id           VARCHAR2(128) not null primary key,
     plugin_id    VARCHAR2(128) not null,
-    name         VARCHAR2(64) not null,
+    selector_name VARCHAR2(64) not null,
     match_mode   NUMBER(10) not null,
     selector_type NUMBER(10) not null,
-    sort         NUMBER(10) not null,
+    sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,

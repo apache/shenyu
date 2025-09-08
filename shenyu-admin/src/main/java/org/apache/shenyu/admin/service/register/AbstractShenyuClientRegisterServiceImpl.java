@@ -251,7 +251,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
         });
-        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getName(), pluginName, namespaceId);
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getSelectorName(), pluginName, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.REFRESH, Collections.singletonList(discoverySyncData)));
         
         return ShenyuResultMessage.SUCCESS;
@@ -265,7 +265,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
         }
-        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
+        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 

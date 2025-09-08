@@ -283,3 +283,5 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303905', '13463585604272
 
 ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
 ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
+ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
