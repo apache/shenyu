@@ -200,7 +200,7 @@ create table rule
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
     sort          NUMBER(10) not null,
-    handle        VARCHAR2(1024),
+    handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
 );
@@ -3616,7 +3616,7 @@ CREATE TABLE "public"."registry_config"  (
     username      varchar2(50),
     password      varchar2(100),
     namespace     varchar2(100),
-    group         varchar2(20),
+    registry_group         varchar2(20),
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     CONSTRAINT registry_config_pk PRIMARY KEY (id)
