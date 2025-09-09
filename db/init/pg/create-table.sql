@@ -3171,7 +3171,7 @@ COMMENT ON COLUMN "public"."registry_config"."address" IS 'address';
 COMMENT ON COLUMN "public"."registry_config"."username" IS 'username';
 COMMENT ON COLUMN "public"."registry_config"."password" IS 'password';
 COMMENT ON COLUMN "public"."registry_config"."namespace" IS 'namespace';
-COMMENT ON COLUMN "public"."registry_config"."group" IS 'group';
+COMMENT ON COLUMN "public"."registry_config"."registry_group" IS 'group';
 COMMENT ON COLUMN "public"."registry_config"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."registry_config"."date_updated" IS 'update time';
 
