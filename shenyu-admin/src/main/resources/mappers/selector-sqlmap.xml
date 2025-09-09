@@ -213,7 +213,7 @@
          LIMIT 1
     </select>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO">
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM selector
