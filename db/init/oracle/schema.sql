@@ -134,13 +134,13 @@ comment on column SELECTOR.id
   is 'primary key id varchar';
 comment on column SELECTOR.plugin_id
   is 'plugin id';
-comment on column SELECTOR.name
+comment on column SELECTOR.selector_name
   is 'selector name';
 comment on column SELECTOR.match_mode
   is 'matching mode (0 and 1 or)';
-comment on column SELECTOR.type
+comment on column SELECTOR.selector_type
   is 'type (0 full flow, 1 custom flow)';
-comment on column SELECTOR.sort
+comment on column SELECTOR.sort_code
   is 'sort';
 comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';

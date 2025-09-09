@@ -2687,7 +2687,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-INSERT INTO `selector` (`id`, `plugin_id`, `name`, `match_mode`, `type`, `sort`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
+INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 
 DROP TABLE IF EXISTS `instance_info`;
 
