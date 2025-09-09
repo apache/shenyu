@@ -26,18 +26,21 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-/**
- * The type ai proxy plugin configuration.
- */
+/** The type ai proxy plugin configuration. */
 @Configuration
-@ConditionalOnProperty(value = { "shenyu.plugins.ai.proxy.enabled" }, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+        value = {"shenyu.plugins.ai.proxy.enabled"},
+        havingValue = "true",
+        matchIfMissing = true)
 public class AiProxyPluginConfiguration {
 
     /**
@@ -51,12 +54,18 @@ public class AiProxyPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin aiProxyPlugin(final AiModelFactoryRegistry aiModelFactoryRegistry,
-                                      final AiProxyConfigService aiProxyConfigService,
-                                      final AiProxyExecutorService aiProxyExecutorService,
-                                      final ChatClientCache chatClientCache,
-                                      final AiProxyPluginHandler aiProxyPluginHandler) {
-        return new AiProxyPlugin(aiModelFactoryRegistry, aiProxyConfigService, aiProxyExecutorService, chatClientCache, aiProxyPluginHandler);
+    public ShenyuPlugin aiProxyPlugin(
+            final AiModelFactoryRegistry aiModelFactoryRegistry,
+            final AiProxyConfigService aiProxyConfigService,
+            final AiProxyExecutorService aiProxyExecutorService,
+            final ChatClientCache chatClientCache,
+            final AiProxyPluginHandler aiProxyPluginHandler) {
+        return new AiProxyPlugin(
+                aiModelFactoryRegistry,
+                aiProxyConfigService,
+                aiProxyExecutorService,
+                chatClientCache,
+                aiProxyPluginHandler);
     }
 
     /**
@@ -77,7 +86,8 @@ public class AiProxyPluginConfiguration {
      * @return the registry
      */
     @Bean
-    public AiModelFactoryRegistry aiModelFactoryRegistry(final List<AiModelFactory> aiModelFactoryList) {
+    public AiModelFactoryRegistry aiModelFactoryRegistry(
+            final List<AiModelFactory> aiModelFactoryList) {
         return new AiModelFactoryRegistry(aiModelFactoryList);
     }
 
@@ -99,5 +109,15 @@ public class AiProxyPluginConfiguration {
     @Bean
     public DeepSeekModelFactory deepSeekModelFactory() {
         return new DeepSeekModelFactory();
+    }
+
+    /**
+     * Ai proxy api key data subscriber.
+     *
+     * @return the subscriber
+     */
+    @Bean
+    public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber() {
+        return new CommonAiProxyApiKeyDataSubscriber();
     }
 }

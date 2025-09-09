@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -45,6 +47,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -58,6 +61,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for {@link AiProxyPlugin}.
@@ -101,6 +106,8 @@ public class AiProxyPluginTest {
 
     private MockServerWebExchange exchange;
 
+    private MockedStatic<AiProxyApiKeyCache> apiKeyCacheMockedStatic;
+
     @BeforeEach
     public void setUp() {
         aiProxyPluginHandler = new AiProxyPluginHandler(chatClientCache);
@@ -129,12 +136,16 @@ public class AiProxyPluginTest {
             // Always return the mock ChatClient to avoid any UnsupportedOperationException
             return chatClient;
         });
+
+        // mock static
+        apiKeyCacheMockedStatic = mockStatic(AiProxyApiKeyCache.class);
     }
 
     @AfterEach
     public void tearDown() {
         aiProxyPluginHandler.getSelectorCachedHandle().removeHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE));
         SpringBeanUtils.getInstance().setApplicationContext(null);
+        apiKeyCacheMockedStatic.close();
     }
 
     private void setupSuccessMocks(final AiProxyHandle handle, final AiCommonConfig primaryConfig, final Optional<AiCommonConfig> fallbackConfig) {
@@ -179,6 +190,54 @@ public class AiProxyPluginTest {
                 .verifyComplete();
 
         verify(executorService).execute(any(ChatClient.class), any(Optional.class), anyString());
+    }
+
+    @Test
+    public void testExecuteWithValidProxyApiKey() {
+        final AiProxyHandle handle = new AiProxyHandle();
+        final AiCommonConfig primaryConfig = new AiCommonConfig();
+        primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
+        primaryConfig.setApiKey("original-key");
+
+        // setup request with proxy key
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header("X-API-KEY", "proxy-key-valid").body(REQUEST_BODY));
+
+        // mock cache to return a real key
+        final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
+        apiKeyCacheMockedStatic.when(AiProxyApiKeyCache::getInstance).thenReturn(apiKeyCache);
+        when(apiKeyCache.getRealApiKey("proxy-key-valid")).thenReturn("real-key-from-cache");
+
+        setupSuccessMocks(handle, primaryConfig, Optional.empty());
+
+        StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
+                .expectSubscription()
+                .verifyComplete();
+
+        // verify that the api key was overridden
+        assertEquals("real-key-from-cache", primaryConfig.getApiKey());
+    }
+
+    @Test
+    public void testExecuteWithInvalidProxyApiKey() {
+        final AiProxyHandle handle = new AiProxyHandle();
+        final AiCommonConfig primaryConfig = new AiCommonConfig();
+        primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
+
+        // setup request with proxy key
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header("X-API-KEY", "proxy-key-invalid").body(REQUEST_BODY));
+
+        // mock cache to return null
+        final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
+        apiKeyCacheMockedStatic.when(AiProxyApiKeyCache::getInstance).thenReturn(apiKeyCache);
+        when(apiKeyCache.getRealApiKey("proxy-key-invalid")).thenReturn(null);
+
+        when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
+
+        StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
+                .expectSubscription()
+                .verifyComplete();
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
     }
 
     @Test
