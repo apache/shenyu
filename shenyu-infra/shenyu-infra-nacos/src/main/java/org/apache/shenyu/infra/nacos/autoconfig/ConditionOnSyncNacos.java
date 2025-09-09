@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Enable etcd data sync.
+ * Enable nacos data sync.
  */
 
 @Target({ElementType.TYPE, ElementType.METHOD})
