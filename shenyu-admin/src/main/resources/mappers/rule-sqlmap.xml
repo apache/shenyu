@@ -160,7 +160,7 @@
          LIMIT 1
     </select>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.RuleDO">
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM rule
@@ -250,13 +250,13 @@
             <if test="selectorId != null">
                 selector_id,
             </if>
-            <if test="name != null">
+            <if test="ruleName != null">
                 rule_name,
             </if>
             <if test="matchMode != null">
                 match_mode,
             </if>
-            <if test="sort != null">
+            <if test="sortCode != null">
                 sort_code,
             </if>
             <if test="enabled != null">
