@@ -1975,10 +1975,10 @@ DROP TABLE IF EXISTS "public"."selector";
 CREATE TABLE "public"."selector" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "selector_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
   "match_mode" int4 NOT NULL,
-  "type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
+  "selector_type" int4 NOT NULL,
+  "sort_code" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
@@ -1991,10 +1991,10 @@ CREATE TABLE "public"."selector" (
 ;
 COMMENT ON COLUMN "public"."selector"."id" IS 'primary key id varchar';
 COMMENT ON COLUMN "public"."selector"."plugin_id" IS 'plugin id';
-COMMENT ON COLUMN "public"."selector"."name" IS 'selector name';
+COMMENT ON COLUMN "public"."selector"."selector_name" IS 'selector name';
 COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or)';
-COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
-COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."selector"."selector_type" IS 'type (0, full flow, 1 custom flow)';
+COMMENT ON COLUMN "public"."selector"."sort_code" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
@@ -3037,7 +3037,7 @@ COMMENT ON COLUMN "public"."registry_config"."address" IS 'address';
 COMMENT ON COLUMN "public"."registry_config"."username" IS 'username';
 COMMENT ON COLUMN "public"."registry_config"."password" IS 'password';
 COMMENT ON COLUMN "public"."registry_config"."namespace" IS 'namespace';
-COMMENT ON COLUMN "public"."registry_config"."group" IS 'group';
+COMMENT ON COLUMN "public"."registry_config"."registry_group" IS 'group';
 COMMENT ON COLUMN "public"."registry_config"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."registry_config"."date_updated" IS 'update time';
 

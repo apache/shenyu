@@ -139,7 +139,7 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         for (DivideUpstream divideUpstream : needToRemove) {
             removeDiscoveryUpstream(selectorDO.getId(), divideUpstream.getUpstreamUrl());
         }
-        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
+        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
         getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 

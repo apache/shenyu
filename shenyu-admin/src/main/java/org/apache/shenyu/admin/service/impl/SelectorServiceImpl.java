@@ -154,7 +154,8 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
-        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        final List<SelectorDO> dolist = selectorMapper.selectByCondition(condition);
+        List<SelectorVO> list = dolist.stream().map(SelectorVO::buildSelectorVO).collect(Collectors.toList());
         for (SelectorVO selector : list) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
             selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
@@ -299,7 +300,7 @@ public class SelectorServiceImpl implements SelectorService {
                 final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setId(selector.getId());
-                proxySelectorDTO.setName(selector.getName());
+                proxySelectorDTO.setName(selector.getSelectorName());
                 proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getPluginId(), ""));
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
@@ -472,7 +473,7 @@ public class SelectorServiceImpl implements SelectorService {
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
-                        .map(SelectorDO::getName)
+                        .map(SelectorDO::getSelectorName)
                         .collect(Collectors.toSet());
 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
@@ -524,7 +525,7 @@ public class SelectorServiceImpl implements SelectorService {
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
-                        .collect(Collectors.toMap(SelectorDO::getName, SelectorDO::getId));
+                        .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
                 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName

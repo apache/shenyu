@@ -284,3 +284,6 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303904', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 
 ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
+ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
+ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
