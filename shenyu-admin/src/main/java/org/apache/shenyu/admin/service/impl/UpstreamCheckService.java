@@ -432,7 +432,7 @@ public class UpstreamCheckService {
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
         discoverySyncData.setSelectorId(selectorId);
-        discoverySyncData.setSelectorName(selectorDO.getName());
+        discoverySyncData.setSelectorName(selectorDO.getSelectorName());
         discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
         LOG.debug("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
