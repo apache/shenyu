@@ -345,6 +345,29 @@ comment on column MOCK_REQUEST_RECORD.date_created
 comment on column MOCK_REQUEST_RECORD.date_updated
   is 'update time';
 
+-- Table structure for proxy_api_key_mapping
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE proxy_api_key_mapping';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+CREATE TABLE proxy_api_key_mapping
+(
+    id            VARCHAR2(128) not null,
+    real_api_key  VARCHAR2(255) not null,
+    proxy_api_key VARCHAR2(255) not null,
+    description   VARCHAR2(500),
+    enabled       NUMBER(3) default 1 not null,
+    namespace_id  VARCHAR2(50) not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_proxy_api_key_mapping PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX uk_proxy_api_key ON proxy_api_key_mapping (proxy_api_key);
+CREATE INDEX idx_namespace_enabled ON proxy_api_key_mapping (namespace_id, enabled);
+
 create table model
 (
     id VARCHAR2(128) not null PRIMARY KEY,
@@ -3097,6 +3120,17 @@ VALUES ('1844026099075534857', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
 VALUES ('1844026099075534858', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxy:modify', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534900', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.ADD', '', '', '', 2, 0, '', 1, 0, 'system:aiProxyApiKey:add', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534901', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.LIST', '', '', '', 2, 1, '', 1, 0, 'system:aiProxyApiKey:list', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534902', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.EDIT', '', '', '', 2, 2, '', 1, 0, 'system:aiProxyApiKey:edit', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534903', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE', '', '', '', 2, 3, '', 1, 0, 'system:aiProxyApiKey:delete', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534904', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE', '', '', '', 2, 4, '', 1, 0, 'system:aiProxyApiKey:disable', 1);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
 VALUES ('1697146860569542741', '1346358560427216896', '1844026099075534849');

@@ -376,6 +376,25 @@ COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time'
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for proxy_api_key_mapping
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."proxy_api_key_mapping";
+CREATE TABLE "public"."proxy_api_key_mapping" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "real_api_key" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "proxy_api_key" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "description" varchar(500) COLLATE "pg_catalog"."default",
+  "enabled" int2 NOT NULL DEFAULT 1,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+)
+;
+CREATE UNIQUE INDEX uk_proxy_api_key ON "public"."proxy_api_key_mapping" USING btree ("proxy_api_key");
+CREATE INDEX idx_namespace_enabled ON "public"."proxy_api_key_mapping" USING btree ("namespace_id","enabled");
+
+-- ----------------------------
 -- Table structure for model
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."model";
@@ -2834,6 +2853,11 @@ INSERT INTO "public"."resource" VALUES ('1844026099075534855', '1844026099075534
 INSERT INTO "public"."resource" VALUES ('1844026099075534856', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075534857', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075534858', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxy:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534900', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.ADD', '', '', '', 2, 0, '', 1, 0, 'system:aiProxyApiKey:add', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534901', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.LIST', '', '', '', 2, 1, '', 1, 0, 'system:aiProxyApiKey:list', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534902', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.EDIT', '', '', '', 2, 2, '', 1, 0, 'system:aiProxyApiKey:edit', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534903', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE', '', '', '', 2, 3, '', 1, 0, 'system:aiProxyApiKey:delete', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534904', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE', '', '', '', 2, 4, '', 1, 0, 'system:aiProxyApiKey:disable', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
 
 INSERT INTO "public"."permission" VALUES ('1697146860569542741', '1346358560427216896', '1844026099075534849', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569542742', '1346358560427216896', '1844026099075534850', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
