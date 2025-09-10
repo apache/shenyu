@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.logging.rabbitmq.cache.RabbitmqClientCache;
 import org.apache.shenyu.plugin.logging.rabbitmq.client.RabbitmqLogCollectClient;
 import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -140,6 +142,33 @@ public final class LoggingRabbitmqPluginDataHandlerTest {
         loggingRabbitmqPluginDataHandler.handlerPlugin(pluginData);
 
         verify(loggingRabbitmqPluginDataHandler, times(1)).doRefreshConfig(any());
+    }
+
+    @Test
+    public void testHandlerSelector() {
+        SelectorData selectorData = SelectorData.builder().id("1332017966661636096")
+                .handle("{\n"
+                        + "  \"queueName\": \"shenyu-logs-queue\",\n"
+                        + "  \"exchangeName\": \"shenyu-logs-exchange\",\n"
+                        + "  \"host\": \"127.0.0.1\",\n"
+                        + "  \"port\": 5672,\n"
+                        + "  \"username\": \"admin\",\n"
+                        + "  \"password\": \"123456\",\n"
+                        + "  \"routingKey\": \"shenyu.log.key\",\n"
+                        + "  \"exchangeType\": \"topic\",\n"
+                        + "  \"virtualHost\": \"/\",\n"
+                        + "  \"durable\": true,\n"
+                        + "  \"exclusive\": false,\n"
+                        + "  \"autoDelete\": false,\n"
+                        + "  \"args\": {\n"
+                        + "    \"x-message-ttl\": 60000,\n"
+                        + "    \"x-max-length\": 1000\n"
+                        + "  }\n"
+                        + "}")
+                .build();
+        loggingRabbitmqPluginDataHandler.handlerSelector(selectorData);
+        RabbitmqClientCache cache = RabbitmqClientCache.getInstance();
+        assertNotNull(cache.getClientCache().get("1332017966661636096"));
     }
 
     private PluginData createPluginData() {
