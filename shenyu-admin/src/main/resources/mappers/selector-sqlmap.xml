@@ -23,10 +23,10 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="selector_name" jdbcType="VARCHAR" property="selectorName"/>
         <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
-        <result column="type" jdbcType="INTEGER" property="type"/>
-        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="selector_type" jdbcType="INTEGER" property="selectorType"/>
+        <result column="sort_code" jdbcType="INTEGER" property="sortCode"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
@@ -40,10 +40,10 @@
         date_created,
         date_updated,
         plugin_id,
-        name,
+        selector_name,
         match_mode,
-        type,
-        sort,
+        selector_type,
+        sort_code,
         enabled,
         loged,
         continued,
@@ -57,10 +57,10 @@
         ${alis}.date_created,
         ${alis}.date_updated,
         ${alis}.plugin_id,
-        ${alis}.name,
+        ${alis}.selector_name,
         ${alis}.match_mode,
-        ${alis}.type,
-        ${alis}.sort,
+        ${alis}.selector_type,
+        ${alis}.sort_code,
         ${alis}.enabled,
         ${alis}.loged,
         ${alis}.continued,
@@ -91,7 +91,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
-         WHERE name = #{name, jdbcType=VARCHAR}
+         WHERE selector_name = #{name, jdbcType=VARCHAR}
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
@@ -99,7 +99,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
-         WHERE name = #{name, jdbcType=VARCHAR}
+         WHERE selector_name = #{name, jdbcType=VARCHAR}
            AND plugin_id = #{pluginId, jdbcType=VARCHAR}
            AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
@@ -122,7 +122,7 @@
             </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
+                 AND selector_name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                  AND id IN
@@ -131,7 +131,7 @@
                 </foreach>
             </if>
         </where>
-        ORDER BY sort
+        ORDER BY sort_code
     </select>
 
     <select id="findByPluginIdAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -172,7 +172,7 @@
                 plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                AND selector_name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 AND id IN
@@ -213,18 +213,18 @@
          LIMIT 1
     </select>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.SelectorVO">
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM selector
         <where>
             <if test="condition.keyword != null and condition.keyword != ''">
                 <bind name="keyword" value="('%' + condition.keyword + '%')"/>
-                AND name LIKE #{keyword, jdbcType=VARCHAR}
+                AND selector_name LIKE #{keyword, jdbcType=VARCHAR}
             </if>
             <if test="condition.excluded != null and condition.excluded != ''">
                 <bind name="excluded" value="('%' + condition.excluded + '%')"/>
-                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+                AND selector_name NOT LIKE #{excluded, jdbcType=VARCHAR}
             </if>
             <if test="condition.switchStatus != null">
                 AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
@@ -276,10 +276,10 @@
                     date_created,
                     date_updated,
                     plugin_id,
-                    name,
+                    selector_name,
                     match_mode,
-                    type,
-                    sort,
+                    selector_type,
+                    sort_code,
                     enabled,
                     loged,
                     continued,
@@ -291,10 +291,10 @@
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP},
                     #{pluginId, jdbcType=VARCHAR},
-                    #{name, jdbcType=VARCHAR},
+                    #{selectorName, jdbcType=VARCHAR},
                     #{matchMode, jdbcType=INTEGER},
-                    #{type, jdbcType=INTEGER},
-                    #{sort, jdbcType=INTEGER},
+                    #{selectorType, jdbcType=INTEGER},
+                    #{sortCode, jdbcType=INTEGER},
                     #{enabled, jdbcType=TINYINT},
                     #{loged, jdbcType=TINYINT},
                     #{continued, jdbcType=TINYINT},
@@ -316,17 +316,17 @@
             <if test="pluginId != null">
                 plugin_id,
             </if>
-            <if test="name != null">
-                name,
+            <if test="selectorName != null">
+                selector_name,
             </if>
             <if test="matchMode != null">
                 match_mode,
             </if>
-            <if test="type != null">
-                type,
+            <if test="selectorType != null">
+                selector_type,
             </if>
-            <if test="sort != null">
-                sort,
+            <if test="sortCode != null">
+                sort_code,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -358,17 +358,17 @@
             <if test="pluginId != null">
                 #{pluginId, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="selectorName != null">
+                #{selectorName, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
                 #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="type != null">
-                #{type, jdbcType=INTEGER},
+            <if test="selectorType != null">
+                #{selectorType, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                #{sort, jdbcType=INTEGER},
+            <if test="sortCode != null">
+                #{sortCode, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
@@ -397,10 +397,10 @@
                date_created = #{dateCreated, jdbcType=TIMESTAMP},
                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
                plugin_id = #{pluginId, jdbcType=VARCHAR},
-               name = #{name, jdbcType=VARCHAR},
+               selector_name = #{selectorName, jdbcType=VARCHAR},
                match_mode = #{matchMode, jdbcType=INTEGER},
-               type = #{type, jdbcType=INTEGER},
-               sort = #{sort, jdbcType=INTEGER},
+               selector_type = #{selectorType, jdbcType=INTEGER},
+               sort_code = #{sortCode, jdbcType=INTEGER},
                enabled = #{enabled, jdbcType=TINYINT},
                loged = #{loged, jdbcType=TINYINT},
                continued = #{continued, jdbcType=TINYINT},
@@ -421,17 +421,17 @@
             <if test="pluginId != null">
                 plugin_id = #{pluginId, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="selectorName != null">
+                selector_name = #{selectorName, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
                 match_mode = #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="type != null">
-                type = #{type, jdbcType=INTEGER},
+            <if test="selectorType != null">
+                selector_type = #{selectorType, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                sort = #{sort, jdbcType=INTEGER},
+            <if test="sortCode != null">
+                sort_code = #{sortCode, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},

@@ -143,7 +143,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final SelectorDO selectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        proxySelectorDTO.setName(selectorDO.getName());
+        proxySelectorDTO.setName(selectorDO.getSelectorName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
@@ -258,7 +258,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             for (SelectorDO selectorDO : selectorDOS) {
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setPluginName(d.getPluginName());
-                proxySelectorDTO.setName(selectorDO.getName());
+                proxySelectorDTO.setName(selectorDO.getSelectorName());
                 proxySelectorDTO.setId(selectorDO.getId());
                 proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
