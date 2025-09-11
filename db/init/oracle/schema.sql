@@ -116,10 +116,10 @@ create table selector
 (
     id           VARCHAR2(128) not null primary key,
     plugin_id    VARCHAR2(128) not null,
-    name         VARCHAR2(64) not null,
+    selector_name VARCHAR2(64) not null,
     match_mode   NUMBER(10) not null,
-    type         NUMBER(10) not null,
-    sort         NUMBER(10) not null,
+    selector_type NUMBER(10) not null,
+    sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
@@ -134,13 +134,13 @@ comment on column SELECTOR.id
   is 'primary key id varchar';
 comment on column SELECTOR.plugin_id
   is 'plugin id';
-comment on column SELECTOR.name
+comment on column SELECTOR.selector_name
   is 'selector name';
 comment on column SELECTOR.match_mode
   is 'matching mode (0 and 1 or)';
-comment on column SELECTOR.type
+comment on column SELECTOR.selector_type
   is 'type (0 full flow, 1 custom flow)';
-comment on column SELECTOR.sort
+comment on column SELECTOR.sort_code
   is 'sort';
 comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
@@ -200,7 +200,7 @@ create table rule
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
     sort          NUMBER(10) not null,
-    handle        VARCHAR2(1024),
+    handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
 );
@@ -3616,7 +3616,7 @@ CREATE TABLE "public"."registry_config"  (
     username      varchar2(50),
     password      varchar2(100),
     namespace     varchar2(100),
-    group         varchar2(20),
+    registry_group         varchar2(20),
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     CONSTRAINT registry_config_pk PRIMARY KEY (id)
@@ -3630,7 +3630,7 @@ COMMENT ON COLUMN registry_config.address IS 'address';
 COMMENT ON COLUMN registry_config.username IS 'username';
 COMMENT ON COLUMN registry_config.password IS 'password';
 COMMENT ON COLUMN registry_config.namespace IS 'namespace';
-COMMENT ON COLUMN registry_config.group IS 'group';
+COMMENT ON COLUMN registry_config.registry_group IS 'group';
 COMMENT ON COLUMN registry_config.date_created IS 'create time';
 COMMENT ON COLUMN registry_config.date_updated IS 'update time';
 

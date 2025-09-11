@@ -253,7 +253,7 @@ CREATE TABLE "public"."registry_config"  (
                                              "username"      varchar(50),
                                              "password"      varchar(100),
                                              "namespace"     varchar(100),
-                                             "group"         varchar(20),
+                                             "registry_group"         varchar(20),
                                              "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
                                              "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
                                              PRIMARY KEY ("id")
@@ -280,3 +280,8 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303902', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
+ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
+ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
