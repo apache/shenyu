@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -100,9 +101,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
                     break;
                 case AI_PROXY_API_KEY:
-                    listener.onAiProxyApiKeyChanged(
-                            (List<org.apache.shenyu.common.dto.ProxyApiKeyData>) event.getSource(),
-                            event.getEventType());
+                    listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
                     break;
                 case DISCOVER_UPSTREAM:
                     listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),

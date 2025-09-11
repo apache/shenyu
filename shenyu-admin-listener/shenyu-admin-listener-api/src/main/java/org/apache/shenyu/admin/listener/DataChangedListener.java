@@ -91,22 +91,21 @@ public interface DataChangedListener {
     }
 
     /**
-     * invoke this method when Ai Proxy ApiKey mappings were changed.
-     *
-     * @param changed   the changed
-     * @param eventType the event type
-     */
-    default void onAiProxyApiKeyChanged(List<ProxyApiKeyData> changed,
-            DataEventTypeEnum eventType) {
-    }
-
-    /**
      * invoke this method when DiscoveryUpstream was changed.
      *
      * @param changed   the changed
      * @param eventType the event type
      */
     default void onDiscoveryUpstreamChanged(List<DiscoverySyncData> changed, DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * invoke this method when AiProxyApiKey was changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    default void onAiProxyApiKeyChanged(List<ProxyApiKeyData> changed, DataEventTypeEnum eventType) {
     }
 
 }
