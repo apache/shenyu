@@ -287,3 +287,4 @@ ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
 ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
 ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
+ALTER TABLE "public"."tag" RENAME COLUMN "name" TO "tag_name";

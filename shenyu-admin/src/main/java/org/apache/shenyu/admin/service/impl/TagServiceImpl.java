@@ -203,7 +203,7 @@ public class TagServiceImpl implements TagService {
             final TagDO.TagExt parent = new TagDO.TagExt();
             TagDO.TagExt tagExt = new TagDO.TagExt();
             tagExt.setDesc(parentTagDO.getTagDesc());
-            tagExt.setName(parentTagDO.getName());
+            tagExt.setName(parentTagDO.getTagName());
             tagExt.setId(parentTagDO.getId());
             tagExt.setRefreshTime(parent.getRefreshTime());
             tagExt.setApiDocMd5(parent.getApiDocMd5());
@@ -213,7 +213,7 @@ public class TagServiceImpl implements TagService {
             TagDO.TagExt parentTagExt = Optional.ofNullable(GsonUtils.getInstance().fromJson(parentTagDO.getExt(), TagDO.TagExt.class)).orElse(new TagDO.TagExt());
             final TagDO.TagExt tagExt = new TagDO.TagExt();
             parentTagExt.setDesc(parentTagDO.getTagDesc());
-            parentTagExt.setName(parentTagDO.getName());
+            parentTagExt.setName(parentTagDO.getTagName());
             parentTagExt.setId(parentTagDO.getId());
             tagExt.setParent(parentTagExt);
             ext = GsonUtils.getInstance().toJson(tagExt);
