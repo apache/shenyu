@@ -37,6 +37,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,17 +188,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         String namespaceId = getNamespaceId(request);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
-            String raw = request.getParameter(group.name());
-            String[] params = StringUtils.split(raw, ',');
-            if (Objects.isNull(params)) {
-                // backward compatibility: client may not carry newly added group params
-                LOG.debug("[LongPolling] missing param for group={}, skip this group", group.name());
-                continue;
-            }
-            if (params.length != 2) {
-                // format invalid, skip this group and keep others working
-                LOG.warn("[LongPolling] invalid param format for group={}, raw={}", group.name(), raw);
-                continue;
+            String[] params = StringUtils.split(request.getParameter(group.name()), ',');
+            if (Objects.isNull(params) || params.length != 2) {
+                throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);

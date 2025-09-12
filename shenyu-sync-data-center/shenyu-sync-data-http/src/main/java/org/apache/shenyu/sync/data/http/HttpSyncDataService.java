@@ -42,6 +42,7 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
@@ -93,10 +94,11 @@ public class HttpSyncDataService implements SyncDataService {
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                               final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
                                final AccessTokenManager accessTokenManager,
                                final ShenyuConfig shenyuConfig) {
         this.accessTokenManager = accessTokenManager;
-        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.okHttpClient = okHttpClient;
         this.shenyuConfig = shenyuConfig;
