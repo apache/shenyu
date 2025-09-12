@@ -98,7 +98,14 @@ public class HttpSyncDataService implements SyncDataService {
                                final AccessTokenManager accessTokenManager,
                                final ShenyuConfig shenyuConfig) {
         this.accessTokenManager = accessTokenManager;
-        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers);
+        this.factory = new DataRefreshFactory(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.okHttpClient = okHttpClient;
         this.shenyuConfig = shenyuConfig;
