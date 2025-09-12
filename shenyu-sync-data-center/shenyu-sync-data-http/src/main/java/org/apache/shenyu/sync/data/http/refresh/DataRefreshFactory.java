@@ -29,6 +29,7 @@ import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -82,6 +83,8 @@ public final class DataRefreshFactory {
      * @return the config data
      */
     public ConfigData<?> cacheConfigData(final ConfigGroupEnum group) {
-        return ENUM_MAP.get(group).cacheConfigData();
+        DataRefresh dataRefresh = ENUM_MAP.get(group);
+        // In case new ConfigGroupEnum is added but not registered here yet, avoid NPE to keep HTTP sync alive
+        return Objects.isNull(dataRefresh) ? null : dataRefresh.cacheConfigData();
     }
 }
