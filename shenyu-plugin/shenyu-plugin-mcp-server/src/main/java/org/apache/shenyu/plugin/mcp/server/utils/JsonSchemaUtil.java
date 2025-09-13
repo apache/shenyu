@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.mcp.server.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import io.micrometer.common.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.mcp.server.model.McpServerToolParameter;
 import org.springframework.ai.util.json.JsonParser;
@@ -58,12 +59,41 @@ public final class JsonSchemaUtil {
         ObjectNode properties = schema.putObject("properties");
         for (McpServerToolParameter parameter : parameters) {
             ObjectNode property = properties.putObject(parameter.getName());
-            property.put("type", parameter.getType());
-            property.put("description", parameter.getDescription());
+            recursionConstructPropertiesNodes(parameter, property);
         }
 
         processSchemaOptions(schemaOptions, schema);
         return schema.toPrettyString();
+    }
+
+    /**
+     * Recursively construct the properties nodes for the parameter.
+     *
+     * @param parameter the parameter
+     * @param property  the property
+     */
+    public static void recursionConstructPropertiesNodes(final McpServerToolParameter parameter,
+                                                         final ObjectNode property) {
+        property.put("type", parameter.getType());
+        // if the parameter is the item parameter of array, the description is null
+        if (StringUtils.isNotBlank(parameter.getDescription())) {
+            property.put("description", parameter.getDescription());
+        }
+        // add the properties schema for the object type parameter
+        List<McpServerToolParameter> parameters = parameter.getParameters();
+        if ("object".equals(parameter.getType()) && CollectionUtils.isNotEmpty(parameters)) {
+            ObjectNode properties = property.putObject("properties");
+            for (McpServerToolParameter itemParameter : parameters) {
+                ObjectNode property1 = properties.putObject(itemParameter.getName());
+                recursionConstructPropertiesNodes(itemParameter, property1);
+            }
+        }
+        // add the items schema for the array type parameter
+        if ("array".equals(parameter.getType()) && CollectionUtils.isNotEmpty(parameters)) {
+            McpServerToolParameter itemParameter = parameters.get(0);
+            ObjectNode items = property.putObject("items");
+            recursionConstructPropertiesNodes(itemParameter, items);
+        }
     }
 
     private static void processSchemaOptions(final SchemaOption[] schemaOptions, final ObjectNode schema) {
