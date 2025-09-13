@@ -577,3 +577,5 @@ ALTER TABLE rule RENAME COLUMN handle_new TO handle;
 ALTER TABLE selector RENAME COLUMN "type" TO "selector_type";
 ALTER TABLE selector RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE selector RENAME COLUMN "name" TO "selector_name";
+ALTER TABLE rule RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE rule RENAME COLUMN "name" TO "rule_name";
