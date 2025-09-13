@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -45,28 +46,29 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Event forwarders, which forward the changed events to each ConfigEventListener.
+ * Event forwarders, which forward the changed events to each
+ * ConfigEventListener.
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(DataChangedEventDispatcher.class);
-    
+
     private final ApplicationContext applicationContext;
-    
+
     private List<DataChangedListener> listeners;
-    
+
     @Resource
     private ClusterProperties clusterProperties;
-    
+
     @Resource
     @Nullable
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
-    
+
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
@@ -98,19 +100,25 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 case PROXY_SELECTOR:
                     listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
                     break;
+                case AI_PROXY_API_KEY:
+                    listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
+                    break;
                 case DISCOVER_UPSTREAM:
-                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
-                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged((List<DiscoverySyncData>) event.getSource(), event.getEventType());
+                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),
+                            event.getEventType());
+                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged(
+                            (List<DiscoverySyncData>) event.getSource(), event.getEventType());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
             }
         }
     }
-    
+
     @Override
     public void afterPropertiesSet() {
-        Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class).values();
+        Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class)
+                .values();
         this.listeners = Collections.unmodifiableList(new ArrayList<>(listenerBeans));
     }
 }

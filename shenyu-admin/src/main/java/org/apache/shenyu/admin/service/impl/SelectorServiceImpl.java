@@ -100,6 +100,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 @Service
 public class SelectorServiceImpl implements SelectorService {
 
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SelectorServiceImpl.class);
+
     private final SelectorMapper selectorMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;

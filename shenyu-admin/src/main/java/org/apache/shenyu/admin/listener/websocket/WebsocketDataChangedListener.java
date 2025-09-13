@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
-import java.util.List;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -34,7 +35,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import java.util.List;
 
 /**
  * The type Websocket data changed listener.
@@ -42,75 +43,177 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  * @since 2.0.0
  */
 public class WebsocketDataChangedListener implements DataChangedListener {
-    
+
     @Override
-    public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
+    public void onPluginChanged(
+            final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
         WebsocketData<PluginData> websocketData =
-                new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
+                new WebsocketData<>(
+                        ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            String namespaceId = pluginDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+            String namespaceId =
+                    pluginDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
         }
     }
-    
+
     @Override
-    public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
+    public void onSelectorChanged(
+            final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<SelectorData> websocketData =
-                new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
+                new WebsocketData<>(
+                        ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            String namespaceId = selectorDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+            String namespaceId =
+                    selectorDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
         }
     }
-    
+
     @Override
-    public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
+    public void onRuleChanged(
+            final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
         WebsocketData<RuleData> configData =
                 new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
         if (CollectionUtils.isNotEmpty(ruleDataList)) {
-            String namespaceId = ruleDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+            String namespaceId =
+                    ruleDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
         }
     }
-    
+
     @Override
-    public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
+    public void onAppAuthChanged(
+            final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         WebsocketData<AppAuthData> configData =
-                new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
+                new WebsocketData<>(
+                        ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
         if (CollectionUtils.isNotEmpty(appAuthDataList)) {
-            String namespaceId = appAuthDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+            String namespaceId =
+                    appAuthDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
         }
     }
-    
+
     @Override
-    public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
+    public void onMetaDataChanged(
+            final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
         WebsocketData<MetaData> configData =
-                new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
+                new WebsocketData<>(
+                        ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
         if (CollectionUtils.isNotEmpty(metaDataList)) {
-            String namespaceId = metaDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+            String namespaceId =
+                    metaDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
         }
     }
-    
+
     @Override
-    public void onProxySelectorChanged(final List<ProxySelectorData> proxySelectorDataList, final DataEventTypeEnum eventType) {
+    public void onProxySelectorChanged(
+            final List<ProxySelectorData> proxySelectorDataList,
+            final DataEventTypeEnum eventType) {
         WebsocketData<ProxySelectorData> configData =
-                new WebsocketData<>(ConfigGroupEnum.PROXY_SELECTOR.name(), eventType.name(), proxySelectorDataList);
+                new WebsocketData<>(
+                        ConfigGroupEnum.PROXY_SELECTOR.name(),
+                        eventType.name(),
+                        proxySelectorDataList);
         if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
-            String namespaceId = proxySelectorDataList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+            String namespaceId =
+                    proxySelectorDataList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
         }
     }
-    
+
     @Override
-    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
-        WebsocketData<DiscoverySyncData> configData =
-                new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoveryUpstreamList);
-        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
-            String namespaceId = discoveryUpstreamList.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-            WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+    public void onAiProxyApiKeyChanged(
+            final List<ProxyApiKeyData> changed, final DataEventTypeEnum eventType) {
+        WebsocketData<ProxyApiKeyData> configData =
+                new WebsocketData<>(
+                        ConfigGroupEnum.AI_PROXY_API_KEY.name(), eventType.name(), changed);
+        if (CollectionUtils.isNotEmpty(changed)) {
+            String namespaceId =
+                    changed.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
         }
     }
-    
+
+    @Override
+    public void onDiscoveryUpstreamChanged(
+            final List<DiscoverySyncData> discoveryUpstreamList,
+            final DataEventTypeEnum eventType) {
+        WebsocketData<DiscoverySyncData> configData =
+                new WebsocketData<>(
+                        ConfigGroupEnum.DISCOVER_UPSTREAM.name(),
+                        eventType.name(),
+                        discoveryUpstreamList);
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            String namespaceId =
+                    discoveryUpstreamList.stream()
+                            .map(
+                                    value ->
+                                            StringUtils.defaultString(
+                                                    value.getNamespaceId(),
+                                                    SYS_DEFAULT_NAMESPACE_ID))
+                            .findFirst()
+                            .get();
+            WebsocketCollector.send(
+                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+        }
+    }
 }
