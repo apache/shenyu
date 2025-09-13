@@ -237,7 +237,7 @@ public class TagVO implements Serializable {
      * @return tagVO
      */
     public static TagVO buildTagVO(final TagDO tagDO) {
-        return new TagVO(tagDO.getId(), tagDO.getName(), tagDO.getTagDesc(), tagDO.getParentTagId(), tagDO.getExt(),
+        return new TagVO(tagDO.getId(), tagDO.getTagName(), tagDO.getTagDesc(), tagDO.getParentTagId(), tagDO.getExt(),
                 DateUtils.localDateTimeToString(tagDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(tagDO.getDateUpdated().toLocalDateTime()));
     }

@@ -96,7 +96,8 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
-        return appAuthMapper.selectByCondition(condition);
+        final List<AppAuthDO> appAuthDOS = appAuthMapper.selectByCondition(condition);
+        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToVO).toList();
     }
 
     @Override

@@ -2455,7 +2455,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 create table tag
 (
     id            VARCHAR2(128) not null,
-    name          VARCHAR2(255) not null,
+    tag_name      VARCHAR2(255) not null,
     tag_desc      VARCHAR2(255) not null,
     parent_tag_id VARCHAR2(128) not null,
     ext           VARCHAR2(1024) not null,
