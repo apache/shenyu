@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.entity;
 
-import org.apache.shenyu.admin.model.dto.InstanceInfoDTO;
+import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -39,6 +39,8 @@ public final class InstanceInfoDO extends BaseDO {
     private Integer instanceState;
     
     private String namespaceId;
+
+    private long lastHeartBeatTime;
     
     public InstanceInfoDO() {
         
@@ -99,27 +101,7 @@ public final class InstanceInfoDO extends BaseDO {
         this.instanceInfo = instanceInfo;
         this.namespaceId = namespaceId;
     }
-    
-    /**
-     * build InstanceInfoDO.
-     *
-     * @param instanceInfoDTO instanceInfoDTO
-     * @return InstanceInfoDO
-     */
-    public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoDTO instanceInfoDTO) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return InstanceInfoDO.builder()
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .instanceIp(instanceInfoDTO.getInstanceIp())
-                .instancePort(instanceInfoDTO.getInstancePort())
-                .instanceType(instanceInfoDTO.getInstanceType())
-                .instanceInfo(instanceInfoDTO.getInstanceInfo())
-                .instanceState(instanceInfoDTO.getInstanceState())
-                .namespaceId(instanceInfoDTO.getNamespaceId())
-                .dateCreated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
-    }
+
     
     /**
      * get instanceIp.
@@ -228,7 +210,25 @@ public final class InstanceInfoDO extends BaseDO {
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
     }
-    
+
+    /**
+     * get lastHeartBeatTime.
+     *
+     * @return lastHeartBeatTime
+     */
+    public long getLastHeartBeatTime() {
+        return lastHeartBeatTime;
+    }
+
+    /**
+     * set lastHeartBeatTime.
+     *
+     * @param lastHeartBeatTime lastHeartBeatTime
+     */
+    public void setLastHeartBeatTime(final long lastHeartBeatTime) {
+        this.lastHeartBeatTime = lastHeartBeatTime;
+    }
+
     /**
      * builder.
      *
@@ -261,6 +261,27 @@ public final class InstanceInfoDO extends BaseDO {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), instanceIp, instancePort, instanceType, instanceInfo, instanceState, namespaceId);
+    }
+
+    /**
+     * build InstanceInfoDO.
+     *
+     * @param instanceInfoVO instanceInfoVO
+     * @return InstanceInfoDO
+     */
+    public static InstanceInfoDO buildInstanceInfoDO(final InstanceInfoVO instanceInfoVO) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return InstanceInfoDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .instanceIp(instanceInfoVO.getInstanceIp())
+                .instancePort(instanceInfoVO.getInstancePort())
+                .instanceType(instanceInfoVO.getInstanceType())
+                .instanceInfo(instanceInfoVO.getInstanceInfo())
+                .instanceState(instanceInfoVO.getInstanceState())
+                .namespaceId(instanceInfoVO.getNamespaceId())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
     }
     
     public static final class InstanceInfoDOBuilder {
