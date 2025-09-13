@@ -56,7 +56,7 @@ public class DiscoveryProcessorHolderTest {
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.NACOS.name()));
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.EUREKA.name()));
 
-        // 测试不支持的模式
+        // Testing unsupported modes
         assertThrows(NotImplementedException.class, () -> processorHolder.chooseProcessor("UNKNOWN_MODE"));
     }
 }
