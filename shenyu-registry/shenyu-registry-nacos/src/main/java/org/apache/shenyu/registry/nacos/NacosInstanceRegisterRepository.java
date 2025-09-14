@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -132,7 +133,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
                     try {
                         List<Instance> previousInstances = instanceListMap.get(key);
                         List<Instance> currentInstances = namingService.selectInstances(key, groupName, true);
-                        compareInstances(previousInstances, currentInstances, listener);
+                        compareInstances(new HashSet<>(previousInstances), new HashSet<>(currentInstances), listener);
                         instanceListMap.put(key, currentInstances);
                     } catch (NacosException e) {
                         throw new ShenyuException(e);
@@ -163,7 +164,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         }
     }
 
-    private void compareInstances(final List<Instance> previousInstances, final List<Instance> currentInstances, final ChangedEventListener listener) {
+    private void compareInstances(final Set<Instance> previousInstances, final Set<Instance> currentInstances, final ChangedEventListener listener) {
         Set<Instance> addedInstances = currentInstances.stream()
                 .filter(item -> !previousInstances.contains(item))
                 .collect(Collectors.toSet());

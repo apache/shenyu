@@ -194,12 +194,12 @@ create table rule
     id            VARCHAR2(128) not null PRIMARY KEY,
     selector_id   VARCHAR2(128) not null,
     match_mode    NUMBER(10) not null,
-    name          VARCHAR2(128) not null,
+    rule_name     VARCHAR2(128) not null,
     enabled       NUMBER(3) not null,
     loged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
-    namespace_id VARCHAR2(50) not null,
-    sort          NUMBER(10) not null,
+    namespace_id  VARCHAR2(50) not null,
+    sort_code     NUMBER(10) not null,
     handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
@@ -211,7 +211,7 @@ comment on column RULE.selector_id
   is 'selector id';
 comment on column RULE.match_mode
   is 'matching mode (0 and 1 or)';
-comment on column RULE.name
+comment on column RULE.rule_name
   is 'rule name';
 comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
@@ -221,7 +221,7 @@ comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
 comment on column RULE.namespace_id
   is 'namespace id';
-comment on column RULE.sort
+comment on column RULE.sort_code
   is 'sort';
 comment on column RULE.handle
   is 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
