@@ -2040,12 +2040,12 @@ CREATE TABLE "public"."rule" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "match_mode" int4 NOT NULL,
-  "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-  "sort" int4 NOT NULL,
+  "sort_code" int4 NOT NULL,
   "handle" text COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -2054,12 +2054,12 @@ CREATE TABLE "public"."rule" (
 COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
-COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
+COMMENT ON COLUMN "public"."rule"."rule_name" IS 'rule name';
 COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespace id';
-COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."rule"."sort_code" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."rule"."date_updated" IS 'update time';
