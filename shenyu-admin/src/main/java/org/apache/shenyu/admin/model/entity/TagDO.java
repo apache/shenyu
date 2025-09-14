@@ -161,7 +161,7 @@ public final class TagDO extends BaseDO {
             TagDO tagDO = TagDO.builder()
                     .parentTagId(tagDTO.getParentTagId())
                     .tagDesc(tagDTO.getTagDesc())
-                    .name(tagDTO.getName())
+                    .tagName(tagDTO.getTagName())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
@@ -272,7 +272,7 @@ public final class TagDO extends BaseDO {
          * @param tagName name
          * @return TagDOBuilder.
          */
-        public TagDO.TagDOBuilder name(final String tagName) {
+        public TagDO.TagDOBuilder tagName(final String tagName) {
             this.tagName = tagName;
             return this;
         }
