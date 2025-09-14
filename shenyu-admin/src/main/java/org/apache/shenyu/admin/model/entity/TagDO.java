@@ -370,7 +370,7 @@ public final class TagDO extends BaseDO {
          *
          * @return tagName tagName
          */
-        public String getTagName() {
+        public String getName() {
             return tagName;
         }
 

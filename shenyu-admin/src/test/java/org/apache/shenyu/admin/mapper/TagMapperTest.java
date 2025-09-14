@@ -103,7 +103,7 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         int count = tagMapper.insertSelective(record);
         assertEquals(count, 1);
         TagQuery tagQuery = new TagQuery();
-        tagQuery.setName("111");
+        tagQuery.setTagName("111");
         List<TagDO> tagDOList = tagMapper.selectByQuery(tagQuery);
         assertEquals(tagDOList.size(), 1);
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
