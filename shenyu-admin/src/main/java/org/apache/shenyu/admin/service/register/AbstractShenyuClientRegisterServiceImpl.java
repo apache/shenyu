@@ -192,7 +192,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
-        LOG.info("selectorDO info: {}.", selectorDO);
+        LOG.info("selector info params: selectorName: {}, pluginName: {}, namespaceId: {}, selectorDO info: {}.",
+                selectorName, pluginName, namespaceId, selectorDO);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doRegister Failed to execute, wait to retry.");
         }
