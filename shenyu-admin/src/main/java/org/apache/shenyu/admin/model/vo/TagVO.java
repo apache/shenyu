@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import java.io.Serializable;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.common.utils.DateUtils;
+
+import java.io.Serializable;
 
 /**
  * this is tag view to web front.
@@ -36,7 +37,7 @@ public class TagVO implements Serializable {
     /**
      * name.
      */
-    private String name;
+    private String tagName;
 
     /**
      * tagDesc.
@@ -72,14 +73,14 @@ public class TagVO implements Serializable {
     }
 
     public TagVO(final String id,
-                 final String name,
+                 final String tagName,
                  final String tagDesc,
                  final String parentTagId,
                  final String ext,
                  final String dateCreated,
                  final String dateUpdated) {
         this.id = id;
-        this.name = name;
+        this.tagName = tagName;
         this.tagDesc = tagDesc;
         this.parentTagId = parentTagId;
         this.ext = ext;
@@ -107,16 +108,16 @@ public class TagVO implements Serializable {
      * get name.
      * @return name
      */
-    public String getName() {
-        return name;
+    public String getTagName() {
+        return tagName;
     }
 
     /**
      * set name.
-     * @param name name
+     * @param tagName name
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setTagName(final String tagName) {
+        this.tagName = tagName;
     }
 
     /**
