@@ -198,7 +198,6 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         protected void doRetry(final String key, final TimerTask timerTask) {
             registerService.recover(key);
             registerService.removeFallBack(key);
-
         }
     }
 }
