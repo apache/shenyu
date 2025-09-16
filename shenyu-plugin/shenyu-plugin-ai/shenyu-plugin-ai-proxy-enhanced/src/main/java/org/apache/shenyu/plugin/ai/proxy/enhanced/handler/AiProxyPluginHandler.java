@@ -58,6 +58,7 @@ public class AiProxyPluginHandler implements PluginDataHandler {
             return;
         }
         AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), AiProxyHandle.class);
+        aiProxyHandle.normalize();
         selectorCachedHandle
                 .cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), aiProxyHandle);
     }

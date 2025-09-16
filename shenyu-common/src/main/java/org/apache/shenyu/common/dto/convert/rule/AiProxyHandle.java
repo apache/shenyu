@@ -25,37 +25,37 @@ import java.util.Objects;
  * this is Ai Proxy plugin handle.
  */
 public class AiProxyHandle {
-    
+
     /**
      * provider.
      */
     private String provider;
-    
+
     /**
      * base url.
      */
     private String baseUrl;
-    
+
     /**
      * api key.
      */
     private String apiKey;
-    
+
     /**
      * model.
      */
     private String model;
-    
+
     /**
      * temperature.
      */
     private Double temperature = 0.8;
-    
+
     /**
      * max tokens.
      */
     private Integer maxTokens;
-    
+
     /**
      * stream.
      */
@@ -65,6 +65,15 @@ public class AiProxyHandle {
      * fallback config.
      */
     private FallbackConfig fallbackConfig;
+
+    // flat fallback fields (to fit dashboard flat handle capability)
+    private String fallbackEnabled;
+    private String fallbackProvider;
+    private String fallbackBaseUrl;
+    private String fallbackApiKey;
+    private String fallbackModel;
+    private Double fallbackTemperature;
+    private Integer fallbackMaxTokens;
 
     /**
      * new default instance.
@@ -225,6 +234,40 @@ public class AiProxyHandle {
      */
     public void setFallbackConfig(final FallbackConfig fallbackConfig) {
         this.fallbackConfig = fallbackConfig;
+    }
+
+    /**
+     * Normalize this handle by assembling nested FallbackConfig from flat fields when enabled.
+     *
+     * @return this handle after normalization
+     */
+    public AiProxyHandle normalize() {
+        boolean enabled = "true".equalsIgnoreCase(String.valueOf(fallbackEnabled));
+        if (!enabled) {
+            this.fallbackConfig = null;
+            return this;
+        }
+        FallbackConfig cfg = Objects.nonNull(this.fallbackConfig) ? this.fallbackConfig : new FallbackConfig();
+        if (fallbackProvider != null && !fallbackProvider.isEmpty()) {
+            cfg.setProvider(fallbackProvider);
+        }
+        if (fallbackBaseUrl != null && !fallbackBaseUrl.isEmpty()) {
+            cfg.setBaseUrl(fallbackBaseUrl);
+        }
+        if (fallbackApiKey != null && !fallbackApiKey.isEmpty()) {
+            cfg.setApiKey(fallbackApiKey);
+        }
+        if (fallbackModel != null && !fallbackModel.isEmpty()) {
+            cfg.setModel(fallbackModel);
+        }
+        if (fallbackTemperature != null) {
+            cfg.setTemperature(fallbackTemperature);
+        }
+        if (fallbackMaxTokens != null) {
+            cfg.setMaxTokens(fallbackMaxTokens);
+        }
+        this.fallbackConfig = cfg;
+        return this;
     }
 
     @Override
