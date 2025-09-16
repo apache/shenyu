@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -50,6 +51,7 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -95,6 +97,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final SecretProperties secretProperties;
 
+    private final NamespaceUserService namespaceUserService;
+
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                     final UserRoleMapper userRoleMapper,
                                     final RoleMapper roleMapper,
@@ -103,7 +107,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                                     final JwtProperties jwtProperties,
                                     final UserEventPublisher publisher,
                                     final DashboardProperties properties,
-                                    final SecretProperties secretProperties) {
+                                    final SecretProperties secretProperties,
+                                    final NamespaceUserService namespaceUserService) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
@@ -113,6 +118,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         this.publisher = publisher;
         this.properties = properties;
         this.secretProperties = secretProperties;
+        this.namespaceUserService = namespaceUserService;
     }
 
     /**
@@ -135,9 +141,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         // create new user
         final int insertCount = dashboardUserMapper.insertSelective(dashboardUserDO);
-        bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
+        String userId = dashboardUserDO.getId();
+        bindUserRole(userId, dashboardUserDTO.getRoles());
         if (insertCount > 0) {
             publisher.onCreated(dashboardUserDO);
+            namespaceUserService.create(Constants.SYS_DEFAULT_NAMESPACE_ID, userId);
         }
         return insertCount;
     }
@@ -293,7 +301,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                         return loginUser;
                     }
-                    if (clientId != null) {
+                    if (Objects.nonNull(clientId)) {
                         DashboardUserDO userDO = new DashboardUserDO();
                         userDO.setId(loginUser.getId());
                         userDO.setClientId(clientId);

@@ -19,7 +19,10 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +32,10 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(HttpSyncProperties.class)
+@ConditionalOnProperty(prefix = "shenyu.sync.http", name = "enabled", havingValue = "true")
 public class HttpLongPollingSyncConfiguration {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingSyncConfiguration.class);
 
     /**
      * httpLongPollingDataChangedListener.
@@ -40,7 +46,8 @@ public class HttpLongPollingSyncConfiguration {
     @Bean
     @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
     public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
+        LOG.info("you use http long polling sync");
         return new HttpLongPollingDataChangedListener(httpSyncProperties);
     }
-
+    
 }

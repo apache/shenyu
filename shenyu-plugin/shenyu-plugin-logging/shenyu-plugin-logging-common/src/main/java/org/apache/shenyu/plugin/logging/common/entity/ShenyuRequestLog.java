@@ -70,6 +70,11 @@ public class ShenyuRequestLog {
     private String path;
 
     /**
+     * namespace id.
+     */
+    private String namespaceId;
+
+    /**
      * get module.
      *
      * @return module
@@ -457,6 +462,23 @@ public class ShenyuRequestLog {
         return ruleId;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
 
     /**
      * request ruleId.
@@ -489,6 +511,9 @@ public class ShenyuRequestLog {
                 + ", module=" + module
                 + ", traceId=" + traceId
                 + ", path=" + path
+                + ", selectorId=" + selectorId
+                + ", ruleId=" + ruleId
+                + ", namespaceId=" + namespaceId
                 + '}';
     }
 }

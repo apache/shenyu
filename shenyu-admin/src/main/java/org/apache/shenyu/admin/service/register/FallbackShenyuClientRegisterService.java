@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
 
-    private final Logger logger = LoggerFactory.getLogger(FallbackShenyuClientRegisterService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FallbackShenyuClientRegisterService.class);
 
     private final Map<String, FallbackHolder> fallsRegisters = new ConcurrentHashMap<>();
 
@@ -58,21 +58,26 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     @Override
-    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList) {
+    public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String result;
         String key = key(selectorName);
         try {
             this.removeFallBack(key);
-            result = this.doRegisterURI(selectorName, uriList);
-            logger.info("Register success: {},{}", selectorName, uriList);
+            result = this.doRegisterURI(selectorName, uriList, namespaceId);
+            LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
-            logger.warn("Register exception: cause:{}", ex.getMessage());
+            LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
-            this.addFallback(key, new FallbackHolder(selectorName, uriList));
+            this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
         }
         return result;
     }
-
+    
+    @Override
+    public String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doHeartbeat(selectorName, uriList, namespaceId);
+    }
+    
     private void addFallback(final String key, final FallbackHolder holder) {
         FallbackHolder oldObj = fallsRegisters.get(key);
         if (Objects.nonNull(oldObj)) {
@@ -81,7 +86,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         FallbackRegisterTask registryTask = new FallbackRegisterTask(key, this);
         fallsRegisters.put(key, holder);
         timer.add(registryTask);
-        logger.info("Add to Fallback and wait for execution, {}:{}", holder.getSelectorName(), holder.getUriList());
+        LOG.info("Add to Fallback and wait for execution, {}:{}:{}", holder.namespaceId(), holder.selectorName(), holder.uriList());
     }
 
     private void removeFallBack(final String key) {
@@ -91,10 +96,10 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     private void recover(final String key) {
         FallbackHolder fallbackHolder = fallsRegisters.get(key);
         if (Objects.nonNull(fallbackHolder)) {
-            List<URIRegisterDTO> uriList = fallbackHolder.getUriList();
-            String selectorName = fallbackHolder.getSelectorName();
-            this.doRegisterURI(selectorName, uriList);
-            logger.info("Register success: {},{}", selectorName, uriList);
+            List<URIRegisterDTO> uriList = fallbackHolder.uriList();
+            String selectorName = fallbackHolder.selectorName();
+            this.doRegisterURI(selectorName, uriList, fallbackHolder.namespaceId());
+            LOG.info("Register success: {},{}", selectorName, uriList);
         }
     }
 
@@ -109,16 +114,21 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @param uriList      the uri list
      * @return the string
      */
-    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList);
+    abstract String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Heartbeat.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @return the string
+     */
+    abstract String doHeartbeat(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.
      */
-    private static final class FallbackHolder {
-
-        private final String selectorName;
-
-        private final List<URIRegisterDTO> uriList;
+    private record FallbackHolder(String selectorName, List<URIRegisterDTO> uriList, String namespaceId) {
 
         /**
          * Instantiates a new Fall holder.
@@ -126,9 +136,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          * @param selectorName the selector name
          * @param uriList      the uri list
          */
-        FallbackHolder(final String selectorName, final List<URIRegisterDTO> uriList) {
-            this.selectorName = selectorName;
-            this.uriList = uriList;
+        private FallbackHolder {
         }
 
         /**
@@ -136,7 +144,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          *
          * @return the selector name
          */
-        public String getSelectorName() {
+        @Override
+        public String selectorName() {
             return selectorName;
         }
 
@@ -145,8 +154,19 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
          *
          * @return the uri list
          */
-        public List<URIRegisterDTO> getUriList() {
+        @Override
+        public List<URIRegisterDTO> uriList() {
             return uriList;
+        }
+
+        /**
+         * Gets namespace id.
+         *
+         * @return the namespace id
+         */
+        @Override
+        public String namespaceId() {
+            return namespaceId;
         }
     }
 
@@ -178,7 +198,6 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         protected void doRetry(final String key, final TimerTask timerTask) {
             registerService.recover(key);
             registerService.removeFallBack(key);
-
         }
     }
 }

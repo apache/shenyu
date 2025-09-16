@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.feign;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,7 +112,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     private void registerDefaultConfiguration(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Map<String, Object> defaultAttrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName(), true);
 
-        if (defaultAttrs != null && defaultAttrs.containsKey("defaultConfiguration")) {
+        if (MapUtils.isNotEmpty(defaultAttrs) && defaultAttrs.containsKey("defaultConfiguration")) {
             String name;
             if (metadata.hasEnclosingClass()) {
                 name = "default." + metadata.getEnclosingClassName();
@@ -131,9 +132,9 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void registerShenyuClients(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
         Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableShenyuClients.class.getName());
-        final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
+        final Class<?>[] clients = Objects.isNull(attrs) ? null : (Class<?>[]) attrs.get("clients");
         LOG.info("clients:{}", JsonUtils.toJson(clients));
-        if (clients == null || clients.length == 0) {
+        if (Objects.isNull(clients) || clients.length == 0) {
             ClassPathScanningCandidateComponentProvider scanner = getScanner();
             scanner.setResourceLoader(this.resourceLoader);
             scanner.addIncludeFilter(new AnnotationTypeFilter(ShenyuClient.class));
@@ -185,12 +186,12 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
             factoryBean.setPath(getPath(beanFactory, attributes));
             factoryBean.setDismiss404(Boolean.parseBoolean(String.valueOf(attributes.get("dismiss404"))));
             Object fallback = attributes.get("fallback");
-            if (fallback != null) {
+            if (Objects.nonNull(fallback)) {
                 factoryBean.setFallback(fallback instanceof Class ? (Class<?>) fallback
                                             : ClassUtils.resolveClassName(fallback.toString(), null));
             }
             Object fallbackFactory = attributes.get("fallbackFactory");
-            if (fallbackFactory != null) {
+            if (Objects.nonNull(fallbackFactory)) {
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory
                                                    : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
@@ -245,16 +246,16 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private String resolve(final ConfigurableBeanFactory beanFactory, final String value) {
         if (StringUtils.hasText(value)) {
-            if (beanFactory == null) {
+            if (Objects.isNull(beanFactory)) {
                 return this.environment.resolvePlaceholders(value);
             }
             BeanExpressionResolver resolver = beanFactory.getBeanExpressionResolver();
             String resolved = beanFactory.resolveEmbeddedValue(value);
-            if (resolver == null) {
+            if (Objects.isNull(resolver)) {
                 return resolved;
             }
             Object evaluateValue = resolver.evaluate(resolved, new BeanExpressionContext(beanFactory, null));
-            if (evaluateValue != null) {
+            if (Objects.nonNull(evaluateValue)) {
                 return String.valueOf(evaluateValue);
             }
             return null;
@@ -311,7 +312,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     private String getQualifier(final Map<String, Object> client) {
-        if (client == null) {
+        if (Objects.isNull(client)) {
             return null;
         }
         String qualifier = (String) client.get("qualifier");
@@ -322,12 +323,12 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     private String[] getQualifiers(final Map<String, Object> client) {
-        if (client == null) {
+        if (Objects.isNull(client)) {
             return null;
         }
         List<String> qualifierList = new ArrayList<>(Arrays.asList((String[]) client.get("qualifiers")));
         qualifierList.removeIf(qualifier -> !StringUtils.hasText(qualifier));
-        if (qualifierList.isEmpty() && getQualifier(client) != null) {
+        if (qualifierList.isEmpty() && Objects.nonNull(getQualifier(client))) {
             qualifierList = Collections.singletonList(getQualifier(client));
         }
         return !qualifierList.isEmpty() ? qualifierList.toArray(new String[0]) : null;
@@ -360,7 +361,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
         } catch (URISyntaxException e) {
             host = null;
         }
-        Assert.state(host != null, "Service id not legal hostname (" + name + ")");
+        Assert.state(Objects.nonNull(host), "Service id not legal hostname (" + name + ")");
         return name;
     }
 
@@ -441,7 +442,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     private String getClientName(final Map<String, Object> client) {
-        if (client == null) {
+        if (Objects.isNull(client)) {
             return null;
         }
         String value = (String) client.get("contextId");

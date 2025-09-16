@@ -74,7 +74,7 @@ public final class MockUtil {
     public static FormatDouble randomDouble(final double min, final double max, final String... format) {
         
         Double result = (Math.random() * (max - min)) + min;
-        if (format != null && format.length != 0) {
+        if (Objects.nonNull(format) && format.length != 0) {
             return new FormatDouble(result, format[0]);
         }
         return new FormatDouble(result);

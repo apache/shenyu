@@ -80,6 +80,11 @@ public enum EventTypeEnum {
      */
     USER_CREATE("CREATE:User", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
+    /**
+     * namespace created event.
+     */
+    NAMESPACE_CREATE("CREATE:Namespace", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
     // ============== delete ===================
     /**
      * deleted event.

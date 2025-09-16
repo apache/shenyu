@@ -19,9 +19,11 @@ package org.apache.shenyu.springboot.starter.sync.data.nacos;
 
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.nacos.config.NacosACMConfig;
+import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.nacos.config.NacosACMConfig;
-import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.mockStatic;
         })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
+@MockBean(name = "shenyuConfig", value = ShenyuConfig.class, answer = CALLS_REAL_METHODS)
 public final class NacosSyncDataConfigurationTest {
 
     @Autowired
@@ -73,8 +76,8 @@ public final class NacosSyncDataConfigurationTest {
     @Test
     public void nacosConfigServiceTest() {
         try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
-            final NacosConfig nacosConfig2 = new NacosConfig();
-            final NacosACMConfig nacosACMConfig = new NacosACMConfig();
+            final NacosConfig nacosConfig2 = NacosConfig.builder().build();
+            final NacosACMConfig nacosACMConfig = NacosACMConfig.builder().build();
             nacosConfig2.setAcm(nacosACMConfig);
             nacosFactoryMockedStatic.when(() -> NacosFactory.createConfigService(any(Properties.class))).thenReturn(mock(ConfigService.class));
             nacosConfig2.setUrl("url");

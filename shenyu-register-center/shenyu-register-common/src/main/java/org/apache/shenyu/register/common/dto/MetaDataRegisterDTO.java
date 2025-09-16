@@ -485,7 +485,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         MetaDataRegisterDTO that = (MetaDataRegisterDTO) o;
@@ -780,7 +780,6 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.addPrefixed = addPrefixed;
             return this;
         }
-
 
         /**
          * namespaceId.

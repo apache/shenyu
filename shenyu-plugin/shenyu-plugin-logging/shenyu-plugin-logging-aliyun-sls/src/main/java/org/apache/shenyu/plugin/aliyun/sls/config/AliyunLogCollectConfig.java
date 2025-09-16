@@ -292,7 +292,7 @@ public class AliyunLogCollectConfig {
                 return Boolean.TRUE;
             }
 
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return Boolean.FALSE;
             }
 
@@ -306,13 +306,18 @@ public class AliyunLogCollectConfig {
                     && Objects.equals(getSendThreadCount(), that.getSendThreadCount())
                     && Objects.equals(getShardCount(), that.getShardCount())
                     && Objects.equals(getTopic(), that.getTopic())
-                    && Objects.equals(getTtlInDay(), that.getTtlInDay());
+                    && Objects.equals(getTtlInDay(), that.getTtlInDay())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody());
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(accessId, accessKey, host, ioThreadCount, logStoreName,
-                    projectName, sendThreadCount, shardCount, topic, ttlInDay);
+                    projectName, sendThreadCount, shardCount, topic, ttlInDay,
+                    getSampleRate(), getBufferQueueSize(), getMaxRequestBody(), getMaxResponseBody());
         }
     }
 }

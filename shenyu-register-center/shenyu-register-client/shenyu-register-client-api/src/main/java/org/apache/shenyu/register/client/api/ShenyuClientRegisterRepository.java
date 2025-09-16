@@ -61,6 +61,14 @@ public interface ShenyuClientRegisterRepository {
     }
 
     /**
+     * Send heartbeat.
+     *
+     * @param heartbeatDTO the heartbeat dto
+     */
+    default void sendHeartbeat(URIRegisterDTO heartbeatDTO) {
+    }
+
+    /**
      * persistApiDoc.
      * @param apiDocRegisterDTO apiDocRegisterDTO
      */

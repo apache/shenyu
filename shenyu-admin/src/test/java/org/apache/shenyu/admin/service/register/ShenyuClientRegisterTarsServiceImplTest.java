@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -81,11 +82,15 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         String serviceName = "metaDataService";
         String methodName = "registerMetadata";
-        when(metaDataService.findByServiceNameAndMethodName(any(), any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().serviceName(serviceName)
-                .methodName(methodName).build();
+        when(metaDataService.findByServiceNameAndMethodNameAndNamespaceId(any(), any(), any())).thenReturn(metaDataDO);
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO
+                .builder()
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
+                .build();
         shenyuClientRegisterTarsService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByServiceNameAndMethodName(serviceName, methodName);
+        verify(metaDataService).findByServiceNameAndMethodNameAndNamespaceId(serviceName, methodName, SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
     
@@ -93,10 +98,10 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
     public void testBuildHandle() {
         shenyuClientRegisterTarsService = spy(shenyuClientRegisterTarsService);
     
-        final String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267},"
-                + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267}]";
-        final String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267},"
-                + "{\"weight\":2,\"warmup\":10,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267}]";
+        final String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267,\"gray\":false},"
+                + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267,\"gray\":false}]";
+        final String expected = "[{\"weight\":1,\"warmup\":10,\"upstreamUrl\":\"localhost:8090\",\"status\":true,\"timestamp\":1637826588267,\"gray\":false},"
+                + "{\"weight\":2,\"warmup\":10,\"upstreamUrl\":\"localhost:8091\",\"status\":true,\"timestamp\":1637826588267,\"gray\":false}]";
         List<URIRegisterDTO> list = new ArrayList<>();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName()).host("localhost").port(8090).build());
         SelectorDO selectorDO = mock(SelectorDO.class);

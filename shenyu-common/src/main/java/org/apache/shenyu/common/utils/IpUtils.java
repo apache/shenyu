@@ -110,14 +110,14 @@ public final class IpUtils {
         // filter matching ip
         if ("*".equals(filterHost) || "".equals(filterHost)) {
             pattern = null;
-        } else if (filterHost != null && !filterHost.contains("*") && !isCompleteHost(filterHost)) {
+        } else if (Objects.nonNull(filterHost) && !filterHost.contains("*") && !isCompleteHost(filterHost)) {
             pattern = filterHost + "*";
         }
 
         // if the progress works under docker environment
         // return the host ip about this docker located from environment value
         String dockerHostIp = System.getenv(SYSTEM_ENV_DOCKER_HOST_IP);
-        if (dockerHostIp != null && StringUtils.isNoneBlank(dockerHostIp)) {
+        if (Objects.nonNull(dockerHostIp) && StringUtils.isNoneBlank(dockerHostIp)) {
             return dockerHostIp;
         }
 
@@ -132,7 +132,7 @@ public final class IpUtils {
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress inetAddress = addresses.nextElement();
-                    if (inetAddress != null && !inetAddress.isLoopbackAddress()) {
+                    if (Objects.nonNull(inetAddress) && !inetAddress.isLoopbackAddress()) {
                         if (inetAddress instanceof Inet4Address && isCompleteHost(inetAddress.getHostAddress())) {
                             netCard = new NetCard(inetAddress.getHostAddress(),
                                     getName(networkInterface.getName()),
@@ -156,7 +156,7 @@ public final class IpUtils {
             ipv6Result.sort(BY_NAME.thenComparing(byNamePostfix));
             // prefer ipv4
             if (!ipv4Result.isEmpty()) {
-                if (pattern != null) {
+                if (Objects.nonNull(pattern)) {
                     for (NetCard card : ipv4Result) {
                         if (ipMatch(card.getIp(), pattern)) {
                             hostIp = card.getIp();
@@ -186,7 +186,7 @@ public final class IpUtils {
      * @return boolean
      */
     public static boolean isCompleteHost(final String host) {
-        if (host == null) {
+        if (Objects.isNull(host)) {
             return false;
         }
         return IP_PATTERN.matcher(host).matches();

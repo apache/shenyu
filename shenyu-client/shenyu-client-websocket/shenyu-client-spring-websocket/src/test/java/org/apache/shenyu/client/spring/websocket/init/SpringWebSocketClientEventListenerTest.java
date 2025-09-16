@@ -20,8 +20,12 @@ package org.apache.shenyu.client.spring.websocket.init;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -86,8 +91,14 @@ public class SpringWebSocketClientEventListenerTest {
         when(properties.getProperty(ShenyuClientConstants.PORT)).thenReturn("8080");
         when(properties.getProperty(ShenyuClientConstants.HOST)).thenReturn("127.0.0.1");
         when(properties.getProperty(ShenyuClientConstants.IP_PORT)).thenReturn("127.0.0.1:8080");
-        when(propertiesConfig.getProps()).thenReturn(properties);
-        eventListener = new SpringWebSocketClientEventListener(propertiesConfig, registerRepository);
+        
+        ShenyuClientConfig clientConfig = mock(ShenyuClientConfig.class);
+        Map<String, ClientPropertiesConfig> client = new HashMap<>();
+        ClientPropertiesConfig clientPropertiesConfig = new ClientPropertiesConfig();
+        clientPropertiesConfig.setProps(properties);
+        client.put(RpcTypeEnum.WEB_SOCKET.getName(), clientPropertiesConfig);
+        when(clientConfig.getClient()).thenReturn(client);
+        eventListener = new SpringWebSocketClientEventListener(clientConfig, registerRepository);
     }
 
     @Test
@@ -106,7 +117,7 @@ public class SpringWebSocketClientEventListenerTest {
 
     @Test
     public void testBuildURIRegisterDTO() {
-        URIRegisterDTO uriRegisterDTO = eventListener.buildURIRegisterDTO(applicationContext, Collections.emptyMap());
+        URIRegisterDTO uriRegisterDTO = eventListener.buildURIRegisterDTO(applicationContext, Collections.emptyMap(), Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(uriRegisterDTO);
         assertEquals("/contextPath", uriRegisterDTO.getContextPath());
         assertEquals("appName", uriRegisterDTO.getAppName());
@@ -156,7 +167,7 @@ public class SpringWebSocketClientEventListenerTest {
     @Test
     public void testBuildMetaDataDTO() throws NoSuchMethodException {
         Method method = mockClass.getClass().getMethod("mockMethod");
-        MetaDataRegisterDTO metaDataRegisterDTO = eventListener.buildMetaDataDTO(mockClass, annotation, SUPER_PATH, MockClass.class, method);
+        MetaDataRegisterDTO metaDataRegisterDTO = eventListener.buildMetaDataDTO(mockClass, annotation, SUPER_PATH, MockClass.class, method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataRegisterDTO);
     }
 

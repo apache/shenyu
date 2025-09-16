@@ -23,6 +23,7 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="discovery_handler_id" jdbcType="VARCHAR" property="discoveryHandlerId"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
         <result column="url" jdbcType="VARCHAR" property="url"/>
         <result column="status" jdbcType="INTEGER" property="status"/>
@@ -35,6 +36,7 @@
         date_created,
         date_updated,
         discovery_handler_id,
+        namespace_id,
         protocol,
         url,
         status,
@@ -52,6 +54,7 @@
         INSERT INTO discovery_upstream (
         id,
         discovery_handler_id,
+        namespace_id,
         protocol,
         url,
         status,
@@ -62,6 +65,7 @@
         VALUES (
         #{id, jdbcType=VARCHAR},
         #{discoveryHandlerId,jdbcType=VARCHAR},
+        #{namespaceId, jdbcType=VARCHAR},
         #{protocol,jdbcType=VARCHAR},
         #{url,jdbcType=VARCHAR},
         #{status,jdbcType=INTEGER},
@@ -159,6 +163,13 @@
         </where>
     </select>
 
+    <select id="selectByNamespaceId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE namespace_id=#{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <sql id="base_join_discovery_rel">
         SELECT
         du.id,
@@ -190,6 +201,7 @@
         INSERT INTO discovery_upstream (
         id,
         discovery_handler_id,
+        namespace_id,
         protocol,
         url,
         status,
@@ -201,6 +213,7 @@
         <foreach collection="list" separator="," item="item">
             (#{item.id, jdbcType=VARCHAR},
             #{item.discoveryHandlerId,jdbcType=VARCHAR},
+            #{item.namespaceId,jdbcType=VARCHAR},
             #{item.protocol,jdbcType=VARCHAR},
             #{item.url,jdbcType=VARCHAR},
             #{item.status,jdbcType=INTEGER},

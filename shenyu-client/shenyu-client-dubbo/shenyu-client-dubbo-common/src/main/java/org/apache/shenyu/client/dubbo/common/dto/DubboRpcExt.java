@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.dubbo.common.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * The type Dubbo rpc ext.
@@ -43,6 +44,10 @@ public class DubboRpcExt implements Serializable {
     private String cluster;
 
     private String protocol;
+
+    private String serialization;
+
+    private List<DubboRpcMethodExt> methods;
 
     /**
      * constructor without parameter.
@@ -71,7 +76,8 @@ public class DubboRpcExt implements Serializable {
                        final String url,
                        final Boolean sent,
                        final String cluster,
-                       final String protocol) {
+                       final String protocol,
+                       final String serialization) {
         this.group = group;
         this.version = version;
         this.loadbalance = loadbalance;
@@ -81,6 +87,7 @@ public class DubboRpcExt implements Serializable {
         this.sent = sent;
         this.cluster = cluster;
         this.protocol = protocol;
+        this.serialization = serialization;
     }
 
     /**
@@ -245,6 +252,42 @@ public class DubboRpcExt implements Serializable {
         this.protocol = protocol;
     }
 
+    /**
+     * get serialization.
+     *
+     * @return serialization
+     */
+    public String getSerialization() {
+        return serialization;
+    }
+
+    /**
+     * set serialization.
+     *
+     * @param serialization serialization
+     */
+    public void setSerialization(final String serialization) {
+        this.serialization = serialization;
+    }
+
+    /**
+     * get methods.
+     *
+     * @return methods
+     */
+    public List<DubboRpcMethodExt> getMethods() {
+        return methods;
+    }
+
+    /**
+     * set methods.
+     *
+     * @param methods methods
+     */
+    public void setMethods(final List<DubboRpcMethodExt> methods) {
+        this.methods = methods;
+    }
+
     @Override
     public String toString() {
         return "DubboRpcExt{"
@@ -257,6 +300,8 @@ public class DubboRpcExt implements Serializable {
                 + ", sent=" + sent
                 + ", cluster='" + cluster + '\''
                 + ", protocol='" + protocol + '\''
+                + ", serialization='" + serialization + '\''
+                + ", methods=" + methods + '\''
                 + '}';
     }
 
@@ -291,6 +336,10 @@ public class DubboRpcExt implements Serializable {
         private String cluster;
 
         private String protocol;
+
+        private String serialization;
+
+        private List<DubboRpcMethodExt> methods;
 
         /**
          * constructor without parameter.
@@ -398,6 +447,28 @@ public class DubboRpcExt implements Serializable {
         }
 
         /**
+         * set serialization.
+         *
+         * @param serialization serialization
+         * @return Builder
+         */
+        public Builder serialization(final String serialization) {
+            this.serialization = serialization;
+            return this;
+        }
+
+        /**
+         * set methods.
+         *
+         * @param methods methods
+         * @return Builder
+         */
+        public Builder methods(final List<DubboRpcMethodExt> methods) {
+            this.methods = methods;
+            return this;
+        }
+
+        /**
          * build DubboRpcExt.
          *
          * @return DubboRpcExt
@@ -413,6 +484,8 @@ public class DubboRpcExt implements Serializable {
             dubboRpcExt.setSent(sent);
             dubboRpcExt.setCluster(cluster);
             dubboRpcExt.setProtocol(protocol);
+            dubboRpcExt.setSerialization(serialization);
+            dubboRpcExt.setMethods(methods);
             return dubboRpcExt;
         }
     }

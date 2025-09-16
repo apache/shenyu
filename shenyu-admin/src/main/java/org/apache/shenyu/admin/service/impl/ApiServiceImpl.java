@@ -50,7 +50,6 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -63,7 +62,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ApiService}.
@@ -126,11 +125,6 @@ public class ApiServiceImpl implements ApiService {
                 tagRelationMapper.deleteByApiId(apiDO.getId());
                 tagRelationMapper.batchInsert(tags);
             }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
-            } else if (ApiStateEnum.OFFLINE.getState() == apiDO.getState()) {
-                removeRegister(apiDO);
-            }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
@@ -158,9 +152,6 @@ public class ApiServiceImpl implements ApiService {
                         .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
             }
-            if (ApiStateEnum.PUBLISHED.getState() == apiDO.getState()) {
-                register(apiDO);
-            }
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
@@ -172,13 +163,14 @@ public class ApiServiceImpl implements ApiService {
         //clean rule
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
-            ruleService.delete(rules.stream()
+            ruleService.deleteByIdsAndNamespaceId(rules.stream()
                     .map(RuleVO::getId)
                     .distinct()
-                    .collect(Collectors.toList()));
+                    // todo:[To be refactored with namespace]  Temporarily  hardcode
+                    .collect(Collectors.toList()), SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean selector
-        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNames(apiDO.getContextPath(), PluginEnum.getUpstreamNames());
+        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNamesAndNamespaceId(apiDO.getContextPath(), PluginEnum.getUpstreamNames(), SYS_DEFAULT_NAMESPACE_ID);
         ArrayList<String> selectorIds = Lists.newArrayList();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream().forEach(selectorDO -> {
             final String selectorId = selectorDO.getId();
@@ -188,11 +180,12 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
+            // todo:[To be refactored with namespace]  Temporarily  hardcode
             selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
-        Optional.ofNullable(metaDataService.findByPath(path))
-                .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
+        Optional.ofNullable(metaDataService.findByPathAndNamespaceId(path, SYS_DEFAULT_NAMESPACE_ID))
+                .ifPresent(metaDataDO -> metaDataService.deleteByIdsAndNamespaceId(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
     }
 
     private void register(final ApiDO apiDO) {

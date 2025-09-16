@@ -65,7 +65,7 @@ public class ShenyuDictController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     @RequiresPermissions("system:dict:list")
     public ShenyuAdminResult queryDicts(final String type, final String dictCode, final String dictName,
                                         @RequestParam @NotNull final Integer currentPage,
@@ -105,7 +105,7 @@ public class ShenyuDictController {
      * @param shenyuDictDTO {@link ShenyuDictDTO}
      * @return {@link ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions(value = {"system:dict:add", "system:dict:edit"}, logical = Logical.OR)
     public ShenyuAdminResult createShenyuDict(@Valid @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, shenyuDictService.createOrUpdate(shenyuDictDTO));

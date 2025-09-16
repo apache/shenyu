@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +35,16 @@ public class RequestHandle {
     private ShenyuRequestParameter parameter;
 
     private ShenyuCookie cookie;
+
+    private Boolean preserveHost = Boolean.FALSE;
+
+    private HeaderUniqueStrategyEnum requestHeaderUniqueStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
+
+    private String requestUniqueHeaders;
+
+    private HeaderUniqueStrategyEnum respHeaderUniqueStrategy = HeaderUniqueStrategyEnum.RETAIN_FIRST;
+
+    private String respUniqueHeaders;
 
     /**
      * get header.
@@ -89,12 +100,102 @@ public class RequestHandle {
         this.cookie = cookie;
     }
 
+    /**
+     * get preserveHost.
+     *
+     * @return preserveHost
+     */
+    public Boolean getPreserveHost() {
+        return preserveHost;
+    }
+
+    /**
+     * set preserveHost.
+     *
+     * @param preserveHost preserveHost
+     */
+    public void setPreserveHost(final Boolean preserveHost) {
+        this.preserveHost = preserveHost;
+    }
+
+    /**
+     * get headerUniqueStrategy.
+     *
+     * @return headerUniqueStrategy
+     */
+    public HeaderUniqueStrategyEnum getRequestHeaderUniqueStrategy() {
+        return requestHeaderUniqueStrategy;
+    }
+
+    /**
+     * set headerUniqueStrategy.
+     *
+     * @param requestHeaderUniqueStrategy requestHeaderUniqueStrategy
+     */
+    public void setRequestHeaderUniqueStrategy(final HeaderUniqueStrategyEnum requestHeaderUniqueStrategy) {
+        this.requestHeaderUniqueStrategy = requestHeaderUniqueStrategy;
+    }
+
+    /**
+     * get uniqueHeader.
+     *
+     * @return uniqueHeader
+     */
+    public String getRequestUniqueHeaders() {
+        return requestUniqueHeaders;
+    }
+
+    /**
+     * set uniqueHeader.
+     *
+     * @param requestUniqueHeaders requestUniqueHeaders
+     */
+    public void setRequestUniqueHeaders(final String requestUniqueHeaders) {
+        this.requestUniqueHeaders = requestUniqueHeaders;
+    }
+
+    /**
+     * get respHeaderUniqueStrategy.
+     *
+     * @return respHeaderUniqueStrategy
+     */
+    public HeaderUniqueStrategyEnum getRespHeaderUniqueStrategy() {
+        return respHeaderUniqueStrategy;
+    }
+
+    /**
+     * set respHeaderUniqueStrategy.
+     *
+     * @param respHeaderUniqueStrategy respHeaderUniqueStrategy
+     */
+    public void setRespHeaderUniqueStrategy(final HeaderUniqueStrategyEnum respHeaderUniqueStrategy) {
+        this.respHeaderUniqueStrategy = respHeaderUniqueStrategy;
+    }
+
+    /**
+     * get respUniqueHeaders.
+     *
+     * @return respUniqueHeaders
+     */
+    public String getRespUniqueHeaders() {
+        return respUniqueHeaders;
+    }
+
+    /**
+     * set respUniqueHeaders.
+     *
+     * @param respUniqueHeaders respUniqueHeaders
+     */
+    public void setRespUniqueHeaders(final String respUniqueHeaders) {
+        this.respUniqueHeaders = respUniqueHeaders;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         RequestHandle that = (RequestHandle) o;
@@ -258,7 +359,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuRequestHeader that = (ShenyuRequestHeader) o;
@@ -405,7 +506,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuRequestParameter that = (ShenyuRequestParameter) o;
@@ -551,7 +652,7 @@ public class RequestHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ShenyuCookie that = (ShenyuCookie) o;

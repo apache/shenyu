@@ -30,7 +30,7 @@ import reactor.util.annotation.NonNull;
  * decorate ServerHttpRequest for read body.
  */
 public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends ServerHttpRequestDecorator {
-    
+
     private final L logInfo;
 
     public LoggingServerHttpRequest(final ServerHttpRequest delegate, final L logInfo) {
@@ -49,15 +49,18 @@ public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends Server
         BodyWriter writer = new BodyWriter();
         return super.getBody().doOnNext(dataBuffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
-                writer.write(dataBuffer.asByteBuffer().asReadOnlyBuffer());
+                try (DataBuffer.ByteBufferIterator bufferIterator = dataBuffer.readableByteBuffers()) {
+                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                }
+
             }
         }).doFinally(signal -> {
             int size = writer.size();
-            String body = writer.output();
             boolean requestBodyTooLarge = LogCollectConfigUtils.isRequestBodyTooLarge(size);
             if (size == 0 || requestBodyTooLarge) {
                 return;
             }
+            String body = writer.output();
             logInfo.setRequestBody(body);
         });
     }

@@ -35,16 +35,23 @@ import java.util.List;
  */
 @Mapper
 public interface NamespacePluginRelMapper extends ExistProvider {
+    
+    /**
+     * select namespace plugin by id.
+     *
+     * @param id primary key
+     * @return NamespacePluginVO
+     */
+    NamespacePluginVO selectById(String id);
 
     /**
      * existed.
      *
-     * @param pluginId pluginId
+     * @param id id
      * @return existed
      */
     @Override
-    Boolean existed(@Param("pluginId") Serializable pluginId);
-
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * Batch save int.
@@ -96,8 +103,7 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return existed
      */
     Boolean nameExistedExclude(@Param("name") Serializable name, @Param("exclude") List<String> exclude, @Param("namespaceId") String namespaceId);
-
-
+    
     /**
      * update selective plugin.
      *
@@ -105,25 +111,56 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return rows int
      */
     int updateSelective(NamespacePluginRelDO namespacePluginRelDO);
+    
+    /**
+     * update plugin by namespaceId and pluginId.
+     *
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
+     * @return rows int
+     */
+    int updateByNamespaceIdAndPluginId(NamespacePluginRelDO namespacePluginRelDO);
 
     /**
-     * select plugin by ids and namespaceId.
+     * select plugin by ids.
      *
      * @param ids   primary keys.
-     * @param namespaceId namespaceId.
      * @return {@linkplain NamespacePluginRelDO}
      */
-    List<NamespacePluginVO> selectByIdsAndNamespaceId(List<String> ids, String namespaceId);
+    List<NamespacePluginVO> selectByIds(List<String> ids);
+
+    /**
+     * select plugin by namespaceId and pluginIds.
+     *
+     * @param namespaceId namespaceId.
+     * @param pluginIds   pluginIds.
+     * @return {@linkplain NamespacePluginRelDO}
+     */
+    List<NamespacePluginVO> selectByNamespaceIdAndPluginIds(String namespaceId, List<String> pluginIds);
 
 
     /**
      * delete plugin by ids and namespaceId.
      *
      * @param ids         primary keys.
-     * @param namespaceId namespaceId.
      * @return rows int
      */
-    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
+    int deleteByIds(List<String> ids);
+    
+    /**
+     * list by namespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginRelDO> listByNamespaceId(String namespaceId);
+
+    /**
+     * select by namespaceId.
+     *
+     * @param namespaceId namespaceId.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginVO> selectByNamespaceId(String namespaceId);
 
     /**
      * select all by namespaceId.
@@ -132,13 +169,21 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<NamespacePluginVO> selectAllByNamespaceId(String namespaceId);
+  
+    /**
+     * select all by namespaceIds.
+     *
+     * @param namespaceIds namespaceIds.
+     * @return {@linkplain List}
+     */
+    List<NamespacePluginVO> selectAllByNamespaceIds(List<String> namespaceIds);
 
     /**
      * select all.
      *
      * @return {@linkplain List}
      */
-    List<NamespacePluginVO> selectAllByNamespaceId();
+    List<NamespacePluginVO> selectAll();
 
     /**
      * enable data by a list of ids.
@@ -148,4 +193,22 @@ public interface NamespacePluginRelMapper extends ExistProvider {
      * @return the count of enabled datas
      */
     int updateEnableByIdList(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+
+    /**
+     * enable data by a list of ids.
+     *
+     * @param namespaceId namespaceId
+     * @param pluginIds a list of pluginIds
+     * @param enabled status
+     * @return the count of enabled datas
+     */
+    int updateEnableByNamespaceIdAndPluginIdList(@Param("namespaceId") String namespaceId, @Param("pluginIds") List<String> pluginIds, @Param("enabled") Boolean enabled);
+
+    /**
+     * insert selective plugin.
+     *
+     * @param namespacePluginRelDO {@linkplain NamespacePluginRelDO}
+     * @return rows int
+     */
+    int insertSelective(NamespacePluginRelDO namespacePluginRelDO);
 }

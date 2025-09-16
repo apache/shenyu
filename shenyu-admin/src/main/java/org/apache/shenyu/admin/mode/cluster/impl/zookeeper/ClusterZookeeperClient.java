@@ -110,7 +110,7 @@ public class ClusterZookeeperClient implements AutoCloseable {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -148,7 +148,7 @@ public class ClusterZookeeperClient implements AutoCloseable {
         }
         return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
-
+    
     /**
      * create or update key with value.
      *
@@ -159,8 +159,17 @@ public class ClusterZookeeperClient implements AutoCloseable {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            synchronized (ClusterZookeeperClient.class) {
+                if (Objects.nonNull(client.checkExists()) && Objects.nonNull(client.checkExists().forPath(key))) {
+                    LOGGER.debug("path exists, update zookeeper key={} with value={}", key, val);
+                    client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                LOGGER.debug("path not exists, set zookeeper key={} with value={}", key, val);
+                client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
+            LOGGER.error("create or update key with value error, key:{} value:{}", key, value, e);
             throw new ShenyuException(e);
         }
     }
@@ -173,7 +182,7 @@ public class ClusterZookeeperClient implements AutoCloseable {
      * @param mode  creation mode.
      */
     public void createOrUpdate(final String key, final Object value, final CreateMode mode) {
-        if (value != null) {
+        if (Objects.nonNull(value)) {
             String val = GsonUtils.getInstance().toJson(value);
             createOrUpdate(key, val, mode);
         } else {

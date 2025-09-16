@@ -18,10 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -54,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -82,6 +85,9 @@ public final class RuleControllerTest {
 
     @Mock
     private SelectorMapper selectorMapper;
+
+    @Mock
+    private NamespaceMapper namespaceMapper;
 
     private final RuleConditionVO rCondition1 = new RuleConditionVO(
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
@@ -153,12 +159,15 @@ public final class RuleControllerTest {
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
         when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/rule", ruleDTO)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -193,12 +202,15 @@ public final class RuleControllerTest {
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
         when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/rule/{id}", "666")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -211,11 +223,16 @@ public final class RuleControllerTest {
 
     @Test
     public void testDeleteRules() throws Exception {
-        given(this.ruleService.delete(Collections.singletonList("111"))).willReturn(1);
+        final BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
+        batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        batchNamespaceCommonDTO.setIds(Collections.singletonList("111"));
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        given(this.ruleService.deleteByIdsAndNamespaceId(Collections.singletonList("111"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[\"111\"]")
-                )
+                        .content(GsonUtils.getGson().toJson(batchNamespaceCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
@@ -233,16 +250,20 @@ public final class RuleControllerTest {
             .matchRestful(false)
             .sort(1)
             .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
+            .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
             .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
         when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
         when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
-        given(this.ruleService.enabled(Arrays.asList(ruleDTO.getId()), false)).willReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
+        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        given(this.ruleService.enabledByIdsAndNamespaceId(Arrays.asList(ruleDTO.getId()), false, SYS_DEFAULT_NAMESPACE_ID)).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(ruleDTO.getId()));
         batchCommonDTO.setEnabled(false);
+        batchCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/rule/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO))

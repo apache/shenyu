@@ -17,8 +17,14 @@
 
 package org.apache.shenyu.plugin.api.utils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -27,12 +33,10 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.springframework.util.LinkedMultiValueMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * Common rpc parameter builder utils.
@@ -41,6 +45,11 @@ public final class BodyParamUtils {
 
     private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
     
+    // Caffeine cache with maximum size of 5000
+    private static final Cache<String, Boolean> BASE_TYPE_CACHE = Caffeine.newBuilder()
+            .maximumSize(5000)
+            .build();
+
     private BodyParamUtils() {
     }
 
@@ -57,7 +66,7 @@ public final class BodyParamUtils {
             String name = matcher.group(1);
             String eq = matcher.group(2);
             String value = matcher.group(3);
-            params.add(name, value != null ? value : (StringUtils.isNotBlank(eq) ? "" : null));
+            params.add(name, Objects.nonNull(value) ? value : (StringUtils.isNotBlank(eq) ? "" : null));
         }
         return params;
     }
@@ -127,6 +136,7 @@ public final class BodyParamUtils {
         return parameterTypes.startsWith("{") && parameterTypes.endsWith("}");
     }
 
+
     /**
      * isBaseType.
      *
@@ -134,10 +144,12 @@ public final class BodyParamUtils {
      * @return whether the base type is.
      */
     private static boolean isBaseType(final String paramType) {
-        try {
-            return ReflectUtils.isPrimitives(ClassUtils.getClass(paramType));
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return BASE_TYPE_CACHE.get(paramType, key -> {
+            try {
+                return ReflectUtils.isPrimitives(ClassUtils.getClass(key));
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+        });
     }
 }

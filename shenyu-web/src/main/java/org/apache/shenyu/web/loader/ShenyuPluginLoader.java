@@ -92,9 +92,9 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @return plugin loader instance
      */
     public static ShenyuPluginLoader getInstance() {
-        if (null == pluginLoader) {
+        if (Objects.isNull(pluginLoader)) {
             synchronized (ShenyuPluginLoader.class) {
-                if (null == pluginLoader) {
+                if (Objects.isNull(pluginLoader)) {
                     pluginLoader = new ShenyuPluginLoader();
                 }
             }
@@ -181,9 +181,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      */
     public List<ShenyuLoaderResult> loadUploadedJarPlugins(final List<String> loadUploadedJarResources) {
         List<byte[]> jarByteArrayList = loadUploadedJarResources.stream().map(loadUploadedJarResourceStr -> Base64.getDecoder().decode(loadUploadedJarResourceStr)).collect(Collectors.toList());
-        for (byte[] jarByteArray : jarByteArrayList) {
-            parserJar(jarByteArray);
-        }
+        jarByteArrayList.forEach(this::parserJar);
         List<ShenyuLoaderResult> results = new ArrayList<>();
         names.forEach(className -> {
             Object instance;
@@ -208,7 +206,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     private void parserJar(final byte[] jarBytes) {
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
-            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+            while (Objects.nonNull(jarEntry = jarInputStream.getNextJarEntry())) {
                 String entryName = jarEntry.getName();
                 if (!jarEntry.isDirectory() && entryName.endsWith(".class") && !entryName.contains("$")) {
                     String className = jarEntry.getName().substring(0, entryName.length() - 6).replaceAll("/", ".");
@@ -372,7 +370,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     private void definePackageInternal(final String packageName, final Manifest manifest) {
-        if (null != getPackage(packageName)) {
+        if (Objects.nonNull(getPackage(packageName))) {
             return;
         }
         Attributes attributes = manifest.getMainAttributes();

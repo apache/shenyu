@@ -60,7 +60,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     private String version;
 
     /**
-     * http,dubbo,sofa,tars,websocket,springCloud,motan,grpc.
+     * http,dubbo,sofa,tars,websocket,motan,grpc.
      */
     private String rpcType;
 
@@ -382,7 +382,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         ApiDocRegisterDTO that = (ApiDocRegisterDTO) o;

@@ -33,12 +33,28 @@ public interface SyncDataService {
     boolean syncAll(DataEventTypeEnum type);
 
     /**
-     * Sync plugin data boolean.
+     * Sync all by namespaceId boolean.
      *
-     * @param pluginId    the plugin id
-     * @param namespaceId the namespace id
+     * @param type the type
+     * @param namespaceId the namespaceId
      * @return the boolean
      */
-    boolean syncPluginData(String pluginId, String namespaceId);
+    boolean syncAllByNamespaceId(DataEventTypeEnum type, String namespaceId);
 
+    /**
+     * Sync plugin data boolean.
+     *
+     * @param id    the namespace plugin id
+     * @return the boolean
+     */
+    boolean syncPluginData(String id);
+
+    /**
+     * Sync plugin data boolean.
+     *
+     * @param namespaceId the namespace id
+     * @param pluginId the plugin id
+     * @return the boolean
+     */
+    boolean syncPluginData(String namespaceId, String pluginId);
 }

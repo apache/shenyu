@@ -20,7 +20,7 @@ package org.apache.shenyu.common.dto.convert.rule;
 import java.util.Objects;
 
 /**
- * this is RequestHandle plugin handle.
+ * this is MockHandle plugin handle.
  */
 public class MockHandle {
 
@@ -68,7 +68,7 @@ public class MockHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         MockHandle that = (MockHandle) o;

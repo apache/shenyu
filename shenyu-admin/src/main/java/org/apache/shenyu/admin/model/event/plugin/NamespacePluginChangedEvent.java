@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Objects;
 
@@ -75,6 +76,6 @@ public class NamespacePluginChangedEvent extends AdminDataModelChangedEvent {
     
     @Override
     public String eventName() {
-        return "namespacePlugin";
+        return Constants.EVENT_NAME_NAMESPACE_PLUGIN;
     }
 }

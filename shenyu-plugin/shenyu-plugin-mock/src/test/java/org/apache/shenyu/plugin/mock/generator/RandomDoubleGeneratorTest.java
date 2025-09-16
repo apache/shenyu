@@ -35,10 +35,10 @@ public final class RandomDoubleGeneratorTest {
     public void generate() {
         String doubleValue = generator.generate("double|10.5-12.0", null);
         assertNotNull(doubleValue);
-        String formated = generator.generate("double|10.5-12.0|￥%.2f", null);
+        String formatted = generator.generate("double|10.5-12.0|￥%.2f", null);
         assertAll(
-            () -> assertNotNull(formated),
-            () -> assertTrue(formated.matches("^￥\\d+.\\d{2}$"))
+            () -> assertNotNull(formatted),
+            () -> assertTrue(formatted.matches("^￥\\d+.\\d{2}$"))
         );
 
     }

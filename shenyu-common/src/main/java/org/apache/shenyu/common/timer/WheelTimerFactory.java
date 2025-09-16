@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.timer;
 
+import java.util.Objects;
+
 /**
  * WheelTimerFactory .
  * shared wheel time.
@@ -96,7 +98,7 @@ public class WheelTimerFactory {
          * @return the ref
          */
         public synchronized T getRef() {
-            if (shared == null) {
+            if (Objects.isNull(shared)) {
                 this.shared = create();
             }
             return this.shared.getRef();

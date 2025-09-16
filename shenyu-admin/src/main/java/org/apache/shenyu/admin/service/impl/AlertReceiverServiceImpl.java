@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -58,26 +59,26 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
 
     @Override
     public void addReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         receiverDO.setId(UUIDUtils.getInstance().generateShortUuid());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
         receiverDO.setDateUpdated(currentTime);
-        alertDispatchService.clearCache();
         alertReceiverMapper.insert(receiverDO);
+        alertDispatchService.clearCache();
     }
-    
+
     @Override
     public void deleteReceiver(final List<String> ids) {
-        alertDispatchService.clearCache();
         alertReceiverMapper.deleteByIds(ids);
+        alertDispatchService.clearCache();
     }
-    
+
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
-        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReciverDO(alertReceiverDTO);
-        alertDispatchService.clearCache();
+        AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         alertReceiverMapper.updateByPrimaryKey(receiverDO);
+        alertDispatchService.clearCache();
     }
     
     @Override
@@ -98,7 +99,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     @Override
     public AlertReceiverDTO detail(final String id) {
         AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id);
-        if (receiverDO != null) {
+        if (Objects.nonNull(receiverDO)) {
             return AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiverDO);
         } else {
             return null;

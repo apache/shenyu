@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.ScaleRuleMapper">
+  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="metric_name" jdbcType="VARCHAR" property="metricName" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="sort" jdbcType="INTEGER" property="sort" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="minimum" jdbcType="VARCHAR" property="minimum" />
+    <result column="maximum" jdbcType="VARCHAR" property="maximum" />
+    <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
+    <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, metric_name, `type`, sort, `status`, minimum, maximum, date_created, date_updated
+  </sql>
+  <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ScaleRuleQuery" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from scale_rule
+    <where>
+      <if test="metricName != null">
+        <bind name="nameLike" value="('%' + metricName + '%')"/>
+        and metric_name like #{nameLike, jdbcType=VARCHAR}
+      </if>
+      <if test="type != null">
+        and type = #{type, jdbcType=INTEGER}
+      </if>
+      <if test="status != null">
+        and status = #{status, jdbcType=INTEGER}
+      </if>
+    </where>
+    order by sort, date_created
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from scale_rule
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from scale_rule
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
+    insert into scale_rule (id, metric_name, `type`, sort,
+      `status`, minimum, maximum,
+      date_created, date_updated)
+    values (#{id,jdbcType=VARCHAR}, #{metricName,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
+      #{status,jdbcType=INTEGER}, #{minimum,jdbcType=VARCHAR}, #{maximum,jdbcType=VARCHAR},
+      #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
+    insert into scale_rule
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      id,
+      <if test="metricName != null">
+        metric_name,
+      </if>
+      <if test="type != null">
+        `type`,
+      </if>
+      <if test="sort != null">
+        sort,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="minimum != null">
+        minimum,
+      </if>
+      <if test="maximum != null">
+        maximum,
+      </if>
+      <if test="dateCreated != null">
+        date_created,
+      </if>
+      <if test="dateUpdated != null">
+        date_updated,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id, jdbcType=VARCHAR},
+      <if test="metricName != null">
+        #{metricName,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="sort != null">
+        #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="minimum != null">
+        #{minimum,jdbcType=VARCHAR},
+      </if>
+      <if test="maximum != null">
+        #{maximum,jdbcType=VARCHAR},
+      </if>
+      <if test="dateCreated != null">
+        #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ScaleRuleQuery" resultType="java.lang.Long">
+    select count(*) from scale_rule
+    <if test="metricName != null">
+      and metric_name = #{metricName, jdbcType=VARCHAR}
+    </if>
+  </select>
+  <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
+    update scale_rule
+    <set>
+      <if test="metricName != null">
+        metric_name = #{metricName,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        `type` = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="sort != null">
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="minimum != null">
+        minimum = #{minimum,jdbcType=VARCHAR},
+      </if>
+      <if test="maximum != null">
+        maximum = #{maximum,jdbcType=VARCHAR},
+      </if>
+      <if test="dateCreated != null">
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
+    update scale_rule
+    set metric_name = #{metricName,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=INTEGER},
+      sort = #{sort,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      minimum = #{minimum,jdbcType=VARCHAR},
+      maximum = #{maximum,jdbcType=VARCHAR},
+      date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <select id="existed" resultType="java.lang.Boolean">
+    select true
+    from scale_rule
+    where id = #{id}
+    limit 1
+  </select>
+  <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.ScaleRuleDO" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM scale_rule
+  </select>
+  <delete id="delete" parameterType="java.util.List">
+    DELETE FROM scale_rule
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </delete>
+</mapper>

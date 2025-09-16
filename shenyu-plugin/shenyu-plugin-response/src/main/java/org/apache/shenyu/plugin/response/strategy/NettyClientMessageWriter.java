@@ -84,7 +84,7 @@ public class NettyClientMessageWriter implements MessageWriter {
     
     @Override
     public List<String> supportTypes() {
-        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName(), RpcTypeEnum.WEB_SOCKET.getName());
+        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName(), RpcTypeEnum.WEB_SOCKET.getName(), RpcTypeEnum.AI.getName());
     }
     
     private void cleanup(final ServerWebExchange exchange) {
@@ -95,7 +95,7 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
 
     private static <T> Mono<T> releaseIfNotConsumed(final Flux<NettyDataBuffer> dataBufferDody, final Throwable ex) {
-        return dataBufferDody != null ? dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex)) : Mono.error(ex);
+        return Objects.nonNull(dataBufferDody) ? dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex)) : Mono.error(ex);
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {

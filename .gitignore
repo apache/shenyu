@@ -45,3 +45,8 @@ Thumbs.db
 
 # rust ignore
 *.lock
+
+.factorypath
+
+# Private individual user cursor rules
+.cursor/rules/_*.mdc

@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
-import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -43,15 +42,6 @@ public interface SelectorMapper extends ExistProvider {
      */
     @Override
     Boolean existed(@Param("id") Serializable id);
-
-    /**
-     * select selector by id and namespaceId.
-     *
-     * @param id          primary key.
-     * @param namespaceId namespaceId.
-     * @return {@linkplain SelectorDO}
-     */
-    SelectorDO selectByIdAndNamespaceId(String id, String namespaceId);
 
     /**
      * select selector by id.
@@ -94,6 +84,14 @@ public interface SelectorMapper extends ExistProvider {
      * @return the list
      */
     List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
+
+    /**
+     * Find list by plugin id.
+     *
+     * @param pluginIds   the plugin ids
+     * @return the list
+     */
+    List<SelectorDO> findByPluginIds(@Param("list") List<String> pluginIds);
 
     /**
      * select list by name and namespaceId.
@@ -188,12 +186,28 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectAll();
 
     /**
+     * list all by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectAllByNamespaceId(String namespaceId);
+
+    /**
+     * list all by namespaceId list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectAllByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * select by condition.
      *
      * @param condition condition
      * @return view data list
      */
-    List<SelectorVO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
+    List<SelectorDO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
 
     /**
      * selectByDiscoveryHandlerId.

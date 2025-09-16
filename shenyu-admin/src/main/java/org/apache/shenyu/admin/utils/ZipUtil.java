@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -74,7 +75,7 @@ public final class ZipUtil {
         List<ZipItem> itemList = Lists.newArrayList();
         try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(source))) {
             ZipEntry entry;
-            while ((entry = zipIn.getNextEntry()) != null) {
+            while (Objects.nonNull(entry = zipIn.getNextEntry())) {
                 if (entry.isDirectory()) {
                     continue;
                 }

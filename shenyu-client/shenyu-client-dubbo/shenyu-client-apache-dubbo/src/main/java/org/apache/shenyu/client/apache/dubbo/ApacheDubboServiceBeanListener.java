@@ -19,18 +19,20 @@ package org.apache.shenyu.client.apache.dubbo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
+import org.apache.dubbo.config.MethodConfig;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
+import org.apache.shenyu.client.dubbo.common.dto.DubboRpcMethodExt;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -44,7 +46,9 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,7 +68,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
      * @param clientConfig                   the shenyu dubbo client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig,
+    public ApacheDubboServiceBeanListener(final ShenyuClientConfig clientConfig,
                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
@@ -108,7 +112,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
-                                                 final Map<String, ServiceBean> beans) {
+                                                 final Map<String, ServiceBean> beans,
+                                                 final String namespaceId) {
         return beans.entrySet().stream().findFirst().map(entry -> {
             final ServiceBean<?> bean = entry.getValue();
             return URIRegisterDTO.builder()
@@ -118,8 +123,14 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                     .eventType(EventType.REGISTER)
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
+                    .namespaceId(namespaceId)
                     .build();
         }).orElse(null);
+    }
+    
+    @Override
+    protected String getClientName() {
+        return RpcTypeEnum.DUBBO.getName();
     }
     
     private String buildAppName(final ServiceBean<?> serviceBean) {
@@ -146,12 +157,15 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                final ServiceBean bean,
                                @NonNull final ShenyuDubboClient beanShenyuClient,
                                final String superPath) {
+        List<String> namespaceIds = super.getNamespace();
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-        for (Method method : methods) {
-            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
-                    buildApiPath(method, superPath, null), clazz, method);
-            getPublisher().publishEvent(metaData);
-            getMetaDataMap().put(method, metaData);
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
         }
     }
     
@@ -169,7 +183,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                                    @NonNull final ShenyuDubboClient shenyuClient,
                                                    final String path,
                                                    final Class<?> clazz,
-                                                   final Method method) {
+                                                   final Method method,
+                                                   final String namespaceId) {
         String appName = buildAppName(bean);
         String desc = shenyuClient.desc();
         String serviceName = bean.getInterface();
@@ -189,9 +204,10 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcExt(buildRpcExt(bean))
+                .rpcExt(buildRpcExt(bean, methodName))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .enabled(shenyuClient.enabled())
+                .namespaceId(namespaceId)
                 .build();
     }
     
@@ -206,7 +222,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 }).orElse(port);
     }
     
-    private String buildRpcExt(final ServiceBean<?> serviceBean) {
+    private String buildRpcExt(final ServiceBean<?> serviceBean, final String methodName) {
         DubboRpcExt build = DubboRpcExt.builder()
                 .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
@@ -217,7 +233,21 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
                 .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
+                .serialization(serviceBean.getSerialization())
                 .build();
+        // method config: loadbalance,retries,timeout,sent
+        if (Objects.nonNull(serviceBean.getMethods())) {
+            build.setMethods(new ArrayList<>());
+            for (MethodConfig methodConfig : serviceBean.getMethods()) {
+                DubboRpcMethodExt methodExt = new DubboRpcMethodExt();
+                methodExt.setName(methodConfig.getName());
+                methodExt.setLoadbalance(methodConfig.getLoadbalance());
+                methodExt.setRetries(methodConfig.getRetries());
+                methodExt.setTimeout(methodConfig.getTimeout());
+                methodExt.setSent(methodConfig.getSent());
+                build.getMethods().add(methodExt);
+            }
+        }
         return GsonUtils.getInstance().toJson(build);
     }
 }

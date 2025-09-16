@@ -21,7 +21,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -80,6 +79,14 @@ public interface AppAuthMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<AppAuthDO> selectAll();
+
+    /**
+     * select all by namespaceId.
+     *
+     * @param namespaceId the namespaceId
+     * @return {@linkplain List}
+     */
+    List<AppAuthDO> selectAllByNamespaceId(String namespaceId);
 
     /**
      * count application authority by query.
@@ -187,5 +194,14 @@ public interface AppAuthMapper extends ExistProvider {
      * @param condition condition.
      * @return list
      */
-    List<AppAuthVO> selectByCondition(@Param("condition") AppAuthQuery condition);
+    List<AppAuthDO> selectByCondition(@Param("condition") AppAuthQuery condition);
+
+
+    /**
+     * Find by namespace id list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<AppAuthDO> findByNamespaceIds(List<String> namespaceIds);
 }

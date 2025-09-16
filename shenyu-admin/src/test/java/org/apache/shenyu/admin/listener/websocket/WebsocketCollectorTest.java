@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,9 +39,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import jakarta.websocket.RemoteEndpoint;
-import jakarta.websocket.Session;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -89,10 +92,15 @@ public final class WebsocketCollectorTest {
     @BeforeEach
     public void setUp() {
         websocketCollector = new WebsocketCollector();
+        when(session.isOpen()).thenReturn(true);
+        Map<String, Object> userProperties = new HashMap<>();
+        userProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        when(session.getUserProperties()).thenReturn(userProperties);
     }
 
     @Test
     public void testOnOpen() {
+
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         doNothing().when(loggerSpy).warn(anyString(), anyString());
@@ -104,11 +112,11 @@ public final class WebsocketCollectorTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
-        when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         assertEquals(1L, getSessionSetSize());
-        verify(syncDataService, times(1)).syncAll(DataEventTypeEnum.MYSELF);
+        verify(syncDataService, times(1)).syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID);
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
     }

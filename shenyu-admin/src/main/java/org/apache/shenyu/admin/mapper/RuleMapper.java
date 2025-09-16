@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
-import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -156,12 +155,28 @@ public interface RuleMapper extends ExistProvider {
     List<RuleDO> selectAll();
 
     /**
+     * list all.
+     *
+     * @param namespaceId the namespaceId
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectAllByNamespaceId(String namespaceId);
+
+    /**
+     * list all.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectAllByNamespaceIds(List<String> namespaceIds);
+
+    /**
      * search by condition.
      *
      * @param condition condition
      * @return list
      */
-    List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
+    List<RuleDO> selectByCondition(@Param("condition") RuleQueryCondition condition);
 
     /**
      * get plugin name by selectorId.

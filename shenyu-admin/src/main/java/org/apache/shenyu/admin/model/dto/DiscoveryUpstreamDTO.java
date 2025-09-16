@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -41,37 +42,44 @@ public class DiscoveryUpstreamDTO implements Serializable {
     /**
      * discoveryHandler id.
      */
-    @NotBlank(message = "discoveryHandlerId不能为空")
+    @NotBlank(message = "discoveryHandlerId can't be null")
     private String discoveryHandlerId;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
      * protocol.
      */
-//    @NotBlank(message = "protocol不能为空")
+    // @NotBlank(message = "protocol can't be null")
     private String protocol;
 
     /**
      * url.
      */
-    @NotBlank(message = "url不能为空")
+    @NotBlank(message = "url can't be null")
     private String url;
 
     /**
      * status.
      */
-    @NotNull(message = "status不能为空")
+    @NotNull(message = "status can't be null")
     private Integer status;
 
     /**
      * weight.
      */
-    @NotNull(message = "weight不能为空")
+    @NotNull(message = "weight can't be null")
     private Integer weight;
 
     /**
      * props.
      */
-    @NotBlank(message = "props不能为空")
+    @NotBlank(message = "props can't be null")
     private String props;
 
     /**
@@ -83,7 +91,6 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * updated time.
      */
     private Timestamp dateUpdated;
-
 
     /**
      * getId.
@@ -258,5 +265,23 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

@@ -48,11 +48,6 @@ public enum RegisterTypeEnum {
     MOTAN("motan"),
 
     /**
-     * springCloud rpc type enum.
-     */
-    SPRING_CLOUD("springCloud"),
-
-    /**
      * grpc.
      */
     GRPC("grpc");

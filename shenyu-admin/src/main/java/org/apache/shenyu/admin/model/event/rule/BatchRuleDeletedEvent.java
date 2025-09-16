@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * BatchRuleDeletedEvent.
  */
@@ -55,9 +57,14 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((RuleDO) s).getName())
+                .map(s -> ((RuleDO) s).getRuleName())
                 .collect(Collectors.joining(","));
-        return String.format("the rule[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        final String namespaceId = ((Collection<?>) getSource())
+                .stream()
+                .filter(s -> StringUtils.isNotEmpty(((RuleDO) s).getNamespaceId()))
+                .map(s -> ((RuleDO) s).getNamespaceId())
+                .findAny().orElse(SYS_DEFAULT_NAMESPACE_ID);
+        return String.format("the namespace [%s] rule[%s] is %s", namespaceId, selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**

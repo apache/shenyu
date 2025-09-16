@@ -19,6 +19,7 @@ package org.apache.shenyu.common.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ public class ShenyuConfig {
     private ExcludePath exclude = new ExcludePath();
     
     private Health health = new Health();
+    
+    private Mcp mcp = new Mcp();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -69,7 +72,27 @@ public class ShenyuConfig {
     private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
     
     private AlertConfig alert = new AlertConfig();
-    
+
+    private String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
+
+    /**
+     * shenyu bootstrap namespace.
+     *
+     * @return namespace id
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * Set shenyu bootstrap namespace, default value is {@link org.apache.shenyu.common.constant.Constants#SYS_DEFAULT_NAMESPACE_ID}.
+     *
+     * @param namespace namespace id
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
+    }
+
     /**
      * Gets health.
      *
@@ -86,6 +109,24 @@ public class ShenyuConfig {
      */
     public void setHealth(final Health health) {
         this.health = health;
+    }
+    
+    /**
+     * Gets mcp.
+     *
+     * @return the mcp
+     */
+    public Mcp getMcp() {
+        return mcp;
+    }
+    
+    /**
+     * Sets mcp.
+     *
+     * @param mcp the mcp
+     */
+    public void setMcp(final Mcp mcp) {
+        this.mcp = mcp;
     }
     
     /**
@@ -868,6 +909,62 @@ public class ShenyuConfig {
     }
     
     /**
+     * The type mcp.
+     */
+    public static class Mcp {
+        
+        /**
+         * mcp server.
+         */
+        private McpServer server = new McpServer();
+        
+        /**
+         * Gets server.
+         *
+         * @return the server
+         */
+        public McpServer getServer() {
+            return server;
+        }
+        
+        /**
+         * Sets server.
+         *
+         * @param server the server
+         */
+        public void setServer(final McpServer server) {
+            this.server = server;
+        }
+        
+    }
+    
+    /**
+     * The type McpServer.
+     */
+    public static class McpServer {
+        
+        private Boolean enabled = Boolean.TRUE;
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+    
+    /**
      * The type File config.
      */
     public static class FileConfig {
@@ -1144,6 +1241,7 @@ public class ShenyuConfig {
                     add("token");
                     add("username");
                     add("client");
+                    add(Constants.SHENYU_AUTHORIZATION);
                 }
             };
         }

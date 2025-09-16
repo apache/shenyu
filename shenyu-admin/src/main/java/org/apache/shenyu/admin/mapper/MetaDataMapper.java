@@ -42,7 +42,7 @@ public interface MetaDataMapper extends ExistProvider {
     Boolean existed(@Param("id") Serializable id);
     
     /**
-     * Select by id meta data do.
+     * Select meta data do by id and namespaceId.
      *
      * @param id the id
      * @return the meta data do
@@ -50,12 +50,13 @@ public interface MetaDataMapper extends ExistProvider {
     MetaDataDO selectById(String id);
     
     /**
-     * Select a list of MetaDataDOs by idList.
+     * Select a list of MetaDataDOs by idList and namespaceId.
      *
      * @param idList a list of ids
+     * @param namespaceId namespaceId
      * @return a list of MetaDataDOs
      */
-    List<MetaDataDO> selectByIdList(@Param("idList") List<String> idList);
+    List<MetaDataDO> selectByIdListAndNamespaceId(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * Find all list.
@@ -63,23 +64,41 @@ public interface MetaDataMapper extends ExistProvider {
      * @return the list
      */
     List<MetaDataDO> findAll();
+
+    /**
+     * Find all list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<MetaDataDO> findAllByNamespaceId(String namespaceId);
+
+    /**
+     * Find all list.
+     *
+     * @param namespaceIds the namespaceIds
+     * @return the list
+     */
+    List<MetaDataDO> findAllByNamespaceIds(List<String> namespaceIds);
     
     /**
-     * Find by path meta data do.
+     * Find meta data do by path and namespaceId.
      *
      * @param path the path
+     * @param namespaceId namespaceId
      * @return the meta data do
      */
-    MetaDataDO findByPath(String path);
+    MetaDataDO findByPathAndNamespaceId(String path, String namespaceId);
     
     /**
-     * Find by service name and method meta data do.
+     * Find meta data do by service name and method and namespaceId.
      *
      * @param serviceName the service name
      * @param methodName  the methodName
+     * @param namespaceId namespaceId
      * @return the meta data do
      */
-    List<MetaDataDO> findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
+    List<MetaDataDO> findByServiceNameAndMethodAndNamespaceId(@Param("serviceName") String serviceName, @Param("methodName") String methodName, @Param("namespaceId") String namespaceId);
     
     /**
      * Select by query list.
@@ -146,20 +165,22 @@ public interface MetaDataMapper extends ExistProvider {
     int delete(String id);
     
     /**
-     * batch delete by a list of ids.
+     * batch delete by a list of ids and namespaceId.
      *
      * @param idList a list of ids
+     * @param namespaceId namespaceId
      * @return the count of deleted
      */
-    int deleteByIdList(@Param("idList") List<String> idList);
+    int deleteByIdListAndNamespaceId(@Param("idList") List<String> idList, @Param("namespaceId") String namespaceId);
     
     /**
      * the path is existed.
      *
      * @param path path
+     * @param namespaceId namespaceId
      * @return existed
      */
-    Boolean pathExisted(@Param("path") Serializable path);
+    Boolean pathExisted(@Param("path") Serializable path, @Param("namespaceId") String namespaceId);
     
     /**
      * the path is existed.

@@ -18,32 +18,32 @@
 # Not practical gateway, start it separately
 # if you used IDEA, start example project. click green button.Quick access！
 
-### example local orderSave
+### example local hello
 POST http://localhost:8189/hello
 Accept: application/json
 Content-Type: application/json
 
-### example local orderSave
+### example local hi
 POST http://localhost:8189/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### example local orderSave
+### example local hi
 POST http://localhost:8189/post/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### example local orderSave
+### example local hello
 POST http://localhost:8189/shenyu/client/hello
 Accept: application/json
 Content-Type: application/json
 
-### example local orderSave
+### example local hi
 POST http://localhost:8189/shenyu/client/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
 
-### example local orderSave
+### example local hi
 POST http://localhost:8189/shenyu/client/post/hi?name=Tom
 Accept: application/json
 Content-Type: application/json
@@ -57,7 +57,7 @@ Content-Type: application/json
   "id": 123,
   "name": "order"
 }
-### example local orderSave
+### example local findById
 GET http://localhost:8189/order/findById?id=123
 Accept: application/json
 Content-Type: application/json

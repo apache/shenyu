@@ -147,6 +147,14 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
     List<AppAuthVO> listAllData();
 
     /**
+     * List all vo list.
+     *
+     * @param namespace the namespace
+     * @return the vo list
+     */
+    List<AppAuthVO> listAllDataByNamespace(String namespace);
+
+    /**
      * Update app secret by app key shenyu result.
      *
      * @param appKey    the app key
@@ -171,12 +179,31 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      */
     ShenyuAdminResult syncData();
 
+    /**
+     * Sync data by namespaceId shenyu result.
+     *
+     * @param namespaceId the namespaceId
+     * @return the shenyu result
+     */
+    ShenyuAdminResult syncDataByNamespaceId(String namespaceId);
+
 
     /**
      * Import shenyu auth data.
+     *
      * @param authDataList app auth list
      * @return the config import result
      */
     ConfigImportResult importData(List<AppAuthDTO> authDataList);
+
+
+    /**
+     * Import shenyu auth data.
+     *
+     * @param namespace     the namespace
+     * @param authDataList app auth list
+     * @return the config import result
+     */
+    ConfigImportResult importData(String namespace, List<AppAuthDTO> authDataList);
 
 }
