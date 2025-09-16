@@ -157,7 +157,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     @Override
-    protected void doPersistMcpTools(McpToolsRegisterDTO registerDTO) {
+    protected void doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
         doRegister(registerDTO, Constants.MCP_TOOLS_PATH, Constants.MCP_TOOLS_TYPE);
     }
 

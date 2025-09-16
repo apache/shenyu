@@ -26,9 +26,7 @@ import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * the openApi generator

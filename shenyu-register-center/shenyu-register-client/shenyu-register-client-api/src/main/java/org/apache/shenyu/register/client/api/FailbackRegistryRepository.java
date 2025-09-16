@@ -98,7 +98,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     @Override
-    public void persistMcpTools(McpToolsRegisterDTO registerDTO) {
+    public void persistMcpTools(final McpToolsRegisterDTO registerDTO) {
         try {
             this.doPersistMcpTools(registerDTO);
         } catch (Exception ex) {
@@ -217,7 +217,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
 
     /**
-     * Do persist interface
+     * Do persist interface.
      *
      * @param registerDTO registerDTO the register dto
      */
