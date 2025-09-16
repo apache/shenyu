@@ -53,7 +53,7 @@ public class OpenApiConstants {
     public static final String OPEN_API_SERVER_KEY = "server";
 
     /**
-     * the url of openApi server
+     * the url of openApi server.
      */
     public static final String OPEN_API_SERVER_URL_KEY = "url";
 
@@ -113,7 +113,7 @@ public class OpenApiConstants {
     public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_TYPE_KEY = "type";
 
     /**
-     * the defaultValue of schema key
+     * the defaultValue of schema key.
      */
     public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_DEFAULT_VALUE_KEY = "defaultValue";
 }

@@ -25,7 +25,6 @@ import org.apache.shenyu.client.mcp.common.annotation.OpenApiConfig;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 
 /**

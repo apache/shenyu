@@ -1,4 +1,3 @@
-package org.apache.shenyu.client.core.disruptor.subcriber;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -15,6 +14,8 @@ package org.apache.shenyu.client.core.disruptor.subcriber;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -36,12 +37,12 @@ public class ShenyuClientMcpExecutorSubscriber implements ExecutorTypeSubscriber
      *
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
-    public ShenyuClientMcpExecutorSubscriber(ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public ShenyuClientMcpExecutorSubscriber(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         this.shenyuClientRegisterRepository = shenyuClientRegisterRepository;
     }
 
     @Override
-    public void executor(Collection<McpToolsRegisterDTO> dataList) {
+    public void executor(final Collection<McpToolsRegisterDTO> dataList) {
         dataList.forEach(shenyuClientRegisterRepository::persistMcpTools);
     }
 

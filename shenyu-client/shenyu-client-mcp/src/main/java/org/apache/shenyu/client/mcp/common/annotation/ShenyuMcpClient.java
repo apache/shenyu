@@ -21,7 +21,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Map;
 
 /**
  * The interface shenyu client.
@@ -38,7 +37,7 @@ public @interface ShenyuMcpClient {
     OpenApiConfig openApi() default @OpenApiConfig;
 
     /**
-     * request config
+     * request config.
      *
      * @return the request config.
      */

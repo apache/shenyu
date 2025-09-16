@@ -23,7 +23,7 @@ package org.apache.shenyu.client.mcp.common.annotation;
 public @interface OpenApiConfig {
 
     /**
-     * the openApi info
+     * the openApi info.
      *
      * @return info
      */
@@ -31,18 +31,18 @@ public @interface OpenApiConfig {
 
 
     /**
-     * the openApi server
+     * the openApi server.
      *
      * @return server
      */
     OpenApiServer server() default @OpenApiServer;
 
     /**
-     * the openApi path
+     * the openApi path.
      *
      * @return path
      */
-    OpenApiPath path() default @OpenApiPath();
+    OpenApiPath path() default @OpenApiPath;
 
 
 }

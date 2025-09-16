@@ -20,6 +20,7 @@ package org.apache.shenyu.client.mcp;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.mcp.common.annotation.OpenApiConfig;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
 import org.apache.shenyu.client.mcp.generator.McpOpenApiGenerator;
 import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
@@ -31,19 +32,18 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.javatuples.Sextet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.stereotype.Controller;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -51,23 +51,25 @@ import java.util.stream.Collectors;
  */
 public class McpServiceEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuMcpClient> {
 
+    private static final Logger log = LoggerFactory.getLogger(McpServiceEventListener.class);
+
     /**
      * Instantiates a new context refreshed event listener.
      *
      * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public McpServiceEventListener(ShenyuClientConfig clientConfig, ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public McpServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, Object> beans) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         return null;
     }
 
     @Override
-    protected Map<String, Object> getBeans(ApplicationContext context) {
+    protected Map<String, Object> getBeans(final ApplicationContext context) {
         Map<String, Object> controllerBeans = context.getBeansWithAnnotation(Controller.class);
         return controllerBeans.entrySet().stream()
                 .filter(entry -> {
@@ -81,7 +83,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(ApplicationContext context, Map<String, Object> beans, String namespaceId) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans, final String namespaceId) {
         return null;
     }
 
@@ -91,23 +93,23 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected void handleClass(Class<?> clazz, Object bean, ShenyuMcpClient beanShenyuClient, String superPath) {
+    protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuMcpClient beanShenyuClient, final String superPath) {
     }
 
     @Override
-    protected void handleMethod(Object bean, Class<?> clazz, ShenyuMcpClient beanShenyuClient, Method method, String superPath) {
+    protected void handleMethod(final Object bean, final Class<?> clazz, final ShenyuMcpClient beanShenyuClient, final Method method, final String superPath) {
         List<String> namespaceIds = this.getNamespace();
         ShenyuMcpClient methodMcpClient;
         if (method.isAnnotationPresent(ShenyuMcpClient.class)) {
             methodMcpClient = method.getAnnotation(ShenyuMcpClient.class);
-        }else {
+        } else {
             return;
         }
         namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(buildMcpToolsRegisterDTO(bean, clazz, methodMcpClient, superPath, method, namespaceId)));
     }
 
     @Override
-    protected String buildApiSuperPath(Class<?> clazz, ShenyuMcpClient beanShenyuClient) {
+    protected String buildApiSuperPath(final Class<?> clazz, final ShenyuMcpClient beanShenyuClient) {
         if (Objects.nonNull(beanShenyuClient) && !StringUtils.isBlank(beanShenyuClient.openApi().path().path())) {
             return beanShenyuClient.openApi().path().path();
         }
@@ -120,12 +122,12 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected String buildApiPath(Method method, String superPath, ShenyuMcpClient methodShenyuClient) {
+    protected String buildApiPath(final Method method, final String superPath, final ShenyuMcpClient methodShenyuClient) {
         return null;
     }
 
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(Object bean, ShenyuMcpClient shenyuClient, String path, Class<?> clazz, Method method, String namespaceId) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuMcpClient shenyuClient, final String path, final Class<?> clazz, final Method method, final String namespaceId) {
         String desc = shenyuClient.desc();
         String configRuleName = shenyuClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
@@ -151,12 +153,28 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
                 .build();
     }
 
-    private McpToolsRegisterDTO buildMcpToolsRegisterDTO(Object bean, final Class<?> clazz, final ShenyuMcpClient beanShenyuClient, final String superPath, Method method, final String namespaceId) {
+    private McpToolsRegisterDTO buildMcpToolsRegisterDTO(final Object bean, final Class<?> clazz,
+                                                         final ShenyuMcpClient beanShenyuClient,
+                                                         final String superPath, final Method method,
+                                                         final String namespaceId) {
+        validateClientConfig(beanShenyuClient);
         JsonObject openApiJson = McpOpenApiGenerator.generateOpenApiJson(beanShenyuClient);
         McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(beanShenyuClient, openApiJson, namespaceId);
         mcpToolsRegisterDTO.setMetaDataRegisterDTO(buildMetaDataDTO(bean, beanShenyuClient, superPath, clazz, method, namespaceId));
         return mcpToolsRegisterDTO;
     }
 
+    private void validateClientConfig(final ShenyuMcpClient beanShenyuClient) {
+        OpenApiConfig openApiConfig = beanShenyuClient.openApi();
+        if (StringUtils.isBlank(openApiConfig.path().path())) {
+            log.error("OpenAPI pathKey is null or empty, please check OpenApiConfig");
+            throw new IllegalArgumentException("OpenAPI pathKey cannot be null or empty");
+        }
+
+        if (StringUtils.isBlank(openApiConfig.path().type())) {
+            log.error("OpenAPI methodType is null or empty, please check OpenApiConfig");
+            throw new IllegalArgumentException("OpenAPI methodType cannot be null or empty");
+        }
+    }
 
 }

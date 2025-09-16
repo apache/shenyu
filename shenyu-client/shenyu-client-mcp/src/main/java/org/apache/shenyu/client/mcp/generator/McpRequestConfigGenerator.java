@@ -31,7 +31,7 @@ import java.util.Arrays;
  */
 public class McpRequestConfigGenerator {
 
-    public static JsonObject generateRequestConfig(final JsonObject openApiJson, ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
+    public static JsonObject generateRequestConfig(final JsonObject openApiJson, final ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
 
         JsonObject root = new JsonObject();
 

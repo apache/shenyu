@@ -27,9 +27,10 @@ import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * the openApi generator
+ * the openApi generator.
  */
 public class McpOpenApiGenerator {
     public static JsonObject generateOpenApiJson(final ShenyuMcpClient apiDataList) {
@@ -72,13 +73,13 @@ public class McpOpenApiGenerator {
         OpenApiParameter[] openApiParameters = openApiConfig.path().parameters();
         OpenApiParameter openApiParameter = openApiConfig.path().parameter();
 
-        if ((openApiParameters != null && openApiParameters.length > 0)
-                || (openApiParameter != null && openApiParameter.name() != null && !openApiParameter.name().isEmpty())) {
+        if (Objects.nonNull(openApiParameters) && openApiParameters.length > 0
+                || Objects.nonNull(openApiParameter) && Objects.nonNull(openApiParameter.name()) && !openApiParameter.name().isEmpty()) {
             List<OpenApiParameter> parameterList = new ArrayList<>();
-            if (openApiParameters != null) {
+            if (Objects.nonNull(openApiParameters)) {
                 parameterList.addAll(Arrays.asList(openApiParameters));
             }
-            if (openApiParameter != null && openApiParameter.name() != null && !openApiParameter.name().isEmpty()) {
+            if (Objects.nonNull(openApiParameter) && Objects.nonNull(openApiParameter.name()) && !openApiParameter.name().isEmpty()) {
                 parameterList.add(openApiParameter);
             }
 
