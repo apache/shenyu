@@ -642,6 +642,16 @@ public interface Constants {
      * When register by http, the uri path.
      */
     String URI_PATH = "/shenyu-client/register-uri";
+
+    /**
+     * When register by http, the mcpTools path.
+     */
+    String MCP_TOOLS_PATH = "/shenyu-client/register-mcpTools";
+
+    /**
+     * the constant MCP_TOOLS_TYPE.
+     */
+    String MCP_TOOLS_TYPE = "mcp";
     
     /**
      * When register by http, the offline path.

@@ -15,45 +15,39 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.client.mcp.common.annotation;
 
 /**
- * The enum Data type enum.
+ * the openApi path.
  */
-public enum DataType {
-    
-    /**
-     * Meta data data type enum.
-     */
-    META_DATA,
-    
-    /**
-     * Uri data type enum.
-     */
-    URI,
+public @interface OpenApiPath {
 
     /**
-     * Api doc type enum.
+     * Path string.
+     *
+     * @return the string
      */
-    API_DOC,
+    String path() default "";
 
     /**
-     * Heartbeat type enum.
+     * method string.
+     *
+     * @return the string
      */
-    HEARTBEAT,
+    String type() default "GET";
 
     /**
-     * Discovery config type enum.
+     * parameter string.
+     *
+     * @return the string
      */
-    DISCOVERY_CONFIG,
-    
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
+    OpenApiParameter parameter() default @OpenApiParameter;
 
     /**
-     * mcp tools type enum.
+     * parameters string.
+     *
+     * @return the string
      */
-    MCP_TOOLS
+    OpenApiParameter[] parameters() default {};
+
 }

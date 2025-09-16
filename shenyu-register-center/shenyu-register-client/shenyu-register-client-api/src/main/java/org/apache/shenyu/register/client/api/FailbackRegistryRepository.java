@@ -22,6 +22,7 @@ import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -92,6 +93,16 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.doPersistApiDoc(registerDTO);
         } catch (Exception ex) {
             logger.warn("Failed to persistApiDoc {}, cause:{}", registerDTO, ex.getMessage());
+            this.addFailureApiDocRegister(registerDTO);
+        }
+    }
+
+    @Override
+    public void persistMcpTools(McpToolsRegisterDTO registerDTO) {
+        try {
+            this.doPersistMcpTools(registerDTO);
+        } catch (Exception ex) {
+            logger.warn("Failed to persistMcpTools {}, cause:{}", registerDTO, ex.getMessage());
             this.addFailureApiDocRegister(registerDTO);
         }
     }
@@ -204,6 +215,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param registerDTO the register dto
      */
     protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
+
+    /**
+     * Do persist interface
+     *
+     * @param registerDTO registerDTO the register dto
+     */
+    protected abstract void doPersistMcpTools(McpToolsRegisterDTO registerDTO);
 
     private static class Holder {
 
