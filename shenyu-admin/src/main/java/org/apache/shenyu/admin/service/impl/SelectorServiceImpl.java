@@ -76,6 +76,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -99,6 +101,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
 
     private final SelectorMapper selectorMapper;
 
@@ -358,7 +362,10 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceId(final String name, final String pluginName, final String namespaceId) {
+
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        LOG.info("pluginDO info: {}.", pluginDO);
+
         return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 

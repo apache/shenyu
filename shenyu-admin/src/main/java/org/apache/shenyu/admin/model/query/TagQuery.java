@@ -27,7 +27,7 @@ public class TagQuery {
     /**
      * name.
      */
-    private String name;
+    private String tagName;
 
     /**
      * parentTagId.
@@ -54,16 +54,16 @@ public class TagQuery {
      *  get name.
      * @return name
      */
-    public String getName() {
-        return name;
+    public String getTagName() {
+        return tagName;
     }
 
     /**
      * set name.
-     * @param name name
+     * @param tagName name
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setTagName(final String tagName) {
+        this.tagName = tagName;
     }
 
     @Override
@@ -75,13 +75,13 @@ public class TagQuery {
             return false;
         }
         TagQuery that = (TagQuery) o;
-        return Objects.equals(name, that.name)
+        return Objects.equals(tagName, that.tagName)
                 && Objects.equals(parentTagId, that.parentTagId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, parentTagId);
+        return Objects.hash(tagName, parentTagId);
     }
 
 }

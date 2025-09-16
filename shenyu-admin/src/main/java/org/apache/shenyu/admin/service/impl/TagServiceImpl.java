@@ -18,14 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.TagMapper;
@@ -39,6 +31,15 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.TagService}.
@@ -120,7 +121,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagVO> findByQuery(final String tagName, final String parentTagId) {
         TagQuery tagQuery = new TagQuery();
-        tagQuery.setName(tagName);
+        tagQuery.setTagName(tagName);
         tagQuery.setParentTagId(parentTagId);
         List<TagDO> tagDOS = Optional.ofNullable(tagMapper.selectByQuery(tagQuery)).orElse(Lists.newArrayList());
         return tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
@@ -203,7 +204,7 @@ public class TagServiceImpl implements TagService {
             final TagDO.TagExt parent = new TagDO.TagExt();
             TagDO.TagExt tagExt = new TagDO.TagExt();
             tagExt.setDesc(parentTagDO.getTagDesc());
-            tagExt.setName(parentTagDO.getName());
+            tagExt.setName(parentTagDO.getTagName());
             tagExt.setId(parentTagDO.getId());
             tagExt.setRefreshTime(parent.getRefreshTime());
             tagExt.setApiDocMd5(parent.getApiDocMd5());
@@ -213,7 +214,7 @@ public class TagServiceImpl implements TagService {
             TagDO.TagExt parentTagExt = Optional.ofNullable(GsonUtils.getInstance().fromJson(parentTagDO.getExt(), TagDO.TagExt.class)).orElse(new TagDO.TagExt());
             final TagDO.TagExt tagExt = new TagDO.TagExt();
             parentTagExt.setDesc(parentTagDO.getTagDesc());
-            parentTagExt.setName(parentTagDO.getName());
+            parentTagExt.setName(parentTagDO.getTagName());
             parentTagExt.setId(parentTagDO.getId());
             tagExt.setParent(parentTagExt);
             ext = GsonUtils.getInstance().toJson(tagExt);

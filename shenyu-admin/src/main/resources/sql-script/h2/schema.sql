@@ -1174,7 +1174,7 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1697
 CREATE TABLE IF NOT EXISTS `tag`
 (
     `id`            varchar(128) NOT NULL COMMENT 'primary key id',
-    `name`          varchar(128) NOT NULL COMMENT 'tag name',
+    `tag_name`          varchar(128) NOT NULL COMMENT 'tag name',
     `tag_desc`      varchar(128) NOT NULL COMMENT 'tag description',
     `parent_tag_id` varchar(128) NOT NULL COMMENT 'parent tag_id',
     `ext`           varchar(1024) NOT NULL COMMENT 'extension info',
