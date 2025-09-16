@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuMcpClient()
+@ShenyuMcpClient
 @ApiModule(value = "order")
 public class OrderController {
 
