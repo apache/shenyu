@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.controller;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
-import org.apache.shenyu.client.mcp.common.annotation.Header;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiConfig;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiInfo;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiParameter;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiPath;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiServer;
+import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpHeader;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.dto.OrderDTO;
@@ -38,7 +39,12 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuMcpClient
+@ShenyuMcpClient(
+        definition = @OpenAPIDefinition(
+                servers = @Server(url = "http://localhost:8150")
+        ), toolName = "order"
+
+)
 @ApiModule(value = "order")
 public class OrderController {
 
@@ -50,21 +56,23 @@ public class OrderController {
      */
     @GetMapping("/findById")
     @ShenyuMcpClient(
-            openApi = @OpenApiConfig(
-                    info = @OpenApiInfo(title = "findOrder", description = "find order by id"),
-                    server = @OpenApiServer(url = "http://localhost:8150"),
-                    path = @OpenApiPath(
-                            path = "/order/findById",
-                            parameter = @OpenApiParameter(
-                                    name = "id"
+            operation = @Operation(
+                    method = "Get", description = "find order by id",
+                    parameters = {
+                            @Parameter(
+                                    name = "id",
+                                    in = ParameterIn.PATH, description = "the id of order",
+                                    required = true,
+                                    schema = @Schema(type = "string", defaultValue = "1")
                             )
-                    )
+                    }
             ),
             requestConfig = @ShenyuMcpRequestConfig(
                     headers = {
-                            @Header(key = "aaa", value = "bbb")
+                            @ShenyuMcpHeader(key = "aaa", value = "bbb")
                     }
-            )
+            ),
+            enabled = true
     )
     @ApiDoc(desc = "findById")
     public OrderDTO findById(@RequestParam("id") final String id) {

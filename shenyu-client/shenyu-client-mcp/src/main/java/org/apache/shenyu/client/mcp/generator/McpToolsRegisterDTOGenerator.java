@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.client.mcp.generator;
 
-
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.shenyu.client.mcp.common.annotation.OpenApiConfig;
+import io.swagger.v3.oas.annotations.Operation;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
@@ -32,26 +30,25 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
  */
 public class McpToolsRegisterDTOGenerator {
 
-    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpClient apiDataList, final JsonObject openApiJsonObject, final String namespaceId) {
+    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpClient classMcpClient, final ShenyuMcpClient methodMcpClient,
+                                                          final JsonObject openApiJsonObject, final String url, final String namespaceId) {
         JsonObject root = new JsonObject();
-        OpenApiConfig openApiConfig = apiDataList.openApi();
-        ShenyuMcpRequestConfig shenyuMcpRequestConfig = apiDataList.requestConfig();
-        JsonObject openApiInfo = openApiJsonObject.getAsJsonObject(OpenApiConstants.OPEN_API_INFO_KEY);
-        String title = openApiInfo.has(OpenApiConstants.OPEN_API_INFO_TITLE_KEY) ? openApiInfo.get(OpenApiConstants.OPEN_API_INFO_TITLE_KEY).getAsString() : "";
-        String description = openApiInfo.has(OpenApiConstants.OPEN_API_INFO_DESCRIPTION_KEY) ? openApiInfo.get(OpenApiConstants.OPEN_API_INFO_DESCRIPTION_KEY).getAsString() : "";
+
+        Operation operation = methodMcpClient.operation();
+        ShenyuMcpRequestConfig shenyuMcpRequestConfig = methodMcpClient.requestConfig();
 
         JsonObject paths = openApiJsonObject.getAsJsonObject(OpenApiConstants.OPEN_API_PATH_KEY);
-        JsonObject path = paths.getAsJsonObject(openApiConfig.path().path());
-        JsonObject method = path.getAsJsonObject(openApiConfig.path().type());
+        JsonObject path = paths.getAsJsonObject(url);
+        JsonObject method = path.getAsJsonObject(operation.method());
         JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_KEY);
 
-        root.addProperty("name", title);
+        root.addProperty("name", classMcpClient.toolName());
         root.add("parameters", parameters);
 
         JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(openApiJsonObject, shenyuMcpRequestConfig);
         root.addProperty("requestConfig", requestConfig.toString());
 
-        root.addProperty("description", description);
+        root.addProperty("description", operation.description());
 
         McpToolsRegisterDTO mcpToolsRegisterDTO = new McpToolsRegisterDTO();
         mcpToolsRegisterDTO.setNamespaceId(namespaceId);

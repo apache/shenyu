@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.client.mcp.common.annotation;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,17 +32,25 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface ShenyuMcpClient {
 
+
     /**
-     * openApi config.
+     * the openApi definition.
      *
-     * @return the openApi config.
+     * @return definition
      */
-    OpenApiConfig openApi() default @OpenApiConfig;
+    OpenAPIDefinition definition() default @OpenAPIDefinition;
+
+    /**
+     * the openApi operation.
+     *
+     * @return operation
+     */
+    Operation operation() default @Operation;
 
     /**
      * request config.
      *
-     * @return the request config.
+     * @return the request config
      */
     ShenyuMcpRequestConfig requestConfig() default @ShenyuMcpRequestConfig;
 
@@ -48,7 +59,7 @@ public @interface ShenyuMcpClient {
      *
      * @return the string
      */
-    String ruleName() default "";
+    String toolName() default "";
 
     /**
      * Desc string.

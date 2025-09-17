@@ -18,36 +18,21 @@
 package org.apache.shenyu.client.mcp.common.annotation;
 
 /**
- * the openApi path.
+ * the headersMap.
  */
-public @interface OpenApiPath {
+public @interface ShenyuMcpHeader {
 
     /**
-     * Path string.
+     * the key.
      *
-     * @return the string
+     * @return key
      */
-    String path() default "";
+    String key() default "";
 
     /**
-     * method string.
+     * the value.
      *
-     * @return the string
+     * @return value
      */
-    String type() default "GET";
-
-    /**
-     * parameter string.
-     *
-     * @return the string
-     */
-    OpenApiParameter parameter() default @OpenApiParameter;
-
-    /**
-     * parameters string.
-     *
-     * @return the string
-     */
-    OpenApiParameter[] parameters() default {};
-
+    String value() default "";
 }

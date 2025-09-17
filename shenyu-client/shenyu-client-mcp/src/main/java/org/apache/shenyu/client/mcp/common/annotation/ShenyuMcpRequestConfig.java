@@ -22,6 +22,11 @@ package org.apache.shenyu.client.mcp.common.annotation;
  */
 public @interface ShenyuMcpRequestConfig {
 
-    Header[] headers() default {};
+    /**
+     * headers.
+     *
+     * @return the headers
+     */
+    ShenyuMcpHeader[] headers() default {};
 
 }
