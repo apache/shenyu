@@ -18,10 +18,6 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -34,6 +30,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -149,7 +150,7 @@ public class TagServiceTest {
     private TagDO buildTagDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         TagDO tagDO = TagDO.builder()
-                .name("film")
+                .tagName("film")
                 .tagDesc("this is a pic tag")
                 .parentTagId("0")
                 .id("123")
@@ -162,7 +163,7 @@ public class TagServiceTest {
     private TagDO buildParentTagDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         TagDO tagDO = TagDO.builder()
-                .name("film")
+                .tagName("film")
                 .tagDesc("this is a pic tag")
                 .parentTagId("123")
                 .id("456")
@@ -175,7 +176,7 @@ public class TagServiceTest {
     private TagDO buildParentTagDO1() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         TagDO tagDO = TagDO.builder()
-                .name("film")
+                .tagName("film")
                 .tagDesc("this is a pic tag789")
                 .parentTagId("456")
                 .id("789")
@@ -188,7 +189,7 @@ public class TagServiceTest {
     private TagDO buildParentTagDO2() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         TagDO tagDO = TagDO.builder()
-                .name("film")
+                .tagName("film")
                 .tagDesc("this is a pic tag789")
                 .parentTagId("789")
                 .id("101112")

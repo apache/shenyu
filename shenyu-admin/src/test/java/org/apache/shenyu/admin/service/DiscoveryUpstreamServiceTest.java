@@ -275,7 +275,7 @@ public final class DiscoveryUpstreamServiceTest {
     private SelectorDO buildSelectorDO() {
         SelectorDO selectorDO = new SelectorDO();
         selectorDO.setId("selector_1");
-        selectorDO.setName("selector_1");
+        selectorDO.setSelectorName("selector_1");
         return selectorDO;
     }
 
