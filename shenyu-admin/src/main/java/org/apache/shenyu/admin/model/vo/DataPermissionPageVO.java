@@ -117,7 +117,7 @@ public class DataPermissionPageVO implements Serializable {
      */
     public static DataPermissionPageVO buildPageVOBySelector(final SelectorDO selectorDO, final Boolean isChecked) {
         return Optional.ofNullable(selectorDO)
-                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+                .map(item -> new DataPermissionPageVO(item.getId(), item.getSelectorName(), isChecked))
                 .orElse(null);
     }
 
@@ -129,7 +129,7 @@ public class DataPermissionPageVO implements Serializable {
      */
     public static DataPermissionPageVO buildPageVOByRule(final RuleDO ruleDO, final Boolean isChecked) {
         return Optional.of(ruleDO)
-                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+                .map(item -> new DataPermissionPageVO(item.getId(), item.getRuleName(), isChecked))
                 .orElse(null);
     }
 

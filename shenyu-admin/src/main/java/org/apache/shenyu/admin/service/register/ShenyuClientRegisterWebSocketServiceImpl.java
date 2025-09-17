@@ -117,7 +117,7 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
                 WebSocketUpstream webSocketUpstream = CommonUpstreamUtils.buildWebSocketUpstream(offlineUrl.getProtocol(), offlineUrl.getHost(), offlineUrl.getPort(), offlineUrl.getNamespaceId());
                 removeDiscoveryUpstream(selectorDO.getId(), webSocketUpstream.getUrl());
             }
-            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
             getEventPublisher().publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         }
         return Constants.SUCCESS;
