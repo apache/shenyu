@@ -53,6 +53,11 @@ public enum ShenyuResultEnum {
     TOO_MANY_REQUESTS(429, "You have been restricted, please try again later!"),
     
     /**
+     * run out of tokens shenyu result enum.
+     */
+    RUN_OUT_OF_TOKENS(429, "You have reach your tokens limit, please try again later!"),
+    
+    /**
      * Hystrix plugin fallback, due to a circuit break.
      */
     HYSTRIX_PLUGIN_FALLBACK(429, "HystrixPlugin fallback success, please check your service status!"),
@@ -151,16 +156,6 @@ public enum ShenyuResultEnum {
      * Cannot find selector shenyu result enum.
      */
     SELECTOR_NOT_FOUND(-107, "Can not find selector, please check your configuration!"),
-    
-    /**
-     * Can not config springcloud serviceid.
-     */
-    CANNOT_CONFIG_SPRINGCLOUD_SERVICEID(-108, "You are not configured or do not match springcloud serviceId!"),
-    
-    /**
-     * The Springcloud serviceid is error.
-     */
-    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "SpringCloud serviceId does not exist or is configured incorrectly!"),
     
     /**
      * The Sentinel block error.

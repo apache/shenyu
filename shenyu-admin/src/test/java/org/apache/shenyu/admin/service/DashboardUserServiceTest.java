@@ -33,12 +33,13 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
+import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
-import org.apache.shenyu.common.utils.AesUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashSet;
@@ -99,6 +101,9 @@ public final class DashboardUserServiceTest {
     @Mock
     private SecretProperties secretProperties;
 
+    @Mock
+    private NamespaceUserService namespaceUserService;
+
     @Test
     public void testCreateOrUpdate() {
         SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
@@ -106,6 +111,7 @@ public final class DashboardUserServiceTest {
                 .userName(TEST_USER_NAME).password(TEST_PASSWORD).roles(Collections.singletonList("1"))
                 .build();
         given(dashboardUserMapper.insertSelective(any(DashboardUserDO.class))).willReturn(1);
+        given(namespaceUserService.create(any(), any())).willReturn(new NamespaceUserRelVO());
         assertEquals(1, dashboardUserService.createOrUpdate(dashboardUserDTO));
         verify(dashboardUserMapper).insertSelective(any(DashboardUserDO.class));
 

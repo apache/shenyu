@@ -19,6 +19,8 @@ package org.apache.shenyu.sdk.spring;
 
 public class NoFallbackAvailableException extends RuntimeException {
 
+    private static final long serialVersionUID = 5196228762350964700L;
+
     public NoFallbackAvailableException(final String message, final Throwable cause) {
 
         super(message, cause);

@@ -27,6 +27,7 @@ import jakarta.annotation.Resource;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -50,7 +51,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
         
         context.setVariable("triggerTimeLabel", "Alarm Time");
         context.setVariable("triggerTime", DTF.format(LocalDateTime.ofInstant(
-                alert.getDateCreated() == null ? Instant.now() : alert.getDateCreated().toInstant(), 
+                Objects.isNull(alert.getDateCreated()) ? Instant.now() : alert.getDateCreated().toInstant(),
                 TimeZone.getDefault().toZoneId())));
         
         context.setVariable("contentLabel", "Alarm Content");
@@ -67,7 +68,7 @@ abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
     protected abstract String templateName();
     
     private static String removeBlankLine(final String value) {
-        if (value == null) {
+        if (Objects.isNull(value)) {
             return null;
         }
         return value.replaceAll("(?m)^\\s*$(\\n|\\r\\n)", "");

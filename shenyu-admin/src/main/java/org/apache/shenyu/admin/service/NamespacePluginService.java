@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
@@ -26,6 +25,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.PluginData;
 
 import java.util.List;
@@ -34,9 +34,36 @@ import java.util.List;
  * this is plugin service.
  */
 public interface NamespacePluginService extends PageService<NamespacePluginQueryCondition, NamespacePluginVO> {
+    
+    /**
+     * find by id.
+     *
+     * @param id primary key.
+     * @return {@linkplain PluginVO}
+     */
+    NamespacePluginVO findById(String id);
+    
+    
+    /**
+     * find by namespaceId and pluginId.
+     *
+     * @param namespaceId namespaceId.
+     * @param pluginId    pluginId.
+     * @return {@linkplain NamespacePluginVO}
+     */
+    NamespacePluginVO findByNamespaceIdAndPluginId(String namespaceId, String pluginId);
 
     /**
-     * Create or update string.
+     * Update string.
+     *
+     * @param namespaceId        namespaceId.
+     * @param pluginId           pluginId.
+     * @return the string
+     */
+    NamespacePluginVO create(String namespaceId, String pluginId);
+
+    /**
+     * Create string.
      *
      * @param namespacePluginDTO the plugin namespace dto
      * @return the string
@@ -44,22 +71,12 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     String update(NamespacePluginDTO namespacePluginDTO);
 
     /**
-     * Delete string.
+     * Delete namespace plugin relations by ids.
      *
      * @param ids         the ids.
-     * @param namespaceId the namespaceId
      * @return the string
      */
-    String delete(List<String> ids, String namespaceId);
-
-    /**
-     * find plugin namespace by pluginId.
-     *
-     * @param pluginId    the pluginId.
-     * @param namespaceId the namespaceId
-     * @return {@linkplain PluginVO}
-     */
-    NamespacePluginVO findByPluginId(String pluginId, String namespaceId);
+    String delete(List<String> ids);
 
     /**
      * find page of plugin namespace by query.
@@ -76,7 +93,7 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * @return the list
      */
     List<PluginData> listAll(String namespaceId);
-
+    
     /**
      * List all list.
      *
@@ -85,9 +102,17 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
     List<PluginData> listAll();
 
     /**
-     * List all vo list.
+     * List by namespace id list.
      *
      * @param namespaceId the namespaceId
+     * @return the list
+     */
+    List<NamespacePluginVO> listByNamespaceId(String namespaceId);
+    
+    /**
+     * List all vo list.
+     *
+     * @param namespaceId the namespace id
      * @return the vo list
      */
     List<NamespacePluginVO> listAllData(String namespaceId);
@@ -97,24 +122,44 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      *
      * @param ids         the ids
      * @param enabled     the enabled
-     * @param namespaceId the namespaceId
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled, String namespaceId);
+    String enabled(List<String> ids, Boolean enabled);
+
+    /**
+     * Enabled string.
+     *
+     * @param namespaceId the namespaceId
+     * @param pluginIds   the pluginIds
+     * @param enabled     the enabled
+     * @return the string
+     */
+    String enabled(String namespaceId, List<String> pluginIds, Boolean enabled);
 
 
     /**
      * active plugin snapshot.
      *
+     * @param namespaceId the namespaceId
      * @return plugin list
      */
-    List<PluginSnapshotVO> activePluginSnapshot();
+    List<PluginSnapshotVO> activePluginSnapshot(String namespaceId);
 
     /**
      * import plugin data.
      *
+     * @param namespace  the namespace
      * @param pluginList the plugin data
+     * @param context the import context
      * @return config import result
      */
-    ConfigImportResult importData(List<PluginDTO> pluginList);
+    ConfigImportResult importData(String namespace, List<NamespacePluginDTO> pluginList, ConfigsImportContext context);
+    
+    /**
+     * List by namespace.
+     *
+     * @param namespace the namespace
+     * @return the list
+     */
+    List<PluginData> listByNamespace(String namespace);
 }

@@ -33,11 +33,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.Objects;
+
+import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -80,6 +80,7 @@ public class DividePluginTest {
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
                 bindingData.setSelectorId(dto.getId());
+                bindingData.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
                 client.bindingData(bindingData);
             }
         }
@@ -94,22 +95,13 @@ public class DividePluginTest {
 //        selectorIds = Lists.newArrayList();
 //    }
 
+
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
         WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        LOG.info("start loggingRocketMQ plugin");
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("id", "29");
-        formData.add("name", "loggingRocketMQ");
-        formData.add("enabled", "true");
-        formData.add("role", "Logging");
-        formData.add("sort", "170");
-        formData.add("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
-        adminClient.changePluginStatus("29", formData);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq");
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)

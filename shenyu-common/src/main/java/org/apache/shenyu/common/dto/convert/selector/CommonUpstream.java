@@ -50,6 +50,16 @@ public class CommonUpstream {
     private long timestamp;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
+     * this is gray.
+     */
+    private boolean gray;
+
+    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -172,21 +182,61 @@ public class CommonUpstream {
         return true;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * gray.
+     *
+     * @return Gray
+     */
+    public boolean isGray() {
+        return gray;
+    }
+
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         CommonUpstream that = (CommonUpstream) o;
-        return Objects.equals(upstreamHost, that.upstreamHost) && Objects.equals(protocol, that.protocol) && Objects.equals(upstreamUrl, that.upstreamUrl);
+        return Objects.equals(upstreamHost, that.upstreamHost)
+                && Objects.equals(protocol, that.protocol)
+                && Objects.equals(gray, that.gray)
+                && Objects.equals(upstreamUrl, that.upstreamUrl)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray);
     }
 
     @Override
@@ -205,6 +255,10 @@ public class CommonUpstream {
                 + status
                 + ", timestamp="
                 + timestamp
+                + ", namespaceId="
+                + namespaceId
+                + ", gray="
+                + gray
                 + '}';
     }
 }

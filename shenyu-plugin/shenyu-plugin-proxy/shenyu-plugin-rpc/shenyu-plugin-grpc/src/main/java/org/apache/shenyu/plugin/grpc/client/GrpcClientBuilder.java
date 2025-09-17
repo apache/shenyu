@@ -37,6 +37,7 @@ import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
@@ -82,7 +83,7 @@ public final class GrpcClientBuilder {
      */
     public static Executor buildExecutor() {
         GrpcRegisterConfig config = Singleton.INST.get(GrpcRegisterConfig.class);
-        if (null == config) {
+        if (Objects.isNull(config)) {
             return null;
         }
         final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);

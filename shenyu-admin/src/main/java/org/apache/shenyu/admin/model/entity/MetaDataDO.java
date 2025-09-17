@@ -49,6 +49,11 @@ public final class MetaDataDO extends BaseDO implements Serializable {
      */
     private Boolean enabled;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     public MetaDataDO() {
     }
 
@@ -60,7 +65,8 @@ public final class MetaDataDO extends BaseDO implements Serializable {
                       final String methodName,
                       final String parameterTypes,
                       final String rpcExt,
-                      final Boolean enabled) {
+                      final Boolean enabled,
+                      final String namespaceId) {
         this.appName = appName;
         this.path = path;
         this.pathDesc = pathDesc;
@@ -70,6 +76,7 @@ public final class MetaDataDO extends BaseDO implements Serializable {
         this.parameterTypes = parameterTypes;
         this.rpcExt = rpcExt;
         this.enabled = enabled;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -235,6 +242,24 @@ public final class MetaDataDO extends BaseDO implements Serializable {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * builder method.
      *
      * @return builder object.
@@ -263,12 +288,14 @@ public final class MetaDataDO extends BaseDO implements Serializable {
                 && Objects.equals(methodName, that.methodName)
                 && Objects.equals(parameterTypes, that.parameterTypes)
                 && Objects.equals(rpcExt, that.rpcExt)
-                && Objects.equals(enabled, that.enabled);
+                && Objects.equals(enabled, that.enabled)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
+        return Objects.hash(super.hashCode(), appName, path, pathDesc, rpcType, serviceName, methodName, parameterTypes,
+                rpcExt, enabled, namespaceId);
     }
 
     public static final class MetaDataDOBuilder {
@@ -296,6 +323,8 @@ public final class MetaDataDO extends BaseDO implements Serializable {
         private String rpcExt;
 
         private Boolean enabled;
+
+        private String namespaceId;
 
         private MetaDataDOBuilder() {
         }
@@ -433,6 +462,17 @@ public final class MetaDataDO extends BaseDO implements Serializable {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return MetaDataDOBuilder
+         */
+        public MetaDataDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build method.
          *
          * @return build object.
@@ -451,6 +491,7 @@ public final class MetaDataDO extends BaseDO implements Serializable {
             metaDataDO.setParameterTypes(parameterTypes);
             metaDataDO.setRpcExt(rpcExt);
             metaDataDO.setEnabled(enabled);
+            metaDataDO.setNamespaceId(namespaceId);
             return metaDataDO;
         }
     }

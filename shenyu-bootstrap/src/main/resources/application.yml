@@ -80,6 +80,7 @@ management:
           - 'health'
           - 'info'
 shenyu:
+  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   selectorMatchCache:
     ## selector L1 cache
     cache:
@@ -111,7 +112,7 @@ shenyu:
       accessLog: false
       serverSocketChannel:
         soBackLog: 128
-        soReuseAddr: false
+        soReuseAddr: true
         connectTimeoutMillis: 10000
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
@@ -122,7 +123,7 @@ shenyu:
         singleEventExecutorPerGroup: true
       socketChannel:
         soKeepAlive: false
-        soReuseAddr: false
+        soReuseAddr: true
         soLinger: -1
         tcpNoDelay: true
         ipTos: 0
@@ -192,10 +193,6 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
-  duplicate-response-header:
-    strategy: RETAIN_FIRST
-    headers:
-      - Access-Control-Allow-Origin
   register:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -252,6 +249,7 @@ shenyu:
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
 #      username:
 #      password:
+#      context-path: nacos
 #      acm:
 #        enabled: false
 #        endpoint: acm.aliyun.com

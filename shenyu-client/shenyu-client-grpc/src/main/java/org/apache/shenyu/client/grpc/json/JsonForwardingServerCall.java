@@ -30,6 +30,8 @@ import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * Handle response of json generic service.
  *
@@ -54,7 +56,7 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
     @Override
     public void sendMessage(final P message) {
         try {
-            if (message == null) {
+            if (Objects.isNull(message)) {
                 delegate().sendMessage(null);
                 return;
             }

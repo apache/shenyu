@@ -37,6 +37,8 @@ public class BindingData implements ResourceData {
 
     private List<DiscoveryUpstream> discoveryUpstreams;
 
+    private String namespaceId;
+
     @Override
     public String getId() {
         return id;
@@ -177,6 +179,24 @@ public class BindingData implements ResourceData {
         this.discoveryUpstreams = discoveryUpstreams;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     public static class Discovery {
 
         /**
@@ -303,6 +323,11 @@ public class BindingData implements ResourceData {
          * props.
          */
         private String props;
+        
+        /**
+         * namespaceId.
+         */
+        private String namespaceId;
 
         /**
          * get id.
@@ -415,6 +440,23 @@ public class BindingData implements ResourceData {
          */
         public void setProps(final String props) {
             this.props = props;
+        }
+        
+        /**
+         * get namespaceId.
+         *
+         * @return namespaceId
+         */
+        public String getNamespaceId() {
+            return namespaceId;
+        }
+        
+        /**
+         * set namespaceId.
+         * @param namespaceId namespaceId
+         */
+        public void setNamespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
         }
     }
 

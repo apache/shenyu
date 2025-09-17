@@ -42,9 +42,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
@@ -104,21 +104,30 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.discoveryService = discoveryService;
     }
 
-    //todo:[Namespace] Synchronize based on namespaceId
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
 
         List<PluginData> pluginDataList = namespacePluginService.listAll();
-        //todo:[Namespace] Temporarily only synchronize plugin data for the default namespace
-        List<PluginData> pluginDataListFilter = pluginDataList.stream().filter(v -> v.getNamespaceId().equals(SYS_DEFAULT_NAMESPACE_ID)).collect(Collectors.toList());
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataListFilter));
+        Map<String, List<PluginData>> namespacePluginDataList =
+                pluginDataList.stream().collect(Collectors.groupingBy(PluginData::getNamespaceId));
+        namespacePluginDataList.values().forEach(p -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, p));
+        });
 
         List<SelectorData> selectorDataList = selectorService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
+        Map<String, List<SelectorData>> namespaceSelectorDataList =
+                selectorDataList.stream().collect(Collectors.groupingBy(SelectorData::getNamespaceId));
+        namespaceSelectorDataList.values().forEach(s -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, s));
+        });
 
         List<RuleData> ruleDataList = ruleService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
+        Map<String, List<RuleData>> namespaceRuleDataList =
+                ruleDataList.stream().collect(Collectors.groupingBy(RuleData::getNamespaceId));
+        namespaceRuleDataList.values().forEach(r -> {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, r));
+        });
 
         metaDataService.syncData();
         discoveryService.syncData();
@@ -126,12 +135,35 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncPluginData(final String pluginId, final String namespaceId) {
-        NamespacePluginVO namespacePluginVO = namespacePluginService.findByPluginId(pluginId, namespaceId);
+    public boolean syncAllByNamespaceId(final DataEventTypeEnum type, final String namespaceId) {
+        appAuthService.syncDataByNamespaceId(namespaceId);
+
+        List<PluginData> pluginDataList = namespacePluginService.listAll(namespaceId);
+
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
+
+        List<SelectorData> selectorDataList = selectorService.listAllByNamespaceId(namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
+
+        List<RuleData> ruleDataList = ruleService.listAllByNamespaceId(namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
+
+        metaDataService.syncDataByNamespaceId(namespaceId);
+        discoveryService.syncDataByNamespaceId(namespaceId);
+        return true;
+    }
+
+    @Override
+    public boolean syncPluginData(final String id) {
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id);
+        if (Objects.isNull(namespacePluginVO) || Objects.isNull(namespacePluginVO.getId())) {
+            LOG.error("namespace plugin is not existed");
+            return false;
+        }
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
 
-        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(pluginId, namespaceId);
+        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
 
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
@@ -143,6 +175,34 @@ public class SyncDataServiceImpl implements SyncDataService {
             }
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean syncPluginData(final String namespaceId, final String pluginId) {
+        
+        NamespacePluginVO namespacePluginVO = namespacePluginService.findByNamespaceIdAndPluginId(namespaceId, pluginId);
+        if (Objects.isNull(namespacePluginVO) || Objects.isNull(namespacePluginVO.getPluginId())) {
+            LOG.error("namespace plugin is not existed");
+            return false;
+        }
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(namespacePluginVO))));
+        
+        List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
+        
+        if (!CollectionUtils.isEmpty(selectorDataList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+            
+            List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
+                    .collect(Collectors.toList());
+            for (String selectorId : selectorIdList) {
+                discoveryUpstreamService.refreshBySelectorId(selectorId);
+            }
+            List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
+            
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
         return true;

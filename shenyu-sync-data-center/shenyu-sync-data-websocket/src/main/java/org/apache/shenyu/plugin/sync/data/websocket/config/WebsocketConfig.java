@@ -66,17 +66,18 @@ public class WebsocketConfig {
     public void setAllowOrigin(final String allowOrigin) {
         this.allowOrigin = allowOrigin;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         WebsocketConfig that = (WebsocketConfig) o;
-        return Objects.equals(urls, that.urls) && Objects.equals(allowOrigin, that.allowOrigin);
+        return Objects.equals(urls, that.urls)
+                && Objects.equals(allowOrigin, that.allowOrigin);
     }
 
     @Override

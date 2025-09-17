@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -45,6 +44,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Objects;
+
 /**
  * this is selector controller.
  */
@@ -67,18 +68,19 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
                                                                @RequestParam @NotNull final Integer currentPage,
                                                                @RequestParam @NotNull final Integer pageSize,
-                                                               @Valid @Existed(message = "namespaceId is not existed",
-                                                                       provider = NamespaceMapper.class) final String namespaceId
+                                                               @RequestParam(value = "namespaceId", required = false) final String namespaceId
     ) {
         final SelectorQueryCondition condition = new SelectorQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setPlugin(ListUtil.of(pluginId));
         condition.setKeyword(name);
-        condition.setNamespaceId(namespaceId);
+        if (Objects.nonNull(namespaceId)) {
+            condition.setNamespaceId(namespaceId);
+        }
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
 
@@ -86,15 +88,12 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * detail selector.
      *
      * @param id selector id.
-     * @param namespaceId namespaceId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}/{namespaceId}")
+    @GetMapping("/{id}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
-                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
-                                            @PathVariable("namespaceId") @Valid
-                                            @Existed(provider = NamespaceMapper.class, message = "namespaceId is not existed") final String namespaceId) {
-        SelectorVO selectorVO = selectorService.findByIdAndNamespaceId(id, namespaceId);
+                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id) {
+        SelectorVO selectorVO = selectorService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
 
@@ -104,7 +103,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @param selectorDTO selector.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, selectorDTO.getId());

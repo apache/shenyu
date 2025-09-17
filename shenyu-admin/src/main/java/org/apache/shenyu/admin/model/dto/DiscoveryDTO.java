@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -65,6 +69,13 @@ public class DiscoveryDTO implements Serializable {
      */
     @NotNull(message = "props not null")
     private String props;
+
+    /**
+     * namespaceId.
+     */
+    @NotBlank
+    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    private String namespaceId;
 
     /**
      * discoveryHandler.
@@ -219,6 +230,24 @@ public class DiscoveryDTO implements Serializable {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * Get discovery rel.
      * @return discovery rel
      */
@@ -239,7 +268,7 @@ public class DiscoveryDTO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
 
@@ -248,11 +277,12 @@ public class DiscoveryDTO implements Serializable {
                 && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props)
                 && Objects.equals(level, that.level) && Objects.equals(pluginName, that.pluginName)
                 && Objects.equals(discoveryHandler, that.discoveryHandler)
-                && Objects.equals(discoveryRel, that.discoveryRel);
+                && Objects.equals(discoveryRel, that.discoveryRel)
+                && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, serverList, props, level, pluginName, discoveryHandler, discoveryRel);
+        return Objects.hash(id, name, type, serverList, props, level, pluginName, discoveryHandler, discoveryRel, namespaceId);
     }
 }

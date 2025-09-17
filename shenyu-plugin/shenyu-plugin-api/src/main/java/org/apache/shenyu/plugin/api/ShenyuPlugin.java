@@ -97,7 +97,7 @@ public interface ShenyuPlugin {
             return false;
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        Objects.requireNonNull(shenyuContext);
         return Arrays.stream(rpcTypes).anyMatch(type -> Objects.equals(shenyuContext.getRpcType(), type.getName()));
     }
 
@@ -129,7 +129,7 @@ public interface ShenyuPlugin {
      * @return http/spring cloud return true, others false.
      */
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
-        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD);
+        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.AI);
     }
 
     /**

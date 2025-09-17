@@ -52,15 +52,16 @@ public interface MetaDataService {
     String createOrUpdate(MetaDataDTO metaDataDTO);
 
     /**
-     * delete application authorities.
+     * delete application authorities by ids and namespaceId.
      *
-     * @param ids primary key.
+     * @param ids primary key
+     * @param namespaceId namespaceId
      * @return rows int
      */
-    int delete(List<String> ids);
+    int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
-     * Find by id meta data vo.
+     * Find meta data vo by id.
      *
      * @param id the id
      * @return the meta data vo
@@ -104,13 +105,22 @@ public interface MetaDataService {
     List<MetaDataVO> listAllData();
 
     /**
-     * Enabled string.
+     * List all vo list.
+     *
+     * @param namespaceId the namespaceId
+     * @return the vo list
+     */
+    List<MetaDataVO> listAllDataByNamespaceId(String namespaceId);
+
+    /**
+     * Enabled by ids and namespaceId.
      *
      * @param ids     the ids
-     * @param enabled the enable
+     * @param enabled the enabled
+     * @param namespaceId namespaceId
      * @return the string
      */
-    String enabled(List<String> ids, Boolean enabled);
+    String enabledByIdsAndNamespaceId(List<String> ids, Boolean enabled, String namespaceId);
 
     /**
      * Sync data.
@@ -118,21 +128,30 @@ public interface MetaDataService {
     void syncData();
 
     /**
-     * find meta data by path.
+     * Sync data by namespaceId.
      *
-     * @param path the path of meta data
-     * @return {@link MetaDataDO}
+     * @param namespaceId the namespaceId
      */
-    MetaDataDO findByPath(String path);
+    void syncDataByNamespaceId(String namespaceId);
 
     /**
-     * find meta data by service's name and method's name.
+     * find meta data by path and namespaceId.
+     *
+     * @param path the path of meta data
+     * @param namespaceId namespaceId
+     * @return {@link MetaDataDO}
+     */
+    MetaDataDO findByPathAndNamespaceId(String path, String namespaceId);
+
+    /**
+     * find meta data by service's name and method's name and namespaceId.
      *
      * @param serviceName the name of service
      * @param methodName  the name of method
+     * @param namespaceId namespaceId
      * @return {@link MetaDataDO}
      */
-    MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
+    MetaDataDO findByServiceNameAndMethodNameAndNamespaceId(String serviceName, String methodName, String namespaceId);
 
     /**
      * insert MetaDataDO.
@@ -146,7 +165,16 @@ public interface MetaDataService {
      * Import shenyu meta data.
      *
      * @param metaDataList meta data list
-     * @return the config impotr result
+     * @return the config import result
      */
     ConfigImportResult importData(List<MetaDataDTO> metaDataList);
+
+    /**
+     * Import shenyu meta data.
+     *
+     * @param namespace     the namespace
+     * @param metaDataList meta data list
+     * @return the config import result
+     */
+    ConfigImportResult importData(String namespace, List<MetaDataDTO> metaDataList);
 }

@@ -23,12 +23,13 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="rule_name" jdbcType="VARCHAR" property="ruleName"/>
         <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
-        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="sort_code" jdbcType="INTEGER" property="sortCode"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
@@ -37,13 +38,14 @@
         date_created,
         date_updated,
         selector_id,
-        name,
+        rule_name,
         match_mode,
-        sort,
+        sort_code,
         enabled,
         loged,
         match_restful,
-        handle
+        handle,
+        namespace_id
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -57,7 +59,7 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
-         WHERE name = #{name, jdbcType=VARCHAR}
+         WHERE rule_name = #{name, jdbcType=VARCHAR}
     </select>
 
     <select id="findBySelectorIdAndName" resultMap="BaseResultMap">
@@ -65,7 +67,7 @@
                <include refid="Base_Column_List"/>
           FROM rule
          WHERE 1=1
-           AND name = #{name, jdbcType=VARCHAR}
+           AND rule_name = #{name, jdbcType=VARCHAR}
            AND selector_id = #{selectorId, jdbcType=VARCHAR}
     </select>
 
@@ -79,7 +81,7 @@
             </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
-                AND name like #{nameLike, jdbcType=VARCHAR}
+                AND rule_name like #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 AND id IN
@@ -88,7 +90,7 @@
                 </foreach>
             </if>
         </where>
-        ORDER BY sort
+        ORDER BY sort_code
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -117,7 +119,7 @@
                 selector_id = #{selectorId, jdbcType=VARCHAR}
             </if>
             <if test="name != null and name != ''">
-                AND name = #{name, jdbcType=VARCHAR}
+                AND rule_name = #{name, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 AND id IN
@@ -134,6 +136,23 @@
           FROM rule
     </select>
 
+    <select id="selectAllByNamespaceId" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllByNamespaceIds" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rule
+        WHERE namespace_id IN
+        <foreach item="namespaceId" collection="namespaceIds" open="(" separator="," close=")">
+            #{namespaceId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="existed" resultType="java.lang.Boolean">
         SELECT TRUE
           FROM rule
@@ -141,18 +160,18 @@
          LIMIT 1
     </select>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.RuleVO">
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM rule
         <where>
             <if test="condition.keyword != null and condition.keyword != ''">
                 <bind name="keyword" value="('%' + condition.keyword + '%')"/>
-                AND name LIKE #{keyword, jdbcType=VARCHAR}
+                AND rule_name LIKE #{keyword, jdbcType=VARCHAR}
             </if>
             <if test="condition.excluded != null and condition.excluded != ''">
                 <bind name="excluded" value="('%' + condition.excluded + '%')"/>
-                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+                AND rule_name NOT LIKE #{excluded, jdbcType=VARCHAR}
             </if>
             <if test="condition.switchStatus != null">
                 AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
@@ -168,6 +187,9 @@
                     from data_permission
                     where data_id = rule.id
                         and user_id = #{condition.userId})
+            </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -193,24 +215,26 @@
                          date_created,
                          date_updated,
                          selector_id,
-                         name,
+                         rule_name,
                          match_mode,
-                         sort,
+                         sort_code,
                          enabled,
                          loged,
                          match_restful,
-                         handle)
+                         handle,
+                         namespace_id)
                   VALUES (#{id, jdbcType=VARCHAR},
                           #{dateCreated, jdbcType=TIMESTAMP},
                           #{dateUpdated, jdbcType=TIMESTAMP},
                           #{selectorId, jdbcType=VARCHAR},
-                          #{name, jdbcType=VARCHAR},
+                          #{ruleName, jdbcType=VARCHAR},
                           #{matchMode, jdbcType=INTEGER},
-                          #{sort, jdbcType=INTEGER},
+                          #{sortCode, jdbcType=INTEGER},
                           #{enabled, jdbcType=TINYINT},
                           #{loged, jdbcType=TINYINT},
                           #{matchRestful, jdbcType=TINYINT},
-                          #{handle, jdbcType=VARCHAR})
+                          #{handle, jdbcType=VARCHAR},
+                          #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
@@ -226,14 +250,14 @@
             <if test="selectorId != null">
                 selector_id,
             </if>
-            <if test="name != null">
-                name,
+            <if test="ruleName != null">
+                rule_name,
             </if>
             <if test="matchMode != null">
                 match_mode,
             </if>
-            <if test="sort != null">
-                sort,
+            <if test="sortCode != null">
+                sort_code,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -247,6 +271,9 @@
             <if test="handle != null">
                 handle,
             </if>
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -259,14 +286,14 @@
             <if test="selectorId != null">
                 #{selectorId, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="ruleName != null">
+                #{ruleName, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
                 #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                #{sort, jdbcType=INTEGER},
+            <if test="sortCode != null">
+                #{sortCode, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
@@ -280,6 +307,9 @@
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
             </if>
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
 
@@ -288,9 +318,9 @@
            SET date_created  = #{dateCreated, jdbcType=TIMESTAMP},
                date_updated  = #{dateUpdated, jdbcType=TIMESTAMP},
                selector_id   = #{selectorId, jdbcType=VARCHAR},
-               name          = #{name, jdbcType=VARCHAR},
+               rule_name     = #{ruleName, jdbcType=VARCHAR},
                match_mode    = #{matchMode, jdbcType=INTEGER},
-               sort          = #{sort, jdbcType=INTEGER},
+               sort_code     = #{sortCode, jdbcType=INTEGER},
                enabled       = #{enabled, jdbcType=TINYINT},
                loged         = #{loged, jdbcType=TINYINT},
                match_restful = #{matchRestful, jdbcType=TINYINT},
@@ -310,14 +340,14 @@
             <if test="selectorId != null">
                 selector_id = #{selectorId, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="ruleName != null">
+                rule_name = #{ruleName, jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
                 match_mode = #{matchMode, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                sort = #{sort, jdbcType=INTEGER},
+            <if test="sortCode != null">
+                sort_code = #{sortCode, jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
@@ -333,6 +363,7 @@
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateEnable">

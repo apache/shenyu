@@ -27,6 +27,7 @@
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="forward_port" jdbcType="INTEGER" property="forwardPort"/>
         <result column="props" jdbcType="VARCHAR" property="props"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -37,7 +38,8 @@
         plugin_name,
         type,
         forward_port,
-        props
+        props,
+        namespace_id
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -52,6 +54,7 @@
         <include refid="Base_Column_List"/>
         FROM proxy_selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
@@ -74,6 +77,7 @@
         type,
         forward_port,
         props,
+        namespace_id,
         date_created,
         date_updated)
         VALUES (
@@ -83,6 +87,7 @@
         #{type,jdbcType=VARCHAR},
         #{forwardPort,jdbcType=INTEGER},
         #{props,jdbcType=VARCHAR},
+        #{namespaceId,jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -97,6 +102,7 @@
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id=#{id, jdbcType=VARCHAR}
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -117,7 +123,7 @@
     </select>
 
     <select id="selectByHandlerId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
-        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props, ps.namespace_id
         FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         where dr.discovery_handler_id = #{discoveryHandlerId}
     </select>
@@ -126,10 +132,11 @@
         SELECT
         ps.id ,
         ps.name,
-        ps.plugin_name ,
+        ps.plugin_name,
         ps.type,
-        ps.forward_port ,
-        ps.props
+        ps.forward_port,
+        ps.props,
+        ps.namespace_id
         FROM proxy_selector ps
         inner join discovery_rel dr on ps.id = dr.proxy_selector_id
         inner join discovery_handler dh on dh.id = dr.discovery_handler_id
@@ -138,6 +145,11 @@
 
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/> FROM proxy_selector
+    </select>
+
+    <select id="selectByNamespaceId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM proxy_selector
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">

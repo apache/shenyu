@@ -86,9 +86,7 @@ public final class ShutdownHookManager {
         }
         list.sort((o1, o2) -> o2.priority - o1.priority);
         List<Runnable> ordered = new ArrayList<>();
-        for (HookEntry entry : list) {
-            ordered.add(entry.hook);
-        }
+        list.forEach(entry -> ordered.add(entry.hook));
         return ordered;
     }
 
@@ -100,7 +98,7 @@ public final class ShutdownHookManager {
      * @param shutdownHook shutdownHook <code>Runnable</code>
      */
     public void addShutdownHook(final Runnable shutdownHook) {
-        if (shutdownHook == null) {
+        if (Objects.isNull(shutdownHook)) {
             throw new IllegalArgumentException("shutdownHook cannot be NULL");
         }
         if (shutdownInProgress.get()) {
@@ -118,7 +116,7 @@ public final class ShutdownHookManager {
      * @param priority     priority of the shutdownHook.
      */
     public void addShutdownHook(final Runnable shutdownHook, final int priority) {
-        if (shutdownHook == null) {
+        if (Objects.isNull(shutdownHook)) {
             throw new IllegalArgumentException("shutdownHook cannot be NULL");
         }
         if (shutdownInProgress.get()) {
@@ -200,7 +198,7 @@ public final class ShutdownHookManager {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             HookEntry hookEntry = (HookEntry) o;

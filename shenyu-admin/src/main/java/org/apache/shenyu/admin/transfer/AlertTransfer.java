@@ -38,7 +38,7 @@ public enum AlertTransfer {
      * @param alertReceiverDTO the alert receiver dto
      * @return the alert receiver do
      */
-    public AlertReceiverDO mapToAlertReciverDO(final AlertReceiverDTO alertReceiverDTO) {
+    public AlertReceiverDO mapToAlertReceiverDO(final AlertReceiverDTO alertReceiverDTO) {
         return Optional.ofNullable(alertReceiverDTO)
                 .map(v -> {
                     AlertReceiverDO alertReceiverDO = new AlertReceiverDO();
@@ -67,6 +67,7 @@ public enum AlertTransfer {
                     alertReceiverDO.setPhone(alertReceiverDTO.getPhone());
                     alertReceiverDO.setMatchAll(alertReceiverDTO.isMatchAll());
                     alertReceiverDO.setSlackWebHookUrl(alertReceiverDTO.getSlackWebHookUrl());
+                    alertReceiverDO.setNamespaceId(alertReceiverDTO.getNamespaceId());
                     alertReceiverDO.setDateCreated(alertReceiverDTO.getDateCreated());
                     alertReceiverDO.setDateUpdated(alertReceiverDTO.getDateUpdated());
                     return alertReceiverDO;

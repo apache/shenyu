@@ -49,7 +49,7 @@ public final class RuleDO extends BaseDO {
     /**
      * rule name.
      */
-    private String name;
+    private String ruleName;
 
     /**
      * whether enabled.
@@ -62,9 +62,9 @@ public final class RuleDO extends BaseDO {
     private Boolean loged;
 
     /**
-     * sort type.
+     * sort code.
      */
-    private Integer sort;
+    private Integer sortCode;
 
     /**
      * process logic.
@@ -76,25 +76,32 @@ public final class RuleDO extends BaseDO {
      */
     private Boolean matchRestful;
 
+    /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
     public RuleDO() {
     }
 
     public RuleDO(final String selectorId,
                   final Integer matchMode,
-                  final String name,
+                  final String ruleName,
                   final Boolean enabled,
                   final Boolean loged,
-                  final Integer sort,
+                  final Integer sortCode,
                   final String handle,
-                  final Boolean matchRestful) {
+                  final Boolean matchRestful,
+                  final String namespaceId) {
         this.selectorId = selectorId;
         this.matchMode = matchMode;
-        this.name = name;
+        this.ruleName = ruleName;
         this.enabled = enabled;
         this.loged = loged;
-        this.sort = sort;
+        this.sortCode = sortCode;
         this.handle = handle;
         this.matchRestful = matchRestful;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -134,21 +141,21 @@ public final class RuleDO extends BaseDO {
     }
 
     /**
-     * Gets the value of name.
+     * Gets the value of ruleName.
      *
-     * @return the value of name
+     * @return the value of ruleName
      */
-    public String getName() {
-        return name;
+    public String getRuleName() {
+        return ruleName;
     }
 
     /**
-     * Sets the name.
+     * Sets the ruleName.
      *
-     * @param name name
+     * @param ruleName ruleName
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setRuleName(final String ruleName) {
+        this.ruleName = ruleName;
     }
 
     /**
@@ -188,21 +195,21 @@ public final class RuleDO extends BaseDO {
     }
 
     /**
-     * Gets the value of sort.
+     * Gets the value of sortCode.
      *
-     * @return the value of sort
+     * @return the value of sortCode
      */
-    public Integer getSort() {
-        return sort;
+    public Integer getSortCode() {
+        return sortCode;
     }
 
     /**
-     * Sets the sort.
+     * Sets the sortCode.
      *
-     * @param sort sort
+     * @param sortCode sortCode
      */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
+    public void setSortCode(final Integer sortCode) {
+        this.sortCode = sortCode;
     }
 
     /**
@@ -240,6 +247,24 @@ public final class RuleDO extends BaseDO {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
+
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
     /**
      * builder method.
@@ -262,13 +287,14 @@ public final class RuleDO extends BaseDO {
             RuleDO ruleDO = RuleDO.builder()
                     .selectorId(item.getSelectorId())
                     .matchMode(item.getMatchMode())
-                    .name(item.getName())
+                    .ruleName(item.getName())
                     .enabled(item.getEnabled())
                     .loged(item.getLoged())
-                    .sort(item.getSort())
+                    .sortCode(item.getSort())
                     .handle(item.getHandle())
                     .matchRestful(item.getMatchRestful())
                     .dateUpdated(currentTime)
+                    .namespaceId(item.getNamespaceId())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -292,17 +318,18 @@ public final class RuleDO extends BaseDO {
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
         return RuleData.builder()
                 .id(ruleDO.getId())
-                .name(ruleDO.getName())
+                .name(ruleDO.getRuleName())
                 .pluginName(pluginName)
                 .selectorId(ruleDO.getSelectorId())
                 .matchMode(ruleDO.getMatchMode())
-                .sort(ruleDO.getSort())
+                .sort(ruleDO.getSortCode())
                 .enabled(ruleDO.getEnabled())
                 .loged(ruleDO.getLoged())
                 .handle(ruleDO.getHandle())
                 .matchRestful(ruleDO.getMatchRestful())
                 .conditionDataList(conditionDataList)
                 .beforeConditionDataList(beforeConditionDataList)
+                .namespaceId(ruleDO.getNamespaceId())
                 .build();
     }
 
@@ -324,7 +351,7 @@ public final class RuleDO extends BaseDO {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {
@@ -333,17 +360,19 @@ public final class RuleDO extends BaseDO {
         RuleDO ruleDO = (RuleDO) o;
         return Objects.equals(selectorId, ruleDO.selectorId)
                 && Objects.equals(matchMode, ruleDO.matchMode)
-                && Objects.equals(name, ruleDO.name)
+                && Objects.equals(ruleName, ruleDO.ruleName)
                 && Objects.equals(enabled, ruleDO.enabled)
                 && Objects.equals(loged, ruleDO.loged)
-                && Objects.equals(sort, ruleDO.sort)
+                && Objects.equals(sortCode, ruleDO.sortCode)
                 && Objects.equals(handle, ruleDO.handle)
-                && Objects.equals(matchRestful, ruleDO.matchRestful);
+                && Objects.equals(matchRestful, ruleDO.matchRestful)
+                && Objects.equals(namespaceId, ruleDO.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, matchMode, name, enabled, loged, sort, handle, matchRestful);
+        return Objects.hash(super.hashCode(), selectorId, matchMode, ruleName, enabled, loged, sortCode, handle, matchRestful,
+                namespaceId);
     }
 
     public static final class RuleDOBuilder {
@@ -358,17 +387,19 @@ public final class RuleDO extends BaseDO {
 
         private Integer matchMode;
 
-        private String name;
+        private String ruleName;
 
         private Boolean enabled;
 
         private Boolean loged;
 
-        private Integer sort;
+        private Integer sortCode;
 
         private String handle;
         
         private Boolean matchRestful;
+
+        private String namespaceId;
 
         private RuleDOBuilder() {
         }
@@ -429,13 +460,13 @@ public final class RuleDO extends BaseDO {
         }
 
         /**
-         * name.
+         * ruleName.
          *
-         * @param name the name.
+         * @param ruleName the ruleName.
          * @return RuleDOBuilder.
          */
-        public RuleDOBuilder name(final String name) {
-            this.name = name;
+        public RuleDOBuilder ruleName(final String ruleName) {
+            this.ruleName = ruleName;
             return this;
         }
 
@@ -462,13 +493,13 @@ public final class RuleDO extends BaseDO {
         }
 
         /**
-         * sort.
+         * sortCode.
          *
-         * @param sort the sort.
+         * @param sortCode the sortCode.
          * @return RuleDOBuilder.
          */
-        public RuleDOBuilder sort(final Integer sort) {
-            this.sort = sort;
+        public RuleDOBuilder sortCode(final Integer sortCode) {
+            this.sortCode = sortCode;
             return this;
         }
 
@@ -495,6 +526,17 @@ public final class RuleDO extends BaseDO {
         }
 
         /**
+         * namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return RuleDOBuilder
+         */
+        public RuleDOBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
          * build method.
          *
          * @return build object.
@@ -506,12 +548,13 @@ public final class RuleDO extends BaseDO {
             ruleDO.setDateUpdated(dateUpdated);
             ruleDO.setSelectorId(selectorId);
             ruleDO.setMatchMode(matchMode);
-            ruleDO.setName(name);
+            ruleDO.setRuleName(ruleName);
             ruleDO.setEnabled(enabled);
             ruleDO.setLoged(loged);
-            ruleDO.setSort(sort);
+            ruleDO.setSortCode(sortCode);
             ruleDO.setHandle(handle);
             ruleDO.setMatchRestful(matchRestful);
+            ruleDO.setNamespaceId(namespaceId);
             return ruleDO;
         }
     }

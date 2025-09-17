@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.NamespaceUserRelMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.NamespaceUserRelDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
+        <result column="user_id" jdbcType="VARCHAR" property="userId"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        namespace_id,
+        user_id,
+        date_created,
+        date_updated
+    </sql>
+    
+    <select id="selectByNamespaceIdAndUserId" parameterType="java.lang.String"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_user_rel
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        AND user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectListByUserId" parameterType="java.lang.String"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_user_rel
+        WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectListByNamespaceId" parameterType="java.lang.String"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM namespace_user_rel
+        WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.NamespaceUserRelDO">
+        INSERT INTO namespace_user_rel
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="namespaceId != null">
+                namespace_id,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="namespaceId != null">
+                #{namespaceId, jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null">
+                #{userId, jdbcType=VARCHAR},
+            </if>
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    
+    <insert id="batchSave">
+        INSERT INTO namespace_user_rel
+        (id,
+        namespace_id,
+        user_id,
+        date_created,
+        date_updated)
+        VALUES
+        <foreach collection="namespaceUserRelDOList" item="namespaceUserRelDO" separator=",">
+            (
+            #{namespacePluginRelDO.id, jdbcType=VARCHAR},
+            #{namespacePluginRelDO.namespaceId, jdbcType=VARCHAR},
+            #{namespacePluginRelDO.userId, jdbcType=VARCHAR},
+            #{namespacePluginRelDO.dateCreated, jdbcType=TIMESTAMP},
+            #{namespacePluginRelDO.dateUpdated, jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    
+</mapper>

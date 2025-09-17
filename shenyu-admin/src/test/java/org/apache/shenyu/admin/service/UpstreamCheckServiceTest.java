@@ -60,12 +60,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -152,12 +151,12 @@ public final class UpstreamCheckServiceTest {
                 .build();
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name("UrlError")
+                .selectorName("UrlError")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name("UrlReachable")
+                .selectorName("UrlReachable")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
@@ -240,13 +239,13 @@ public final class UpstreamCheckServiceTest {
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .id(MOCK_SELECTOR_NAME)
-                .name(MOCK_SELECTOR_NAME)
+                .selectorName(MOCK_SELECTOR_NAME)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .id(MOCK_SELECTOR_NAME_OTHER)
-                .name(MOCK_SELECTOR_NAME_OTHER)
+                .selectorName(MOCK_SELECTOR_NAME_OTHER)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()
@@ -258,7 +257,7 @@ public final class UpstreamCheckServiceTest {
                 .status(0)
                 .build();
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
-        when(selectorMapper.findByPluginIdsAndNamespaceId(anyList(), any())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        when(selectorMapper.findByPluginIds(anyList())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(discoveryUpstreamService.findBySelectorId(anyString())).thenReturn(Lists.newArrayList(discoveryUpstreamData));
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));

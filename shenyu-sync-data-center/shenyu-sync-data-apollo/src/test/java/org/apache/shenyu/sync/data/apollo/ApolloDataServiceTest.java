@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.Test;
 
@@ -34,8 +35,9 @@ public class ApolloDataServiceTest {
     @Test
     public void testClose() {
         Config configService = mock(Config.class);
+        ShenyuConfig shenyuConfig = new ShenyuConfig();
         ApolloDataService apolloDataService = new ApolloDataService(configService, null,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), shenyuConfig);
         apolloDataService.close();
     }
 }

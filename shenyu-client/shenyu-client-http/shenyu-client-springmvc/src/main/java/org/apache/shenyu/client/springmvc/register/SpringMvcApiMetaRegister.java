@@ -66,7 +66,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
 
-        return annotation != null && annotation.path()[0].endsWith("/**");
+        return Objects.nonNull(annotation) && annotation.path()[0].endsWith("/**");
     }
 
     @Override
@@ -96,7 +96,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     @Override
     protected Boolean match(final ApiBean apiBean) {
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
-        if (annotation != null) {
+        if (Objects.nonNull(annotation)) {
             return !annotation.path()[0].endsWith("/**");
         }
         return true;

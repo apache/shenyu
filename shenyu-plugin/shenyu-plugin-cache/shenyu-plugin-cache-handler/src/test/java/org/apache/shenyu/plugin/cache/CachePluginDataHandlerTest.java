@@ -21,9 +21,9 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
-import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import redis.embedded.RedisServer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -121,7 +122,7 @@ public class CachePluginDataHandlerTest {
 
     private void testCacheData(final String testKey) {
         ICache cache = CacheUtils.getCache();
-        assert null != cache;
+        assert Objects.nonNull(cache);
         cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
         cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10)
                 .subscribe(v -> assertEquals(Boolean.TRUE, v));

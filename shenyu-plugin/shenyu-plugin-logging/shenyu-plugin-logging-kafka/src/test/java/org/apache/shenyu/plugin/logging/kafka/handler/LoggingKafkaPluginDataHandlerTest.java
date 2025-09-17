@@ -60,7 +60,7 @@ public class LoggingKafkaPluginDataHandlerTest {
         selectorData.setConditionList(list);
         pluginData.setEnabled(false);
         pluginData.setId(UUID.randomUUID().toString().replace("-", ""));
-        pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"localhost:8082\"}");
+        pluginData.setConfig("{\"topic\":\"test\", \"bootstrapServer\":\"localhost:8082\"}");
     }
 
     @Test

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -30,19 +31,23 @@ import org.apache.shenyu.admin.model.event.resource.ResourceCreatedEvent;
 import org.apache.shenyu.admin.model.event.role.BatchRoleDeletedEvent;
 import org.apache.shenyu.admin.model.event.role.RoleUpdatedEvent;
 import org.apache.shenyu.admin.model.query.PermissionQuery;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,28 +68,50 @@ public class PermissionServiceImpl implements PermissionService {
     
     private final DashboardProperties dashboardProperties;
     
+    private final NamespacePluginService namespacePluginService;
+    
     public PermissionServiceImpl(final PermissionMapper permissionMapper,
                                  final ResourceMapper resourceMapper,
-                                 final DashboardProperties dashboardProperties) {
+                                 final DashboardProperties dashboardProperties,
+                                 final NamespacePluginService namespacePluginService) {
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
         this.dashboardProperties = dashboardProperties;
+        this.namespacePluginService = namespacePluginService;
     }
     
     /**
      * get user permission menu by token.
      *
-     * @param token logon ack token.
+     * @param namespaceId namespace id.
      * @return {@linkplain PermissionMenuVO}
      */
     @Override
-    public PermissionMenuVO getPermissionMenu(final String token) {
+    public PermissionMenuVO getPermissionMenu(final String namespaceId) {
         UserInfo userInfo = JwtUtils.getUserInfo();
         if (Objects.isNull(userInfo)) {
             return null;
         }
+        String selectedNamespaceId = namespaceId;
+        if (StringUtils.isBlank(namespaceId)) {
+            selectedNamespaceId = Constants.SYS_DEFAULT_NAMESPACE_ID;
+        }
+        List<NamespacePluginVO> pluginList = namespacePluginService.listByNamespaceId(selectedNamespaceId);
         
-        List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
+        if (CollectionUtils.isEmpty(pluginList)) {
+            
+            List<ResourceVO> resourceVOList = getResourceListByUserNameAndPluginNames(userInfo.getUserName(), Collections.emptySet());
+            if (CollectionUtils.isEmpty(resourceVOList)) {
+                return null;
+            }
+            return new PermissionMenuVO(ResourceUtil.buildMenu(resourceVOList), getAuthPerm(resourceVOList), getAllAuthPerms());
+        }
+        
+        Set<String> pluginNameSet = pluginList.stream()
+                .map(NamespacePluginVO::getName)
+                .collect(Collectors.toSet());
+        
+        List<ResourceVO> resourceVOList = getResourceListByUserNameAndPluginNames(userInfo.getUserName(), pluginNameSet);
         if (CollectionUtils.isEmpty(resourceVOList)) {
             return null;
         }
@@ -177,6 +204,35 @@ public class PermissionServiceImpl implements PermissionService {
                 .collect(Collectors.toList());
     }
     
+    /**
+     * get resource by username.
+     *
+     * @param userName username
+     * @param pluginNames plugin names
+     * @return {@linkplain List}
+     */
+    private List<ResourceVO> getResourceListByUserNameAndPluginNames(final String userName, final Collection<String> pluginNames) {
+        if (SessionUtil.isAdmin()) {
+            return ListUtil.map(resourceMapper.selectByUserName(userName), ResourceVO::buildResourceVO);
+        }
+        // filter [Only the super administrator root user has the privileges]
+        return resourceMapper.selectByUserName(userName)
+                .stream()
+                .filter(r -> !dashboardProperties.getOnlySuperAdminPermission().contains(r.getPerms()))
+                .filter(r -> {
+                    String url = r.getUrl();
+                    if (StringUtils.isBlank(url)) {
+                        return true;
+                    }
+                    if (url.contains("/plug/")) {
+                        return pluginNames.contains(url.replaceFirst("/plug/", ""));
+                    }
+                    return true;
+                })
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
+    }
+    
     private PermissionDO buildPermissionFromResourceId(final String resourceId) {
         return PermissionDO.buildPermissionDO(PermissionDTO.builder()
                 .objectId(AdminConstants.ROLE_SUPER_ID)
@@ -213,7 +269,7 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * manger role permission.
      *
-     * @param roleId                role id.
+     * @param roleId role id.
      * @param currentPermissionList {@linkplain List} current role permission ids
      */
     private void manageRolePermission(final String roleId, final List<String> currentPermissionList) {
@@ -241,7 +297,7 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * get two list different.
      *
-     * @param preList  {@linkplain List}
+     * @param preList {@linkplain List}
      * @param lastList {@linkplain List}
      * @return {@linkplain List}
      */

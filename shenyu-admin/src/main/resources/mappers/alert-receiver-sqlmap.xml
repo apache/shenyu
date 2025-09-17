@@ -46,6 +46,7 @@
         <result column="match_all" jdbcType="TINYINT" property="matchAll"/>
         <result column="labels" jdbcType="VARCHAR" property="labels" javaType="java.util.Map" typeHandler="org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler"/>
         <result column="levels" jdbcType="VARCHAR" property="levels" javaType="java.util.List"  typeHandler="org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler"/>
+        <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
@@ -63,7 +64,7 @@
         <!--@mbg.generated-->
         insert into alert_receiver (id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url,
         corp_id, agent_id, app_secret, discord_channel_id, discord_bot_token, smn_ak, smn_sk, smn_project_id, smn_region,
-        smn_topic_urn, match_all, labels, levels, date_created, date_updated)
+        smn_topic_urn, match_all, labels, levels, namespace_id, date_created, date_updated)
         values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enable,jdbcType=TINYINT},
         #{type,jdbcType=TINYINT}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
         #{hookUrl,jdbcType=VARCHAR}, #{wechatId,jdbcType=VARCHAR}, #{accessToken,jdbcType=TINYINT},
@@ -72,7 +73,8 @@
         #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
         #{smnSk,jdbcType=VARCHAR}, #{smnProjectId,jdbcType=VARCHAR}, #{smnRegion,jdbcType=VARCHAR},
         #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR,javaType=java.util.Map,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},
-        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+        #{levels,jdbcType=VARCHAR,javaType=java.util.List,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler}, #{namespaceId,jdbcType=VARCHAR},
+        #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
         update alert_receiver
@@ -111,6 +113,11 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM alert_receiver
+        <where>
+            <if test="namespaceId != null">
+                namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap">
         SELECT

@@ -127,8 +127,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
     @NonNull
     private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        if (getStatusCode() != null) {
+        Objects.requireNonNull(shenyuContext);
+        if (Objects.nonNull(getStatusCode())) {
             logInfo.setStatus(getStatusCode().value());
         }
         logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
@@ -140,7 +140,9 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         BodyWriter writer = new BodyWriter();
         return Flux.from(body).doOnNext(buffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
-                writer.write(buffer.asByteBuffer().asReadOnlyBuffer());
+                try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
+                    bufferIterator.forEachRemaining(byteBuffer -> writer.write(byteBuffer.asReadOnlyBuffer()));
+                }
             }
         }).doFinally(signal -> logResponse(shenyuContext, writer));
     }
@@ -169,8 +171,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
         if (Objects.nonNull(writer)) {
             int size = writer.size();
-            String body = writer.output();
             if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+                String body = writer.output();
                 logInfo.setResponseBody(body);
             }
         } else {
@@ -194,7 +196,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
      */
     private String getUpstreamIp() {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        Objects.requireNonNull(shenyuContext);
         if (RpcTypeEnum.HTTP.getName().equals(shenyuContext.getRpcType())) {
             URI uri = exchange.getAttribute(Constants.HTTP_URI);
             if (Objects.nonNull(uri)) {
@@ -240,13 +242,13 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         final Object responseData = shenyuResult.result(exchange, resultData);
-        assert null != responseData;
+        Objects.requireNonNull(responseData);
         final byte[] bytes = (responseData instanceof byte[])
                 ? (byte[]) responseData
                 : responseData.toString().getBytes(StandardCharsets.UTF_8);
         logInfo.setResponseContentLength(bytes.length);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
+        Objects.requireNonNull(shenyuContext);
         logInfo.setTimeLocal(shenyuContext.getStartDateTime().format(DATE_TIME_FORMATTER));
         logInfo.setModule(shenyuContext.getModule());
         long costTime = DateUtils.acquireMillisBetween(shenyuContext.getStartDateTime(), LocalDateTime.now());
@@ -259,8 +261,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
 
         int size = bytes.length;
-        String body = new String(bytes, StandardCharsets.UTF_8);
         if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+            String body = new String(bytes, StandardCharsets.UTF_8);
             logInfo.setResponseBody(body);
         }
         // collect log

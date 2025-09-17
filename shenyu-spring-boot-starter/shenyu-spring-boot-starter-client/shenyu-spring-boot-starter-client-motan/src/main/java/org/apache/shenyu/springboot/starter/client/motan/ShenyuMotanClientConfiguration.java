@@ -24,7 +24,6 @@ import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.apache.shenyu.client.motan.MotanServiceEventListener;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -61,7 +60,7 @@ public class ShenyuMotanClientConfiguration implements ApplicationListener<Conte
      */
     @Bean
     public MotanServiceEventListener motanServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new MotanServiceEventListener(clientConfig.getClient().get(RpcTypeEnum.MOTAN.getName()), shenyuClientRegisterRepository);
+        return new MotanServiceEventListener(clientConfig, shenyuClientRegisterRepository);
     }
 
     /**

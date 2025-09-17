@@ -42,6 +42,17 @@ public class DiscoverySyncData {
     private List<DiscoveryUpstreamData> upstreamDataList;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
+     * discoveryHandlerId.
+     *
+     */
+    private String discoveryHandlerId;
+
+    /**
      * getSelectorId.
      *
      * @return selectorId
@@ -114,4 +125,39 @@ public class DiscoverySyncData {
         this.upstreamDataList = upstreamDataList;
     }
 
+    /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
+     * discoveryHandlerId.
+     *
+     * @return DiscoveryHandlerId
+     */
+    public String getDiscoveryHandlerId() {
+        return discoveryHandlerId;
+    }
+
+    /**
+     * set discoveryHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
+        this.discoveryHandlerId = discoveryHandlerId;
+    }
 }

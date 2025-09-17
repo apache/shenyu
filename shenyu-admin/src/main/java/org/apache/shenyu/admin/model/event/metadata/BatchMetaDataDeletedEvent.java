@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.event.metadata;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
@@ -25,7 +24,6 @@ import org.apache.shenyu.common.utils.ListUtil;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * BatchMetaDataDeletedEvent.
@@ -44,16 +42,7 @@ public class BatchMetaDataDeletedEvent extends BatchMetaDataChangedEvent {
         super(source, null, EventTypeEnum.META_DATA_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
     }
-    
-    @Override
-    public String buildContext() {
-        final String metaData = ((Collection<?>) getSource())
-                .stream()
-                .map(s -> ((MetaDataDO) s).getAppName())
-                .collect(Collectors.joining(","));
-        return String.format("the meta data [%s] is %s", metaData, StringUtils.lowerCase(getType().getType().toString()));
-    }
-    
+
     /**
      * get deleted iss.
      *

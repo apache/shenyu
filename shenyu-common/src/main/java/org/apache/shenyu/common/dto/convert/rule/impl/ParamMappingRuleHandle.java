@@ -93,7 +93,7 @@ public class ParamMappingRuleHandle implements RuleHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         ParamMappingRuleHandle that = (ParamMappingRuleHandle) o;
@@ -185,7 +185,7 @@ public class ParamMappingRuleHandle implements RuleHandle {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
                 return false;
             }
             ParamMapInfo that = (ParamMapInfo) o;

@@ -8,11 +8,11 @@
 
 ```shell
 cd {shenyu}/shenyu-plugin/shenyu-plugin-wasm-base/src/test/rust-shenyu-wasm-plugin
-cargo build --target wasm32-wasi --release
+cargo build --target wasm32-wasip1 --release
 ```
 
 then you will see the wasm file
-in `{shenyu}/shenyu-plugin/shenyu-plugin-wasm-base/src/test/rust-shenyu-wasm-plugin/target/wasm32-wasi/release/rust_shenyu_wasm_plugin.wasm`
+in `{shenyu}/shenyu-plugin/shenyu-plugin-wasm-base/src/test/rust-shenyu-wasm-plugin/target/wasm32-wasip1/release/rust_shenyu_wasm_plugin.wasm`
 
 4. rename the wasm file
 

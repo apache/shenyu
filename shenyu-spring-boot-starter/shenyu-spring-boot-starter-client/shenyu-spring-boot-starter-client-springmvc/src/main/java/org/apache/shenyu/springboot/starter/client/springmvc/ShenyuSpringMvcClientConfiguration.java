@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -66,11 +68,14 @@ public class ShenyuSpringMvcClientConfiguration {
                                                                       final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                       final Environment env) {
         ClientPropertiesConfig clientPropertiesConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
-        Properties props = clientPropertiesConfig == null ? null : clientPropertiesConfig.getProps();
+        Properties props = Optional.ofNullable(clientPropertiesConfig).map(ClientPropertiesConfig::getProps).orElse(null);
         String applicationName = env.getProperty("spring.application.name");
         String discoveryMode = env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
-        if (props != null) {
+        if (Objects.nonNull(props)) {
             String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+            if (StringUtils.isBlank(appName) && StringUtils.isBlank(applicationName)) {
+                throw new IllegalArgumentException("spring.application.name or shenyu.client.http.props.appName must not be empty");
+            }
             if (StringUtils.isBlank(appName)) {
                 props.setProperty(ShenyuClientConstants.APP_NAME, applicationName);
             }
@@ -80,7 +85,7 @@ public class ShenyuSpringMvcClientConfiguration {
             }
             props.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.valueOf(ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode)).toString());
         }
-        return new SpringMvcClientEventListener(clientPropertiesConfig, shenyuClientRegisterRepository, env);
+        return new SpringMvcClientEventListener(clientConfig, shenyuClientRegisterRepository, env);
     }
 
     /**

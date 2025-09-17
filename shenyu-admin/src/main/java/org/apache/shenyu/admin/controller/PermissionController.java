@@ -43,11 +43,27 @@ public class PermissionController {
      * get menu by token.
      *
      * @param token login success ack token
+     * @param namespaceId namespace id
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/getUserPermissionByToken")
-    public ShenyuAdminResult getUserPermissionByToken(@RequestParam(name = "token") final String token) {
-        PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
+    public ShenyuAdminResult getUserPermissionByToken(@RequestParam(name = "token", required = false) final String token,
+                                                      @RequestParam(name = "namespaceId", required = false) final String namespaceId) {
+        PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(namespaceId);
+        return Optional.ofNullable(permissionMenuVO)
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item))
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
+    }
+
+    /**
+     * get menu by namespace.
+     *
+     * @param namespaceId namespace id
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/getUserPermissionByNamespace")
+    public ShenyuAdminResult getUserPermissionByNamespace(@RequestParam(name = "namespaceId", required = false) final String namespaceId) {
+        PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(namespaceId);
         return Optional.ofNullable(permissionMenuVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item))
                 .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));

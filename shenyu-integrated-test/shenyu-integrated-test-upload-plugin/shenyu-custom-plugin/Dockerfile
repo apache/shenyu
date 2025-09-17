@@ -17,6 +17,6 @@
 FROM eclipse-temurin:17-centos7
 ENV APP_NAME shenyu-integrated-test-custom-plugin
 
-ADD target/shenyu-custom-plugin-2.7.0-SNAPSHOT.jar /opt/shenyu-custom-plugin.jar
+ADD target/${APP_NAME}.jar /opt/shenyu-custom-plugin.jar
 
 RUN ls -l

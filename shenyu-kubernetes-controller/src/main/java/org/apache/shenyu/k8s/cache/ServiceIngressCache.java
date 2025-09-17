@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The cache for mapping service name to ingress name.
@@ -90,7 +91,7 @@ public final class ServiceIngressCache {
      */
     public void removeSpecifiedIngressName(final String namespace, final String serviceName, final String ingressNamespace, final String ingressName) {
         List<Pair<String, String>> list = INGRESS_MAP.get(getKey(namespace, serviceName));
-        if (list != null) {
+        if (Objects.nonNull(list)) {
             list.removeIf(item -> item.getLeft().equals(ingressNamespace) && item.getRight().equals(ingressName));
         }
     }

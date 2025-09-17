@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.apache.shenyu.common.constant.AdminConstants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,14 +84,11 @@ public final class PluginServiceTest {
     private PluginEventPublisher modelDataEventPublisher;
 
     @Mock
-    private PluginHandleService pluginHandleService;
-
-    @Mock
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService, namespacePluginRelMapper);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, namespacePluginRelMapper);
     }
 
     @Test
@@ -200,7 +197,7 @@ public final class PluginServiceTest {
         when(pluginMapper.nameExisted(pluginDTO.getName())).thenReturn(null);
         when(pluginMapper.insert(any())).thenReturn(1);
 
-        ConfigImportResult configImportResult = this.pluginService.importData(pluginDTOList);
+        ConfigImportResult configImportResult = this.pluginService.importData(pluginDTOList, null);
 
         assertNotNull(configImportResult);
         Assertions.assertEquals(configImportResult.getSuccessCount(), pluginDTOList.size());

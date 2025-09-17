@@ -77,6 +77,11 @@ public final class RuleData implements ResourceData {
     private Boolean matchRestful;
 
     /**
+     * namespaceId.
+     */
+    private String namespaceId;
+
+    /**
      * builder constructor.
      *
      * @param builder builder
@@ -92,6 +97,7 @@ public final class RuleData implements ResourceData {
         this.conditionList = builder.conditionList;
         this.enabled = builder.enabled;
         this.matchRestful = builder.matchRestful;
+        this.namespaceId = builder.namespaceId;
     }
 
     /**
@@ -287,6 +293,24 @@ public final class RuleData implements ResourceData {
     }
 
     /**
+     * get namespaceId.
+     *
+     * @return namespaceId
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
      * class builder.
      */
     public static final class RuleDataBuilder {
@@ -313,6 +337,8 @@ public final class RuleData implements ResourceData {
         private boolean enabled;
 
         private Boolean matchRestful;
+
+        private String namespaceId;
 
         /**
          * no args constructor.
@@ -437,6 +463,17 @@ public final class RuleData implements ResourceData {
          */
         public RuleDataBuilder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
+            return this;
+        }
+
+        /**
+         * build namespaceId.
+         *
+         * @param namespaceId namespaceId
+         * @return this
+         */
+        public RuleDataBuilder namespaceId(final String namespaceId) {
+            this.namespaceId = namespaceId;
             return this;
         }
     }

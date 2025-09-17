@@ -21,6 +21,26 @@ package org.apache.shenyu.common.constant;
  * Constants.
  */
 public interface Constants {
+
+    /**
+     * The constant Apache SHENYU.
+     */
+    String SHENYU = "shenyu";
+
+    /**
+     * The constant string dot.
+     */
+    String DOT = ".";
+    
+    /**
+     * The constant string separator.
+     */
+    String SEPARATOR_CHARS = ";";
+
+    /**
+     * The constant string separator.
+     */
+    String SEPARATOR_UNDERLINE = "_";
     
     /**
      * The constant SUCCESS.
@@ -36,6 +56,11 @@ public interface Constants {
      * The constant context.
      */
     String CONTEXT = "context";
+    
+    /**
+     * The constant chain.
+     */
+    String CHAIN = "chain";
     
     /**
      * The constant context path.
@@ -246,6 +271,12 @@ public interface Constants {
      * The constant URI.
      */
     String URI = "uri";
+
+    
+    /**
+     * The constant HEARTBEAT.
+     */
+    String HEARTBEAT = "heartbeat";
 
     /**
      * The constant header key of sign plugin version-2.
@@ -541,6 +572,21 @@ public interface Constants {
      * dubbo remote address.
      */
     String DUBBO_REMOTE_ADDRESS = "dubboRemoteAddress";
+
+    /**
+     * dubbo load balance from meta data.
+     */
+    String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
+
+    /**
+     * dubbo serialization protobuf.
+     */
+    String DUBBO_SERIALIZATION_PROTOBUF = "protobuf";
+
+    /**
+     * dubbo default application name.
+     */
+    String DUBBO_DEFAULT_APPLICATION_NAME = "shenyu_proxy";
     
     /**
      * dubbo group.
@@ -829,10 +875,160 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
+    
+    /**
+     * The constant shenyu namespace id.
+     */
+    String SHENYU_NAMESPACE_ID = "namespaceId";
+    
+    /**
+     * The constant SYS_DEFAULT_NAMESPACE_ID.
+     */
+    String SYS_DEFAULT_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";
+    
+    /**
+     * The constant DEFAULT_NAMESPACE_PRIMARY_KEY.
+     */
+    String DEFAULT_NAMESPACE_PRIMARY_KEY = "1";
+    
+    /**
+     * The constant EVENT_NAME_DICT.
+     */
+    String EVENT_NAME_DICT = "dict";
+    
+    /**
+     * The constant EVENT_NAME_PLUGIN_HANDLE.
+     */
+    String EVENT_NAME_PLUGIN_HANDLE = "plugin-handle";
+    
+    /**
+     * The constant EVENT_NAME_META_DATA.
+     */
+    String EVENT_NAME_META_DATA = "meta-data";
+    
+    /**
+     * The constant EVENT_NAME_NAMESPACE.
+     */
+    String EVENT_NAME_NAMESPACE = "namespace";
+    
+    /**
+     * The constant EVENT_NAME_PLUGIN.
+     */
+    String EVENT_NAME_PLUGIN = "plugin";
+    
+    /**
+     * The constant EVENT_NAME_NAMESPACE_PLUGIN.
+     */
+    String EVENT_NAME_NAMESPACE_PLUGIN = "namespace-plugin";
+    
+    /**
+     * The constant EVENT_NAME_RESOURCE.
+     */
+    String EVENT_NAME_RESOURCE = "resource";
+    
+    /**
+     * The constant EVENT_NAME_ROLE.
+     */
+    String EVENT_NAME_ROLE = "role";
+    
+    /**
+     * The constant EVENT_NAME_RULE.
+     */
+    String EVENT_NAME_RULE = "rule";
+    
+    /**
+     * The constant EVENT_NAME_SELECTOR.
+     */
+    String EVENT_NAME_SELECTOR = "selector";
+    
+    /**
+     * The constant EVENT_NAME_USER.
+     */
+    String EVENT_NAME_USER = "user";
+    
+    /**
+     * The constant EVENT_NAME_DATA.
+     */
+    String EVENT_NAME_DATA = "data";
+    
+    /**
+     * The constant EVENT_NAME_REGISTER.
+     */
+    String HTTP_PATH = "shenyu.httpPath";
 
+    /**
+     * The constant preserve host.
+     */
+    String PRESERVE_HOST = "preserveHost";
+
+    /**
+     * The constant model.
+     */
+    String MODEL = "model";
+
+    /**
+     * The constant stream.
+     */
+    String STREAM = "stream";
+
+    /**
+     * The constant prompt.
+     */
+    String PROMPT = "prompt";
+
+    /**
+     * The constant messages.
+     */
+    String MESSAGES = "messages";
+    
+    /**
+     * The constant Content-Encoding.
+     */
+    String CONTENT_ENCODING = "Content-Encoding";
+    /**
+     * Http request retry policy.
+     */
+    String HTTP_RETRY_BACK_OFF_SPEC = "default";
+
+    /**
+     * The constant Content.
+     */
+    String CONTENT = "content";
+    
+    /**
+     * The constant ROLE.
+     */
+    String ROLE = "role";
+    
+    /**
+     * The constant USAGE.
+     */
+    String USAGE = "usage";
+
+    /**
+     * The include_usage for stream.
+     */
+    String INCLUDE_USAGE = "include_usage";
+
+    /**
+     * The stream_options.
+     */
+    String STREAM_OPTIONS = "stream_options";
+    
+    /**
+     * The constant COMPLETION_TOKENS.
+     */
+    String COMPLETION_TOKENS = "completion_tokens";
+    
+    /**
+     * The constant AI_MODEL.
+     */
+    String AI_MODEL = "ai_model";
+    
     /**
      * String q.
      */
     default void findConstants() {
     }
+    
 }

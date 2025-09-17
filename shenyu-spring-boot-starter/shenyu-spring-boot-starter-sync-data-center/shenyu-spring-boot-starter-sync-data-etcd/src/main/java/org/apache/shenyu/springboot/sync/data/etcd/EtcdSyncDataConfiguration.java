@@ -18,19 +18,21 @@
 package org.apache.shenyu.springboot.sync.data.etcd;
 
 import io.etcd.jetcd.Client;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.etcd.autoconfig.ConditionOnSyncEtcd;
+import org.apache.shenyu.infra.etcd.autoconfig.EtcdProperties;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.etcd.EtcdClient;
+import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.etcd.EtcdSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,10 +43,11 @@ import java.util.List;
 /**
  * Etcd sync data configuration for spring boot.
  */
+
 @Configuration
-@ConditionalOnClass(EtcdSyncDataConfiguration.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
-@EnableConfigurationProperties(EtcdConfig.class)
+@ConditionOnSyncEtcd
+@EnableConfigurationProperties(EtcdProperties.class)
+@ConditionalOnClass({EtcdSyncDataConfiguration.class, Client.class})
 public class EtcdSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdSyncDataConfiguration.class);
@@ -52,6 +55,7 @@ public class EtcdSyncDataConfiguration {
     /**
      * Sync data service.
      *
+     * @param shenyuConfig the shenyu config
      * @param etcdClients the etcd client
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers the meta subscribers
@@ -61,14 +65,17 @@ public class EtcdSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<EtcdClient> etcdClients,
+    public SyncDataService syncDataService(final ObjectProvider<ShenyuConfig> shenyuConfig,
+                                           final ObjectProvider<EtcdClient> etcdClients,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+
         LOGGER.info("you use etcd sync shenyu data.......");
-        return new EtcdSyncDataService(etcdClients.getIfAvailable(),
+        return new EtcdSyncDataService(shenyuConfig.getIfAvailable(),
+                etcdClients.getIfAvailable(),
                 pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList),
                 authSubscribers.getIfAvailable(Collections::emptyList),
@@ -76,17 +83,4 @@ public class EtcdSyncDataConfiguration {
                 discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList));
     }
 
-    /**
-     * register etcd Client in spring ioc.
-     *
-     * @param etcdConfig the etcd configuration
-     * @return EtcdClient {@linkplain EtcdClient}
-     */
-    @Bean
-    public EtcdClient etcdClient(final EtcdConfig etcdConfig) {
-        Client client = Client.builder()
-                .endpoints(etcdConfig.getUrl().split(","))
-                .build();
-        return new EtcdClient(client);
-    }
 }

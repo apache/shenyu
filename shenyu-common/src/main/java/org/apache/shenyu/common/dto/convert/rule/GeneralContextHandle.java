@@ -20,7 +20,7 @@ package org.apache.shenyu.common.dto.convert.rule;
 import java.util.Objects;
 
 /**
- * this is RequestHandle plugin handle.
+ * this is GeneralContextHandle plugin handle.
  */
 public class GeneralContextHandle {
     /**
@@ -123,7 +123,7 @@ public class GeneralContextHandle {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return false;
         }
         GeneralContextHandle that = (GeneralContextHandle) o;

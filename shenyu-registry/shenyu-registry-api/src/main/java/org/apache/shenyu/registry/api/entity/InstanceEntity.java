@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.registry.api.entity;
 
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -29,6 +30,12 @@ public class InstanceEntity {
     private String host;
 
     private Integer port;
+
+    private URI uri;
+
+    private int status;
+
+    private int weight;
     
     /**
      * Instantiates a new Instance register dto.
@@ -53,6 +60,7 @@ public class InstanceEntity {
         appName = builder.appName;
         host = builder.host;
         port = builder.port;
+        uri = builder.uri;
     }
     
     
@@ -119,13 +127,67 @@ public class InstanceEntity {
         this.port = port;
     }
 
+    /**
+     * getUri.
+     *
+     * @return URI uri
+     */
+    public URI getUri() {
+        return uri;
+    }
+
+    /**
+     * setUri.
+     *
+     * @param uri uri
+     */
+    public void setUri(final URI uri) {
+        this.uri = uri;
+    }
+
+    /**
+     * status.
+     *
+     * @return Status
+     */
+    public int getStatus() {
+        return status;
+    }
+
+    /**
+     * set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final int status) {
+        this.status = status;
+    }
+
+    /**
+     * weight.
+     *
+     * @return Weight
+     */
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return Boolean.TRUE;
         }
 
-        if (o == null || getClass() != o.getClass()) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
             return Boolean.FALSE;
         }
 
@@ -163,6 +225,8 @@ public class InstanceEntity {
 
         private Integer port;
 
+        private URI uri;
+
         private Builder() {
         }
     
@@ -196,6 +260,17 @@ public class InstanceEntity {
          */
         public Builder port(final Integer port) {
             this.port = port;
+            return this;
+        }
+
+        /**
+         * uri.
+         *
+         * @param uri uri
+         * @return Builder builder
+         */
+        public Builder uri(final URI uri) {
+            this.uri = uri;
             return this;
         }
     

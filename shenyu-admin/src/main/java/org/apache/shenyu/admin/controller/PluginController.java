@@ -30,7 +30,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.PluginService;
-import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.dto.PluginData;
@@ -52,16 +51,13 @@ import java.util.List;
 /**
  * this is plugin controller.
  */
-@RestApi("/plugin")
+@RestApi("/plugin-template")
 public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
 
     private final PluginService pluginService;
     
-    private final SyncDataService syncDataService;
-    
-    public PluginController(final PluginService pluginService, final SyncDataService syncDataService) {
+    public PluginController(final PluginService pluginService) {
         this.pluginService = pluginService;
-        this.syncDataService = syncDataService;
     }
     
     /**
@@ -73,7 +69,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
@@ -113,7 +109,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      * @param pluginDTO plugin.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:plugin:add")
     public ShenyuAdminResult createPlugin(@Valid @ModelAttribute final PluginDTO pluginDTO) {
         return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));

@@ -21,6 +21,10 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.nacos.autoconfig.ConditionOnSyncNacos;
+import org.apache.shenyu.infra.nacos.autoconfig.NacosProperties;
+import org.apache.shenyu.infra.nacos.config.NacosConfig;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -28,26 +32,27 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.nacos.NacosSyncDataService;
-import org.apache.shenyu.sync.data.nacos.config.NacosConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
  * Nacos sync data configuration for spring boot.
  */
+
 @Configuration
-@ConditionalOnClass(NacosSyncDataService.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
+@ConditionOnSyncNacos
+@ConditionalOnClass({NacosSyncDataService.class, ConfigService.class})
+@EnableConfigurationProperties(NacosProperties.class)
 public class NacosSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosSyncDataConfiguration.class);
@@ -61,17 +66,19 @@ public class NacosSyncDataConfiguration {
      * @param authSubscribers   the auth subscribers
      * @param proxySelectorSubscribers   the auth subscribers
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers
+     * @param shenyuConfig      the shenyu config
      * @return the sync data service
      */
     @Bean
     public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                                 final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                 final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
-                                                final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
+                                                final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers,
+                                                final ObjectProvider<ShenyuConfig> shenyuConfig) {
         LOGGER.info("you use nacos sync shenyu data.......");
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable());
+                proxySelectorSubscribers.getIfAvailable(), discoveryUpstreamDataSubscribers.getIfAvailable(), shenyuConfig.getIfAvailable());
     }
 
     /**
@@ -84,7 +91,7 @@ public class NacosSyncDataConfiguration {
     @Bean
     public ConfigService nacosConfigService(final NacosConfig nacosConfig) throws Exception {
         Properties properties = new Properties();
-        if (nacosConfig.getAcm() != null && nacosConfig.getAcm().isEnabled()) {
+        if (Objects.nonNull(nacosConfig.getAcm()) && nacosConfig.getAcm().isEnabled()) {
             properties.put(PropertyKeyConst.ENDPOINT, nacosConfig.getAcm().getEndpoint());
             properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getAcm().getNamespace());
             properties.put(PropertyKeyConst.ACCESS_KEY, nacosConfig.getAcm().getAccessKey());
@@ -94,24 +101,28 @@ public class NacosSyncDataConfiguration {
             if (StringUtils.isNotBlank(nacosConfig.getNamespace())) {
                 properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
             }
-            if (nacosConfig.getUsername() != null) {
+            if (Objects.nonNull(nacosConfig.getUsername())) {
                 properties.put(PropertyKeyConst.USERNAME, nacosConfig.getUsername());
             }
-            if (nacosConfig.getPassword() != null) {
+            if (Objects.nonNull(nacosConfig.getPassword())) {
                 properties.put(PropertyKeyConst.PASSWORD, nacosConfig.getPassword());
+            }
+            if (StringUtils.isNotBlank(nacosConfig.getContextPath())) {
+                properties.put(PropertyKeyConst.CONTEXT_PATH, nacosConfig.getContextPath());
             }
         }
         return NacosFactory.createConfigService(properties);
     }
 
     /**
-     * Http config.
+     * nacos config.
      *
-     * @return the http config
+     * @param nacosProperties the nacos properties
+     * @return the nacos config
      */
     @Bean
-    @ConfigurationProperties(prefix = "shenyu.sync.nacos")
-    public NacosConfig nacosConfig() {
-        return new NacosConfig();
+    @ConditionOnSyncNacos
+    public NacosConfig nacosConfig(final NacosProperties nacosProperties) {
+        return nacosProperties.getNacos();
     }
 }

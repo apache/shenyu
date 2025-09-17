@@ -23,8 +23,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -41,27 +41,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
-
-    private final ZookeeperConfig config;
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
 
     private final CuratorFramework client;
 
-    private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
+    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
-        this.config = zookeeperConfig;
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(config.getBaseSleepTimeMilliseconds(), config.getMaxRetries(), config.getMaxSleepTimeMilliseconds());
+        ExponentialBackoffRetry retryPolicy =
+                new ExponentialBackoffRetry(zookeeperConfig.getBaseSleepTimeMilliseconds(), zookeeperConfig.getMaxRetries(), zookeeperConfig.getMaxSleepTimeMilliseconds());
 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                .connectString(config.getServerLists())
+                .connectString(zookeeperConfig.getServerLists())
                 .retryPolicy(retryPolicy)
-                .connectionTimeoutMs(config.getConnectionTimeoutMilliseconds())
-                .sessionTimeoutMs(config.getSessionTimeoutMilliseconds())
-                .namespace(config.getNamespace());
+                .connectionTimeoutMs(zookeeperConfig.getConnectionTimeoutMilliseconds())
+                .sessionTimeoutMs(zookeeperConfig.getSessionTimeoutMilliseconds())
+                .namespace(zookeeperConfig.getNamespace());
 
-        if (!StringUtils.isEmpty(config.getDigest())) {
-            builder.authorization("digest", config.getDigest().getBytes(StandardCharsets.UTF_8));
+        if (!StringUtils.isEmpty(zookeeperConfig.getDigest())) {
+            builder.authorization("digest", zookeeperConfig.getDigest().getBytes(StandardCharsets.UTF_8));
         }
 
         this.client = builder.build();
@@ -75,7 +73,7 @@ public class ZookeeperClient {
         try {
             this.client.blockUntilConnected();
         } catch (InterruptedException e) {
-            LOGGER.warn("Interrupted during zookeeper client starting.");
+            LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();
         }
     }
@@ -85,7 +83,7 @@ public class ZookeeperClient {
      */
     public void close() {
         // close all caches
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());
         }
         // close client
@@ -109,7 +107,7 @@ public class ZookeeperClient {
      */
     public boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -137,17 +135,17 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        CuratorCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
-        ChildData data = cache.getCurrentData(key);
+        ChildData data = cache.get(key).orElse(null);
         if (Objects.isNull(data)) {
             return getDirectly(key);
         }
         return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
-
+    
     /**
      * create or update key with value.
      *
@@ -158,8 +156,17 @@ public class ZookeeperClient {
     public void createOrUpdate(final String key, final String value, final CreateMode mode) {
         String val = StringUtils.isEmpty(value) ? "" : value;
         try {
-            client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            synchronized (ZookeeperClient.class) {
+                if (Objects.nonNull(client.checkExists()) && Objects.nonNull(client.checkExists().forPath(key))) {
+                    LOG.debug("path exists, update zookeeper key={} with value={}", key, val);
+                    client.setData().forPath(key, val.getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
+                LOG.debug("path not exists, set zookeeper key={} with value={}", key, val);
+                client.create().orSetData().creatingParentsIfNeeded().withMode(mode).forPath(key, val.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
+            LOG.error("create or update key with value error, key:{} value:{}", key, value, e);
             throw new ShenyuException(e);
         }
     }
@@ -172,7 +179,7 @@ public class ZookeeperClient {
      * @param mode  creation mode.
      */
     public void createOrUpdate(final String key, final Object value, final CreateMode mode) {
-        if (value != null) {
+        if (Objects.nonNull(value)) {
             String val = GsonUtils.getInstance().toJson(value);
             createOrUpdate(key, val, mode);
         } else {
@@ -212,7 +219,7 @@ public class ZookeeperClient {
      * @param path path.
      * @return cache.
      */
-    public TreeCache getCache(final String path) {
+    public CuratorCache getCache(final String path) {
         return caches.get(path);
     }
 
@@ -222,12 +229,12 @@ public class ZookeeperClient {
      * @param listeners listeners.
      * @return cache.
      */
-    public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
-        TreeCache cache = TreeCache.newBuilder(client, path).build();
+    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
+        CuratorCache cache = CuratorCache.build(client, path);
         caches.put(path, cache);
         if (ArrayUtils.isNotEmpty(listeners)) {
-            for (TreeCacheListener listener : listeners) {
-                cache.getListenable().addListener(listener);
+            for (CuratorCacheListener listener : listeners) {
+                cache.listenable().addListener(listener);
             }
         }
         try {
@@ -257,8 +264,8 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+    private CuratorCache findFromCache(final String key) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
             }

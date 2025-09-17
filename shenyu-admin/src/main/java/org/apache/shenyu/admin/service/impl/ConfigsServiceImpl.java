@@ -35,6 +35,8 @@ import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
@@ -44,22 +46,30 @@ import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.service.configs.ConfigsExportImportHandler;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.utils.ZipUtil;
+import org.apache.shenyu.admin.utils.ZipUtil.ZipItem;
 import org.apache.shenyu.common.constant.ExportImportConstants;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ConfigsService}.
@@ -78,6 +88,16 @@ public class ConfigsServiceImpl implements ConfigsService {
      * The Plugin service.
      */
     private final PluginService pluginService;
+
+    /**
+     * The Namespace Plugin service.
+     */
+    private final NamespacePluginService namespacePluginService;
+
+    /**
+     * The Plugin Handle service.
+     */
+    private final PluginHandleService pluginHandleService;
 
     /**
      * The Selector service.
@@ -114,17 +134,27 @@ public class ConfigsServiceImpl implements ConfigsService {
      */
     private final DiscoveryUpstreamService discoveryUpstreamService;
 
+    /**
+     * The configs export import handlers.
+     */
+    private final List<ConfigsExportImportHandler> configsExportImportHandlers;
+
     public ConfigsServiceImpl(final AppAuthService appAuthService,
                                          final PluginService pluginService,
+                                         final NamespacePluginService namespacePluginService,
+                                         final PluginHandleService pluginHandleService,
                                          final SelectorService selectorService,
                                          final RuleService ruleService,
                                          final MetaDataService metaDataService,
                                          final ShenyuDictService shenyuDictService,
                                          final ProxySelectorService proxySelectorService,
                                          final DiscoveryService discoveryService,
-                                         final DiscoveryUpstreamService discoveryUpstreamService) {
+                                         final DiscoveryUpstreamService discoveryUpstreamService,
+                                         final List<ConfigsExportImportHandler> configsExportImportHandlers) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
+        this.namespacePluginService = namespacePluginService;
+        this.pluginHandleService = pluginHandleService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.metaDataService = metaDataService;
@@ -132,6 +162,8 @@ public class ConfigsServiceImpl implements ConfigsService {
         this.proxySelectorService = proxySelectorService;
         this.discoveryService = discoveryService;
         this.discoveryUpstreamService = discoveryUpstreamService;
+        this.configsExportImportHandlers = configsExportImportHandlers.stream()
+                .sorted(Comparator.comparingInt(c -> c.configsEnum().getImportOrder())).toList();
     }
 
     @Override
@@ -157,9 +189,35 @@ public class ConfigsServiceImpl implements ConfigsService {
 
         return ShenyuAdminResult.success(ZipUtil.zip(zipItemList));
     }
+    
+    @Override
+    public ShenyuAdminResult configsExport(final String namespace) {
+        List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
 
+        for (ConfigsExportImportHandler configsExportImportHandler : configsExportImportHandlers) {
+            configsExportImportHandler.configsExport(namespace)
+                    .ifPresent(data -> zipItemList.add(new ZipUtil.ZipItem(configsExportImportHandler.configsEnum().getConfigName(), data)));
+        }
+
+        return ShenyuAdminResult.success(ZipUtil.zip(zipItemList));
+    }
+    
+    private void exportPluginHandleData(final List<ZipItem> zipItemList) {
+        List<PluginHandleVO> pluginHandleDataList = pluginHandleService.listAllData();
+        if (CollectionUtils.isNotEmpty(pluginHandleDataList)) {
+            zipItemList.add(new ZipItem(ExportImportConstants.PLUGIN_HANDLE_JSON, JsonUtils.toJson(pluginHandleDataList)));
+        }
+    }
+    
     private void exportDiscoveryUpstreamData(final List<ZipUtil.ZipItem> zipItemList) {
         List<DiscoveryUpstreamVO> discoveryUpstreamList = discoveryUpstreamService.listAllData();
+        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_UPSTREAM_JSON, JsonUtils.toJson(discoveryUpstreamList)));
+        }
+    }
+    
+    private void exportDiscoveryUpstreamData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<DiscoveryUpstreamVO> discoveryUpstreamList = discoveryUpstreamService.listAllDataByNamespaceId(namespace);
         if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_UPSTREAM_JSON, JsonUtils.toJson(discoveryUpstreamList)));
         }
@@ -172,9 +230,25 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void exportDiscoveryData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<DiscoveryVO> discoveryList = discoveryService.listAllDataByNamespaceId(namespace);
+        if (CollectionUtils.isNotEmpty(discoveryList)) {
+            discoveryList.forEach(discoveryVO -> discoveryVO.setNamespaceId(null));
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.DISCOVERY_JSON, JsonUtils.toJson(discoveryList)));
+        }
+    }
+
     private void exportProxySelectorData(final List<ZipUtil.ZipItem> zipItemList) {
         List<ProxySelectorData> proxySelectorDataList = proxySelectorService.listAll();
         if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PROXY_SELECTOR_JSON, JsonUtils.toJson(proxySelectorDataList)));
+        }
+    }
+
+    private void exportProxySelectorData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<ProxySelectorData> proxySelectorDataList = proxySelectorService.listAllByNamespaceId(namespace);
+        if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
+            proxySelectorDataList.forEach(proxySelectorData -> proxySelectorData.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PROXY_SELECTOR_JSON, JsonUtils.toJson(proxySelectorDataList)));
         }
     }
@@ -193,9 +267,24 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void exportRuleData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<RuleVO> ruleDataList = ruleService.listAllDataByNamespaceId(namespace);
+        if (CollectionUtils.isNotEmpty(ruleDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(ruleDataList)));
+        }
+    }
+
     private void exportSelectorData(final List<ZipUtil.ZipItem> zipItemList) {
         List<SelectorVO> selectorDataList = selectorService.listAllData();
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorDataList)));
+        }
+    }
+
+    private void exportSelectorData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<SelectorVO> selectorDataList = selectorService.listAllDataByNamespaceId(namespace);
+        if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            selectorDataList.forEach(selectorVO -> selectorVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, JsonUtils.toJson(selectorDataList)));
         }
     }
@@ -207,6 +296,20 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void exportNamespacePluginData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginService.listAllData(namespace);
+        if (CollectionUtils.isNotEmpty(namespacePluginVOList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.NAMESPACE_PLUGIN_JSON, JsonUtils.toJson(namespacePluginVOList)));
+        }
+    }
+    
+    private void exportPluginTemplateData(final List<ZipUtil.ZipItem> zipItemList) {
+        List<PluginVO> pluginDataList = pluginService.listAllData();
+        if (CollectionUtils.isNotEmpty(pluginDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_TEMPLATE_JSON, JsonUtils.toJson(pluginDataList)));
+        }
+    }
+
     private void exportMetadata(final List<ZipUtil.ZipItem> zipItemList) {
         List<MetaDataVO> metaDataList = metaDataService.listAllData();
         if (CollectionUtils.isNotEmpty(metaDataList)) {
@@ -214,9 +317,25 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
     }
 
+    private void exportMetadata(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<MetaDataVO> metaDataList = metaDataService.listAllDataByNamespaceId(namespace);
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            metaDataList.forEach(metaDataVO -> metaDataVO.setNamespaceId(null));
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.META_JSON, JsonUtils.toJson(metaDataList)));
+        }
+    }
+
     private void exportAuthData(final List<ZipUtil.ZipItem> zipItemList) {
         List<AppAuthVO> authDataList = appAuthService.listAllData();
         if (CollectionUtils.isNotEmpty(authDataList)) {
+            zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
+        }
+    }
+
+    private void exportAuthData(final String namespace, final List<ZipUtil.ZipItem> zipItemList) {
+        List<AppAuthVO> authDataList = appAuthService.listAllDataByNamespace(namespace);
+        if (CollectionUtils.isNotEmpty(authDataList)) {
+            authDataList.forEach(appAuthVO -> appAuthVO.setNamespaceId(null));
             zipItemList.add(new ZipUtil.ZipItem(ExportImportConstants.AUTH_JSON, JsonUtils.toJson(authDataList)));
         }
     }
@@ -265,7 +384,26 @@ public class ConfigsServiceImpl implements ConfigsService {
         }
         return ShenyuAdminResult.success(result);
     }
-
+    
+    @Override
+    public ShenyuAdminResult configsImport(final String namespace, final byte[] source) {
+        ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(source);
+        List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
+        if (CollectionUtils.isEmpty(zipItemList)) {
+            LOG.info("import file is empty");
+            return ShenyuAdminResult.success();
+        }
+        ConfigsImportContext context = new ConfigsImportContext();
+        Map<String, ZipUtil.ZipItem> zipItemNameMap = ListUtil.toMap(zipItemList, ZipUtil.ZipItem::getItemName);
+        for (ConfigsExportImportHandler configsExportImportHandler : configsExportImportHandlers) {
+            ZipUtil.ZipItem zipItem = zipItemNameMap.get(configsExportImportHandler.configsEnum().getConfigName());
+            if (Objects.nonNull(zipItem) && StringUtils.isNoneBlank(zipItem.getItemData())) {
+                configsExportImportHandler.configsImport(namespace, zipItem.getItemData(), context);
+            }
+        }
+        return ShenyuAdminResult.success(context.getResult());
+    }
+    
     private void importDiscoveryUpstreamData(final Map<String, Object> result, final ZipUtil.ZipItem zipItem) {
         String discoveryUpstreamJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(discoveryUpstreamJson)) {
@@ -342,7 +480,7 @@ public class ConfigsServiceImpl implements ConfigsService {
         String pluginJson = zipItem.getItemData();
         if (StringUtils.isNotEmpty(pluginJson)) {
             List<PluginDTO> pluginList = GsonUtils.getInstance().fromList(pluginJson, PluginDTO.class);
-            ConfigImportResult configImportResult = pluginService.importData(pluginList);
+            ConfigImportResult configImportResult = pluginService.importData(pluginList, null);
             result.put(ExportImportConstants.PLUGIN_IMPORT_SUCCESS_COUNT, configImportResult.getSuccessCount());
             if (StringUtils.isNotEmpty(configImportResult.getFailMessage())) {
                 result.put(ExportImportConstants.PLUGIN_IMPORT_FAIL_MESSAGE, configImportResult.getFailMessage());

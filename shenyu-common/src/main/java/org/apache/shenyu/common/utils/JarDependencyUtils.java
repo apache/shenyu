@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -56,7 +57,7 @@ public class JarDependencyUtils {
         try (InputStream inputStream = new ByteArrayInputStream(jarBytes);
              ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
             ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
+            while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
                 if (entry.getName().endsWith(".class")) {
                     ClassNode classNode = new ClassNode(Opcodes.ASM7);
                     ClassReader classReader = new ClassReader(zipInputStream);
