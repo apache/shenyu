@@ -24,7 +24,9 @@ import org.apache.shenyu.infra.etcd.config.EtcdConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-@ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
+import static org.apache.shenyu.infra.etcd.autoconfig.EtcdProperties.CONFIG_PREFIX;
+
+@ConfigurationProperties(CONFIG_PREFIX)
 public class EtcdProperties extends InfraParentProperties {
 
     public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ETCD;
