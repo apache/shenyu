@@ -90,7 +90,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             LOG.info("shenyu DiscoveryProcessor {} discovery has been init", discoveryDO.getId());
             return;
         }
-        String type = discoveryDO.getType();
+        String type = discoveryDO.getDiscoveryType();
         String props = discoveryDO.getProps();
         Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
         RegisterConfig discoveryConfig = new RegisterConfig();
@@ -117,7 +117,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         }
         if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
             shenyuDiscoveryService.close();
-            LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
+            LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getDiscoveryName());
         }
     }
 

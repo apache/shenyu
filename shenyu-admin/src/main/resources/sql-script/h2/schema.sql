@@ -1184,11 +1184,11 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
 CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
-    `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
+    `discovery_name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
     `level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
     `plugin_name`  varchar(255)   COMMENT 'the plugin name',
     `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
-    `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
+    `discovery_type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
     `server_list`  varchar(255)   COMMENT 'register server url (,)',
     `props`     text  COMMENT 'the discovery pops (json) ',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',

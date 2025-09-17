@@ -25,9 +25,9 @@ import java.util.Objects;
  */
 public final class DiscoveryDO extends BaseDO {
 
-    private String name;
+    private String discoveryName;
 
-    private String type;
+    private String discoveryType;
 
     private String level;
 
@@ -43,22 +43,23 @@ public final class DiscoveryDO extends BaseDO {
 
     }
 
-    public DiscoveryDO(final String name, final String type, final String level, final String serverList,
+    public DiscoveryDO(final String discoveryName, final String discoveryType, final String level, final String serverList,
                        final String pluginName, final String props) {
-        this.name = name;
-        this.type = type;
+        this.discoveryName = discoveryName;
+        this.discoveryType = discoveryType;
         this.level = level;
         this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
     }
 
-    public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
-                       final String type, final String level, final String serverList, final String pluginName,
+    public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String discoveryName,
+                       final String discoveryType, final String level, final String serverList, final String pluginName,
                        final String props) {
+
         super(id, dateCreated, dateUpdated);
-        this.name = name;
-        this.type = type;
+        this.discoveryName = discoveryName;
+        this.discoveryType = discoveryType;
         this.level = level;
         this.serverList = serverList;
         this.pluginName = pluginName;
@@ -70,8 +71,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @return the name value
      */
-    public String getName() {
-        return name;
+    public String getDiscoveryName() {
+        return discoveryName;
     }
 
     /**
@@ -79,8 +80,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @param name the name value
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setDiscoveryName(final String name) {
+        this.discoveryName = name;
     }
 
     /**
@@ -88,8 +89,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @return the type value
      */
-    public String getType() {
-        return type;
+    public String getDiscoveryType() {
+        return discoveryType;
     }
 
     /**
@@ -97,8 +98,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @param type the type value
      */
-    public void setType(final String type) {
-        this.type = type;
+    public void setDiscoveryType(final String type) {
+        this.discoveryType = type;
     }
 
     /**
@@ -212,8 +213,8 @@ public final class DiscoveryDO extends BaseDO {
             return false;
         }
         DiscoveryDO discoveryDO = (DiscoveryDO) o;
-        return Objects.equals(name, discoveryDO.name)
-                && Objects.equals(type, discoveryDO.type)
+        return Objects.equals(discoveryName, discoveryDO.discoveryName)
+                && Objects.equals(discoveryType, discoveryDO.discoveryType)
                 && Objects.equals(level, discoveryDO.level)
                 && Objects.equals(serverList, discoveryDO.serverList)
                 && Objects.equals(pluginName, discoveryDO.pluginName)
@@ -223,7 +224,7 @@ public final class DiscoveryDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props, namespaceId);
+        return Objects.hash(super.hashCode(), discoveryName, discoveryType, level, serverList, pluginName, props, namespaceId);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -234,9 +235,9 @@ public final class DiscoveryDO extends BaseDO {
 
         private Timestamp dateUpdated;
 
-        private String name;
+        private String discoveryName;
 
-        private String type;
+        private String discoveryType;
 
         private String level;
 
@@ -291,8 +292,8 @@ public final class DiscoveryDO extends BaseDO {
          * @param name the type.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder name(final String name) {
-            this.name = name;
+        public DiscoveryDOBuilder discoveryName(final String name) {
+            this.discoveryName = name;
             return this;
         }
 
@@ -302,8 +303,8 @@ public final class DiscoveryDO extends BaseDO {
          * @param type the type.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder type(final String type) {
-            this.type = type;
+        public DiscoveryDOBuilder discoveryType(final String type) {
+            this.discoveryType = type;
             return this;
         }
 
@@ -373,8 +374,8 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setId(id);
             discoveryDO.setDateCreated(dateCreated);
             discoveryDO.setDateUpdated(dateUpdated);
-            discoveryDO.setName(name);
-            discoveryDO.setType(type);
+            discoveryDO.setDiscoveryName(discoveryName);
+            discoveryDO.setDiscoveryType(discoveryType);
             discoveryDO.setLevel(level);
             discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
