@@ -2513,7 +2513,7 @@ create table discovery
 (
     id                VARCHAR2(128) not null,
     name            VARCHAR2(255) not null,
-    "level"            VARCHAR2(64) not null,
+    discovery_level            VARCHAR2(64) not null,
     plugin_name      VARCHAR2(255),
     namespace_id VARCHAR2(50) not null,
     type            VARCHAR2(64) not null,
@@ -2528,7 +2528,7 @@ comment on column DISCOVERY.id
   is 'primary key id';
 comment on column DISCOVERY.name
   is 'the discovery name';
-comment on column DISCOVERY."level"
+comment on column DISCOVERY.discovery_level
   is '0 selector,1 plugin  2 global';
 comment on column DISCOVERY.plugin_name
   is 'the plugin name';
