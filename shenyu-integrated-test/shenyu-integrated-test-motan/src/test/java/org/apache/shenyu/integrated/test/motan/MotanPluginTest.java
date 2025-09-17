@@ -36,7 +36,8 @@ public class MotanPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerAddress\":shenyu-zk:2181\"\",\"registerProtocol\":\"zk\"}");
+        String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerAddress\":\"shenyu-zk:2181\",\"registerProtocol\":\"zk\"}");
+        JsonUtils.toJson(classData)
         assertThat(pluginResult, is("success"));
     }
 
@@ -47,6 +48,11 @@ public class MotanPluginTest extends AbstractPluginDataInit {
         }.getType();
         String response = HttpHelper.INSTANCE.postGateway("/motan/demo/hello", request, returnType);
         assertEquals("hello shenyu", response);
+    }
+
+    public static void main(String[] args) {
+        String pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerAddress\":\"shenyu-zk:2181\",\"registerProtocol\":\"zk\"}");
+        JsonUtils.toJson(classData)
     }
 
 }
