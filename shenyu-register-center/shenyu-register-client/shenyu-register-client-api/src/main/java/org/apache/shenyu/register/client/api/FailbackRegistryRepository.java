@@ -103,7 +103,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.doPersistMcpTools(registerDTO);
         } catch (Exception ex) {
             logger.warn("Failed to persistMcpTools {}, cause:{}", registerDTO, ex.getMessage());
-            this.addFailureApiDocRegister(registerDTO);
+            this.addFailureMcpDocRegister(registerDTO);
         }
     }
 
@@ -156,6 +156,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         }
     }
 
+    /**
+     * Add failure mcp data register
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     */
+    protected <T> void addFailureMcpDocRegister(final T t) {
+        if (t instanceof McpToolsRegisterDTO) {
+            McpToolsRegisterDTO dto = (McpToolsRegisterDTO) t;
+            MetaDataRegisterDTO metaDataRegisterDTO = dto.getMetaDataRegisterDTO();
+            String address = metaDataRegisterDTO.getRpcType() + "://"
+                    + metaDataRegisterDTO.getHost() + ":" + metaDataRegisterDTO.getPort() + metaDataRegisterDTO.getPath();
+            addToFail(new Holder(dto, address, Constants.MCP_TOOLS_TYPE));
+        }
+    }
+
     private <T> void addToFail(final Holder t) {
         Holder oldObj = concurrentHashMap.get(t.getKey());
         if (Objects.nonNull(oldObj)) {
@@ -197,6 +213,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             case Constants.API_DOC_TYPE:
                 this.doPersistApiDoc((ApiDocRegisterDTO) holder.getObj());
                 break;
+            case Constants.MCP_TOOLS_TYPE:
+                this.doPersistMcpTools((McpToolsRegisterDTO) holder.getObj());
             default:
                 break;
         }

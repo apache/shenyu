@@ -46,7 +46,7 @@ public @interface OpenApiParameter {
     /**
      * the type.
      *
-     * @return typr
+     * @return type
      */
     String type() default "string";
 
