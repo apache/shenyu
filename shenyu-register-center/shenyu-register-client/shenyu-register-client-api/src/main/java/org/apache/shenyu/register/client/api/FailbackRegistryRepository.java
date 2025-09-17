@@ -157,7 +157,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Add failure mcp data register
+     * Add failure mcp data register.
      *
      * @param <T> the type parameter
      * @param t   the t
@@ -215,6 +215,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
                 break;
             case Constants.MCP_TOOLS_TYPE:
                 this.doPersistMcpTools((McpToolsRegisterDTO) holder.getObj());
+                break;
             default:
                 break;
         }
