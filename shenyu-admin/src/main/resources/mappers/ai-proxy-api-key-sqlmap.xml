@@ -22,22 +22,22 @@
 
         <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
                 <id property="id" column="id"/>
-                <result property="realApiKey" column="real_api_key"/>
                 <result property="proxyApiKey" column="proxy_api_key"/>
                 <result property="description" column="description"/>
                 <result property="enabled" column="enabled"/>
                 <result property="namespaceId" column="namespace_id"/>
+                <result property="selectorId" column="selector_id"/>
                 <result property="dateCreated" column="date_created"/>
                 <result property="dateUpdated" column="date_updated"/>
         </resultMap>
 
         <sql id="Base_Column_List">
         id,
-        real_api_key,
         proxy_api_key,
         description,
         enabled,
         namespace_id,
+        selector_id,
         date_created,
         date_updated
         </sql>
@@ -48,7 +48,8 @@
         </select>
 
         <select id="proxyApiKeyExisted" resultType="boolean">
-        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping WHERE proxy_api_key = #{proxyApiKey}
+        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping
+        WHERE selector_id = #{selectorId} AND proxy_api_key = #{proxyApiKey}
         </select>
 
         <!-- basic selects -->
@@ -90,11 +91,11 @@
         <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId}
         </if>
+        <if test="selectorId != null and selectorId != ''">
+                AND selector_id = #{selectorId}
+        </if>
 </where>
         ORDER BY date_updated DESC
-<if test="pageParameter != null">
-            LIMIT #{pageParameter.pageSize} OFFSET #{pageParameter.start}
-</if>
 </select>
 
 <select id="countByQuery" resultType="int">
@@ -110,15 +111,25 @@
         <if test="namespaceId != null and namespaceId != ''">
                 AND namespace_id = #{namespaceId}
         </if>
+        <if test="selectorId != null and selectorId != ''">
+                AND selector_id = #{selectorId}
+        </if>
 </where>
+</select>
+
+<select id="selectBySelectorId" resultMap="BaseResultMap">
+        select
+<include refid="Base_Column_List"/>
+        from proxy_api_key_mapping
+        where selector_id = #{selectorId}
 </select>
 
 <!-- inserts -->
 <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
         INSERT INTO proxy_api_key_mapping (
-            id, real_api_key, proxy_api_key, description, enabled, namespace_id, date_created, date_updated
+            id, proxy_api_key, description, enabled, namespace_id, selector_id, date_created, date_updated
         ) VALUES (
-            #{id}, #{realApiKey}, #{proxyApiKey}, #{description}, #{enabled}, #{namespaceId}, NOW(3), NOW(3)
+            #{id}, #{proxyApiKey}, #{description}, #{enabled}, #{namespaceId}, #{selectorId}, NOW(3), NOW(3)
         )
 </insert>
 
@@ -126,21 +137,21 @@
         INSERT INTO proxy_api_key_mapping
 <trim prefix="(" suffix=")" suffixOverrides=",">
         <if test="id != null">id,</if>
-        <if test="realApiKey != null">real_api_key,</if>
         <if test="proxyApiKey != null">proxy_api_key,</if>
         <if test="description != null">description,</if>
         <if test="enabled != null">enabled,</if>
         <if test="namespaceId != null">namespace_id,</if>
+        <if test="selectorId != null">selector_id,</if>
             date_created,
             date_updated
 </trim>
 <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
         <if test="id != null">#{id},</if>
-        <if test="realApiKey != null">#{realApiKey},</if>
         <if test="proxyApiKey != null">#{proxyApiKey},</if>
         <if test="description != null">#{description},</if>
         <if test="enabled != null">#{enabled},</if>
         <if test="namespaceId != null">#{namespaceId},</if>
+        <if test="selectorId != null">#{selectorId},</if>
             NOW(3),
             NOW(3)
 </trim>
@@ -150,11 +161,11 @@
 <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
         UPDATE proxy_api_key_mapping
         SET
-            real_api_key = #{realApiKey},
             proxy_api_key = #{proxyApiKey},
             description = #{description},
             enabled = #{enabled},
             namespace_id = #{namespaceId},
+            selector_id = #{selectorId},
             date_updated = NOW(3)
         WHERE id = #{id}
 </update>
@@ -162,11 +173,11 @@
 <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
         UPDATE proxy_api_key_mapping
 <set>
-        <if test="realApiKey != null">real_api_key = #{realApiKey},</if>
         <if test="proxyApiKey != null">proxy_api_key = #{proxyApiKey},</if>
         <if test="description != null">description = #{description},</if>
         <if test="enabled != null">enabled = #{enabled},</if>
         <if test="namespaceId != null">namespace_id = #{namespaceId},</if>
+        <if test="selectorId != null">selector_id = #{selectorId},</if>
             date_updated = NOW(3)
 </set>
         WHERE id = #{id}
@@ -207,11 +218,11 @@
         <if test="condition.namespaceId != null and condition.namespaceId != ''">
                 AND namespace_id = #{condition.namespaceId}
         </if>
+        <if test="condition.selectorId != null and condition.selectorId != ''">
+                AND selector_id = #{condition.selectorId}
+        </if>
 </where>
         ORDER BY date_updated DESC
-<if test="condition.pageParameter != null">
-            LIMIT #{condition.pageParameter.pageSize} OFFSET #{condition.pageParameter.start}
-</if>
 </select>
 
 </mapper> 

@@ -114,10 +114,11 @@ public class AiProxyPluginConfiguration {
     /**
      * Ai proxy api key data subscriber.
      *
+     * @param chatClientCache the chatClientCache
      * @return the subscriber
      */
     @Bean
-    public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber() {
-        return new CommonAiProxyApiKeyDataSubscriber();
+    public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber(final ChatClientCache chatClientCache) {
+        return new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
     }
 }
