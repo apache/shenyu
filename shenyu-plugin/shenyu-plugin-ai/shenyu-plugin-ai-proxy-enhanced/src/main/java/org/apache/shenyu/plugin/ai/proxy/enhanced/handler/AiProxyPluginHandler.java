@@ -54,6 +54,8 @@ public class AiProxyPluginHandler implements PluginDataHandler {
     public void handlerSelector(final SelectorData selectorData) {
         // Invalidate the cache first when the selector is updated.
         chatClientCache.remove(selectorData.getId());
+        // Do NOT remove AiProxyApiKeyCache here. Admin will push updated AI_PROXY_API_KEY events
+        // with refreshed realApiKey after selector changes. Removing here introduces a window of misses.
         if (Objects.isNull(selectorData.getHandle())) {
             return;
         }

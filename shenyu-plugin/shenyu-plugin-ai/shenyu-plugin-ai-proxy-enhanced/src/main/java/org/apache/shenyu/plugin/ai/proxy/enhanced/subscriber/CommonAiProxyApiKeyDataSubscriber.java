@@ -19,11 +19,19 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber;
 
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+
 import java.util.Objects;
 
 /** CommonAiProxyApiKeyDataSubscriber updates local cache for proxy api key mappings. */
 public final class CommonAiProxyApiKeyDataSubscriber implements AiProxyApiKeyDataSubscriber {
+
+    private final ChatClientCache chatClientCache;
+
+    public CommonAiProxyApiKeyDataSubscriber(final ChatClientCache chatClientCache) {
+        this.chatClientCache = chatClientCache;
+    }
 
     @Override
     public void onSubscribe(final ProxyApiKeyData data) {
@@ -44,5 +52,6 @@ public final class CommonAiProxyApiKeyDataSubscriber implements AiProxyApiKeyDat
     @Override
     public void refresh() {
         AiProxyApiKeyCache.getInstance().refresh();
+        chatClientCache.clearAll();
     }
 }

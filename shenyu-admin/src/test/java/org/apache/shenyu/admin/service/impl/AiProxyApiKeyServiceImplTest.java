@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
 
 class AiProxyApiKeyServiceImplTest {
 
@@ -53,22 +54,24 @@ class AiProxyApiKeyServiceImplTest {
     @Mock
     private ApplicationEventPublisher publisher;
 
+    @Mock
+    private AiProxyRealKeyResolver realKeyResolver;
+
     @InjectMocks
     private AiProxyApiKeyServiceImpl service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new AiProxyApiKeyServiceImpl(mapper, publisher);
+        service = new AiProxyApiKeyServiceImpl(mapper, publisher, realKeyResolver);
     }
 
     @Test
     void testCreatePublishesEvent() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
-        dto.setRealApiKey("real");
         dto.setNamespaceId("default");
         when(mapper.insert(any())).thenReturn(1);
-        service.create(dto);
+        service.create(dto, "sel-1");
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertEquals(ConfigGroupEnum.AI_PROXY_API_KEY, captor.getValue().getGroupKey());
@@ -78,7 +81,6 @@ class AiProxyApiKeyServiceImplTest {
     void testUpdatePublishesEvent() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         dto.setId("id-1");
-        dto.setRealApiKey("real");
         dto.setNamespaceId("default");
         when(mapper.updateSelective(any())).thenReturn(1);
         service.update(dto);
@@ -93,7 +95,6 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyDO e = new ProxyApiKeyDO();
         e.setId("1");
         e.setProxyApiKey("p");
-        e.setRealApiKey("r");
         e.setNamespaceId("default");
         e.setEnabled(Boolean.TRUE);
         when(mapper.selectByIds(any())).thenReturn(Collections.singletonList(e));
@@ -108,7 +109,6 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyDO e = new ProxyApiKeyDO();
         e.setId("1");
         e.setProxyApiKey("p");
-        e.setRealApiKey("r");
         e.setNamespaceId("default");
         e.setEnabled(Boolean.TRUE);
         when(mapper.selectByIds(any())).thenReturn(Collections.singletonList(e));
@@ -122,10 +122,9 @@ class AiProxyApiKeyServiceImplTest {
     @Test
     void testCreateBackfillFields() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
-        dto.setRealApiKey("real-ak");
         dto.setNamespaceId("default");
         when(mapper.insert(any())).thenReturn(1);
-        service.create(dto);
+        service.create(dto, "sel-1");
         assertNotNull(dto.getId());
         assertNotNull(dto.getProxyApiKey());
         // enabled will be defaulted to true
@@ -139,7 +138,6 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyQuery query = new ProxyApiKeyQuery();
         query.setNamespaceId("default");
         query.setPageParameter(new PageParameter(1, 10));
-        when(mapper.countByQuery(any())).thenReturn(1);
         ProxyApiKeyVO vo = new ProxyApiKeyVO();
         vo.setId("1");
         vo.setProxyApiKey("p");
@@ -168,7 +166,6 @@ class AiProxyApiKeyServiceImplTest {
     @Test
     void testUpdateReturnsZeroWhenIdMissing() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
-        dto.setRealApiKey("real");
         int res = service.update(dto);
         assertEquals(0, res);
         verify(mapper, never()).updateSelective(any());
