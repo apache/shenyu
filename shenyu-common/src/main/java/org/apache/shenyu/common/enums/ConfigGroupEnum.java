@@ -58,6 +58,11 @@ public enum ConfigGroupEnum {
     PROXY_SELECTOR,
 
     /**
+     * Ai Proxy ApiKey mapping group.
+     */
+    AI_PROXY_API_KEY,
+
+    /**
      * discoveryUpstream data group enum.
      */
     DISCOVER_UPSTREAM;
@@ -71,6 +76,7 @@ public enum ConfigGroupEnum {
     public static ConfigGroupEnum acquireByName(final String name) {
         return Arrays.stream(ConfigGroupEnum.values())
                 .filter(e -> Objects.equals(e.name(), name))
-                .findFirst().orElseThrow(() -> new ShenyuException(String.format(" this ConfigGroupEnum can not support %s", name)));
+                .findFirst().orElseThrow(
+                        () -> new ShenyuException(String.format(" this ConfigGroupEnum can not support %s", name)));
     }
 }

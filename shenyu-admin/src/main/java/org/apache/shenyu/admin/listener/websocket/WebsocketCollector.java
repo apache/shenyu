@@ -234,7 +234,7 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("namespaceId can not be null");
         }
-        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, message);
+        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, maskSensitive(message));
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
@@ -266,5 +266,19 @@ public class WebsocketCollector {
             NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
         }
         ThreadLocalUtils.clear();
+    }
+    
+    private static String maskSensitive(final String json) {
+        if (Objects.isNull(json)) {
+            return null;
+        }
+        try {
+            // simple regex-based masking for logging only
+            String masked = json.replaceAll("(\"apiKey\"\\s*:\\s*\")([^\"]+)(\")", "$1******$3");
+            masked = masked.replaceAll("(\"realApiKey\"\\s*:\\s*\")([^\"]+)(\")", "$1******$3");
+            return masked;
+        } catch (Exception e) {
+            return json;
+        }
     }
 }

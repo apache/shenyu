@@ -35,6 +35,7 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -82,17 +83,25 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
-    public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                  final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
-                                 final String namespaceId
-    ) {
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId) {
         super(serverUri);
         this.namespaceId = namespaceId;
         this.addHeader("namespaceId", namespaceId);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
@@ -108,18 +117,27 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
-    public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final Map<String, String> headers,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                  final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
                                  final String namespaceId) {
         super(serverUri, headers);
         this.namespaceId = namespaceId;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }

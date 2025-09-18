@@ -57,6 +57,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.AiProxyConnectionService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
@@ -82,6 +83,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,6 +126,10 @@ public class SelectorServiceImpl implements SelectorService {
     private final DiscoveryRelMapper discoveryRelMapper;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    @Autowired
+    @Lazy
+    private AiProxyConnectionService aiProxyConnectionService;
 
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
@@ -447,12 +454,12 @@ public class SelectorServiceImpl implements SelectorService {
     public List<SelectorVO> listAllData() {
         return this.buildSelectorExportVOList(selectorMapper.selectAll());
     }
-    
+
     @Override
     public List<SelectorVO> listAllDataByNamespaceId(final String namespaceId) {
         return this.buildSelectorExportVOList(selectorMapper.selectAllByNamespaceId(namespaceId));
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<SelectorDTO> selectorList) {
@@ -503,7 +510,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<SelectorDTO> selectorList, final ConfigsImportContext context) {
@@ -516,22 +523,22 @@ public class SelectorServiceImpl implements SelectorService {
         Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(SelectorDO::getPluginId));
-        
+
         Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
                 .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
-        
+
         for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
             // the import selector's pluginId
             String pluginId = context.getPluginTemplateIdMapping().get(selectorEntry.getKey());
             List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
-                
+
                 Map<String, String> existSelectorSet = Optional
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
                         .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
-                
+
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName
                     String selectorName = selectorDTO.getName();
@@ -566,7 +573,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
