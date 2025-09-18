@@ -51,24 +51,24 @@ import java.util.Objects;
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(DataChangedEventDispatcher.class);
-
+    
     private final ApplicationContext applicationContext;
-
+    
     private List<DataChangedListener> listeners;
-
+    
     @Resource
     private ClusterProperties clusterProperties;
-
+    
     @Resource
     @Nullable
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
-
+    
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
-
+    
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
@@ -80,7 +80,11 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 LOG.info("received DataChangedEvent, not master, pass");
                 return;
             }
-            LOG.info("received DataChangedEvent, dispatching, event:{}", JsonUtils.toJson(event));
+            final int size = event.getSource() instanceof java.util.Collection ? ((java.util.Collection<?>) event.getSource()).size() : 1;
+            LOG.info("received DataChangedEvent, group={}, size={}, type={}", event.getGroupKey(), size, event.getEventType());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
+            }
             switch (event.getGroupKey()) {
                 case APP_AUTH:
                     listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
@@ -114,7 +118,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
             }
         }
     }
-
+    
     @Override
     public void afterPropertiesSet() {
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class)

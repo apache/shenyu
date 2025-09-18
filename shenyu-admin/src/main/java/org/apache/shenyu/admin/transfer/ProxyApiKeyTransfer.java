@@ -43,7 +43,7 @@ public enum ProxyApiKeyTransfer {
     public ProxyApiKeyDO mapToEntity(final ProxyApiKeyDTO dto) {
         return Optional.ofNullable(dto)
                 .map(v -> {
-                    ProxyApiKeyDO e = new ProxyApiKeyDO(v.getRealApiKey(), v.getProxyApiKey(), v.getDescription(), v.getEnabled(),
+                    ProxyApiKeyDO e = new ProxyApiKeyDO(v.getProxyApiKey(), v.getDescription(), v.getEnabled(),
                             v.getNamespaceId());
                     e.setId(v.getId());
                     return e;
@@ -66,7 +66,7 @@ public enum ProxyApiKeyTransfer {
                     vo.setDescription(v.getDescription());
                     vo.setEnabled(v.getEnabled());
                     vo.setNamespaceId(v.getNamespaceId());
-                    vo.setRealApiKey(v.getRealApiKey());
+                    vo.setSelectorId(v.getSelectorId());
                     vo.setDateUpdated(Optional.ofNullable(v.getDateUpdated())
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
                             .orElse(null));

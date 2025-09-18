@@ -109,7 +109,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     final String proxyApiKey = headers.getFirst("X-API-KEY");
                     if (Objects.nonNull(proxyApiKey)) {
                         final String realKey =
-                                AiProxyApiKeyCache.getInstance().getRealApiKey(proxyApiKey);
+                                AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyApiKey);
                         if (Objects.nonNull(realKey)) {
                             primaryConfig.setApiKey(realKey);
                             if (LOG.isDebugEnabled()) {
@@ -217,7 +217,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private ChatClient createAdminFallbackClient(
             final String selectorId, final AiCommonConfig fallbackConfig) {
-        final String fallbackCacheKey = selectorId + ":fallback";
+        final String fallbackCacheKey = selectorId + "|adminFallback";
         return chatClientCache.computeIfAbsent(
                 fallbackCacheKey,
                 () -> {

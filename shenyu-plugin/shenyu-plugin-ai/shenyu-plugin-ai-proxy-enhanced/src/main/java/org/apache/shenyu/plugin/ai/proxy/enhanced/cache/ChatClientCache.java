@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.cache;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +32,8 @@ import java.util.function.Supplier;
  */
 @Component
 public final class ChatClientCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ChatClientCache.class);
 
     private static final String FALLBACK_KEY_SUFFIX = ":fallback";
 
@@ -53,13 +57,25 @@ public final class ChatClientCache {
     }
 
     /**
-     * Removes all cached clients associated with a selector ID.
+     * Removes all cached clients associated with a selector ID (by prefix matching "selectorId|").
      *
      * @param selectorId the selector id
      */
     public void remove(final String selectorId) {
-        chatClientMap.remove(selectorId);
-        chatClientMap.remove(selectorId + FALLBACK_KEY_SUFFIX);
+        if (java.util.Objects.isNull(selectorId)) {
+            return;
+        }
+        final String prefix = selectorId + "|";
+        chatClientMap.keySet().removeIf(k -> k.equals(selectorId) || k.startsWith(prefix));
+        LOG.info("[ChatClientCache] invalidate selectorId={} (by prefix)", selectorId);
+    }
+
+    /**
+     * Clear all cached clients.
+     */
+    public void clearAll() {
+        chatClientMap.clear();
+        LOG.info("[ChatClientCache] cleared all cached clients");
     }
 
     /**
