@@ -29,8 +29,11 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.SofaUpstream;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
@@ -63,19 +66,15 @@ public class SofaProxyService {
     /**
      * Generic invoker object.
      *
-     * @param body     the body
-     * @param metaData the meta data
-     * @param exchange the exchange
+     * @param body          the body
+     * @param metaData      the meta data
+     * @param selectorData  the selector data
+     * @param exchange      the webExchange
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
-        ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
-        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterfaceId())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-            reference = ApplicationConfigCache.getInstance().initRef(metaData);
-        }
-        
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final SelectorData selectorData, final ServerWebExchange exchange) throws ShenyuException {
+        ConsumerConfig<GenericService> reference = this.getConsumerConfig(selectorData, metaData, exchange);
         Pair<String[], Object[]> pair;
         if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
@@ -113,4 +112,27 @@ public class SofaProxyService {
             return result;
         })).onErrorMap(ShenyuException::new);
     }
+
+    private ConsumerConfig<GenericService> getConsumerConfig(final SelectorData selectorData, final MetaData metaData, final ServerWebExchange exchange) {
+        String referenceKey = metaData.getPath();
+        SofaUpstream sofaUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SofaUpstream.class);
+        // if sofaUpstreams is empty, use default plugin config
+        if (Objects.isNull(sofaUpstream)) {
+            ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+            if (StringUtils.isEmpty(reference.getInterfaceId())) {
+                ApplicationConfigCache.getInstance().invalidate(referenceKey);
+                reference = ApplicationConfigCache.getInstance().initRef(metaData);
+            }
+            return reference;
+        }
+        referenceKey = ApplicationConfigCache.getInstance().generateUpstreamCacheKey(selectorData.getId(), metaData.getPath(), sofaUpstream);
+        ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+        if (StringUtils.isEmpty(reference.getInterfaceId())) {
+            ApplicationConfigCache.getInstance().invalidate(referenceKey);
+            reference = ApplicationConfigCache.getInstance().initRef(selectorData.getId(), metaData, sofaUpstream);
+            ApplicationConfigCache.getInstance().putUpstream(referenceKey, sofaUpstream);
+        }
+        return reference;
+    }
+
 }
