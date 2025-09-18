@@ -98,7 +98,7 @@ spec:
     - port: 9849
       name: raft-rpc
       targetPort: 9849
-    ## 兼容1.4.x版本的选举端口.
+    ## Compatible with the election port of version 1.4.x.
     - port: 7848
       name: old-raft-rpc
       targetPort: 7848

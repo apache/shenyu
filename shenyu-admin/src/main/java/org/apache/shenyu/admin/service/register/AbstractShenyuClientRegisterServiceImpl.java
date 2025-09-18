@@ -192,8 +192,10 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        LOG.info("selector info params: selectorName: {}, pluginName: {}, namespaceId: {}, selectorDO info: {}.",
+                selectorName, pluginName, namespaceId, selectorDO);
         if (Objects.isNull(selectorDO)) {
-            throw new ShenyuException("doRegister Failed to execute, wait to retry.");
+            throw new ShenyuException("doRegister Failed to execute, because selectorDO object is null, wait to retry.");
         }
         this.checkNamespacePluginRel(namespaceId, pluginName);
         // fetch UPSTREAM_MAP data from db
