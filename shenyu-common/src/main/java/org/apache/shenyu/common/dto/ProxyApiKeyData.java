@@ -32,6 +32,11 @@ public class ProxyApiKeyData {
 
     private String namespaceId;
 
+    /**
+     * Selector id to which this mapping belongs.
+     */
+    private String selectorId;
+
     public ProxyApiKeyData() {
     }
 
@@ -41,6 +46,7 @@ public class ProxyApiKeyData {
         this.description = builder.description;
         this.enabled = builder.enabled;
         this.namespaceId = builder.namespaceId;
+        this.selectorId = builder.selectorId;
     }
 
     public static Builder builder() {
@@ -87,6 +93,14 @@ public class ProxyApiKeyData {
         this.namespaceId = namespaceId;
     }
 
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -100,12 +114,13 @@ public class ProxyApiKeyData {
                 && Objects.equals(proxyApiKey, that.proxyApiKey)
                 && Objects.equals(description, that.description)
                 && Objects.equals(enabled, that.enabled)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(selectorId, that.selectorId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(realApiKey, proxyApiKey, description, enabled, namespaceId);
+        return Objects.hash(realApiKey, proxyApiKey, description, enabled, namespaceId, selectorId);
     }
 
     public static final class Builder {
@@ -118,6 +133,8 @@ public class ProxyApiKeyData {
         private Boolean enabled;
 
         private String namespaceId;
+
+        private String selectorId;
 
         private Builder() {
         }
@@ -144,6 +161,11 @@ public class ProxyApiKeyData {
 
         public Builder namespaceId(final String namespaceId) {
             this.namespaceId = namespaceId;
+            return this;
+        }
+
+        public Builder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
             return this;
         }
 

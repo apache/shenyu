@@ -37,6 +37,11 @@ public class ProxyApiKeyQuery implements Serializable {
 
     private String namespaceId;
 
+    /**
+     * The selector id used to narrow results to keys under the same namespace as the selector.
+     */
+    private String selectorId;
+
     public ProxyApiKeyQuery() {
     }
 
@@ -80,6 +85,14 @@ public class ProxyApiKeyQuery implements Serializable {
         this.namespaceId = namespaceId;
     }
 
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -92,11 +105,12 @@ public class ProxyApiKeyQuery implements Serializable {
         return Objects.equals(proxyApiKey, that.proxyApiKey)
                 && Objects.equals(enabled, that.enabled)
                 && Objects.equals(pageParameter, that.pageParameter)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(selectorId, that.selectorId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(proxyApiKey, enabled, pageParameter, namespaceId);
+        return Objects.hash(proxyApiKey, enabled, pageParameter, namespaceId, selectorId);
     }
 }

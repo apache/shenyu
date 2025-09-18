@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.model.vo;
 
 import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * ProxyApiKeyVO for web layer.
@@ -36,6 +38,8 @@ public class ProxyApiKeyVO implements Serializable {
 
     private String namespaceId;
 
+    private String selectorId;
+
     /**
      * updated time for display.
      */
@@ -44,6 +48,7 @@ public class ProxyApiKeyVO implements Serializable {
     /**
      * Only used in detail view; avoid returning in list by default.
      */
+    @JsonInclude(Include.NON_NULL)
     private String realApiKey;
 
     public String getId() {
@@ -84,6 +89,14 @@ public class ProxyApiKeyVO implements Serializable {
 
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
+    }
+
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
     }
 
     public String getDateUpdated() {

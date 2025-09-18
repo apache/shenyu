@@ -36,11 +36,19 @@ public interface AiProxyApiKeyMapper extends ExistProvider {
     @Override
     Boolean existed(@Param("id") Serializable id);
 
-    Boolean proxyApiKeyExisted(@Param("proxyApiKey") String proxyApiKey);
+    Boolean proxyApiKeyExisted(@Param("selectorId") String selectorId, @Param("proxyApiKey") String proxyApiKey);
 
     ProxyApiKeyDO selectById(String id);
 
-    List<ProxyApiKeyDO> selectByIds(List<String> ids);
+    List<ProxyApiKeyDO> selectByIds(@Param("ids") List<String> ids);
+
+    /**
+     * select proxy api key by selector id.
+     *
+     * @param selectorId selector id.
+     * @return proxy api keys.
+     */
+    List<ProxyApiKeyDO> selectBySelectorId(@Param("selectorId") String selectorId);
 
     List<ProxyApiKeyDO> selectAll();
 
