@@ -43,6 +43,5 @@
             <groupId>io.grpc</groupId>
             <version>${grpc.version}</version>
         </dependency>
-        
     </dependencies>
 </project>
