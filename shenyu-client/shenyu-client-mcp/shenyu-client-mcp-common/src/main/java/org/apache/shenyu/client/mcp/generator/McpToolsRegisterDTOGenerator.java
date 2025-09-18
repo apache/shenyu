@@ -20,7 +20,7 @@ package org.apache.shenyu.client.mcp.generator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
+import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -30,7 +30,7 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
  */
 public class McpToolsRegisterDTOGenerator {
 
-    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpClient classMcpClient, final ShenyuMcpClient methodMcpClient,
+    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpTool classMcpClient, final ShenyuMcpTool methodMcpClient,
                                                           final JsonObject openApiJsonObject, final String url, final String namespaceId) {
         JsonObject root = new JsonObject();
 
@@ -40,7 +40,7 @@ public class McpToolsRegisterDTOGenerator {
         JsonObject paths = openApiJsonObject.getAsJsonObject(OpenApiConstants.OPEN_API_PATH_KEY);
         JsonObject path = paths.getAsJsonObject(url);
         JsonObject method = path.getAsJsonObject(operation.method());
-        JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_KEY);
+        JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
 
         root.addProperty("name", classMcpClient.toolName());
         root.add("parameters", parameters);

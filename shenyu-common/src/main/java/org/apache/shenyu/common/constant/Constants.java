@@ -646,7 +646,7 @@ public interface Constants {
     /**
      * When register by http, the mcpTools path.
      */
-    String MCP_TOOLS_PATH = "/shenyu-client/register-mcpTools";
+    String MCP_TOOLS_PATH = "/shenyu-client/register-mcp";
 
     /**
      * the constant MCP_TOOLS_TYPE.

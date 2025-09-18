@@ -49,6 +49,8 @@
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
         <module>shenyu-infra/shenyu-infra-common</module>
+        <module>shenyu-client/shenyu-client-mcp/shenyu-client-mcp-common</module>
+        <module>shenyu-client/shenyu-client-mcp/shenyu-client-mcp-register</module>
     </modules>
 
     <licenses>

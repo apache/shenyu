@@ -117,7 +117,7 @@ public class ShenyuClientHttpRegistryController {
      * @param mcpToolsRegisterDTO mcpToolsRegisterDTO
      * @return String
      */
-    @PostMapping("/register-mcpTools")
+    @PostMapping("/register-mcp")
     @ResponseBody
     public String registerMcpTools(@RequestBody final McpToolsRegisterDTO mcpToolsRegisterDTO) {
         if (Objects.isNull(mcpToolsRegisterDTO.getNamespaceId())) {

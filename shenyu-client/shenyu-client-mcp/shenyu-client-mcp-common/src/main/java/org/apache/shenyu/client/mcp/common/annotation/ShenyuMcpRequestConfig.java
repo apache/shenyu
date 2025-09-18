@@ -29,4 +29,10 @@ public @interface ShenyuMcpRequestConfig {
      */
     ShenyuMcpHeader[] headers() default {};
 
+    /**
+     * bodyJson.
+     * @return the bodyJson
+     */
+    String bodyJson() default "";
+
 }

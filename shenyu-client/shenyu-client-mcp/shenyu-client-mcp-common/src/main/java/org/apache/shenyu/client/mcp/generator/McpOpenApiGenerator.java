@@ -20,21 +20,18 @@ package org.apache.shenyu.client.mcp.generator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpClient;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * the openApi generator.
  */
 public class McpOpenApiGenerator {
-    public static JsonObject generateOpenApiJson(final ShenyuMcpClient classMcpClient, final ShenyuMcpClient methodMcpClient, final String url) {
+    public static JsonObject generateOpenApiJson(final ShenyuMcpTool classMcpClient, final io.swagger.v3.oas.models.Operation operation,
+                                                 final ShenyuMcpTool methodMcpClient, final String url) {
         JsonObject root = new JsonObject();
         root.addProperty(OpenApiConstants.OPEN_API_VERSION_KEY, "3.0.0");
 
@@ -59,37 +56,30 @@ public class McpOpenApiGenerator {
         JsonObject pathMap = new JsonObject();
         paths.add(pathKey, pathMap);
 
-        Operation operation = methodMcpClient.operation();
-        String methodType = operation.method();
+        String methodType = methodMcpClient.operation().method();
         JsonObject methodMap = new JsonObject();
         pathMap.add(methodType, methodMap);
 
-        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_SUMMARY_KEY, "");
-        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_DESCRIPTION_KEY, "");
-        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_OPERATION_ID_KEY, "");
-        methodMap.add(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_TAG_KEY, new JsonArray());
+        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_SUMMARY_KEY, "");
+        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_DESCRIPTION_KEY, "");
+        methodMap.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_OPERATION_ID_KEY, "");
+        methodMap.add(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_TAG_KEY, new JsonArray());
 
         JsonArray parameters = new JsonArray();
-        methodMap.add(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_KEY, parameters);
+        methodMap.add(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY, parameters);
 
-        Parameter[] openApiParameters = operation.parameters();
+        List<io.swagger.v3.oas.models.parameters.Parameter> parameterList = operation.getParameters();
 
-        if (Objects.nonNull(openApiParameters)) {
-            List<Parameter> parameterList = new ArrayList<>();
-
-            parameterList.addAll(Arrays.asList(openApiParameters));
+        if (!parameterList.isEmpty()) {
 
             for (Parameter parameter : parameterList) {
                 JsonObject parameterObj = new JsonObject();
-                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_NAME_KEY, parameter.name());
-                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_IN_KEY, parameter.in().toString());
-                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_DESCRIPTION_KEY, parameter.description());
-                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_REQUIRED_KEY, parameter.required());
+                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY, parameter.getName());
+                parameterObj.addProperty(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY, parameter.getIn());
+                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_DESCRIPTION_KEY, parameter.getDescription());
+                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_REQUIRED_KEY, parameter.getRequired());
 
-                JsonObject schema = new JsonObject();
-                schema.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.schema().type());
-                schema.addProperty(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_DEFAULT_VALUE_KEY, parameter.schema().defaultValue());
-                parameterObj.add(OpenApiConstants.OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_KEY, schema);
+                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.getSchema().getType());
 
                 parameters.add(parameterObj);
             }

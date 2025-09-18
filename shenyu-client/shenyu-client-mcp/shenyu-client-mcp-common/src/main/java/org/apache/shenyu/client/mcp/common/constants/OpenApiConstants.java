@@ -65,60 +65,60 @@ public class OpenApiConstants {
     /**
      * the summary of method key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_SUMMARY_KEY = "summary";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_SUMMARY_KEY = "summary";
 
     /**
      * the description of method key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_DESCRIPTION_KEY = "description";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_DESCRIPTION_KEY = "description";
 
     /**
      * the operationId of method key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_OPERATION_ID_KEY = "operationId";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_OPERATION_ID_KEY = "operationId";
 
     /**
      * the tag of method key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_TAG_KEY = "tag";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_TAG_KEY = "tag";
 
     /**
      * the parameters of method key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_KEY = "parameters";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY = "parameters";
 
     /**
      * the name of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_NAME_KEY = "name";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY = "name";
 
     /**
      * the location of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_IN_KEY = "in";
+    public static final String OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY = "in";
 
     /**
      * the description of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_DESCRIPTION_KEY = "description";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_DESCRIPTION_KEY = "description";
 
     /**
      * the required of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_REQUIRED_KEY = "required";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_REQUIRED_KEY = "required";
 
     /**
      * the schema of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_KEY = "schema";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_KEY = "schema";
 
     /**
      * the type of schema key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_TYPE_KEY = "type";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY = "type";
 
     /**
      * the defaultValue of schema key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_SCHEMA_DEFAULT_VALUE_KEY = "defaultValue";
+    public static final String OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_DEFAULT_VALUE_KEY = "defaultValue";
 }

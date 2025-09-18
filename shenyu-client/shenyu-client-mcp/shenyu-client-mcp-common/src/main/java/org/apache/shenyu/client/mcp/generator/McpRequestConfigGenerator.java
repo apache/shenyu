@@ -56,6 +56,13 @@ public class McpRequestConfigGenerator {
         }
         root.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
 
+        //bodyJson
+        root.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.bodyJson());
+
+        // requestTemplate
+        JsonObject requestTemplate = new JsonObject();
+        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
+
         // header
         JsonArray headers = new JsonArray();
         Arrays.asList(shenyuMcpRequestConfig.headers()).forEach(header -> {
@@ -63,8 +70,7 @@ public class McpRequestConfigGenerator {
             headerJson.addProperty(header.key(), header.value());
             headers.add(headerJson);
         });
-
-        root.add(RequestTemplateConstants.HEADERS_KEY, headers);
+        requestTemplate.add(RequestTemplateConstants.HEADERS_KEY, headers);
 
         return root;
     }

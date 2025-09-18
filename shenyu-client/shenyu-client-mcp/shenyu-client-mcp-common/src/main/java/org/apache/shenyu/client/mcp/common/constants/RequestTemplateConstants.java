@@ -33,8 +33,18 @@ public class RequestTemplateConstants {
     public static final String METHOD_KEY = "method";
 
     /**
+     * the bodyJson key.
+     */
+    public static final String BODY_JSON_KEY = "bodyJson";
+
+    /**
      * the headers key.
      */
     public static final String HEADERS_KEY = "headers";
+
+    /**
+     * the requestTemplate key.
+     */
+    public static final String REQUEST_TEMPLATE_KEY = "requestTemplate";
 
 }

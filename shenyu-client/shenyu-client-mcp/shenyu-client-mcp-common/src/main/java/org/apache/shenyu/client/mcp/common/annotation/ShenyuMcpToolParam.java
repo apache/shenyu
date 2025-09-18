@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.client.mcp.common.annotation;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,53 +25,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The interface shenyu client.
+ * ShenyuMcpToolParam.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-public @interface ShenyuMcpClient {
-
-
-    /**
-     * the openApi definition.
-     *
-     * @return definition
-     */
-    OpenAPIDefinition definition() default @OpenAPIDefinition;
+@Target(ElementType.PARAMETER)
+public @interface ShenyuMcpToolParam {
 
     /**
-     * the openApi operation.
+     * the parameter.
      *
-     * @return operation
+     * @return parameter.
      */
-    Operation operation() default @Operation;
-
-    /**
-     * request config.
-     *
-     * @return the request config
-     */
-    ShenyuMcpRequestConfig requestConfig() default @ShenyuMcpRequestConfig;
-
-    /**
-     * Rule name string.
-     *
-     * @return the string
-     */
-    String toolName() default "";
-
-    /**
-     * Desc string.
-     *
-     * @return String string
-     */
-    String desc() default "";
-
-    /**
-     * Enabled boolean.
-     *
-     * @return the boolean
-     */
-    boolean enabled() default true;
+    Parameter parameter() default @Parameter;
 
 }
