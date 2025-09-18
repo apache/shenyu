@@ -68,11 +68,17 @@ public class AiProxyHandle {
 
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
+
     private String fallbackProvider;
+
     private String fallbackBaseUrl;
+
     private String fallbackApiKey;
+
     private String fallbackModel;
+
     private Double fallbackTemperature;
+
     private Integer fallbackMaxTokens;
 
     /**
@@ -248,22 +254,22 @@ public class AiProxyHandle {
             return this;
         }
         FallbackConfig cfg = Objects.nonNull(this.fallbackConfig) ? this.fallbackConfig : new FallbackConfig();
-        if (fallbackProvider != null && !fallbackProvider.isEmpty()) {
+        if (Objects.nonNull(fallbackProvider) && !fallbackProvider.isEmpty()) {
             cfg.setProvider(fallbackProvider);
         }
-        if (fallbackBaseUrl != null && !fallbackBaseUrl.isEmpty()) {
+        if (Objects.nonNull(fallbackBaseUrl) && !fallbackBaseUrl.isEmpty()) {
             cfg.setBaseUrl(fallbackBaseUrl);
         }
-        if (fallbackApiKey != null && !fallbackApiKey.isEmpty()) {
+        if (Objects.nonNull(fallbackApiKey) && !fallbackApiKey.isEmpty()) {
             cfg.setApiKey(fallbackApiKey);
         }
-        if (fallbackModel != null && !fallbackModel.isEmpty()) {
+        if (Objects.nonNull(fallbackModel) && !fallbackModel.isEmpty()) {
             cfg.setModel(fallbackModel);
         }
-        if (fallbackTemperature != null) {
+        if (Objects.nonNull(fallbackTemperature)) {
             cfg.setTemperature(fallbackTemperature);
         }
-        if (fallbackMaxTokens != null) {
+        if (Objects.nonNull(fallbackMaxTokens)) {
             cfg.setMaxTokens(fallbackMaxTokens);
         }
         this.fallbackConfig = cfg;
