@@ -129,7 +129,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
             log.warn("The shenyuMcp service supports only a single server entry. Please ensure that only one server is configured");
         }
         String superUrl = servers[0].url();
-        if (StringUtils.isBlank(superUrl)) {
+        if (StringUtils.isNotEmpty(superUrl)) {
             return superUrl;
         }
         return "";

@@ -105,7 +105,7 @@ public class OpenApiConstants {
     /**
      * the required of parameter key.
      */
-    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_REQUIRED_KEY = "description";
+    public static final String OPEN_API_PATH_PATH_METHOD_PARAMETERS_REQUIRED_KEY = "required";
 
     /**
      * the schema of parameter key.

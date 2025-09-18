@@ -45,7 +45,7 @@ public class ShenyuMcpClientConfiguration {
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @return the apache dubbo service bean listener
+     * @return the apache mcp service bean listener
      */
     @Bean
     public McpServiceEventListener mcpServiceEventListener(final ShenyuClientConfig clientConfig,
