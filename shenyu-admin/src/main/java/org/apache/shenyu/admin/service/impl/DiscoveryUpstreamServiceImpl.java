@@ -156,7 +156,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 String selectorId = discoveryRelDO.getSelectorId();
                 discoverySyncData.setSelectorId(selectorId);
                 SelectorDO selectorDO = selectorMapper.selectById(selectorId);
-                discoverySyncData.setSelectorName(selectorDO.getName());
+                discoverySyncData.setSelectorName(selectorDO.getSelectorName());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();
                 discoverySyncData.setSelectorId(proxySelectorId);
@@ -340,7 +340,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             proxySelectorDTO = new ProxySelectorDTO();
             proxySelectorDTO.setId(selectorDO.getId());
             proxySelectorDTO.setPluginName(pluginMapper.selectById(selectorDO.getPluginId()).getName());
-            proxySelectorDTO.setName(selectorDO.getName());
+            proxySelectorDTO.setName(selectorDO.getSelectorName());
             proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         } else {
             proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);

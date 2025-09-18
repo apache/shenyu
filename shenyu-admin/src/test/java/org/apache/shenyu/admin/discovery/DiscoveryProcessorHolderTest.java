@@ -47,16 +47,16 @@ public class DiscoveryProcessorHolderTest {
 
     @Test
     void chooseProcessor() {
-        // 测试选择本地模式的情况
+        // Test the local mode selection
         assertEquals(localProcessor, processorHolder.chooseProcessor(DiscoveryMode.LOCAL.name()));
 
-        // 测试选择其他模式的情况
+        // Test the situation of selecting other modes
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.ZOOKEEPER.name()));
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.ETCD.name()));
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.NACOS.name()));
         assertEquals(defaultProcessor, processorHolder.chooseProcessor(DiscoveryMode.EUREKA.name()));
 
-        // 测试不支持的模式
+        // Testing unsupported modes
         assertThrows(NotImplementedException.class, () -> processorHolder.chooseProcessor("UNKNOWN_MODE"));
     }
 }

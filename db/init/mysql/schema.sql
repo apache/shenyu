@@ -2059,12 +2059,12 @@ CREATE TABLE `rule`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `selector_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector id',
   `match_mode` int(0) NOT NULL COMMENT 'matching mode (0 and 1 or)',
-  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name',
+  `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
   `loged` tinyint(0) NOT NULL COMMENT 'whether to log or not (0 no print, 1 print) ',
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
-  `sort` int(0) NOT NULL COMMENT 'sort',
+  `sort_code` int(0) NOT NULL COMMENT 'sort',
   `handle` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
@@ -2102,10 +2102,10 @@ DROP TABLE IF EXISTS `selector`;
 CREATE TABLE `selector`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id varchar',
   `plugin_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin id',
-  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name',
+  `selector_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name',
   `match_mode` int(0) NOT NULL COMMENT 'matching mode (0 and 1 or)',
-  `type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
-  `sort` int(0) NOT NULL COMMENT 'sort',
+  `selector_type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
+  `sort_code` int(0) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
   `loged` tinyint(0) NOT NULL COMMENT 'whether to print the log (0 no print, 1 print) ',
@@ -2320,7 +2320,7 @@ DROP TABLE IF EXISTS `tag`;
 CREATE TABLE `tag`
 (
   `id`            varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
-  `name`          varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name',
+  `tag_name`      varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name',
   `tag_desc`      varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag description',
   `parent_tag_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parent tag_id',
   `ext`           varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'extension info',
@@ -2689,7 +2689,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-INSERT INTO `selector` (`id`, `plugin_id`, `name`, `match_mode`, `type`, `sort`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
+INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 
 DROP TABLE IF EXISTS `instance_info`;
 
@@ -2716,7 +2716,7 @@ CREATE TABLE `registry_config`  (
     `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'username',
     `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'password',
     `namespace` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'namespace',
-    `group` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'group',
+    `registry_group` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'group',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE
