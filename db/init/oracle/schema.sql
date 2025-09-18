@@ -356,16 +356,16 @@ END;
 CREATE TABLE proxy_api_key_mapping
 (
     id            VARCHAR2(128) not null,
-    real_api_key  VARCHAR2(255) not null,
     proxy_api_key VARCHAR2(255) not null,
     description   VARCHAR2(500),
     enabled       NUMBER(3) default 1 not null,
     namespace_id  VARCHAR2(50) not null,
+    selector_id   VARCHAR2(255) not null,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null,
     CONSTRAINT pk_proxy_api_key_mapping PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX uk_proxy_api_key ON proxy_api_key_mapping (proxy_api_key);
+CREATE UNIQUE INDEX uk_selector_proxy_key ON proxy_api_key_mapping (selector_id, proxy_api_key);
 CREATE INDEX idx_namespace_enabled ON proxy_api_key_mapping (namespace_id, enabled);
 
 create table model

@@ -381,17 +381,17 @@ COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time'
 DROP TABLE IF EXISTS "public"."proxy_api_key_mapping";
 CREATE TABLE "public"."proxy_api_key_mapping" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "real_api_key" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
   "proxy_api_key" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
   "description" varchar(500) COLLATE "pg_catalog"."default",
   "enabled" int2 NOT NULL DEFAULT 1,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "selector_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   PRIMARY KEY ("id")
 )
 ;
-CREATE UNIQUE INDEX uk_proxy_api_key ON "public"."proxy_api_key_mapping" USING btree ("proxy_api_key");
+CREATE UNIQUE INDEX uk_selector_proxy_key ON "public"."proxy_api_key_mapping" USING btree ("selector_id","proxy_api_key");
 CREATE INDEX idx_namespace_enabled ON "public"."proxy_api_key_mapping" USING btree ("namespace_id","enabled");
 
 -- ----------------------------
