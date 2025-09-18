@@ -205,7 +205,7 @@ public class AiProxyPluginTest {
         // mock cache to return a real key
         final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
         apiKeyCacheMockedStatic.when(AiProxyApiKeyCache::getInstance).thenReturn(apiKeyCache);
-        when(apiKeyCache.getRealApiKey("proxy-key-valid")).thenReturn("real-key-from-cache");
+        when(apiKeyCache.getRealApiKey(SELECTOR_ID, "proxy-key-valid")).thenReturn("real-key-from-cache");
 
         setupSuccessMocks(handle, primaryConfig, Optional.empty());
 
@@ -229,7 +229,7 @@ public class AiProxyPluginTest {
         // mock cache to return null
         final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
         apiKeyCacheMockedStatic.when(AiProxyApiKeyCache::getInstance).thenReturn(apiKeyCache);
-        when(apiKeyCache.getRealApiKey("proxy-key-invalid")).thenReturn(null);
+        when(apiKeyCache.getRealApiKey(SELECTOR_ID, "proxy-key-invalid")).thenReturn(null);
 
         when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
 

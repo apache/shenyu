@@ -32,32 +32,35 @@ class AiProxyApiKeyCacheTest {
     @Test
     void testCacheAndGetRealApiKeyWhenEnabled() {
         ProxyApiKeyData data = ProxyApiKeyData.builder()
+                .selectorId("selector-1")
                 .proxyApiKey("proxy-1")
                 .realApiKey("real-1")
                 .enabled(Boolean.TRUE)
                 .namespaceId("default")
                 .build();
         AiProxyApiKeyCache.getInstance().cache(data);
-        String real = AiProxyApiKeyCache.getInstance().getRealApiKey("proxy-1");
+        String real = AiProxyApiKeyCache.getInstance().getRealApiKey("selector-1", "proxy-1");
         Assertions.assertEquals("real-1", real);
     }
 
     @Test
     void testCacheIgnoredWhenDisabled() {
         ProxyApiKeyData data = ProxyApiKeyData.builder()
+                .selectorId("selector-2")
                 .proxyApiKey("proxy-2")
                 .realApiKey("real-2")
                 .enabled(Boolean.FALSE)
                 .namespaceId("default")
                 .build();
         AiProxyApiKeyCache.getInstance().cache(data);
-        String real = AiProxyApiKeyCache.getInstance().getRealApiKey("proxy-2");
+        String real = AiProxyApiKeyCache.getInstance().getRealApiKey("selector-2", "proxy-2");
         Assertions.assertNull(real);
     }
 
     @Test
     void testRemove() {
         ProxyApiKeyData data = ProxyApiKeyData.builder()
+                .selectorId("selector-3")
                 .proxyApiKey("proxy-3")
                 .realApiKey("real-3")
                 .enabled(Boolean.TRUE)
@@ -65,6 +68,6 @@ class AiProxyApiKeyCacheTest {
                 .build();
         AiProxyApiKeyCache.getInstance().cache(data);
         AiProxyApiKeyCache.getInstance().remove(data);
-        Assertions.assertNull(AiProxyApiKeyCache.getInstance().getRealApiKey("proxy-3"));
+        Assertions.assertNull(AiProxyApiKeyCache.getInstance().getRealApiKey("selector-3", "proxy-3"));
     }
 } 
