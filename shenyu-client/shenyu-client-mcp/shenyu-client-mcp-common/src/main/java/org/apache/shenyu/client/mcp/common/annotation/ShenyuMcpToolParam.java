@@ -15,45 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.client.mcp.common.annotation;
+
+import io.swagger.v3.oas.annotations.Parameter;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The enum Data type enum.
+ * ShenyuMcpToolParam.
  */
-public enum DataType {
-    
-    /**
-     * Meta data data type enum.
-     */
-    META_DATA,
-    
-    /**
-     * Uri data type enum.
-     */
-    URI,
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface ShenyuMcpToolParam {
 
     /**
-     * Api doc type enum.
+     * the parameter.
+     *
+     * @return parameter.
      */
-    API_DOC,
+    Parameter parameter() default @Parameter;
 
-    /**
-     * Heartbeat type enum.
-     */
-    HEARTBEAT,
-
-    /**
-     * Discovery config type enum.
-     */
-    DISCOVERY_CONFIG,
-    
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
-
-    /**
-     * mcp tools type enum.
-     */
-    MCP_TOOLS
 }
