@@ -2364,7 +2364,7 @@ ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY
 DROP TABLE IF EXISTS "public"."tag";
 CREATE TABLE "public"."tag" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "ext" varchar(1024) COLLATE "pg_catalog"."default",
