@@ -66,7 +66,7 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((SelectorDO) s).getName())
+                .map(s -> ((SelectorDO) s).getSelectorName())
                 .collect(Collectors.joining(","));
         final String namespaceId = ((Collection<?>) getSource())
                 .stream()

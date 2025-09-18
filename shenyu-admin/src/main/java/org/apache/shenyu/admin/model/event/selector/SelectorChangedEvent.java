@@ -47,9 +47,9 @@ public class SelectorChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final SelectorDO after = (SelectorDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the namespace [%s] selector [%s] is %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the namespace [%s] selector [%s] is %s", after.getNamespaceId(), after.getSelectorName(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the namespace [%s] selector [%s] is %s : %s", after.getNamespaceId(), after.getName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the namespace [%s] selector [%s] is %s : %s", after.getNamespaceId(), after.getSelectorName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     
@@ -62,20 +62,20 @@ public class SelectorChangedEvent extends AdminDataModelChangedEvent {
             return "it no change";
         }
         final StringBuilder builder = new StringBuilder();
-        if (!Objects.equals(before.getName(), after.getName())) {
-            builder.append(String.format("name[%s => %s] ", before.getName(), after.getName()));
+        if (!Objects.equals(before.getSelectorName(), after.getSelectorName())) {
+            builder.append(String.format("name[%s => %s] ", before.getSelectorName(), after.getSelectorName()));
         }
         if (!Objects.equals(before.getHandle(), after.getHandle())) {
             builder.append(String.format("handle[%s => %s] ", before.getHandle(), after.getHandle()));
         }
-        if (!Objects.equals(before.getType(), after.getType())) {
-            builder.append(String.format("type[%s => %s] ", before.getType(), after.getType()));
+        if (!Objects.equals(before.getSelectorType(), after.getSelectorType())) {
+            builder.append(String.format("type[%s => %s] ", before.getSelectorType(), after.getSelectorType()));
         }
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         }
-        if (!Objects.equals(before.getSort(), after.getSort())) {
-            builder.append(String.format("sort[%s => %s] ", before.getSort(), after.getSort()));
+        if (!Objects.equals(before.getSortCode(), after.getSortCode())) {
+            builder.append(String.format("sort[%s => %s] ", before.getSortCode(), after.getSortCode()));
         }
         if (!Objects.equals(before.getLoged(), after.getLoged())) {
             builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
