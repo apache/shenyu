@@ -23,11 +23,13 @@ import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
 import org.apache.shenyu.admin.transfer.ProxyApiKeyTransfer;
+import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -40,6 +42,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.shenyu.common.constant.Constants;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.List;
 import java.util.Objects;
@@ -55,22 +61,39 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final AiProxyRealKeyResolver realKeyResolver;
+
     @Autowired
     public AiProxyApiKeyServiceImpl(
-            final AiProxyApiKeyMapper mapper, final ApplicationEventPublisher eventPublisher) {
+            final AiProxyApiKeyMapper mapper, final ApplicationEventPublisher eventPublisher,
+            final AiProxyRealKeyResolver realKeyResolver) {
         this.mapper = mapper;
         this.eventPublisher = eventPublisher;
+        this.realKeyResolver = realKeyResolver;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int create(final ProxyApiKeyDTO dto) {
+    public int create(final ProxyApiKeyDTO dto, final String selectorId) {
         final ProxyApiKeyDO entity = ProxyApiKeyTransfer.INSTANCE.mapToEntity(dto);
         if (StringUtils.isBlank(entity.getId())) {
             entity.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         if (StringUtils.isBlank(entity.getProxyApiKey())) {
             entity.setProxyApiKey(SignUtils.generateKey());
+        }
+        // validate namespace
+        if (StringUtils.isBlank(entity.getNamespaceId())) {
+            throw new ShenyuException(ShenyuResultMessage.PARAMETER_ERROR);
+        }
+        // validate selector id
+        if (StringUtils.isBlank(selectorId)) {
+            throw new ShenyuException(ShenyuResultMessage.PARAMETER_ERROR);
+        }
+        entity.setSelectorId(selectorId);
+        // unique check for proxyApiKey if provided
+        if (StringUtils.isNotBlank(entity.getProxyApiKey()) && Boolean.TRUE.equals(mapper.proxyApiKeyExisted(selectorId, entity.getProxyApiKey()))) {
+            throw new ShenyuException(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
         }
         if (Objects.isNull(entity.getEnabled())) {
             entity.setEnabled(Boolean.TRUE);
@@ -99,7 +122,12 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public ProxyApiKeyVO findById(final String id) {
-        return ProxyApiKeyTransfer.INSTANCE.mapToVO(mapper.selectById(id));
+        final ProxyApiKeyVO vo = ProxyApiKeyTransfer.INSTANCE.mapToVO(mapper.selectById(id));
+        if (Objects.nonNull(vo)) {
+            final String real = realKeyResolver.resolveRealKey(vo.getSelectorId()).orElse(null);
+            vo.setRealApiKey(real);
+        }
+        return vo;
     }
 
     @Override
@@ -116,6 +144,9 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String enabled(final List<String> ids, final Boolean enabled) {
+        if (Objects.isNull(ids) || ids.isEmpty() || Objects.isNull(enabled)) {
+            return ShenyuResultMessage.PARAMETER_ERROR;
+        }
         int rows = mapper.updateEnableBatch(ids, enabled);
         if (rows > 0) {
             final List<ProxyApiKeyDO> updated = mapper.selectByIds(ids);
@@ -125,24 +156,19 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                 }
                 publishChangeList(DataEventTypeEnum.UPDATE, updated);
             }
+            return StringUtils.EMPTY;
         }
-        return StringUtils.EMPTY;
+        return AdminConstants.ID_NOT_EXIST;
     }
 
     @Override
     public CommonPager<ProxyApiKeyVO> listByPage(final ProxyApiKeyQuery query) {
-        return PageResultUtils.result(
-                query.getPageParameter(),
-                () -> mapper.countByQuery(query),
-                () ->
-                        mapper.selectByCondition(query).stream()
-                                .map(
-                                        vo -> {
-                                            // ensure sensitive fields rules if needed at service
-                                            // layer
-                                            return vo;
-                                        })
-                                .collect(Collectors.toList()));
+        final int current = query.getPageParameter().getCurrentPage();
+        final int size = query.getPageParameter().getPageSize();
+        PageHelper.startPage(current, size);
+        final List<ProxyApiKeyVO> list = mapper.selectByCondition(query);
+        final PageInfo<ProxyApiKeyVO> pageInfo = new PageInfo<>(list);
+        return new CommonPager<>(new PageParameter(current, size, (int) pageInfo.getTotal()), list);
     }
 
     @Override
@@ -241,12 +267,14 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
             LOG.info("[AiProxySync] normalize namespace from {} to {} for proxyKey={}",
                     entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
         }
+        final String resolvedRealKey = realKeyResolver.resolveRealKey(entity.getSelectorId()).orElse(null);
         return ProxyApiKeyData.builder()
                 .proxyApiKey(entity.getProxyApiKey())
-                .realApiKey(entity.getRealApiKey())
+                .realApiKey(resolvedRealKey)
                 .description(entity.getDescription())
                 .enabled(entity.getEnabled())
                 .namespaceId(normalizedNs)
+                .selectorId(entity.getSelectorId())
                 .build();
     }
 

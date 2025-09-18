@@ -33,9 +33,10 @@ public interface AiProxyApiKeyService extends PageService<ProxyApiKeyQuery, Prox
      * create.
      *
      * @param dto dto
+     * @param selectorId selector id from path
      * @return affected rows
      */
-    int create(ProxyApiKeyDTO dto);
+    int create(ProxyApiKeyDTO dto, String selectorId);
 
     /**
      * update.
