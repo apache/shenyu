@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.motan.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
@@ -30,17 +31,25 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.MotanUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * The cache info.
@@ -48,6 +57,8 @@ import java.util.concurrent.ExecutionException;
 public final class ApplicationConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
+
+    private static final Map<String, MotanUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
 
     private RegistryConfig registryConfig;
 
@@ -95,9 +106,9 @@ public final class ApplicationConfigCache {
             registryConfig = new RegistryConfig();
             registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
-            registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
-            registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         }
+        registryConfig.setRegProtocol(motanRegisterConfig.getRegisterProtocol());
+        registryConfig.setAddress(motanRegisterConfig.getRegisterAddress());
         if (Objects.isNull(protocolConfig)) {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2");
@@ -141,6 +152,28 @@ public final class ApplicationConfigCache {
     }
 
     /**
+     * Init ref reference config.
+     *
+     * @param selectorId the select id
+     * @param metaData the meta data
+     * @param motanUpstream the motan upstream
+     * @return the reference config
+     */
+    public RefererConfig<CommonClient> initRef(final String selectorId, final MetaData metaData, final MotanUpstream motanUpstream) {
+        try {
+            setUpstream(selectorId, motanUpstream);
+            RefererConfig<CommonClient> referenceConfig = cache.get(generateUpstreamCacheKey(selectorId, metaData.getPath(), motanUpstream));
+            if (StringUtils.isNoneBlank(referenceConfig.getServiceInterface())) {
+                return referenceConfig;
+            }
+        } catch (ExecutionException e) {
+            LOG.error("init motan ref ex:{}", e.getMessage());
+        }
+        return build(selectorId, metaData, motanUpstream);
+
+    }
+
+    /**
      * Build reference config.
      *
      * @param metaData the meta data
@@ -173,6 +206,95 @@ public final class ApplicationConfigCache {
     }
 
     /**
+     * Build reference config.
+     *
+     * @param selectorId the select id
+     * @param metaData the meta data
+     * @param motanUpstream the motan upstream
+     * @return the reference config
+     */
+    public RefererConfig<CommonClient> build(final String selectorId, final MetaData metaData, final MotanUpstream motanUpstream) {
+        if (Objects.isNull(protocolConfig) || Objects.isNull(registryConfig)) {
+            return new RefererConfig<>();
+        }
+        if (Objects.isNull(motanUpstream)) {
+            return this.build(metaData);
+        }
+        RefererConfig<CommonClient> reference = new RefererConfig<>();
+        reference.setInterface(CommonClient.class);
+        reference.setServiceInterface(metaData.getServiceName());
+        // the group of motan rpc call
+        MotanParamExtInfo motanParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), MotanParamExtInfo.class);
+        reference.setGroup(motanParamExtInfo.getGroup());
+        reference.setVersion("1.0");
+        reference.setRequestTimeout(Optional.ofNullable(motanParamExtInfo.getTimeout()).orElse(1000));
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setId("shenyu_motan_proxy");
+        registryConfig.setRegister(false);
+        if (StringUtils.isNoneBlank(motanUpstream.getRegisterProtocol())
+                && StringUtils.isNoneBlank(motanUpstream.getRegisterAddress())) {
+            Optional.ofNullable(motanUpstream.getRegisterProtocol()).ifPresent(registryConfig::setRegProtocol);
+            Optional.ofNullable(motanUpstream.getRegisterAddress()).ifPresent(registryConfig::setAddress);
+        }
+        reference.setRegistry(registryConfig);
+        if (StringUtils.isNotEmpty(motanParamExtInfo.getRpcProtocol())) {
+            protocolConfig.setName(motanParamExtInfo.getRpcProtocol());
+            protocolConfig.setId(motanParamExtInfo.getRpcProtocol());
+        }
+        reference.setProtocol(protocolConfig);
+        CommonClient obj = reference.getRef();
+        if (Objects.nonNull(obj)) {
+            LOG.info("init motan reference success there meteData is :{}", metaData);
+            cache.put(generateUpstreamCacheKey(selectorId, metaData.getPath(), motanUpstream), reference);
+        }
+        return reference;
+    }
+
+    /**
+     * generate motan upstream reference cache key.
+     *
+     * @param selectorId      selectorId
+     * @param metaDataPath    metaDataPath
+     * @param motanUpstream   dubboUpstream
+     * @return the reference config cache key
+     */
+    public String generateUpstreamCacheKey(final String selectorId, final String metaDataPath, final MotanUpstream motanUpstream) {
+        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
+        stringJoiner.add(selectorId);
+        stringJoiner.add(metaDataPath);
+        if (StringUtils.isNotBlank(motanUpstream.getProtocol())) {
+            stringJoiner.add(motanUpstream.getProtocol());
+        }
+        // use registry hash to short reference cache key
+        if (StringUtils.isNotBlank(motanUpstream.getRegisterAddress())) {
+            String registryHash = DigestUtils.md5Hex(motanUpstream.getRegisterAddress());
+            stringJoiner.add(registryHash);
+        }
+        return stringJoiner.toString();
+    }
+
+    /**
+     * get motanUpstream.
+     *
+     * @param path path
+     * @return motanUpstream
+     */
+    public MotanUpstream getUpstream(final String path) {
+        return UPSTREAM_CACHE_MAP.get(path);
+    }
+
+    /**
+     * set motanUpstream.
+     *
+     * @param path path
+     * @param motanUpstream motanUpstream
+     * @return motanUpstream
+     */
+    public MotanUpstream setUpstream(final String path, final MotanUpstream motanUpstream) {
+        return UPSTREAM_CACHE_MAP.put(path, motanUpstream);
+    }
+
+    /**
      * Invalidate.
      *
      * @param path the path name
@@ -186,6 +308,42 @@ public final class ApplicationConfigCache {
      */
     public void invalidateAll() {
         cache.invalidateAll();
+    }
+
+    /**
+     * Invalidate with metadataPath.
+     *
+     * @param metadataPath metadataPath
+     */
+    public void invalidateWithMetadataPath(final String metadataPath) {
+        ConcurrentMap<String, RefererConfig<CommonClient>> map = cache.asMap();
+        if (map.isEmpty()) {
+            return;
+        }
+        Set<String> allKeys = map.keySet();
+        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataPath)).collect(Collectors.toSet());
+        if (needInvalidateKeys.isEmpty()) {
+            return;
+        }
+        needInvalidateKeys.forEach(cache::invalidate);
+    }
+
+    /**
+     * invalidate with selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void invalidateWithSelectorId(final String selectorId) {
+        ConcurrentMap<String, RefererConfig<CommonClient>> map = cache.asMap();
+        if (map.isEmpty()) {
+            return;
+        }
+        Set<String> allKeys = map.keySet();
+        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
+        if (needInvalidateKeys.isEmpty()) {
+            return;
+        }
+        needInvalidateKeys.forEach(cache::invalidate);
     }
 
     /**
