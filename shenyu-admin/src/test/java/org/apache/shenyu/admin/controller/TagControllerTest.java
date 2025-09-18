@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -38,6 +35,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -168,7 +169,7 @@ public final class TagControllerTest {
     public TagVO buildTagVO() {
         TagVO tagVO = new TagVO();
         tagVO.setTagDesc("123");
-        tagVO.setName("test tag");
+        tagVO.setTagName("test tag");
         tagVO.setDateCreated(new Date().toString());
         tagVO.setDateUpdated(new Date().toString());
         return tagVO;
