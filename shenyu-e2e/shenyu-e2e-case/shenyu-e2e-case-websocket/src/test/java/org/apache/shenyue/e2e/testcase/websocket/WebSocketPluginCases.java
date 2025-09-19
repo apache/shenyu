@@ -43,6 +43,7 @@ public class WebSocketPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWebSocket() {
+
         return ShenYuScenarioSpec.builder()
                 .name("single-websocket test]")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()

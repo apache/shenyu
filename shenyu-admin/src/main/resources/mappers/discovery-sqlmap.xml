@@ -22,8 +22,8 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="discovery_name" jdbcType="VARCHAR" property="discoveryName"/>
+        <result column="discovery_type" jdbcType="VARCHAR" property="discoveryType"/>
         <result column="level" jdbcType="VARCHAR" property="level"/>
         <result column="server_list" jdbcType="VARCHAR" property="serverList"/>
         <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
@@ -35,8 +35,8 @@
         id,
         date_created,
         date_updated,
-        name,
-        type,
+        discovery_name,
+        discovery_type,
         level,
         server_list,
         plugin_name,
@@ -100,8 +100,8 @@
         d.id,
         d.date_created,
         d.date_updated,
-        d.name,
-        d.type,
+        d.discovery_name,
+        d.discovery_type,
         d.level,
         d.server_list,
         d.plugin_name,
@@ -120,8 +120,8 @@
         (id,
         date_created,
         date_updated,
-        name,
-        type,
+        discovery_name,
+        discovery_type,
         level,
         server_list,
         plugin_name,
@@ -131,8 +131,8 @@
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
-        #{name, jdbcType=VARCHAR},
-        #{type, jdbcType=VARCHAR},
+        #{discoveryName, jdbcType=VARCHAR},
+        #{discoveryType, jdbcType=VARCHAR},
         #{level, jdbcType=VARCHAR},
         #{serverList, jdbcType=VARCHAR},
         #{pluginName, jdbcType=VARCHAR},
@@ -150,11 +150,11 @@
             <if test="dateUpdated != null">
                 date_updated,
             </if>
-            <if test="name != null">
-                name,
+            <if test="discoveryName != null">
+                discovery_name,
             </if>
-            <if test="type != null">
-                type,
+            <if test="discoveryType != null">
+                discovery_type,
             </if>
             <if test="level != null">
                 level,
@@ -180,11 +180,11 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="discoveryName != null">
+                #{discovery_name, jdbcType=VARCHAR},
             </if>
-            <if test="type != null">
-                #{type, jdbcType=VARCHAR},
+            <if test="discoveryType != null">
+                #{discovery_type, jdbcType=VARCHAR},
             </if>
             <if test="level != null">
                 #{level, jdbcType=VARCHAR},
@@ -208,8 +208,8 @@
         UPDATE discovery
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
-        name = #{name, jdbcType=VARCHAR},
-        type = #{type, jdbcType=VARCHAR},
+        discovery_name = #{discoveryName, jdbcType=VARCHAR},
+        discovery_type = #{discoveryType, jdbcType=VARCHAR},
         level = #{level, jdbcType=VARCHAR},
         server_list = #{serverList, jdbcType=VARCHAR},
         plugin_name = #{pluginName, jdbcType=VARCHAR},
@@ -226,11 +226,11 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="discoveryName != null">
+                discovery_name = #{discoveryName, jdbcType=VARCHAR},
             </if>
-            <if test="type != null">
-                type = #{type, jdbcType=VARCHAR},
+            <if test="discoveryType != null">
+                discovery_type = #{discoveryType, jdbcType=VARCHAR},
             </if>
             <if test="level != null">
                 level = #{level, jdbcType=VARCHAR},

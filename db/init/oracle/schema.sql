@@ -2512,11 +2512,11 @@ comment on column TAG_RELATION.date_updated
 create table discovery
 (
     id                VARCHAR2(128) not null,
-    name            VARCHAR2(255) not null,
+    discovery_name            VARCHAR2(255) not null,
     level            VARCHAR2(64) not null,
     plugin_name      VARCHAR2(255),
     namespace_id VARCHAR2(50) not null,
-    type            VARCHAR2(64) not null,
+    discovery_type            VARCHAR2(64) not null,
     server_list      VARCHAR2(255),
     props            CLOB,
     date_created      timestamp(3) default SYSDATE not null,

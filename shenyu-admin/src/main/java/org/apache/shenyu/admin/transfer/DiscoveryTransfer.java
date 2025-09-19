@@ -133,9 +133,9 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryDO).map(data -> {
             DiscoveryVO discoveryVO = new DiscoveryVO();
             discoveryVO.setId(data.getId());
-            discoveryVO.setName(data.getName());
+            discoveryVO.setDiscoveryName(data.getDiscoveryName());
             discoveryVO.setNamespaceId(data.getNamespaceId());
-            discoveryVO.setType(data.getType());
+            discoveryVO.setDiscoveryType(data.getDiscoveryType());
             discoveryVO.setLevel(data.getLevel());
             discoveryVO.setServerList(data.getServerList());
             discoveryVO.setPluginName(data.getPluginName());
@@ -148,8 +148,8 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryDO).map(data -> {
             DiscoveryDTO discoveryDTO = new DiscoveryDTO();
             discoveryDTO.setId(data.getId());
-            discoveryDTO.setName(data.getName());
-            discoveryDTO.setType(data.getType());
+            discoveryDTO.setName(data.getDiscoveryName());
+            discoveryDTO.setType(data.getDiscoveryType());
             discoveryDTO.setLevel(data.getLevel());
             discoveryDTO.setServerList(data.getServerList());
             discoveryDTO.setPluginName(data.getPluginName());

@@ -580,3 +580,5 @@ ALTER TABLE selector RENAME COLUMN "name" TO "selector_name";
 ALTER TABLE tag RENAME COLUMN "name" TO "tag_name";
 ALTER TABLE rule RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE rule RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE discovery RENAME COLUMN "type" TO "discovery_type";
+ALTER TABLE discovery RENAME COLUMN "name" TO "discovery_name";

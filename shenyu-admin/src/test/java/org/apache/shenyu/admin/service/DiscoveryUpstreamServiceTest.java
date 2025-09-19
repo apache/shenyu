@@ -207,9 +207,9 @@ public final class DiscoveryUpstreamServiceTest {
 
     private DiscoveryDO buildDiscoveryDO() {
         DiscoveryDO discoveryDO = new DiscoveryDO();
-        discoveryDO.setName("123");
+        discoveryDO.setDiscoveryName("123");
         discoveryDO.setId("123");
-        discoveryDO.setType("local");
+        discoveryDO.setDiscoveryType("local");
         return discoveryDO;
     }
 
