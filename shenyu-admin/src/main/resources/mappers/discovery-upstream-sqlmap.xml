@@ -25,8 +25,8 @@
         <result column="discovery_handler_id" jdbcType="VARCHAR" property="discoveryHandlerId"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
-        <result column="url" jdbcType="VARCHAR" property="url"/>
-        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="upstream_url" jdbcType="VARCHAR" property="upstreamUrl"/>
+        <result column="upstream_status" jdbcType="INTEGER" property="upstreamStatus"/>
         <result column="weight" jdbcType="INTEGER" property="weight"/>
         <result column="props" jdbcType="VARCHAR" property="props"/>
     </resultMap>
@@ -38,8 +38,8 @@
         discovery_handler_id,
         namespace_id,
         protocol,
-        url,
-        status,
+        upstream_url,
+        upstream_status,
         weight,
         props
     </sql>
@@ -56,8 +56,8 @@
         discovery_handler_id,
         namespace_id,
         protocol,
-        url,
-        status,
+        upstream_url,
+        upstream_status,
         weight,
         props,
         date_created,
@@ -67,8 +67,8 @@
         #{discoveryHandlerId,jdbcType=VARCHAR},
         #{namespaceId, jdbcType=VARCHAR},
         #{protocol,jdbcType=VARCHAR},
-        #{url,jdbcType=VARCHAR},
-        #{status,jdbcType=INTEGER},
+        #{upstreamUrl,jdbcType=VARCHAR},
+        #{upstreamStatus,jdbcType=INTEGER},
         #{weight,jdbcType=INTEGER},
         #{props,jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
@@ -80,8 +80,8 @@
         SET
         discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
         protocol=#{protocol,jdbcType=VARCHAR},
-        url=#{url,jdbcType=VARCHAR},
-        status=#{status,jdbcType=INTEGER},
+        upstream_url=#{upstreamUrl,jdbcType=VARCHAR},
+        upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
@@ -97,11 +97,11 @@
         <if test="protocol != null">
             protocol=#{protocol,jdbcType=VARCHAR},
         </if>
-        <if test="url != null">
-            url=#{url,jdbcType=VARCHAR},
+        <if test="upstreamUrl != null">
+            upstream_url=#{upstreamUrl,jdbcType=VARCHAR},
         </if>
-        <if test="status != null">
-            status=#{status,jdbcType=INTEGER},
+        <if test="upstreamStatus != null">
+            upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         </if>
         <if test="weight != null">
             weight=#{weight,jdbcType=INTEGER},
@@ -119,11 +119,11 @@
         UPDATE discovery_upstream
         SET
         protocol=#{protocol,jdbcType=VARCHAR},
-        status=#{status,jdbcType=INTEGER},
+        upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
-        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and url =#{url}
+        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
     </update>
 
     <select id="selectAll" resultMap="BaseResultMap">
@@ -177,8 +177,8 @@
         du.date_updated,
         du.discovery_handler_id,
         du.protocol,
-        du.url,
-        du.status,
+        du.upstream_url,
+        du.upstream_status,
         du.weight,
         du.props
         FROM discovery_upstream du
@@ -187,7 +187,7 @@
 
     <select id="selectByDiscoveryHandlerIdAndUrl"
             resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
-        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and url = #{url} for update
+        SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl} for update
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">
@@ -203,8 +203,8 @@
         discovery_handler_id,
         namespace_id,
         protocol,
-        url,
-        status,
+        upstream_url,
+        upstream_status,
         weight,
         props,
         date_created,
@@ -215,8 +215,8 @@
             #{item.discoveryHandlerId,jdbcType=VARCHAR},
             #{item.namespaceId,jdbcType=VARCHAR},
             #{item.protocol,jdbcType=VARCHAR},
-            #{item.url,jdbcType=VARCHAR},
-            #{item.status,jdbcType=INTEGER},
+            #{item.upstreamUrl,jdbcType=VARCHAR},
+            #{item.upstreamStatus,jdbcType=INTEGER},
             #{item.weight,jdbcType=INTEGER},
             #{item.props,jdbcType=VARCHAR},
             #{item.dateCreated, jdbcType=TIMESTAMP},
@@ -230,13 +230,13 @@
     </delete>
 
     <delete id="deleteByUrl">
-        DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
+        DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
     </delete>
 
     <update id="updateStatusByUrl">
         UPDATE discovery_upstream
-        SET status = #{status}
-        WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
+        SET upstream_status = #{upstreamStatus}
+        WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
     </update>
 
 </mapper>

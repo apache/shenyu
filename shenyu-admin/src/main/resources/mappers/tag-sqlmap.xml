@@ -128,7 +128,7 @@
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="tagName != null">
-                #{tag_name, jdbcType=VARCHAR},
+                #{tagName, jdbcType=VARCHAR},
             </if>
             <if test="tagDesc != null">
                 #{tagDesc, jdbcType=VARCHAR},

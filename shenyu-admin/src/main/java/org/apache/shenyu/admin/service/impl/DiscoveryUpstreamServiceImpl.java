@@ -125,7 +125,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {
-            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUrl());
+            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
             if (Objects.isNull(existingRecord)) {
                 discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             }
@@ -268,7 +268,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryUpstreamDO::getUrl)
+                    .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder
@@ -307,7 +307,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryUpstreamDO::getUrl)
+                    .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder

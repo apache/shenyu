@@ -138,19 +138,19 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * deleteByUrl.
      *
      * @param discoveryHandlerId discoveryHandlerId
-     * @param url                url
+     * @param upstreamUrl        upstreamUrl
      * @return rows int
      */
-    int deleteByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("url") String url);
+    int deleteByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("upstreamUrl") String upstreamUrl);
 
     /**
      * selectByDiscoveryHandlerIdAndUrl.
      *
      * @param discoveryHandlerId discoveryHandlerId
-     * @param url                url
+     * @param upstreamUrl        upstreamUrl
      * @return DiscoveryUpstreamDO
      */
-    DiscoveryUpstreamDO selectByDiscoveryHandlerIdAndUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("url") String url);
+    DiscoveryUpstreamDO selectByDiscoveryHandlerIdAndUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("upstreamUrl") String upstreamUrl);
 
     /**
      * updateDiscoveryHandlerIdAndUrl.
@@ -163,11 +163,11 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     /**
      * updateStatusByUrl.
      *
-     * @param discoveryHandlerId discoveryHandlerId
-     * @param url                url
-     * @param status             status 0 healthy 1 unhealthy
+     * @param discoveryHandlerId    discoveryHandlerId
+     * @param upstreamUrl           url
+     * @param upstreamStatus        status 0 healthy 1 unhealthy
      * @return effect
      */
-    int updateStatusByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("url") String url, int status);
+    int updateStatusByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("upstreamUrl") String upstreamUrl, @Param("upstreamStatus") int upstreamStatus);
 
 }

@@ -44,12 +44,12 @@ public class DiscoveryUpstreamDO extends BaseDO {
     /**
      * url.
      */
-    private String url;
+    private String upstreamUrl;
 
     /**
      * status.
      */
-    private int status;
+    private int upstreamStatus;
 
     /**
      * weight.
@@ -78,18 +78,18 @@ public class DiscoveryUpstreamDO extends BaseDO {
      *
      * @param discoveryHandlerId discoveryHandlerId
      * @param protocol    protocol
-     * @param url         url
-     * @param status      status
+     * @param upstreamUrl         url
+     * @param upstreamStatus      status
      * @param weight      weight
      * @param props       props
      */
-    public DiscoveryUpstreamDO(final String discoveryHandlerId, final String protocol, final String url, final int status,
+    public DiscoveryUpstreamDO(final String discoveryHandlerId, final String protocol, final String upstreamUrl, final int upstreamStatus,
                                final int weight, final String props) {
 
         this.discoveryHandlerId = discoveryHandlerId;
         this.protocol = protocol;
-        this.url = url;
-        this.status = status;
+        this.upstreamUrl = upstreamUrl;
+        this.upstreamStatus = upstreamStatus;
         this.weight = weight;
         this.props = props;
     }
@@ -139,19 +139,19 @@ public class DiscoveryUpstreamDO extends BaseDO {
      *
      * @return url
      */
-    public String getUrl() {
+    public String getUpstreamUrl() {
 
-        return url;
+        return upstreamUrl;
     }
 
     /**
      * setUrl.
      *
-     * @param url url
+     * @param upstreamUrl url
      */
-    public void setUrl(final String url) {
+    public void setUpstreamUrl(final String upstreamUrl) {
 
-        this.url = url;
+        this.upstreamUrl = upstreamUrl;
     }
 
     /**
@@ -159,19 +159,19 @@ public class DiscoveryUpstreamDO extends BaseDO {
      *
      * @return status
      */
-    public int getStatus() {
+    public int getUpstreamStatus() {
 
-        return status;
+        return upstreamStatus;
     }
 
     /**
      * setStatus.
      *
-     * @param status status
+     * @param upstreamStatus status
      */
-    public void setStatus(final int status) {
+    public void setUpstreamStatus(final int upstreamStatus) {
 
-        this.status = status;
+        this.upstreamStatus = upstreamStatus;
     }
 
     /**
@@ -457,8 +457,8 @@ public class DiscoveryUpstreamDO extends BaseDO {
             discoveryUpstreamDO.setId(this.id);
             discoveryUpstreamDO.setDiscoveryHandlerId(this.discoveryHandlerId);
             discoveryUpstreamDO.setProtocol(this.protocol);
-            discoveryUpstreamDO.setUrl(this.url);
-            discoveryUpstreamDO.setStatus(this.status);
+            discoveryUpstreamDO.setUpstreamUrl(this.url);
+            discoveryUpstreamDO.setUpstreamStatus(this.status);
             discoveryUpstreamDO.setWeight(this.weight);
             discoveryUpstreamDO.setProps(this.props);
             discoveryUpstreamDO.setNamespaceId(this.namespaceId);
