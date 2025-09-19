@@ -52,6 +52,11 @@ public class InstanceInfoVO implements Serializable {
      * namespaceId.
      */
     private String namespaceId;
+
+    /**
+     * status.
+     */
+    private int instanceState;
     
     /**
      * created time.
@@ -62,6 +67,11 @@ public class InstanceInfoVO implements Serializable {
      * updated time.
      */
     private Timestamp dateUpdated;
+
+    /**
+     * lastBeat time.
+     */
+    private long lastHeartBeatTime;
     
     /**
      * get instanceIp.
@@ -188,7 +198,43 @@ public class InstanceInfoVO implements Serializable {
     public void setDateUpdated(final Timestamp dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
-    
+
+    /**
+     * get instanceState.
+     *
+     * @return instanceState
+     */
+    public int getInstanceState() {
+        return instanceState;
+    }
+
+    /**
+     * set instanceState.
+     *
+     * @param instanceState instanceState
+     */
+    public void setInstanceState(final int instanceState) {
+        this.instanceState = instanceState;
+    }
+
+    /**
+     * get lastHeartBeatTime.
+     *
+     * @return lastHeartBeatTime
+     */
+    public long getLastHeartBeatTime() {
+        return lastHeartBeatTime;
+    }
+
+    /**
+     * set lastHeartBeatTime.
+     *
+     * @param lastHeartBeatTime lastHeartBeatTime
+     */
+    public void setLastHeartBeatTime(final long lastHeartBeatTime) {
+        this.lastHeartBeatTime = lastHeartBeatTime;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
