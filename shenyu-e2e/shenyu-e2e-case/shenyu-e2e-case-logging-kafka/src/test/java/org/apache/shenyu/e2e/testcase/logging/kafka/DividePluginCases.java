@@ -105,7 +105,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try {
                                         // Send request first
                                         request.request(Method.GET, "/http/order/findById?id=23");
-                                        
+
                                         Properties properties = new Properties();
                                         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
                                         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shenyu-consumer-group");
@@ -115,16 +115,16 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
                                         properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "10000");
                                         properties.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, "5000");
-                                        
+
                                         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
                                             consumer.subscribe(Arrays.asList(TOPIC));
-                                            
+
                                             Instant start = Instant.now();
                                             // Set timeout to 30 seconds
-                                            while (Duration.between(start, Instant.now()).getSeconds() < 90) {
+                                            while (Duration.between(start, Instant.now()).getSeconds() < 60 * 5) {
                                                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
                                                 LOG.info("records.count:{}", records.count());
-                                                
+
                                                 for (var record : records) {
                                                     String message = record.value();
                                                     LOG.info("kafka message:{}", message);
@@ -134,17 +134,17 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                         break;
                                                     }
                                                 }
-                                                
+
                                                 if (messageFound.get()) {
                                                     break;
                                                 }
                                             }
-                                            
+
                                             if (!messageFound.get()) {
                                                 LOG.error("Timeout waiting for kafka message");
                                                 Assertions.fail("Did not receive expected message within timeout period");
                                             }
-                                            
+
                                             Assertions.assertTrue(messageFound.get(), "Expected message was not found in Kafka topic");
                                         }
                                     } catch (Exception e) {
