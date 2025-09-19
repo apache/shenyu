@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.mcp.server.model;
 
+import java.util.List;
+
 /**
  * McpParameter represents a parameter in the context of a tool description.
  * It contains information about the parameter's name, type, description,
@@ -50,6 +52,11 @@ public class McpServerToolParameter {
     private String defaultValue;
 
     /**
+     * the child parameters.
+     */
+    private List<McpServerToolParameter> parameters;
+
+    /**
      * Constructor for McpParameter.
      */
     public McpServerToolParameter() {
@@ -63,13 +70,15 @@ public class McpServerToolParameter {
      * @param description description
      * @param required    required
      * @param defaultValue defaultValue
+     * @param parameters parameters
      */
-    public McpServerToolParameter(final String name, final String type, final String description, final boolean required, final String defaultValue) {
+    public McpServerToolParameter(final String name, final String type, final String description, final boolean required, final String defaultValue, final List<McpServerToolParameter> parameters) {
         this.name = name;
         this.type = type;
         this.description = description;
         this.required = required;
         this.defaultValue = defaultValue;
+        this.parameters = parameters;
     }
 
     /**
@@ -145,20 +154,38 @@ public class McpServerToolParameter {
     }
 
     /**
-     * Getter for mcpClass.
+     * Getter for defaultValue.
      *
-     * @return mcpClass
+     * @return defaultValue
      */
     public String getDefaultValue() {
         return defaultValue;
     }
 
     /**
-     * Setter for mcpClass.
+     * Setter for defaultValue.
      *
      * @param defaultValue defaultValue
      */
     public void setDefaultValue(final String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    /**
+     * Getter for parameters.
+     *
+     * @return parameters
+     */
+    public List<McpServerToolParameter> getParameters() {
+        return parameters;
+    }
+
+    /**
+     * Setter for parameters.
+     *
+     * @param parameters parameters
+     */
+    public void setParameters(final List<McpServerToolParameter> parameters) {
+        this.parameters = parameters;
     }
 }

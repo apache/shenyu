@@ -22,7 +22,7 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="tag_name" jdbcType="VARCHAR" property="tagName"/>
         <result column="tag_desc" jdbcType="VARCHAR" property="tagDesc"/>
         <result column="parent_tag_id" jdbcType="VARCHAR" property="parentTagId"/>
         <result column="ext" jdbcType="VARCHAR" property="ext"/>
@@ -32,7 +32,7 @@
         id,
         date_created,
         date_updated,
-        name,
+        tag_name,
         tag_desc,
         parent_tag_id,
         ext
@@ -58,8 +58,8 @@
         <include refid="Base_Column_List"/>
         FROM tag
         <where>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR}
+            <if test="tagName != null">
+                tag_name = #{tagName, jdbcType=VARCHAR}
             </if>
             <if test="parentTagId != null">
                 and parent_tag_id = #{parentTagId, jdbcType=VARCHAR}
@@ -82,7 +82,7 @@
         (id,
         date_created,
         date_updated,
-        name,
+        tag_name,
         tag_desc,
         parent_tag_id,
         ext)
@@ -90,7 +90,7 @@
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
-        #{name, jdbcType=VARCHAR},
+        #{tagName, jdbcType=VARCHAR},
         #{tagDesc, jdbcType=VARCHAR},
         #{parentTagId, jdbcType=VARCHAR},
         #{ext, jdbcType=VARCHAR})
@@ -106,8 +106,8 @@
             <if test="dateUpdated != null">
                 date_updated,
             </if>
-            <if test="name != null">
-                name,
+            <if test="tagName != null">
+                tag_name,
             </if>
             <if test="tagDesc != null">
                 tag_desc,
@@ -127,8 +127,8 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="tagName != null">
+                #{tag_name, jdbcType=VARCHAR},
             </if>
             <if test="tagDesc != null">
                 #{tagDesc, jdbcType=VARCHAR},
@@ -151,8 +151,8 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="tagName != null">
+                tag_name = #{tagName, jdbcType=VARCHAR},
             </if>
             <if test="tagDesc != null">
                 tag_desc = #{tagDesc, jdbcType=VARCHAR},
@@ -170,7 +170,7 @@
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
         update tag
         set
-        name = #{name,jdbcType=VARCHAR},
+        tag_name = #{tagName,jdbcType=VARCHAR},
         tag_desc = #{tagDesc,jdbcType=VARCHAR},
         parent_tag_id = #{parentTagId,jdbcType=VARCHAR},
         ext = #{ext,jdbcType=VARCHAR},
