@@ -2608,15 +2608,15 @@ create table discovery_upstream
     discovery_handler_id   VARCHAR2(128) not null,
     namespace_id VARCHAR2(50) not null,
     protocol            VARCHAR2(64),
-    url      VARCHAR2(64) not null,
-    status      NUMBER(10) not null,
+    upstream_url      VARCHAR2(64) not null,
+    upstream_status      NUMBER(10) not null,
     weight      NUMBER(10)  not null,
     props       CLOB,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, url);
+CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, upstream_url);
 
 -- Add comments to the columns
 comment on column DISCOVERY_UPSTREAM.id
@@ -2627,9 +2627,9 @@ comment on column DISCOVERY_UPSTREAM.namespace_id
   is 'namespace id';
 comment on column DISCOVERY_UPSTREAM.protocol
   is 'for http, https, tcp, ws';
-comment on column DISCOVERY_UPSTREAM.url
+comment on column DISCOVERY_UPSTREAM.upstream_url
   is 'ip:port';
-comment on column DISCOVERY_UPSTREAM.status
+comment on column DISCOVERY_UPSTREAM.upstream_status
   is 'type (0, healthy, 1 unhealthy)';
 comment on column DISCOVERY_UPSTREAM.weight
   is 'the weight for lists';
