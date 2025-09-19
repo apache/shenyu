@@ -53,7 +53,7 @@ public class InstanceCheckService {
 
     private static final int MAX_HISTORY_SIZE = 20;
 
-    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InstanceCheckService.class);
 
     private ScheduledThreadPoolExecutor executor;
 
@@ -83,7 +83,7 @@ public class InstanceCheckService {
      */
     public void setup() {
         this.fetchInstanceData();
-        executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-task", false));
+        executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
         executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
     }
@@ -138,7 +138,7 @@ public class InstanceCheckService {
         try {
             doCheck();
         } catch (Exception e) {
-            LOG.error("upstream scheduled check error -------- ", e);
+            LOG.error("upstream scheduled check error", e);
         }
     }
 
@@ -178,6 +178,7 @@ public class InstanceCheckService {
     @PreDestroy
     public void close() {
         syncDB();
+        instanceHealthBeatInfo.clear();
         executor.shutdown();
     }
 

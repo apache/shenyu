@@ -52,10 +52,9 @@ public class HeartbeatListener {
         this.httpClientRegisterRepository = httpClientRegisterRepository;
         this.shenyuConfig = shenyuConfig;
         LOG.info("Web server initialized on port {}, starting heartbeat reporter", serverProperties.getPort());
-        //启动心跳任务
         executor.scheduleAtFixedRate(() -> {
             InstanceBeatInfoDTO instanceBeatInfoDTO = new InstanceBeatInfoDTO();
-            instanceBeatInfoDTO.setInstancePort(serverProperties.getPort() + "");
+            instanceBeatInfoDTO.setInstancePort(String.valueOf(serverProperties.getPort()));
             instanceBeatInfoDTO.setInstanceIp(IpUtils.getHost());
             instanceBeatInfoDTO.setNamespaceId(shenyuConfig.getNamespace());
             instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());

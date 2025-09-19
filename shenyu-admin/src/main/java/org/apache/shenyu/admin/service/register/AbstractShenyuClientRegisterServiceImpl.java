@@ -257,15 +257,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
             try {
                 // publish instance info event
-                publisher.publish(
-                        new InstanceInfoReportEvent(
-                                uriRegisterDTO.getHost(),
-                                String.valueOf(uriRegisterDTO.getPort()),
-                                InstanceTypeConstants.CLIENT_INSTANCE_TYPE,
-                                uriRegisterDTO.getInstanceInfo(),
-                                uriRegisterDTO.getNamespaceId()
-                        )
+                InstanceInfoReportEvent instanceInfoReportEvent = new InstanceInfoReportEvent(
+                        uriRegisterDTO.getHost(),
+                        String.valueOf(uriRegisterDTO.getPort()),
+                        InstanceTypeConstants.CLIENT_INSTANCE_TYPE,
+                        uriRegisterDTO.getInstanceInfo(),
+                        uriRegisterDTO.getNamespaceId()
                 );
+                publisher.publish(instanceInfoReportEvent);
             } catch (Exception e) {
                 LOG.error("publish instance info error", e);
             }

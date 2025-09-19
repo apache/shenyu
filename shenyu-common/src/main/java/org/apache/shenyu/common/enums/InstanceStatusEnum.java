@@ -20,19 +20,18 @@ package org.apache.shenyu.common.enums;
 public enum InstanceStatusEnum {
 
     /**
-     * OFFLINE.
+     * DELETED.
      */
-    OFFLINE(2, "OFFLINE"),
-
+    DELETED(0, "DELETED"),
     /**
      * ONLINE.
      */
     ONLINE(1, "ONLINE"),
 
     /**
-     * DELETED.
+     * OFFLINE.
      */
-    DELETED(0, "DELETED");
+    OFFLINE(2, "OFFLINE");
 
     private final int code;
 
@@ -57,6 +56,6 @@ public enum InstanceStatusEnum {
                 return status.getName();
             }
         }
-        return "UNKNOWN";
+        return DELETED.name;
     }
 }

@@ -1029,6 +1029,31 @@ public interface Constants {
      * The constant AI_MODEL.
      */
     String AI_MODEL = "ai_model";
+
+    /**
+     * The constant arch.
+     */
+    String ARCH="arch";
+
+    /**
+     * The constant arch.
+     */
+    String OPERATING_SYSTEM="operatingSystem";
+
+    /**
+     * The constant availableProcessors.
+     */
+    String AVAILABLE_PROCESSORS="availableProcessors";
+
+    /**
+     * The constant totalMemorySizeGB.
+     */
+    String TOTAL_MEMORY_SIZE_GB="totalMemorySizeGB";
+
+    /**
+     * The constant GB.
+     */
+    String GB="GB";
     
     /**
      * String q.
