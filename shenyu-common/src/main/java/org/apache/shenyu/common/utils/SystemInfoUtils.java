@@ -56,7 +56,7 @@ public final class SystemInfoUtils {
         try {
             // Get host information using OSHI
             SystemInfo systemInfo = new SystemInfo();
-            
+
             // Get host information
             OperatingSystemMXBean osBean =
                     (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -72,7 +72,7 @@ public final class SystemInfoUtils {
             throw new ShenyuException("Error retrieving system information: " + e.getMessage());
         }
     }
-    
+
     /**
      * Bytes to gb double.
      *
@@ -83,5 +83,5 @@ public final class SystemInfoUtils {
         return BigDecimal.valueOf(bytesValue / (double) BYTES_IN_GB)
                 .setScale(DECIMAL_PLACES, ROUNDING_MODE)
                 .doubleValue();
-       }
+    }
 }
