@@ -300,3 +300,5 @@ ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
 ALTER TABLE "public"."tag" RENAME COLUMN "name" TO "tag_name";
 ALTER TABLE "public"."rule" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."rule" RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "url" TO "upstream_url";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_status";
