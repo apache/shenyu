@@ -67,7 +67,7 @@ public final class BatchSelectorDeletedEventTest {
     @Test
     void buildContext() {
         String expectMsg = String.format("the namespace [%s] selector[%s] is %s", selectorDO.getNamespaceId(),
-                selectorDO.getName(), StringUtils.lowerCase(batchSelectorDeletedEvent.getType().getType().toString()));
+                selectorDO.getSelectorName(), StringUtils.lowerCase(batchSelectorDeletedEvent.getType().getType().toString()));
 
         String actualMsg = batchSelectorDeletedEvent.buildContext();
 

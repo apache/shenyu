@@ -42,7 +42,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
     /**
      * discoveryHandler id.
      */
-    @NotBlank(message = "discoveryHandlerId不能为空")
+    @NotBlank(message = "discoveryHandlerId can't be null")
     private String discoveryHandlerId;
 
     /**
@@ -55,31 +55,31 @@ public class DiscoveryUpstreamDTO implements Serializable {
     /**
      * protocol.
      */
-//    @NotBlank(message = "protocol不能为空")
+    // @NotBlank(message = "protocol can't be null")
     private String protocol;
 
     /**
      * url.
      */
-    @NotBlank(message = "url不能为空")
+    @NotBlank(message = "url can't be null")
     private String url;
 
     /**
      * status.
      */
-    @NotNull(message = "status不能为空")
+    @NotNull(message = "status can't be null")
     private Integer status;
 
     /**
      * weight.
      */
-    @NotNull(message = "weight不能为空")
+    @NotNull(message = "weight can't be null")
     private Integer weight;
 
     /**
      * props.
      */
-    @NotBlank(message = "props不能为空")
+    @NotBlank(message = "props can't be null")
     private String props;
 
     /**
