@@ -195,6 +195,7 @@ public class AiProxyPluginTest {
     @Test
     public void testExecuteWithValidProxyApiKey() {
         final AiProxyHandle handle = new AiProxyHandle();
+        handle.setProxyEnabled("true");
         final AiCommonConfig primaryConfig = new AiCommonConfig();
         primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
         primaryConfig.setApiKey("original-key");
@@ -220,6 +221,7 @@ public class AiProxyPluginTest {
     @Test
     public void testExecuteWithInvalidProxyApiKey() {
         final AiProxyHandle handle = new AiProxyHandle();
+        handle.setProxyEnabled("true");
         final AiCommonConfig primaryConfig = new AiCommonConfig();
         primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
 
@@ -230,6 +232,10 @@ public class AiProxyPluginTest {
         final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
         apiKeyCacheMockedStatic.when(AiProxyApiKeyCache::getInstance).thenReturn(apiKeyCache);
         when(apiKeyCache.getRealApiKey(SELECTOR_ID, "proxy-key-invalid")).thenReturn(null);
+
+        // cache the handle so plugin can read proxyEnabled
+        aiProxyPluginHandler.getSelectorCachedHandle()
+                .cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
 
         when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
 
