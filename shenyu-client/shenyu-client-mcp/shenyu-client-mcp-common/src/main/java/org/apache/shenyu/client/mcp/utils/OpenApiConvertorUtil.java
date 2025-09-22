@@ -19,6 +19,7 @@ package org.apache.shenyu.client.mcp.utils;
 
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,10 +44,10 @@ public class OpenApiConvertorUtil {
 
         io.swagger.v3.oas.annotations.media.Schema schemaAnn = annotation.schema();
         if (!schemaAnn.implementation().equals(Void.class)
-                || !"".equals(schemaAnn.type())
-                || !"".equals(schemaAnn.format())) {
+                || StringUtils.isNoneBlank(schemaAnn.type())
+                || StringUtils.isNoneBlank(schemaAnn.format())) {
             io.swagger.v3.oas.models.media.Schema<Object> schema = new io.swagger.v3.oas.models.media.Schema<>();
-            if (!"".equals(schemaAnn.type())) {
+            if ( StringUtils.isNoneBlank(schemaAnn.type())) {
                 schema.setType(schemaAnn.type());
             }
             parameter.setSchema(schema);

@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
+import org.apache.shenyu.client.mcp.common.constants.ShenyuToolConfigConstants;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 
 /**
@@ -42,13 +43,13 @@ public class McpToolsRegisterDTOGenerator {
         JsonObject method = path.getAsJsonObject(operation.method());
         JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
 
-        root.addProperty("name", classMcpClient.toolName());
-        root.add("parameters", parameters);
+        root.addProperty(ShenyuToolConfigConstants.NAME_KEY, classMcpClient.toolName());
+        root.add(ShenyuToolConfigConstants.PARAMETERS_KEY, parameters);
 
         JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(openApiJsonObject, shenyuMcpRequestConfig);
-        root.addProperty("requestConfig", requestConfig.toString());
+        root.addProperty(ShenyuToolConfigConstants.REQUEST_CONFIG_KEY, requestConfig.toString());
 
-        root.addProperty("description", operation.description());
+        root.addProperty(ShenyuToolConfigConstants.DESCRIPTION_KEY, operation.description());
 
         McpToolsRegisterDTO mcpToolsRegisterDTO = new McpToolsRegisterDTO();
         mcpToolsRegisterDTO.setNamespaceId(namespaceId);
