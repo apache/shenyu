@@ -107,7 +107,15 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     // override apiKey by proxy key if provided in header
                     final HttpHeaders headers = exchange.getRequest().getHeaders();
                     final String proxyApiKey = headers.getFirst("X-API-KEY");
-                    if (Objects.nonNull(proxyApiKey)) {
+                    final boolean proxyEnabled = Objects.nonNull(selectorHandle) && "true".equalsIgnoreCase(String.valueOf(selectorHandle.getProxyEnabled()));
+
+                    if (proxyEnabled) {
+                        // if proxy mode enabled but header missing -> 401
+                        if (Objects.isNull(proxyApiKey) || proxyApiKey.isEmpty()) {
+                            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                            return exchange.getResponse().setComplete();
+                        }
+
                         final String realKey =
                                 AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyApiKey);
                         if (Objects.nonNull(realKey)) {
@@ -118,8 +126,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                             LOG.info("[AiProxy] proxy key hit, cacheSize={}", AiProxyApiKeyCache.getInstance().size());
                         } else {
                             // shenyu proxy api key is invalid
-                            LOG.warn("[AiProxy] proxy key invalid, cacheSize={}, selectorId={}",
-                                    AiProxyApiKeyCache.getInstance().size(), selector.getId());
+                            LOG.warn("[AiProxy] proxy key invalid, key={}... (masked), selectorId={}",
+                                    proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())), selector.getId());
                             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                             return exchange.getResponse().setComplete();
                         }
