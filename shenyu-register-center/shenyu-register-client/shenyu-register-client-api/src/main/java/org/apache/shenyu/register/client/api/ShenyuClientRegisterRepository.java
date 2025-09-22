@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.api;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.SPI;
@@ -75,6 +76,14 @@ public interface ShenyuClientRegisterRepository {
      * @param heartbeatDTO the heartbeat dto
      */
     default void sendHeartbeat(URIRegisterDTO heartbeatDTO) {
+    }
+
+    /**
+     * Send heartbeat.
+     *
+     * @param instanceBeatInfoDTO the instanceBeatInfo dto
+     */
+    default void sendHeartbeat(InstanceBeatInfoDTO instanceBeatInfoDTO) {
     }
 
     /**
