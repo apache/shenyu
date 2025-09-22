@@ -590,3 +590,5 @@ ALTER TABLE rule RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE rule RENAME COLUMN "name" TO "rule_name";
 ALTER TABLE discovery_upstream RENAME COLUMN "url" TO "upstream_url";
 ALTER TABLE discovery_upstream RENAME COLUMN "status" TO "upstream_status";
+
+ALTER TABLE discovery RENAME COLUMN "level" TO discovery_level;
