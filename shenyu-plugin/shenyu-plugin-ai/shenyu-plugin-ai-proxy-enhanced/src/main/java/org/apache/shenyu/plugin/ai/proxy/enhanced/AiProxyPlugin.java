@@ -270,3 +270,4 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         return PluginEnum.AI_PROXY.getName();
     }
 }
+
