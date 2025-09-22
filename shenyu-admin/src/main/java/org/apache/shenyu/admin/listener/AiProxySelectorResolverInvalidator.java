@@ -25,6 +25,8 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,8 +41,12 @@ public class AiProxySelectorResolverInvalidator implements DataChangedListener {
 
     private final AiProxyRealKeyResolver resolver;
 
-    public AiProxySelectorResolverInvalidator(final AiProxyRealKeyResolver resolver) {
+    private final org.apache.shenyu.admin.service.AiProxyConnectionService aiProxyConnectionService;
+
+    public AiProxySelectorResolverInvalidator(final AiProxyRealKeyResolver resolver,
+                                              final org.apache.shenyu.admin.service.AiProxyConnectionService aiProxyConnectionService) {
         this.resolver = resolver;
+        this.aiProxyConnectionService = aiProxyConnectionService;
     }
 
     @Override
@@ -57,6 +63,20 @@ public class AiProxySelectorResolverInvalidator implements DataChangedListener {
             }
             resolver.invalidate(d.getId());
             LOG.info("[AiProxyResolverInvalidator] invalidated selectorId={} due to {} (selector)", d.getId(), eventType);
+            try {
+                if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            aiProxyConnectionService.refreshApiKeysBySelectorId(d.getId());
+                        }
+                    });
+                } else {
+                    aiProxyConnectionService.refreshApiKeysBySelectorId(d.getId());
+                }
+            } catch (Exception ex) {
+                LOG.warn("[AiProxyResolverInvalidator] failed to refresh AI_PROXY_API_KEY for selectorId={}: {}", d.getId(), ex.getMessage());
+            }
         }
     }
 
@@ -74,6 +94,20 @@ public class AiProxySelectorResolverInvalidator implements DataChangedListener {
             }
             resolver.invalidate(d.getId());
             LOG.info("[AiProxyResolverInvalidator] invalidated selectorId={} due to {} (proxy selector)", d.getId(), eventType);
+            try {
+                if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            aiProxyConnectionService.refreshApiKeysBySelectorId(d.getId());
+                        }
+                    });
+                } else {
+                    aiProxyConnectionService.refreshApiKeysBySelectorId(d.getId());
+                }
+            } catch (Exception ex) {
+                LOG.warn("[AiProxyResolverInvalidator] failed to refresh AI_PROXY_API_KEY for selectorId={}: {}", d.getId(), ex.getMessage());
+            }
         }
     }
 } 

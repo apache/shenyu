@@ -69,7 +69,7 @@ public class AiProxyRealKeyResolver {
         final AtomicReference<String> ref = cache.get(selectorId);
         if (Objects.nonNull(ref)) {
             final String v = ref.get();
-            LOG.info("[AiProxyRealKeyResolver] cache hit selectorId={}, masked={}...", selectorId, mask(v));
+            LOG.debug("[AiProxyRealKeyResolver] cache hit selectorId={}, masked={}...", selectorId, mask(v));
             return Optional.ofNullable(ref.get());
         }
         // single-flight: only one resolving task per selectorId
