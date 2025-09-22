@@ -2515,7 +2515,7 @@ DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2527,7 +2527,7 @@ CREATE TABLE "public"."discovery" (
 ;
 COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
-COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."discovery_level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';

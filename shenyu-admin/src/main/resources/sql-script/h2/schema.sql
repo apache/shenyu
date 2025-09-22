@@ -1186,7 +1186,7 @@ CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
-    `level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
+    `discovery_level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
     `plugin_name`  varchar(255)   COMMENT 'the plugin name',
     `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
