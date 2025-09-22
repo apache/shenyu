@@ -644,7 +644,6 @@ public interface Constants {
     String URI_PATH = "/shenyu-client/register-uri";
 
     /**
-
      * When register by http, the mcpTools path.
      */
     String MCP_TOOLS_PATH = "/shenyu-client/register-mcp";
@@ -653,7 +652,8 @@ public interface Constants {
      * the constant MCP_TOOLS_TYPE.
      */
     String MCP_TOOLS_TYPE = "mcp";
-    
+
+    /**
      * When register by http, the uri path.
      */
     String BEAT_URI_PATH = "/instance/beat";
