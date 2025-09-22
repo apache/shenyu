@@ -82,6 +82,11 @@ public class AiProxyHandle {
     private Integer fallbackMaxTokens;
 
     /**
+     * enable proxy apikey authentication. When true, header X-API-KEY is required.
+     */
+    private String proxyEnabled;
+
+    /**
      * new default instance.
      *
      * @return AiProxyHandle
@@ -276,6 +281,24 @@ public class AiProxyHandle {
         return this;
     }
 
+    /**
+     * get proxyEnabled.
+     *
+     * @return proxyEnabled
+     */
+    public String getProxyEnabled() {
+        return proxyEnabled;
+    }
+
+    /**
+     * set proxyEnabled.
+     *
+     * @param proxyEnabled proxyEnabled flag string
+     */
+    public void setProxyEnabled(final String proxyEnabled) {
+        this.proxyEnabled = proxyEnabled;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -292,12 +315,13 @@ public class AiProxyHandle {
                 && Objects.equals(temperature, that.temperature)
                 && Objects.equals(maxTokens, that.maxTokens)
                 && Objects.equals(stream, that.stream)
-                && Objects.equals(fallbackConfig, that.fallbackConfig);
+                && Objects.equals(fallbackConfig, that.fallbackConfig)
+                && Objects.equals(proxyEnabled, that.proxyEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig, proxyEnabled);
     }
 
     @Override
@@ -311,6 +335,7 @@ public class AiProxyHandle {
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream
                 + ", fallbackConfig=" + fallbackConfig
+                + ", proxyEnabled=" + proxyEnabled
                 + '}';
     }
 

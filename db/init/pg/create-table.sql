@@ -1067,7 +1067,7 @@ INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-
 INSERT INTO "public"."plugin" VALUES ('43', 'loggingHuaweiLts', '{ "totalSizeInBytes": "104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 'Logging', 177, 0, '2023-07-05 14:03:53', '2023-07-06 12:42:07', null);
 INSERT INTO "public"."plugin" VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('45', 'loggingRabbitMQ', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 'Logging', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447', NULL);
-INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1","prompt":""}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
@@ -2992,6 +2992,12 @@ INSERT INTO "public"."permission" VALUES ('1697146860569542748', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569542749', '1346358560427216896', '1844026099075534857', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO "public"."permission" VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
+INSERT INTO "public"."permission" VALUES ('1953049887387303940', '1346358560427216896', '1844026099075534900', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303941', '1346358560427216896', '1844026099075534901', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303942', '1346358560427216896', '1844026099075534902', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303943', '1346358560427216896', '1844026099075534903', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303944', '1346358560427216896', '1844026099075534904', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"0","defaultValue":"OpenAI","placeholder":"provider","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
@@ -2999,7 +3005,15 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507044', '50', 'apiKe
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507045', '50', 'temperature', 'temperature', 2, 1, 4, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507046', '50', 'maxTokens', 'maxTokens', 2, 1, 5, '{"required":"0","rule":"", "placeholder":"optional,0,0.01~1"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 1, 7, '{"required":"0","defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 8, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371601', '50', 'fallbackEnabled', 'fallbackEnabled', 2, 1, 9, '{"required":"0","defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371602', '50', 'fallbackProvider', 'fallbackProvider', 2, 1, 10, '{"required":"0","placeholder":"OPENAI","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371603', '50', 'fallbackBaseUrl', 'fallbackBaseUrl', 2, 1, 11, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371604', '50', 'fallbackApiKey', 'fallbackApiKey', 2, 1, 12, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371605', '50', 'fallbackModel', 'fallbackModel', 2, 1, 13, '{"required":"0","placeholder":"gpt-4.1","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371606', '50', 'fallbackTemperature', 'fallbackTemperature', 1, 1, 14, '{"required":"0"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371607', '50', 'fallbackMaxTokens', 'fallbackMaxTokens', 1, 1, 15, '{"required":"0"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507350', '66', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507351', '66', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507352', '66', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');

@@ -62,7 +62,7 @@
         SELECT <include refid="Base_Column_List"/>
         FROM proxy_api_key_mapping
         WHERE id IN
-        <foreach collection="list" item="id" open="(" separator="," close=")">
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
 </select>

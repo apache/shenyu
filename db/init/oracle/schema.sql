@@ -1191,7 +1191,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('43', 'loggingHuaweiLts', 'Logging', 177, '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('44', 'basicAuth', 'Authentication', 150, '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('45', 'loggingRabbitmq', 'Logging', 171, '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', '0');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 199, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1","prompt":""}', 'Ai', 199, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0);
@@ -2222,7 +2222,10 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1722804548510507039', '50', 'stream', 'stream', 3, 3, 7, '{"defaultValue":"false","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1722804548510507040', '50', 'prompt', 'prompt', 2, 3, 8, '{"required":"0","rule":""}');
+values ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 3, 8, '{"required":"0","defaultValue":"false","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1722804548510507040', '50', 'prompt', 'prompt', 2, 3, 9, '{"required":"0","rule":""}');
 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
@@ -3162,6 +3165,21 @@ VALUES ('1697146860569542749', '1346358560427216896', '1844026099075534857');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
 VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858');
 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303960', '1346358560427216896', '1844026099075534900');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303961', '1346358560427216896', '1844026099075534901');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303962', '1346358560427216896', '1844026099075534902');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303963', '1346358560427216896', '1844026099075534903');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303964', '1346358560427216896', '1844026099075534904');
+
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"1","defaultValue":"OpenAI","placeholder":"provider","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
@@ -3184,7 +3202,24 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (
 VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 1, 7, '{"required":"0","defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 8, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371601', '50', 'fallbackEnabled', 'fallbackEnabled', 2, 1, 9, '{"required":"0","defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371602', '50', 'fallbackProvider', 'fallbackProvider', 2, 1, 10, '{"required":"0","placeholder":"OPENAI","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371603', '50', 'fallbackBaseUrl', 'fallbackBaseUrl', 2, 1, 11, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371604', '50', 'fallbackApiKey', 'fallbackApiKey', 2, 1, 12, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371605', '50', 'fallbackModel', 'fallbackModel', 2, 1, 13, '{"required":"0","placeholder":"gpt-4.1","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371606', '50', 'fallbackTemperature', 'fallbackTemperature', 1, 1, 14, '{"required":"0"}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371607', '50', 'fallbackMaxTokens', 'fallbackMaxTokens', 1, 1, 15, '{"required":"0"}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507350', '66', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
 
