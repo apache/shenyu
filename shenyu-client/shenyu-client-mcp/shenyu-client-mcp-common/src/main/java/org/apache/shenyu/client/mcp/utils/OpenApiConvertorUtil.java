@@ -47,7 +47,7 @@ public class OpenApiConvertorUtil {
                 || StringUtils.isNoneBlank(schemaAnn.type())
                 || StringUtils.isNoneBlank(schemaAnn.format())) {
             io.swagger.v3.oas.models.media.Schema<Object> schema = new io.swagger.v3.oas.models.media.Schema<>();
-            if ( StringUtils.isNoneBlank(schemaAnn.type())) {
+            if (StringUtils.isNoneBlank(schemaAnn.type())) {
                 schema.setType(schemaAnn.type());
             }
             parameter.setSchema(schema);

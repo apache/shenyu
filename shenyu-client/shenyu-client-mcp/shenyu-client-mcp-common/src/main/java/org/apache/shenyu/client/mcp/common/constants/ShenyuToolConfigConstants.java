@@ -22,12 +22,24 @@ package org.apache.shenyu.client.mcp.common.constants;
  */
 public class ShenyuToolConfigConstants {
 
+    /**
+     * the name key.
+     */
     public static final String NAME_KEY = "name";
 
+    /**
+     * the parameters key.
+     */
     public static final String PARAMETERS_KEY = "parameters";
 
+    /**
+     * the requestConfig key.
+     */
     public static final String REQUEST_CONFIG_KEY = "requestConfig";
 
+    /**
+     * the description key.
+     */
     public static final String DESCRIPTION_KEY = "description";
 
 
