@@ -218,6 +218,13 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742760', '13463585604272
 
 DELETE FROM "public"."plugin_handle" WHERE plugin_id = '8';
 
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524879', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524880', '17', 'corethreads', 'corethreads', 1, 1, 2, '{"required":"0","defaultValue":"","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524881', '17', 'threads', 'threads', 1, 1, 3, '{"required":"0","defaultValue":"","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524882', '17', 'queues', 'queues', 1, 1, 4, '{"required":"0","defaultValue":"","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524883', '17', 'threadpool', 'threadpool', 3, 1, 5, '{"required":"0","defaultValue":"","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+
 INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
@@ -282,9 +289,14 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303904', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 
 ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
+
 ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
 ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
 ALTER TABLE "public"."tag" RENAME COLUMN "name" TO "tag_name";
 ALTER TABLE "public"."rule" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."rule" RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "url" TO "upstream_url";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_status";
+
+ALTER TABLE "public"."discovery" RENAME COLUMN "level" TO "discovery_level";
