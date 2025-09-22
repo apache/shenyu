@@ -30,10 +30,13 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.MotanUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
@@ -74,16 +77,17 @@ public class MotanProxyService {
      * @param body     the body
      * @param metaData the meta data
      * @param exchange the exchange
+     * @param selectorData the selectorData
      * @return the object
      * @throws ShenyuException the shenyu exception
      */
     @SuppressWarnings("all")
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange, final SelectorData selectorData) throws ShenyuException {
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.MOTAN.getName())).ifPresent(context -> {
             context.forEach((k, v) -> RpcContext.getContext().setRpcAttachment(k, v));
         });
-        RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
+        RefererConfig<CommonClient> reference = getConsumerConfig(selectorData, metaData);
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
@@ -116,6 +120,34 @@ public class MotanProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return result;
         })).onErrorMap(ShenyuException::new);
+    }
+
+    /**
+     * get motan reference config.
+     *
+     * @param selectorData  the selector data
+     * @param metaData      the meta data
+     * @return motan reference config
+     */
+    public RefererConfig<CommonClient> getConsumerConfig(final SelectorData selectorData, final MetaData metaData) {
+        String referenceKey = metaData.getPath();
+        MotanUpstream motanUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), MotanUpstream.class);
+        // if motanUpstream is empty, use default plugin config
+        if (Objects.isNull(motanUpstream)) {
+            RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+            if (StringUtils.isBlank(reference.getServiceInterface())) {
+                ApplicationConfigCache.getInstance().invalidate(referenceKey);
+                reference = ApplicationConfigCache.getInstance().initRef(metaData);
+            }
+            return reference;
+        }
+        referenceKey = ApplicationConfigCache.getInstance().generateUpstreamCacheKey(selectorData.getId(), metaData.getPath(), motanUpstream);
+        RefererConfig<CommonClient> reference = ApplicationConfigCache.getInstance().get(referenceKey);
+        if (StringUtils.isBlank(reference.getServiceInterface())) {
+            ApplicationConfigCache.getInstance().invalidate(referenceKey);
+            reference = ApplicationConfigCache.getInstance().initRef(selectorData.getId(), metaData, motanUpstream);
+        }
+        return reference;
     }
 
     private void initThreadPool() {
