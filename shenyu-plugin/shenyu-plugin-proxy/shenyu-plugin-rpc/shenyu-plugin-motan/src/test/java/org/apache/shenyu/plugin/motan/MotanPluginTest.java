@@ -80,7 +80,7 @@ public final class MotanPluginTest {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, PARAM);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         this.motanProxyService = mock(MotanProxyService.class);
-        when(motanProxyService.genericInvoker(PARAM, metaData, exchange)).thenReturn(Mono.empty());
+        when(motanProxyService.genericInvoker(PARAM, metaData, exchange, selectorData)).thenReturn(Mono.empty());
         this.motanPlugin = new MotanPlugin(motanProxyService);
     }
 
