@@ -15,45 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The enum Data type enum.
+ * ShenyuTestMcpApplication.
  */
-public enum DataType {
-    
-    /**
-     * Meta data data type enum.
-     */
-    META_DATA,
-    
-    /**
-     * Uri data type enum.
-     */
-    URI,
+@SpringBootApplication
+public class ShenyuTestMcpApplication {
 
     /**
-     * Api doc type enum.
+     * main.
+     *
+     * @param args args
      */
-    API_DOC,
-
-    /**
-     * Heartbeat type enum.
-     */
-    HEARTBEAT,
-
-    /**
-     * Discovery config type enum.
-     */
-    DISCOVERY_CONFIG,
-    
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
-
-    /**
-     * mcp tools type enum.
-     */
-    MCP_TOOLS
+    public static void main(final String[] args) {
+        SpringApplication.run(ShenyuTestMcpApplication.class, args);
+    }
 }

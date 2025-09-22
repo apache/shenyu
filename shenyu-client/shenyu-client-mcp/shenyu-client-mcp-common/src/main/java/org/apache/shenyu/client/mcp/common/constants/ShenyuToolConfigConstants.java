@@ -15,45 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.type;
+package org.apache.shenyu.client.mcp.common.constants;
 
 /**
- * The enum Data type enum.
+ * shenyu tool config constants.
  */
-public enum DataType {
-    
-    /**
-     * Meta data data type enum.
-     */
-    META_DATA,
-    
-    /**
-     * Uri data type enum.
-     */
-    URI,
+public class ShenyuToolConfigConstants {
 
     /**
-     * Api doc type enum.
+     * the name key.
      */
-    API_DOC,
+    public static final String NAME_KEY = "name";
 
     /**
-     * Heartbeat type enum.
+     * the parameters key.
      */
-    HEARTBEAT,
+    public static final String PARAMETERS_KEY = "parameters";
 
     /**
-     * Discovery config type enum.
+     * the requestConfig key.
      */
-    DISCOVERY_CONFIG,
-    
-    /**
-     * Instance info type enum.
-     */
-    INSTANCE_INFO,
+    public static final String REQUEST_CONFIG_KEY = "requestConfig";
 
     /**
-     * mcp tools type enum.
+     * the description key.
      */
-    MCP_TOOLS
+    public static final String DESCRIPTION_KEY = "description";
+
+
+
 }
