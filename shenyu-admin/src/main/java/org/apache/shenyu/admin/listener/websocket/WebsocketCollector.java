@@ -273,10 +273,17 @@ public class WebsocketCollector {
             return null;
         }
         try {
-            // simple regex-based masking for logging only
-            String masked = json.replaceAll("(\"apiKey\"\\s*:\\s*\")([^\"]+)(\")", "$1******$3");
-            masked = masked.replaceAll("(\"realApiKey\"\\s*:\\s*\")([^\"]+)(\")", "$1******$3");
-            return masked;
+            Map<String, Object> map = JsonUtils.fromJson(json, Map.class);
+            if (map != null) {
+                if (map.containsKey("apiKey")) {
+                    map.put("apiKey", "******");
+                }
+                if (map.containsKey("realApiKey")) {
+                    map.put("realApiKey", "******");
+                }
+                return JsonUtils.toJson(map);
+            }
+            return json;
         } catch (Exception e) {
             return json;
         }
