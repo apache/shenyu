@@ -279,7 +279,7 @@ public class UpstreamCheckService {
             doCheck();
             waitFinish();
         } catch (Exception e) {
-            LOG.error("upstream scheduled check error -------- ", e);
+            LOG.error("upstream scheduled check error", e);
         }
     }
 
