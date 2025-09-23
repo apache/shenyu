@@ -648,6 +648,22 @@ public interface Constants {
      */
     String BEAT_URI_PATH = "/instance/beat";
 
+
+    /**
+     * When register by http, the mcpTools path.
+     */
+    String MCP_TOOLS_PATH = "/shenyu-client/register-mcp";
+
+    /**
+     * the constant MCP_TOOLS_TYPE.
+     */
+    String MCP_TOOLS_TYPE = "mcp";
+
+    /**
+     * When register by http, the uri path.
+     */
+    String BEAT_URI_PATH = "/instance/beat";
+
     /**
      * When register by http, the offline path.
      */
@@ -889,7 +905,6 @@ public interface Constants {
      * The constant Client Port.
      */
     String CLIENT_PORT_NAME = "ClientPort";
-
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
      */

@@ -51,4 +51,9 @@ public enum DataType {
      * Instance info type enum.
      */
     INSTANCE_INFO,
+
+    /**
+     * mcp tools type enum.
+     */
+    MCP_TOOLS
 }

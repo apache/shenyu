@@ -32,6 +32,7 @@
         <module>shenyu-spring-boot-starter-client-sofa</module>
         <module>shenyu-spring-boot-starter-client-tars</module>
         <module>shenyu-spring-boot-starter-client-grpc</module>
+        <module>shenyu-spring-boot-starter-client-mcp</module>
         <module>shenyu-spring-boot-starter-client-common</module>
         <module>shenyu-spring-boot-starter-client-motan</module>
         <module>shenyu-spring-boot-starter-client-spring-websocket</module>
