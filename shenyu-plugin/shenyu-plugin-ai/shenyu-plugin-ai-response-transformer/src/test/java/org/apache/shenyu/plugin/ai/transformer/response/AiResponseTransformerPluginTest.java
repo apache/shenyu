@@ -42,6 +42,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
@@ -99,7 +100,12 @@ class AiResponseTransformerPluginTest {
         
         // Configure chain mock
         when(chain.execute(exchange)).thenReturn(Mono.empty());
-        
+
+        // Mock the mutate() method to return a builder
+        ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
+        when(exchange.mutate()).thenReturn(builder);
+        when(builder.response(any())).thenReturn(builder);
+        when(builder.build()).thenReturn(exchange);
         // Execute plugin
         Mono<Void> result = plugin.doExecute(exchange, chain, selectorData, ruleData);
         

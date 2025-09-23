@@ -94,8 +94,8 @@ public enum DiscoveryTransfer {
             vo.setId(data.getId());
             vo.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             vo.setProtocol(data.getProtocol());
-            vo.setUrl(data.getUrl());
-            vo.setStatus(data.getStatus());
+            vo.setUrl(data.getUpstreamUrl());
+            vo.setStatus(data.getUpstreamStatus());
             vo.setWeight(data.getWeight());
             vo.setProps(data.getProps());
             vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
@@ -136,7 +136,7 @@ public enum DiscoveryTransfer {
             discoveryVO.setName(data.getName());
             discoveryVO.setNamespaceId(data.getNamespaceId());
             discoveryVO.setType(data.getType());
-            discoveryVO.setLevel(data.getLevel());
+            discoveryVO.setLevel(data.getDiscoveryLevel());
             discoveryVO.setServerList(data.getServerList());
             discoveryVO.setPluginName(data.getPluginName());
             discoveryVO.setProps(data.getProps());
@@ -150,7 +150,7 @@ public enum DiscoveryTransfer {
             discoveryDTO.setId(data.getId());
             discoveryDTO.setName(data.getName());
             discoveryDTO.setType(data.getType());
-            discoveryDTO.setLevel(data.getLevel());
+            discoveryDTO.setLevel(data.getDiscoveryLevel());
             discoveryDTO.setServerList(data.getServerList());
             discoveryDTO.setPluginName(data.getPluginName());
             discoveryDTO.setProps(data.getProps());
@@ -181,8 +181,8 @@ public enum DiscoveryTransfer {
             DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
             discoveryUpstreamData.setId(data.getId());
             discoveryUpstreamData.setProtocol(data.getProtocol());
-            discoveryUpstreamData.setUrl(data.getUrl());
-            discoveryUpstreamData.setStatus(data.getStatus());
+            discoveryUpstreamData.setUrl(data.getUpstreamUrl());
+            discoveryUpstreamData.setStatus(data.getUpstreamStatus());
             discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamData.setWeight(data.getWeight());
             discoveryUpstreamData.setProps(data.getProps());
@@ -324,8 +324,8 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
             DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
             discoveryUpstreamDTO.setProps(data.getProps());
-            discoveryUpstreamDTO.setStatus(data.getStatus());
-            discoveryUpstreamDTO.setUrl(data.getUrl());
+            discoveryUpstreamDTO.setStatus(data.getUpstreamStatus());
+            discoveryUpstreamDTO.setUrl(data.getUpstreamUrl());
             discoveryUpstreamDTO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamDTO.setProtocol(data.getProtocol());
             discoveryUpstreamDTO.setId(data.getId());
