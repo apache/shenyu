@@ -95,7 +95,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                                 heartbeat.stream().map(URIRegisterDTO::getNamespaceId)
                                         .filter(StringUtils::isNotBlank)
                                         .findFirst()
-                                        .ifPresent(namespaceId -> service.heartbeat(selectorName, register, namespaceId));
+                                        .ifPresent(namespaceId -> service.heartbeat(selectorName, heartbeat, namespaceId));
                             }
                             if (CollectionUtils.isNotEmpty(offline)) {
                                 offline.stream().map(URIRegisterDTO::getNamespaceId)
