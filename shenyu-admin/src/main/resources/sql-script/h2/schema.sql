@@ -1211,7 +1211,7 @@ CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
-    `level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
+    `discovery_level`        varchar(64)  NOT NULL COMMENT '0 selector,1 plugin  2 global',
     `plugin_name`  varchar(255)   COMMENT 'the plugin name',
     `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
@@ -1248,14 +1248,14 @@ CREATE TABLE IF NOT EXISTS `discovery_upstream`
     `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
     `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
     `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
-    `url`          varchar(64)   NOT NULL COMMENT 'ip:port',
-    `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `upstream_url`          varchar(64)   NOT NULL COMMENT 'ip:port',
+    `upstream_status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
     `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
     `props`      text  COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`url`)
+    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`upstream_url`)
 );
 
 -- ----------------------------

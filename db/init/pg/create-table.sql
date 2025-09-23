@@ -2534,7 +2534,7 @@ DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2546,7 +2546,7 @@ CREATE TABLE "public"."discovery" (
 ;
 COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
-COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."discovery_level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
@@ -2636,8 +2636,8 @@ CREATE TABLE "public"."discovery_upstream"
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "url"         varchar(128) COLLATE "pg_catalog"."default",
-    "status"      int4  NOT NULL,
+    "upstream_url"         varchar(128) COLLATE "pg_catalog"."default",
+    "upstream_status"      int4  NOT NULL,
     "weight"      int4  NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2648,14 +2648,14 @@ COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
 COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
-COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
-COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_status" IS 'type (0, healthy, 1 unhealthy)';
 COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 
-CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","url");
+CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","upstream_url");
 
 -- ----------------------------
 -- Table structure for alert_template
