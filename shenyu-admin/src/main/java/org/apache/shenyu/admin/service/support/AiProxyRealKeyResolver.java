@@ -32,6 +32,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * AiProxyRealKeyResolver resolves real api key from selector handle JSON.
@@ -41,6 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AiProxyRealKeyResolver {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyRealKeyResolver.class);
+
+    private static final long RESOLVE_TIMEOUT_SECONDS = 2L;
 
     private final SelectorMapper selectorMapper;
 
@@ -89,8 +94,16 @@ public class AiProxyRealKeyResolver {
                         })
         );
         try {
-            return Optional.ofNullable(future.join());
-        } catch (Exception e) {
+            return Optional.ofNullable(future.get(RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOG.warn("[AiProxyRealKeyResolver] resolve interrupted for selectorId={}", selectorId);
+            return Optional.empty();
+        } catch (TimeoutException ex) {
+            LOG.warn("[AiProxyRealKeyResolver] resolve timed out after {}s for selectorId={}", RESOLVE_TIMEOUT_SECONDS, selectorId);
+            return Optional.empty();
+        } catch (ExecutionException ex) {
+            LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", selectorId, Objects.nonNull(ex.getCause()) ? ex.getCause().getMessage() : ex.getMessage());
             return Optional.empty();
         }
     }

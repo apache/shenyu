@@ -18,13 +18,12 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -33,14 +32,11 @@ import java.util.Optional;
 /**
  * AI proxy config service.
  */
-@Service
 public class AiProxyConfigService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyConfigService.class);
 
     private static final String FALLBACK_CONFIG = "fallbackConfig";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Resolves the primary configuration for the AI call by merging global and selector-level settings.
@@ -112,10 +108,10 @@ public class AiProxyConfigService {
             return Optional.empty();
         }
         try {
-            JsonNode jsonNode = objectMapper.readTree(requestBody);
+            JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
             if (jsonNode.has(FALLBACK_CONFIG)) {
-                AiProxyHandle.FallbackConfig fallbackConfig = objectMapper.treeToValue(
-                        jsonNode.get(FALLBACK_CONFIG), AiProxyHandle.FallbackConfig.class);
+                AiProxyHandle.FallbackConfig fallbackConfig = JsonUtils.jsonToObject(
+                        jsonNode.get(FALLBACK_CONFIG).toString(), AiProxyHandle.FallbackConfig.class);
                 AiCommonConfig config = new AiCommonConfig();
                 config.setProvider(fallbackConfig.getProvider());
                 config.setModel(fallbackConfig.getModel());

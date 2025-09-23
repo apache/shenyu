@@ -50,6 +50,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 
 /** Implementation of AiProxyApiKeyService. */
 @Service
@@ -135,7 +136,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     public int delete(final List<String> ids) {
         final List<ProxyApiKeyDO> toDelete = mapper.selectByIds(ids);
         int rows = mapper.deleteByIds(ids);
-        if (rows > 0 && Objects.nonNull(toDelete) && !toDelete.isEmpty()) {
+        if (rows > 0 && CollectionUtils.isNotEmpty(toDelete)) {
             publishChangeList(DataEventTypeEnum.DELETE, toDelete);
         }
         return rows;
@@ -144,7 +145,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String enabled(final List<String> ids, final Boolean enabled) {
-        if (Objects.isNull(ids) || ids.isEmpty() || Objects.isNull(enabled)) {
+        if (CollectionUtils.isEmpty(ids) || Objects.isNull(enabled)) {
             return ShenyuResultMessage.PARAMETER_ERROR;
         }
         int rows = mapper.updateEnableBatch(ids, enabled);
@@ -176,7 +177,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         return mapper.selectByCondition(condition);
     }
 
-    // =====================  sync & listAll  =====================
+    // sync & listAll
 
     @Override
     public List<ProxyApiKeyData> listAll() {
@@ -189,7 +190,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     public void syncData() {
         // group by namespace and publish REFRESH respectively
         List<ProxyApiKeyDO> all = mapper.selectAll();
-        if (Objects.isNull(all) || all.isEmpty()) {
+        if (CollectionUtils.isEmpty(all)) {
             return;
         }
         LOG.info("[AiProxySync] syncData triggered, total records:{}", all.size());
@@ -215,7 +216,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         publishRefresh(list);
     }
 
-    // =====================  private utils  =====================
+    // private utils
 
     private void publishChange(final DataEventTypeEnum type, final ProxyApiKeyDO entity) {
         if (Objects.isNull(eventPublisher) || Objects.isNull(entity)) {

@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.retry.NonTransientAiException;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -35,7 +34,6 @@ import java.util.Optional;
 /**
  * AI proxy executor service.
  */
-@Service
 public class AiProxyExecutorService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyExecutorService.class);

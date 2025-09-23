@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
@@ -45,6 +46,7 @@ import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /** AiProxyApiKeyController. */
@@ -155,9 +157,9 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     @RequiresPermissions("system:aiProxyApiKey:delete")
     public ShenyuAdminResult batchDelete(@PathVariable("selectorId") final String selectorId,
                                          @Valid @RequestBody final BatchIdsDTO request) {
-        final java.util.List<String> allIds = request.getIds();
-        final java.util.List<String> validIds = new ArrayList<>();
-        if (Objects.nonNull(allIds)) {
+        final List<String> allIds = request.getIds();
+        final List<String> validIds = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(allIds)) {
             for (String id : allIds) {
                 final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
                 if (Objects.nonNull(exist) && selectorId.equals(exist.getSelectorId())) {
@@ -185,9 +187,9 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     @RequiresPermissions("system:aiProxyApiKey:disable")
     public ShenyuAdminResult batchEnabled(@PathVariable("selectorId") final String selectorId,
                                           @Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        final java.util.List<String> allIds = batchCommonDTO.getIds();
-        final java.util.List<String> validIds = new ArrayList<>();
-        if (Objects.nonNull(allIds)) {
+        final List<String> allIds = batchCommonDTO.getIds();
+        final List<String> validIds = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(allIds)) {
             for (String id : allIds) {
                 final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
                 if (Objects.nonNull(exist) && selectorId.equals(exist.getSelectorId())) {

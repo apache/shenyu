@@ -47,6 +47,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,7 +204,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         }
         boolean containsAiProxy = changed.stream()
                 .filter(Objects::nonNull)
-                .anyMatch(p -> org.apache.commons.lang3.StringUtils.equalsIgnoreCase(p.getName(), org.apache.shenyu.common.enums.PluginEnum.AI_PROXY.getName()));
+                .anyMatch(p -> StringUtils.equalsIgnoreCase(p.getName(), PluginEnum.AI_PROXY.getName()));
         if (containsAiProxy) {
             this.updateAiProxyApiKeyCache(namespaceId);
         }

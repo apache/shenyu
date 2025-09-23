@@ -57,7 +57,6 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
-import org.apache.shenyu.admin.service.AiProxyConnectionService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
@@ -83,8 +82,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -126,10 +123,6 @@ public class SelectorServiceImpl implements SelectorService {
     private final DiscoveryRelMapper discoveryRelMapper;
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
-
-    @Autowired
-    @Lazy
-    private AiProxyConnectionService aiProxyConnectionService;
 
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,

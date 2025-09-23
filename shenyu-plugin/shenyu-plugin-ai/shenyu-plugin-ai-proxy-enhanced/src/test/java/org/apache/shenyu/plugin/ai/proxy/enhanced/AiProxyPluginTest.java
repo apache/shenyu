@@ -201,7 +201,7 @@ public class AiProxyPluginTest {
         primaryConfig.setApiKey("original-key");
 
         // setup request with proxy key
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header("X-API-KEY", "proxy-key-valid").body(REQUEST_BODY));
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-key-valid").body(REQUEST_BODY));
 
         // mock cache to return a real key
         final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);
@@ -226,7 +226,7 @@ public class AiProxyPluginTest {
         primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
 
         // setup request with proxy key
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header("X-API-KEY", "proxy-key-invalid").body(REQUEST_BODY));
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-key-invalid").body(REQUEST_BODY));
 
         // mock cache to return null
         final AiProxyApiKeyCache apiKeyCache = mock(AiProxyApiKeyCache.class);

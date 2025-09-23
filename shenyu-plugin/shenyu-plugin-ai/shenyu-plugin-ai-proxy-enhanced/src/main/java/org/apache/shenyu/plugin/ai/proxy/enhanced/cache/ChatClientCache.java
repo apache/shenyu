@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.cache;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +29,9 @@ import java.util.function.Supplier;
 /**
  * This is ChatClient cache.
  */
-@Component
 public final class ChatClientCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChatClientCache.class);
-
-    private static final String FALLBACK_KEY_SUFFIX = ":fallback";
 
     private final Map<String, ChatClient> chatClientMap = new ConcurrentHashMap<>();
 

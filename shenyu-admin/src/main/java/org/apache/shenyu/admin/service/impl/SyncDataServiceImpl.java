@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
+import org.apache.shenyu.common.enums.PluginEnum;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
@@ -185,7 +186,7 @@ public class SyncDataServiceImpl implements SyncDataService {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
         // if aiProxy plugin synced, also sync its proxy apikey mapping for this namespace
-        if ("aiProxy".equalsIgnoreCase(namespacePluginVO.getName())) {
+        if (PluginEnum.AI_PROXY.getName().equalsIgnoreCase(namespacePluginVO.getName())) {
             LOG.info("[AiProxySync] syncPluginData trigger apikey refresh, namespaceId={}", namespacePluginVO.getNamespaceId());
             aiProxyApiKeyService.syncDataByNamespaceId(namespacePluginVO.getNamespaceId());
         }
@@ -217,7 +218,7 @@ public class SyncDataServiceImpl implements SyncDataService {
             
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
-        if ("aiProxy".equalsIgnoreCase(namespacePluginVO.getName())) {
+        if (PluginEnum.AI_PROXY.getName().equalsIgnoreCase(namespacePluginVO.getName())) {
             LOG.info("[AiProxySync] syncPluginData(ns,plugin) trigger apikey refresh, namespaceId={}", namespaceId);
             aiProxyApiKeyService.syncDataByNamespaceId(namespaceId);
         }

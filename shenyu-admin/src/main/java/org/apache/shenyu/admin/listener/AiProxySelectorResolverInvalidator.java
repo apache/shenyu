@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.service.AiProxyConnectionService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -41,17 +43,17 @@ public class AiProxySelectorResolverInvalidator implements DataChangedListener {
 
     private final AiProxyRealKeyResolver resolver;
 
-    private final org.apache.shenyu.admin.service.AiProxyConnectionService aiProxyConnectionService;
+    private final AiProxyConnectionService aiProxyConnectionService;
 
     public AiProxySelectorResolverInvalidator(final AiProxyRealKeyResolver resolver,
-                                              final org.apache.shenyu.admin.service.AiProxyConnectionService aiProxyConnectionService) {
+                                              final AiProxyConnectionService aiProxyConnectionService) {
         this.resolver = resolver;
         this.aiProxyConnectionService = aiProxyConnectionService;
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (Objects.isNull(changed) || changed.isEmpty()) {
+        if (CollectionUtils.isEmpty(changed)) {
             return;
         }
         for (SelectorData d : changed) {
@@ -82,7 +84,7 @@ public class AiProxySelectorResolverInvalidator implements DataChangedListener {
 
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        if (Objects.isNull(changed) || changed.isEmpty()) {
+        if (CollectionUtils.isEmpty(changed)) {
             return;
         }
         for (ProxySelectorData d : changed) {

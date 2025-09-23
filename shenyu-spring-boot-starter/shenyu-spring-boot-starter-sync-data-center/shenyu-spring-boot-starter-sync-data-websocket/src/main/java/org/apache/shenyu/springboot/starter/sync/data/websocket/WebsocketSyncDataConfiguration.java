@@ -39,26 +39,27 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 import java.util.List;
 
-/** Websocket sync data configuration for spring boot. */
+/** 
+ * Websocket sync data configuration for spring boot. 
+ */
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.websocket", name = "urls")
 public class WebsocketSyncDataConfiguration {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(WebsocketSyncDataConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketSyncDataConfiguration.class);
 
     /**
      * Websocket sync data service.
      *
-     * @param websocketConfig the websocket config
-     * @param shenyuConfig the shenyu config
-     * @param pluginSubscriber the plugin subscriber
-     * @param metaSubscribers the meta subscribers
-     * @param authSubscribers the auth subscribers
-     * @param proxySelectorSubscribers the proxySelector subscribers
+     * @param websocketConfig              the websocket config
+     * @param shenyuConfig                 the shenyu config
+     * @param pluginSubscriber             the plugin subscriber
+     * @param metaSubscribers              the meta subscribers
+     * @param authSubscribers              the auth subscribers
+     * @param proxySelectorSubscribers     the proxySelector subscribers
      * @param discoveryUpstreamSubscribers the discoveryUpstream subscribers
-     * @param aiProxyApiKeySubscribers the ai proxy api key subscribers
+     * @param aiProxyApiKeySubscribers     the ai proxy api key subscribers
      * @return the sync data service
      */
     @Bean
