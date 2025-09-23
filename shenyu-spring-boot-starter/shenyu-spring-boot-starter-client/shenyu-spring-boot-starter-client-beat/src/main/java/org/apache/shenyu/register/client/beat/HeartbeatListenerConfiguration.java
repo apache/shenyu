@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
-@ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
+@ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = false, havingValue = "true")
 public class HeartbeatListenerConfiguration {
 
     /**

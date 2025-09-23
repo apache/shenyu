@@ -886,6 +886,11 @@ public interface Constants {
     String SHENYU_NAMESPACE_ID = "namespaceId";
 
     /**
+     * The constant Client Port.
+     */
+    String CLIENT_PORT_NAME = "ClientPort";
+
+    /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
      */
     String SYS_DEFAULT_NAMESPACE_ID = "649330b6-c2d7-4edc-be8e-8a54df9eb385";

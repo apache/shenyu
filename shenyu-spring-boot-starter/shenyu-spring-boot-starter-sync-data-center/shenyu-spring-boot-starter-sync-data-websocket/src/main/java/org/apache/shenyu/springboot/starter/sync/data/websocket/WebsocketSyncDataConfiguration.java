@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +59,7 @@ public class WebsocketSyncDataConfiguration {
      * @param authSubscribers              the auth subscribers
      * @param proxySelectorSubscribers     the proxySelector subscribers
      * @param discoveryUpstreamSubscribers the discoveryUpstream subscribers
+     * @param serverProperties             the serverProperties
      * @return the sync data service
      */
     @Bean
@@ -67,12 +69,14 @@ public class WebsocketSyncDataConfiguration {
                                                     final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
                                                     final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                     final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
-                                                    final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers
+                                                    final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers,
+                                                    final ServerProperties serverProperties
                                                     ) {
         LOGGER.info("you use websocket sync shenyu data.......");
         return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), shenyuConfig, pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList));
+                proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList),
+                serverProperties);
     }
 
     /**
