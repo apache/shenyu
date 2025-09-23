@@ -1210,6 +1210,8 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524880', '17', 'coret
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524881', '17', 'threads', 'threads', 1, 3, 3, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524882', '17', 'queues', 'queues', 1, 3, 4, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524883', '17', 'threadpool', 'threadpool', 3, 3, 5, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524879', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524884', '28', 'port', 'port', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524885', '28', 'bossGroupThreadCount', 'bossGroupThreadCount', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524886', '28', 'maxPayloadSize', 'maxPayloadSize', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -2040,13 +2042,13 @@ CREATE TABLE "public"."rule" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "match_mode" int4 NOT NULL,
-  "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-  "sort" int4 NOT NULL,
-  "handle" varchar(1024) COLLATE "pg_catalog"."default",
+  "sort_code" int4 NOT NULL,
+  "handle" text COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -2054,12 +2056,12 @@ CREATE TABLE "public"."rule" (
 COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
-COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
+COMMENT ON COLUMN "public"."rule"."rule_name" IS 'rule name';
 COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespace id';
-COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."rule"."sort_code" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."rule"."date_updated" IS 'update time';
@@ -2103,10 +2105,10 @@ DROP TABLE IF EXISTS "public"."selector";
 CREATE TABLE "public"."selector" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "selector_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
   "match_mode" int4 NOT NULL,
-  "type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
+  "selector_type" int4 NOT NULL,
+  "sort_code" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "enabled" int2 NOT NULL,
   "loged" int2 NOT NULL,
@@ -2119,10 +2121,10 @@ CREATE TABLE "public"."selector" (
 ;
 COMMENT ON COLUMN "public"."selector"."id" IS 'primary key id varchar';
 COMMENT ON COLUMN "public"."selector"."plugin_id" IS 'plugin id';
-COMMENT ON COLUMN "public"."selector"."name" IS 'selector name';
+COMMENT ON COLUMN "public"."selector"."selector_name" IS 'selector name';
 COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or)';
-COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
-COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."selector"."selector_type" IS 'type (0, full flow, 1 custom flow)';
+COMMENT ON COLUMN "public"."selector"."sort_code" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
@@ -2472,7 +2474,7 @@ ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY
 DROP TABLE IF EXISTS "public"."tag";
 CREATE TABLE "public"."tag" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "ta_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2513,7 +2515,7 @@ DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2525,7 +2527,7 @@ CREATE TABLE "public"."discovery" (
 ;
 COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
-COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."discovery_level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
@@ -2615,8 +2617,8 @@ CREATE TABLE "public"."discovery_upstream"
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "url"         varchar(128) COLLATE "pg_catalog"."default",
-    "status"      int4  NOT NULL,
+    "upstream_url"         varchar(128) COLLATE "pg_catalog"."default",
+    "upstream_status"      int4  NOT NULL,
     "weight"      int4  NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2627,14 +2629,14 @@ COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
 COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'the namespace id';
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
-COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
-COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_status" IS 'type (0, healthy, 1 unhealthy)';
 COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 
-CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","url");
+CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" USING btree ("discovery_handler_id","upstream_url");
 
 -- ----------------------------
 -- Table structure for alert_template
@@ -3159,7 +3161,7 @@ CREATE TABLE "public"."registry_config"  (
      "username"      varchar(50),
      "password"      varchar(100),
      "namespace"     varchar(100),
-     "group"         varchar(20),
+     "registry_group"         varchar(20),
      "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
      "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
      PRIMARY KEY ("id")
@@ -3171,7 +3173,7 @@ COMMENT ON COLUMN "public"."registry_config"."address" IS 'address';
 COMMENT ON COLUMN "public"."registry_config"."username" IS 'username';
 COMMENT ON COLUMN "public"."registry_config"."password" IS 'password';
 COMMENT ON COLUMN "public"."registry_config"."namespace" IS 'namespace';
-COMMENT ON COLUMN "public"."registry_config"."group" IS 'group';
+COMMENT ON COLUMN "public"."registry_config"."registry_group" IS 'group';
 COMMENT ON COLUMN "public"."registry_config"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."registry_config"."date_updated" IS 'update time';
 

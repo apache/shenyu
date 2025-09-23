@@ -484,6 +484,13 @@ VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required"
 
 delete from plugin_handle where plugin_id = '8';
 
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1818229897214468142', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1879002911061737473', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}');
+
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, ext_obj, type, sort, enabled, date_created, date_updated)
 VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, sysdate, sysdate);
 
@@ -533,7 +540,7 @@ CREATE TABLE registry_config (
     username      varchar2(50),
     password      varchar2(100),
     namespace     varchar2(100),
-    group         varchar2(20),
+    registry_group         varchar2(20),
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     CONSTRAINT registry_config_pk PRIMARY KEY (id)
@@ -567,3 +574,21 @@ INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VA
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', sysdate, sysdate);
 INSERT INTO permission (id, role_id, resource_id, date_created, date_updated) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', sysdate, sysdate);
+
+-- update rule.handle field type from varchar2 to clob
+ALTER TABLE rule ADD (handle_new CLOB);
+UPDATE rule SET handle_new = handle;
+COMMIT;
+ALTER TABLE rule DROP COLUMN handle;
+ALTER TABLE rule RENAME COLUMN handle_new TO handle;
+
+ALTER TABLE selector RENAME COLUMN "type" TO "selector_type";
+ALTER TABLE selector RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE selector RENAME COLUMN "name" TO "selector_name";
+ALTER TABLE tag RENAME COLUMN "name" TO "tag_name";
+ALTER TABLE rule RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE rule RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE discovery_upstream RENAME COLUMN "url" TO "upstream_url";
+ALTER TABLE discovery_upstream RENAME COLUMN "status" TO "upstream_status";
+
+ALTER TABLE discovery RENAME COLUMN "level" TO discovery_level;

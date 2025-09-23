@@ -64,10 +64,17 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
                 LOG.debug("First response chunk received for session: {}", sessionId);
                 isFirstChunk = false;
             }
-            LOG.debug("Received response chunk: {}", chunk);
-            this.body.append(chunk);
+            LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunk.length());
+            synchronized (this.body) {
+                this.body.append(chunk);
+            }
+            // Complete future early for efficiency, but safely check if already done
             if (!future.isDone()) {
-                future.complete(applyResponseTemplate(this.body.toString()));
+                synchronized (future) {
+                    if (!future.isDone()) {
+                        future.complete(applyResponseTemplate(this.body.toString()));
+                    }
+                }
             }
         }));
     }
@@ -81,10 +88,17 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     @Override
     public Mono<Void> setComplete() {
         LOG.debug("Response completed for session: {}", sessionId);
-        String responseBody = this.body.toString();
-        LOG.debug("Final response body length: {}", responseBody.length());
+        String responseBody;
+        synchronized (this.body) {
+            responseBody = this.body.toString();
+        }
+        LOG.debug("Final response body length for session {}: {}", sessionId, responseBody.length());
         if (!future.isDone()) {
-            future.complete(applyResponseTemplate(responseBody));
+            synchronized (future) {
+                if (!future.isDone()) {
+                    future.complete(applyResponseTemplate(responseBody));
+                }
+            }
         }
         return super.setComplete();
     }

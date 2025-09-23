@@ -76,6 +76,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -99,6 +101,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
 
     private final SelectorMapper selectorMapper;
 
@@ -152,7 +156,8 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public List<SelectorVO> searchByCondition(final SelectorQueryCondition condition) {
         condition.init();
-        final List<SelectorVO> list = selectorMapper.selectByCondition(condition);
+        final List<SelectorDO> dolist = selectorMapper.selectByCondition(condition);
+        List<SelectorVO> list = dolist.stream().map(SelectorVO::buildSelectorVO).collect(Collectors.toList());
         for (SelectorVO selector : list) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
             selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
@@ -297,11 +302,11 @@ public class SelectorServiceImpl implements SelectorService {
                 final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setId(selector.getId());
-                proxySelectorDTO.setName(selector.getName());
+                proxySelectorDTO.setName(selector.getSelectorName());
                 proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getPluginId(), ""));
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryProcessor.removeSelectorUpstream(proxySelectorDTO);
                     discoveryMapper.delete(discoveryDO.getId());
@@ -357,7 +362,10 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceId(final String name, final String pluginName, final String namespaceId) {
+
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        LOG.info("pluginDO info: {}.", pluginDO);
+
         return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
@@ -470,7 +478,7 @@ public class SelectorServiceImpl implements SelectorService {
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
-                        .map(SelectorDO::getName)
+                        .map(SelectorDO::getSelectorName)
                         .collect(Collectors.toSet());
 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
@@ -522,7 +530,7 @@ public class SelectorServiceImpl implements SelectorService {
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
-                        .collect(Collectors.toMap(SelectorDO::getName, SelectorDO::getId));
+                        .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
                 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName

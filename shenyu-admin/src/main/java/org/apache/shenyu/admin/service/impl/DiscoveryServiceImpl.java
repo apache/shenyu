@@ -143,7 +143,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final SelectorDO selectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        proxySelectorDTO.setName(selectorDO.getName());
+        proxySelectorDTO.setName(selectorDO.getSelectorName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
@@ -155,7 +155,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .name(discoveryConfigRegisterDTO.getName())
                     .pluginName(discoveryConfigRegisterDTO.getPluginName())
-                    .level(DiscoveryLevel.PLUGIN.getCode())
+                    .discoveryLevel(DiscoveryLevel.PLUGIN.getCode())
                     .type(discoveryConfigRegisterDTO.getDiscoveryType())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
@@ -212,7 +212,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .name(discoveryDTO.getName())
                 .pluginName(discoveryDTO.getPluginName())
                 .namespaceId(discoveryDTO.getNamespaceId())
-                .level(discoveryDTO.getLevel())
+                .discoveryLevel(discoveryDTO.getLevel())
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
@@ -258,7 +258,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             for (SelectorDO selectorDO : selectorDOS) {
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setPluginName(d.getPluginName());
-                proxySelectorDTO.setName(selectorDO.getName());
+                proxySelectorDTO.setName(selectorDO.getSelectorName());
                 proxySelectorDTO.setId(selectorDO.getId());
                 proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
@@ -369,7 +369,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         }
         DiscoveryDO discoveryDO = new DiscoveryDO();
         String discoveryId = UUIDUtils.getInstance().generateShortUuid();
-        discoveryDO.setLevel(DiscoveryLevel.SELECTOR.getCode());
+        discoveryDO.setDiscoveryLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setName(pluginName + "_default_discovery");
         discoveryDO.setPluginName(pluginName);
         discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());

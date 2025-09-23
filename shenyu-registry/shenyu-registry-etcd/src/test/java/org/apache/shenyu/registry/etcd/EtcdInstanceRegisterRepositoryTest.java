@@ -152,6 +152,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
         })) {
             final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
             RegisterConfig config = new RegisterConfig();
+            config.setServerLists("http://localhost:2379");
             repository.init(config);
             repository.persistInstance(data);
             repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
