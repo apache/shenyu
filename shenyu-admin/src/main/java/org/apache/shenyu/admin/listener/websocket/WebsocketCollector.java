@@ -273,7 +273,7 @@ public class WebsocketCollector {
             return null;
         }
         try {
-            Map<String, Object> map = JsonUtils.fromJson(json, Map.class);
+            Map<String, Object> map = JsonUtils.jsonToMap(json);
             if (Objects.nonNull(map)) {
                 if (map.containsKey("apiKey")) {
                     map.put("apiKey", "******");

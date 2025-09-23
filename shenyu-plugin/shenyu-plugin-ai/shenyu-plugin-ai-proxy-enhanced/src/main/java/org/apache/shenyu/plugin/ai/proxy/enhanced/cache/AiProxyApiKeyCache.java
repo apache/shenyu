@@ -26,75 +26,108 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is AI proxy api key cache.
+ * AiProxyApiKeyCache stores proxyApiKey -> ProxyApiKeyData mapping.
  */
 public final class AiProxyApiKeyCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyApiKeyCache.class);
 
-    private final Map<String, Map<String, String>> apiKeyMapping = new ConcurrentHashMap<>();
+    private static final AiProxyApiKeyCache INSTANCE = new AiProxyApiKeyCache();
 
-    /**
-     * Get real api key.
-     *
-     * @param selectorId selectorId
-     * @param proxyApiKey proxy api key
-     * @return real api key
-     */
-    public String getRealApiKey(final String selectorId, final String proxyApiKey) {
-        final Map<String, String> selectorApiKeys = apiKeyMapping.get(selectorId);
-        if (Objects.isNull(selectorApiKeys)) {
-            return null;
-        }
-        return selectorApiKeys.get(proxyApiKey);
+    private final Map<String, ProxyApiKeyData> dataMap = new ConcurrentHashMap<>();
+
+    private AiProxyApiKeyCache() {
+    }
+
+    private String key(final ProxyApiKeyData data) {
+        return data.getSelectorId() + "::" + data.getProxyApiKey();
+    }
+
+    private String key(final String selectorId, final String proxyApiKey) {
+        return selectorId + "::" + proxyApiKey;
     }
 
     /**
-     * On subscribe.
+     * Gets instance.
      *
-     * @param data the data
+     * @return singleton
      */
-    public void onSubscribe(final ProxyApiKeyData data) {
-        final String selectorId = data.getSelectorId();
-        final String proxyApiKey = data.getProxyApiKey();
-        final String realApiKey = data.getRealApiKey();
-        apiKeyMapping.computeIfAbsent(selectorId, k -> new ConcurrentHashMap<>()).put(proxyApiKey, realApiKey);
+    public static AiProxyApiKeyCache getInstance() {
+        return INSTANCE;
     }
 
     /**
-     * Un subscribe.
+     * Cache data when enabled.
      *
-     * @param data the data
+     * @param data data
      */
-    public void unSubscribe(final ProxyApiKeyData data) {
-        final String selectorId = data.getSelectorId();
-        final Map<String, String> selectorApiKeys = apiKeyMapping.get(selectorId);
-        if (Objects.nonNull(selectorApiKeys)) {
-            selectorApiKeys.remove(data.getProxyApiKey());
-            if (selectorApiKeys.isEmpty()) {
-                apiKeyMapping.remove(selectorId);
+    public void cache(final ProxyApiKeyData data) {
+        if (Objects.nonNull(data) && Boolean.TRUE.equals(data.getEnabled())) {
+            dataMap.put(key(data), data);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("[AiProxyApiKeyCache] cache key={}, size={}", key(data), dataMap.size());
             }
         }
     }
 
     /**
-     * Invalidate.
+     * Remove data.
      *
-     * @param selectorId the selectorId
+     * @param data data
      */
-    public void invalidate(final String selectorId) {
-        if (Objects.nonNull(selectorId)) {
-            apiKeyMapping.remove(selectorId);
-            LOG.info("[AiProxyApiKeyCache] invalidate selectorId={}", selectorId);
+    public void remove(final ProxyApiKeyData data) {
+        if (Objects.nonNull(data) && Objects.nonNull(data.getProxyApiKey())) {
+            dataMap.remove(key(data));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("[AiProxyApiKeyCache] remove key={}, size={}", key(data), dataMap.size());
+            }
         }
     }
 
     /**
-     * Return cache size.
+     * Get real api key by proxy key.
      *
-     * @return cache size
+     * @param selectorId selectorId
+     * @param proxyApiKey proxy key
+     * @return real key or null if missing/disabled
+     */
+    public String getRealApiKey(final String selectorId, final String proxyApiKey) {
+        final ProxyApiKeyData data = dataMap.get(key(selectorId, proxyApiKey));
+        return (Objects.nonNull(data) && Boolean.TRUE.equals(data.getEnabled()))
+                ? data.getRealApiKey()
+                : null;
+    }
+
+    /** Clear cache. */
+    public void refresh() {
+        dataMap.clear();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("[AiProxyApiKeyCache] refresh clear, size=0");
+        }
+    }
+
+    /**
+     * Invalidate all mappings under a selector id.
+     *
+     * @param selectorId selector id
+     */
+    public void removeBySelectorId(final String selectorId) {
+        if (Objects.isNull(selectorId)) {
+            return;
+        }
+        final String prefix = selectorId + "::";
+        int before = dataMap.size();
+        dataMap.keySet().removeIf(k -> k.equals(selectorId) || k.startsWith(prefix));
+        int after = dataMap.size();
+        LOG.info("[AiProxyApiKeyCache] invalidate selectorId={}, removed={} entries", selectorId, before - after);
+    }
+
+    /**
+     * Current cached mapping size.
+     *
+     * @return size
      */
     public int size() {
-        return apiKeyMapping.size();
+        return dataMap.size();
     }
 }

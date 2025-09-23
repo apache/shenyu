@@ -22,47 +22,38 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
-import java.util.List;
 import java.util.Objects;
 
-/**
- * Common AI proxy api key data subscriber.
+/** 
+ * CommonAiProxyApiKeyDataSubscriber updates local cache for proxy api key mappings.
  */
-public class CommonAiProxyApiKeyDataSubscriber implements AiProxyApiKeyDataSubscriber {
+public final class CommonAiProxyApiKeyDataSubscriber implements AiProxyApiKeyDataSubscriber {
 
     private final ChatClientCache chatClientCache;
 
-    private final AiProxyApiKeyCache aiProxyApiKeyCache;
-
-    public CommonAiProxyApiKeyDataSubscriber(final ChatClientCache chatClientCache, final AiProxyApiKeyCache aiProxyApiKeyCache) {
+    public CommonAiProxyApiKeyDataSubscriber(final ChatClientCache chatClientCache) {
         this.chatClientCache = chatClientCache;
-        this.aiProxyApiKeyCache = aiProxyApiKeyCache;
     }
 
-
     @Override
-    public void onSubscribe(final ProxyApiKeyData proxyApiKeyData) {
-        if (Objects.isNull(proxyApiKeyData)) {
+    public void onSubscribe(final ProxyApiKeyData data) {
+        if (Objects.isNull(data) || Objects.isNull(data.getProxyApiKey())) {
             return;
         }
-        aiProxyApiKeyCache.onSubscribe(proxyApiKeyData);
-        chatClientCache.remove(proxyApiKeyData.getSelectorId());
+        AiProxyApiKeyCache.getInstance().cache(data);
     }
 
     @Override
-    public void unSubscribe(final ProxyApiKeyData proxyApiKeyData) {
-        if (Objects.isNull(proxyApiKeyData)) {
+    public void unSubscribe(final ProxyApiKeyData data) {
+        if (Objects.isNull(data) || Objects.isNull(data.getProxyApiKey())) {
             return;
         }
-        aiProxyApiKeyCache.unSubscribe(proxyApiKeyData);
-        chatClientCache.remove(proxyApiKeyData.getSelectorId());
+        AiProxyApiKeyCache.getInstance().remove(data);
     }
 
     @Override
-    public void refresh(final List<ProxyApiKeyData> proxyApiKeyDataList) {
-        for (final ProxyApiKeyData proxyApiKeyData : proxyApiKeyDataList) {
-            aiProxyApiKeyCache.onSubscribe(proxyApiKeyData);
-            chatClientCache.remove(proxyApiKeyData.getSelectorId());
-        }
+    public void refresh() {
+        AiProxyApiKeyCache.getInstance().refresh();
+        chatClientCache.clearAll();
     }
 }

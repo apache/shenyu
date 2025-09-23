@@ -25,7 +25,6 @@ import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -107,22 +106,18 @@ public class AiProxyConfigService {
         if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
             return Optional.empty();
         }
-        try {
-            JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
-            if (jsonNode.has(FALLBACK_CONFIG)) {
-                AiProxyHandle.FallbackConfig fallbackConfig = JsonUtils.jsonToObject(
-                        jsonNode.get(FALLBACK_CONFIG).toString(), AiProxyHandle.FallbackConfig.class);
-                AiCommonConfig config = new AiCommonConfig();
-                config.setProvider(fallbackConfig.getProvider());
-                config.setModel(fallbackConfig.getModel());
-                config.setApiKey(fallbackConfig.getApiKey());
-                config.setBaseUrl(fallbackConfig.getBaseUrl());
-                config.setTemperature(fallbackConfig.getTemperature());
-                config.setMaxTokens(fallbackConfig.getMaxTokens());
-                return Optional.of(config);
-            }
-        } catch (IOException e) {
-            LOG.error("Error parsing request body for fallbackConfig, proceeding without dynamic fallback.", e);
+        JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
+        if (jsonNode.has(FALLBACK_CONFIG)) {
+            AiProxyHandle.FallbackConfig fallbackConfig = JsonUtils.jsonToObject(
+                    jsonNode.get(FALLBACK_CONFIG).toString(), AiProxyHandle.FallbackConfig.class);
+            AiCommonConfig config = new AiCommonConfig();
+            config.setProvider(fallbackConfig.getProvider());
+            config.setModel(fallbackConfig.getModel());
+            config.setApiKey(fallbackConfig.getApiKey());
+            config.setBaseUrl(fallbackConfig.getBaseUrl());
+            config.setTemperature(fallbackConfig.getTemperature());
+            config.setMaxTokens(fallbackConfig.getMaxTokens());
+            return Optional.of(config);
         }
         return Optional.empty();
     }

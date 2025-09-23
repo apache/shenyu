@@ -70,21 +70,17 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private final AiProxyPluginHandler aiProxyPluginHandler;
 
-    private final AiProxyApiKeyCache aiProxyApiKeyCache;
-
     public AiProxyPlugin(
             final AiModelFactoryRegistry aiModelFactoryRegistry,
                          final AiProxyConfigService aiProxyConfigService,
                          final AiProxyExecutorService aiProxyExecutorService,
                          final ChatClientCache chatClientCache,
-                         final AiProxyPluginHandler aiProxyPluginHandler,
-                         final AiProxyApiKeyCache aiProxyApiKeyCache) {
+                         final AiProxyPluginHandler aiProxyPluginHandler) {
         this.aiModelFactoryRegistry = aiModelFactoryRegistry;
         this.aiProxyConfigService = aiProxyConfigService;
         this.aiProxyExecutorService = aiProxyExecutorService;
         this.chatClientCache = chatClientCache;
         this.aiProxyPluginHandler = aiProxyPluginHandler;
-        this.aiProxyApiKeyCache = aiProxyApiKeyCache;
     }
 
     @Override
@@ -121,13 +117,13 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         }
 
                         final String realKey =
-                                aiProxyApiKeyCache.getRealApiKey(selector.getId(), proxyApiKey);
+                                AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyApiKey);
                         if (Objects.nonNull(realKey)) {
                             primaryConfig.setApiKey(realKey);
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("[AiProxy] proxy key hit, selectorId={}, key={}... (masked)", selector.getId(), proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())));
                             }
-                            LOG.info("[AiProxy] proxy key hit, cacheSize={}", aiProxyApiKeyCache.size());
+                            LOG.info("[AiProxy] proxy key hit, cacheSize={}", AiProxyApiKeyCache.getInstance().size());
                         } else {
                             // shenyu proxy api key is invalid
                             LOG.warn("[AiProxy] proxy key invalid, key={}... (masked), selectorId={}",
