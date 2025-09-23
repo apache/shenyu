@@ -83,7 +83,7 @@ public class MotanPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange);
+        final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange, selector);
         return result.then(chain.execute(exchange));
     }
 

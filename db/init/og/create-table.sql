@@ -1150,6 +1150,8 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524880', '17', 'coret
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524881', '17', 'threads', 'threads', 1, 3, 3, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524882', '17', 'queues', 'queues', 1, 3, 4, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524883', '17', 'threadpool', 'threadpool', 3, 3, 5, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO "public"."plugin_handle" VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524884', '28', 'port', 'port', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524885', '28', 'bossGroupThreadCount', 'bossGroupThreadCount', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524886', '28', 'maxPayloadSize', 'maxPayloadSize', 1, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1181,6 +1183,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524909', '30', 'minId
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524910', '30', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524911', '30', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524912', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{"required":"0","defaultValue":"60","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524902', '30', 'cacheType', 'cacheType', 3, 1, 1, '{"required":"1","defaultValue":"memory","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524903', '30', 'database', 'database', 1, 1, 2, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524904', '30', 'master', 'master', 2, 1, 3, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524905', '30', 'mode', 'mode', 2, 1, 4, '{"required":"0","defaultValue":"standalone","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524906', '30', 'url', 'url', 2, 1, 5, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524907', '30', 'password', 'password', 2, 1, 6, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524908', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524909', '30', 'minIdle', 'minIdle', 1, 1, 8, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524910', '30', 'maxActive', 'maxActive', 1, 1, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524911', '30', 'maxWait', 'maxWait', 3, 1, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524912', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{"required":"0","defaultValue":"60","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524913', '13', 'corethreads', 'corethreads', 1, 3, 3, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524914', '13', 'threads', 'threads', 1, 3, 4, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524915', '13', 'queues', 'queues', 1, 3, 5, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -2400,7 +2413,7 @@ DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
     "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "server_list" varchar(255) COLLATE "pg_catalog"."default",
@@ -2412,7 +2425,7 @@ CREATE TABLE "public"."discovery" (
 ;
 COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
-COMMENT ON COLUMN "public"."discovery"."level" IS '0 selector,1 plugin  2 global';
+COMMENT ON COLUMN "public"."discovery"."discovery_level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
 COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
@@ -2502,8 +2515,8 @@ CREATE TABLE "public"."discovery_upstream"
     "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "url"         varchar(128) COLLATE "pg_catalog"."default",
-    "status"      int4  NOT NULL,
+    "upstream_url"         varchar(128) COLLATE "pg_catalog"."default",
+    "upstream_status"      int4  NOT NULL,
     "weight"      int4  NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2514,14 +2527,14 @@ COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
 COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
-COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
-COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_url" IS 'ip:port';
+COMMENT ON COLUMN "public"."discovery_upstream"."upstream_status" IS 'type (0, healthy, 1 unhealthy)';
 COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 CREATE INDEX "unique_discovery_upstream_discovery_handler_id" ON "public"."discovery_upstream" USING btree (
-  "discovery_handler_id" , "url"
+  "discovery_handler_id" , "upstream_url"
 );
 
 

@@ -1111,6 +1111,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172835', '17', 'corethreads', 
 INSERT INTO `plugin_handle` VALUES ('1529402613204172836', '17', 'threads', 'threads', 1, 3, 3, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172837', '17', 'queues', 'queues', 1, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172838', '17', 'threadpool', 'threadpool', 3, 3, 5, '{\"required\":\"0\",\"defaultValue\":\"cached\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172839', '28', 'port', 'port', 1, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172840', '28', 'bossGroupThreadCount', 'bossGroupThreadCount', 1, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172841', '28', 'maxPayloadSize', 'maxPayloadSize', 1, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1141,6 +1143,16 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172865', '30', 'maxIdle', 'max
 INSERT INTO `plugin_handle` VALUES ('1529402613204172866', '30', 'minIdle', 'minIdle', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172867', '30', 'maxActive', 'maxActive', 1, 3, 9, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172868', '30', 'maxWait', 'maxWait', 3, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"-1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172859', '30', 'cacheType', 'cacheType', 3, 1, 1, '{\"required\":\"1\",\"defaultValue\":\"memory\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172860', '30', 'database', 'database', 1, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172861', '30', 'master', 'master', 2, 1, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172862', '30', 'mode', 'mode', 2, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"standalone\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172863', '30', 'url', 'url', 2, 1, 5, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172864', '30', 'password', 'password', 2, 1, 6, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172865', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172866', '30', 'minIdle', 'minIdle', 1, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172867', '30', 'maxActive', 'maxActive', 1, 1, 9, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172868', '30', 'maxWait', 'maxWait', 3, 1, 10, '{\"required\":\"0\",\"defaultValue\":\"-1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172869', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{\"required\":\"0\",\"defaultValue\":\"60\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172870', '13', 'corethreads', 'corethreads', 1, 3, 3, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172871', '13', 'threads', 'threads', 1, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -2265,7 +2277,7 @@ CREATE TABLE `discovery`
 (
     `id`           varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
     `name`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the discovery name',
-    `level`        varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global',
+    `discovery_level`        varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global',
     `plugin_name`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  COMMENT 'the plugin name',
     `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
     `type`         varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
@@ -2302,14 +2314,14 @@ CREATE TABLE `discovery_upstream`
     `discovery_handler_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the discovery handler id',
     `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
     `protocol`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  COMMENT 'for http, https, tcp, ws',
-    `url`          varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ip:port',
-    `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `upstream_url`          varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ip:port',
+    `upstream_status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
     `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
     `props`      text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`url`) USING BTREE
+    UNIQUE KEY `discovery_upstream_discovery_handler_id_IDX` (`discovery_handler_id`,`upstream_url`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 -- shenyu.discovery_upstream definition
 

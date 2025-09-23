@@ -195,6 +195,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1822804370575548416', '45', 'exclu
 INSERT INTO "public"."plugin_handle" VALUES ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO "public"."plugin_handle" VALUES ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"args json","rule":""}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524902', '30', 'cacheType', 'cacheType', 3, 1, 1, '{"required":"1","defaultValue":"memory","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524903', '30', 'database', 'database', 1, 1, 2, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524904', '30', 'master', 'master', 2, 1, 3, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524905', '30', 'mode', 'mode', 2, 1, 4, '{"required":"0","defaultValue":"standalone","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524906', '30', 'url', 'url', 2, 1, 5, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524907', '30', 'password', 'password', 2, 1, 6, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524908', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524909', '30', 'minIdle', 'minIdle', 1, 1, 8, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524910', '30', 'maxActive', 'maxActive', 1, 1, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524911', '30', 'maxWait', 'maxWait', 3, 1, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+
 INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -231,6 +242,13 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742757', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569742758', '1346358560427216896', '1844026099075564866', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO "public"."permission" VALUES ('1697146860569742759', '1346358560427216896', '1844026099075564867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO "public"."permission" VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524879', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524880', '17', 'corethreads', 'corethreads', 1, 1, 2, '{"required":"0","defaultValue":"","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524881', '17', 'threads', 'threads', 1, 1, 3, '{"required":"0","defaultValue":"","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524882', '17', 'queues', 'queues', 1, 1, 4, '{"required":"0","defaultValue":"","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1829403902783524883', '17', 'threadpool', 'threadpool', 3, 1, 5, '{"required":"0","defaultValue":"","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -296,9 +314,14 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303904', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 
 ALTER TABLE "public"."rule" ALTER COLUMN "handle" TYPE text;
+
 ALTER TABLE "public"."selector" RENAME COLUMN "type" TO "selector_type";
 ALTER TABLE "public"."selector" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."selector" RENAME COLUMN "name" TO "selector_name";
 ALTER TABLE "public"."tag" RENAME COLUMN "name" TO "tag_name";
 ALTER TABLE "public"."rule" RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE "public"."rule" RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "url" TO "upstream_url";
+ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_status";
+
+ALTER TABLE "public"."discovery" RENAME COLUMN "level" TO "discovery_level";
