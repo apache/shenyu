@@ -14,39 +14,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- ----------------------------
--- Sequence structure for operation_record_log_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."operation_record_log_id_seq";
-CREATE SEQUENCE "public"."operation_record_log_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
-
--- ----------------------------
--- Sequence structure for plugin_handle_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."plugin_handle_id_seq";
-CREATE SEQUENCE "public"."plugin_handle_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
-
--- ----------------------------
--- Sequence structure for shenyu_dict_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."shenyu_dict_id_seq";
-CREATE SEQUENCE "public"."shenyu_dict_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
-
 
 -- ----------------------------
 -- Table structure for api
@@ -421,6 +388,16 @@ COMMENT ON COLUMN "public"."model"."date_updated" IS 'update time';
 -- Table structure for operation_record_log
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."operation_record_log";
+-- ----------------------------
+-- Sequence structure for operation_record_log_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."operation_record_log_id_seq";
+CREATE SEQUENCE "public"."operation_record_log_id_seq"
+    INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
 CREATE TABLE "public"."operation_record_log" (
   "id" int8 NOT NULL DEFAULT nextval('operation_record_log_id_seq'::regclass),
   "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
@@ -1076,6 +1053,16 @@ INSERT INTO "public"."plugin" VALUES ('66', 'aiResponseTransformer', NULL, 'Ai',
 -- Table structure for plugin_handle
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."plugin_handle";
+-- ----------------------------
+-- Sequence structure for plugin_handle_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."plugin_handle_id_seq";
+CREATE SEQUENCE "public"."plugin_handle_id_seq"
+    INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
 CREATE TABLE "public"."plugin_handle" (
   "id" varchar(128) NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
   "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2199,6 +2186,16 @@ COMMENT ON COLUMN "public"."selector_condition"."date_updated" IS 'update time';
 -- Table structure for shenyu_dict
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."shenyu_dict";
+-- ----------------------------
+-- Sequence structure for shenyu_dict_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."shenyu_dict_id_seq";
+CREATE SEQUENCE "public"."shenyu_dict_id_seq"
+    INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
 CREATE TABLE "public"."shenyu_dict" (
   "id" varchar(128) NOT NULL DEFAULT nextval('shenyu_dict_id_seq'::regclass),
   "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2503,7 +2500,7 @@ ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY
 DROP TABLE IF EXISTS "public"."tag";
 CREATE TABLE "public"."tag" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "ta_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2512,7 +2509,7 @@ CREATE TABLE "public"."tag" (
 )
 ;
 COMMENT ON COLUMN "public"."tag"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."tag"."name" IS 'tag name';
+COMMENT ON COLUMN "public"."tag"."tag_name" IS 'tag name';
 COMMENT ON COLUMN "public"."tag"."tag_desc" IS 'tag desc';
 COMMENT ON COLUMN "public"."tag"."parent_tag_id" IS 'parent tag id';
 COMMENT ON COLUMN "public"."tag"."ext" IS 'extension';
