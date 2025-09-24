@@ -2611,7 +2611,7 @@ CREATE TABLE IF NOT EXISTS instance_info (
     `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
     `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
     `instance_info`  text  NOT NULL COMMENT 'instance_info',
-    `instance_state`  tiny(4)  NOT NULL COMMENT 'instance_state',
+    `instance_state`  tinyint(4)  NOT NULL COMMENT 'instance_state',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
     PRIMARY KEY (`id`)
