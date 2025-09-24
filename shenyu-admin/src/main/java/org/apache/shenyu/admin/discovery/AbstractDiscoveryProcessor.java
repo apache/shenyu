@@ -184,10 +184,10 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             }).collect(Collectors.toList());
             Set<String> urlList = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
             List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDTO.getId());
-            Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUrl).collect(Collectors.toSet());
+            Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUpstreamUrl).collect(Collectors.toSet());
             List<String> deleteIds = new ArrayList<>();
             for (DiscoveryUpstreamDO discoveryUpstreamDO : discoveryUpstreamDOS) {
-                if (!urlList.contains(discoveryUpstreamDO.getUrl())) {
+                if (!urlList.contains(discoveryUpstreamDO.getUpstreamUrl())) {
                     deleteIds.add(discoveryUpstreamDO.getId());
                 }
             }

@@ -155,8 +155,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .discoveryName(discoveryConfigRegisterDTO.getName())
                     .pluginName(discoveryConfigRegisterDTO.getPluginName())
-                    .level(DiscoveryLevel.PLUGIN.getCode())
                     .discoveryType(discoveryConfigRegisterDTO.getDiscoveryType())
+                    .discoveryLevel(DiscoveryLevel.PLUGIN.getCode())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
                     .namespaceId(discoveryConfigRegisterDTO.getNamespaceId())
@@ -212,8 +212,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .discoveryName(discoveryDTO.getName())
                 .pluginName(discoveryDTO.getPluginName())
                 .namespaceId(discoveryDTO.getNamespaceId())
-                .level(discoveryDTO.getLevel())
                 .discoveryType(discoveryDTO.getType())
+                .discoveryLevel(discoveryDTO.getLevel())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
                 .dateCreated(currentTime)
@@ -371,6 +371,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         String discoveryId = UUIDUtils.getInstance().generateShortUuid();
         discoveryDO.setLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setDiscoveryName(pluginName + "_default_discovery");
+        discoveryDO.setDiscoveryLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setPluginName(pluginName);
         discoveryDO.setDiscoveryType(DiscoveryMode.LOCAL.name().toLowerCase());
         discoveryDO.setId(discoveryId);

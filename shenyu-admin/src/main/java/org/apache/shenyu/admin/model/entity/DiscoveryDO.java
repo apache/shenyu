@@ -29,7 +29,7 @@ public final class DiscoveryDO extends BaseDO {
 
     private String discoveryType;
 
-    private String level;
+    private String discoveryLevel;
 
     private String serverList;
 
@@ -47,20 +47,20 @@ public final class DiscoveryDO extends BaseDO {
                        final String pluginName, final String props) {
         this.discoveryName = discoveryName;
         this.discoveryType = discoveryType;
-        this.level = level;
+        this.discoveryLevel = discoveryLevel;
         this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
     }
 
     public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String discoveryName,
-                       final String discoveryType, final String level, final String serverList, final String pluginName,
+                       final String discoveryType, final String discoveryLevel, final String serverList, final String pluginName,
                        final String props) {
 
         super(id, dateCreated, dateUpdated);
         this.discoveryName = discoveryName;
         this.discoveryType = discoveryType;
-        this.level = level;
+        this.discoveryLevel = discoveryLevel;
         this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
@@ -103,21 +103,21 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * get the level.
+     * get the discovery level.
      *
-     * @return the level.
+     * @return the discovery level.
      */
-    public String getLevel() {
-        return level;
+    public String getDiscoveryLevel() {
+        return discoveryLevel;
     }
 
     /**
-     * set the level.
+     * set the discovery level.
      *
-     * @param level the level.
+     * @param discoveryLevel the level.
      */
-    public void setLevel(final String level) {
-        this.level = level;
+    public void setDiscoveryLevel(final String discoveryLevel) {
+        this.discoveryLevel = discoveryLevel;
     }
 
     /**
@@ -215,7 +215,7 @@ public final class DiscoveryDO extends BaseDO {
         DiscoveryDO discoveryDO = (DiscoveryDO) o;
         return Objects.equals(discoveryName, discoveryDO.discoveryName)
                 && Objects.equals(discoveryType, discoveryDO.discoveryType)
-                && Objects.equals(level, discoveryDO.level)
+                && Objects.equals(discoveryLevel, discoveryDO.discoveryLevel)
                 && Objects.equals(serverList, discoveryDO.serverList)
                 && Objects.equals(pluginName, discoveryDO.pluginName)
                 && Objects.equals(props, discoveryDO.props)
@@ -224,7 +224,7 @@ public final class DiscoveryDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), discoveryName, discoveryType, level, serverList, pluginName, props, namespaceId);
+        return Objects.hash(super.hashCode(), discoveryName, discoveryType, discoveryLevel, serverList, pluginName, props, namespaceId);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -239,7 +239,7 @@ public final class DiscoveryDO extends BaseDO {
 
         private String discoveryType;
 
-        private String level;
+        private String discoveryLevel;
 
         private String serverList;
 
@@ -309,13 +309,13 @@ public final class DiscoveryDO extends BaseDO {
         }
 
         /**
-         * level.
+         * discovery level.
          *
-         * @param level the level.
+         * @param discoveryLevel the discovery level.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder level(final String level) {
-            this.level = level;
+        public DiscoveryDOBuilder discoveryLevel(final String discoveryLevel) {
+            this.discoveryLevel = discoveryLevel;
             return this;
         }
 
@@ -376,7 +376,7 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setDateUpdated(dateUpdated);
             discoveryDO.setDiscoveryName(discoveryName);
             discoveryDO.setDiscoveryType(discoveryType);
-            discoveryDO.setLevel(level);
+            discoveryDO.setDiscoveryLevel(discoveryLevel);
             discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);

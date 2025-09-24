@@ -179,7 +179,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
                 DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryMapper.delete(discoveryDO.getId());
                 }
@@ -286,7 +286,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
                 .pluginName(proxySelectorAddDTO.getPluginName())
                 .namespaceId(proxySelectorAddDTO.getNamespaceId())
-                .level(DiscoveryLevel.SELECTOR.getCode())
+                .discoveryLevel(DiscoveryLevel.SELECTOR.getCode())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .props(proxySelectorAddDTO.getDiscovery().getProps())

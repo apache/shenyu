@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.AiProxyApiKeyService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -40,11 +41,13 @@ import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +109,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     @Resource
     private NamespaceService namespaceService;
 
+    @Resource
+    private AiProxyApiKeyService aiProxyApiKeyService;
+
     /**
      * fetch configuration from cache.
      *
@@ -130,6 +136,8 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
                 return buildConfigData(config, ProxySelectorData.class);
             case DISCOVER_UPSTREAM:
                 return buildConfigData(config, DiscoverySyncData.class);
+            case AI_PROXY_API_KEY:
+                return buildConfigData(config, ProxyApiKeyData.class);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
@@ -190,6 +198,16 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param eventType the event type
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        // When AI Proxy plugin is synchronized, also refresh proxy apikey cache so it is included in the same sync cycle
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        boolean containsAiProxy = changed.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(p -> StringUtils.equalsIgnoreCase(p.getName(), PluginEnum.AI_PROXY.getName()));
+        if (containsAiProxy) {
+            this.updateAiProxyApiKeyCache(namespaceId);
+        }
     }
 
     @Override
@@ -325,6 +343,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             this.updateMetaDataCache(namespaceId);
             this.updateProxySelectorDataCache(namespaceId);
             this.updateDiscoveryUpstreamDataCache(namespaceId);
+            this.updateAiProxyApiKeyCache(namespaceId);
         }
     }
 
@@ -369,6 +388,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
 
     protected void updateDiscoveryUpstreamDataCache(final String namespaceId) {
         this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), namespaceId);
+    }
+
+    protected void updateAiProxyApiKeyCache(final String namespaceId) {
+        this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAll(), namespaceId);
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {

@@ -52,8 +52,7 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.TagQuery"
-            resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.TagQuery" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM tag
@@ -69,7 +68,7 @@
 
     <select id="selectByParentTagIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
-            <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
         FROM tag
         WHERE parent_tag_id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -128,7 +127,7 @@
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="tagName != null">
-                #{tag_name, jdbcType=VARCHAR},
+                #{tagName, jdbcType=VARCHAR},
             </if>
             <if test="tagDesc != null">
                 #{tagDesc, jdbcType=VARCHAR},
@@ -193,13 +192,13 @@
         </foreach>
     </delete>
 
-    <delete id="deleteAllData" >
+    <delete id="deleteAllData">
         delete from tag
     </delete>
 
     <select id="selectByIds" resultMap="BaseResultMap">
         SELECT
-            <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
         FROM tag
         WHERE id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">

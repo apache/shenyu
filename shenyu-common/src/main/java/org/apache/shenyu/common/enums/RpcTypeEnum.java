@@ -71,7 +71,12 @@ public enum RpcTypeEnum {
     /**
      * ai.
      */
-    AI("ai", true);
+    AI("ai", true),
+
+    /**
+     * mcp.
+     */
+    MCP("mcp", true);
 
     private final String name;
 
