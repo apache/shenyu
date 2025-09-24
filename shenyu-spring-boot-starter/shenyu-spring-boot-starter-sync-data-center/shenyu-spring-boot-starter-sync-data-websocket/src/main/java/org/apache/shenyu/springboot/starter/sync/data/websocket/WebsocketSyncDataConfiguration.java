@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.sync.data.websocket;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -38,8 +39,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Websocket sync data configuration for spring boot.
+/** 
+ * Websocket sync data configuration for spring boot. 
  */
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)
@@ -58,21 +59,30 @@ public class WebsocketSyncDataConfiguration {
      * @param authSubscribers              the auth subscribers
      * @param proxySelectorSubscribers     the proxySelector subscribers
      * @param discoveryUpstreamSubscribers the discoveryUpstream subscribers
+     * @param aiProxyApiKeySubscribers     the ai proxy api key subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig,
-                                                    final ShenyuConfig shenyuConfig,
-                                                    final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
-                                                    final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
-                                                    final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
-                                                    final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamSubscribers
-                                                    ) {
+    public SyncDataService websocketSyncDataService(
+            final ObjectProvider<WebsocketConfig> websocketConfig,
+            final ShenyuConfig shenyuConfig,
+            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers,
+            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>>
+                    discoveryUpstreamSubscribers,
+            final ObjectProvider<List<AiProxyApiKeyDataSubscriber>> aiProxyApiKeySubscribers) {
         LOGGER.info("you use websocket sync shenyu data.......");
-        return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), shenyuConfig, pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList));
+        return new WebsocketSyncDataService(
+                websocketConfig.getIfAvailable(WebsocketConfig::new),
+                shenyuConfig,
+                pluginSubscriber.getIfAvailable(),
+                metaSubscribers.getIfAvailable(Collections::emptyList),
+                authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorSubscribers.getIfAvailable(Collections::emptyList),
+                discoveryUpstreamSubscribers.getIfAvailable(Collections::emptyList),
+                aiProxyApiKeySubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**
@@ -85,5 +95,4 @@ public class WebsocketSyncDataConfiguration {
     public WebsocketConfig websocketConfig() {
         return new WebsocketConfig();
     }
-
 }
