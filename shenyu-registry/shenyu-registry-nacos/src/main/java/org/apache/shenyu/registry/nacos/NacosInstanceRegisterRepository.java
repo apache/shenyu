@@ -190,7 +190,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
             .filter(
                 currentInstance -> Objects.nonNull(currentInstance.getInstanceId())
                     && previousInstances.stream().anyMatch(
-                    previousInstance -> StringUtils.isNotBlank(previousInstance.getInstanceId())
+                        previousInstance -> StringUtils.isNotBlank(previousInstance.getInstanceId())
                         && currentInstance.getInstanceId().equals(previousInstance.getInstanceId())
                         && !currentInstance.equals(previousInstance)))
             .collect(Collectors.toSet());
