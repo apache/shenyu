@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import okhttp3.OkHttpClient;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
 /**
  * Http sync data configuration for spring boot.
@@ -104,6 +105,7 @@ public class HttpSyncDataConfiguration {
      * @param accessTokenManager the access token manager
      * @param proxySelectorDataSubscribers the proxySelectorData subscribers
      * @param discoveryUpstreamDataSubscribers the discoveryUpstreamData subscribers
+     * @param aiProxyApiKeyDataSubscribers the ai proxy apikey subscribers
      * @param shenyuConfig       the shenyuConfig
      * @return the sync data service
      */
@@ -116,6 +118,7 @@ public class HttpSyncDataConfiguration {
                                                final ObjectProvider<AccessTokenManager> accessTokenManager,
                                                final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                                final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers,
+                                               final ObjectProvider<List<AiProxyApiKeyDataSubscriber>> aiProxyApiKeyDataSubscribers,
                                                final ObjectProvider<ShenyuConfig> shenyuConfig) {
         LOGGER.info("you use http long pull sync shenyu data");
         return new HttpSyncDataService(
@@ -126,6 +129,7 @@ public class HttpSyncDataConfiguration {
                 authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),
                 discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList),
+                aiProxyApiKeyDataSubscribers.getIfAvailable(Collections::emptyList),
                 Objects.requireNonNull(accessTokenManager.getIfAvailable()),
                 Objects.requireNonNull(shenyuConfig.getIfAvailable())
         );
