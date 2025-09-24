@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.ai.common.config;
 
+import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is Ai plugin common config.
@@ -58,6 +61,28 @@ public class AiCommonConfig {
      * stream.
      */
     private Boolean stream = false;
+
+    public AiCommonConfig() {
+    }
+
+    public AiCommonConfig(final AiProxyHandle.FallbackConfig fallbackConfig) {
+        this.provider = fallbackConfig.getProvider();
+        this.baseUrl = fallbackConfig.getBaseUrl();
+        this.apiKey = fallbackConfig.getApiKey();
+        this.model = fallbackConfig.getModel();
+        this.temperature = fallbackConfig.getTemperature();
+        this.maxTokens = fallbackConfig.getMaxTokens();
+    }
+
+    public AiCommonConfig(final AiCommonConfig other) {
+        this.provider = other.getProvider();
+        this.baseUrl = other.getBaseUrl();
+        this.apiKey = other.getApiKey();
+        this.model = other.getModel();
+        this.temperature = other.getTemperature();
+        this.maxTokens = other.getMaxTokens();
+        this.stream = other.getStream();
+    }
 
     /**
      * get provider.
@@ -185,6 +210,26 @@ public class AiCommonConfig {
         this.stream = stream;
     }
 
+    /**
+     * merge with another config.
+     *
+     * @param overlay overlay config
+     * @return merged config
+     */
+    public AiCommonConfig mergeWith(final AiCommonConfig overlay) {
+        if (Objects.isNull(overlay)) {
+            return this;
+        }
+        this.setProvider(Optional.ofNullable(overlay.getProvider()).orElse(this.getProvider()));
+        this.setModel(Optional.ofNullable(overlay.getModel()).orElse(this.getModel()));
+        this.setApiKey(Optional.ofNullable(overlay.getApiKey()).orElse(this.getApiKey()));
+        this.setBaseUrl(Optional.ofNullable(overlay.getBaseUrl()).orElse(this.getBaseUrl()));
+        this.setTemperature(Optional.ofNullable(overlay.getTemperature()).orElse(this.getTemperature()));
+        this.setMaxTokens(Optional.ofNullable(overlay.getMaxTokens()).orElse(this.getMaxTokens()));
+        this.setStream(Optional.ofNullable(overlay.getStream()).orElse(this.getStream()));
+        return this;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -210,11 +255,11 @@ public class AiCommonConfig {
 
     @Override
     public String toString() {
-        return "AiProxyConfig{"
+        return "AiCommonConfig{"
                 + "provider='" + provider + '\''
-                + ", baseUrl='" + baseUrl + '\''
-                + ", apiKey='" + apiKey + '\''
                 + ", model='" + model + '\''
+                + ", apiKey='" + AiProxyHandle.maskApiKey(apiKey) + '\''
+                + ", baseUrl='" + baseUrl + '\''
                 + ", temperature=" + temperature
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream

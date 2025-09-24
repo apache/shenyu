@@ -42,7 +42,7 @@ public class OpenAiModelFactory implements AiModelFactory {
                 .build();
         OpenAiChatOptions.Builder model = OpenAiChatOptions.builder().model(config.getModel());
         Optional.ofNullable(config.getTemperature()).ifPresent(model::temperature);
-        Optional.ofNullable(config.getMaxTokens()).ifPresent(model::maxTokens);
+        Optional.ofNullable(config.getMaxTokens()).ifPresent(model::maxCompletionTokens);
         return OpenAiChatModel.builder().openAiApi(openAiApi)
                 .defaultOptions(model.build())
                 .build();
