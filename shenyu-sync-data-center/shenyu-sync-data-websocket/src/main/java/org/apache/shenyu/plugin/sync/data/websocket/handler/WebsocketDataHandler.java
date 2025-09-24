@@ -25,6 +25,7 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
 /**
  * The type Websocket cache handler.
@@ -44,7 +45,8 @@ public class WebsocketDataHandler {
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers,
                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
+                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers) {
         ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
@@ -52,6 +54,7 @@ public class WebsocketDataHandler {
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataHandler(discoveryUpstreamDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.AI_PROXY_API_KEY, new AiProxyApiKeyDataHandler(aiProxyApiKeyDataSubscribers));
     }
 
     /**

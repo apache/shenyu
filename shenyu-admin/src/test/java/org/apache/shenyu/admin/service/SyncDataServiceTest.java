@@ -45,6 +45,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.BDDMockito.given;
+import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
 
 /**
  * test for SyncDataService.
@@ -98,6 +99,12 @@ public final class SyncDataServiceTest {
 
     @Mock
     private NamespacePluginService namespacePluginService;
+
+    @Mock
+    private AiProxyApiKeyService aiProxyApiKeyService;
+
+    @Mock
+    private AiProxyRealKeyResolver aiProxyRealKeyResolver;
 
     @Test
     public void syncAllTest() {
