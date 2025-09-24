@@ -91,7 +91,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                  final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
-                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,final String namespaceId,
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
                                  final Integer port
     ) {
         super(serverUri);
