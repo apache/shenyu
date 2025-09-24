@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class OpenApiConvertorUtil {
 
     public static io.swagger.v3.oas.models.parameters.Parameter convertParameter(final io.swagger.v3.oas.annotations.Parameter annotation) {
-        if (Objects.nonNull(annotation)) {
+        if (!Objects.nonNull(annotation)) {
             return null;
         }
         io.swagger.v3.oas.models.parameters.Parameter parameter = new io.swagger.v3.oas.models.parameters.Parameter();
@@ -56,7 +56,7 @@ public class OpenApiConvertorUtil {
     }
 
     public static Operation convertOperation(final io.swagger.v3.oas.annotations.Operation operationAnnotation) {
-        if (Objects.nonNull(operationAnnotation)) {
+        if (Objects.isNull(operationAnnotation)) {
             return null;
         }
         Operation operation = new Operation();
