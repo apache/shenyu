@@ -31,7 +31,6 @@ import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -131,6 +130,7 @@ public class HeartbeatListener {
             }
         }
     }
+
     @EventListener(ContextClosedEvent.class)
     public void onShutdown() {
         executor.shutdown();
