@@ -43,8 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ShenyuMcpTool(
         definition = @OpenAPIDefinition(
                 servers = @Server(url = "http://localhost:8150")
-        ), toolName = "order"
-
+        )
 )
 @ApiModule(value = "order")
 public class OrderController {
@@ -66,7 +65,7 @@ public class OrderController {
                             @ShenyuMcpHeader(key = "aaa", value = "bbb")
                     }
             ),
-            enabled = true
+            enabled = true, toolName = "findOrderById"
     )
     @ApiDoc(desc = "findById")
     public OrderDTO findById(@ShenyuMcpToolParam(
@@ -84,5 +83,28 @@ public class OrderController {
         OrderDTO dto = new OrderDTO();
         dto.setId(id);
         return dto;
+    }
+
+    /**
+     * Find all order dto.
+     *
+     * @return success
+     */
+    @GetMapping("/findAll")
+    @ShenyuMcpTool(
+            operation = @Operation(
+                    method = "Get", description = "find all order"
+            ),
+            requestConfig = @ShenyuMcpRequestConfig(
+                    bodyJson = "shenyu",
+                    headers = {
+                            @ShenyuMcpHeader(key = "aaa", value = "bbb")
+                    }
+            ),
+            enabled = true, toolName = "findAllOrder"
+    )
+    @ApiDoc(desc = "findAll")
+    public String findAll() {
+        return "findAll success";
     }
 }
