@@ -20,6 +20,7 @@ package org.apache.shenyu.client.mcp;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Operation;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
@@ -112,13 +113,20 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
             return;
         }
         Operation operation = OpenApiConvertorUtil.convertOperation(methodMcpClient.operation());
-        List<io.swagger.v3.oas.models.parameters.Parameter> parameters = Arrays.stream(methodMcpClient.operation().parameters())
-                .map(OpenApiConvertorUtil::convertParameter)
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<io.swagger.v3.oas.models.parameters.Parameter> parameters;
+        if (ArrayUtils.isNotEmpty(methodMcpClient.operation().parameters())) {
+            parameters = Arrays.stream(methodMcpClient.operation().parameters())
+                    .map(OpenApiConvertorUtil::convertParameter)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        } else {
+            parameters = new ArrayList<>();
+        }
 
         injectParameter(parameters, method);
         List<String> mergeUrls = findMergeUrl(clazz, method);
-        operation.setParameters(parameters);
+        if (Objects.nonNull(operation)) {
+            operation.setParameters(parameters);
+        }
         List<String> namespaceIds = this.getNamespace();
         mergeUrls.forEach(url -> {
             namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(
@@ -130,13 +138,14 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     private void injectParameter(final List<io.swagger.v3.oas.models.parameters.Parameter> parameters, final Method method) {
         for (java.lang.reflect.Parameter parameter : method.getParameters()) {
             ShenyuMcpToolParam mcpToolParam = parameter.getAnnotation(ShenyuMcpToolParam.class);
-            if (Objects.nonNull(mcpToolParam)) {
+            if (Objects.nonNull(mcpToolParam.parameter())) {
                 parameters.add(OpenApiConvertorUtil.convertParameter(mcpToolParam.parameter()));
             }
         }
     }
 
     private List<String> findMergeUrl(final Class<?> clazz, final Method method) {
+
         List<String> classPaths = Collections.emptyList();
         RequestMapping classMapping = AnnotatedElementUtils.findMergedAnnotation(clazz, RequestMapping.class);
         if (Objects.nonNull(classMapping)) {
@@ -219,8 +228,12 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuMcpTool shenyuClient, final String path,
                                                    final Class<?> clazz, final Method method, final String namespaceId) {
+        ShenyuMcpTool methodClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuMcpTool.class);
         String desc = shenyuClient.desc();
-        String configRuleName = shenyuClient.toolName();
+        String configRuleName = null;
+        if (Objects.nonNull(methodClient)) {
+            configRuleName = methodClient.toolName();
+        }
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -249,7 +262,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
                                                          final Method method, final String url, final String namespaceId) {
         validateClientConfig(methodShenyuClient, url);
         JsonObject openApiJson = McpOpenApiGenerator.generateOpenApiJson(classShenyuClient, operation, methodShenyuClient, url);
-        McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(classShenyuClient, methodShenyuClient, openApiJson, url, namespaceId);
+        McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(methodShenyuClient, openApiJson, url, namespaceId);
         MetaDataRegisterDTO metaDataRegisterDTO = buildMetaDataDTO(bean, classShenyuClient, superPath, clazz, method, namespaceId);
         metaDataRegisterDTO.setEnabled(methodShenyuClient.enabled());
         mcpToolsRegisterDTO.setMetaDataRegisterDTO(metaDataRegisterDTO);
