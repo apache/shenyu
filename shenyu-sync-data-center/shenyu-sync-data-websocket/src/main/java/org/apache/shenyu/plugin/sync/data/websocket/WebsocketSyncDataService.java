@@ -71,8 +71,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
     
-    private final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber>
-            aiProxyApiKeyDataSubscribers;
+    private final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers;
 
     private final List<ShenyuWebsocketClient> clients = Lists.newArrayList();
     
