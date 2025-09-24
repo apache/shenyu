@@ -234,7 +234,7 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("namespaceId can not be null");
         }
-        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, message);
+        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, maskSensitive(message));
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
@@ -266,5 +266,26 @@ public class WebsocketCollector {
             NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
         }
         ThreadLocalUtils.clear();
+    }
+    
+    private static String maskSensitive(final String json) {
+        if (Objects.isNull(json)) {
+            return null;
+        }
+        try {
+            Map<String, Object> map = JsonUtils.jsonToMap(json);
+            if (Objects.nonNull(map)) {
+                if (map.containsKey("apiKey")) {
+                    map.put("apiKey", "******");
+                }
+                if (map.containsKey("realApiKey")) {
+                    map.put("realApiKey", "******");
+                }
+                return JsonUtils.toJson(map);
+            }
+            return json;
+        } catch (Exception e) {
+            return json;
+        }
     }
 }
