@@ -724,6 +724,11 @@ public interface Constants {
     String X_ACCESS_TOKEN = "X-Access-Token";
 
     /**
+     * X-API-KEY; AI proxy key header.
+     */
+    String X_API_KEY = "X-API-KEY";
+    
+    /**
      * The admin return result code.
      */
     String ADMIN_RESULT_CODE = "code";
