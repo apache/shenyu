@@ -31,8 +31,8 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
  */
 public class McpToolsRegisterDTOGenerator {
 
-    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpTool classMcpClient, final ShenyuMcpTool methodMcpClient,
-                                                          final JsonObject openApiJsonObject, final String url, final String namespaceId) {
+    public static McpToolsRegisterDTO generateRegisterDTO(final ShenyuMcpTool methodMcpClient, final JsonObject openApiJsonObject,
+                                                          final String url, final String namespaceId) {
         JsonObject root = new JsonObject();
 
         Operation operation = methodMcpClient.operation();
@@ -43,7 +43,7 @@ public class McpToolsRegisterDTOGenerator {
         JsonObject method = path.getAsJsonObject(operation.method());
         JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
 
-        root.addProperty(ShenyuToolConfigConstants.NAME_KEY, classMcpClient.toolName());
+        root.addProperty(ShenyuToolConfigConstants.NAME_KEY, methodMcpClient.toolName());
         root.add(ShenyuToolConfigConstants.PARAMETERS_KEY, parameters);
 
         JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(openApiJsonObject, shenyuMcpRequestConfig);
