@@ -93,7 +93,7 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
-    void testHandleBeatInfo_NewAndExisting() {
+    void testHandleBeatInfoNewAndExisting() {
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         instanceCheckService.handleBeatInfo(dto);
         InstanceInfoVO first = instanceCheckService.getInstanceHealthBeatInfo(dto);
@@ -114,6 +114,7 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.syncDB();
         verify(instanceInfoService, times(1)).createOrUpdate(any(InstanceInfoVO.class));
     }
+
     @Test
     void testOnInstanceInfoReport() {
         InstanceInfoReportEvent event = InstanceInfoReportEvent.builder()

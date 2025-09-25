@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,7 +56,7 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
 
     @AfterEach
     void tearDown() {
-        if (instance != null) {
+        if (Objects.nonNull(instance)) {
             instanceInfoMapper.delete(instance.getId());
         }
     }

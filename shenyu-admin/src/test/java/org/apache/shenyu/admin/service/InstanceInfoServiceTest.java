@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -63,7 +62,7 @@ public final class InstanceInfoServiceTest {
     }
 
     @Test
-    void testCreateOrUpdate_CreateBranch() {
+    void testCreateOrUpdateCreateBranch() {
         when(instanceInfoMapper.selectOneByQuery(any())).thenReturn(null);
         when(instanceInfoMapper.insert(any())).thenReturn(1);
         instanceInfoService.createOrUpdate(vo);
@@ -72,7 +71,7 @@ public final class InstanceInfoServiceTest {
     }
 
     @Test
-    void testCreateOrUpdate_UpdateBranch() {
+    void testCreateOrUpdateUpdateBranch() {
         InstanceInfoDO existing = buildDO();
         when(instanceInfoMapper.selectOneByQuery(any())).thenReturn(existing);
         when(instanceInfoMapper.updateById(any())).thenReturn(1);
@@ -115,7 +114,7 @@ public final class InstanceInfoServiceTest {
         v.setDateCreated(new Timestamp(System.currentTimeMillis()));
         v.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return v;
-        }
+    }
 
     private InstanceInfoDO buildDO() {
         InstanceInfoDO d = new InstanceInfoDO();
