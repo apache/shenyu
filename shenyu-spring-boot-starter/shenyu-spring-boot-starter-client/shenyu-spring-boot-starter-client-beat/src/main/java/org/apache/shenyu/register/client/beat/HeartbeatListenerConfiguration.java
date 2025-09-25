@@ -18,14 +18,18 @@
 package org.apache.shenyu.register.client.beat;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "shenyu.heartbeat.enabled", matchIfMissing = false, havingValue = "true")
+@ConditionalOnExpression(
+        "${shenyu.heartbeat.enabled:true} and " +
+                "'${shenyu.sync.websocket.urls:}'.isEmpty() and " +
+                "'${shenyu.sync.http.url:}'.isEmpty()"
+)
 public class HeartbeatListenerConfiguration {
 
     /**
