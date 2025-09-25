@@ -69,7 +69,7 @@
         <include refid="Base_Column_List"/>
         FROM discovery
         WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND discovery_level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-        AND type = #{discoveryType, jdbcType=VARCHAR}
+        AND discovery_type = #{discoveryType, jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
@@ -181,10 +181,10 @@
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="discoveryName != null">
-                #{discovery_name, jdbcType=VARCHAR},
+                #{discoveryName, jdbcType=VARCHAR},
             </if>
             <if test="discoveryType != null">
-                #{discovery_type, jdbcType=VARCHAR},
+                #{discoveryType, jdbcType=VARCHAR},
             </if>
             <if test="discoveryLevel != null">
                 #{discoveryLevel, jdbcType=VARCHAR},
