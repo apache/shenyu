@@ -26,9 +26,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnExpression(
-        "${shenyu.heartbeat.enabled:true} and " +
-                "'${shenyu.sync.websocket.urls:}'.isEmpty() and " +
-                "'${shenyu.sync.http.url:}'.isEmpty()"
+        "${shenyu.heartbeat.enabled:true} and "
+           + "'${shenyu.sync.websocket.urls:}'.isEmpty() and "
+           + "'${shenyu.sync.http.url:}'.isEmpty()"
 )
 public class HeartbeatListenerConfiguration {
 
