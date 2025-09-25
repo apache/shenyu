@@ -235,7 +235,7 @@ public class ZookeeperConfig {
 
         private Integer maxSleepTimeMilliseconds = Integer.MAX_VALUE;
 
-        private Integer maxRetries = 3;
+        private Integer maxRetries = 5;
 
         private Integer sessionTimeoutMilliseconds = 60 * 1000;
 

@@ -73,8 +73,8 @@ data:
         registerType: http #http #zookeeper #etcd #nacos #consul
         serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
         props:
-          sessionTimeout: 5000
-          connectionTimeout: 2000
+          sessionTimeout: 30000
+          connectionTimeout: 15000
           checked: true
           zombieCheckThreads: 10
           zombieCheckTimes: 5
@@ -502,8 +502,8 @@ data:
       sync:
         zookeeper:
           url: shenyu-zookeeper:2181
-          sessionTimeout: 5000
-          connectionTimeout: 2000
+          sessionTimeout: 30000
+          connectionTimeout: 15000
 
   application-admin-sync-etcd.yml: |
     shenyu:
@@ -547,8 +547,8 @@ data:
       sync:
         zookeeper:
           url: shenyu-zookeeper:2181
-          sessionTimeout: 5000
-          connectionTimeout: 2000
+          sessionTimeout: 30000
+          connectionTimeout: 15000
 
   application-bootstrap-sync-etcd.yml: |
     shenyu:
