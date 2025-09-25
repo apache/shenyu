@@ -36,9 +36,9 @@ public class ResourceCreatedEventTest {
     public void setUp() {
         resourceDO = ResourceDO.builder()
                 .title("SHENYU.MENU.PLUGIN.LIST")
-                .name("plug")
+                .resourceName("plug")
                 .component("PluginList")
-                .sort(0)
+                .resourceSort(0)
                 .icon("dashboard")
                 .perms("system:plugin:list")
                 .build();

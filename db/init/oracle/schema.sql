@@ -748,11 +748,11 @@ create table "resource"
     id            VARCHAR2(128) not null,
     parent_id     VARCHAR2(128) null,
     title         VARCHAR2(128) not null,
-    name          VARCHAR2(32) null,
-    url           VARCHAR2(32) null,
+    resource_name VARCHAR2(32) null,
+    resource_url  VARCHAR2(32) null,
     component     VARCHAR2(32) null,
     resource_type NUMBER(10) not null,
-    sort          NUMBER(10) not null,
+    resource_sort NUMBER(10) not null,
     icon          VARCHAR2(32) null,
     is_leaf       NUMBER(3) not null,
     is_route      NUMBER(10) not null,
@@ -772,15 +772,15 @@ comment on column "resource".parent_id
   is 'resource parent primary key id';
 comment on column "resource".title
   is 'title';
-comment on column "resource".name
+comment on column "resource".resource_name
   is 'route name';
-comment on column "resource".url
+comment on column "resource".resource_url
   is 'route url';
 comment on column "resource".component
   is 'component';
 comment on column "resource".resource_type
   is 'resource type eg 0:main menu 1:child menu 2:function button';
-comment on column "resource".sort
+comment on column "resource".resource_sort
   is 'sort';
 comment on column "resource".icon
   is 'icon';

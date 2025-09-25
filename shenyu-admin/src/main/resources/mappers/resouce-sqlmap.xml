@@ -24,11 +24,11 @@
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="parent_id" jdbcType="VARCHAR" property="parentId"/>
         <result column="title" jdbcType="VARCHAR" property="title"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="resource_name" jdbcType="VARCHAR" property="resourceName"/>
+        <result column="resource_url" jdbcType="VARCHAR" property="resourceUrl"/>
         <result column="component" jdbcType="VARCHAR" property="component"/>
         <result column="resource_type" jdbcType="INTEGER" property="resourceType"/>
-        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="resource_sort" jdbcType="INTEGER" property="resourceSort"/>
         <result column="icon" jdbcType="VARCHAR" property="icon"/>
         <result column="is_leaf" jdbcType="BOOLEAN" property="isLeaf"/>
         <result column="is_route" jdbcType="INTEGER" property="isRoute"/>
@@ -42,11 +42,11 @@
         date_updated,
         parent_id,
         title,
-        name,
-        url,
+        resource_name,
+        resource_url,
         component,
         resource_type,
-        sort,
+        resource_sort,
         icon,
         is_leaf,
         is_route,
@@ -132,7 +132,7 @@
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT
                 <include refid="Base_Column_List"/>
-          FROM resource ORDER BY sort, id ASC
+          FROM resource ORDER BY resource_sort, id ASC
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -142,7 +142,7 @@
     <select id="nameExisted" resultType="java.lang.Boolean">
         SELECT true
         FROM resource
-        WHERE name = #{name} LIMIT 1
+        WHERE resource_name = #{name} LIMIT 1
     </select>
 
     <select id="selectByUserName" resultType="org.apache.shenyu.admin.model.entity.ResourceDO">
@@ -168,11 +168,11 @@
                      date_updated,
                      parent_id,
                      title,
-                     name,
-                     url,
+                     resource_name,
+                     resource_url,
                      component,
                      resource_type,
-                     sort,
+                     resource_sort,
                      icon,
                      is_leaf,
                      is_route,
@@ -184,11 +184,11 @@
                #{dateUpdated, jdbcType=TIMESTAMP},
                #{parentId,jdbcType=VARCHAR},
                #{title, jdbcType=VARCHAR},
-               #{name, jdbcType=VARCHAR},
-               #{url, jdbcType=VARCHAR},
+               #{resourceName, jdbcType=VARCHAR},
+               #{resourceUrl, jdbcType=VARCHAR},
                #{component, jdbcType=VARCHAR},
                #{resourceType, jdbcType=INTEGER},
-               #{sort, jdbcType=INTEGER},
+               #{resourceSort, jdbcType=INTEGER},
                #{icon, jdbcType=VARCHAR},
                #{isLeaf, jdbcType=BOOLEAN},
                #{isRoute,jdbcType=INTEGER},
@@ -212,11 +212,11 @@
             <if test="title != null">
                 title,
             </if>
-            <if test="name != null">
-                name,
+            <if test="resourceName != null">
+                resource_name,
             </if>
-            <if test="url != null">
-                url,
+            <if test="resourceUrl != null">
+                resource_url,
             </if>
             <if test="component != null">
                 component,
@@ -224,8 +224,8 @@
             <if test="resourceType != null">
                 resource_type,
             </if>
-            <if test="sort != null">
-                sort,
+            <if test="resourceSort != null">
+                resource_sort,
             </if>
             <if test="icon != null">
                 icon,
@@ -257,11 +257,11 @@
             <if test="title != null">
                 #{title, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="resourceName != null">
+                #{resourceName, jdbcType=VARCHAR},
             </if>
-            <if test="url != null">
-                #{url, jdbcType=VARCHAR},
+            <if test="resourceUrl != null">
+                #{resourceUrl, jdbcType=VARCHAR},
             </if>
             <if test="component != null">
                 #{component, jdbcType=VARCHAR},
@@ -269,8 +269,8 @@
             <if test="resourceType != null">
                 #{resourceType, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                #{sort, jdbcType=INTEGER},
+            <if test="resourceSort != null">
+                #{resourceSort, jdbcType=INTEGER},
             </if>
             <if test="icon != null">
                 #{icon, jdbcType=VARCHAR},
@@ -296,11 +296,11 @@
                     id,
                     parent_id,
                     title,
-                    name,
-                    url,
+                    resource_name,
+                    resource_url,
                     component,
                     resource_type,
-                    sort,
+                    resource_sort,
                     icon,
                     is_leaf,
                     is_route,
@@ -313,11 +313,11 @@
             #{resourceDO.id, jdbcType=VARCHAR},
             #{resourceDO.parentId, jdbcType=VARCHAR},
             #{resourceDO.title, jdbcType=VARCHAR},
-            #{resourceDO.name, jdbcType=VARCHAR},
-            #{resourceDO.url, jdbcType=VARCHAR},
+            #{resourceDO.resourceName, jdbcType=VARCHAR},
+            #{resourceDO.resourceUrl, jdbcType=VARCHAR},
             #{resourceDO.component, jdbcType=VARCHAR},
             #{resourceDO.resourceType, jdbcType=INTEGER},
-            #{resourceDO.sort, jdbcType=INTEGER},
+            #{resourceDO.resourceSort, jdbcType=INTEGER},
             #{resourceDO.icon, jdbcType=VARCHAR},
             #{resourceDO.isLeaf, jdbcType=BOOLEAN},
             #{resourceDO.isRoute, jdbcType=INTEGER},
@@ -334,11 +334,11 @@
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
                 parent_id = #{parentId, jdbcType=VARCHAR},
                 title = #{title, jdbcType=VARCHAR},
-                name = #{name, jdbcType=VARCHAR},
-                url = #{url, jdbcType=VARCHAR},
+                resource_name = #{resourceName, jdbcType=VARCHAR},
+                resource_url = #{resourceUrl, jdbcType=VARCHAR},
                 component = #{component, jdbcType=VARCHAR},
                 resource_type = #{resourceType, jdbcType=INTEGER},
-                sort = #{sort, jdbcType=INTEGER},
+                resource_sort = #{resourceSort, jdbcType=INTEGER},
                 icon = #{icon, jdbcType=VARCHAR},
                 is_leaf = #{isLeaf, jdbcType=BOOLEAN},
                 is_route = #{isRoute, jdbcType=INTEGER},
@@ -362,11 +362,11 @@
             <if test="title != null">
                 title = #{title, jdbcType=VARCHAR},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="resourceName != null">
+                resource_name = #{resourceName, jdbcType=VARCHAR},
             </if>
-            <if test="url != null">
-                url = #{url, jdbcType=VARCHAR},
+            <if test="resourceUrl != null">
+                resource_url = #{resourceUrl, jdbcType=VARCHAR},
             </if>
             <if test="component != null">
                 component = #{component, jdbcType=VARCHAR},
@@ -374,8 +374,8 @@
             <if test="resourceType != null">
                 resource_type = #{resourceType, jdbcType=INTEGER},
             </if>
-            <if test="sort != null">
-                sort = #{sort, jdbcType=INTEGER},
+            <if test="resourceSort != null">
+                resource_sort = #{resourceSort, jdbcType=INTEGER},
             </if>
             <if test="icon != null">
                 icon = #{icon, jdbcType=VARCHAR},

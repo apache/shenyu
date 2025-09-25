@@ -316,3 +316,7 @@ ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "url" TO "upstream_url";
 ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_status";
 
 ALTER TABLE "public"."discovery" RENAME COLUMN "level" TO "discovery_level";
+
+ALTER TABLE "public"."resource" RENAME COLUMN "name" TO "resource_name";
+ALTER TABLE "public"."resource" RENAME COLUMN "url" TO "resource_url";
+ALTER TABLE "public"."resource" RENAME COLUMN "sort" TO "resource_sort";

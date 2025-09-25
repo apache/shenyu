@@ -1434,11 +1434,11 @@ CREATE TABLE "public"."resource" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "parent_id" varchar(128) COLLATE "pg_catalog"."default" NULL,
   "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NULL,
-  "url" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "resource_name" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "resource_url" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "component" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "resource_type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
+  "resource_sort" int4 NOT NULL,
   "icon" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "is_leaf" int2 NOT NULL,
   "is_route" int4 NOT NULL,
@@ -1451,11 +1451,11 @@ CREATE TABLE "public"."resource" (
 COMMENT ON COLUMN "public"."resource"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."resource"."parent_id" IS 'resource parent primary key id';
 COMMENT ON COLUMN "public"."resource"."title" IS 'title';
-COMMENT ON COLUMN "public"."resource"."name" IS 'route name';
-COMMENT ON COLUMN "public"."resource"."url" IS 'route url';
+COMMENT ON COLUMN "public"."resource"."resource_name" IS 'route name';
+COMMENT ON COLUMN "public"."resource"."resource_url" IS 'route url';
 COMMENT ON COLUMN "public"."resource"."component" IS 'component';
 COMMENT ON COLUMN "public"."resource"."resource_type" IS 'resource type eg 0:main menu 1:child menu 2:function button';
-COMMENT ON COLUMN "public"."resource"."sort" IS 'sort';
+COMMENT ON COLUMN "public"."resource"."resource_sort" IS 'sort';
 COMMENT ON COLUMN "public"."resource"."icon" IS 'icon';
 COMMENT ON COLUMN "public"."resource"."is_leaf" IS 'leaf node 0:no 1:yes';
 COMMENT ON COLUMN "public"."resource"."is_route" IS 'route 1:yes 0:no';

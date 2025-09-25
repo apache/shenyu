@@ -35,23 +35,25 @@ public class BatchResourceDeletedEventTest {
 
     private ResourceDO two;
 
+    private ResourceDO resourceDO;
+
     @BeforeEach
     public void setUp() {
-        one = ResourceDO.builder()
-                .name("plug")
-                .component("PluginList")
-                .icon("dashboard")
+        resourceDO = ResourceDO.builder()
                 .title("SHENYU.MENU.PLUGIN.LIST")
-                .sort(1)
+                .resourceName("plug")
+                .component("PluginList")
+                .resourceSort(0)
+                .icon("dashboard")
                 .perms("system:plugin:list")
                 .build();
 
         two = ResourceDO.builder()
-                .name("system")
+                .resourceName("system")
                 .component("system")
                 .icon("setting")
                 .title("SHENYU.MENU.SYSTEM.MANAGMENT")
-                .sort(2)
+                .resourceSort(2)
                 .perms("system:manager:list")
                 .build();
     }

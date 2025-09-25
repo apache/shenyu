@@ -622,3 +622,7 @@ ALTER TABLE discovery_upstream RENAME COLUMN "url" TO "upstream_url";
 ALTER TABLE discovery_upstream RENAME COLUMN "status" TO "upstream_status";
 
 ALTER TABLE discovery RENAME COLUMN "level" TO discovery_level;
+
+ALTER TABLE resource RENAME COLUMN "name" TO "resource_name";
+ALTER TABLE resource RENAME COLUMN "url" TO "resource_url";
+ALTER TABLE resource RENAME COLUMN "sort" TO "resource_sort";

@@ -104,23 +104,25 @@ public final class PermissionServiceTest {
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1346776175553376256").id("1351007708585271296").build());
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1346777157943259136").id("1351007708593659904").build());
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1347053375029653504").id("1351007708593659914").build());
-        final ResourceDO resourceDO1 = ResourceDO.builder().title("SHENYU.MENU.PLUGIN.LIST").name("plug").url("/plug").component("PluginList")
-                .resourceType(0).sort(0).icon("dashboard").isLeaf(false).isRoute(0).status(1)
+        final ResourceDO resourceDO1 = ResourceDO.builder().title("SHENYU.MENU.PLUGIN.LIST").resourceName("plug").resourceUrl("/plug").component("PluginList")
+                .resourceType(0).resourceSort(0).icon("dashboard").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346775491550474240").build();
-        final ResourceDO resourceDO2 = ResourceDO.builder().title("SHENYU.MENU.SYSTEM.MANAGMENT").name("system").url("/system").component("system")
-                .resourceType(0).sort(1).icon("setting").isLeaf(false).isRoute(0).status(1)
+        final ResourceDO resourceDO2 = ResourceDO.builder().title("SHENYU.MENU.SYSTEM.MANAGMENT").resourceName("system").resourceUrl("/system").component("system")
+                .resourceType(0).resourceSort(1).icon("setting").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346776175553376256").build();
-        final ResourceDO resourceDO3 = ResourceDO.builder().parentId("1346776175553376256").title("SHENYU.MENU.SYSTEM.MANAGMENT.USER").name("manage").url("/system/manage").component("manage")
-                .resourceType(1).sort(1).icon("").isLeaf(false).isRoute(0).status(1)
+        final ResourceDO resourceDO3 = ResourceDO.builder().parentId("1346776175553376256")
+                .title("SHENYU.MENU.SYSTEM.MANAGMENT.USER").resourceName("manage")
+                .resourceUrl("/system/manage").component("manage")
+                .resourceType(1).resourceSort(1).icon("").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346777157943259136").build();
         final ResourceDO resourceDO4 = ResourceDO.builder().parentId("1347027526339538944").title("SHENYU.BUTTON.PLUGIN.SYNCHRONIZE")
-                .resourceType(2).sort(4).isLeaf(true).isRoute(0).perms("plugin:sign:modify").status(1)
+                .resourceType(2).resourceSort(4).isLeaf(true).isRoute(0).perms("plugin:sign:modify").status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1347053375029653504").build();

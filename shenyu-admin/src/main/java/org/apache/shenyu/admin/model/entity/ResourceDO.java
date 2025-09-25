@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -46,12 +47,12 @@ public final class ResourceDO extends BaseDO {
     /**
      * resource name.
      */
-    private String name;
+    private String resourceName;
 
     /**
      * resource url.
      */
-    private String url;
+    private String resourceUrl;
 
     /**
      * resource component.
@@ -66,7 +67,7 @@ public final class ResourceDO extends BaseDO {
     /**
      * resource sort.
      */
-    private Integer sort;
+    private Integer resourceSort;
 
     /**
      * resource icon.
@@ -98,11 +99,11 @@ public final class ResourceDO extends BaseDO {
 
     public ResourceDO(final String parentId,
                       final String title,
-                      final String name,
-                      final String url,
+                      final String resourceName,
+                      final String resourceUrl,
                       final String component,
                       final Integer resourceType,
-                      final Integer sort,
+                      final Integer resourceSort,
                       final String icon,
                       final Boolean isLeaf,
                       final Integer isRoute,
@@ -110,11 +111,11 @@ public final class ResourceDO extends BaseDO {
                       final Integer status) {
         this.parentId = parentId;
         this.title = title;
-        this.name = name;
-        this.url = url;
+        this.resourceName = resourceName;
+        this.resourceUrl = resourceUrl;
         this.component = component;
         this.resourceType = resourceType;
-        this.sort = sort;
+        this.resourceSort = resourceSort;
         this.icon = icon;
         this.isLeaf = isLeaf;
         this.isRoute = isRoute;
@@ -159,39 +160,39 @@ public final class ResourceDO extends BaseDO {
     }
 
     /**
-     * Gets the value of name.
+     * Gets the value of resourceName.
      *
-     * @return the value of name
+     * @return the value of resourceName
      */
     public String getName() {
-        return name;
+        return resourceName;
     }
 
     /**
-     * Sets the name.
+     * Sets the resourceName.
      *
-     * @param name name
+     * @param resourceName resourceName
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setName(final String resourceName) {
+        this.resourceName = resourceName;
     }
 
     /**
-     * Gets the value of url.
+     * Gets the value of resourceUrl.
      *
-     * @return the value of url
+     * @return the value of resourceUrl
      */
     public String getUrl() {
-        return url;
+        return resourceUrl;
     }
 
     /**
-     * Sets the url.
+     * Sets the resourceUrl.
      *
-     * @param url url
+     * @param resourceUrl resourceUrl
      */
-    public void setUrl(final String url) {
-        this.url = url;
+    public void setUrl(final String resourceUrl) {
+        this.resourceUrl = resourceUrl;
     }
 
     /**
@@ -231,21 +232,21 @@ public final class ResourceDO extends BaseDO {
     }
 
     /**
-     * Gets the value of sort.
+     * Gets the value of resourceSort.
      *
-     * @return the value of sort
+     * @return the value of resourceSort
      */
     public Integer getSort() {
-        return sort;
+        return resourceSort;
     }
 
     /**
-     * Sets the sort.
+     * Sets the resourceSort.
      *
-     * @param sort sort
+     * @param resourceSort resourceSort
      */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
+    public void setSort(final Integer resourceSort) {
+        this.resourceSort = resourceSort;
     }
 
     /**
@@ -348,22 +349,23 @@ public final class ResourceDO extends BaseDO {
     }
 
     /**
-     * build ResourceDO.
+     * build resourceDO.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return {@linkplain ResourceDO}
      */
     public static ResourceDO buildResourceDO(final ResourceDTO resourceDTO) {
         return Optional.ofNullable(resourceDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
             ResourceDO resourceDO = ResourceDO.builder()
+                    .id(item.getId())
                     .parentId(item.getParentId())
                     .title(item.getTitle())
-                    .name(item.getName())
-                    .url(item.getUrl())
+                    .resourceName(item.getName())
+                    .resourceUrl(item.getUrl())
                     .component(item.getComponent())
                     .resourceType(item.getResourceType())
-                    .sort(item.getSort())
+                    .resourceSort(item.getSort())
                     .icon(item.getIcon())
                     .isLeaf(item.getIsLeaf())
                     .isRoute(item.getIsRoute())
@@ -373,39 +375,38 @@ public final class ResourceDO extends BaseDO {
             if (StringUtils.isEmpty(item.getId())) {
                 resourceDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 resourceDO.setDateCreated(currentTime);
-            } else {
-                resourceDO.setId(item.getId());
             }
+            resourceDO.setDateUpdated(currentTime);
             return resourceDO;
         }).orElse(null);
     }
 
     /**
-     * build ResourceDO.
+     * build resourceDO.
      *
      * @param createResourceDTO {@linkplain CreateResourceDTO}
      * @return {@linkplain ResourceDO}
      */
     public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
         return Optional.ofNullable(createResourceDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
-                .parentId(item.getParentId())
-                .title(item.getTitle())
-                .name(item.getName())
-                .url(item.getUrl())
-                .component(item.getComponent())
-                .resourceType(item.getResourceType())
-                .sort(item.getSort())
-                .icon(item.getIcon())
-                .isLeaf(item.getIsLeaf())
-                .isRoute(item.getIsRoute())
-                .perms(item.getPerms())
-                .status(item.getStatus())
-                .id(UUIDUtils.getInstance().generateShortUuid())
-                .dateCreated(currentTime)
-                .build();
-            return resourceDO;
+            Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
+            return ResourceDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .parentId(item.getParentId())
+                    .title(item.getTitle())
+                    .resourceName(item.getName())
+                    .resourceUrl(item.getUrl())
+                    .component(item.getComponent())
+                    .resourceType(item.getResourceType())
+                    .resourceSort(item.getSort())
+                    .icon(item.getIcon())
+                    .isLeaf(item.getIsLeaf())
+                    .isRoute(item.getIsRoute())
+                    .perms(item.getPerms())
+                    .status(item.getStatus())
+                    .dateCreated(currentTime)
+                    .dateUpdated(currentTime)
+                    .build();
         }).orElse(null);
     }
 
@@ -423,11 +424,11 @@ public final class ResourceDO extends BaseDO {
         ResourceDO that = (ResourceDO) o;
         return Objects.equals(parentId, that.parentId)
                 && Objects.equals(title, that.title)
-                && Objects.equals(name, that.name)
-                && Objects.equals(url, that.url)
+                && Objects.equals(resourceName, that.resourceName)
+                && Objects.equals(resourceUrl, that.resourceUrl)
                 && Objects.equals(component, that.component)
                 && Objects.equals(resourceType, that.resourceType)
-                && Objects.equals(sort, that.sort)
+                && Objects.equals(resourceSort, that.resourceSort)
                 && Objects.equals(icon, that.icon)
                 && Objects.equals(isLeaf, that.isLeaf)
                 && Objects.equals(isRoute, that.isRoute)
@@ -437,7 +438,7 @@ public final class ResourceDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
+        return Objects.hash(super.hashCode(), parentId, title, resourceName, resourceUrl, component, resourceType, resourceSort, icon, isLeaf, isRoute, perms, status);
     }
 
     public static final class ResourceDOBuilder {
@@ -452,15 +453,15 @@ public final class ResourceDO extends BaseDO {
 
         private String title;
 
-        private String name;
+        private String resourceName;
 
-        private String url;
+        private String resourceUrl;
 
         private String component;
 
         private Integer resourceType;
 
-        private Integer sort;
+        private Integer resourceSort;
 
         private String icon;
 
@@ -531,24 +532,24 @@ public final class ResourceDO extends BaseDO {
         }
 
         /**
-         * name.
+         * resourceName.
          *
-         * @param name the name.
+         * @param resourceName the resourceName.
          * @return ResourceDOBuilder.
          */
-        public ResourceDOBuilder name(final String name) {
-            this.name = name;
+        public ResourceDOBuilder resourceName(final String resourceName) {
+            this.resourceName = resourceName;
             return this;
         }
 
         /**
-         * url.
+         * resourceUrl.
          *
-         * @param url the url.
+         * @param resourceUrl the resourceUrl.
          * @return ResourceDOBuilder.
          */
-        public ResourceDOBuilder url(final String url) {
-            this.url = url;
+        public ResourceDOBuilder resourceUrl(final String resourceUrl) {
+            this.resourceUrl = resourceUrl;
             return this;
         }
 
@@ -575,13 +576,13 @@ public final class ResourceDO extends BaseDO {
         }
 
         /**
-         * sort.
+         * resourceSort.
          *
-         * @param sort the sort.
+         * @param resourceSort the resourceSort.
          * @return ResourceDOBuilder.
          */
-        public ResourceDOBuilder sort(final Integer sort) {
-            this.sort = sort;
+        public ResourceDOBuilder resourceSort(final Integer resourceSort) {
+            this.resourceSort = resourceSort;
             return this;
         }
 
@@ -646,7 +647,7 @@ public final class ResourceDO extends BaseDO {
          * @return build object.
          */
         public ResourceDO build() {
-            ResourceDO resourceDO = new ResourceDO(parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
+            ResourceDO resourceDO = new ResourceDO(parentId, title, resourceName, resourceUrl, component, resourceType, resourceSort, icon, isLeaf, isRoute, perms, status);
             resourceDO.setId(id);
             resourceDO.setDateCreated(dateCreated);
             resourceDO.setDateUpdated(dateUpdated);

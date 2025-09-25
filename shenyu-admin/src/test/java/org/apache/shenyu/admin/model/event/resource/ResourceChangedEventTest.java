@@ -34,24 +34,28 @@ public class ResourceChangedEventTest {
 
     private ResourceDO after;
 
+    private ResourceDO resourceDO1;
+
+    private ResourceDO resourceDO2;
+
     @BeforeEach
     public void setUp() {
-        before = ResourceDO.builder()
-                .name("plug")
-                .component("PluginList")
-                .icon("dashboard")
+        resourceDO1 = ResourceDO.builder()
                 .title("SHENYU.MENU.PLUGIN.LIST")
-                .sort(1)
+                .resourceName("plug")
+                .component("PluginList")
+                .resourceSort(0)
+                .icon("dashboard")
                 .perms("system:plugin:list")
                 .build();
 
-        after = ResourceDO.builder()
-                .name("system")
-                .component("system")
-                .icon("setting")
-                .title("SHENYU.MENU.SYSTEM.MANAGMENT")
-                .sort(2)
-                .perms("system:manager:list")
+        resourceDO2 = ResourceDO.builder()
+                .title("SHENYU.MENU.PLUGIN.LIST")
+                .resourceName("plug")
+                .component("PluginList")
+                .resourceSort(0)
+                .icon("dashboard")
+                .perms("system:plugin:list")
                 .build();
     }
 

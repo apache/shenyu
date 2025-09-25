@@ -295,3 +295,7 @@ ALTER TABLE `discovery_upstream` CHANGE COLUMN `url` `upstream_url` varchar(64) 
 ALTER TABLE `discovery_upstream` CHANGE COLUMN `status` `upstream_status` int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)';
 
 ALTER TABLE `discovery` CHANGE COLUMN `level` `discovery_level` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global';
+
+ALTER TABLE `resource` CHANGE COLUMN `name` `resource_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'resource name';
+ALTER TABLE `resource` CHANGE COLUMN `url` `resource_url` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'resource url';
+ALTER TABLE `resource` CHANGE COLUMN `sort` `resource_sort` int(0) NOT NULL COMMENT 'sort';
