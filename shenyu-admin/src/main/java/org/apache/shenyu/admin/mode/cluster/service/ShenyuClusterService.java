@@ -92,9 +92,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             upstreamCheckService.setup();
 
             instanceCheckService.setup();
-            // load api
-            loadServiceDocEntry.loadApiDocument();
-            
+
             boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
