@@ -369,7 +369,6 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         }
         DiscoveryDO discoveryDO = new DiscoveryDO();
         String discoveryId = UUIDUtils.getInstance().generateShortUuid();
-        discoveryDO.setLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setDiscoveryName(pluginName + "_default_discovery");
         discoveryDO.setDiscoveryLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setPluginName(pluginName);
