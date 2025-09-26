@@ -169,7 +169,7 @@ public final class TagControllerTest {
     public TagVO buildTagVO() {
         TagVO tagVO = new TagVO();
         tagVO.setTagDesc("123");
-        tagVO.setTagName("test tag");
+        tagVO.setName("test tag");
         tagVO.setDateCreated(new Date().toString());
         tagVO.setDateUpdated(new Date().toString());
         return tagVO;
