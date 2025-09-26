@@ -20,6 +20,11 @@ services:
   shenyu-zookeeper:
     image: zookeeper:3.5
     container_name: shenyu-zookeeper
+    environment:
+      - ZOO_TICK_TIME=2000
+      - ZOO_INIT_LIMIT=5
+      - ZOO_SYNC_LIMIT=2
+      - ZOO_MAX_SESSION_TIMEOUT=60000
     ports:
       - "2181:2181"  # Client
       - "2888:2888"  # Server

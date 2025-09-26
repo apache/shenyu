@@ -63,7 +63,13 @@ public class ZookeeperClient {
     public void start() {
         this.client.start();
         try {
-            this.client.blockUntilConnected();
+            // Wait up to 30 seconds for connection to be established
+            boolean connected = this.client.blockUntilConnected(30, java.util.concurrent.TimeUnit.SECONDS);
+            if (!connected) {
+                LOG.warn("Failed to connect to ZooKeeper within 30 seconds");
+            } else {
+                LOG.info("Successfully connected to ZooKeeper");
+            }
         } catch (InterruptedException e) {
             LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();

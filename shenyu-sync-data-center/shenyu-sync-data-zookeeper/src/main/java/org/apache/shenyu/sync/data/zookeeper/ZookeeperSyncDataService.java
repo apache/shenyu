@@ -29,6 +29,8 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -40,6 +42,8 @@ import static org.apache.shenyu.common.constant.DefaultPathConstants.handlePathD
  * this cache data with zookeeper.
  */
 public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperSyncDataService.class);
 
     private final ZookeeperClient zkClient;
     
@@ -65,13 +69,41 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
                                     final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers) {
         super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
 
+        // Wait for connection with retry mechanism
+        int retryCount = 0;
+        int maxRetries = 10;
+        while (!zkClient.isConnection() && retryCount < maxRetries) {
+            try {
+                // Wait 2 seconds between retries
+                Thread.sleep(2000);
+                retryCount++;
+                if (retryCount % 3 == 0) {
+                    LOG.warn("ZooKeeper client not connected, retry attempt: {}/{}", retryCount, maxRetries);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while waiting for ZooKeeper connection", e);
+            }
+        }
+        
         if (!zkClient.isConnection()) {
-            throw new IllegalStateException("Zookeeper client is not connected.");
+            throw new IllegalStateException("Zookeeper client failed to connect after " + maxRetries + " retries.");
         }
 
         this.zkClient = zkClient;
         this.shenyuConfig = shenyuConfig;
         watcherData();
+        
+        // Trigger initial data sync after a short delay to allow caches to initialize
+        try {
+            // Wait 3 seconds for caches to initialize
+            Thread.sleep(3000);
+            LOG.info("Starting initial data synchronization...");
+            syncInitialData();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted during initial data sync delay", e);
+        }
     }
 
     private void watcherData() {
@@ -107,6 +139,41 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
             final String updateData = Objects.nonNull(newData) ? new String(newData.getData(), StandardCharsets.UTF_8) : null;
             this.event(configNamespace, path, updateData, registerPath, eventType);
         });
+    }
+
+    private void syncInitialData() {
+        String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
+        
+        // Trigger initial sync for all data types
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.PLUGIN_PARENT)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.SELECTOR_PARENT)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.RULE_PARENT)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.PROXY_SELECTOR)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.DISCOVERY_UPSTREAM)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.APP_AUTH_PARENT)));
+        syncInitialDataForPath(handlePathData(String.join(Constants.PATH_SEPARATOR, configNamespace, DefaultPathConstants.META_DATA)));
+        
+        LOG.info("Initial data synchronization completed");
+    }
+    
+    private void syncInitialDataForPath(final String registerPath) {
+        String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
+        try {
+            if (zkClient.isExist(registerPath)) {
+                List<String> children = zkClient.getChildren(registerPath);
+                for (String child : children) {
+                    String childPath = registerPath + Constants.PATH_SEPARATOR + child;
+                    if (zkClient.isExist(childPath)) {
+                        String data = zkClient.getDirectly(childPath);
+                        if (Objects.nonNull(data)) {
+                            this.event(configNamespace, childPath, data, registerPath, EventType.PUT);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to sync initial data for path: {}", registerPath, e);
+        }
     }
 
     @Override

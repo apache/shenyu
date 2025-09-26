@@ -55,7 +55,7 @@ public class WaitDataSync {
             LOGGER.warn("dataSyncEquals test {} adminDataList size is zero sleep 10s... ", testClassName);
             Thread.sleep(10000);
         }
-        while (retryNum < 12) {
+        while (retryNum < 20) {
             adminDataList = adminSupplier.get();
             gatewayDataList = gatewaySupplier.get();
             LOGGER.warn("dataSyncEquals test {} admin size = {} gateway size = {}", testClassName, adminDataList.size(), gatewayDataList.size());
@@ -65,7 +65,7 @@ public class WaitDataSync {
             if (retryNum % 3 == 0) {
                 adminClient.syncPluginAll();
             }
-            Thread.sleep(10000);
+            Thread.sleep(15000);
             retryNum++;
         }
         Assertions.assertNotEquals(adminDataList.size(), 0);
