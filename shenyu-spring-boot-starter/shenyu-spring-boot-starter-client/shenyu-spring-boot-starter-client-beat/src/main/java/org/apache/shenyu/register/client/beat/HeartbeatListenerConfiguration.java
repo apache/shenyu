@@ -18,32 +18,44 @@
 package org.apache.shenyu.register.client.beat;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
-@ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
+@ConditionalOnExpression(
+        "${shenyu.heartbeat.enabled:true} and "
+           + "'${shenyu.sync.websocket.urls:}'.isEmpty() and "
+           + "'${shenyu.sync.http.url:}'.isEmpty()"
+)
 public class HeartbeatListenerConfiguration {
 
     /**
      * Heartbeat bean listener.
      *
-     * @param httpClientRegisterRepository the http client register repository
-     * @param shenyuConfig the shenyu config
-     * @param serverProperties the server properties
+     * @param shenyuBootstrapHeartBeatConfig the shenyuBootstrapHeartBeatConfig
+     * @param shenyuConfig                   the shenyu config
+     * @param serverProperties               the server properties
      * @return the heartbeat bean listener.
      */
     @Bean
-    public HeartbeatListener heartbeatListener(final ShenyuClientRegisterRepository httpClientRegisterRepository,
+    public HeartbeatListener heartbeatListener(final ShenyuBootstrapHeartBeatConfig shenyuBootstrapHeartBeatConfig,
                                                final ShenyuConfig shenyuConfig,
                                                final ServerProperties serverProperties) {
-        return new HeartbeatListener(httpClientRegisterRepository, shenyuConfig, serverProperties);
+        return new HeartbeatListener(shenyuBootstrapHeartBeatConfig, shenyuConfig, serverProperties);
+    }
+
+    /**
+     * ShenyuBootstrapHeartBeatConfig.
+     *
+     * @return the shenyuBootstrapHeartBeatConfig.
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.heartbeat")
+    public ShenyuBootstrapHeartBeatConfig shenyuBootstrapHeartBeatConfig() {
+        return new ShenyuBootstrapHeartBeatConfig();
     }
 
 }
