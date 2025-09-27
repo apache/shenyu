@@ -307,6 +307,8 @@ ALTER TABLE `selector` CHANGE COLUMN `name` `selector_name` varchar(64) CHARACTE
 ALTER TABLE `tag` CHANGE COLUMN `name` `tag_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name';
 ALTER TABLE `rule` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 'sort';
 ALTER TABLE `rule` CHANGE COLUMN `name` `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name';
+ALTER TABLE `discovery` CHANGE COLUMN `name` `discovery_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'discovery name';
+ALTER TABLE `discovery` CHANGE COLUMN `type` `discovery_type` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'discovery name';
 ALTER TABLE `discovery_upstream` CHANGE COLUMN `url` `upstream_url` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ip:port';
 ALTER TABLE `discovery_upstream` CHANGE COLUMN `status` `upstream_status` int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)';
 

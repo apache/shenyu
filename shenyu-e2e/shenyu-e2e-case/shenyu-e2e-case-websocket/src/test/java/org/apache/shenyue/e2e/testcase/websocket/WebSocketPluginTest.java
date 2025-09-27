@@ -76,7 +76,6 @@ public class WebSocketPluginTest {
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("1801816010882822163", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
-
     }
 
     @ShenYuScenario(provider = WebSocketPluginCases.class)

@@ -299,7 +299,7 @@ public class SelectorServiceImpl implements SelectorService {
             discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
             if (Objects.nonNull(discoveryDO)) {
-                final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+                final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setId(selector.getId());
                 proxySelectorDTO.setName(selector.getSelectorName());
