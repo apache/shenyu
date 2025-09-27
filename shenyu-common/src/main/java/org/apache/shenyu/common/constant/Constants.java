@@ -589,6 +589,11 @@ public interface Constants {
     String DUBBO_DEFAULT_APPLICATION_NAME = "shenyu_proxy";
 
     /**
+     * sofa default application name.
+     */
+    String SOFA_DEFAULT_APPLICATION_NAME = "sofa";
+    
+    /**
      * dubbo group.
      */
     String GROUP = "group";

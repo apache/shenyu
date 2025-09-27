@@ -1070,6 +1070,8 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136287', '4', 'url', 
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136288', '4', 'password', 'password', 2, 3, 4, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136289', '11', 'protocol', 'protocol', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136290', '11', 'register', 'register', 2, 3, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136289', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136290', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136291', '2', 'model', 'model', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136292', '6', 'register', 'register', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136293', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
