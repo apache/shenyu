@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.logging.common.utils;
 
+import com.google.common.collect.Sets;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.http.HttpHeaders;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  */
 public class LogCollectUtils {
 
-    private static final List<String> BINARY_TYPE_LIST = Arrays.asList("image", "multipart", "cbor",
+    private static final Set<String> BINARY_TYPE_LIST = Sets.newHashSet("image", "multipart", "cbor",
             "octet-stream", "pdf", "javascript", "css", "html");
 
     /**
