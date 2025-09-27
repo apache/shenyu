@@ -38,6 +38,7 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.net.URI;
 import java.util.Iterator;
@@ -70,8 +71,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     
     private final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
     
-    private final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber>
-            aiProxyApiKeyDataSubscribers;
+    private final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers;
 
     private final List<ShenyuWebsocketClient> clients = Lists.newArrayList();
     
@@ -80,7 +80,9 @@ public class WebsocketSyncDataService implements SyncDataService {
     private final Timer timer;
     
     private TimerTask timerTask;
-    
+
+    private final ServerProperties serverProperties;
+
     /**
      * Instantiates a new Websocket sync cache.
      *
@@ -91,6 +93,7 @@ public class WebsocketSyncDataService implements SyncDataService {
      * @param authDataSubscribers the auth data subscribers
      * @param proxySelectorDataSubscribers the proxy selector data subscribers
      * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
+     * @param serverProperties serverProperties
      */
     public WebsocketSyncDataService(
             final WebsocketConfig websocketConfig,
@@ -101,7 +104,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                                     final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
             final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
             final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber>
-                    aiProxyApiKeyDataSubscribers) {
+                    aiProxyApiKeyDataSubscribers,
+            final ServerProperties serverProperties) {
         this.timer = WheelTimerFactory.getSharedTimer();
         this.websocketConfig = websocketConfig;
         this.pluginDataSubscriber = pluginDataSubscriber;
@@ -111,6 +115,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         this.aiProxyApiKeyDataSubscribers = aiProxyApiKeyDataSubscribers;
         this.namespaceId = shenyuConfig.getNamespace();
+        this.serverProperties = serverProperties;
         LOG.info("start init connecting...");
         List<String> urls = websocketConfig.getUrls();
         for (String url : urls) {
@@ -127,7 +132,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                         proxySelectorDataSubscribers,
                         discoveryUpstreamDataSubscribers,
                                 this.aiProxyApiKeyDataSubscribers,
-                        namespaceId));
+                        namespaceId,
+                        serverProperties.getPort()));
             } else {
                 clients.add(
                         new ShenyuWebsocketClient(
@@ -138,7 +144,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                         proxySelectorDataSubscribers,
                         discoveryUpstreamDataSubscribers,
                                 this.aiProxyApiKeyDataSubscribers,
-                        namespaceId));
+                        namespaceId,
+                        serverProperties.getPort()));
             }
         }
         LOG.info("start check task...");
@@ -149,7 +156,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             }
         });
     }
-    
+
     private void masterCheck() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("master checking task start...");
@@ -170,7 +177,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                                     proxySelectorDataSubscribers,
                                     discoveryUpstreamDataSubscribers,
                                     this.aiProxyApiKeyDataSubscribers,
-                                    namespaceId));
+                                    namespaceId, serverProperties.getPort()));
                 } else {
                     clients.add(
                             new ShenyuWebsocketClient(
@@ -181,7 +188,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                                     proxySelectorDataSubscribers,
                                     discoveryUpstreamDataSubscribers,
                                     this.aiProxyApiKeyDataSubscribers,
-                                    namespaceId));
+                                    namespaceId, serverProperties.getPort()));
                 }
             }
         }
