@@ -130,7 +130,7 @@
         <tars.version>1.7.2</tars.version>
         <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
-        <zookeeper.version>3.9.3</zookeeper.version>
+        <zookeeper.version>3.9.4</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
