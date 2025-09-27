@@ -37,7 +37,7 @@ public class TagVO implements Serializable {
     /**
      * name.
      */
-    private String tagName;
+    private String name;
 
     /**
      * tagDesc.
@@ -73,14 +73,14 @@ public class TagVO implements Serializable {
     }
 
     public TagVO(final String id,
-                 final String tagName,
+                 final String name,
                  final String tagDesc,
                  final String parentTagId,
                  final String ext,
                  final String dateCreated,
                  final String dateUpdated) {
         this.id = id;
-        this.tagName = tagName;
+        this.name = name;
         this.tagDesc = tagDesc;
         this.parentTagId = parentTagId;
         this.ext = ext;
@@ -108,16 +108,16 @@ public class TagVO implements Serializable {
      * get name.
      * @return name
      */
-    public String getTagName() {
-        return tagName;
+    public String getName() {
+        return name;
     }
 
     /**
      * set name.
-     * @param tagName name
+     * @param name name
      */
-    public void setTagName(final String tagName) {
-        this.tagName = tagName;
+    public void setName(final String name) {
+        this.name = name;
     }
 
     /**
