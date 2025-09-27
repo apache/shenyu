@@ -2418,10 +2418,10 @@ COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
 DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
-    "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "server_list" varchar(255) COLLATE "pg_catalog"."default",
     "props" text COLLATE "pg_catalog"."default",
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
