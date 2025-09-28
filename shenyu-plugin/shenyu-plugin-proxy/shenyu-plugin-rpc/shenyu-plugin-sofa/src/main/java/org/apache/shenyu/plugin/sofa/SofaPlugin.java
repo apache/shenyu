@@ -86,7 +86,7 @@ public class SofaPlugin extends AbstractShenyuPlugin {
         }
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.SOFA.getName())).ifPresent(context -> RpcInvokeContext.getContext().putAllRequestBaggage(context));
-        final Mono<Object> result = sofaProxyService.genericInvoker(param, metaData, exchange);
+        final Mono<Object> result = sofaProxyService.genericInvoker(param, metaData, selector, exchange);
         return result.then(chain.execute(exchange));
     }
 
