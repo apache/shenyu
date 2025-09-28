@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.sofa.handler;
 
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.selector.SofaUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -47,6 +49,25 @@ public class SofaPluginDataHandler implements PluginDataHandler {
             }
             Singleton.INST.single(SofaRegisterConfig.class, sofaRegisterConfig);
         }
+    }
+
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        SofaUpstream nCacheUpstreams = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SofaUpstream.class);
+        SofaUpstream oCacheUpstream = ApplicationConfigCache.getInstance().getUpstream(selectorData.getId());
+        if (!Objects.equals(nCacheUpstreams, oCacheUpstream)) {
+            ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
+        }
+    }
+
+    @Override
+    public void removePlugin(final PluginData pluginData) {
+        ApplicationConfigCache.getInstance().invalidateAll();
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
     }
 
     @Override

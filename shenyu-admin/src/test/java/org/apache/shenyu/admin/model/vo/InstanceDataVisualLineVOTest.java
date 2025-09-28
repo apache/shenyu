@@ -15,35 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.admin.model.vo;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.junit.jupiter.api.Test;
 
-/**
- * Collect logs and put into buffer queue.
- */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+import java.util.Arrays;
 
-    /**
-     * start log collector.
-     */
-    void start();
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-    /**
-     * desensitize log.
-     *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
-     */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
+public final class InstanceDataVisualLineVOTest {
 
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
+    @Test
+    void testConstructAndAccessors() {
+        InstanceDataVisualLineVO vo = new InstanceDataVisualLineVO("ONLINE", Arrays.asList(1L, 2L, 3L));
+        assertEquals("ONLINE", vo.getName());
+        assertEquals(3, vo.getData().size());
 
+        vo.setName("OFFLINE");
+        vo.setData(Arrays.asList(0L, 1L));
+        assertEquals("OFFLINE", vo.getName());
+        assertNotNull(vo.getData());
+        assertEquals(2, vo.getData().size());
+    }
 }
