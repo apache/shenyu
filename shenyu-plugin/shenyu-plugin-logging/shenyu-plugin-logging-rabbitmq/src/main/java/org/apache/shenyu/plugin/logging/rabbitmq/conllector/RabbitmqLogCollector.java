@@ -21,9 +21,12 @@ import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.rabbitmq.cache.RabbitmqClientCache;
 import org.apache.shenyu.plugin.logging.rabbitmq.client.RabbitmqLogCollectClient;
 import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig;
 import org.apache.shenyu.plugin.logging.rabbitmq.handler.LoggingRabbitmqPluginDataHandler;
+
+import java.util.Objects;
 
 /**
  * rabbitmq log collector，depend a LogConsumeClient for consume logs.
@@ -49,6 +52,20 @@ public class RabbitmqLogCollector extends AbstractLogCollector<RabbitmqLogCollec
     @Override
     public RabbitmqLogCollectClient getLogConsumeClient() {
         return LoggingRabbitmqPluginDataHandler.getRabbitmqLogCollectClient();
+    }
+
+    @Override
+    public RabbitmqLogCollectClient getLogConsumeClient(final String path) {
+        RabbitmqLogCollectClient rabbitmqClient = RabbitmqClientCache.getInstance().getRabbitmqClient(path);
+        if (Objects.isNull(rabbitmqClient)) {
+            return getLogConsumeClient();
+        }
+        return rabbitmqClient;
+    }
+
+    @Override
+    protected boolean getMultiClient() {
+        return LoggingRabbitmqPluginDataHandler.getMultiClient();
     }
 
     @Override
