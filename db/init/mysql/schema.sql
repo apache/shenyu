@@ -1082,6 +1082,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978532', '4', 'url', 'url', 2,
 INSERT INTO `plugin_handle` VALUES ('1529402613199978533', '4', 'password', 'password', 2, 3, 4, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978534', '11', 'protocol', 'protocol', 2, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978535', '11', 'register', 'register', 2, 3, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613199978534', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613199978535', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978536', '2', 'model', 'model', 2, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978537', '6', 'register', 'register', 2, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613199978538', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{\"required\":\"1\",\"defaultValue\":\"slidingWindow\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');

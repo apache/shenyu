@@ -265,6 +265,13 @@ INSERT INTO `plugin_handle` VALUES ('1907263843073671168', '61', 'description', 
 INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
 UPDATE `plugin_handle` SET ext_obj = '{\"required\":\"0\",\"rule\":\"\"}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
 
+INSERT INTO `plugin_handle` VALUES ('1529402613199978534', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613199978535', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172874', '11', 'corethreads', 'corethreads', 1, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172875', '11', 'threads', 'threads', 1, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172876', '11', 'queues', 'queues', 1, 1, 6, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172877', '11', 'threadpool', 'threadpool', 3, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
 INSERT INTO `plugin_handle` VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1829402613204172835', '17', 'corethreads', 'corethreads', 1, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1829402613204172836', '17', 'threads', 'threads', 1, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');

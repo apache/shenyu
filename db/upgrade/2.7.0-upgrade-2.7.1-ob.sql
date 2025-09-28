@@ -232,6 +232,12 @@ INSERT INTO `permission` VALUES ('1697146860569742760', '1346358560427216896', '
 INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
 UPDATE `plugin_handle` SET ext_obj = '{\"required\":\"0\",\"rule\":\"\"}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
 
+INSERT INTO `plugin_handle` VALUES ('1729402613199978534', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613199978535', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172874', '11', 'corethreads', 'corethreads', 1, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172875', '11', 'threads', 'threads', 1, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172876', '11', 'queues', 'queues', 1, 1, 6, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172877', '11', 'threadpool', 'threadpool', 3, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
 INSERT INTO `plugin_handle` VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1829402613204172835', '17', 'corethreads', 'corethreads', 1, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -300,6 +306,7 @@ ALTER TABLE `selector` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 
 ALTER TABLE `selector` CHANGE COLUMN `name` `selector_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name';
 ALTER TABLE `tag` CHANGE COLUMN `name` `tag_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name';
 ALTER TABLE `rule` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 'sort';
+
 ALTER TABLE `rule` CHANGE COLUMN `name` `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name';
 ALTER TABLE `discovery` CHANGE COLUMN `type` `discovery_type` int(0) NOT NULL COMMENT 'discovery type';
 ALTER TABLE `discovery` CHANGE COLUMN `name` `discovery_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'discovery name';
