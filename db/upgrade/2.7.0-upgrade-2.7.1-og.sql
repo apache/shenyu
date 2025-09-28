@@ -256,6 +256,12 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742760', '13463585604272
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","rule":""}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
 UPDATE "public"."plugin_handle" SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
 
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524917', '11', 'corethreads', 'corethreads', 1, 1, 4, '{"required":"0","defaultValue":"","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524918', '11', 'threads', 'threads', 1, 1, 5, '{"required":"0","defaultValue":"","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524919', '11', 'queues', 'queues', 1, 1, 6, '{"required":"0","defaultValue":"","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524920', '11', 'threadpool', 'threadpool', 3, 1, 3, '{"required":"0","defaultValue":"","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136289', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136290', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172835', '17', 'corethreads', 'corethreads', 1, 1, 2, '{"required":"0","defaultValue":"","placeholder":"corethreads","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -263,7 +269,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172836', '17', 'threa
 INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172837', '17', 'queues', 'queues', 1, 1, 4, '{"required":"0","defaultValue":"","placeholder":"queues","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO "public"."plugin_handle" VALUES ('1829402613204172838', '17', 'threadpool', 'threadpool', 3, 1, 5, '{"required":"0","defaultValue":"","placeholder":"threadpool","rule":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO "public"."plugin_handle" VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
-
 
 INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
