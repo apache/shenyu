@@ -21,9 +21,12 @@ import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.kafka.cache.KafkaClientCache;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.apache.shenyu.plugin.logging.kafka.handler.LoggingKafkaPluginDataHandler;
+
+import java.util.Objects;
 
 /**
  * kafka log collector，depend a LogConsumeClient for consume logs.
@@ -44,6 +47,20 @@ public class KafkaLogCollector extends AbstractLogCollector<KafkaLogCollectClien
     @Override
     protected KafkaLogCollectClient getLogConsumeClient() {
         return LoggingKafkaPluginDataHandler.getKafkaLogCollectClient();
+    }
+
+    @Override
+    public KafkaLogCollectClient getLogConsumeClient(final String path) {
+        KafkaLogCollectClient kafkaClient = KafkaClientCache.getInstance().getKafkaClient(path);
+        if (Objects.isNull(kafkaClient)) {
+            return getLogConsumeClient();
+        }
+        return kafkaClient;
+    }
+
+    @Override
+    protected boolean getMultiClient() {
+        return LoggingKafkaPluginDataHandler.getMultiClient();
     }
 
     @Override
