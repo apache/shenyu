@@ -15,35 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.admin.model.query;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.junit.jupiter.api.Test;
 
-/**
- * Collect logs and put into buffer queue.
- */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    /**
-     * start log collector.
-     */
-    void start();
+public final class InstanceQueryConditionTest {
 
-    /**
-     * desensitize log.
-     *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
-     */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
-
+    @Test
+    void testGettersSetters() {
+        InstanceQueryCondition condition = new InstanceQueryCondition();
+        condition.setKeyword("kw");
+        condition.setSwitchStatus(true);
+        condition.setNamespaceId("ns");
+        assertEquals("kw", condition.getKeyword());
+        assertTrue(condition.getSwitchStatus());
+        assertEquals("ns", condition.getNamespaceId());
+    }
 }
