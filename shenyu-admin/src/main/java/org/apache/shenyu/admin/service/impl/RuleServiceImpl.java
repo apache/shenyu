@@ -110,7 +110,8 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public List<RuleVO> searchByCondition(final RuleQueryCondition condition) {
         condition.init();
-        final List<RuleVO> rules = ruleMapper.selectByCondition(condition);
+        final List<RuleDO> ruleDOList = ruleMapper.selectByCondition(condition);
+        List<RuleVO> rules = ruleDOList.stream().map(RuleVO::buildRuleVO).collect(Collectors.toList());
         for (RuleVO rule : rules) {
             rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
         }
@@ -279,7 +280,7 @@ public class RuleServiceImpl implements RuleService {
             Set<String> existRuleNameSet = selectorRuleMap
                     .getOrDefault(selectorId, Lists.newArrayList())
                     .stream()
-                    .map(RuleDO::getName)
+                    .map(RuleDO::getRuleName)
                     .collect(Collectors.toSet());
 
             if (existRuleNameSet.contains(ruleName)) {
@@ -331,7 +332,7 @@ public class RuleServiceImpl implements RuleService {
             Set<String> existRuleNameSet = selectorRuleMap
                     .getOrDefault(newSelectorId, Lists.newArrayList())
                     .stream()
-                    .map(RuleDO::getName)
+                    .map(RuleDO::getRuleName)
                     .collect(Collectors.toSet());
             
             if (existRuleNameSet.contains(ruleName)) {

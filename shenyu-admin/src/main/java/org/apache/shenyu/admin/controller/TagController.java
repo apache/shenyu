@@ -54,7 +54,7 @@ public class TagController {
      * @param tagDTO tagDTO.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     public ShenyuAdminResult createTag(@Valid @RequestBody final TagDTO tagDTO) {
         Integer createCount = tagService.create(tagDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);

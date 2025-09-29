@@ -17,28 +17,28 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# 配置
+# Configuration
 FROM_TAG=""
 TO_TAG="HEAD"
 OUTPUT_FILE="CHANGELOG.md"
-IGNORE_TYPES=("sync frontend" "merge")  # 使用数组更清晰地管理忽略类型
+IGNORE_TYPES=("sync frontend" "merge")  # Use arrays to manage ignored types more clearly
 DATE_FORMAT="%Y-%m-%d"
 
-# 函数：处理错误并退出
+# Function: Handle error and exit
 handle_error() {
     echo "Error: $1" >&2
     exit 1
 }
 
-# 检查 git 是否安装
+# Check if git is installed
 command -v git >/dev/null 2>&1 || handle_error "git is not installed."
 
-# 生成类型标题
+# Generate type title
 generate_type_header() {
     local type="$1"
     case "$type" in
         feat) echo "### ✨ New Features";;
-        fix) echo "###  Bug Fixes";;  # 修改标题为更常见的 "Bug Fixes"
+        fix) echo "###  Bug Fixes";;  # Modify the title to the more common "Bug Fixes"
         improve) echo "### ⚡ Improvements";;
         chore) echo "###  Chore";;
         refactor) echo "### ♻️ Refactor";;
@@ -55,7 +55,7 @@ generate_type_header() {
     esac
 }
 
-# 初始化变更日志
+# Initialize the change log
 initialize_changelog() {
     local from="$1"
     local to="$2"
@@ -67,37 +67,37 @@ initialize_changelog() {
     echo "" >> "$OUTPUT_FILE"
 }
 
-# 规范化类型
+# Normalized types
 normalize_type() {
     local type="$1"
     type=$(echo "$type" | tr '[:upper:]' '[:lower:]')
     case "$type" in
         feature|feat) echo "feat";;
-        bugfix|fix) echo "fix";;  # 将 bugfix 映射到 fix
+        bugfix|fix) echo "fix";;  # Map bugfix to fix
         improve|improvement) echo "improve";;
         *) echo "$type";;
     esac
 }
 
-# 是否应该忽略类型
+# Should types be ignored
 should_ignore_type() {
     local message="$1"
 
-    # 精确匹配忽略的提交信息
+    # Exact match ignore submission information
     for ignore_message in "${IGNORE_TYPES[@]}"; do
         if [[ "$message" == "$ignore_message" ]]; then
             return 0
         fi
     done
 
-    # 忽略以 "Bump" 开头的提交（不区分大小写）
+    # Ignore commits starting with "Bump" (case insensitive)
     if echo "$message" | grep -qi "^bump"; then
         return 0
     fi
     return 1
 }
 
-# 提取类型
+# Extract type
 extract_type() {
     local message="$1"
     local lower_message=$(echo "$message" | tr '[:upper:]' '[:lower:]')
@@ -109,13 +109,13 @@ extract_type() {
     fi
 }
 
-# 清理提交信息
+# Clean up submission information
 clean_commit_message() {
     local message="$1"
     echo "$message" | sed -E 's/^\[type:[a-zA-Z]+\]//; s/^type:[a-zA-Z]+//; s/^\[[a-zA-Z]+\]//; s/^[a-zA-Z]+://; s/^ *//'
 }
 
-# 生成变更日志
+# Generate a change log
 generate_changelog() {
     local from="$1"
     local to="$2"
@@ -126,7 +126,7 @@ generate_changelog() {
     git log "$from..$to" --pretty=format:'%s|%h|%an' | while IFS='|' read -r message hash author; do
         type=$(extract_type "$message")
 
-        if should_ignore_type "$message"; then # 传递完整的message给should_ignore_type
+        if should_ignore_type "$message"; then # Pass the complete message to should_ignore_type
             continue
         fi
 
@@ -143,7 +143,7 @@ generate_changelog() {
         fi
     done
 
-    # 合并所有类型的变更
+    # Merge all types of changes
     for type in feat fix improve chore refactor docs style perf test build ci issue task other; do
         if [ -f "tmp_${type}.txt" ]; then
             generate_type_header "$type" >> "$OUTPUT_FILE"
@@ -155,7 +155,7 @@ generate_changelog() {
     done
 }
 
-# 从最近的标签生成
+# Generate from the recent tag
 generate_from_latest_tag() {
     local latest_tag
     latest_tag=$(git describe --tags --abbrev=0 2>/dev/null)
@@ -168,7 +168,7 @@ generate_from_latest_tag() {
     fi
 }
 
-# 使用方法
+# How to use
 usage() {
     echo "Usage: $0 [-f from_tag] [-t to_tag] [-o output_file]"
     echo "  -f: Starting tag (default: latest tag)"
@@ -177,7 +177,7 @@ usage() {
     exit 1
 }
 
-# 解析命令行参数
+# Resolve command line parameters
 while getopts "f:t:o:h" opt; do
     case "$opt" in
         f) FROM_TAG="$OPTARG";;
@@ -188,7 +188,7 @@ while getopts "f:t:o:h" opt; do
     esac
 done
 
-# 验证标签是否存在
+# Verify that the tag exists
 if [ ! -z "$FROM_TAG" ] && ! git rev-parse --verify "$FROM_TAG" > /dev/null 2>&1 ; then
     handle_error "Invalid from tag: $FROM_TAG"
 fi
@@ -197,7 +197,7 @@ if [ ! -z "$TO_TAG" ] && ! git rev-parse --verify "$TO_TAG" > /dev/null 2>&1 ; t
     handle_error "Invalid to tag: $TO_TAG"
 fi
 
-# 执行生成
+# Execute generation
 if [ -z "$FROM_TAG" ]; then
     generate_from_latest_tag
 else

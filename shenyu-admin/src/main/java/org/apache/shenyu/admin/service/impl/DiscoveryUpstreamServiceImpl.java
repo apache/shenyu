@@ -125,7 +125,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {
-            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUrl());
+            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
             if (Objects.isNull(existingRecord)) {
                 discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             }
@@ -156,7 +156,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 String selectorId = discoveryRelDO.getSelectorId();
                 discoverySyncData.setSelectorId(selectorId);
                 SelectorDO selectorDO = selectorMapper.selectById(selectorId);
-                discoverySyncData.setSelectorName(selectorDO.getName());
+                discoverySyncData.setSelectorName(selectorDO.getSelectorName());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();
                 discoverySyncData.setSelectorId(proxySelectorId);
@@ -268,7 +268,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryUpstreamDO::getUrl)
+                    .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder
@@ -307,7 +307,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryUpstreamDO::getUrl)
+                    .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder
@@ -340,14 +340,14 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             proxySelectorDTO = new ProxySelectorDTO();
             proxySelectorDTO.setId(selectorDO.getId());
             proxySelectorDTO.setPluginName(pluginMapper.selectById(selectorDO.getPluginId()).getName());
-            proxySelectorDTO.setName(selectorDO.getName());
+            proxySelectorDTO.setName(selectorDO.getSelectorName());
             proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         } else {
             proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         List<DiscoveryUpstreamDTO> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
     }
 

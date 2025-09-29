@@ -151,12 +151,12 @@ public final class UpstreamCheckServiceTest {
                 .build();
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name("UrlError")
+                .selectorName("UrlError")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
-                .name("UrlReachable")
+                .selectorName("UrlReachable")
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
@@ -239,13 +239,13 @@ public final class UpstreamCheckServiceTest {
         SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .id(MOCK_SELECTOR_NAME)
-                .name(MOCK_SELECTOR_NAME)
+                .selectorName(MOCK_SELECTOR_NAME)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
         SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .id(MOCK_SELECTOR_NAME_OTHER)
-                .name(MOCK_SELECTOR_NAME_OTHER)
+                .selectorName(MOCK_SELECTOR_NAME_OTHER)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()

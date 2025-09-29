@@ -50,7 +50,7 @@ public class LoggingKafkaPluginDataHandlerTest {
         this.loggingKafkaPluginDataHandler = new LoggingKafkaPluginDataHandler();
         selectorData.setId("1");
         selectorData.setType(1);
-        selectorData.setHandle("{\"topic\":\"test\", \"sampleRate\":\"1\"}");
+        selectorData.setHandle("{\"topic\":\"test\", \"sampleRate\":\"1\", \"bootstrapServer\":\"localhost:9092\"}");
         conditionData.setParamName("id");
         conditionData.setParamType("uri");
         conditionData.setParamValue("11");

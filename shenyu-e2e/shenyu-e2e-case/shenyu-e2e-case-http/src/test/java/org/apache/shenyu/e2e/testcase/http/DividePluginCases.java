@@ -39,7 +39,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private ShenYuScenarioSpec testDivideHello() {
         return ShenYuScenarioSpec.builder()
-                .name("http client hello1")
+                .name("http client hello")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
                         .checker(exists("/http/order/findById?id=123"))
                         .build())

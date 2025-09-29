@@ -55,7 +55,9 @@ public class KubernetesConfiguration {
                     deploymentProperties.getToken(),
                     false
             );
-            client.setSslCaCert(new FileInputStream(deploymentProperties.getCaCertPath()));
+            try (FileInputStream caCertStream = new FileInputStream(deploymentProperties.getCaCertPath())) {
+                client.setSslCaCert(caCertStream);
+            }
             return new AppsV1Api(client);
 
         } catch (IOException e) {

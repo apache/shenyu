@@ -146,7 +146,7 @@ public final class SelectorServiceTest {
         when(discoveryRelMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(1);
         DiscoveryDO discoveryDO = new DiscoveryDO();
         discoveryDO.setId("1");
-        discoveryDO.setType("local");
+        discoveryDO.setDiscoveryType("local");
         when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         discoveryHandlerDO.setDiscoveryId("1");
