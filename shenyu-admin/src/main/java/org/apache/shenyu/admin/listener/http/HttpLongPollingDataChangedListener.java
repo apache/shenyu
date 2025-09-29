@@ -90,6 +90,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private static final String X_REAL_PORT = "X-Real-PORT";
 
+    private static final String CLIENT_PORT_ZERO = "0";
+
     /**
      * Blocked client.
      */
@@ -140,8 +142,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         final String clientIp = getRemoteIp(request);
         final String namespaceId = getNamespaceId(request);
         final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
-        final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), "");
-        if (!"0".equals(clientPort)) {
+        final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
+        if (!CLIENT_PORT_ZERO.equals(clientPort)) {
             InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
                     .instanceIp(clientIp)
                     .instancePort(clientPort)
@@ -362,7 +364,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
 
         private void doRun(final Collection<LongPollingClient> clients) {
-            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
+            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext(); ) {
                 LongPollingClient client = iter.next();
                 iter.remove();
                 client.sendResponse(Collections.singletonList(groupKey));
