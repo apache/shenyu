@@ -54,6 +54,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
     public void modifyHandshake(final ServerEndpointConfig sec, final HandshakeRequest request, final HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
+        sec.getUserProperties().put(Constants.CLIENT_PORT_NAME, httpSession.getAttribute(Constants.CLIENT_PORT_NAME));
         sec.getUserProperties().put(Constants.SHENYU_NAMESPACE_ID, httpSession.getAttribute(Constants.SHENYU_NAMESPACE_ID));
         super.modifyHandshake(sec, request, response);
     }
