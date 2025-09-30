@@ -286,7 +286,7 @@ class HeartbeatListenerTest {
 
     @Test
     void testHeartbeatWithAllServersFailure() throws Exception {
-        
+
         try (MockedStatic<RegisterUtils> registerUtilsMockedStatic = Mockito.mockStatic(RegisterUtils.class)) {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
                     .thenReturn(Optional.of("mock-token"));
