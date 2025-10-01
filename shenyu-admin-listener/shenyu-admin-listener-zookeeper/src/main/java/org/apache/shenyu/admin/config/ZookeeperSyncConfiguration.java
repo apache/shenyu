@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.config.properties.ZookeeperConfig;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperClient;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -51,12 +51,12 @@ public class ZookeeperSyncConfiguration {
     public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProp) {
         int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
         int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
-        ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProp.getUrl());
-        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
-        ZookeeperClient client = new ZookeeperClient(zkConfig);
-        client.start();
-        return client;
+        ZookeeperConfig zkConfig = ZookeeperConfig.builder()
+                .url(zookeeperProp.getUrl())
+                .sessionTimeoutMilliseconds(sessionTimeout)
+                .connectionTimeoutMilliseconds(connectionTimeout)
+                .build();
+        return new ZookeeperClient(zkConfig);
     }
 
     /**
