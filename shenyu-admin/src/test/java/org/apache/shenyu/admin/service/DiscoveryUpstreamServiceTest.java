@@ -207,9 +207,9 @@ public final class DiscoveryUpstreamServiceTest {
 
     private DiscoveryDO buildDiscoveryDO() {
         DiscoveryDO discoveryDO = new DiscoveryDO();
-        discoveryDO.setName("123");
+        discoveryDO.setDiscoveryName("123");
         discoveryDO.setId("123");
-        discoveryDO.setType("local");
+        discoveryDO.setDiscoveryType("local");
         return discoveryDO;
     }
 
@@ -223,7 +223,7 @@ public final class DiscoveryUpstreamServiceTest {
     private DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final String id) {
         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
         discoveryUpstreamDO.setId(id);
-        discoveryUpstreamDO.setStatus(1);
+        discoveryUpstreamDO.setUpstreamStatus(1);
         discoveryUpstreamDO.setWeight(50);
         discoveryUpstreamDO.setDiscoveryHandlerId("123");
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
@@ -235,9 +235,9 @@ public final class DiscoveryUpstreamServiceTest {
     private DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final String id, final String discoveryHandlerId, final String url) {
         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
         discoveryUpstreamDO.setId(id);
-        discoveryUpstreamDO.setStatus(1);
+        discoveryUpstreamDO.setUpstreamStatus(1);
         discoveryUpstreamDO.setWeight(50);
-        discoveryUpstreamDO.setUrl(url);
+        discoveryUpstreamDO.setUpstreamUrl(url);
         discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         discoveryUpstreamDO.setDateCreated(now);
@@ -275,7 +275,7 @@ public final class DiscoveryUpstreamServiceTest {
     private SelectorDO buildSelectorDO() {
         SelectorDO selectorDO = new SelectorDO();
         selectorDO.setId("selector_1");
-        selectorDO.setName("selector_1");
+        selectorDO.setSelectorName("selector_1");
         return selectorDO;
     }
 

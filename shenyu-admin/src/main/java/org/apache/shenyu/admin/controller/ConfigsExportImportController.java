@@ -137,8 +137,8 @@ public class ConfigsExportImportController {
         try {
             ShenyuAdminResult importResult = configsService.configsImport(namespace, file.getBytes());
             if (Objects.equals(CommonErrorCode.SUCCESSFUL, importResult.getCode())) {
-                // sync data
-                syncDataService.syncAll(DataEventTypeEnum.REFRESH);
+                // sync data only for the target namespace to avoid cross-namespace refresh events
+                syncDataService.syncAllByNamespaceId(DataEventTypeEnum.REFRESH, namespace);
             }
             return importResult;
         } catch (IOException e) {

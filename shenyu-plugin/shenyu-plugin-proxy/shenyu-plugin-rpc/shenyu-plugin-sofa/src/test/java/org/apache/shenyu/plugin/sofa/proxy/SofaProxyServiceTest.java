@@ -27,8 +27,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.SofaUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
@@ -57,19 +60,19 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public final class SofaProxyServiceTest {
-    
+
     private static final String PATH = "/sofa/findAll";
-    
+
     private static final String METHOD_NAME = "findAll";
-    
+
     private static final String[] LEFT = new String[]{};
-    
+
     private static final Object[] RIGHT = new Object[]{};
-    
+
     private MetaData metaData;
-    
+
     private ServerWebExchange exchange;
-    
+
     @BeforeEach
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -82,12 +85,12 @@ public final class SofaProxyServiceTest {
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
         metaData.setRpcExt("{\"loadbalance\": \"loadbalance\"}");
     }
-    
+
     @AfterEach
     public void after() {
         ApplicationConfigCache.getInstance().invalidateAll();
     }
-    
+
     @Test
     @SuppressWarnings("all")
     public void testGenericInvoker() throws IllegalAccessException {
@@ -103,11 +106,47 @@ public final class SofaProxyServiceTest {
         assertTrue(cache instanceof LoadingCache);
         ((LoadingCache) cache).put(PATH, consumerConfig);
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
-        sofaProxyService.genericInvoker("", metaData, exchange);
+        sofaProxyService.genericInvoker("", metaData, new SelectorData(), exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
         final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
         sofaRegisterConfig.setThreadpool(Constants.SHARED);
         applicationConfigCache.init(sofaRegisterConfig);
+    }
+
+    @Test
+    @SuppressWarnings("all")
+    public void testGenericInvoker2() throws IllegalAccessException {
+        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        GenericService genericService = mock(GenericService.class);
+        when(consumerConfig.refer()).thenReturn(genericService);
+        when(consumerConfig.getInterfaceId()).thenReturn(PATH);
+        when(genericService.$genericInvoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
+        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
+        SelectorData selectorData = SelectorData.builder().id("153153464562434")
+                .handle("{\n" + "  \"register\": \"zookeeper://127.0.0.1:2181\",\n"
+                        + "  \"appName\": \"sofa-demo-service\",\n"
+                        + "  \"port\": 12200,\n"
+                        + "  \"weight\": 50,\n"
+                        + "  \"warmup\": 60,\n"
+                        + "  \"upstreamHost\": \"127.0.0.1\",\n"
+                        + "  \"protocol\": \"zookeeper\",\n"
+                        + "  \"upstreamUrl\": \"127.0.0.1:12200\",\n"
+                        + "  \"gray\": false,\n"
+                        + "  \"status\": true,\n"
+                        + "  \"timestamp\": 1718001234567\n"
+                        + "}").build();
+        SofaUpstream sofaUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SofaUpstream.class);
+        final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
+        assertNotNull(cacheField);
+        final Object cache = cacheField.get(applicationConfigCache);
+        assertTrue(cache instanceof LoadingCache);
+        String key = applicationConfigCache.generateUpstreamCacheKey("153153464562434", PATH, sofaUpstream);
+        ((LoadingCache) cache).put(key, consumerConfig);
+        SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
+        final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
+        applicationConfigCache.init(sofaRegisterConfig);
+        sofaProxyService.genericInvoker("", metaData, selectorData, exchange);
+        RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
     }
 
     @Test
@@ -146,9 +185,9 @@ public final class SofaProxyServiceTest {
         applicationConfigCache.init(sofaRegisterConfig);
         applicationConfigCache.build(metaData);
     }
-    
+
     static class SofaParamResolveServiceImpl implements SofaParamResolveService {
-        
+
         @Override
         @NonNull
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

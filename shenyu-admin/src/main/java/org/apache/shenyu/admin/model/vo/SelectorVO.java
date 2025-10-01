@@ -553,9 +553,9 @@ public class SelectorVO implements Serializable {
      */
     public static SelectorVO buildSelectorVO(final SelectorDO selectorDO,
                                              final List<SelectorConditionVO> selectorConditions) {
-        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(),
-                MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getType(),
-                SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getSelectorName(), selectorDO.getMatchMode(),
+                MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getSelectorType(),
+                SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getSelectorType()), selectorDO.getSortCode(),
                 selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
                 selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
                 DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),

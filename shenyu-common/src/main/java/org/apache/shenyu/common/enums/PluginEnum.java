@@ -93,6 +93,11 @@ public enum PluginEnum {
     AI_REQUEST_TRANSFORMER(65, 0, "aiRequestTransformer"),
 
     /**
+     * AI Response Transformer plugin enum.
+     */
+    AI_RESPONSE_TRANSFORMER(66, 0, "aiResponseTransformer"),
+
+    /**
      * Param mapping plugin enum.
      */
     PARAM_MAPPING(70, 0, "paramMapping"),
@@ -138,7 +143,7 @@ public enum PluginEnum {
     SENTINEL(140, 0, "sentinel"),
     
     /**
-     * Resilence4J plugin enum.
+     * Resilience4J plugin enum.
      */
     RESILIENCE4J(150, 0, "resilience4j"),
     
@@ -286,6 +291,11 @@ public enum PluginEnum {
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Mcp-server plugin enum.
+     */
+    MCP_SERVER(180, 0, "mcpServer"),
     
     /**
      * Basic-auth plugin enum.

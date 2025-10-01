@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.apache.shenyu.admin.service.AiProxyApiKeyService;
 
 /**
  * The TestCase for {@link AbstractDataChangedListener}.
@@ -77,6 +78,8 @@ public final class AbstractDataChangedListenerTest {
 
     private NamespaceService namespaceService;
 
+    private AiProxyApiKeyService aiProxyApiKeyService;
+
     @BeforeEach
     public void setUp() throws Exception {
         listener = new MockAbstractDataChangedListener();
@@ -88,6 +91,7 @@ public final class AbstractDataChangedListenerTest {
         proxySelectorService = mock(ProxySelectorService.class);
         discoveryUpstreamService = mock(DiscoveryUpstreamService.class);
         namespaceService = mock(NamespaceService.class);
+        aiProxyApiKeyService = mock(AiProxyApiKeyService.class);
 
         Class clazz = MockAbstractDataChangedListener.class.getSuperclass();
         Field appAuthServiceField = clazz.getDeclaredField("appAuthService");
@@ -114,6 +118,9 @@ public final class AbstractDataChangedListenerTest {
         Field namespaceServiceField = clazz.getDeclaredField("namespaceService");
         namespaceServiceField.setAccessible(true);
         namespaceServiceField.set(listener, namespaceService);
+        Field aiProxyApiKeyServiceField = clazz.getDeclaredField("aiProxyApiKeyService");
+        aiProxyApiKeyServiceField.setAccessible(true);
+        aiProxyApiKeyServiceField.set(listener, aiProxyApiKeyService);
 
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
         when(appAuthService.listAll()).thenReturn(appAuthDatas);

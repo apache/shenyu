@@ -25,11 +25,11 @@ import java.util.Objects;
  */
 public final class DiscoveryDO extends BaseDO {
 
-    private String name;
+    private String discoveryName;
 
-    private String type;
+    private String discoveryType;
 
-    private String level;
+    private String discoveryLevel;
 
     private String serverList;
 
@@ -43,23 +43,24 @@ public final class DiscoveryDO extends BaseDO {
 
     }
 
-    public DiscoveryDO(final String name, final String type, final String level, final String serverList,
+    public DiscoveryDO(final String discoveryName, final String discoveryType, final String level, final String serverList,
                        final String pluginName, final String props) {
-        this.name = name;
-        this.type = type;
-        this.level = level;
+        this.discoveryName = discoveryName;
+        this.discoveryType = discoveryType;
+        this.discoveryLevel = discoveryLevel;
         this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
     }
 
-    public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
-                       final String type, final String level, final String serverList, final String pluginName,
+    public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String discoveryName,
+                       final String discoveryType, final String discoveryLevel, final String serverList, final String pluginName,
                        final String props) {
+
         super(id, dateCreated, dateUpdated);
-        this.name = name;
-        this.type = type;
-        this.level = level;
+        this.discoveryName = discoveryName;
+        this.discoveryType = discoveryType;
+        this.discoveryLevel = discoveryLevel;
         this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
@@ -70,8 +71,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @return the name value
      */
-    public String getName() {
-        return name;
+    public String getDiscoveryName() {
+        return discoveryName;
     }
 
     /**
@@ -79,8 +80,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @param name the name value
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setDiscoveryName(final String name) {
+        this.discoveryName = name;
     }
 
     /**
@@ -88,8 +89,8 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @return the type value
      */
-    public String getType() {
-        return type;
+    public String getDiscoveryType() {
+        return discoveryType;
     }
 
     /**
@@ -97,26 +98,26 @@ public final class DiscoveryDO extends BaseDO {
      *
      * @param type the type value
      */
-    public void setType(final String type) {
-        this.type = type;
+    public void setDiscoveryType(final String type) {
+        this.discoveryType = type;
     }
 
     /**
-     * get the level.
+     * get the discovery level.
      *
-     * @return the level.
+     * @return the discovery level.
      */
-    public String getLevel() {
-        return level;
+    public String getDiscoveryLevel() {
+        return discoveryLevel;
     }
 
     /**
-     * set the level.
+     * set the discovery level.
      *
-     * @param level the level.
+     * @param discoveryLevel the level.
      */
-    public void setLevel(final String level) {
-        this.level = level;
+    public void setDiscoveryLevel(final String discoveryLevel) {
+        this.discoveryLevel = discoveryLevel;
     }
 
     /**
@@ -212,9 +213,9 @@ public final class DiscoveryDO extends BaseDO {
             return false;
         }
         DiscoveryDO discoveryDO = (DiscoveryDO) o;
-        return Objects.equals(name, discoveryDO.name)
-                && Objects.equals(type, discoveryDO.type)
-                && Objects.equals(level, discoveryDO.level)
+        return Objects.equals(discoveryName, discoveryDO.discoveryName)
+                && Objects.equals(discoveryType, discoveryDO.discoveryType)
+                && Objects.equals(discoveryLevel, discoveryDO.discoveryLevel)
                 && Objects.equals(serverList, discoveryDO.serverList)
                 && Objects.equals(pluginName, discoveryDO.pluginName)
                 && Objects.equals(props, discoveryDO.props)
@@ -223,7 +224,7 @@ public final class DiscoveryDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props, namespaceId);
+        return Objects.hash(super.hashCode(), discoveryName, discoveryType, discoveryLevel, serverList, pluginName, props, namespaceId);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -234,11 +235,11 @@ public final class DiscoveryDO extends BaseDO {
 
         private Timestamp dateUpdated;
 
-        private String name;
+        private String discoveryName;
 
-        private String type;
+        private String discoveryType;
 
-        private String level;
+        private String discoveryLevel;
 
         private String serverList;
 
@@ -291,8 +292,8 @@ public final class DiscoveryDO extends BaseDO {
          * @param name the type.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder name(final String name) {
-            this.name = name;
+        public DiscoveryDOBuilder discoveryName(final String name) {
+            this.discoveryName = name;
             return this;
         }
 
@@ -302,19 +303,19 @@ public final class DiscoveryDO extends BaseDO {
          * @param type the type.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder type(final String type) {
-            this.type = type;
+        public DiscoveryDOBuilder discoveryType(final String type) {
+            this.discoveryType = type;
             return this;
         }
 
         /**
-         * level.
+         * discovery level.
          *
-         * @param level the level.
+         * @param discoveryLevel the discovery level.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder level(final String level) {
-            this.level = level;
+        public DiscoveryDOBuilder discoveryLevel(final String discoveryLevel) {
+            this.discoveryLevel = discoveryLevel;
             return this;
         }
 
@@ -373,9 +374,9 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setId(id);
             discoveryDO.setDateCreated(dateCreated);
             discoveryDO.setDateUpdated(dateUpdated);
-            discoveryDO.setName(name);
-            discoveryDO.setType(type);
-            discoveryDO.setLevel(level);
+            discoveryDO.setDiscoveryName(discoveryName);
+            discoveryDO.setDiscoveryType(discoveryType);
+            discoveryDO.setDiscoveryLevel(discoveryLevel);
             discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);

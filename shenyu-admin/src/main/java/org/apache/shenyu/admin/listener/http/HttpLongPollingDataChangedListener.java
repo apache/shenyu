@@ -24,10 +24,14 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -84,6 +88,10 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
 
+    private static final String X_REAL_PORT = "X-Real-PORT";
+
+    private static final String CLIENT_PORT_ZERO = "0";
+
     /**
      * Blocked client.
      */
@@ -133,6 +141,19 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
         final String clientIp = getRemoteIp(request);
         final String namespaceId = getNamespaceId(request);
+        final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
+        final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
+        if (!CLIENT_PORT_ZERO.equals(clientPort)) {
+            InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
+                    .instanceIp(clientIp)
+                    .instancePort(clientPort)
+                    .instanceInfo(GsonUtils.getInstance().toJson(bootstrapInfo))
+                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
+                    .instanceState(1)
+                    .namespaceId(namespaceId)
+                    .build();
+            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoReportEvent);
+        }
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);

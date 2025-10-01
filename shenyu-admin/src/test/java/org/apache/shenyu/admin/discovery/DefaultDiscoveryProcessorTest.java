@@ -98,7 +98,7 @@ public class DefaultDiscoveryProcessorTest {
         Properties properties = new Properties();
         properties.putAll(map);
         discoveryDO.setId(id);
-        discoveryDO.setType(type);
+        discoveryDO.setDiscoveryType(type);
         discoveryDO.setProps(props);
         discoveryDO.setServerList("localhost:2181");
         MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);

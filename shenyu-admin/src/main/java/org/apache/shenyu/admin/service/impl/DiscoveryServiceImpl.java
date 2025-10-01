@@ -143,7 +143,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private void bindingDiscovery(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO, final SelectorDO selectorDO) {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        proxySelectorDTO.setName(selectorDO.getName());
+        proxySelectorDTO.setName(selectorDO.getSelectorName());
         proxySelectorDTO.setId(selectorDO.getId());
         proxySelectorDTO.setPluginName(discoveryConfigRegisterDTO.getPluginName());
         proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
@@ -153,10 +153,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             discoveryDO = DiscoveryDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
-                    .name(discoveryConfigRegisterDTO.getName())
+                    .discoveryName(discoveryConfigRegisterDTO.getName())
                     .pluginName(discoveryConfigRegisterDTO.getPluginName())
-                    .level(DiscoveryLevel.PLUGIN.getCode())
-                    .type(discoveryConfigRegisterDTO.getDiscoveryType())
+                    .discoveryType(discoveryConfigRegisterDTO.getDiscoveryType())
+                    .discoveryLevel(DiscoveryLevel.PLUGIN.getCode())
                     .serverList(discoveryConfigRegisterDTO.getServerList())
                     .props(GsonUtils.getInstance().toJson(Optional.ofNullable(discoveryConfigRegisterDTO.getProps()).orElse(new Properties())))
                     .namespaceId(discoveryConfigRegisterDTO.getNamespaceId())
@@ -196,7 +196,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             throw new ShenyuException("shenyu this discovery has discoveryHandler can't be delete");
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.removeDiscovery(discoveryDO);
         discoveryMapper.delete(discoveryId);
         return ShenyuResultMessage.DELETE_SUCCESS;
@@ -209,11 +209,11 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         DiscoveryDO discoveryDO = DiscoveryDO.builder()
                 .id(discoveryDTO.getId())
-                .name(discoveryDTO.getName())
+                .discoveryName(discoveryDTO.getName())
                 .pluginName(discoveryDTO.getPluginName())
                 .namespaceId(discoveryDTO.getNamespaceId())
-                .level(discoveryDTO.getLevel())
-                .type(discoveryDTO.getType())
+                .discoveryType(discoveryDTO.getType())
+                .discoveryLevel(discoveryDTO.getLevel())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
                 .dateCreated(currentTime)
@@ -222,7 +222,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         if (StringUtils.isEmpty(discoveryDTO.getId())) {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
         discoveryProcessor.createDiscovery(discoveryDO);
         return result;
@@ -235,8 +235,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         DiscoveryDO discoveryDO = DiscoveryDO.builder()
                 .id(discoveryDTO.getId())
-                .name(discoveryDTO.getName())
-                .type(discoveryDTO.getType())
+                .discoveryName(discoveryDTO.getName())
+                .discoveryType(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())
                 .namespaceId(discoveryDTO.getNamespaceId())
@@ -247,7 +247,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     public void syncData(final List<DiscoveryDO> discoveryDOS) {
         discoveryDOS.forEach(d -> {
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());
+            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getDiscoveryType());
             discoveryProcessor.createDiscovery(d);
             proxySelectorMapper.selectByDiscoveryId(d.getId()).stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).forEach(ps -> {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(ps.getId());
@@ -258,7 +258,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             for (SelectorDO selectorDO : selectorDOS) {
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setPluginName(d.getPluginName());
-                proxySelectorDTO.setName(selectorDO.getName());
+                proxySelectorDTO.setName(selectorDO.getSelectorName());
                 proxySelectorDTO.setId(selectorDO.getId());
                 proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorDO.getId());
@@ -369,10 +369,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         }
         DiscoveryDO discoveryDO = new DiscoveryDO();
         String discoveryId = UUIDUtils.getInstance().generateShortUuid();
-        discoveryDO.setLevel(DiscoveryLevel.SELECTOR.getCode());
-        discoveryDO.setName(pluginName + "_default_discovery");
+        discoveryDO.setDiscoveryName(pluginName + "_default_discovery");
+        discoveryDO.setDiscoveryLevel(DiscoveryLevel.SELECTOR.getCode());
         discoveryDO.setPluginName(pluginName);
-        discoveryDO.setType(DiscoveryMode.LOCAL.name().toLowerCase());
+        discoveryDO.setDiscoveryType(DiscoveryMode.LOCAL.name().toLowerCase());
         discoveryDO.setId(discoveryId);
         discoveryDO.setNamespaceId(namespaceId);
         discoveryMapper.insertSelective(discoveryDO);
@@ -412,7 +412,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             Set<String> existDiscoveryNameSet = pluginDiscoveryMap
                     .getOrDefault(pluginName, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryDO::getName)
+                    .map(DiscoveryDO::getDiscoveryName)
                     .collect(Collectors.toSet());
             if (existDiscoveryNameSet.contains(discoveryName)) {
                 errorMsgBuilder
@@ -470,7 +470,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             Set<String> existDiscoveryNameSet = pluginDiscoveryMap
                     .getOrDefault(pluginName, Lists.newArrayList())
                     .stream()
-                    .map(DiscoveryDO::getName)
+                    .map(DiscoveryDO::getDiscoveryName)
                     .collect(Collectors.toSet());
             if (existDiscoveryNameSet.contains(discoveryName)) {
                 errorMsgBuilder

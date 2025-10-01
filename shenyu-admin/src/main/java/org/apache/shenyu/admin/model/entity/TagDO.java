@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.TagDTO;
-import org.apache.shenyu.common.utils.UUIDUtils;
 
 public final class TagDO extends BaseDO {
 
@@ -32,7 +33,7 @@ public final class TagDO extends BaseDO {
     /**
      * name.
      */
-    private String name;
+    private String tagName;
 
     /**
      * tagDesc.
@@ -54,8 +55,8 @@ public final class TagDO extends BaseDO {
      *
      * @return name
      */
-    public String getName() {
-        return name;
+    public String getTagName() {
+        return tagName;
     }
 
     /**
@@ -64,7 +65,7 @@ public final class TagDO extends BaseDO {
      * @param name name
      */
     public void setName(final String name) {
-        this.name = name;
+        this.tagName = name;
     }
 
     /**
@@ -142,7 +143,7 @@ public final class TagDO extends BaseDO {
             return false;
         }
         TagDO tagDO = (TagDO) o;
-        return Objects.equals(name, tagDO.name)
+        return Objects.equals(tagName, tagDO.tagName)
                 && Objects.equals(tagDesc, tagDO.tagDesc)
                 && Objects.equals(ext, tagDO.ext)
                 && Objects.equals(parentTagId, tagDO.parentTagId);
@@ -160,7 +161,7 @@ public final class TagDO extends BaseDO {
             TagDO tagDO = TagDO.builder()
                     .parentTagId(tagDTO.getParentTagId())
                     .tagDesc(tagDTO.getTagDesc())
-                    .name(tagDTO.getName())
+                    .tagName(tagDTO.getTagName())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
@@ -177,14 +178,14 @@ public final class TagDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, tagDesc, ext, parentTagId);
+        return Objects.hash(super.hashCode(), tagName, tagDesc, ext, parentTagId);
     }
 
     public static final class TagDOBuilder {
 
         private String id;
 
-        private String name;
+        private String tagName;
 
         private String tagDesc;
 
@@ -268,11 +269,11 @@ public final class TagDO extends BaseDO {
         /**
          * name.
          *
-         * @param name name
+         * @param tagName name
          * @return TagDOBuilder.
          */
-        public TagDO.TagDOBuilder name(final String name) {
-            this.name = name;
+        public TagDO.TagDOBuilder tagName(final String tagName) {
+            this.tagName = tagName;
             return this;
         }
 
@@ -285,7 +286,7 @@ public final class TagDO extends BaseDO {
             TagDO tagDO = new TagDO();
             tagDO.setTagDesc(tagDesc);
             tagDO.setParentTagId(parentTagId);
-            tagDO.setName(name);
+            tagDO.setName(tagName);
             tagDO.setId(id);
             tagDO.setExt(ext);
             tagDO.setDateCreated(dateCreated);
@@ -309,7 +310,7 @@ public final class TagDO extends BaseDO {
         /**
          * name.
          */
-        private String name;
+        private String tagName;
 
         /**
          * parent.
@@ -367,19 +368,19 @@ public final class TagDO extends BaseDO {
         /**
          * get name.
          *
-         * @return name
+         * @return tagName tagName
          */
         public String getName() {
-            return name;
+            return tagName;
         }
 
         /**
          * set name.
          *
-         * @param name name
+         * @param tagName name
          */
-        public void setName(final String name) {
-            this.name = name;
+        public void setName(final String tagName) {
+            this.tagName = tagName;
         }
 
         /**
