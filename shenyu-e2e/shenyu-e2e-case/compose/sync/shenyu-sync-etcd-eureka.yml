@@ -20,6 +20,7 @@ services:
   shenyu-etcd:
     image: rancher/hardened-etcd:v3.5.21-k3s1-build20250910
     container_name: shenyu-etcd
+    command: ["etcd"]
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://shenyu-etcd:2379
