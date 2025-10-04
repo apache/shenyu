@@ -47,13 +47,30 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
+      - uses: ./actions/paths-filter
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - 'mvnw'
+              - 'mvnw.cmd'
+              - '.mvn/**'
+              - '.github/workflows/**'
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!resources/static/**'
+              - '!.asf.yaml'
+              - '!.gitignore'
+              - '!.licenserc.yaml'
+              - '!LICENSE'
+              - '!NOTICE'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE'
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.code == 'true'
         id: restore-maven-cache
         uses: actions/cache/restore@v3
         with:
@@ -62,19 +79,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - uses: actions/setup-java@v4
-        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.code == 'true'
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
       - name: Build with Maven
-        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.code == 'true'
         run: ./mvnw -B clean test -Prelease
       - uses: codecov/codecov-action@v1
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
-        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.code == 'true'
       - name: Save ShenYu Maven Repos
-        if: steps.filter.outputs.changed == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
+        if: steps.filter.outputs.code == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: ~/.m2/repository

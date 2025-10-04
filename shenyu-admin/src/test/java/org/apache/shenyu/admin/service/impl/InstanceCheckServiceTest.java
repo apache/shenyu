@@ -93,7 +93,7 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
-    void testHandleBeatInfoNewAndExisting() {
+    void testHandleBeatInfoNewAndExisting() throws InterruptedException {
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         instanceCheckService.handleBeatInfo(dto);
         InstanceInfoVO first = instanceCheckService.getInstanceHealthBeatInfo(dto);
@@ -101,6 +101,9 @@ public final class InstanceCheckServiceTest {
         long firstBeat = first.getLastHeartBeatTime();
         assertThat(firstBeat, greaterThan(0L));
 
+        // Add a small delay to ensure different timestamps
+        Thread.sleep(1);
+        
         instanceCheckService.handleBeatInfo(dto);
         InstanceInfoVO second = instanceCheckService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);

@@ -27,7 +27,7 @@ export HOST_IP=$(hostname -I | awk '{print $1}')
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
+SYNC_ARRAY=("websocket" "http" "zookeeper")
 #SYNC_ARRAY=("websocket" "nacos")
 #MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 

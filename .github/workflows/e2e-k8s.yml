@@ -39,15 +39,30 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
+      - uses: ./actions/paths-filter
+        id: filter
+        with:
+          filters: |
+            e2e:
+              - 'shenyu-e2e/**'
+              - '**/e2e/**'
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!resources/static/**'
+              - '!.asf.yaml'
+              - '!.gitignore'
+              - '!.licenserc.yaml'
+              - '!LICENSE'
+              - '!NOTICE'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE'
 
   build-docker-images:
     needs: changes
-#    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -107,8 +122,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+#    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -137,12 +152,6 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
-
 #      - name: Install k8s
 #        if: steps.filter.outputs.changed == 'true'
 #        run: |
@@ -158,7 +167,6 @@ jobs:
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -184,7 +192,6 @@ jobs:
 #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
       - name: Run E2E Tests
-#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
@@ -199,8 +206,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+#    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -242,12 +249,6 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
-
 #      - name: Install k8s
 #        if: steps.filter.outputs.changed == 'true'
 #        run: |
@@ -263,7 +264,6 @@ jobs:
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -311,7 +311,6 @@ jobs:
 #          detached: true
 
       - name: Run E2E Tests
-#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
@@ -323,7 +322,7 @@ jobs:
 
   requirement:
     name: e2e
-#    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     needs:
       - changes
       - e2e-storage

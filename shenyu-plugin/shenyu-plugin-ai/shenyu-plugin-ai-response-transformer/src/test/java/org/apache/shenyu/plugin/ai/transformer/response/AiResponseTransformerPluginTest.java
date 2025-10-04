@@ -20,6 +20,11 @@ package org.apache.shenyu.plugin.ai.transformer.response;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.AiModelProviderEnum;
+import org.apache.shenyu.common.dto.convert.plugin.AiResponseTransformerConfig;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -57,6 +63,12 @@ class AiResponseTransformerPluginTest {
     private AiModelFactoryRegistry aiModelFactoryRegistry;
 
     @Mock
+    private AiModelFactory aiModelFactory;
+
+    @Mock
+    private ChatModel chatModel;
+
+    @Mock
     private ShenyuPluginChain chain;
 
     private AiResponseTransformerPlugin plugin;
@@ -65,6 +77,13 @@ class AiResponseTransformerPluginTest {
 
     @BeforeEach
     void setUp() {
+        // Set up the configuration in Singleton
+        AiResponseTransformerConfig config = new AiResponseTransformerConfig();
+        config.setBaseUrl("http://test.com");
+        config.setApiKey("test-key");
+        config.setProvider("test-provider");
+        Singleton.INST.single(AiResponseTransformerConfig.class, config);
+        
         plugin = new AiResponseTransformerPlugin(Collections.emptyList(), aiModelFactoryRegistry);
         
         // Create test request and response
@@ -94,19 +113,25 @@ class AiResponseTransformerPluginTest {
 
     @Test
     void testDoExecute() {
-        // Simplified test, only test basic functionality
         SelectorData selectorData = mock(SelectorData.class);
         RuleData ruleData = mock(RuleData.class);
         
-        // Configure chain mock
+        // Mock the factory registry and factory
+        lenient().when(aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName("test-provider")))
+                .thenReturn(aiModelFactory);
+        lenient().when(aiModelFactory.createAiModel(any(AiCommonConfig.class)))
+                .thenReturn(chatModel);
+        
+        // Mock exchange mutate for the full plugin flow
+        ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
+        lenient().when(exchange.mutate()).thenReturn(builder);
+        lenient().when(builder.response(any())).thenReturn(builder);
+        lenient().when(builder.build()).thenReturn(exchange);
+        
+        // Mock the chain to return empty Mono
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
-        // Mock the mutate() method to return a builder
-        ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any())).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
-        // Execute plugin
+        // Execute plugin - this should succeed with proper configuration
         Mono<Void> result = plugin.doExecute(exchange, chain, selectorData, ruleData);
         
         // Verify execution result
