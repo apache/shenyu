@@ -31,5 +31,27 @@
             <artifactId>shenyu-plugin-motan</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- Test dependencies for Motan -->
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-transport-netty4</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-registry-zookeeper</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-springsupport</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
