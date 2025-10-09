@@ -28,6 +28,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -142,12 +143,44 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        List<Upstream> validUpstreamList = upstreamList.stream().filter(Upstream::isStatus).collect(Collectors.toList());
-        List<Upstream> existUpstream = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
-        existUpstream.stream().filter(upstream -> !validUpstreamList.contains(upstream))
-                .forEach(upstream -> task.triggerRemoveOne(selectorId, upstream));
-        validUpstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))
-                .forEach(upstream -> task.triggerAddOne(selectorId, upstream));
-        UPSTREAM_MAP.put(selectorId, validUpstreamList);
+        List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
+        List<Upstream> validUpstreamList = actualUpstreamList.stream().filter(Upstream::isStatus).toList();
+        List<Upstream> offlineUpstreamList = actualUpstreamList.stream().filter(up -> !up.isStatus()).toList();
+        List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
+
+        if (actualUpstreamList.isEmpty()) {
+            existUpstreamList.forEach(up -> task.triggerRemoveOne(selectorId, up));
+        }
+
+        offlineUpstreamList.forEach(offlineUp -> {
+            existUpstreamList.stream()
+                .filter(existUp -> existUp.equals(offlineUp))
+                .findFirst()
+                .ifPresent(up -> task.triggerRemoveOne(selectorId, up));
+        });
+
+        if (!validUpstreamList.isEmpty()) {
+            // update upstream weight
+            Map<String, Upstream> existUpstreamMap = existUpstreamList.stream()
+                .collect(Collectors.toMap(this::upstreamMapKey, existUp -> existUp));
+            validUpstreamList.forEach(validUp -> {
+                String key = upstreamMapKey(validUp);
+                Upstream matchedExistUp = existUpstreamMap.get(key);
+                if (Objects.nonNull(matchedExistUp)) {
+                    matchedExistUp.setWeight(validUp.getWeight());
+                }
+            });
+
+            validUpstreamList.stream()
+                .filter(validUp -> !existUpstreamList.contains(validUp))
+                .forEach(up -> task.triggerAddOne(selectorId, up));
+        }
+
+        List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
+        UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private String upstreamMapKey(final Upstream upstream) {
+        return String.join("_", upstream.getProtocol(), upstream.getUrl());
     }
 }
