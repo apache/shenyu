@@ -103,17 +103,27 @@ jobs:
             echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
             echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
           fi
-          # Disable daemon mode for CI environment
-          echo "MVND_NO_DAEMON=true" >> $GITHUB_ENV
 
       - name: Verify mvnd installation
         if: steps.filter.outputs.code == 'true'
         shell: bash
-        run: mvnd --version
+        run: mvnd --version || echo "mvnd version check failed, will use maven wrapper as fallback"
 
       - name: Build with Maven
         if: steps.filter.outputs.code == 'true'
-        run: mvnd -B clean test -Prelease
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build"
+            mvnd -B clean test -Prelease
+          else
+            echo "Falling back to maven wrapper"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean test -Prelease
+            else
+              ./mvnw -B clean test -Prelease
+            fi
+          fi
       - uses: codecov/codecov-action@v1
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
