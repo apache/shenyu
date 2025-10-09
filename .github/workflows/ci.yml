@@ -103,6 +103,8 @@ jobs:
             echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
             echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
           fi
+          # Disable daemon mode for CI environment
+          echo "MVND_NO_DAEMON=true" >> $GITHUB_ENV
 
       - name: Verify mvnd installation
         if: steps.filter.outputs.code == 'true'
