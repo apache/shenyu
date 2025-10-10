@@ -334,6 +334,15 @@ public final class UpstreamCheckTask implements Runnable {
     public Map<String, List<Upstream>> getHealthyUpstream() {
         return healthyUpstream;
     }
+
+    /**
+     * Get healthy upstream list.
+     * @param selectorId selectorId
+     * @return healthy upstream list.
+     */
+    public List<Upstream> getHealthyUpstreamListBySelectorId(final String selectorId) {
+        return getHealthyUpstream().get(selectorId);
+    }
     
     /**
      * Get unhealthy upstream map.
