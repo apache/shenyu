@@ -580,6 +580,7 @@ public class ShenyuToolCallback implements ToolCallback {
             } catch (URISyntaxException ignore) {
                 shenyuContext.setPath(decoratedPath);
             }
+
             shenyuContext.setRealUrl(decoratedPath);
 
             LOG.debug("Configured RpcType to HTTP for tool call, session: {}", sessionId);
