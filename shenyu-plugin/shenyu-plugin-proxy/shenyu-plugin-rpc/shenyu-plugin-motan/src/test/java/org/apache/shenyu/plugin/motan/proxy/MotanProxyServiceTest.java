@@ -91,7 +91,6 @@ public class MotanProxyServiceTest {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-        when(responseFuture.getValue()).thenReturn("success");
 
         motanProxyService.genericInvoker("", metaData, exchange, selectorData);
     }
