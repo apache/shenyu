@@ -165,7 +165,7 @@ public final class UpstreamCacheManager {
         if (!validUpstreamList.isEmpty()) {
             // update upstream weight
             Map<String, Upstream> existUpstreamMap = existUpstreamList.stream()
-                .collect(Collectors.toMap(this::upstreamMapKey, existUp -> existUp));
+                .collect(Collectors.toMap(this::upstreamMapKey, existUp -> existUp, (existing, replacement) -> existing));
             validUpstreamList.forEach(validUp -> {
                 String key = upstreamMapKey(validUp);
                 Upstream matchedExistUp = existUpstreamMap.get(key);
