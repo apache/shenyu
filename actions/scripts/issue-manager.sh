@@ -1,9 +1,48 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 # Minimal issue manager script to handle a subset of prow-style commands
 # Reads the GitHub issue_comment event JSON pointed to by GITHUB_EVENT_PATH
 # Requires GITHUB_TOKEN env and GITHUB_REPOSITORY env (owner/repo)
+#
+# Supported Commands:
+# -------------------
+# Command         | Function                    | Example                      | Status
+# --------------- | --------------------------- | ---------------------------- | ------
+# /assign         | Assign issue to users       | /assign or /assign @user     | Normal
+# /unassign       | Unassign users              | /unassign or /unassign @user | Normal
+# /lgtm           | Add lgtm label              | /lgtm                        | Normal
+# /approve        | Add approved label          | /approve                     | Normal
+# /area           | Add area label              | /area plugin                 | Normal
+# /priority       | Add priority label          | /priority high               | Normal
+# /remove         | Remove label                | /remove bug                  | Normal
+# /hold           | Add hold label              | /hold                        | Normal
+# /unhold         | Remove hold label           | /unhold                      | Normal
+# /close          | Close issue                 | /close                       | Normal
+# /reopen         | Reopen issue                | /reopen                      | Normal
+# /lock           | Lock issue                  | /lock                        | Normal
+# /unlock         | Unlock issue                | /unlock                      | Normal
+# /milestone      | Set milestone               | /milestone 5                 | Normal
+# /cc             | Mention users (comment)     | /cc @user1 @user2            | Normal
+# /uncc           | Unmention users (comment)   | /uncc @user1                 | Normal
+
+set -euo pipefail
 
 GITHUB_API=${GITHUB_API:-https://api.github.com}
 
