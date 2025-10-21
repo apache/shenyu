@@ -154,11 +154,12 @@ public final class UpstreamCacheManager {
             existUpstreamList.forEach(up -> task.triggerRemoveOne(selectorId, up));
         }
 
+        // Use a Set for O(1) lookups instead of nested loops
+        java.util.Set<Upstream> existUpstreamSet = new java.util.HashSet<>(existUpstreamList);
         offlineUpstreamList.forEach(offlineUp -> {
-            existUpstreamList.stream()
-                .filter(existUp -> existUp.equals(offlineUp))
-                .findFirst()
-                .ifPresent(up -> task.triggerRemoveOne(selectorId, up));
+            if (existUpstreamSet.contains(offlineUp)) {
+                task.triggerRemoveOne(selectorId, offlineUp);
+            }
         });
 
         if (!validUpstreamList.isEmpty()) {
