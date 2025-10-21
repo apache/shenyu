@@ -28,6 +28,7 @@ read_event() {
 
 COMMENT_BODY=$(read_event '.comment.body')
 ISSUE_NUMBER=$(read_event '.issue.number')
+COMMENT_USER=$(read_event '.comment.user.login')
 
 OWNER=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f1)
 REPO=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)
@@ -118,35 +119,114 @@ process_command() {
   line="$(echo "$line" | sed -e 's/^\s*//' -e 's/\s*$//')"
   case "$line" in
     \/assign*)
-      args="${line#\/assign}"; read -ra users <<<"$args"; for i in "${!users[@]}"; do users[$i]=$(normalize_user "${users[$i]}"); done; assign "${users[@]}";;
+      args="${line#\/assign}"
+      args="$(echo "$args" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -z "$args" ]; then
+        # If no users specified, assign to the commenter
+        assign "$COMMENT_USER"
+      else
+        read -ra users <<<"$args"
+        for i in "${!users[@]}"; do
+          users[$i]=$(normalize_user "${users[$i]}")
+        done
+        assign "${users[@]}"
+      fi
+      ;;
     \/unassign*)
-      args="${line#\/unassign}"; read -ra users <<<"$args"; for i in "${!users[@]}"; do users[$i]=$(normalize_user "${users[$i]}"); done; unassign "${users[@]}";;
+      args="${line#\/unassign}"
+      args="$(echo "$args" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -z "$args" ]; then
+        # If no users specified, unassign the commenter
+        unassign "$COMMENT_USER"
+      else
+        read -ra users <<<"$args"
+        for i in "${!users[@]}"; do
+          users[$i]=$(normalize_user "${users[$i]}")
+        done
+        unassign "${users[@]}"
+      fi
+      ;;
     \/lgtm)
-      add_label "lgtm";;
+      add_label "lgtm"
+      ;;
     \/approve)
-      add_label "approved";;
+      add_label "approved"
+      ;;
     \/area*)
-      lbl="${line#\/area}"; lbl="$(echo "$lbl" | sed -e 's/^\s*//')"; if [ -n "$lbl" ]; then add_label "area/$lbl"; fi;;
+      lbl="${line#\/area}"
+      lbl="$(echo "$lbl" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$lbl" ]; then
+        add_label "area/$lbl"
+      else
+        echo "Error: /area requires an area name (e.g., /area plugin)" >&2
+      fi
+      ;;
     \/priority*)
-      lbl="${line#\/priority}"; lbl="$(echo "$lbl" | sed -e 's/^\s*//')"; if [ -n "$lbl" ]; then add_label "priority/$lbl"; fi;;
+      lbl="${line#\/priority}"
+      lbl="$(echo "$lbl" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$lbl" ]; then
+        add_label "priority/$lbl"
+      else
+        echo "Error: /priority requires a priority level (e.g., /priority high)" >&2
+      fi
+      ;;
     \/remove*)
-      lbl="${line#\/remove}"; lbl="$(echo "$lbl" | sed -e 's/^\s*//')"; if [ -n "$lbl" ]; then remove_label "$lbl"; fi;;
+      lbl="${line#\/remove}"
+      lbl="$(echo "$lbl" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$lbl" ]; then
+        remove_label "$lbl"
+      else
+        echo "Error: /remove requires a label name (e.g., /remove bug)" >&2
+      fi
+      ;;
     \/close)
-      close_issue;;
+      close_issue
+      ;;
     \/reopen)
-      reopen_issue;;
+      reopen_issue
+      ;;
     \/lock)
-      lock_issue;;
+      lock_issue
+      ;;
+    \/unlock)
+      unlock_issue
+      ;;
     \/milestone*)
-      ms="${line#\/milestone}"; ms="$(echo "$ms" | sed -e 's/^\s*//')"; set_milestone "$ms";;
+      ms="${line#\/milestone}"
+      ms="$(echo "$ms" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$ms" ] && [[ "$ms" =~ ^[0-9]+$ ]]; then
+        set_milestone "$ms"
+      else
+        echo "Error: /milestone requires a valid milestone number (e.g., /milestone 5)" >&2
+      fi
+      ;;
     \/hold)
-      add_label "hold";;
+      add_label "hold"
+      ;;
+    \/unhold)
+      remove_label "hold"
+      ;;
     \/cc*)
-      users_str="${line#\/cc}"; users_str="$(echo "$users_str" | sed -e 's/^\s*//')"; if [ -n "$users_str" ]; then comment "cc: $users_str"; fi;;
+      users_str="${line#\/cc}"
+      users_str="$(echo "$users_str" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$users_str" ]; then
+        comment "cc: $users_str"
+      else
+        echo "Warning: /cc requires usernames (e.g., /cc @user1 @user2)" >&2
+      fi
+      ;;
     \/uncc*)
-      users_str="${line#\/uncc}"; users_str="$(echo "$users_str" | sed -e 's/^\s*//')"; if [ -n "$users_str" ]; then comment "uncc: $users_str"; fi;;
+      users_str="${line#\/uncc}"
+      users_str="$(echo "$users_str" | sed -e 's/^\s*//' -e 's/\s*$//')"
+      if [ -n "$users_str" ]; then
+        comment "uncc: $users_str"
+      else
+        echo "Warning: /uncc requires usernames (e.g., /uncc @user1 @user2)" >&2
+      fi
+      ;;
     *)
-      echo "No recognized command: $line" >&2;;
+      echo "No recognized command: $line" >&2
+      ;;
   esac
 }
 
