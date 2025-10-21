@@ -41,7 +41,7 @@ public final class Upstream {
     /**
      * weight.
      */
-    private final int weight;
+    private int weight;
 
     /**
      * false close, true open.
@@ -194,6 +194,15 @@ public final class Upstream {
      */
     public int getWeight() {
         return weight;
+    }
+
+    /**
+     * Sets weight.
+     *
+     * @param weight the weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
     }
 
     /**
@@ -441,7 +450,7 @@ public final class Upstream {
             return false;
         }
         Upstream that = (Upstream) o;
-        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol) && Objects.equals(weight, that.weight);
+        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol);
     }
 
     @Override
