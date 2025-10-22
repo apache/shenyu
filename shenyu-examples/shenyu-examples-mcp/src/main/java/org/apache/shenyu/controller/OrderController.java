@@ -105,6 +105,7 @@ public class OrderController {
     )
     @ApiDoc(desc = "findAll")
     public String findAll() {
+        System.out.println("findAll success");
         return "findAll success";
     }
 }

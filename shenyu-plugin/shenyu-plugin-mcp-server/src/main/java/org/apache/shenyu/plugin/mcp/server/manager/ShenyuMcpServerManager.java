@@ -368,7 +368,7 @@ public class ShenyuMcpServerManager {
      */
     public synchronized void addTool(final String serverPath, final String name, final String description,
                         final String requestTemplate, final String inputSchema) {
-        String normalizedPath = normalizeServerPath(serverPath);
+        String normalizedPath = normalizeServerPath(extractBasePath(serverPath));
 
         // Remove existing tool first
         try {
