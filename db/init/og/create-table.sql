@@ -14,38 +14,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- ----------------------------
--- Sequence structure for operation_record_log_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."operation_record_log_id_seq";
-CREATE SEQUENCE "public"."operation_record_log_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
 
--- ----------------------------
--- Sequence structure for plugin_handle_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."plugin_handle_id_seq";
-CREATE SEQUENCE "public"."plugin_handle_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
 
--- ----------------------------
--- Sequence structure for shenyu_dict_id_seq
--- ----------------------------
-DROP SEQUENCE IF EXISTS "public"."shenyu_dict_id_seq";
-CREATE SEQUENCE "public"."shenyu_dict_id_seq"
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
 
 
 -- ----------------------------
@@ -376,6 +346,25 @@ COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time'
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for proxy_api_key_mapping
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."proxy_api_key_mapping";
+CREATE TABLE "public"."proxy_api_key_mapping" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "proxy_api_key" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "description" varchar(500) COLLATE "pg_catalog"."default",
+  "enabled" int2 NOT NULL DEFAULT 1,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "selector_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+)
+;
+CREATE UNIQUE INDEX uk_selector_proxy_key ON "public"."proxy_api_key_mapping" USING btree ("selector_id","proxy_api_key");
+CREATE INDEX idx_namespace_enabled ON "public"."proxy_api_key_mapping" USING btree ("namespace_id","enabled");
+
+-- ----------------------------
 -- Table structure for model
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."model";
@@ -402,6 +391,16 @@ COMMENT ON COLUMN "public"."model"."date_updated" IS 'update time';
 -- Table structure for operation_record_log
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."operation_record_log";
+-- ----------------------------
+-- Sequence structure for operation_record_log_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."operation_record_log_id_seq";
+CREATE SEQUENCE "public"."operation_record_log_id_seq"
+    INCREMENT 1
+    MINVALUE  1
+    MAXVALUE 9223372036854775807
+    START 1
+    CACHE 1;
 CREATE TABLE "public"."operation_record_log" (
   "id" int8 NOT NULL DEFAULT nextval('operation_record_log_id_seq'::regclass),
   "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
@@ -987,7 +986,7 @@ INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-
 INSERT INTO "public"."plugin" VALUES ('43', 'loggingHuaweiLts', '{ "totalSizeInBytes": "104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 'Logging', 177, 0, '2023-07-05 14:03:53', '2023-07-06 12:42:07', null);
 INSERT INTO "public"."plugin" VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{"authorization":"test:test123"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('45', 'loggingRabbitMQ', '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', 'Logging', 171, 0, '2023-11-06 15:49:56.454', '2023-11-10 10:40:58.447', NULL);
-INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1","prompt":""}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
@@ -996,6 +995,16 @@ INSERT INTO "public"."plugin" VALUES ('66', 'aiResponseTransformer', NULL, 'Ai',
 -- Table structure for plugin_handle
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."plugin_handle";
+-- ----------------------------
+-- Sequence structure for plugin_handle_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."plugin_handle_id_seq";
+CREATE SEQUENCE "public"."plugin_handle_id_seq"
+    INCREMENT 1
+    MINVALUE  1
+    MAXVALUE 9223372036854775807
+    START 1
+    CACHE 1;
 CREATE TABLE "public"."plugin_handle" (
   "id" varchar(128) NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
   "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -1061,6 +1070,8 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136287', '4', 'url', 
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136288', '4', 'password', 'password', 2, 3, 4, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136289', '11', 'protocol', 'protocol', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136290', '11', 'register', 'register', 2, 3, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136289', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136290', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136291', '2', 'model', 'model', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136292', '6', 'register', 'register', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136293', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1183,7 +1194,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524909', '30', 'minId
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524910', '30', 'maxActive', 'maxActive', 1, 3, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524911', '30', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524912', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{"required":"0","defaultValue":"60","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524902', '30', 'cacheType', 'cacheType', 3, 1, 1, '{"required":"1","defaultValue":"memory","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524903', '30', 'database', 'database', 1, 1, 2, '{"required":"0","defaultValue":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524904', '30', 'master', 'master', 2, 1, 3, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524905', '30', 'mode', 'mode', 2, 1, 4, '{"required":"0","defaultValue":"standalone","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1217,7 +1227,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524950', '33', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'bootstrapServer', 'bootstrapServer', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524952', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524953', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524954', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
@@ -1228,7 +1238,12 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172858', '33', 'secur
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172860', '33', 'userName', 'userName', 2, 3, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172861', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524951', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{"required":"0","defaultValue":""}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524955', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{"required":"0","defaultValue":"none"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172860', '33', 'userName', 'userName', 2, 1, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172861', '33', 'passWord', 'passWord', 2, 1, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524962', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524963', '34', 'accessKey', 'accessKey', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
@@ -1359,6 +1374,20 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804180904927232', '45', 'durab
 INSERT INTO "public"."plugin_handle" VALUES ('1722804370575548416', '45', 'exclusive', 'exclusive', 2, 3, 0, '{"required":"1","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804461256400896', '45', 'autoDelete', 'autoDelete', 2, 3, 0, '{"required":"1","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{"required":"0","defaultValue":"","placeholder":"args json","rule":""}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1821435546642157568', '45', 'host', 'host', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:53:11.704', '2023-11-07 13:31:41.010');
+INSERT INTO "public"."plugin_handle" VALUES ('1821435708743618560', '45', 'port', 'port', 1, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:53:50.352', '2023-11-07 13:31:41.016');
+INSERT INTO "public"."plugin_handle" VALUES ('1821436368046264320', '45', 'password', 'password', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:56:27.541', '2023-11-07 13:31:41.021');
+INSERT INTO "public"."plugin_handle" VALUES ('1821436500343001088', '45', 'username', 'username', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:56:59.084', '2023-11-07 13:31:41.025');
+INSERT INTO "public"."plugin_handle" VALUES ('1821436639635836928', '45', 'exchangeName', 'exchangeName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:57:32.295', '2023-11-07 13:31:41.030');
+INSERT INTO "public"."plugin_handle" VALUES ('1821436745583955968', '45', 'queueName', 'queueName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 15:57:57.553', '2023-11-07 13:31:41.035');
+INSERT INTO "public"."plugin_handle" VALUES ('1821509996347617280', '45', 'routingKey', 'routingKey', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}', '2023-11-06 20:49:01.897', '2023-11-07 13:31:41.039');
+INSERT INTO "public"."plugin_handle" VALUES ('1821725585461706752', '45', 'virtualHost', 'virtualHost', 2, 1, 0, '{"required":"0","defaultValue":"/","rule":""}', '2023-11-07 11:05:42.350', '2023-11-07 13:31:41.044');
+INSERT INTO "public"."plugin_handle" VALUES ('1821725662875975680', '45', 'exchangeType', 'exchangeType', 2, 1, 0, '{"required":"0","defaultValue":"direct","rule":""}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO "public"."plugin_handle" VALUES ('1822804180904927232', '45', 'durable', 'durable', 2, 1, 0, '{"required":"0","defaultValue":"true","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO "public"."plugin_handle" VALUES ('1822804370575548416', '45', 'exclusive', 'exclusive', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO "public"."plugin_handle" VALUES ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO "public"."plugin_handle" VALUES ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"args json","rule":""}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507009', '45', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507010', '45', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
@@ -2053,6 +2082,16 @@ COMMENT ON COLUMN "public"."selector_condition"."date_updated" IS 'update time';
 -- Table structure for shenyu_dict
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."shenyu_dict";
+-- ----------------------------
+-- Sequence structure for shenyu_dict_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "public"."shenyu_dict_id_seq";
+CREATE SEQUENCE "public"."shenyu_dict_id_seq"
+    INCREMENT 1
+    MINVALUE  1
+    MAXVALUE 9223372036854775807
+    START 1
+    CACHE 1;
 CREATE TABLE "public"."shenyu_dict" (
   "id" varchar(128) NOT NULL DEFAULT nextval('shenyu_dict_id_seq'::regclass),
   "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2367,7 +2406,7 @@ CREATE TABLE "public"."tag" (
 )
 ;
 COMMENT ON COLUMN "public"."tag"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."tag"."name" IS 'tag name';
+COMMENT ON COLUMN "public"."tag"."tag_name" IS 'tag name';
 COMMENT ON COLUMN "public"."tag"."tag_desc" IS 'tag desc';
 COMMENT ON COLUMN "public"."tag"."parent_tag_id" IS 'parent tag id';
 COMMENT ON COLUMN "public"."tag"."ext" IS 'extension';
@@ -2398,10 +2437,10 @@ COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
 DROP TABLE IF EXISTS "public"."discovery";
 CREATE TABLE "public"."discovery" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "discovery_level" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
-    "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+    "discovery_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
     "server_list" varchar(255) COLLATE "pg_catalog"."default",
     "props" text COLLATE "pg_catalog"."default",
     "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2847,6 +2886,11 @@ INSERT INTO "public"."resource" VALUES ('1844026099075534855', '1844026099075534
 INSERT INTO "public"."resource" VALUES ('1844026099075534856', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075534857', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO "public"."resource" VALUES ('1844026099075534858', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxy:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO "public"."resource" VALUES ('1844026099075534900', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.ADD', '', '', '', 2, 0, '', 1, 0, 'system:aiProxyApiKey:add', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534901', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.LIST', '', '', '', 2, 1, '', 1, 0, 'system:aiProxyApiKey:list', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534902', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.EDIT', '', '', '', 2, 2, '', 1, 0, 'system:aiProxyApiKey:edit', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534903', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE', '', '', '', 2, 3, '', 1, 0, 'system:aiProxyApiKey:delete', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
+INSERT INTO "public"."resource" VALUES ('1844026099075534904', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE', '', '', '', 2, 4, '', 1, 0, 'system:aiProxyApiKey:disable', 1, '2025-09-10 00:00:00', '2025-09-10 00:00:00');
 
 INSERT INTO "public"."permission" VALUES ('1697146860569542741', '1346358560427216896', '1844026099075534849', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569542742', '1346358560427216896', '1844026099075534850', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
@@ -2859,6 +2903,12 @@ INSERT INTO "public"."permission" VALUES ('1697146860569542748', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569542749', '1346358560427216896', '1844026099075534857', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO "public"."permission" VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
+INSERT INTO "public"."permission" VALUES ('1953049887387303950', '1346358560427216896', '1844026099075534900', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303951', '1346358560427216896', '1844026099075534901', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303952', '1346358560427216896', '1844026099075534902', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303953', '1346358560427216896', '1844026099075534903', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO "public"."permission" VALUES ('1953049887387303954', '1346358560427216896', '1844026099075534904', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"0","defaultValue":"OpenAI","placeholder":"provider","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507042', '50', 'baseUrl', 'baseUrl', 2, 1, 1, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507043', '50', 'model', 'model', 2, 1, 2, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
@@ -2866,7 +2916,15 @@ INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507044', '50', 'apiKe
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507045', '50', 'temperature', 'temperature', 2, 1, 4, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507046', '50', 'maxTokens', 'maxTokens', 2, 1, 5, '{"required":"0","rule":"", "placeholder":"optional,0,0.01~1"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
-INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 1, 7, '{"required":"0","defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 8, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371601', '50', 'fallbackEnabled', 'fallbackEnabled', 2, 1, 9, '{"required":"0","defaultValue":"false","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371602', '50', 'fallbackProvider', 'fallbackProvider', 2, 1, 10, '{"required":"0","placeholder":"OPENAI","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371603', '50', 'fallbackBaseUrl', 'fallbackBaseUrl', 2, 1, 11, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371604', '50', 'fallbackApiKey', 'fallbackApiKey', 2, 1, 12, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371605', '50', 'fallbackModel', 'fallbackModel', 2, 1, 12, '{"required":"0","placeholder":"gpt-4.1","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371606', '50', 'fallbackTemperature', 'fallbackTemperature', 1, 1, 13, '{"required":"0"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+INSERT INTO "public"."plugin_handle" VALUES ('1899802529972371607', '50', 'fallbackMaxTokens', 'fallbackMaxTokens', 1, 1, 14, '{"required":"0"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507350', '66', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507351', '66', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
 INSERT INTO "public"."plugin_handle" VALUES ('1722804548510507352', '66', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');

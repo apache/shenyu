@@ -589,6 +589,11 @@ public interface Constants {
     String DUBBO_DEFAULT_APPLICATION_NAME = "shenyu_proxy";
 
     /**
+     * sofa default application name.
+     */
+    String SOFA_DEFAULT_APPLICATION_NAME = "sofa";
+    
+    /**
      * dubbo group.
      */
     String GROUP = "group";
@@ -718,6 +723,11 @@ public interface Constants {
      */
     String X_ACCESS_TOKEN = "X-Access-Token";
 
+    /**
+     * X-API-KEY; AI proxy key header.
+     */
+    String X_API_KEY = "X-API-KEY";
+    
     /**
      * The admin return result code.
      */
@@ -895,6 +905,10 @@ public interface Constants {
      */
     String SHENYU_NAMESPACE_ID = "namespaceId";
 
+    /**
+     * The constant Client Port.
+     */
+    String CLIENT_PORT_NAME = "ClientPort";
     /**
      * The constant SYS_DEFAULT_NAMESPACE_ID.
      */

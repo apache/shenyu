@@ -53,6 +53,8 @@ public class WebsocketListener implements ServletRequestListener {
                 session.removeAttribute(CLIENT_IP_NAME);
                 request.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
                 session.removeAttribute(Constants.SHENYU_NAMESPACE_ID);
+                request.removeAttribute(Constants.CLIENT_PORT_NAME);
+                session.removeAttribute(Constants.CLIENT_PORT_NAME);
             }
         } catch (Exception e) {
             LOG.error("request destroyed error", e);
@@ -68,9 +70,12 @@ public class WebsocketListener implements ServletRequestListener {
                 request.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
                 String namespace = request.getHeader(Constants.SHENYU_NAMESPACE_ID);
+                String port = request.getHeader(Constants.CLIENT_PORT_NAME);
                 if (StringUtils.isNoneBlank(namespace)) {
                     request.setAttribute(Constants.SHENYU_NAMESPACE_ID, namespace);
                     session.setAttribute(Constants.SHENYU_NAMESPACE_ID, namespace);
+                    request.setAttribute(Constants.CLIENT_PORT_NAME, port);
+                    session.setAttribute(Constants.CLIENT_PORT_NAME, port);
                 }
             }
         } catch (Exception e) {
