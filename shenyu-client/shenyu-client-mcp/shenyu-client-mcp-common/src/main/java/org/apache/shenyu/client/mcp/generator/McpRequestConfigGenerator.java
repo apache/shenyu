@@ -18,12 +18,15 @@
 package org.apache.shenyu.client.mcp.generator;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import org.apache.shenyu.client.mcp.common.constants.RequestTemplateConstants;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 
 /**
@@ -33,19 +36,21 @@ public class McpRequestConfigGenerator {
 
     public static JsonObject generateRequestConfig(final JsonObject openApiJson, final ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
 
+        // requestConfig
         JsonObject root = new JsonObject();
 
+        // requestTemplate
+        JsonObject requestTemplate = new JsonObject();
+        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
+
         // url
-        JsonObject server = openApiJson.get(OpenApiConstants.OPEN_API_SERVER_KEY).getAsJsonObject();
-        String serverAddress = server.get(OpenApiConstants.OPEN_API_SERVER_URL_KEY).getAsString();
         JsonObject paths = openApiJson.get(OpenApiConstants.OPEN_API_PATH_KEY).getAsJsonObject();
         String path = null;
         for (String methodKey : paths.keySet()) {
             path = methodKey;
             break;
         }
-        String url = serverAddress + path;
-        root.addProperty(RequestTemplateConstants.URL_KEY, url);
+        requestTemplate.addProperty(RequestTemplateConstants.URL_KEY, path);
 
         // method
         JsonObject method = paths.get(path).getAsJsonObject();
@@ -54,14 +59,31 @@ public class McpRequestConfigGenerator {
             methodType = methodKey;
             break;
         }
-        root.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
+        requestTemplate.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
 
-        //bodyJson
-        root.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.bodyJson());
+        // argsPosition
+        JsonObject methodTypeJson = method.getAsJsonObject(methodType);
+        JsonArray parameters = methodTypeJson.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
+        if (Objects.nonNull(parameters)) {
+            JsonObject argsPosition = new JsonObject();
 
-        // requestTemplate
-        JsonObject requestTemplate = new JsonObject();
-        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
+            for (JsonElement parameter : parameters) {
+                JsonObject paramObj = parameter.getAsJsonObject();
+
+                if (paramObj.has(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY)
+                        && paramObj.has(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY)) {
+
+                    String name = paramObj.get(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY).getAsString();
+                    String inValue = paramObj.get(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY).getAsString();
+
+                    argsPosition.addProperty(name, inValue);
+                }
+            }
+            requestTemplate.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition);
+        }
+
+        // argsToJsonBody
+        requestTemplate.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.bodyJson());
 
         // header
         JsonArray headers = new JsonArray();

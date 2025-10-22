@@ -35,12 +35,17 @@ public class RequestTemplateConstants {
     /**
      * the bodyJson key.
      */
-    public static final String BODY_JSON_KEY = "bodyJson";
+    public static final String BODY_JSON_KEY = "argsToJsonBody";
 
     /**
      * the headers key.
      */
     public static final String HEADERS_KEY = "headers";
+
+    /**
+     * the argsPosition key.
+     */
+    public static final String ARGS_POSITION_KEY = "argsPosition";
 
     /**
      * the requestTemplate key.
