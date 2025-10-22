@@ -31,5 +31,5 @@ shenyu:
   client:
     mcp:
       props:
-        contextPath: /order/sse
-        appName: /order/sse
+        contextPath: /order
+        appName: /order

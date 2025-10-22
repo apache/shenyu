@@ -20,7 +20,6 @@ package org.apache.shenyu.client.mcp.generator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import org.apache.shenyu.client.mcp.common.constants.RequestTemplateConstants;
