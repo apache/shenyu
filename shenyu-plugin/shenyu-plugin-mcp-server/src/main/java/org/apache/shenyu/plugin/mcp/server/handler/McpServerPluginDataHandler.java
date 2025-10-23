@@ -85,7 +85,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
         String path = StringUtils.removeEnd(uri, SLASH);
         path = StringUtils.removeEnd(path, STAR);
-        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(Objects.isNull(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
+        ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(StringUtils.isBlank(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),

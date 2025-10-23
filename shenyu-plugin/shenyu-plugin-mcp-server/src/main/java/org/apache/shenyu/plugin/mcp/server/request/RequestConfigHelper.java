@@ -51,7 +51,7 @@ public class RequestConfigHelper {
      * @return the argument position json object
      */
     public JsonObject getArgsPosition() {
-        return configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition") : new JsonObject();
+        return getRequestTemplate().get("argsPosition").getAsJsonObject();
     }
 
     /**
