@@ -25,13 +25,15 @@ import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * the openApi generator.
  */
 public class McpOpenApiGenerator {
-    public static JsonObject generateOpenApiJson(final ShenyuMcpTool classMcpClient, final io.swagger.v3.oas.models.Operation operation,
-                                                 final ShenyuMcpTool methodMcpClient, final String url) {
+    public static JsonObject generateOpenApiJson(final ShenyuMcpTool classMcpClient,
+                                                 final org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool shenyuMcpTool,
+                                                 final String url) {
         JsonObject root = new JsonObject();
         root.addProperty(OpenApiConstants.OPEN_API_VERSION_KEY, "3.0.0");
 
@@ -56,7 +58,7 @@ public class McpOpenApiGenerator {
         JsonObject pathMap = new JsonObject();
         paths.add(pathKey, pathMap);
 
-        String methodType = methodMcpClient.operation().method();
+        String methodType = shenyuMcpTool.getMethod();
         JsonObject methodMap = new JsonObject();
         pathMap.add(methodType, methodMap);
 
@@ -68,7 +70,7 @@ public class McpOpenApiGenerator {
         JsonArray parameters = new JsonArray();
         methodMap.add(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY, parameters);
 
-        List<io.swagger.v3.oas.models.parameters.Parameter> parameterList = operation.getParameters();
+        List<io.swagger.v3.oas.models.parameters.Parameter> parameterList = shenyuMcpTool.getOperation().getParameters();
 
         if (!parameterList.isEmpty()) {
 
@@ -79,8 +81,9 @@ public class McpOpenApiGenerator {
                 parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_DESCRIPTION_KEY, parameter.getDescription());
                 parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_REQUIRED_KEY, parameter.getRequired());
 
-                parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.getSchema().getType());
-
+                if (Objects.nonNull(parameter.getSchema())) {
+                    parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.getSchema().getType());
+                }
                 parameters.add(parameterObj);
             }
         }
