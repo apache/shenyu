@@ -115,9 +115,9 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findByName")
-    @ShenyuMcpTool()
+    @ShenyuMcpTool
     @ApiDoc(desc = "findName")
-    public OrderDTO findByName(@ShenyuMcpToolParam() final String name) {
+    public OrderDTO findByName(@ShenyuMcpToolParam final String name) {
         OrderDTO dto = new OrderDTO();
         dto.setName(name);
         return dto;
