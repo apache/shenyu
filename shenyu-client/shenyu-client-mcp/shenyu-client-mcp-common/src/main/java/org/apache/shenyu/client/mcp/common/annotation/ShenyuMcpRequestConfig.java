@@ -33,6 +33,6 @@ public @interface ShenyuMcpRequestConfig {
      * bodyJson.
      * @return the bodyJson
      */
-    String bodyJson() default "";
+    String bodyToJson() default "false";
 
 }

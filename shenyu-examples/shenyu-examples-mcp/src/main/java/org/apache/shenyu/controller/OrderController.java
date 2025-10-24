@@ -60,7 +60,7 @@ public class OrderController {
                     method = "Get", description = "find order by id"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
-                    bodyJson = "shenyu",
+                    bodyToJson = "false",
                     headers = {
                             @ShenyuMcpHeader(key = "aaa", value = "bbb")
                     }
@@ -96,7 +96,7 @@ public class OrderController {
                     method = "Get", description = "find all order"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
-                    bodyJson = "shenyu",
+                    bodyToJson = "false",
                     headers = {
                             @ShenyuMcpHeader(key = "aaa", value = "bbb")
                     }
@@ -106,5 +106,20 @@ public class OrderController {
     @ApiDoc(desc = "findAll")
     public String findAll() {
         return "findAll success";
+    }
+
+    /**
+     * Find by name order dto.
+     *
+     * @param name the name
+     * @return the order dto
+     */
+    @GetMapping("/findByName")
+    @ShenyuMcpTool
+    @ApiDoc(desc = "findName")
+    public OrderDTO findByName(@ShenyuMcpToolParam final String name) {
+        OrderDTO dto = new OrderDTO();
+        dto.setName(name);
+        return dto;
     }
 }
