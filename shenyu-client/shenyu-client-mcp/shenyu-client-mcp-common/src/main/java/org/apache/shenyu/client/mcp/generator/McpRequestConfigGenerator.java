@@ -20,11 +20,10 @@ package org.apache.shenyu.client.mcp.generator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import org.apache.shenyu.client.mcp.common.constants.RequestTemplateConstants;
+import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -82,13 +81,13 @@ public class McpRequestConfigGenerator {
         }
 
         // argsToJsonBody
-        requestTemplate.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.bodyJson());
+        requestTemplate.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.getBodyToJson());
 
         // header
         JsonArray headers = new JsonArray();
-        Arrays.asList(shenyuMcpRequestConfig.headers()).forEach(header -> {
+        shenyuMcpRequestConfig.getHeaders().forEach((key, value) -> {
             JsonObject headerJson = new JsonObject();
-            headerJson.addProperty(header.key(), header.value());
+            headerJson.addProperty(key, value);
             headers.add(headerJson);
         });
         requestTemplate.add(RequestTemplateConstants.HEADERS_KEY, headers);
