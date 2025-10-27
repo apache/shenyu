@@ -72,8 +72,8 @@ public final class WebsocketDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChanged() {
-        String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"2\",\"name\":\"waf\","
-                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":\"1\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+        String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":"
+                +"\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
         MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
@@ -88,19 +88,25 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnSelectorChanged() {
         String message = "{\"groupType\":\"SELECTOR\",\"eventType\":\"UPDATE\",\"data\":"
-                + "[{\"id\":\"1336329408516136960\",\"pluginId\":\"5\",\"pluginName\":\"divide\",\"name\":"
-                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"logged\":true,"
+                + "[{\"pluginId\":\"5\",\"pluginName\":\"divide\","
+                + "\"matchMode\":0,\"type\":1,\"logged\":true,"
                 + "\"continued\":true,\"handle\":\"[{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\","
                 + "\\\\\\\"protocol\\\\\\\":\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":"
                 + "\\\\\\\"127.0.0.1:8187\\\\\\\",\\\\\\\"weight\\\\\\\":\\\\\\\"51\\\\\\\"},"
                 + "{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\",\\\\\\\"protocol\\\\\\\":"
                 + "\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":\\\\\\\"127.0.0.1:8188\\\\\\\","
                 + "\\\\\\\"weight\\\\\\\":\\\\\\\"49\\\\\\\"}]\",\"conditionList\":[{\"paramType\":\"uri\","
-                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}],\"id\":\"1336329408516136960\","
+                + "\"name\":\"/http\",\"enabled\":true,\"sort\":1,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
         MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
+
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+
+            // 调用被测试的方法
             websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.UPDATE);
+
+            // 验证
             mockedStatic.verify(verification);
         }
     }
@@ -110,12 +116,13 @@ public final class WebsocketDataChangedListenerTest {
      */
     @Test
     public void testOnRuleChanged() {
-        String message = "{\"groupType\":\"RULE\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"1336350040008105984\","
-                + "\"name\":\"test\",\"pluginName\":\"waf\",\"selectorId\":\"1336349806465064960\","
-                + "\"matchMode\":1,\"sort\":1,\"enabled\":true,\"loged\":true,\"handle\":"
+        String message = "{\"groupType\":\"RULE\",\"eventType\":\"UPDATE\",\"data\":[{"
+                + "\"pluginName\":\"waf\",\"selectorId\":\"1336349806465064960\","
+                + "\"matchMode\":1,\"loged\":true,\"handle\":"
                 + "\"{\\\\\\\"permission\\\\\\\":\\\\\\\"reject\\\\\\\",\\\\\\\"statusCode\\\\\\\":"
                 + "\\\\\\\"503\\\\\\\"}\",\"conditionDataList\":[{\"paramType\":\"header\",\"operator\":"
-                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}],\"id\":\"1336350040008105984\",\"name\":\"test\","
+                + "\"enabled\":true,\"sort\":1,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
         MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
