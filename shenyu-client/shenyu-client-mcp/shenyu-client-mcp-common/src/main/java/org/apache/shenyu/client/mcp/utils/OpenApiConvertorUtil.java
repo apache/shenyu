@@ -20,9 +20,12 @@ package org.apache.shenyu.client.mcp.utils;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpHeader;
+import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -32,10 +35,12 @@ import java.util.stream.Collectors;
 public class OpenApiConvertorUtil {
 
     public static io.swagger.v3.oas.models.parameters.Parameter convertParameter(final io.swagger.v3.oas.annotations.Parameter annotation) {
-        if (!Objects.nonNull(annotation)) {
-            return null;
-        }
+
         io.swagger.v3.oas.models.parameters.Parameter parameter = new io.swagger.v3.oas.models.parameters.Parameter();
+
+        if (!Objects.nonNull(annotation)) {
+            return parameter;
+        }
 
         parameter.setName(annotation.name());
         parameter.setIn(annotation.in().toString().toLowerCase());
@@ -56,10 +61,12 @@ public class OpenApiConvertorUtil {
     }
 
     public static Operation convertOperation(final io.swagger.v3.oas.annotations.Operation operationAnnotation) {
-        if (Objects.isNull(operationAnnotation)) {
-            return null;
-        }
         Operation operation = new Operation();
+
+        if (Objects.isNull(operationAnnotation)) {
+            return operation;
+        }
+
         operation.setSummary(operationAnnotation.summary());
         operation.setDescription(operationAnnotation.description());
         operation.setDeprecated(operationAnnotation.deprecated());
@@ -81,4 +88,14 @@ public class OpenApiConvertorUtil {
         return operation;
     }
 
+    public static org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig convertRequestConfig(final ShenyuMcpRequestConfig requestConfigAnnotation) {
+        org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig requestConfigObject = new org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig();
+        ShenyuMcpHeader[] headersAnnotation = requestConfigAnnotation.headers();
+        Map<String, String> headersObject = requestConfigObject.getHeaders();
+        for (ShenyuMcpHeader shenyuMcpHeader : headersAnnotation) {
+            headersObject.put(shenyuMcpHeader.key(), shenyuMcpHeader.value());
+        }
+        requestConfigObject.setBodyToJson(requestConfigAnnotation.bodyToJson());
+        return requestConfigObject;
+    }
 }
