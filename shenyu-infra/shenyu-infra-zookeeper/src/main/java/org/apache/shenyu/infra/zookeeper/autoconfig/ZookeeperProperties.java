@@ -32,24 +32,8 @@ public class ZookeeperProperties extends InfraParentProperties {
 
     public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ZOOKEEPER;
 
-    private static final Integer DEFAULT_SESSION_TIMEOUT = 60 * 1000;
-
-    private static final Integer DEFAULT_CONNECT_TIMEOUT = 15 * 1000;
-
-    private static final Integer DEFAULT_BASE_SLEEP_TIME = 1000;
-
-    private static final Integer DEFAULT_MAX_SLEEP_TIME = Integer.MAX_VALUE;
-
-    private static final Integer DEFAULT_MAX_RETRIES = 3;
-
     @NestedConfigurationProperty
-    private ZookeeperConfig zookeeper = ZookeeperConfig.builder()
-            .baseSleepTimeMilliseconds(DEFAULT_BASE_SLEEP_TIME)
-            .maxSleepTimeMilliseconds(DEFAULT_MAX_SLEEP_TIME)
-            .maxRetries(DEFAULT_MAX_RETRIES)
-            .sessionTimeoutMilliseconds(DEFAULT_SESSION_TIMEOUT)
-            .connectionTimeoutMilliseconds(DEFAULT_CONNECT_TIMEOUT)
-            .build();
+    private ZookeeperConfig zookeeper = ZookeeperConfig.builder().build();
 
     /**
      * Get zookeeper.

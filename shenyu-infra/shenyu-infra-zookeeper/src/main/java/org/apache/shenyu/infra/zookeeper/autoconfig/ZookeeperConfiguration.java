@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.infra.zookeeper.autoconfig;
 
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * The type Zookeeper configuration.
@@ -37,6 +39,16 @@ public class ZookeeperConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperConfiguration.class);
 
+    private static final Integer DEFAULT_SESSION_TIMEOUT = 60 * 1000;
+
+    private static final Integer DEFAULT_CONNECT_TIMEOUT = 15 * 1000;
+
+    private static final Integer DEFAULT_BASE_SLEEP_TIME = 1000;
+
+    private static final Integer DEFAULT_MAX_SLEEP_TIME = Integer.MAX_VALUE;
+
+    private static final Integer DEFAULT_MAX_RETRIES = 3;
+
     /**
      * Zookeeper client bean.
      *
@@ -46,12 +58,34 @@ public class ZookeeperConfiguration {
     @Bean
     @ConditionalOnMissingBean(ZookeeperClient.class)
     public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProperties) {
+
         ZookeeperConfig config = zookeeperProperties.getZookeeper();
+        if (!StringUtils.hasText(config.getUrl())) {
+            throw new ShenyuException("zookeeper url is empty");
+        }
+        if (config.getBaseSleepTimeMilliseconds() == null) {
+            config.setBaseSleepTimeMilliseconds(DEFAULT_BASE_SLEEP_TIME);
+        }
+        if (config.getMaxSleepTimeMilliseconds() == null) {
+            config.setMaxSleepTimeMilliseconds(DEFAULT_MAX_SLEEP_TIME);
+        }
+        if (config.getMaxRetries() == null) {
+            config.setMaxRetries(DEFAULT_MAX_RETRIES);
+        }
+        if (config.getSessionTimeoutMilliseconds() == null) {
+            config.setSessionTimeoutMilliseconds(DEFAULT_SESSION_TIMEOUT);
+        }
+        if (config.getConnectionTimeoutMilliseconds() == null) {
+            config.setConnectionTimeoutMilliseconds(DEFAULT_CONNECT_TIMEOUT);
+        }
+
         LOG.info("init zookeeper client, config: {}", config);
+
         ZookeeperClient client = ZookeeperClient.builder()
                 .config(config)
                 .build();
         client.start();
+
         return client;
     }
 }

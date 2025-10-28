@@ -35,6 +35,10 @@ public class EtcdConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(EtcdConfiguration.class);
 
+    private static final Integer DEFAULT_SESSION_TIMEOUT = 30 * 1000;
+
+    private static final Integer DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+
     /**
      * Init etcd client.
      *
@@ -45,13 +49,20 @@ public class EtcdConfiguration {
     @ConditionalOnMissingBean
     public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
 
-        log.info("Initializing Etcd Client with URL: {}", etcdProperties.getEtcd().getUrl());
+        log.info("Initializing Etcd Client with URL: {}", etcdProperties.getEtcd());
+
+        int timeout = etcdProperties.getEtcd().getSessionTimeout() == null ? DEFAULT_SESSION_TIMEOUT : etcdProperties.getEtcd().getSessionTimeout();
+        int ttl = etcdProperties.getEtcd().getConnectionTimeout() == null ? DEFAULT_CONNECT_TIMEOUT : etcdProperties.getEtcd().getConnectionTimeout();
+
         return EtcdClient.builder()
                 .client(
                         Client.builder()
                                 .endpoints(etcdProperties.getEtcd().getUrl().split(","))
                                 .build()
-                ).build();
+                )
+                .timeout(timeout)
+                .ttl(ttl)
+                .build();
     }
 
 }

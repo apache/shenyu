@@ -51,6 +51,7 @@ class ZookeeperClientTest {
                 .maxRetries(3)
                 .sessionTimeoutMilliseconds(60000)
                 .connectionTimeoutMilliseconds(15000)
+                .maxSleepTimeMilliseconds(1000)
                 .build();
         client = ZookeeperClient.builder().config(config).build();
         client.start();

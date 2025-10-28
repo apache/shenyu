@@ -31,7 +31,9 @@ public class ConditionOnSyncZookeeper extends SpringBootCondition {
 
     @Override
     public ConditionOutcome getMatchOutcome(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
+
         String property = context.getEnvironment().getProperty(ZookeeperProperties.CONFIG_PREFIX + ".url");
+
         return new ConditionOutcome(Objects.nonNull(property) && !property.isEmpty(), "zookeeper url is not empty");
     }
 }
