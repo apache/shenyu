@@ -23,6 +23,7 @@ import io.swagger.v3.oas.models.Operation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.utils.RequestMethodUtils;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpToolParam;
 import org.apache.shenyu.client.mcp.generator.McpOpenApiGenerator;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,8 +114,12 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         } else {
             return;
         }
+
         Operation operation = OpenApiConvertorUtil.convertOperation(methodMcpClient.operation());
+
         List<io.swagger.v3.oas.models.parameters.Parameter> parameters;
+        String methodType = methodMcpClient.operation().method();
+
         if (ArrayUtils.isNotEmpty(methodMcpClient.operation().parameters())) {
             parameters = Arrays.stream(methodMcpClient.operation().parameters())
                     .map(OpenApiConvertorUtil::convertParameter)
@@ -122,24 +128,95 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
             parameters = new ArrayList<>();
         }
 
+        // inject default ToolDescription without shenyuMcpTool operation description configuration
+        String toolDescription = injectToolDescription(operation.getDescription(), method);
+
+        // inject default MethodType without ShenyuMcpTool operation method configuration
+        methodType = injectMethodType(methodType, method);
+
+        // inject default Parameters without ShenyuMcpTool operation parameters configuration
         injectParameter(parameters, method);
-        List<String> mergeUrls = findMergeUrl(clazz, method);
-        if (Objects.nonNull(operation)) {
-            operation.setParameters(parameters);
-        }
+
+        operation.setDescription(toolDescription);
+        operation.setParameters(parameters);
+
+        org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool shenyuMcpToolMethod = new org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool(methodMcpClient);
+
+        // inject default ToolDescription without shenyuMcpTool operation description configuration
+        String toolName = injectToolName(methodMcpClient.toolName(), method);
+
+        shenyuMcpToolMethod.setOperation(operation);
+        shenyuMcpToolMethod.setMethod(methodType);
+        shenyuMcpToolMethod.setToolName(toolName);
+
         List<String> namespaceIds = this.getNamespace();
+        List<String> mergeUrls = findMergeUrl(clazz, method);
         mergeUrls.forEach(url -> {
             namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(
-                    buildMcpToolsRegisterDTO(bean, clazz, classMcpClient, operation,
-                            methodMcpClient, superPath, method, url, namespaceId)));
+                    buildMcpToolsRegisterDTO(bean, clazz, classMcpClient, shenyuMcpToolMethod,
+                            superPath, method, url, namespaceId)));
         });
     }
 
-    private void injectParameter(final List<io.swagger.v3.oas.models.parameters.Parameter> parameters, final Method method) {
-        for (java.lang.reflect.Parameter parameter : method.getParameters()) {
-            ShenyuMcpToolParam mcpToolParam = parameter.getAnnotation(ShenyuMcpToolParam.class);
-            if (Objects.nonNull(mcpToolParam.parameter())) {
-                parameters.add(OpenApiConvertorUtil.convertParameter(mcpToolParam.parameter()));
+    private String injectToolName(final String toolName, final Method method) {
+        if (StringUtils.isNoneBlank(toolName)) {
+            return toolName;
+        }
+        return method.getName();
+    }
+
+    private String injectToolDescription(final String description, final Method method) {
+        if (StringUtils.isNoneBlank(description)) {
+            return description;
+        }
+        return method.getName();
+    }
+
+    private String injectMethodType(final String methodType, final Method method) {
+        if (StringUtils.isNoneBlank(methodType)) {
+            return methodType;
+        }
+        List<String> requestMethodTypes = RequestMethodUtils.getRequestMethodTypes(method);
+        if (requestMethodTypes.size() != 1) {
+            log.warn("Method [{}] in class [{}] has no restful mapping annotation; defaulting to GET",
+                    method.getName(), method.getDeclaringClass().getName());
+            return "GET";
+        } else {
+            return requestMethodTypes.get(0);
+        }
+    }
+
+    private void injectParameter(final List<io.swagger.v3.oas.models.parameters.Parameter> parametersList, final Method method) {
+        if (!parametersList.isEmpty()) {
+            return;
+        }
+        List<String> parameterPositions = RequestMethodUtils.getParameterPositions(method);
+        String[] parameterNames = RequestMethodUtils.getParameterNames(method);
+        Parameter[] parameters = method.getParameters();
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].isAnnotationPresent(ShenyuMcpToolParam.class)) {
+                ShenyuMcpToolParam mcpToolParam = parameters[i].getAnnotation(ShenyuMcpToolParam.class);
+                if (Objects.nonNull(mcpToolParam.parameter())) {
+                    io.swagger.v3.oas.models.parameters.Parameter parameterObject = OpenApiConvertorUtil.convertParameter(mcpToolParam.parameter());
+                    // inject in
+                    if (StringUtils.isBlank(parameterObject.getIn())) {
+                        parameterObject.setIn(parameterPositions.get(i));
+                    }
+                    // inject required
+                    if (Objects.isNull(parameterObject.getRequired())) {
+                        parameterObject.setRequired(false);
+                    }
+                    // inject name
+                    if (StringUtils.isBlank(parameterObject.getName())) {
+                        parameterObject.setName(parameterNames[i]);
+                    }
+                    // inject description
+                    if (StringUtils.isBlank(parameterObject.getDescription())) {
+                        parameterObject.setDescription(parameterNames[i]);
+                    }
+                    parametersList.add(parameterObject);
+                }
+
             }
         }
     }
@@ -232,7 +309,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         String desc = shenyuClient.desc();
         String configRuleName = null;
         if (Objects.nonNull(methodClient)) {
-            configRuleName = methodClient.toolName();
+            configRuleName = injectToolName(methodClient.toolName(), method);
         }
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -257,25 +334,26 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     }
 
     private McpToolsRegisterDTO buildMcpToolsRegisterDTO(final Object bean, final Class<?> clazz,
-                                                         final ShenyuMcpTool classShenyuClient, final Operation operation,
-                                                         final ShenyuMcpTool methodShenyuClient, final String superPath,
-                                                         final Method method, final String url, final String namespaceId) {
-        validateClientConfig(methodShenyuClient, url);
-        JsonObject openApiJson = McpOpenApiGenerator.generateOpenApiJson(classShenyuClient, operation, methodShenyuClient, url);
-        McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(methodShenyuClient, openApiJson, url, namespaceId);
+                                                         final ShenyuMcpTool classShenyuClient,
+                                                         final org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool shenyuMcpTool,
+                                                         final String superPath, final Method method,
+                                                         final String url, final String namespaceId) {
+        validateClientConfig(shenyuMcpTool, url);
+        JsonObject openApiJson = McpOpenApiGenerator.generateOpenApiJson(classShenyuClient, shenyuMcpTool, url);
+        McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(shenyuMcpTool, openApiJson, url, namespaceId);
         MetaDataRegisterDTO metaDataRegisterDTO = buildMetaDataDTO(bean, classShenyuClient, superPath, clazz, method, namespaceId);
-        metaDataRegisterDTO.setEnabled(methodShenyuClient.enabled());
+        metaDataRegisterDTO.setEnabled(shenyuMcpTool.getEnable());
         mcpToolsRegisterDTO.setMetaDataRegisterDTO(metaDataRegisterDTO);
         return mcpToolsRegisterDTO;
     }
 
-    private void validateClientConfig(final ShenyuMcpTool methodShenyuClient, final String url) {
+    private void validateClientConfig(final org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool methodShenyuClient, final String url) {
         if (StringUtils.isBlank(url)) {
             log.error("OpenAPI pathKey is null or empty, please check OpenApiConfig");
             throw new IllegalArgumentException("OpenAPI pathKey cannot be null or empty");
         }
 
-        if (StringUtils.isBlank(methodShenyuClient.operation().method())) {
+        if (StringUtils.isBlank(methodShenyuClient.getMethod())) {
             log.error("OpenAPI methodType is null or empty, please check OpenApiConfig");
             throw new IllegalArgumentException("OpenAPI methodType cannot be null or empty");
         }
