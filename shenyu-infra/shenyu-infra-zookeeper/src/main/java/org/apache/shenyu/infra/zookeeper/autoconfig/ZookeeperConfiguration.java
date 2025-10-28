@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 /**
  * The type Zookeeper configuration.
  */
@@ -63,19 +65,19 @@ public class ZookeeperConfiguration {
         if (!StringUtils.hasText(config.getUrl())) {
             throw new ShenyuException("zookeeper url is empty");
         }
-        if (config.getBaseSleepTimeMilliseconds() == null) {
+        if (Objects.isNull(config.getBaseSleepTimeMilliseconds())) {
             config.setBaseSleepTimeMilliseconds(DEFAULT_BASE_SLEEP_TIME);
         }
-        if (config.getMaxSleepTimeMilliseconds() == null) {
+        if (Objects.isNull(config.getMaxSleepTimeMilliseconds())) {
             config.setMaxSleepTimeMilliseconds(DEFAULT_MAX_SLEEP_TIME);
         }
-        if (config.getMaxRetries() == null) {
+        if (Objects.isNull(config.getMaxRetries())) {
             config.setMaxRetries(DEFAULT_MAX_RETRIES);
         }
-        if (config.getSessionTimeoutMilliseconds() == null) {
+        if (Objects.isNull(config.getSessionTimeoutMilliseconds())) {
             config.setSessionTimeoutMilliseconds(DEFAULT_SESSION_TIMEOUT);
         }
-        if (config.getConnectionTimeoutMilliseconds() == null) {
+        if (Objects.isNull(config.getConnectionTimeoutMilliseconds())) {
             config.setConnectionTimeoutMilliseconds(DEFAULT_CONNECT_TIMEOUT);
         }
 

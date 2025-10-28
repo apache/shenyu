@@ -27,6 +27,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Objects;
+
 @Configuration
 @ConditionOnSyncEtcd
 @ConditionalOnClass(Client.class)
@@ -51,8 +53,8 @@ public class EtcdConfiguration {
 
         log.info("Initializing Etcd Client with URL: {}", etcdProperties.getEtcd());
 
-        int timeout = etcdProperties.getEtcd().getSessionTimeout() == null ? DEFAULT_SESSION_TIMEOUT : etcdProperties.getEtcd().getSessionTimeout();
-        int ttl = etcdProperties.getEtcd().getConnectionTimeout() == null ? DEFAULT_CONNECT_TIMEOUT : etcdProperties.getEtcd().getConnectionTimeout();
+        int timeout = Objects.isNull(etcdProperties.getEtcd().getSessionTimeout()) ? DEFAULT_SESSION_TIMEOUT : etcdProperties.getEtcd().getSessionTimeout();
+        int ttl = Objects.isNull(etcdProperties.getEtcd().getConnectionTimeout()) ? DEFAULT_CONNECT_TIMEOUT : etcdProperties.getEtcd().getConnectionTimeout();
 
         return EtcdClient.builder()
                 .client(
