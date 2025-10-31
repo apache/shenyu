@@ -337,16 +337,11 @@ jobs:
       - name: Build examples with Maven
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build examples"
-            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          echo "Falling back to maven wrapper for examples"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
-            echo "Falling back to maven wrapper for examples"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-            else
-              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-            fi
+            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
 
       - uses: actions/download-artifact@v4
