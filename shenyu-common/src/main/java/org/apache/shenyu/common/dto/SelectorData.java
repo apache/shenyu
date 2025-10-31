@@ -25,9 +25,7 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class SelectorData {
-
-    private String id;
+public class SelectorData extends BaseData {
 
     private String pluginId;
 
@@ -35,8 +33,6 @@ public class SelectorData {
      * plugin name.
      */
     private String pluginName;
-
-    private String name;
 
     /**
      * matchMode（0 and  1 or).
@@ -47,10 +43,6 @@ public class SelectorData {
      * type（false full，true custom).
      */
     private Integer type;
-
-    private Integer sort;
-
-    private Boolean enabled;
 
     private Boolean logged;
 
@@ -68,11 +60,6 @@ public class SelectorData {
     private Boolean matchRestful;
 
     /**
-     * namespaceId.
-     */
-    private String namespaceId;
-
-    /**
      * no args constructor.
      */
     public SelectorData() {
@@ -84,21 +71,21 @@ public class SelectorData {
      * @param builder builder
      */
     private SelectorData(final Builder builder) {
-        this.id = builder.id;
+        this.setId(builder.id);
         this.pluginId = builder.pluginId;
         this.pluginName = builder.pluginName;
-        this.name = builder.name;
+        this.setName(builder.name);
         this.matchMode = builder.matchMode;
         this.type = builder.type;
-        this.sort = builder.sort;
-        this.enabled = builder.enabled;
+        this.setSort(builder.sort);
+        this.setEnabled(builder.enabled);
         this.logged = builder.logged;
         this.continued = builder.continued;
         this.handle = builder.handle;
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
         this.beforeConditionList = builder.beforeConditionList;
-        this.namespaceId = builder.namespaceId;
+        this.setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -108,24 +95,6 @@ public class SelectorData {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
     }
 
     /**
@@ -165,24 +134,6 @@ public class SelectorData {
     }
 
     /**
-     * get name.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * set name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    /**
      * get matchMode.
      *
      * @return matchMode
@@ -216,42 +167,6 @@ public class SelectorData {
      */
     public void setType(final Integer type) {
         this.type = type;
-    }
-
-    /**
-     * get sort.
-     *
-     * @return sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-    /**
-     * set sort.
-     *
-     * @param sort sort
-     */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
-    }
-
-    /**
-     * get enabled.
-     *
-     * @return enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * set enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
     }
 
     /**
@@ -365,24 +280,6 @@ public class SelectorData {
         this.beforeConditionList = beforeConditionList;
     }
 
-    /**
-     * get namespaceId.
-     *
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-
-    /**
-     * set namespaceId.
-     *
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -392,24 +289,25 @@ public class SelectorData {
             return false;
         }
         SelectorData that = (SelectorData) o;
-        return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
-                && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
-                && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
+        return Objects.equals(getId(), that.getId()) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
+                && Objects.equals(getName(), that.getName()) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
+                && Objects.equals(getSort(), that.getSort()) && Objects.equals(getEnabled(), that.getEnabled()) && Objects.equals(logged, that.logged)
                 && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
                 && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, beforeConditionList, matchRestful, namespaceId);
+        return Objects.hash(getId(), pluginId, pluginName, getName(), matchMode, type, getSort(), getEnabled(), logged, continued, handle,
+                conditionList, beforeConditionList, matchRestful, getNamespaceId());
     }
 
     @Override
     public String toString() {
         return "SelectorData{"
                 + "id='"
-                + id
+                + getId()
                 + '\''
                 + ", pluginId='"
                 + pluginId
@@ -418,16 +316,16 @@ public class SelectorData {
                 + pluginName
                 + '\''
                 + ", name='"
-                + name
+                + getName()
                 + '\''
                 + ", matchMode="
                 + matchMode
                 + ", type="
                 + type
                 + ", sort="
-                + sort
+                + getSort()
                 + ", enabled="
-                + enabled
+                + getEnabled()
                 + ", logged="
                 + logged
                 + ", continued="
@@ -440,7 +338,7 @@ public class SelectorData {
                 + ", matchRestful="
                 + matchRestful
                 + ", namespaceId="
-                + namespaceId
+                + getNamespaceId()
                 + '}';
     }
 
@@ -451,11 +349,11 @@ public class SelectorData {
 
         private String id;
 
+        private String name;
+
         private String pluginId;
 
         private String pluginName;
-
-        private String name;
 
         private Integer matchMode;
 

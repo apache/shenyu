@@ -24,23 +24,13 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class PluginData {
-
-    private String id;
-
-    private String name;
+public class PluginData extends BaseData {
 
     private String config;
 
     private String role;
 
-    private Boolean enabled;
-
-    private Integer sort;
-
     private String pluginJar;
-
-    private String namespaceId;
 
     /**
      * no args constructor.
@@ -58,11 +48,11 @@ public class PluginData {
      * @param enabled enabled
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final String pluginJar) {
-        this.id = id;
-        this.name = name;
+        this.setId(id);
+        this.setName(name);
         this.config = config;
         this.role = role;
-        this.enabled = enabled;
+        this.setEnabled(enabled);
         this.pluginJar = pluginJar;
     }
 
@@ -78,28 +68,13 @@ public class PluginData {
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
                       final Integer sort, final String pluginJar) {
-        this.id = id;
-        this.name = name;
+        this.setId(id);
+        this.setName(name);
         this.config = config;
         this.role = role;
-        this.enabled = enabled;
-        this.sort = sort;
+        this.setEnabled(enabled);
+        this.setSort(sort);
         this.pluginJar = pluginJar;
-    }
-
-    /**
-     * builder constructor.
-     *
-     * @param builder builder
-     */
-    private PluginData(final Builder builder) {
-        this.id = builder.id;
-        this.name = builder.name;
-        this.config = builder.config;
-        this.role = builder.role;
-        this.enabled = builder.enabled;
-        this.sort = builder.sort;
-        this.pluginJar = builder.pluginJar;
     }
 
     /**
@@ -113,14 +88,14 @@ public class PluginData {
      * @param sort    sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final Integer sort, final String pluginJar, final String namespaceId) {
-        this.id = id;
-        this.name = name;
+        this.setId(id);
+        this.setName(name);
         this.config = config;
         this.role = role;
-        this.enabled = enabled;
-        this.sort = sort;
+        this.setEnabled(enabled);
+        this.setSort(sort);
         this.pluginJar = pluginJar;
-        this.namespaceId = namespaceId;
+        this.setNamespaceId(namespaceId);
     }
 
     /**
@@ -130,42 +105,6 @@ public class PluginData {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    /**
-     * get name.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * set name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
     }
 
     /**
@@ -205,15 +144,6 @@ public class PluginData {
     }
 
     /**
-     * get enabled.
-     *
-     * @return enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
      * get pluginJar.
      *
      * @return pluginJar
@@ -231,52 +161,6 @@ public class PluginData {
         this.pluginJar = pluginJar;
     }
 
-    /**
-     * get sort.
-     *
-     * @return enabled
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-
-    /**
-     * set sort.
-     *
-     * @param sort sort value
-     */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
-    }
-
-    /**
-     * set enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    /**
-     * get namespaceId.
-     *
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-
-    /**
-     * set namespaceId.
-     *
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -286,14 +170,14 @@ public class PluginData {
             return false;
         }
         PluginData that = (PluginData) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(sort, that.sort)
-                && Objects.equals(pluginJar, that.pluginJar) && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(getId(), that.getId()) && Objects.equals(getName(), that.getName()) && Objects.equals(config, that.config)
+                && Objects.equals(role, that.role) && Objects.equals(getEnabled(), that.getEnabled()) && Objects.equals(getSort(), that.getSort())
+                && Objects.equals(pluginJar, that.pluginJar) && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, enabled, sort, pluginJar, namespaceId);
+        return Objects.hash(getId(), getName(), config, role, getEnabled(), getSort(), pluginJar, getNamespaceId());
     }
 
     public static final class Builder {
