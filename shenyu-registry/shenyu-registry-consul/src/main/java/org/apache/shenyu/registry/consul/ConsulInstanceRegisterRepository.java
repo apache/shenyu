@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 /**
  * The type Consul instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulInstanceRegisterRepository.class);
