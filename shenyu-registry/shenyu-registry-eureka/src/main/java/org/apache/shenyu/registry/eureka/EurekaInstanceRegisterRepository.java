@@ -60,7 +60,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Join
+@Join(isSingleton = false)
 public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaInstanceRegisterRepository.class);
