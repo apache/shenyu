@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 /**
  * The type Zookeeper instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperInstanceRegisterRepository.class);
