@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 /**
  * The type Nacos instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosInstanceRegisterRepository.class);
