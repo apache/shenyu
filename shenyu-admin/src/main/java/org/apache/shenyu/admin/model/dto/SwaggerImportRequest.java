@@ -34,6 +34,8 @@ public class SwaggerImportRequest {
     private String projectName;
     
     private String projectDescription;
+
+    private String namespaceId;
     
     public String getSwaggerUrl() {
         return swaggerUrl;
@@ -58,13 +60,22 @@ public class SwaggerImportRequest {
     public void setProjectDescription(final String projectDescription) {
         this.projectDescription = projectDescription;
     }
-    
+
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
     @Override
     public String toString() {
         return "SwaggerImportRequest{"
                 + "swaggerUrl='" + swaggerUrl + '\''
                 + ", projectName='" + projectName + '\''
                 + ", projectDescription='" + projectDescription + '\''
+                + ", namespaceId='" + namespaceId + '\''
                 + '}';
     }
 } 

@@ -18,11 +18,14 @@
 package org.apache.shenyu.client.mcp.generator;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
 import org.apache.shenyu.client.mcp.common.constants.ShenyuToolConfigConstants;
 import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
+
+import java.util.Objects;
 
 /**
  * the mcpToolsRegisterDTO generator.
@@ -38,11 +41,11 @@ public class McpToolsRegisterDTOGenerator {
         JsonObject method = path.getAsJsonObject(shenyuMcpTool.getMethod());
         JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
 
-        root.addProperty(ShenyuToolConfigConstants.NAME_KEY, shenyuMcpTool.getToolName());
-        root.add(ShenyuToolConfigConstants.PARAMETERS_KEY, parameters);
-
         JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(openApiJsonObject, shenyuMcpTool.getRequestConfig());
         root.addProperty(ShenyuToolConfigConstants.REQUEST_CONFIG_KEY, requestConfig.toString());
+
+        root.addProperty(ShenyuToolConfigConstants.NAME_KEY, shenyuMcpTool.getToolName());
+        root.add(ShenyuToolConfigConstants.PARAMETERS_KEY, parameterFormatting(parameters));
 
         root.addProperty(ShenyuToolConfigConstants.DESCRIPTION_KEY, shenyuMcpTool.getOperation().getDescription());
 
@@ -50,5 +53,30 @@ public class McpToolsRegisterDTOGenerator {
         mcpToolsRegisterDTO.setNamespaceId(namespaceId);
         mcpToolsRegisterDTO.setMcpConfig(root.toString());
         return mcpToolsRegisterDTO;
+    }
+
+    public static JsonArray parameterFormatting(final JsonArray parameters) {
+
+        parameters.forEach(parameter -> {
+            JsonObject paramObj = parameter.getAsJsonObject();
+
+            JsonElement schema = paramObj.remove(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_KEY);
+            if (Objects.nonNull(schema) && schema.isJsonObject()) {
+                JsonObject schemaObj = schema.getAsJsonObject();
+                JsonElement typeElement = schemaObj.get(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY);
+
+                if (Objects.nonNull(typeElement) && typeElement.isJsonPrimitive()) {
+                    String type = typeElement.getAsString();
+                    paramObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, type);
+                }
+            }
+            if (!paramObj.has(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_DESCRIPTION_KEY)) {
+                paramObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_DESCRIPTION_KEY,
+                        paramObj.get(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY).getAsString());
+            }
+            paramObj.remove(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY);
+        });
+        return parameters;
+
     }
 }
