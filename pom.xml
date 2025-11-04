@@ -188,6 +188,7 @@
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.0.0</spring-ai.version>
         <mcp.version>0.10.0</mcp.version>
+        <swagger-parser.version>2.1.30</swagger-parser.version>
         <!-- dependency version end -->
     </properties>
 
@@ -606,6 +607,12 @@
                 <artifactId>oceanbase-client</artifactId>
                 <version>${oceanbase.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
             </dependency>
 
         </dependencies>

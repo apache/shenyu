@@ -31,7 +31,15 @@ public interface SwaggerImportService {
      * @return import result message
      */
     String importSwagger(SwaggerImportRequest request);
-    
+
+    /**
+     * Import mcp config by swagger documentation.
+     *
+     * @param request the swagger import request
+     * @return the result message of config import
+     */
+    String importMcpConfig(SwaggerImportRequest request);
+
     /**
      * Test connection to swagger URL.
      *

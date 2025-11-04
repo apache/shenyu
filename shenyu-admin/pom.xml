@@ -338,12 +338,24 @@
             <version>${k8s-client.version}</version>
             <scope>compile</scope>
         </dependency>
+
         <!-- shenyu-admin-listener end-->
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-client-mcp-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger.parser.v3</groupId>
+            <artifactId>swagger-parser</artifactId>
         </dependency>
     </dependencies>
 

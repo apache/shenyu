@@ -18,21 +18,44 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
 import org.apache.shenyu.admin.service.manager.DocManager;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterMcpServiceImpl;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.UrlSecurityUtils;
+import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig;
+import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SwaggerImportService}.
@@ -45,7 +68,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private final DocManager docManager;
     
     private final HttpUtils httpUtils;
-    
+
+    @Resource
+    private ShenyuClientRegisterMcpServiceImpl shenyuClientRegisterMcpService;
+
     public SwaggerImportServiceImpl(final DocManager docManager, final HttpUtils httpUtils) {
         this.docManager = docManager;
         this.httpUtils = httpUtils;
@@ -81,7 +107,125 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             throw new RuntimeException("Import failed: " + e.getMessage(), e);
         }
     }
-    
+
+    @Override
+    public String importMcpConfig(final SwaggerImportRequest request) {
+        LOG.info("Start importing Mcp config: {}", request);
+
+        try {
+            validateSwaggerUrl(request.getSwaggerUrl());
+
+            String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl());
+
+            List<McpToolsRegisterDTO> mcpToolsRegisterDTOList = buildMcpToolRegisterDTO(swaggerJson, request.getNamespaceId());
+
+            mcpToolsRegisterDTOList.forEach(mcpToolsRegisterDTO -> {
+                shenyuClientRegisterMcpService.registerMcpTools(mcpToolsRegisterDTO);
+            });
+
+            return "Import mcp server config successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
+        } catch (IOException e) {
+            LOG.error("Failed to import mcp config: {}", request.getProjectName(), e);
+            throw new RuntimeException("Import mcp server config failed: " + e.getMessage(), e);
+        }
+
+    }
+
+    private List<McpToolsRegisterDTO> buildMcpToolRegisterDTO(final String swaggerJson, final String namespaceId) {
+        ArrayList<McpToolsRegisterDTO> mcpToolsRegisterDTOList = new ArrayList<>();
+        OpenAPI openapi = new OpenAPIV3Parser().readContents(swaggerJson, null, null).getOpenAPI();
+        Map<String, List<Map<String, ShenyuMcpTool>>> mcpToolMap = buildShenyuMcpTool(openapi);
+        JsonObject openApiJsonObject = JsonParser.parseString(swaggerJson).getAsJsonObject();
+        mcpToolMap.forEach((selectorName, mcpToolList) -> {
+            mcpToolList.forEach(shenyuMcpToolMap -> {
+                shenyuMcpToolMap.forEach((url, shenyuMcpTool) -> {
+                    McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(shenyuMcpTool, openApiJsonObject, url, namespaceId);
+
+                    mcpToolsRegisterDTO.setMetaDataRegisterDTO(buildMetaDataRegisterDTO(openapi, selectorName, shenyuMcpTool, url, namespaceId));
+                    mcpToolsRegisterDTOList.add(mcpToolsRegisterDTO);
+                });
+            });
+        });
+        return mcpToolsRegisterDTOList;
+    }
+
+    private Map<String, List<Map<String, ShenyuMcpTool>>> buildShenyuMcpTool(final OpenAPI openapi) {
+        if (Objects.isNull(openapi) || Objects.isNull(openapi.getPaths())) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<Map<String, ShenyuMcpTool>>> result = new HashMap<>();
+        Paths paths = openapi.getPaths();
+
+        for (Map.Entry<String, PathItem> entry : paths.entrySet()) {
+            String fullPath = entry.getKey();
+            PathItem pathItem = entry.getValue();
+
+            String[] segments = fullPath.split("/");
+            String mainPath = Arrays.stream(segments)
+                    .filter(s -> !s.isEmpty())
+                    .findFirst()
+                    .orElse("default");
+
+            List<Map<String, ShenyuMcpTool>> maps = result.computeIfAbsent(mainPath, k -> new ArrayList<>());
+            Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
+
+            Map<PathItem.HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
+            for (Map.Entry<PathItem.HttpMethod, Operation> opEntry : operationsMap.entrySet()) {
+
+                Operation operation = opEntry.getValue();
+
+                ShenyuMcpTool tool = new ShenyuMcpTool();
+                tool.setOperation(operation);
+                ShenyuMcpRequestConfig shenyuMcpRequestConfig = new ShenyuMcpRequestConfig();
+                shenyuMcpRequestConfig.setBodyToJson("false");
+                tool.setRequestConfig(shenyuMcpRequestConfig);
+                tool.setToolName(operation.getOperationId());
+                tool.setEnable(true);
+                PathItem.HttpMethod httpMethod = opEntry.getKey();
+                tool.setMethod(httpMethod.name().toLowerCase());
+
+                toolMap.put(fullPath, tool);
+            }
+            maps.add(toolMap);
+        }
+        return result;
+    }
+
+    private MetaDataRegisterDTO buildMetaDataRegisterDTO(final OpenAPI openapi, final String selectorName,
+                                                         final ShenyuMcpTool shenyuMcpTool, final String contentPath,
+                                                         final String namespaceId) {
+        String urlString = openapi.getServers().get(0).getUrl();
+        URL url;
+        try {
+            url = new URL(urlString);
+        } catch (MalformedURLException e) {
+            LOG.error("url error");
+            throw new RuntimeException(e);
+        }
+        String host = url.getHost();
+        int port = url.getPort();
+        Operation operation = shenyuMcpTool.getOperation();
+        String parameterTypes = operation.getParameters()
+                .stream()
+                .map(Parameter::getIn)
+                .collect(Collectors.joining(","));
+
+        return MetaDataRegisterDTO.builder()
+                .appName(openapi.getInfo().getTitle())
+                .serviceName(selectorName)
+                .methodName(shenyuMcpTool.getToolName())
+                .contextPath(selectorName)
+                .path(contentPath)
+                .port(port)
+                .host(host)
+                .ruleName(shenyuMcpTool.getToolName())
+                .pathDesc(operation.getDescription())
+                .parameterTypes(parameterTypes)
+                .rpcType(RpcTypeEnum.MCP.getName())
+                .namespaceId(namespaceId)
+                .build();
+    }
+
     @Override
     public boolean testConnection(final String swaggerUrl) {
         try {
