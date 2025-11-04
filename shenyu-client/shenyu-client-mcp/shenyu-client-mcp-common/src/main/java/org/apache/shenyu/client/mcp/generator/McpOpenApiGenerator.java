@@ -82,7 +82,9 @@ public class McpOpenApiGenerator {
                 parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_REQUIRED_KEY, parameter.getRequired());
 
                 if (Objects.nonNull(parameter.getSchema())) {
-                    parameterObj.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.getSchema().getType());
+                    JsonObject schemaMap = new JsonObject();
+                    schemaMap.addProperty(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_TYPE_KEY, parameter.getSchema().getType());
+                    parameterObj.add(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_KEY, schemaMap);
                 }
                 parameters.add(parameterObj);
             }

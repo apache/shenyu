@@ -68,6 +68,24 @@ public class SwaggerImportController {
     }
 
     /**
+     * Import mcp config by swagger documentation.
+     *
+     * @param request the swagger import request
+     * @return the result of config import
+     */
+    @PostMapping("import/mcp")
+    public ShenyuAdminResult importMcpConfig(@Valid @RequestBody final SwaggerImportRequest request) {
+        LOG.info("Received import Mcp config request: {}", request);
+        try {
+            String result = swaggerImportService.importMcpConfig(request);
+            return ShenyuAdminResult.success(result);
+        } catch (Exception e) {
+            LOG.error("Failed to import mcp server config", e);
+            return ShenyuAdminResult.error("Import failed" + e.getMessage());
+        }
+    }
+
+    /**
      * Test connection to swagger URL.
      *
      * @param swaggerUrl the swagger URL to test
