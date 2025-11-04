@@ -414,6 +414,7 @@ The text of each license is the standard Apache 2.0 license.
     swagger-models-jakarta 2.2.21: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-models-jakarta, Apache 2.0
     swagger-models 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
     swagger-ui 5.13.0: https://github.com/swagger-api/swagger-ui, Apache 2.0
+    swagger-parser 2.1.23 https://github.com/swagger-api/swagger-parser, Apache 2.0
     simpleclient_tracer_otel 0.16.0: https://mvnrepository.com/artifact/io.prometheus/simpleclient_tracer_otel, Apache 2.0
     thymeleaf 3.1.2.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
