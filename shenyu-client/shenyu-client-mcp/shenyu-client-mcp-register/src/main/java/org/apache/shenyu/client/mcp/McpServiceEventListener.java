@@ -20,12 +20,14 @@ package org.apache.shenyu.client.mcp;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.utils.RequestMethodUtils;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpToolParam;
+import org.apache.shenyu.client.mcp.common.eunm.McpParameterType;
 import org.apache.shenyu.client.mcp.generator.McpOpenApiGenerator;
 import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
 import org.apache.shenyu.client.mcp.utils.OpenApiConvertorUtil;
@@ -213,6 +215,14 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
                     // inject description
                     if (StringUtils.isBlank(parameterObject.getDescription())) {
                         parameterObject.setDescription(parameterNames[i]);
+                    }
+                    // inject type
+                    if (Objects.isNull(parameterObject.getSchema()) || StringUtils.isBlank(parameterObject.getSchema().getType())) {
+                        Schema<Object> schema = new Schema<>();
+                        McpParameterType parameterType = McpParameterType.fromParameter(parameters[i]);
+                        schema.setType(parameterType.getTypeName());
+
+                        parameterObject.setSchema(schema);
                     }
                     parametersList.add(parameterObject);
                 }
