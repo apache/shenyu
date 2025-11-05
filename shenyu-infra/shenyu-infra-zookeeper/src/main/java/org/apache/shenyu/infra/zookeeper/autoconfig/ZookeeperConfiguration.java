@@ -22,10 +22,10 @@ import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
@@ -34,9 +34,11 @@ import java.util.Objects;
 /**
  * The type Zookeeper configuration.
  */
+
 @Configuration
+@ConditionOnSyncZookeeper
+@ConditionalOnClass(ZookeeperClient.class)
 @EnableConfigurationProperties(ZookeeperProperties.class)
-@Conditional(ConditionOnSyncZookeeper.class)
 public class ZookeeperConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperConfiguration.class);

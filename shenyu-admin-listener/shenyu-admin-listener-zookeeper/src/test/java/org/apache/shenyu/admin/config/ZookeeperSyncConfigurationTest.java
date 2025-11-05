@@ -38,6 +38,11 @@ public class ZookeeperSyncConfigurationTest {
         zkServer = new TestingServer();
         ZookeeperConfig config = ZookeeperConfig.builder()
                 .url(zkServer.getConnectString())
+                .maxSleepTimeMilliseconds(3000)
+                .baseSleepTimeMilliseconds(3000)
+                .connectionTimeoutMilliseconds(3000)
+                .sessionTimeoutMilliseconds(3000)
+                .maxRetries(3)
                 .build();
         zkClient = new ZookeeperClient(config);
     }

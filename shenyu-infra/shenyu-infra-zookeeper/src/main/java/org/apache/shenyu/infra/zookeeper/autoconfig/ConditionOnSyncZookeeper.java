@@ -17,23 +17,19 @@
 
 package org.apache.shenyu.infra.zookeeper.autoconfig;
 
-import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
-import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.util.Objects;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * The type Condition on sync zookeeper.
- */
-public class ConditionOnSyncZookeeper extends SpringBootCondition {
-
-    @Override
-    public ConditionOutcome getMatchOutcome(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
-
-        String property = context.getEnvironment().getProperty(ZookeeperProperties.CONFIG_PREFIX + ".url");
-
-        return new ConditionOutcome(Objects.nonNull(property) && !property.isEmpty(), "zookeeper url is not empty");
-    }
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(prefix = ZookeeperProperties.CONFIG_PREFIX, name = "url")
+public @interface ConditionOnSyncZookeeper {
 }
