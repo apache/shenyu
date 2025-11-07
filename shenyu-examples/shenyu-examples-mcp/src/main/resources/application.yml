@@ -33,3 +33,7 @@ shenyu:
       props:
         contextPath: /order
         appName: /order
+    http:
+      props:
+        contextPath: /order
+        appName: order
