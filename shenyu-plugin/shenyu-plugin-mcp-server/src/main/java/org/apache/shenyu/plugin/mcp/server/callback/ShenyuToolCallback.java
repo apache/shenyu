@@ -310,6 +310,9 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private JsonObject parseInput(final String input) {
         try {
+            if (org.apache.commons.lang3.StringUtils.isBlank(input)) {
+                return new JsonObject();
+            }
             final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
             if (Objects.isNull(inputJson)) {
                 throw new IllegalArgumentException("Invalid input JSON format");
