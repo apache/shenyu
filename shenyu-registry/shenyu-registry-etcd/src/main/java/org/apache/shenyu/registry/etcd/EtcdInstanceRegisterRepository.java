@@ -50,7 +50,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * The type Etcd instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdInstanceRegisterRepository.class);

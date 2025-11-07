@@ -631,7 +631,7 @@ async function getChangedFiles(token, base, ref, initialFetchDepth) {
         }
         if (github.context.eventName === 'pull_request_target') {
             // pull_request_target is executed in context of base branch and GITHUB_SHA points to last commit in base branch
-            // Therefor it's not possible to look at changes in last commit
+            // Therefore it's not possible to look at changes in last commit
             // At the same time we don't want to fetch any code from forked repository
             throw new Error(`'token' input parameter is required if action is triggered by 'pull_request_target' event`);
         }
@@ -1564,7 +1564,7 @@ class Summary {
     /**
      * If the summary buffer is empty
      *
-     * @returns {boolen} true if the buffer is empty
+     * @returns {boolean} true if the buffer is empty
      */
     isEmptyBuffer() {
         return this._buffer.length === 0;
@@ -1653,10 +1653,10 @@ class Summary {
         return this.addRaw(element).addEOL();
     }
     /**
-     * Adds a collapsable HTML details element to the summary buffer
+     * Adds a collapsible HTML details element to the summary buffer
      *
      * @param {string} label text for the closed state
-     * @param {string} content collapsable content
+     * @param {string} content collapsible content
      *
      * @returns {Summary} summary instance
      */
@@ -11061,7 +11061,7 @@ module.exports = new Schema({
 //
 // NOTE: JS-YAML does not support schema-specific tag resolution restrictions.
 // So, this schema is not such strict as defined in the YAML specification.
-// It allows numbers in binary notaion, use `Null` and `NULL` as `null`, etc.
+// It allows numbers in binary notation, use `Null` and `NULL` as `null`, etc.
 
 
 
@@ -11521,7 +11521,7 @@ function representYamlFloat(object, style) {
   res = object.toString(10);
 
   // JS stringifier can build scientific format without dots: 5e-100,
-  // while YAML requres dot: 5.e-100. Fix it with simple hack
+  // while YAML requires dot: 5.e-100. Fix it with simple hack
 
   return SCIENTIFIC_WITHOUT_DOT.test(res) ? res.replace('e', '.e') : res;
 }
@@ -13652,8 +13652,8 @@ picomatch.scan = (input, options) => scan(input, options);
  *
  * @param {Object} `state`
  * @param {Object} `options`
- * @param {Boolean} `returnOutput` Intended for implementors, this argument allows you to return the raw output from the parser.
- * @param {Boolean} `returnState` Adds the state to a `state` property on the returned regex. Useful for implementors and debugging.
+ * @param {Boolean} `returnOutput` Intended for implementers, this argument allows you to return the raw output from the parser.
+ * @param {Boolean} `returnState` Adds the state to a `state` property on the returned regex. Useful for implementers and debugging.
  * @return {RegExp}
  * @api public
  */
@@ -13693,8 +13693,8 @@ picomatch.compileRe = (state, options, returnOutput = false, returnState = false
  * ```
  * @param {String} `state` The object returned from the `.parse` method.
  * @param {Object} `options`
- * @param {Boolean} `returnOutput` Implementors may use this argument to return the compiled output, instead of a regular expression. This is not exposed on the options to prevent end-users from mutating the result.
- * @param {Boolean} `returnState` Implementors may use this argument to return the state from the parsed glob with the returned regular expression.
+ * @param {Boolean} `returnOutput` Implementers may use this argument to return the compiled output, instead of a regular expression. This is not exposed on the options to prevent end-users from mutating the result.
+ * @param {Boolean} `returnState` Implementers may use this argument to return the state from the parsed glob with the returned regular expression.
  * @return {RegExp} Returns a regex created from the given pattern.
  * @api public
  */
@@ -17720,7 +17720,7 @@ class Client extends DispatcherBase {
     }
 
     if (maxConcurrentStreams != null && (typeof maxConcurrentStreams !== 'number' || maxConcurrentStreams < 1)) {
-      throw new InvalidArgumentError('maxConcurrentStreams must be a possitive integer, greater than 0')
+      throw new InvalidArgumentError('maxConcurrentStreams must be a positive integer, greater than 0')
     }
 
     if (typeof connect !== 'function') {
@@ -18963,7 +18963,7 @@ function write (client, request) {
   // Sending a payload body on a request that does not
   // expect it can cause undefined behavior on some
   // servers and corrupt connection state. Do not
-  // re-use the connection for further requests.
+  // reuse the connection for further requests.
 
   const expectsPayload = (
     method === 'PUT' ||
@@ -19177,7 +19177,7 @@ function writeH2 (client, session, request) {
   }
 
   // https://tools.ietf.org/html/rfc7540#section-8.3
-  // :path and :scheme headers must be omited when sending CONNECT
+  // :path and :scheme headers must be omitted when sending CONNECT
 
   headers[HTTP2_HEADER_PATH] = path
   headers[HTTP2_HEADER_SCHEME] = 'https'
@@ -19189,7 +19189,7 @@ function writeH2 (client, session, request) {
   // Sending a payload body on a request that does not
   // expect it can cause undefined behavior on some
   // servers and corrupt connection state. Do not
-  // re-use the connection for further requests.
+  // reuse the connection for further requests.
 
   const expectsPayload = (
     method === 'PUT' ||
@@ -19304,7 +19304,7 @@ function writeH2 (client, session, request) {
   // })
 
   // stream.on('push', headers => {
-  //   // TODO(HTTP/2): Suppor push
+  //   // TODO(HTTP/2): Support push
   // })
 
   // stream.on('trailers', headers => {
@@ -20661,10 +20661,10 @@ const { InvalidArgumentError, ConnectTimeoutError } = __nccwpck_require__(8045)
 
 let tls // include tls conditionally since it is not always available
 
-// TODO: session re-use does not wait for the first
+// TODO: session reuse does not wait for the first
 // connection to resolve the session and might therefore
 // resolve the same servername multiple times even when
-// re-use is enabled.
+// reuse is enabled.
 
 let SessionCache
 // FIXME: remove workaround when the Node bug is fixed
@@ -21984,7 +21984,7 @@ function validateHandler (handler, method, upgrade) {
 }
 
 // A body is disturbed if it has been read from and it cannot
-// be re-used without losing state or data.
+// be reused without losing state or data.
 function isDisturbed (body) {
   return !!(body && (
     stream.isDisturbed
@@ -22529,7 +22529,7 @@ function extractBody (object, keepalive = false) {
 
     // Set action to this step: run the multipart/form-data
     // encoding algorithm, with object’s entry list and UTF-8.
-    // - This ensures that the body is immutable and can't be changed afterwords
+    // - This ensures that the body is immutable and can't be changed afterwards
     // - That the content-length is calculated in advance.
     // - And that all parts are pre-encoded and ready to be sent.
 
@@ -23726,7 +23726,7 @@ function serializeAMimeType (mimeType) {
     // 4. If value does not solely contain HTTP token code
     //    points or value is the empty string, then:
     if (!HTTP_TOKEN_CODEPOINTS.test(value)) {
-      // 1. Precede each occurence of U+0022 (") or
+      // 1. Precede each occurrence of U+0022 (") or
       //    U+005C (\) in value with U+005C (\).
       value = value.replace(/(\\|")/g, '\\$1')
 
@@ -31829,7 +31829,7 @@ class RedirectHandler {
       !ArrayBuffer.isView(this.opts.body) &&
       util.isIterable(this.opts.body)
     ) {
-      // TODO: Should we allow re-using iterable if !this.opts.idempotent
+      // TODO: Should we allow reusing iterable if !this.opts.idempotent
       // or through some other flag?
       this.opts.body = new BodyAsyncIterable(this.opts.body)
     }
@@ -31897,8 +31897,8 @@ class RedirectHandler {
 
         For status 300, which is "Multiple Choices", the spec mentions both generating a Location
         response header AND a response body with the other possible location to follow.
-        Since the spec explicitily chooses not to specify a format for such body and leave it to
-        servers and browsers implementors, we ignore the body as there is no specified way to eventually parse it.
+        Since the spec explicitly chooses not to specify a format for such body and leave it to
+        servers and browsers implementers, we ignore the body as there is no specified way to eventually parse it.
       */
     } else {
       return this.handler.onData(chunk)
@@ -31913,7 +31913,7 @@ class RedirectHandler {
         TLDR: undici always ignores 3xx response trailers as they are not expected in case of redirections
         and neither are useful if present.
 
-        See comment on onData method above for more detailed informations.
+        See comment on onData method above for more detailed information.
       */
 
       this.location = null
