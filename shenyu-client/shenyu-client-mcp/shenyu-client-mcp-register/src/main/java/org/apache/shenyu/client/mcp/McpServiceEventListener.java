@@ -270,7 +270,8 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         for (String cp : classPaths) {
             for (String mp : methodPaths) {
                 String path = concatPaths(cp, mp);
-                combinedPaths.add(path);
+                String finalPath = concatPaths(getContextPath(), path);
+                combinedPaths.add(finalPath);
             }
         }
         return combinedPaths;
