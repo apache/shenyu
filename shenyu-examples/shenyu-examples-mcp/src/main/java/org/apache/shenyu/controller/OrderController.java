@@ -59,7 +59,7 @@ public class OrderController {
     @GetMapping("/findById")
     @ShenyuMcpTool(
             operation = @Operation(
-                    method = "Get", description = "find order by id"
+                    method = "GET", description = "find order by id"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
                     bodyToJson = "false",
@@ -96,7 +96,7 @@ public class OrderController {
     @GetMapping("/findAll")
     @ShenyuMcpTool(
             operation = @Operation(
-                    method = "Get", description = "find all order"
+                    method = "GET", description = "find all order"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
                     bodyToJson = "false",
