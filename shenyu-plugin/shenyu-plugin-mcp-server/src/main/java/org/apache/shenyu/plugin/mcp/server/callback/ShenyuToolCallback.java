@@ -586,10 +586,12 @@ public class ShenyuToolCallback implements ToolCallback {
             }
             Map<String, Object> attributes = decoratedExchange.getAttributes();
             String contextPath = (String) attributes.get(Constants.CONTEXT_PATH);
-            String realURI = decoratedPath.substring(contextPath.length());
-
-            shenyuContext.setRealUrl(realURI);
-
+            if (Objects.isNull(contextPath) || decoratedPath.length() < contextPath.length()) {
+                shenyuContext.setRealUrl(decoratedPath);
+            } else {
+                String realURI = decoratedPath.substring(contextPath.length());
+                shenyuContext.setRealUrl(realURI);
+            }
             LOG.debug("Configured RpcType to HTTP for tool call, session: {}", sessionId);
 
             decoratedExchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
