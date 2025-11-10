@@ -46,6 +46,7 @@ public class ShenyuMcpClientConfiguration {
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
+     * @param env the spring environment
      * @return the apache mcp service bean listener
      */
     @Bean
