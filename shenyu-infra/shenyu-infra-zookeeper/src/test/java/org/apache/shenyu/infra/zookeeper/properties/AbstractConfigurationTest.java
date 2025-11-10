@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config.properties;
+package org.apache.shenyu.infra.zookeeper.properties;
 
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

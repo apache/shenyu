@@ -15,7 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.zookeeper;
+package org.apache.shenyu.infra.zookeeper.autoconfig;
 
-public class ZookeeperTests {
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(prefix = ZookeeperProperties.CONFIG_PREFIX, name = "url")
+public @interface ConditionOnSyncZookeeper {
 }
