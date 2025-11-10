@@ -51,6 +51,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -583,8 +584,11 @@ public class ShenyuToolCallback implements ToolCallback {
             } catch (URISyntaxException ignore) {
                 shenyuContext.setPath(decoratedPath);
             }
+            Map<String, Object> attributes = decoratedExchange.getAttributes();
+            String contextPath = (String) attributes.get(Constants.CONTEXT_PATH);
+            String realURI = decoratedPath.substring(contextPath.length());
 
-            shenyuContext.setRealUrl(decoratedPath);
+            shenyuContext.setRealUrl(realURI);
 
             LOG.debug("Configured RpcType to HTTP for tool call, session: {}", sessionId);
 

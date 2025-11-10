@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -65,14 +66,19 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
 
     private static final Logger log = LoggerFactory.getLogger(McpServiceEventListener.class);
 
+    private final Environment env;
+
     /**
      * Instantiates a new context refreshed event listener.
      *
      * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public McpServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public McpServiceEventListener(final ShenyuClientConfig clientConfig,
+                                   final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                   final Environment env) {
         super(clientConfig, shenyuClientRegisterRepository);
+        this.env = env;
     }
 
     @Override
@@ -267,10 +273,14 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         }
 
         List<String> combinedPaths = new ArrayList<>();
+        final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
+        final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
+        final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
         for (String cp : classPaths) {
             for (String mp : methodPaths) {
                 String path = concatPaths(cp, mp);
-                String finalPath = concatPaths(getContextPath(), path);
+                String prefix = concatPaths(getContextPath(), rootPath);
+                String finalPath = concatPaths(prefix, path);
                 combinedPaths.add(finalPath);
             }
         }

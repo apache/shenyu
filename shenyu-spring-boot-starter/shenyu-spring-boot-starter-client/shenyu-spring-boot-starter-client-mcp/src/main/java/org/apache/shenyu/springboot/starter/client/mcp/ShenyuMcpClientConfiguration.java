@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * The type shenyu apache mcp client configuration.
@@ -49,8 +50,9 @@ public class ShenyuMcpClientConfiguration {
      */
     @Bean
     public McpServiceEventListener mcpServiceEventListener(final ShenyuClientConfig clientConfig,
-                                                                  final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new McpServiceEventListener(clientConfig, shenyuClientRegisterRepository);
+                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                                           final Environment env) {
+        return new McpServiceEventListener(clientConfig, shenyuClientRegisterRepository, env);
     }
 
 }
