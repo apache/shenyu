@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.mcp;
 
-import jakarta.annotation.Resource;
 import org.apache.shenyu.client.mcp.McpServiceEventListener;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
