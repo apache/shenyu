@@ -386,6 +386,98 @@ VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"req
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1529402613204173926', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","placeholder":"","rule":""}');
 
+UPDATE plugin_handle SET field = 'bootstrapServer', label = 'bootstrapServer' WHERE id = '1529402613204172893' AND plugin_id = '33';
+
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468178', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468182', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{"required":"0","defaultValue":"none"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468184', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468185', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468186', '33', 'userName', 'userName',  2, 1, 10, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468187', '33', 'passWord', 'passWord', 2, 1, 11, '{"required":"0","defaultValue":""}');
+
+delete from plugin_handle where plugin_id = '8';
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821435546642157568', '45', 'host', 'host', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821435708743618560', '45', 'port', 'port', 1, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436368046264320', '45', 'password', 'password', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436500343001088', '45', 'username', 'username', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436639635836928', '45', 'exchangeName', 'exchangeName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436745583955968', '45', 'queueName', 'queueName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821509996347617280', '45', 'routingKey', 'routingKey', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821725585461706752', '45', 'virtualHost', 'virtualHost', 2, 1, 0, '{"required":"0","defaultValue":"/","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821725662875975680', '45', 'exchangeType', 'exchangeType', 2, 1, 0, '{"required":"0","defaultValue":"direct","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804180904927232', '45', 'durable', 'durable', 2, 1, 0, '{"required":"0","defaultValue":"true","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804370575548416', '45', 'exclusive', 'exclusive', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"","rule":"/^\\s*(\\{.*\\}|\\[.*\\])\\s*$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468163', '30', 'cacheType', 'cacheType', 3, 1, 1, '{"required":"1","defaultValue":"memory","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662400', '30', 'database', 'database', 1, 1, 2, '{"required":"0","defaultValue":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662401', '30', 'master', 'master', 2, 1, 3, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662402', '30', 'mode', 'mode', 2, 1, 4, '{"required":"0","defaultValue":"standalone","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662403', '30', 'url', 'url', 2, 1, 5, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662404', '30', 'password', 'password', 2, 1, 6, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662405', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{"required":"0","defaultValue":"8","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662406', '30', 'minIdle', 'minIdle', 1, 1, 8, '{"required":"0","defaultValue":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662407', '30', 'maxActive', 'maxActive', 1, 1, 9, '{"required":"0","defaultValue":"8","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662408', '30', 'maxWait', 'maxWait', 3, 1, 10, '{"required":"0","defaultValue":"-1","rule":""}');
+
 UPDATE plugin_handle SET ext_obj = '{"required":"0","rule":""}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0);
 
@@ -484,6 +576,29 @@ VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required"
 
 delete from plugin_handle where plugin_id = '8';
 
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897210273825', '11', 'protocol', 'protocol', 2, 1, 1, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897210273826', '11', 'register', 'register', 2, 1, 2, null);
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468164', '11', 'corethreads', 'corethreads', 1, 1, 4, '{"required":"0","defaultValue":"","placeholder":"corethreads","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468165', '11', 'threads', 'threads', 1, 1, 5, '{"required":"0","defaultValue":"","placeholder":"threads","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468166', '11', 'queues', 'queues', 1, 1, 6, '{"required":"0","defaultValue":"","placeholder":"queues","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468167', '11', 'threadpool', 'threadpool', 3, 1, 3, '{"required":"0","defaultValue":"","placeholder":"threadpool","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1818229897214468142', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1879002911061737473', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}');
+
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, ext_obj, type, sort, enabled, date_created, date_updated)
 VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, sysdate, sysdate);
 
@@ -574,6 +689,16 @@ UPDATE rule SET handle_new = handle;
 COMMIT;
 ALTER TABLE rule DROP COLUMN handle;
 ALTER TABLE rule RENAME COLUMN handle_new TO handle;
+
 ALTER TABLE selector RENAME COLUMN "type" TO "selector_type";
 ALTER TABLE selector RENAME COLUMN "sort" TO "sort_code";
 ALTER TABLE selector RENAME COLUMN "name" TO "selector_name";
+ALTER TABLE tag RENAME COLUMN "name" TO "tag_name";
+ALTER TABLE rule RENAME COLUMN "sort" TO "sort_code";
+ALTER TABLE rule RENAME COLUMN "name" TO "rule_name";
+ALTER TABLE discovery RENAME COLUMN "type" TO "discovery_type";
+ALTER TABLE discovery RENAME COLUMN "name" TO "discovery_name";
+ALTER TABLE discovery_upstream RENAME COLUMN "url" TO "upstream_url";
+ALTER TABLE discovery_upstream RENAME COLUMN "status" TO "upstream_status";
+
+ALTER TABLE discovery RENAME COLUMN "level" TO discovery_level;

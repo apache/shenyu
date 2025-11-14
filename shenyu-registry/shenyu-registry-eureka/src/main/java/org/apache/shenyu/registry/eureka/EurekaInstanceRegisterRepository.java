@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,7 +60,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Join
+@Join(isSingleton = false)
 public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaInstanceRegisterRepository.class);
@@ -158,7 +159,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 try {
                     List<InstanceInfo> previousInstances = instanceListMap.get(key);
                     List<InstanceInfo> currentInstances = eurekaClient.getInstancesByVipAddressAndAppName(null, key, true);
-                    compareInstances(previousInstances, currentInstances, listener);
+                    compareInstances(new HashSet<>(previousInstances), new HashSet<>(currentInstances), listener);
                     instanceListMap.put(key, currentInstances);
                 } catch (Exception e) {
                     LOGGER.error("eureka registry eurekaDiscoveryService watch key: {} error", key, e);
@@ -188,7 +189,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         }
     }
 
-    private void compareInstances(final List<InstanceInfo> previousInstances, final List<InstanceInfo> currentInstances, final ChangedEventListener listener) {
+    private void compareInstances(final Set<InstanceInfo> previousInstances, final Set<InstanceInfo> currentInstances, final ChangedEventListener listener) {
         Set<InstanceInfo> addedInstances = currentInstances.stream()
                 .filter(item -> !previousInstances.contains(item))
                 .collect(Collectors.toSet());

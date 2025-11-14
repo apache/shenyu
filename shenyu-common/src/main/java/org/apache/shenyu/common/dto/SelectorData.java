@@ -71,21 +71,21 @@ public class SelectorData extends BaseData {
      * @param builder builder
      */
     private SelectorData(final Builder builder) {
-        this.id = builder.id;
+        this.setId(builder.id);
         this.pluginId = builder.pluginId;
         this.pluginName = builder.pluginName;
-        this.name = builder.name;
+        this.setName(builder.name);
         this.matchMode = builder.matchMode;
         this.type = builder.type;
-        this.sort = builder.sort;
-        this.enabled = builder.enabled;
+        this.setSort(builder.sort);
+        this.setEnabled(builder.enabled);
         this.logged = builder.logged;
         this.continued = builder.continued;
         this.handle = builder.handle;
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
         this.beforeConditionList = builder.beforeConditionList;
-        this.namespaceId = builder.namespaceId;
+        this.setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -96,7 +96,6 @@ public class SelectorData extends BaseData {
     public static Builder builder() {
         return new Builder();
     }
-
 
     /**
      * get pluginId.
@@ -133,7 +132,6 @@ public class SelectorData extends BaseData {
     public void setPluginName(final String pluginName) {
         this.pluginName = pluginName;
     }
-
 
     /**
      * get matchMode.
@@ -291,56 +289,57 @@ public class SelectorData extends BaseData {
             return false;
         }
         SelectorData that = (SelectorData) o;
-        return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
-            && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
-            && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
-            && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
-            && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
-            && Objects.equals(namespaceId, that.namespaceId);
+        return Objects.equals(getId(), that.getId()) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
+                && Objects.equals(getName(), that.getName()) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
+                && Objects.equals(getSort(), that.getSort()) && Objects.equals(getEnabled(), that.getEnabled()) && Objects.equals(logged, that.logged)
+                && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
+                && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
+                && Objects.equals(getNamespaceId(), that.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, beforeConditionList, matchRestful, namespaceId);
+        return Objects.hash(getId(), pluginId, pluginName, getName(), matchMode, type, getSort(), getEnabled(), logged, continued, handle,
+                conditionList, beforeConditionList, matchRestful, getNamespaceId());
     }
 
     @Override
     public String toString() {
         return "SelectorData{"
-            + "id='"
-            + id
-            + '\''
-            + ", pluginId='"
-            + pluginId
-            + '\''
-            + ", pluginName='"
-            + pluginName
-            + '\''
-            + ", name='"
-            + name
-            + '\''
-            + ", matchMode="
-            + matchMode
-            + ", type="
-            + type
-            + ", sort="
-            + sort
-            + ", enabled="
-            + enabled
-            + ", logged="
-            + logged
-            + ", continued="
-            + continued
-            + ", handle='"
-            + handle
-            + '\''
-            + ", conditionList="
-            + conditionList
-            + ", matchRestful="
-            + matchRestful
-            + ", namespaceId="
-            + namespaceId
-            + '}';
+                + "id='"
+                + getId()
+                + '\''
+                + ", pluginId='"
+                + pluginId
+                + '\''
+                + ", pluginName='"
+                + pluginName
+                + '\''
+                + ", name='"
+                + getName()
+                + '\''
+                + ", matchMode="
+                + matchMode
+                + ", type="
+                + type
+                + ", sort="
+                + getSort()
+                + ", enabled="
+                + getEnabled()
+                + ", logged="
+                + logged
+                + ", continued="
+                + continued
+                + ", handle='"
+                + handle
+                + '\''
+                + ", conditionList="
+                + conditionList
+                + ", matchRestful="
+                + matchRestful
+                + ", namespaceId="
+                + getNamespaceId()
+                + '}';
     }
 
     /**

@@ -32,21 +32,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -86,6 +90,9 @@ public class HttpSyncDataService implements SyncDataService {
 
     private final ShenyuConfig shenyuConfig;
 
+    @Value("${server.port}")
+    private int port;
+
     public HttpSyncDataService(final HttpConfig httpConfig,
                                final PluginDataSubscriber pluginDataSubscriber,
                                final OkHttpClient okHttpClient,
@@ -93,10 +100,18 @@ public class HttpSyncDataService implements SyncDataService {
                                final List<AuthDataSubscriber> authDataSubscribers,
                                final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                               final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
                                final AccessTokenManager accessTokenManager,
                                final ShenyuConfig shenyuConfig) {
         this.accessTokenManager = accessTokenManager;
-        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.factory = new DataRefreshFactory(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.okHttpClient = okHttpClient;
         this.shenyuConfig = shenyuConfig;
@@ -200,6 +215,8 @@ public class HttpSyncDataService implements SyncDataService {
         Headers headers = new Headers.Builder()
                 .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
                 .add("Content-Type", "application/x-www-form-urlencoded")
+                .add("X-Real-PORT", port + "")
+                .add(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, SystemInfoUtils.getSystemInfo())
                 .build();
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         String uri = UriComponentsBuilder.fromHttpUrl(listenerUrl).queryParams(params).build(true).toUriString();

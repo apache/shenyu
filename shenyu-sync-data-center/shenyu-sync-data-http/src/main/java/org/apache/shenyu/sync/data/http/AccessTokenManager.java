@@ -19,6 +19,10 @@ package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
@@ -31,15 +35,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 /**
  * AccessTokenManager.
@@ -105,13 +107,18 @@ public class AccessTokenManager {
     }
 
     private Boolean doLogin(final String server) {
+
+        String password = httpConfig.getPassword();
         if (StringUtils.isNotBlank(httpConfig.getAesSecretKey()) && StringUtils.isNotBlank(httpConfig.getAesSecretIv())) {
-            String password = AesUtils.cbcEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
-            httpConfig.setPassword(password);
+            password = AesUtils.cbcEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
         }
-        String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
+
+        String encodedUsername = URLEncoder.encode(httpConfig.getUsername(), StandardCharsets.UTF_8);
+        String encodedPassword = URLEncoder.encode(password, StandardCharsets.UTF_8);
+        String param = Constants.LOGIN_NAME + "=" + encodedUsername + "&" + Constants.PASS_WORD + "=" + encodedPassword;
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
         Request request = new Request.Builder().url(url).build();
+
         try (Response response = this.okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 LOG.warn("get token from server : [{}] error", server);

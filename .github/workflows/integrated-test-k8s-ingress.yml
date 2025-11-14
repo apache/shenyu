@@ -31,7 +31,7 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-motan
           - shenyu-integrated-test-k8s-ingress-websocket
           - shenyu-integrated-test-k8s-ingress-grpc
-#          - shenyu-integrated-test-k8s-ingress-sofa
+    #          - shenyu-integrated-test-k8s-ingress-sofa
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu'
     steps:
@@ -39,14 +39,29 @@ jobs:
         with:
           submodules: true
 
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
+      - uses: ./actions/paths-filter
+        id: filter
+        with:
+          filters: |
+            k8s-ingress:
+              - 'shenyu-integrated-test-k8s-ingress*/**'
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - 'shenyu-examples/**'
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!resources/static/**'
+              - '!.asf.yaml'
+              - '!.gitignore'
+              - '!.licenserc.yaml'
+              - '!LICENSE'
+              - '!NOTICE'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE'
 
       - name: Clean Space
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
@@ -54,7 +69,7 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Cache Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
@@ -63,10 +78,10 @@ jobs:
             ${{ runner.os }}-maven-
 
       - uses: actions/setup-java@v4
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         with:
           java-version: 17
-          distribution: 'temurin'
+          distribution: "temurin"
 
       - name: Install Go
         uses: actions/setup-go@v3
@@ -74,14 +89,14 @@ jobs:
           go-version: 1.17.x
 
       - name: Install k8s
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         run: |
           go install sigs.k8s.io/kind@v0.14.0
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/${{ matrix.case }}/deploy/kind-config.yaml
 
       - name: Cache Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
@@ -90,41 +105,110 @@ jobs:
             ${{ runner.os }}-maven-
 
       - uses: actions/setup-java@v4
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         with:
           java-version: 17
-          distribution: 'temurin'
+          distribution: "temurin"
+
+      - name: Install mvnd
+        if: steps.filter.outputs.k8s-ingress == 'true'
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.2
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          else
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          fi
 
       - name: Build with Maven
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        if: steps.filter.outputs.k8s-ingress == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build"
+            mvnd -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          else
+            echo "Falling back to maven wrapper"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            else
+              ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            fi
+          fi
 
       - name: Build integrated tests
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+        if: steps.filter.outputs.k8s-ingress == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build integrated tests"
+            mvnd -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+          else
+            echo "Falling back to maven wrapper for integrated tests"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+            else
+              ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+            fi
+          fi
 
       - name: Build examples
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+        if: steps.filter.outputs.k8s-ingress == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build examples"
+            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          else
+            echo "Falling back to maven wrapper for examples"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            else
+              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            fi
+          fi
 
       - name: Build k8s Cluster
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/build_k8s_cluster.sh
 
       - name: Wait for k8s Cluster Start up
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         timeout-minutes: 15
         run: |
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
 
       - name: Run test
         id: test
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        if: steps.filter.outputs.k8s-ingress == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for running tests"
+            mvnd test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+          else
+            echo "Falling back to maven wrapper for tests"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+            else
+              ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+            fi
+          fi
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.k8s-ingress == 'true'
         run: |
           echo "----------kubectl get all -o wide----------"
           kubectl get all -o wide
@@ -141,4 +225,3 @@ jobs:
             echo "Test Successful"
             exit 0
           fi
-

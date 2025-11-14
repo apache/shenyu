@@ -310,6 +310,9 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private JsonObject parseInput(final String input) {
         try {
+            if (org.apache.commons.lang3.StringUtils.isBlank(input)) {
+                return new JsonObject();
+            }
             final JsonObject inputJson = GsonUtils.getInstance().fromJson(input, JsonObject.class);
             if (Objects.isNull(inputJson)) {
                 throw new IllegalArgumentException("Invalid input JSON format");
@@ -574,7 +577,13 @@ public class ShenyuToolCallback implements ToolCallback {
                 decoratedExchange.getAttributes().put(Constants.META_DATA, metaData);
                 shenyuContext.setRpcType(metaData.getRpcType());
             }
-            shenyuContext.setPath(decoratedPath);
+            try {
+                URI uri = new URI(decoratedPath);
+                shenyuContext.setPath(uri.getRawPath());
+            } catch (URISyntaxException ignore) {
+                shenyuContext.setPath(decoratedPath);
+            }
+
             shenyuContext.setRealUrl(decoratedPath);
 
             LOG.debug("Configured RpcType to HTTP for tool call, session: {}", sessionId);

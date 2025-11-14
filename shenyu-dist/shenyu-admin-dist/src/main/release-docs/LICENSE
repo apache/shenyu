@@ -364,6 +364,7 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
     spring-retry 2.0.6: https://mvnrepository.com/artifact/org.springframework.retry/spring-retry/2.0.6, Apache 2.0
+    spring-ai-retry 1.0.0: https://mvnrepository.com/artifact/org.springframework.ai/spring-ai-retry, Apache 2.0
     spring-integration-core 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-core, Apache 2.0
     spring-integration-jdbc 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-jdbc, Apache 2.0
     spring-integration-zookeeper 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-zookeeper, Apache 2.0
@@ -413,6 +414,7 @@ The text of each license is the standard Apache 2.0 license.
     swagger-models-jakarta 2.2.21: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-models-jakarta, Apache 2.0
     swagger-models 2.2.9: https://github.com/swagger-api/swagger-core, Apache 2.0
     swagger-ui 5.13.0: https://github.com/swagger-api/swagger-ui, Apache 2.0
+    swagger-parser 2.1.23 https://github.com/swagger-api/swagger-parser, Apache 2.0
     simpleclient_tracer_otel 0.16.0: https://mvnrepository.com/artifact/io.prometheus/simpleclient_tracer_otel, Apache 2.0
     thymeleaf 3.1.2.RELEASE: http://www.thymeleaf.org, Apache 2.0
     thymeleaf-extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0

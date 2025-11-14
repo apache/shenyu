@@ -18,8 +18,9 @@ version: '3.9'
 
 services:
   shenyu-etcd:
-    image: bitnami/etcd:3.5
+    image: rancher/hardened-etcd:v3.5.21-k3s1-build20250910
     container_name: shenyu-etcd
+    command: ["etcd"]
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://shenyu-etcd:2379
@@ -28,7 +29,7 @@ services:
       - "32379:2379"
       - "2380:2380"
     healthcheck:
-      test: ["CMD", "/opt/bitnami/etcd/bin/etcdctl", "endpoint", "health"]
+      test: ["CMD", "etcdctl", "endpoint", "health"]
       interval: 10s
       timeout: 5s
       retries: 10

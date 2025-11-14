@@ -288,7 +288,7 @@ public class ShenyuMcpServerManager {
 
         // For sub-paths, extract the main MCP server path
         String[] pathSegments = basePath.split("/");
-        if (pathSegments.length > 2) {
+        if (pathSegments.length >= 2) {
             // Keep only the first two segments (empty + server-name)
             basePath = "/" + pathSegments[1];
         }
@@ -368,7 +368,7 @@ public class ShenyuMcpServerManager {
      */
     public synchronized void addTool(final String serverPath, final String name, final String description,
                         final String requestTemplate, final String inputSchema) {
-        String normalizedPath = normalizeServerPath(serverPath);
+        String normalizedPath = normalizeServerPath(extractBasePath(serverPath));
 
         // Remove existing tool first
         try {

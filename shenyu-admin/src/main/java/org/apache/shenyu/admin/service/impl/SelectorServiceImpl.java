@@ -76,6 +76,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -99,6 +101,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServiceImpl.class);
 
     private final SelectorMapper selectorMapper;
 
@@ -295,14 +299,14 @@ public class SelectorServiceImpl implements SelectorService {
             discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
             if (Objects.nonNull(discoveryDO)) {
-                final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+                final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setId(selector.getId());
                 proxySelectorDTO.setName(selector.getSelectorName());
                 proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getPluginId(), ""));
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryProcessor.removeSelectorUpstream(proxySelectorDTO);
                     discoveryMapper.delete(discoveryDO.getId());
@@ -358,7 +362,10 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceId(final String name, final String pluginName, final String namespaceId) {
+
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        LOG.info("pluginDO info: {}.", pluginDO);
+
         return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
     }
 
@@ -440,12 +447,12 @@ public class SelectorServiceImpl implements SelectorService {
     public List<SelectorVO> listAllData() {
         return this.buildSelectorExportVOList(selectorMapper.selectAll());
     }
-    
+
     @Override
     public List<SelectorVO> listAllDataByNamespaceId(final String namespaceId) {
         return this.buildSelectorExportVOList(selectorMapper.selectAllByNamespaceId(namespaceId));
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<SelectorDTO> selectorList) {
@@ -496,7 +503,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<SelectorDTO> selectorList, final ConfigsImportContext context) {
@@ -509,22 +516,22 @@ public class SelectorServiceImpl implements SelectorService {
         Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(SelectorDO::getPluginId));
-        
+
         Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
                 .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
-        
+
         for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
             // the import selector's pluginId
             String pluginId = context.getPluginTemplateIdMapping().get(selectorEntry.getKey());
             List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
-                
+
                 Map<String, String> existSelectorSet = Optional
                         .ofNullable(pluginSelectorMap.get(pluginId))
                         .orElseGet(Lists::newArrayList)
                         .stream()
                         .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
-                
+
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName
                     String selectorName = selectorDTO.getName();
@@ -559,7 +566,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {

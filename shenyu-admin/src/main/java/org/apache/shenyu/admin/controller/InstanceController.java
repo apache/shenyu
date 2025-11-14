@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -27,10 +29,14 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.PageService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -41,8 +47,11 @@ public class InstanceController implements PagedController<InstanceQueryConditio
 
     private final InstanceInfoService instanceInfoService;
 
-    public InstanceController(final InstanceInfoService instanceInfoService) {
+    private final InstanceCheckService instanceCheckService;
+
+    public InstanceController(final InstanceInfoService instanceInfoService, final InstanceCheckService instanceCheckService) {
         this.instanceInfoService = instanceInfoService;
+        this.instanceCheckService = instanceCheckService;
     }
 
     /**
@@ -51,9 +60,9 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      * @param instanceType instance type.
      * @param instanceIp   instance ip.
      * @param instancePort instance port.
-     * @param namespaceId namespace id.
-     * @param currentPage current page.
-     * @param pageSize    page size.
+     * @param namespaceId  namespace id.
+     * @param currentPage  current page.
+     * @param pageSize     page size.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping
@@ -64,14 +73,23 @@ public class InstanceController implements PagedController<InstanceQueryConditio
                                           @NotNull @RequestParam(name = "currentPage") final Integer currentPage,
                                           @NotNull @RequestParam(name = "pageSize") final Integer pageSize) {
         CommonPager<InstanceInfoVO> commonPager = instanceInfoService.listByPage(
-            new InstanceQuery(
-                new PageParameter(currentPage, pageSize),
-                    instanceType,
-                    instanceIp,
-                    instancePort,
-                    namespaceId
-            )
+                new InstanceQuery(
+                        new PageParameter(currentPage, pageSize),
+                        instanceType,
+                        instanceIp,
+                        instancePort,
+                        namespaceId
+                )
         );
+        if (!CollectionUtils.isEmpty(commonPager.getDataList())) {
+            commonPager.getDataList().forEach(instanceInfoVO -> {
+                String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
+                InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+                instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+                instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+                instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+            });
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -86,6 +104,29 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     public ShenyuAdminResult detailInstanceInfo(@PathVariable("id") final String id) {
         InstanceInfoVO instanceInfoVO = instanceInfoService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, instanceInfoVO);
+    }
+
+    /**
+     * receive beat.
+     *
+     * @param instanceBeatInfoDTO instanceBeatInfoDTO.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("/beat")
+    public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    /**
+     * visual instance info.
+     *
+     * @param namespaceId namespace id.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/analysis/{namespaceId}")
+    public ShenyuAdminResult getInstanceDataVisual(@PathVariable("namespaceId") final String namespaceId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, instanceCheckService.getInstanceDataVisual(namespaceId));
     }
 
 
