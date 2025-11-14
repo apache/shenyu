@@ -107,7 +107,9 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterDubboService).doSubmit(any(), any());
         String actual = shenyuClientRegisterDubboService.buildHandle(list, selectorDO);
-        assertEquals(expected, actual);
+        List<DubboUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, DubboUpstream.class);
+        List<DubboUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, DubboUpstream.class);
+        assertEquals(expectedList, actualList);
         List<DubboUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, DubboUpstream.class);
         assertEquals(resultList.size(), 2);
 
