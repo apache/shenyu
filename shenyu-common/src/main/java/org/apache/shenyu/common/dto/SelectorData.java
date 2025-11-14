@@ -25,9 +25,7 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class SelectorData {
-
-    private String id;
+public class SelectorData extends BaseData {
 
     private String pluginId;
 
@@ -35,8 +33,6 @@ public class SelectorData {
      * plugin name.
      */
     private String pluginName;
-
-    private String name;
 
     /**
      * matchMode（0 and  1 or).
@@ -47,10 +43,6 @@ public class SelectorData {
      * type（false full，true custom).
      */
     private Integer type;
-
-    private Integer sort;
-
-    private Boolean enabled;
 
     private Boolean logged;
 
@@ -66,11 +58,6 @@ public class SelectorData {
      * match restful api.
      */
     private Boolean matchRestful;
-
-    /**
-     * namespaceId.
-     */
-    private String namespaceId;
 
     /**
      * no args constructor.
@@ -110,23 +97,6 @@ public class SelectorData {
         return new Builder();
     }
 
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
 
     /**
      * get pluginId.
@@ -164,23 +134,6 @@ public class SelectorData {
         this.pluginName = pluginName;
     }
 
-    /**
-     * get name.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * set name.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
 
     /**
      * get matchMode.
@@ -216,42 +169,6 @@ public class SelectorData {
      */
     public void setType(final Integer type) {
         this.type = type;
-    }
-
-    /**
-     * get sort.
-     *
-     * @return sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-    /**
-     * set sort.
-     *
-     * @param sort sort
-     */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
-    }
-
-    /**
-     * get enabled.
-     *
-     * @return enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * set enabled.
-     *
-     * @param enabled enabled
-     */
-    public void setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
     }
 
     /**
@@ -365,24 +282,6 @@ public class SelectorData {
         this.beforeConditionList = beforeConditionList;
     }
 
-    /**
-     * get namespaceId.
-     *
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-
-    /**
-     * set namespaceId.
-     *
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -393,11 +292,11 @@ public class SelectorData {
         }
         SelectorData that = (SelectorData) o;
         return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(pluginName, that.pluginName)
-                && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
-                && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
-                && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
-                && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
-                && Objects.equals(namespaceId, that.namespaceId);
+            && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
+            && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
+            && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle) && Objects.equals(conditionList, that.conditionList)
+            && Objects.equals(beforeConditionList, that.beforeConditionList) && Objects.equals(matchRestful, that.matchRestful)
+            && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
@@ -408,62 +307,54 @@ public class SelectorData {
     @Override
     public String toString() {
         return "SelectorData{"
-                + "id='"
-                + id
-                + '\''
-                + ", pluginId='"
-                + pluginId
-                + '\''
-                + ", pluginName='"
-                + pluginName
-                + '\''
-                + ", name='"
-                + name
-                + '\''
-                + ", matchMode="
-                + matchMode
-                + ", type="
-                + type
-                + ", sort="
-                + sort
-                + ", enabled="
-                + enabled
-                + ", logged="
-                + logged
-                + ", continued="
-                + continued
-                + ", handle='"
-                + handle
-                + '\''
-                + ", conditionList="
-                + conditionList
-                + ", matchRestful="
-                + matchRestful
-                + ", namespaceId="
-                + namespaceId
-                + '}';
+            + "id='"
+            + id
+            + '\''
+            + ", pluginId='"
+            + pluginId
+            + '\''
+            + ", pluginName='"
+            + pluginName
+            + '\''
+            + ", name='"
+            + name
+            + '\''
+            + ", matchMode="
+            + matchMode
+            + ", type="
+            + type
+            + ", sort="
+            + sort
+            + ", enabled="
+            + enabled
+            + ", logged="
+            + logged
+            + ", continued="
+            + continued
+            + ", handle='"
+            + handle
+            + '\''
+            + ", conditionList="
+            + conditionList
+            + ", matchRestful="
+            + matchRestful
+            + ", namespaceId="
+            + namespaceId
+            + '}';
     }
 
     /**
      * class builder.
      */
-    public static final class Builder {
-
-        private String id;
+    public static final class Builder extends BaseData {
 
         private String pluginId;
 
         private String pluginName;
 
-        private String name;
-
         private Integer matchMode;
 
         private Integer type;
-
-        private Integer sort;
-
-        private Boolean enabled;
 
         private Boolean logged;
 
@@ -476,9 +367,6 @@ public class SelectorData {
         private Boolean matchRestful;
 
         private List<ConditionData> beforeConditionList;
-
-        private String namespaceId;
-
         /**
          * no args constructor.
          */

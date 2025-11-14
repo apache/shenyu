@@ -25,11 +25,7 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class RuleData {
-
-    private String id;
-
-    private String name;
+public class RuleData  extends BaseData{
 
     private String pluginName;
 
@@ -39,10 +35,6 @@ public class RuleData {
      * match way（0 and  1 or).
      */
     private Integer matchMode;
-
-    private Integer sort;
-
-    private Boolean enabled;
 
     private Boolean loged;
 
@@ -54,16 +46,11 @@ public class RuleData {
     private List<ConditionData> conditionDataList;
 
     private List<ConditionData> beforeConditionDataList;
-    
+
     /**
      * match restful.
      */
     private Boolean matchRestful;
-    
-    /**
-     * namespaceId.
-     */
-    private String namespaceId;
 
     /**
      * no args constructor.
@@ -99,46 +86,6 @@ public class RuleData {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     * @return this
-     */
-    public RuleData setId(final String id) {
-        this.id = id;
-        return this;
-    }
-
-    /**
-     * get name.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * set name.
-     *
-     * @param name name
-     * @return this
-     */
-    public RuleData setName(final String name) {
-        this.name = name;
-        return this;
     }
 
     /**
@@ -198,46 +145,6 @@ public class RuleData {
      */
     public RuleData setMatchMode(final Integer matchMode) {
         this.matchMode = matchMode;
-        return this;
-    }
-
-    /**
-     * get sort.
-     *
-     * @return sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-    /**
-     * set sort.
-     *
-     * @param sort sort
-     * @return this
-     */
-    public RuleData setSort(final Integer sort) {
-        this.sort = sort;
-        return this;
-    }
-
-    /**
-     * get enabled.
-     *
-     * @return enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * set enabled.
-     *
-     * @param enabled enabled
-     * @return this
-     */
-    public RuleData setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
         return this;
     }
 
@@ -318,7 +225,7 @@ public class RuleData {
     public void setBeforeConditionDataList(final List<ConditionData> beforeConditionDataList) {
         this.beforeConditionDataList = beforeConditionDataList;
     }
-    
+
     /**
      * get match restful.
      *
@@ -327,7 +234,7 @@ public class RuleData {
     public Boolean getMatchRestful() {
         return matchRestful;
     }
-    
+
     /**
      * set match restful.
      *
@@ -336,23 +243,8 @@ public class RuleData {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
-    /**
-     * get namespaceId.
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-    
-    /**
-     * set namespaceId.
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-    
+
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -363,77 +255,69 @@ public class RuleData {
         }
         final RuleData ruleData = (RuleData) o;
         return Objects.equals(id, ruleData.id)
-                && Objects.equals(name, ruleData.name)
-                && Objects.equals(pluginName, ruleData.pluginName)
-                && Objects.equals(selectorId, ruleData.selectorId)
-                && Objects.equals(matchMode, ruleData.matchMode)
-                && Objects.equals(sort, ruleData.sort)
-                && Objects.equals(enabled, ruleData.enabled)
-                && Objects.equals(loged, ruleData.loged)
-                && Objects.equals(handle, ruleData.handle)
-                && Objects.equals(conditionDataList, ruleData.conditionDataList)
-                && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
-                && Objects.equals(matchRestful, ruleData.matchRestful)
-                && Objects.equals(namespaceId, ruleData.namespaceId);
+            && Objects.equals(name, ruleData.name)
+            && Objects.equals(pluginName, ruleData.pluginName)
+            && Objects.equals(selectorId, ruleData.selectorId)
+            && Objects.equals(matchMode, ruleData.matchMode)
+            && Objects.equals(sort, ruleData.sort)
+            && Objects.equals(enabled, ruleData.enabled)
+            && Objects.equals(loged, ruleData.loged)
+            && Objects.equals(handle, ruleData.handle)
+            && Objects.equals(conditionDataList, ruleData.conditionDataList)
+            && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
+            && Objects.equals(matchRestful, ruleData.matchRestful)
+            && Objects.equals(namespaceId, ruleData.namespaceId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
-                beforeConditionDataList, matchRestful, namespaceId);
+            beforeConditionDataList, matchRestful, namespaceId);
     }
 
     @Override
     public String toString() {
         return "RuleData{"
-                + "id='"
-                + id
-                + '\''
-                + ", name='"
-                + name
-                + '\''
-                + ", pluginName='"
-                + pluginName
-                + '\''
-                + ", selectorId='"
-                + selectorId
-                + '\''
-                + ", matchMode="
-                + matchMode
-                + ", sort="
-                + sort
-                + ", enabled="
-                + enabled
-                + ", loged="
-                + loged
-                + ", handle='"
-                + handle
-                + '\''
-                + ", conditionDataList="
-                + conditionDataList
-                + ", matchRestful="
-                + matchRestful
-                + '}';
+            + "id='"
+            + id
+            + '\''
+            + ", name='"
+            + name
+            + '\''
+            + ", pluginName='"
+            + pluginName
+            + '\''
+            + ", selectorId='"
+            + selectorId
+            + '\''
+            + ", matchMode="
+            + matchMode
+            + ", sort="
+            + sort
+            + ", enabled="
+            + enabled
+            + ", loged="
+            + loged
+            + ", handle='"
+            + handle
+            + '\''
+            + ", conditionDataList="
+            + conditionDataList
+            + ", matchRestful="
+            + matchRestful
+            + '}';
     }
 
     /**
      * class builder.
      */
-    public static final class Builder {
-
-        private String id;
-
-        private String name;
+    public static final class Builder extends BaseData {
 
         private String pluginName;
 
         private String selectorId;
 
         private Integer matchMode;
-
-        private Integer sort;
-
-        private Boolean enabled;
 
         private Boolean loged;
 
@@ -442,10 +326,8 @@ public class RuleData {
         private List<ConditionData> conditionDataList;
 
         private List<ConditionData> beforeConditionDataList;
-        
+
         private Boolean matchRestful;
-        
-        private String namespaceId;
 
         /**
          * no args constructor.
@@ -582,7 +464,7 @@ public class RuleData {
             this.beforeConditionDataList = beforeConditionDataList;
             return this;
         }
-    
+
         /**
          * build match restful.
          *
@@ -593,7 +475,7 @@ public class RuleData {
             this.matchRestful = matchRestful;
             return this;
         }
-        
+
         /**
          * build namespaceId.
          *
