@@ -71,21 +71,21 @@ public class SelectorData extends BaseData {
      * @param builder builder
      */
     private SelectorData(final Builder builder) {
-        this.setId(builder.id);
+        this.setId(builder.getId());
         this.pluginId = builder.pluginId;
         this.pluginName = builder.pluginName;
-        this.setName(builder.name);
+        this.setName(builder.getName());
         this.matchMode = builder.matchMode;
         this.type = builder.type;
-        this.setSort(builder.sort);
-        this.setEnabled(builder.enabled);
+        this.setSort(builder.getSort());
+        this.setEnabled(builder.getEnabled());
         this.logged = builder.logged;
         this.continued = builder.continued;
         this.handle = builder.handle;
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
         this.beforeConditionList = builder.beforeConditionList;
-        this.setNamespaceId(builder.namespaceId);
+        this.setNamespaceId(builder.getNamespaceId());
     }
 
     /**
@@ -388,7 +388,7 @@ public class SelectorData extends BaseData {
          * @return this
          */
         public Builder id(final String id) {
-            this.id = id;
+            setId(id);
             return this;
         }
 
@@ -421,7 +421,7 @@ public class SelectorData extends BaseData {
          * @return this
          */
         public Builder name(final String name) {
-            this.name = name;
+            setName(name);
             return this;
         }
 
@@ -454,7 +454,7 @@ public class SelectorData extends BaseData {
          * @return this
          */
         public Builder sort(final Integer sort) {
-            this.sort = sort;
+            setSort(sort);
             return this;
         }
 
@@ -465,7 +465,7 @@ public class SelectorData extends BaseData {
          * @return this
          */
         public Builder enabled(final Boolean enabled) {
-            this.enabled = enabled;
+            setEnabled(enabled);
             return this;
         }
 
@@ -542,7 +542,7 @@ public class SelectorData extends BaseData {
          * @return this
          */
         public Builder namespaceId(final String namespaceId) {
-            this.namespaceId = namespaceId;
+            setNamespaceId(namespaceId);
             return this;
         }
     }
