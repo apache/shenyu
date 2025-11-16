@@ -25,7 +25,7 @@
         <result column="type" jdbcType="INTEGER" property="type"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="param_desc" jdbcType="VARCHAR" property="paramDesc"/>
-        <result column="required" jdbcType="TINYINT" property="required"/>
+        <result column="is_required" jdbcType="TINYINT" property="isRequired"/>
         <result column="ext" jdbcType="VARCHAR" property="ext"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -38,7 +38,7 @@
         type,
         name,
         param_desc,
-        required,
+        is_required,
         ext,
         date_created,
         date_updated
@@ -59,7 +59,7 @@
                     type,
                     name,
                     param_desc,
-                    required,
+                    is_required,
                     ext,
                     date_created,
                     date_updated)
@@ -70,7 +70,7 @@
                     #{type, jdbcType=INTEGER},
                     #{name, jdbcType=VARCHAR},
                     #{paramDesc, jdbcType=VARCHAR},
-                    #{required, jdbcType=TINYINT},
+                    #{isRequired, jdbcType=TINYINT},
                     #{ext, jdbcType=VARCHAR},
                     #{dateCreated,jdbcType=TIMESTAMP},
                     #{dateUpdated,jdbcType=TIMESTAMP})
@@ -95,8 +95,8 @@
             <if test="paramDesc != null">
                 param_desc,
             </if>
-            <if test="required != null">
-                required,
+            <if test="isRequired != null">
+                is_required,
             </if>
             <if test="ext != null">
                 ext,
@@ -125,8 +125,8 @@
             <if test="paramDesc != null">
                 #{paramDesc, jdbcType=VARCHAR},
             </if>
-            <if test="required != null">
-                #{required, jdbcType=TINYINT},
+            <if test="isRequired != null">
+                #{isRequired, jdbcType=TINYINT},
             </if>
             <if test="ext != null">
                 #{ext, jdbcType=VARCHAR},
@@ -148,7 +148,7 @@
                type = #{type, jdbcType=INTEGER},
                name = #{name, jdbcType=VARCHAR},
                param_desc = #{paramDesc, jdbcType=VARCHAR},
-               required = #{required, jdbcType=TINYINT},
+               is_required = #{isRequired, jdbcType=TINYINT},
                ext = #{ext, jdbcType=VARCHAR},
                date_created = #{dateCreated,jdbcType=TIMESTAMP},
                date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
@@ -173,8 +173,8 @@
             <if test="paramDesc != null">
                 param_desc = #{paramDesc, jdbcType=VARCHAR},
             </if>
-            <if test="required != null">
-                required = #{required, jdbcType=TINYINT},
+            <if test="isRequired != null">
+                is_required = #{isRequired, jdbcType=TINYINT},
             </if>
             <if test="ext != null">
                 ext = #{ext, jdbcType=VARCHAR},

@@ -25,7 +25,7 @@
         <result column="model_id" jdbcType="VARCHAR" property="modelId"/>
         <result column="self_model_id" jdbcType="VARCHAR" property="selfModelId"/>
         <result column="field_desc" jdbcType="VARCHAR" property="fieldDesc"/>
-        <result column="required" jdbcType="TINYINT" property="required"/>
+        <result column="is_required" jdbcType="TINYINT" property="isRequired"/>
         <result column="ext" jdbcType="VARCHAR" property="ext"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -37,7 +37,7 @@
         model_id,
         self_model_id,
         field_desc,
-        required,
+        is_required,
         ext,
         date_created,
         date_updated
@@ -57,7 +57,7 @@
             model_id,
             self_model_id,
             field_desc,
-            required,
+            is_required,
             ext,
             date_created,
             date_updated
@@ -67,7 +67,7 @@
             #{modelId, jdbcType=VARCHAR},
             #{selfModelId, jdbcType=VARCHAR},
             #{fieldDesc, jdbcType=VARCHAR},
-            #{required, jdbcType=TINYINT},
+            #{isRequired, jdbcType=TINYINT},
             #{ext, jdbcType=VARCHAR},
             #{dateCreated,jdbcType=TIMESTAMP},
             #{dateUpdated,jdbcType=TIMESTAMP}
@@ -90,8 +90,8 @@
             <if test="fieldDesc != null">
                 field_desc,
             </if>
-            <if test="required != null">
-                required,
+            <if test="isRequired != null">
+                is_required,
             </if>
             <if test="ext != null">
                 ext,
@@ -117,8 +117,8 @@
             <if test="fieldDesc != null">
                 #{fieldDesc, jdbcType=VARCHAR},
             </if>
-            <if test="required != null">
-                #{required, jdbcType=TINYINT},
+            <if test="isRequired != null">
+                #{isRequired, jdbcType=TINYINT},
             </if>
             <if test="ext != null">
                 #{ext, jdbcType=VARCHAR},
@@ -147,8 +147,8 @@
             <if test="fieldDesc != null">
                 field_desc = #{fieldDesc, jdbcType=VARCHAR},
             </if>
-            <if test="required != null">
-                required = #{required, jdbcType=TINYINT},
+            <if test="isRequired != null">
+                is_required = #{isRequired, jdbcType=TINYINT},
             </if>
             <if test="ext != null">
                 ext = #{ext, jdbcType=VARCHAR},
@@ -170,7 +170,7 @@
         model_id = #{modelId,jdbcType=VARCHAR},
         self_model_id = #{selfModelId,jdbcType=VARCHAR},
         field_desc = #{fieldDesc,jdbcType=VARCHAR},
-        required = #{required,jdbcType=TINYINT},
+        is_required = #{isRequired,jdbcType=TINYINT},
         ext = #{ext,jdbcType=VARCHAR},
         date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
