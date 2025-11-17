@@ -65,8 +65,8 @@ jobs:
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
-              - '!LICENSE'
-              - '!NOTICE'
+              - '!**/LICENSE'
+              - '!**/NOTICE'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
       - name: Restore ShenYu Maven Repos
