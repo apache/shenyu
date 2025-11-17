@@ -554,8 +554,10 @@ The text of each license is the standard Apache 2.0 license.
     zkclient 0.11: https://github.com/sgroschupf/zkclient, Apache 2.0
     zookeeper 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.9.4: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.9.4: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.14.11: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.14.17: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
@@ -625,18 +627,12 @@ The text of each license is the standard Apache 2.0 license.
     lts-sdk-common 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
     amqp-client 5.21.0: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
-
-========================================================================
-Apache 2.0 licenses
-========================================================================
-
-The following components are provided under the Apache license. See project link for details.
-The text of each license is also included at licenses/LICENSE-[project].txt.
-
+    javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
     wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasi-common 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasmtime 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasmtime-wasi 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    jna-platform 5.16.0: https://github.com/java-native-access/jna, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -752,6 +748,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
+    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
 MPL licenses
