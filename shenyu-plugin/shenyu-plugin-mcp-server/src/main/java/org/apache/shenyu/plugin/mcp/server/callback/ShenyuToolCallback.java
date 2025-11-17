@@ -586,7 +586,7 @@ public class ShenyuToolCallback implements ToolCallback {
             }
             Map<String, Object> attributes = decoratedExchange.getAttributes();
             String contextPath = (String) attributes.get(Constants.CONTEXT_PATH);
-            if (Objects.isNull(contextPath) || decoratedPath.length() < contextPath.length()) {
+            if (org.apache.commons.lang3.StringUtils.isBlank(contextPath)) {
                 shenyuContext.setRealUrl(decoratedPath);
             } else {
                 String realURI = decoratedPath.substring(contextPath.length());

@@ -73,6 +73,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
      *
      * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
+     * @param env                            the spring environment
      */
     public McpServiceEventListener(final ShenyuClientConfig clientConfig,
                                    final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
