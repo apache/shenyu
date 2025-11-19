@@ -60,7 +60,6 @@
         <module>shenyu-examples-sdk</module>
         <module>shenyu-examples-mcp</module>
     </modules>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
