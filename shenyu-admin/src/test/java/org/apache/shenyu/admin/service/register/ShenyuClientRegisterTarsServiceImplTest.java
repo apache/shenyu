@@ -108,7 +108,9 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());
         String actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
-        assertEquals(actual, expected);
+        List<TarsUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, TarsUpstream.class);
+        List<TarsUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        assertEquals(expectedList, actualList);
         List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 2);
 
