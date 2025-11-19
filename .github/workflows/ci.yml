@@ -50,15 +50,9 @@ jobs:
       - uses: ./actions/paths-filter
         id: filter
         with:
+          list-files: "csv"
           filters: |
             code:
-              - 'shenyu-*/**'
-              - 'pom.xml'
-              - '**/pom.xml'
-              - 'mvnw'
-              - 'mvnw.cmd'
-              - '.mvn/**'
-              - '.github/workflows/**'
               - '!**/*.md'
               - '!**/*.txt'
               - '!resources/static/**'
@@ -66,9 +60,26 @@ jobs:
               - '!.gitignore'
               - '!.licenserc.yaml'
               - '!LICENSE'
+              - '!**/LICENSE'
+              - '!shenyu-*/**/LICENSE'
+              - '!shenyu-*/**/release-docs/LICENSE'
               - '!NOTICE'
+              - '!**/NOTICE'
+              - '!shenyu-*/**/NOTICE'
+              - '!shenyu-*/**/release-docs/NOTICE'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - 'mvnw'
+              - 'mvnw.cmd'
+              - '.mvn/**'
+              - '.github/workflows/**'
+      - name: Debug - Show matched files
+        if: steps.filter.outputs.code == 'true'
+        run: |
+          echo "Matched files: ${{ steps.filter.outputs.code_files }}"
       - name: Restore ShenYu Maven Repos
         if: steps.filter.outputs.code == 'true'
         id: restore-maven-cache
