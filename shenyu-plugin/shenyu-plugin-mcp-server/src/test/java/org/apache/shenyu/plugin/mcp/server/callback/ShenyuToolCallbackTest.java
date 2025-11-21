@@ -157,6 +157,9 @@ class ShenyuToolCallbackTest {
     @Test
     void testCallWithMissingExchange() throws Exception {
         when(toolDefinition.name()).thenReturn("testTool");
+        when(toolDefinition.requestConfig()).thenReturn(
+                "{\"requestTemplate\":{\"url\":\"/test\",\"method\":\"GET\"},\"argsPosition\":{}}"
+        );
         shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
         
         final ToolContext toolContext = new ToolContext(new HashMap<>());

@@ -45,9 +45,9 @@ class RequestConfigHelperTest {
 
     @Test
     void testPostRequestWithJsonBody() {
-        String configStr = "{\"requestTemplate\":{\"url\":\"/api/users\","
-                + "\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\","
-                + "\"value\":\"application/json\"}],\"argsToJsonBody\":true,\"argsPosition\":{\"name\":\"body\",\"email\":\"body\"}}}";
+        String configStr = "{\"requestTemplate\":{\"url\":\"/api/users\"," +
+                "\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\"," +
+                "\"value\":\"application/json\"}],\"argsToJsonBody\":true},\"argsPosition\":{\"name\":\"body\",\"email\":\"body\"}}";
         RequestConfigHelper helper = new RequestConfigHelper(configStr);
         
         assertEquals("/api/users", helper.getUrlTemplate());
