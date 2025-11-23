@@ -49,7 +49,9 @@ public class HttpUtilsTest {
         Request.Builder builder = HttpUtils.buildRequestBuilder(TEST_URL, formMap, HttpUtils.HTTPMethod.GET);
         Assert.assertNotNull(builder);
         Assert.assertEquals(builder.build().method(), HttpUtils.HTTPMethod.GET.value());
-        Assert.assertEquals(builder.build().url().toString(), ACTUAL_PARAM_URL);
+        Assert.assertEquals(TEST_URL, builder.build().url().newBuilder().query(null).build().toString());
+        Assert.assertEquals("123", builder.build().url().queryParameter("param-1"));
+        Assert.assertEquals("456", builder.build().url().queryParameter("param-2"));
     }
 
     @Test

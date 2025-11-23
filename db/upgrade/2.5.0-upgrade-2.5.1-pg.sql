@@ -425,7 +425,7 @@ CREATE TABLE "public"."param" (
     "type"         int4 NOT NULL,
     "name"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "param_desc"   varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
-    "required"     int2 NOT NULL,
+    "is_required"     int2 NOT NULL,
     "ext"          varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -468,7 +468,7 @@ CREATE TABLE "public"."field" (
     "self_model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "field_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
-    "required" int2 NOT NULL,
+    "is_required" int2 NOT NULL,
     "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
