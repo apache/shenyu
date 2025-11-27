@@ -119,6 +119,12 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
+    public Long countByCondition(final RuleQueryCondition condition) {
+        condition.init();
+        return ruleMapper.countByCondition(condition);
+    }
+
+    @Override
     public String registerDefault(final RuleDTO ruleDTO) {
         if (Objects.nonNull(ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName()))) {
             return "";
