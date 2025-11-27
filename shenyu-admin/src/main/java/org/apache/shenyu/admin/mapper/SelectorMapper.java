@@ -210,6 +210,14 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> selectByCondition(@Param("condition") SelectorQueryCondition condition);
 
     /**
+     * count by condition.
+     *
+     * @param condition condition
+     * @return count
+     */
+    Long countByCondition(@Param("condition") SelectorQueryCondition condition);
+
+    /**
      * selectByDiscoveryHandlerId.
      *
      * @param discoveryHandlerId discoveryHandlerId

@@ -166,6 +166,12 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    public Long countByCondition(final SelectorQueryCondition condition) {
+        condition.init();
+        return selectorMapper.countByCondition(condition);
+    }
+
+    @Override
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         if (StringUtils.isEmpty(selectorDTO.getId())) {
