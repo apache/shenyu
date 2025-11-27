@@ -179,6 +179,14 @@ public interface RuleMapper extends ExistProvider {
     List<RuleDO> selectByCondition(@Param("condition") RuleQueryCondition condition);
 
     /**
+     * count by condition.
+     *
+     * @param condition condition
+     * @return count
+     */
+    Long countByCondition(@Param("condition") RuleQueryCondition condition);
+
+    /**
      * get plugin name by selectorId.
      *
      * @param selectorId selectorId

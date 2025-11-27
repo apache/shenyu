@@ -194,6 +194,40 @@
         </where>
     </select>
 
+    <select id="countByCondition" parameterType="org.apache.shenyu.admin.model.query.RuleQueryCondition"
+            resultType="java.lang.Long">
+        SELECT count(1)
+        FROM rule
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND rule_name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND rule_name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.selectors != null and condition.selectors.size > 0">
+                AND selector_id IN
+                <foreach item="id" collection="condition.selectors" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where data_id = rule.id
+                        and user_id = #{condition.userId})
+            </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
     <select id="getPluginNameBySelectorId" resultType="java.lang.String">
         select p.name
         from plugin p
