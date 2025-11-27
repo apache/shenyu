@@ -73,6 +73,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
+    private SelectorDataDecisionMaker selectorDataDecisionMaker = new SelectorDataDecisionMaker();
+
+    private RuleDataDecisionMaker ruleDataDecisionMaker = new RuleDataDecisionMaker();
+
     /**
      * this is Template Method child has implements your own logic.
      *
@@ -104,7 +108,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return pluginDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
 
-        SelectorDataDecisionMaker selectorDataDecisionMaker = new SelectorDataDecisionMaker();
         List<SelectorData> selectorDataList = selectorDataDecisionMaker.getData(pluginName);
         if (CollectionUtils.isEmpty(selectorDataList)) {
             return selectorDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
@@ -121,7 +124,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
 
 
-        RuleDataDecisionMaker ruleDataDecisionMaker = new RuleDataDecisionMaker();
+
         List<RuleData> ruleDataList = ruleDataDecisionMaker.getData(selectorData.getId());
         if (CollectionUtils.isEmpty(ruleDataList)) {
             return ruleDataDecisionMaker.handleEmpty(pluginName, exchange, chain);

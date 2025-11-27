@@ -25,6 +25,6 @@ public class SelectorDataDecisionMaker extends AbstractMatchDecisionMaker<Select
 
     @Override
     public boolean shouldContinue(SelectorData data) {
-        return data != null && data.getEnabled();
+        return data != null && data.getEnabled() && data.getContinued();
     }
 }

@@ -24,7 +24,7 @@ public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> 
     }
 
     @Override
-    protected boolean shouldContinue(RuleData data) {
+    public boolean shouldContinue(RuleData data) {
         return data != null && data.getEnabled();
     }
 }

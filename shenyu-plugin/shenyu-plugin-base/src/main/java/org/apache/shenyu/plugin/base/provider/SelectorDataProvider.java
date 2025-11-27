@@ -1,8 +1,5 @@
 package org.apache.shenyu.plugin.base.provider;
 
-
-
-
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 

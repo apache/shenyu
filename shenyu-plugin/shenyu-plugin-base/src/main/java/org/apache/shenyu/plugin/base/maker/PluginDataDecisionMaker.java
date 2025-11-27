@@ -19,7 +19,7 @@ public class PluginDataDecisionMaker extends AbstractMatchDecisionMaker<PluginDa
     }
 
     @Override
-    protected PluginData matchData(ServerWebExchange exchange, List<PluginData> dataList, String path) {
+    public PluginData matchData(ServerWebExchange exchange, List<PluginData> dataList, String path) {
         return dataList.isEmpty() ? null : dataList.get(0);
     }
 
