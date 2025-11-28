@@ -41,7 +41,9 @@ public interface PageService<Q, R> {
     default PageInfo<R> searchByPage(final PageCondition<Q> pageCondition) {
         doConditionPreProcessing(pageCondition.getCondition());
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
-        return new PageInfo<>(searchByCondition(pageCondition.getCondition()));
+        PageInfo<R> pageInfo = new PageInfo<>(searchByCondition(pageCondition.getCondition()));
+        pageInfo.setTotal(countByCondition(pageCondition.getCondition()));
+        return pageInfo;
     }
     
     
@@ -66,7 +68,18 @@ public interface PageService<Q, R> {
         // default is empty list, if paged used DB query.
         return new ArrayList<>();
     }
-    
+
+    /**
+     * count by condition.
+     *
+     * @param condition condition
+     * @return list
+     */
+    default Long countByCondition(final Q condition) {
+        // default is 0, if paged used DB query.
+        return 0L;
+    }
+
     /**
      * condition preprocessing.
      *
