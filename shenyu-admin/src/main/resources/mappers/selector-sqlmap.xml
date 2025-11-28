@@ -259,6 +259,39 @@
         where dr.discovery_handler_id = #{discoveryHandlerId}
     </select>
 
+    <select id="countByCondition" parameterType="org.apache.shenyu.admin.model.query.SelectorQueryCondition"
+            resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM selector
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND selector_name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND selector_name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.plugin != null and condition.plugin.size > 0">
+                AND plugin_id IN
+                <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                from data_permission
+                where data_id = selector.id
+                and user_id = #{condition.userId})
+            </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
     <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.SelectorDO">
         SELECT
         <include refid="Base_Column_List_Alis">
