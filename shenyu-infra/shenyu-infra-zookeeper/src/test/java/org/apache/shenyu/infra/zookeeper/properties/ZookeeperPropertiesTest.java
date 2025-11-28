@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.config.properties;
+package org.apache.shenyu.infra.zookeeper.properties;
 
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.junit.jupiter.api.Test;
@@ -32,18 +33,18 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
     @Test
     public void testLoadPropertiesBySpringContext() {
         final String url = "127.0.0.1:2181";
-        final Integer sessionTimeOut = 5000;
-        final Integer connectionTimeout = 2000;
+        final Integer sessionTimeOut = 100;
+        final Integer connectionTimeout = 20560;
         final String[] inlinedProperties = new String[]{
             "shenyu.sync.zookeeper.url=" + url,
-            "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
-            "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
+            "shenyu.sync.zookeeper.sessionTimeoutMilliseconds=" + sessionTimeOut,
+            "shenyu.sync.zookeeper.connectionTimeoutMilliseconds=" + connectionTimeout,
         };
         load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
         ZookeeperProperties properties = getContext().getBean(ZookeeperProperties.class);
-        assertThat(properties.getUrl(), is(url));
-        assertThat(properties.getSessionTimeout(), is(sessionTimeOut));
-        assertThat(properties.getConnectionTimeout(), is(connectionTimeout));
+        assertThat(properties.getZookeeper().getUrl(), is(url));
+        assertThat(properties.getZookeeper().getSessionTimeoutMilliseconds(), is(sessionTimeOut));
+        assertThat(properties.getZookeeper().getConnectionTimeoutMilliseconds(), is(connectionTimeout));
     }
     
     @Configuration

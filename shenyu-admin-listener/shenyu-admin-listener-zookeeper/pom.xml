@@ -35,13 +35,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-infra-zookeeper</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
