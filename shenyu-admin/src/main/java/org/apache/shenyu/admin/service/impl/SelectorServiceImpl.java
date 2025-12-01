@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.ISelect;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.github.pagehelper.util.PageObjectUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -48,6 +53,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
@@ -151,6 +157,21 @@ public class SelectorServiceImpl implements SelectorService {
         if (SessionUtil.isAdmin()) {
             condition.setUserId(null);
         }
+    }
+
+    @Override
+    public PageInfo<SelectorVO> searchByPage(PageCondition<SelectorQueryCondition> pageCondition) {
+        doConditionPreProcessing(pageCondition.getCondition());
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
+        SelectorQueryCondition condition = pageCondition.getCondition();
+        condition.init();
+        final Page<SelectorDO> page = (Page<SelectorDO>) selectorMapper.selectByCondition(condition);
+        PageInfo<SelectorVO> pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);
+        for (SelectorVO selector : pageInfo.getList()) {
+            selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
+            selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
+        }
+        return pageInfo;
     }
 
     @Override

@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +38,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
@@ -105,6 +109,20 @@ public class RuleServiceImpl implements RuleService {
         if (SessionUtil.isAdmin()) {
             condition.setUserId(null);
         }
+    }
+
+    @Override
+    public PageInfo<RuleVO> searchByPage(PageCondition<RuleQueryCondition> pageCondition) {
+        doConditionPreProcessing(pageCondition.getCondition());
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
+        RuleQueryCondition condition = pageCondition.getCondition();
+        condition.init();
+        final Page<RuleDO> ruleDOList = (Page<RuleDO>) ruleMapper.selectByCondition(condition);
+        PageInfo<RuleVO> rules = ruleDOList.toPageInfo(RuleVO::buildRuleVO);
+        for (RuleVO rule : rules.getList()) {
+            rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
+        }
+        return rules;
     }
 
     @Override
