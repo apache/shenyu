@@ -112,7 +112,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public PageInfo<RuleVO> searchByPage(PageCondition<RuleQueryCondition> pageCondition) {
+    public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
         doConditionPreProcessing(pageCondition.getCondition());
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         RuleQueryCondition condition = pageCondition.getCondition();

@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.github.pagehelper.ISelect;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.github.pagehelper.util.PageObjectUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -160,7 +158,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public PageInfo<SelectorVO> searchByPage(PageCondition<SelectorQueryCondition> pageCondition) {
+    public PageInfo<SelectorVO> searchByPage(final PageCondition<SelectorQueryCondition> pageCondition) {
         doConditionPreProcessing(pageCondition.getCondition());
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         SelectorQueryCondition condition = pageCondition.getCondition();
