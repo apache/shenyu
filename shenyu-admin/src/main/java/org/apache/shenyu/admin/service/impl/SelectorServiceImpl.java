@@ -163,12 +163,21 @@ public class SelectorServiceImpl implements SelectorService {
         doConditionPreProcessing(condition);
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
-        final Page<SelectorDO> page = (Page<SelectorDO>) selectorMapper.selectByCondition(condition);
-        PageInfo<SelectorVO> pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);
-        for (SelectorVO selector : pageInfo.getList()) {
+        final List<SelectorDO> doList = selectorMapper.selectByCondition(condition);
+        PageInfo<SelectorDO> doPageInfo = new PageInfo<>(doList);
+        List<SelectorVO> voList = doPageInfo.getList().stream()
+                .map(SelectorVO::buildSelectorVO)
+                .collect(Collectors.toList());
+        for (SelectorVO selector : voList) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
             selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
         }
+        PageInfo<SelectorVO> pageInfo = new PageInfo<>();
+        pageInfo.setPageNum(doPageInfo.getPageNum());
+        pageInfo.setPageSize(doPageInfo.getPageSize());
+        pageInfo.setTotal(doPageInfo.getTotal());
+        pageInfo.setPages(doPageInfo.getPages());
+        pageInfo.setList(voList);
         return pageInfo;
     }
 
