@@ -84,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.util.CastUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -163,22 +164,13 @@ public class SelectorServiceImpl implements SelectorService {
         doConditionPreProcessing(condition);
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
-        final List<SelectorDO> doList = selectorMapper.selectByCondition(condition);
-        PageInfo<SelectorDO> doPageInfo = new PageInfo<>(doList);
-        List<SelectorVO> voList = doPageInfo.getList().stream()
-                .map(SelectorVO::buildSelectorVO)
-                .collect(Collectors.toList());
-        for (SelectorVO selector : voList) {
+        final Page<SelectorDO> doList = CastUtils.cast(selectorMapper.selectByCondition(condition));
+        PageInfo<SelectorVO> doPageInfo = doList.toPageInfo(SelectorVO::buildSelectorVO);
+        for (SelectorVO selector : doPageInfo.getList()) {
             selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
             selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
         }
-        PageInfo<SelectorVO> pageInfo = new PageInfo<>();
-        pageInfo.setPageNum(doPageInfo.getPageNum());
-        pageInfo.setPageSize(doPageInfo.getPageSize());
-        pageInfo.setTotal(doPageInfo.getTotal());
-        pageInfo.setPages(doPageInfo.getPages());
-        pageInfo.setList(voList);
-        return pageInfo;
+        return doPageInfo;
     }
 
     @Override

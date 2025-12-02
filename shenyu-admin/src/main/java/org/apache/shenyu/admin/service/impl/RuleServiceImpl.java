@@ -60,6 +60,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.util.CastUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,13 +118,12 @@ public class RuleServiceImpl implements RuleService {
         doConditionPreProcessing(condition);
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
-        final List<RuleDO> ruleDOList = ruleMapper.selectByCondition(condition);
-        List<RuleVO> ruleVOList = ruleDOList.stream().map(RuleVO::buildRuleVO).collect(Collectors.toList());
-        for (RuleVO rule : ruleVOList) {
+        final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
+        PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
+        for (RuleVO rule : doPageInfo.getList()) {
             rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
         }
-        PageInfo<RuleVO> rules = new PageInfo<>(ruleVOList);
-        return rules;
+        return doPageInfo;
     }
 
     @Override
