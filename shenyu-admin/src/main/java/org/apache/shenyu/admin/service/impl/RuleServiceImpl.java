@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +38,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
@@ -56,6 +60,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.util.CastUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,6 +110,20 @@ public class RuleServiceImpl implements RuleService {
         if (SessionUtil.isAdmin()) {
             condition.setUserId(null);
         }
+    }
+
+    @Override
+    public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
+        RuleQueryCondition condition = pageCondition.getCondition();
+        doConditionPreProcessing(condition);
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
+        condition.init();
+        final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
+        PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
+        for (RuleVO rule : doPageInfo.getList()) {
+            rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
+        }
+        return doPageInfo;
     }
 
     @Override
