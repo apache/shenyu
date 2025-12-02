@@ -159,9 +159,9 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public PageInfo<SelectorVO> searchByPage(final PageCondition<SelectorQueryCondition> pageCondition) {
-        doConditionPreProcessing(pageCondition.getCondition());
-        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         SelectorQueryCondition condition = pageCondition.getCondition();
+        doConditionPreProcessing(condition);
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
         final Page<SelectorDO> page = (Page<SelectorDO>) selectorMapper.selectByCondition(condition);
         PageInfo<SelectorVO> pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);
