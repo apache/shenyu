@@ -113,9 +113,9 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
-        doConditionPreProcessing(pageCondition.getCondition());
-        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         RuleQueryCondition condition = pageCondition.getCondition();
+        doConditionPreProcessing(condition);
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
         final Page<RuleDO> ruleDOList = (Page<RuleDO>) ruleMapper.selectByCondition(condition);
         PageInfo<RuleVO> rules = ruleDOList.toPageInfo(RuleVO::buildRuleVO);
