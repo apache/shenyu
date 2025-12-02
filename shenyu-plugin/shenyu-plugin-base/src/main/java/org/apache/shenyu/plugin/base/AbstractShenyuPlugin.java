@@ -63,19 +63,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
-    private static final String URI_CONDITION_TYPE = "uri";
+//    private static final String URI_CONDITION_TYPE = "uri";
 
-    private ShenyuTrie selectorTrie;
+
 
     private ShenyuTrie ruleTrie;
-
-    private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
 
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
     private SelectorDataDecisionMaker selectorDataDecisionMaker = new SelectorDataDecisionMaker();
 
     private RuleDataDecisionMaker ruleDataDecisionMaker = new RuleDataDecisionMaker();
+
+    private PluginDataDecisionMaker pluginDataDecisionMaker = new PluginDataDecisionMaker();
 
     /**
      * this is Template Method child has implements your own logic.
@@ -102,7 +102,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         final String pluginName = named();
         final String path = getRawPath(exchange);
 
-        PluginDataDecisionMaker pluginDataDecisionMaker = new PluginDataDecisionMaker();
+
         List<PluginData> pluginDataList = pluginDataDecisionMaker.getData(pluginName);
         if (CollectionUtils.isEmpty(pluginDataList) || !pluginDataDecisionMaker.shouldContinue(pluginDataList.get(0))) {
             return pluginDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
@@ -113,7 +113,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return selectorDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
 
-        SelectorData selectorData = selectorDataDecisionMaker.matchData(exchange, selectorDataList, path);
+        SelectorData selectorData = selectorDataDecisionMaker.matchData(exchange,pluginName, selectorDataList, path, selectorMatchConfig, selectorTrie);
         if (selectorData == null) {
             return selectorDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
@@ -169,25 +169,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return ruleMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), path) : null;
     }
 
-    private void cacheSelectorData(final String path, final SelectorData selectorData) {
-        if (Boolean.FALSE.equals(selectorMatchConfig.getCache().getEnabled()) || Objects.isNull(selectorData)
-            || Boolean.TRUE.equals(selectorData.getMatchRestful())) {
-            return;
-        }
-        int initialCapacity = selectorMatchConfig.getCache().getInitialCapacity();
-        long maximumSize = selectorMatchConfig.getCache().getMaximumSize();
-        if (StringUtils.isBlank(selectorData.getId())) {
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
-            return;
-        }
-        List<ConditionData> conditionList = selectorData.getConditionList();
-        if (CollectionUtils.isNotEmpty(conditionList)) {
-            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
-            if (isUriCondition) {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
-            }
-        }
-    }
 
     private void cacheRuleData(final String path, final RuleData ruleData) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
@@ -242,45 +223,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    private Pair<Boolean, SelectorData> matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        List<SelectorData> filterCollectors = selectors.stream()
-            .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-            .distinct()
-            .collect(Collectors.toList());
-        if (filterCollectors.size() > 1) {
-            return Pair.of(Boolean.FALSE, manyMatchSelector(filterCollectors));
-        } else {
-            return Pair.of(Boolean.TRUE, filterCollectors.stream().findFirst().orElse(null));
-        }
-    }
-
-    private SelectorData manyMatchSelector(final List<SelectorData> filterCollectors) {
-        //What needs to be dealt with here is the and condition. If the number of and conditions is the same and is matched at the same time,
-        // it will be sorted by the sort field.
-        Map<Integer, List<Pair<Integer, SelectorData>>> collect =
-            filterCollectors.stream().map(selector -> {
-                boolean match = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND);
-                int sort = 0;
-                if (match) {
-                    sort = selector.getConditionList().size();
-                }
-                return Pair.of(sort, selector);
-            }).collect(Collectors.groupingBy(Pair::getLeft));
-        Integer max = Collections.max(collect.keySet());
-        List<Pair<Integer, SelectorData>> pairs = collect.get(max);
-        return pairs.stream().map(Pair::getRight).min(Comparator.comparing(SelectorData::getSort)).orElse(null);
-    }
-
-    private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
-        if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-            if (CollectionUtils.isEmpty(selector.getConditionList())) {
-                return false;
-            }
-            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
-        }
-        return true;
-    }
-
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
         List<RuleData> filterRuleData = rules.stream()
             .filter(rule -> filterRule(rule, exchange))
@@ -312,62 +254,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
-    private SelectorData trieMatchSelector(final ServerWebExchange exchange, final String pluginName, final String path) {
-        if (!selectorMatchConfig.getTrie().getEnabled()) {
-            return null;
-        }
-        SelectorData selectorData = null;
-        ShenyuTrieNode shenyuTrieNode = selectorTrie.match(path, pluginName);
-        if (Objects.nonNull(shenyuTrieNode)) {
-            LogUtils.info(LOG, "{} selector match path from shenyu trie, path:{}", pluginName, path);
-            List<?> collection = shenyuTrieNode.getPathCache().get(pluginName);
-            if (CollectionUtils.isNotEmpty(collection)) {
-                Pair<Boolean, SelectorData> selectorDataPair;
-                if (collection.size() > 1) {
-                    selectorDataPair = matchSelector(exchange, ListUtil.castList(collection, SelectorData.class::cast));
-                } else {
-                    Object selectorObj = collection.stream().findFirst().orElse(null);
-                    SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
-                    boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
-                    selectorDataPair = Pair.of(cached, selector);
-                }
-                selectorData = selectorDataPair.getRight();
-                if (selectorDataPair.getLeft() && Objects.nonNull(selectorData)) {
-                    cacheSelectorData(path, selectorData);
-                }
-            }
-        }
-        return selectorData;
-    }
 
-    private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
-        if (!ruleMatchConfig.getTrie().getEnabled()) {
-            return null;
-        }
-        RuleData ruleData = null;
-        ShenyuTrieNode shenyuTrieNode = ruleTrie.match(path, selectorData.getId());
-        if (Objects.nonNull(shenyuTrieNode)) {
-            LogUtils.info(LOG, "{} rule match path from shenyu trie", named());
-            List<?> collection = shenyuTrieNode.getPathCache().get(selectorData.getId());
-            if (CollectionUtils.isNotEmpty(collection)) {
-                Pair<Boolean, RuleData> ruleDataPair;
-                if (collection.size() > 1) {
-                    ruleDataPair = matchRule(exchange, ListUtil.castList(collection, RuleData.class::cast));
-                } else {
-                    Object ruleObj = collection.stream().findFirst().orElse(null);
-                    RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;
-                    boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
-                    ruleDataPair = Pair.of(cached, rule);
-                }
-                ruleData = ruleDataPair.getRight();
-                if (ruleDataPair.getLeft() && Objects.nonNull(ruleData)) {
-                    // exist only one rule data, cache rule
-                    cacheRuleData(path, ruleData);
-                }
-            }
-        }
-        return ruleData;
-    }
+
+
 
     private SelectorData defaultMatchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors, final String path) {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
