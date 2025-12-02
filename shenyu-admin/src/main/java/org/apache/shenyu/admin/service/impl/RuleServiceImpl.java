@@ -117,11 +117,12 @@ public class RuleServiceImpl implements RuleService {
         doConditionPreProcessing(condition);
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
-        final Page<RuleDO> ruleDOList = (Page<RuleDO>) ruleMapper.selectByCondition(condition);
-        PageInfo<RuleVO> rules = ruleDOList.toPageInfo(RuleVO::buildRuleVO);
-        for (RuleVO rule : rules.getList()) {
+        final List<RuleDO> ruleDOList = ruleMapper.selectByCondition(condition);
+        List<RuleVO> ruleVOList = ruleDOList.stream().map(RuleVO::buildRuleVO).collect(Collectors.toList());
+        for (RuleVO rule : ruleVOList) {
             rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
         }
+        PageInfo<RuleVO> rules = new PageInfo<>(ruleVOList);
         return rules;
     }
 
