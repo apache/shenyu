@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 public class IndexController {
-
+    
     /**
      * Index string.
      *
@@ -44,7 +44,7 @@ public class IndexController {
         model.addAttribute("domain", httpPath);
         return "index";
     }
-
+    
     /**
      * Build base URL from request.
      * This method constructs the base URL using the actual request information,
@@ -59,16 +59,16 @@ public class IndexController {
         String scheme = getScheme(request);
         String host = getHost(request);
         String contextPath = request.getContextPath();
-
+        
         StringBuilder url = new StringBuilder();
         url.append(scheme).append("://").append(host);
         if (StringUtils.isNotEmpty(contextPath)) {
             url.append(contextPath);
         }
-
+        
         return url.toString();
     }
-
+    
     /**
      * Get scheme from request, checking X-Forwarded-Proto header for reverse proxy.
      *
@@ -82,7 +82,7 @@ public class IndexController {
         }
         return request.getScheme();
     }
-
+    
     /**
      * Get host from request, checking X-Forwarded-Host header for reverse proxy.
      * Falls back to server name and port if header is not present.
@@ -96,15 +96,14 @@ public class IndexController {
             // X-Forwarded-Host may already include port
             return forwardedHost;
         }
-
+        
         String serverName = request.getServerName();
         int serverPort = request.getServerPort();
         String scheme = getScheme(request);
-
+        
         // Check if port is standard (80 for http, 443 for https)
-        boolean isStandardPort = (scheme.equals("http") && serverPort == 80)
-                || (scheme.equals("https") && serverPort == 443);
-
+        boolean isStandardPort = ("http".equals(scheme) && serverPort == 80) || ("https".equals(scheme) && serverPort == 443);
+        
         if (isStandardPort) {
             return serverName;
         } else {
