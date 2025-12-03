@@ -21,7 +21,6 @@ import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
-import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -39,8 +38,6 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private final UpstreamCheckService upstreamCheckService;
     
-    private final LoadServiceDocEntry loadServiceDocEntry;
-    
     private final ScheduledExecutorService executorService;
     
     private final ClusterProperties clusterProperties;
@@ -50,11 +47,9 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     public ShenyuClusterService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final UpstreamCheckService upstreamCheckService,
                                 final InstanceCheckService instanceCheckService,
-                                final LoadServiceDocEntry loadServiceDocEntry,
                                 final ClusterProperties clusterProperties) {
         this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
         this.upstreamCheckService = upstreamCheckService;
-        this.loadServiceDocEntry = loadServiceDocEntry;
         this.clusterProperties = clusterProperties;
         this.executorService = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("master-selector", true));
