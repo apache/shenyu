@@ -78,7 +78,10 @@ public class IndexController {
     private String getScheme(final HttpServletRequest request) {
         String forwardedProto = request.getHeader("X-Forwarded-Proto");
         if (StringUtils.isNotEmpty(forwardedProto)) {
-            return forwardedProto;
+            // Validate the scheme to prevent header injection
+            if ("http".equalsIgnoreCase(forwardedProto) || "https".equalsIgnoreCase(forwardedProto)) {
+                return forwardedProto.toLowerCase();
+            }
         }
         return request.getScheme();
     }
