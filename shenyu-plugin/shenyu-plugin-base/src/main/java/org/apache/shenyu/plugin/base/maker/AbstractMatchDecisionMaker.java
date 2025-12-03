@@ -1,10 +1,9 @@
 package org.apache.shenyu.plugin.base.maker;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.BaseData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.provider.DataProvider;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -12,6 +11,7 @@ import java.util.List;
 
 public abstract class AbstractMatchDecisionMaker<T extends BaseData> {
     private final DataProvider<T> dataProvider;
+    protected static final String URI_CONDITION_TYPE = "uri";
 
     protected AbstractMatchDecisionMaker(DataProvider<T> dataProvider) {
         this.dataProvider = dataProvider;
@@ -23,7 +23,7 @@ public abstract class AbstractMatchDecisionMaker<T extends BaseData> {
 
     protected abstract Mono<Void> handleEmpty(String pluginName, ServerWebExchange exchange, ShenyuPluginChain chain);
     
-    protected abstract T matchData(ServerWebExchange exchange, String dataName, List<T> dataList, String path, ShenyuConfig.SelectorMatchCache selectorMatchConfig, ShenyuTrie selectorTrie);
+    protected abstract T matchData(ServerWebExchange exchange, String dataName, List<T> dataList, String path, SelectorData selectorData);
     
     protected abstract boolean shouldContinue(T data);
 }
