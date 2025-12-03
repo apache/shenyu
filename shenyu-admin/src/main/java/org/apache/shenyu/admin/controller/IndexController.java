@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.utils.ShenyuDomain;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,11 +33,82 @@ public class IndexController {
      * Index string.
      *
      * @param model the model
+     * @param request the http request
      * @return the string
      */
     @RequestMapping(value = {"/index", "/"})
-    public String index(final Model model) {
-        model.addAttribute("domain", ShenyuDomain.getInstance().getHttpPath());
+    public String index(final Model model, final HttpServletRequest request) {
+        // Get httpPath from request to ensure it reflects the actual access URL
+        // This handles cases where the service is accessed through reverse proxy or load balancer
+        String httpPath = buildBaseUrl(request);
+        model.addAttribute("domain", httpPath);
         return "index";
+    }
+
+    /**
+     * Build base URL from request.
+     * This method constructs the base URL using the actual request information,
+     * which is more accurate than server-side configuration when accessed through proxy.
+     * Supports reverse proxy scenarios by checking X-Forwarded-Proto and X-Forwarded-Host headers.
+     *
+     * @param request the http request
+     * @return the base URL
+     */
+    private String buildBaseUrl(final HttpServletRequest request) {
+        // Check for reverse proxy headers first
+        String scheme = getScheme(request);
+        String host = getHost(request);
+        String contextPath = request.getContextPath();
+
+        StringBuilder url = new StringBuilder();
+        url.append(scheme).append("://").append(host);
+        if (StringUtils.isNotEmpty(contextPath)) {
+            url.append(contextPath);
+        }
+
+        return url.toString();
+    }
+
+    /**
+     * Get scheme from request, checking X-Forwarded-Proto header for reverse proxy.
+     *
+     * @param request the http request
+     * @return the scheme (http or https)
+     */
+    private String getScheme(final HttpServletRequest request) {
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        if (StringUtils.isNotEmpty(forwardedProto)) {
+            return forwardedProto;
+        }
+        return request.getScheme();
+    }
+
+    /**
+     * Get host from request, checking X-Forwarded-Host header for reverse proxy.
+     * Falls back to server name and port if header is not present.
+     *
+     * @param request the http request
+     * @return the host (with port if non-standard)
+     */
+    private String getHost(final HttpServletRequest request) {
+        String forwardedHost = request.getHeader("X-Forwarded-Host");
+        if (StringUtils.isNotEmpty(forwardedHost)) {
+            // X-Forwarded-Host may already include port
+            return forwardedHost;
+        }
+
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String scheme = getScheme(request);
+
+        // Check if port is standard (80 for http, 443 for https)
+        boolean isStandardPort = (scheme.equals("http") && serverPort == 80)
+                || (scheme.equals("https") && serverPort == 443);
+
+        if (isStandardPort) {
+            return serverName;
+        } else {
+            return serverName + ":" + serverPort;
+        }
     }
 }

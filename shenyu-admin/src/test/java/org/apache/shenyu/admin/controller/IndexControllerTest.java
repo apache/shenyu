@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +53,17 @@ public final class IndexControllerTest {
     public void testIndex() throws Exception {
         this.mockMvc.perform(get("/index"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("domain", ShenyuDomain.getInstance().getHttpPath()))
+                .andExpect(model().attributeExists("domain"))
+                .andReturn();
+    }
+
+    @Test
+    public void testIndexWithForwardedHeaders() throws Exception {
+        this.mockMvc.perform(get("/index")
+                        .header("X-Forwarded-Proto", "https")
+                        .header("X-Forwarded-Host", "example.com"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("domain", "https://example.com"))
                 .andReturn();
     }
 }
