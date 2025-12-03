@@ -42,7 +42,7 @@ class AiPromptPluginDataHandlerTest {
     private AiPromptPluginDataHandler handler;
 
     @BeforeEach
-    void setUp()throws Exception{
+    void setUp()throws Exception {
         handler = new AiPromptPluginDataHandler();
 
         Field singles = Singleton.class.getDeclaredField("SINGLES");
