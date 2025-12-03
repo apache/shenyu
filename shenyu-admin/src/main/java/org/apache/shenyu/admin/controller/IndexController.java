@@ -23,6 +23,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Objects;
+
 /**
  * The type Index controller.
  */
@@ -85,7 +87,8 @@ public class IndexController {
     
     /**
      * Get host from request, checking X-Forwarded-Host header for reverse proxy.
-     * Falls back to server name and port if header is not present.
+     * Falls back to server name and port if header is not present or invalid.
+     * Validates the forwarded host to prevent header injection attacks and open redirect vulnerabilities.
      *
      * @param request the http request
      * @return the host (with port if non-standard)
@@ -93,8 +96,12 @@ public class IndexController {
     private String getHost(final HttpServletRequest request) {
         String forwardedHost = request.getHeader("X-Forwarded-Host");
         if (StringUtils.isNotEmpty(forwardedHost)) {
-            // X-Forwarded-Host may already include port
-            return forwardedHost;
+            // Validate the forwarded host to prevent injection attacks
+            String validatedHost = validateForwardedHost(forwardedHost);
+            if (Objects.nonNull(validatedHost)) {
+                return validatedHost;
+            }
+            // If validation fails, fall through to use server name
         }
         
         String serverName = request.getServerName();
@@ -109,5 +116,81 @@ public class IndexController {
         } else {
             return serverName + ":" + serverPort;
         }
+    }
+
+    /**
+     * Validate X-Forwarded-Host header to prevent header injection and open redirect attacks.
+     * Only allows valid hostname format with optional port number.
+     *
+     * @param forwardedHost the forwarded host header value
+     * @return validated host if valid, null otherwise
+     */
+    private String validateForwardedHost(final String forwardedHost) {
+        if (StringUtils.isEmpty(forwardedHost)) {
+            return null;
+        }
+        
+        // Remove whitespace
+        String trimmed = forwardedHost.trim();
+        
+        // Check for empty after trim
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        
+        // Check for control characters, protocol separators, or path separators
+        // This prevents injection of malicious content like "evil.com/path" or "http://evil.com"
+        if (trimmed.contains("://") || trimmed.contains("/") || trimmed.contains("\\") 
+                || trimmed.contains("?") || trimmed.contains("#") || trimmed.contains(" ")) {
+            return null;
+        }
+        
+        // Check for control characters
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (Character.isISOControl(c)) {
+                return null;
+            }
+        }
+        
+        // Validate hostname format: hostname[:port]
+        // Hostname can contain: letters, numbers, dots, hyphens
+        // Port must be numeric if present
+        String[] parts = trimmed.split(":", 2);
+        String hostname = parts[0];
+        
+        // Validate hostname part
+        if (hostname.isEmpty() || hostname.length() > 253) {
+            return null;
+        }
+        
+        // Check hostname contains only valid characters
+        if (!hostname.matches("^[a-zA-Z0-9.-]+$")) {
+            return null;
+        }
+        
+        // Hostname cannot start or end with dot or hyphen
+        if (hostname.startsWith(".") || hostname.endsWith(".") 
+                || hostname.startsWith("-") || hostname.endsWith("-")) {
+            return null;
+        }
+        
+        // Validate port if present
+        if (parts.length == 2) {
+            String portStr = parts[1];
+            if (portStr.isEmpty()) {
+                return null;
+            }
+            try {
+                int port = Integer.parseInt(portStr);
+                if (port < 1 || port > 65535) {
+                    return null;
+                }
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        
+        return trimmed;
     }
 }
