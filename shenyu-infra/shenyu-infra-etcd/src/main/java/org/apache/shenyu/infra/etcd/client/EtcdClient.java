@@ -129,6 +129,7 @@ public class EtcdClient {
 
     /**
      * bytesOf string.
+     * 
      * @param val val.
      * @return bytes val.
      */
@@ -145,7 +146,8 @@ public class EtcdClient {
      * @throws ExecutionException   the exception
      * @throws InterruptedException the exception
      */
-    public List<String> getChildrenKeys(final String prefix, final String separator) throws ExecutionException, InterruptedException {
+    public List<String> getChildrenKeys(final String prefix, final String separator)
+            throws ExecutionException, InterruptedException {
         ByteSequence prefixByteSequence = bytesOf(prefix);
         GetOption getOption = GetOption.newBuilder()
                 .withPrefix(prefixByteSequence)
@@ -170,10 +172,11 @@ public class EtcdClient {
      *
      * @param prefix    key prefix.
      * @param separator separator char
-     * @param map prefix map
+     * @param map       prefix map
      * @return sub map
      */
-    public List<String> getChildrenKeysByMap(final String prefix, final String separator, final Map<String, String> map) {
+    public List<String> getChildrenKeysByMap(final String prefix, final String separator,
+            final Map<String, String> map) {
 
         return map.entrySet().stream()
                 .filter(e -> e.getKey().contains(prefix))
@@ -199,8 +202,8 @@ public class EtcdClient {
      * @param deleteHandler node value handler of delete
      */
     public void watchDataChange(final String key,
-                                final BiConsumer<String, String> updateHandler,
-                                final Consumer<String> deleteHandler) {
+            final BiConsumer<String, String> updateHandler,
+            final Consumer<String> deleteHandler) {
         Watch.Listener listener = watch(updateHandler, deleteHandler);
         if (!watchCache.containsKey(key)) {
             Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, UTF_8), listener);
@@ -216,8 +219,8 @@ public class EtcdClient {
      * @param deleteHandler sub node delete of delete
      */
     public void watchChildChange(final String key,
-                                 final BiConsumer<String, String> updateHandler,
-                                 final Consumer<String> deleteHandler) {
+            final BiConsumer<String, String> updateHandler,
+            final Consumer<String> deleteHandler) {
         Watch.Listener listener = watch(updateHandler, deleteHandler);
         WatchOption option = WatchOption.newBuilder()
                 .withPrefix(ByteSequence.from(key, UTF_8))
@@ -229,7 +232,7 @@ public class EtcdClient {
     }
 
     private Watch.Listener watch(final BiConsumer<String, String> updateHandler,
-                                 final Consumer<String> deleteHandler) {
+            final Consumer<String> deleteHandler) {
         return Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
                 String path = event.getKeyValue().getKey().toString(UTF_8);
@@ -245,9 +248,9 @@ public class EtcdClient {
                 }
             }
         }, throwable -> {
-                LOG.error("etcd watch error {}", throwable.getMessage(), throwable);
-                throw new ShenyuException(throwable);
-            });
+            LOG.error("etcd watch error {}", throwable.getMessage(), throwable);
+            throw new ShenyuException(throwable);
+        });
     }
 
     /**
@@ -268,6 +271,7 @@ public class EtcdClient {
 
     /**
      * check node exists.
+     * 
      * @param key node name
      * @return bool
      */
@@ -276,7 +280,8 @@ public class EtcdClient {
             GetOption option = GetOption.newBuilder()
                     .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
                     .build();
-            List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
+            List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option)
+                    .get().getKvs();
             return !keyValues.isEmpty();
         } catch (Exception e) {
             LOG.error("check node exists error", e);
@@ -286,12 +291,14 @@ public class EtcdClient {
 
     /**
      * update value of node.
-     * @param key node name
+     * 
+     * @param key   node name
      * @param value node value
      */
     public void put(final String key, final String value) {
         try {
-            client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
+            client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8),
+                    ByteSequence.from(value, StandardCharsets.UTF_8)).get();
         } catch (Exception e) {
             LOG.error("update value of node error.", e);
             throw new ShenyuException(e);
@@ -300,6 +307,7 @@ public class EtcdClient {
 
     /**
      * delete node.
+     * 
      * @param key node name
      */
     public void delete(final String key) {
@@ -308,6 +316,7 @@ public class EtcdClient {
 
     /**
      * delete node of recursive.
+     * 
      * @param path parent node name
      */
     public void deleteEtcdPathRecursive(final String path) {
@@ -315,40 +324,18 @@ public class EtcdClient {
                 .withPrefix(ByteSequence.from(path, StandardCharsets.UTF_8))
                 .build();
         try {
-            client.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8), option).get(10, TimeUnit.SECONDS);
+            client.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8), option).get(10,
+                    TimeUnit.SECONDS);
         } catch (Exception e) {
             LOG.error("delete node of recursive error.", e);
             throw new ShenyuException(e);
         }
     }
 
-    private void initLease() {
-        try {
-            this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
-            client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
-                @Override
-                public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
-                }
-
-                @Override
-                public void onError(final Throwable throwable) {
-                    LOG.error("keep alive error", throwable);
-                }
-
-                @Override
-                public void onCompleted() {
-                }
-            });
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.error("initLease error.", e);
-        }
-    }
-
-
     /**
      * watchKeyChanges.
      *
-     * @param key key
+     * @param key      key
      * @param listener listener
      * @return {@link Watch.Watcher}
      */
@@ -360,7 +347,8 @@ public class EtcdClient {
 
     /**
      * get keyResponse.
-     * @param key watch key.
+     * 
+     * @param key       watch key.
      * @param getOption get option.
      * @return key response.
      */
@@ -375,22 +363,58 @@ public class EtcdClient {
 
     /**
      * put data as ephemeral.
-     * @param key key
+     * 
+     * @param key   key
      * @param value value
      */
     public void putEphemeral(final String key, final String value) {
         try {
             KV kvClient = client.getKVClient();
             kvClient.put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8),
-                            PutOption.newBuilder().withLeaseId(globalLeaseId).build())
+                    PutOption.newBuilder().withLeaseId(globalLeaseId).build())
                     .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOG.error("putEphemeral(key:{},value:{}) error.", key, value, e);
+            throw new ShenyuException(e);
         }
+    }
+
+    private void initLease() {
+        try {
+            this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
+            keepAlive();
+        } catch (InterruptedException | ExecutionException e) {
+            LOG.error("initLease error.", e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    private void keepAlive() {
+        client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
+            @Override
+            public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
+            }
+
+            @Override
+            public void onError(final Throwable throwable) {
+                LOG.error("keep alive error", throwable);
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    LOG.error("keep alive sleep error", e);
+                }
+                keepAlive();
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        });
     }
 
     /**
      * Create a new {@link Builder} instance for building an {@link EtcdClient}.
+     * 
      * @return a new {@link Builder} instance
      */
     public static Builder builder() {

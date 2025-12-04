@@ -29,8 +29,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -51,6 +49,7 @@ public class RedisConnectionFactory {
 
     /**
      * Get Lettuce connection factory.
+     * 
      * @return the factory
      */
     public LettuceConnectionFactory getLettuceConnectionFactory() {
@@ -60,15 +59,19 @@ public class RedisConnectionFactory {
     private LettuceConnectionFactory createLettuceConnectionFactory(final RedisConfigProperties redisConfigProperties) {
         LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(redisConfigProperties);
         if (RedisModeEnum.SENTINEL.getName().equals(redisConfigProperties.getMode())) {
-            return new LettuceConnectionFactory(redisSentinelConfiguration(redisConfigProperties), lettuceClientConfiguration);
+            return new LettuceConnectionFactory(redisSentinelConfiguration(redisConfigProperties),
+                    lettuceClientConfiguration);
         }
         if (RedisModeEnum.CLUSTER.getName().equals(redisConfigProperties.getMode())) {
-            return new LettuceConnectionFactory(redisClusterConfiguration(redisConfigProperties), lettuceClientConfiguration);
+            return new LettuceConnectionFactory(redisClusterConfiguration(redisConfigProperties),
+                    lettuceClientConfiguration);
         }
-        return new LettuceConnectionFactory(redisStandaloneConfiguration(redisConfigProperties), lettuceClientConfiguration);
+        return new LettuceConnectionFactory(redisStandaloneConfiguration(redisConfigProperties),
+                lettuceClientConfiguration);
     }
 
-    private LettuceClientConfiguration getLettuceClientConfiguration(final RedisConfigProperties redisConfigProperties) {
+    private LettuceClientConfiguration getLettuceClientConfiguration(
+            final RedisConfigProperties redisConfigProperties) {
         return LettucePoolingClientConfiguration.builder().poolConfig(getPoolConfig(redisConfigProperties)).build();
     }
 
@@ -89,12 +92,18 @@ public class RedisConnectionFactory {
      * @param redisConfigProperties the rate limiter config
      * @return the redis standalone configuration
      */
-    protected final RedisStandaloneConfiguration redisStandaloneConfiguration(final RedisConfigProperties redisConfigProperties) {
+    /**
+     * Redis standalone configuration redis standalone configuration.
+     *
+     * @param redisConfigProperties the rate limiter config
+     * @return the redis standalone configuration
+     */
+    protected final RedisStandaloneConfiguration redisStandaloneConfiguration(
+            final RedisConfigProperties redisConfigProperties) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        String[] parts = StringUtils.split(redisConfigProperties.getUrl(), ":");
-        Objects.requireNonNull(parts);
-        config.setHostName(parts[0]);
-        config.setPort(Integer.parseInt(parts[1]));
+        RedisNode redisNode = parseRedisNode(redisConfigProperties.getUrl());
+        config.setHostName(redisNode.getHost());
+        config.setPort(redisNode.getPort());
         if (Objects.nonNull(redisConfigProperties.getPassword())) {
             config.setPassword(RedisPassword.of(redisConfigProperties.getPassword()));
         }
@@ -126,10 +135,27 @@ public class RedisConnectionFactory {
         List<RedisNode> redisNodes = new ArrayList<>();
         List<String> nodes = Lists.newArrayList(Splitter.on(";").split(url));
         for (String node : nodes) {
-            String[] parts = StringUtils.split(node, ":");
-            Assert.state(Objects.requireNonNull(parts).length == 2, "Must be defined as 'host:port'");
-            redisNodes.add(new RedisNode(parts[0], Integer.parseInt(parts[1])));
+            redisNodes.add(parseRedisNode(node));
         }
         return redisNodes;
+    }
+
+    private RedisNode parseRedisNode(final String url) {
+        String host = url;
+        int port = 6379;
+        int lastColonIndex = url.lastIndexOf(":");
+        int bracketIndex = url.lastIndexOf("]");
+        if (bracketIndex > -1) {
+            if (lastColonIndex > bracketIndex) {
+                host = url.substring(0, lastColonIndex);
+                port = Integer.parseInt(url.substring(lastColonIndex + 1));
+            }
+        } else {
+            if (lastColonIndex > -1) {
+                host = url.substring(0, lastColonIndex);
+                port = Integer.parseInt(url.substring(lastColonIndex + 1));
+            }
+        }
+        return new RedisNode(host, port);
     }
 }
