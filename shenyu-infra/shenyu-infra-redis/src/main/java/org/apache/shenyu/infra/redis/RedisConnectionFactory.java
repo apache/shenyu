@@ -142,13 +142,27 @@ public class RedisConnectionFactory {
         if (bracketIndex > -1) {
             if (lastColonIndex > bracketIndex) {
                 host = url.substring(0, lastColonIndex);
-                port = Integer.parseInt(url.substring(lastColonIndex + 1));
+                try {
+                    port = Integer.parseInt(url.substring(lastColonIndex + 1));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid port in Redis node URL: " + url, e);
+                }
             }
         } else {
             if (lastColonIndex > -1) {
                 host = url.substring(0, lastColonIndex);
-                port = Integer.parseInt(url.substring(lastColonIndex + 1));
+                try {
+                    port = Integer.parseInt(url.substring(lastColonIndex + 1));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid port in Redis node URL: " + url, e);
+                }
             }
+        }
+        if (host == null || host.trim().isEmpty()) {
+            throw new IllegalArgumentException("Host is empty in Redis node URL: " + url);
+        }
+        if (port < 1 || port > 65535) {
+            throw new IllegalArgumentException("Port out of range in Redis node URL: " + url);
         }
         return new RedisNode(host, port);
     }
