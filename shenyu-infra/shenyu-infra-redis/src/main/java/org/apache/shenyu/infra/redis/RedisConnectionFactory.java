@@ -92,12 +92,6 @@ public class RedisConnectionFactory {
      * @param redisConfigProperties the rate limiter config
      * @return the redis standalone configuration
      */
-    /**
-     * Redis standalone configuration redis standalone configuration.
-     *
-     * @param redisConfigProperties the rate limiter config
-     * @return the redis standalone configuration
-     */
     protected final RedisStandaloneConfiguration redisStandaloneConfiguration(
             final RedisConfigProperties redisConfigProperties) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
