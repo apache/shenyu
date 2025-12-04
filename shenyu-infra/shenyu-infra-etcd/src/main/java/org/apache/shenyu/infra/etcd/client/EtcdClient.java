@@ -42,8 +42,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -56,6 +60,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class EtcdClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdClient.class);
+    
+    private static final int MAX_RETRY_DELAY_SECONDS = 60;
+    
+    private static final int INITIAL_RETRY_DELAY_SECONDS = 1;
 
     private final Client client;
 
@@ -69,11 +77,26 @@ public class EtcdClient {
 
     private final ConcurrentHashMap<String, Watch.Watcher> watchChildCache = new ConcurrentHashMap<>();
 
+    private volatile boolean keepAliveRunning = true;
+
+    private volatile StreamObserver<LeaseKeepAliveResponse> currentObserver;
+
+    private final ScheduledExecutorService retryExecutor;
+
+    private volatile ScheduledFuture<?> retryFuture;
+
+    private final AtomicInteger retryCount = new AtomicInteger(0);
+
     public EtcdClient(final Client client, final long ttl, final long timeout) {
 
         this.ttl = ttl;
         this.timeout = timeout;
         this.client = client;
+        this.retryExecutor = new ScheduledThreadPoolExecutor(1, r -> {
+            Thread thread = new Thread(r, "etcd-keepalive-retry");
+            thread.setDaemon(true);
+            return thread;
+        });
 
         initLease();
     }
@@ -82,6 +105,19 @@ public class EtcdClient {
      * close client.
      */
     public void close() {
+        keepAliveRunning = false;
+        if (Objects.nonNull(retryFuture)) {
+            retryFuture.cancel(false);
+        }
+        retryExecutor.shutdown();
+        try {
+            if (!retryExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                retryExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            retryExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         this.client.close();
     }
 
@@ -390,26 +426,82 @@ public class EtcdClient {
     }
 
     private void keepAlive() {
-        client.getLeaseClient().keepAlive(globalLeaseId, new StreamObserver<>() {
+        if (!keepAliveRunning) {
+            return;
+        }
+
+        currentObserver = new StreamObserver<>() {
             @Override
             public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
+                // Reset retry count on successful keep-alive
+                retryCount.set(0);
             }
 
             @Override
             public void onError(final Throwable throwable) {
                 LOG.error("keep alive error", throwable);
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    LOG.error("keep alive sleep error", e);
-                }
-                keepAlive();
+                currentObserver = null;
+                scheduleRetry();
             }
 
             @Override
             public void onCompleted() {
+                LOG.warn("keep alive stream completed");
+                currentObserver = null;
+                if (keepAliveRunning) {
+                    scheduleRetry();
+                }
             }
-        });
+        };
+
+        try {
+            client.getLeaseClient().keepAlive(globalLeaseId, currentObserver);
+        } catch (Exception e) {
+            LOG.error("Failed to start keep alive", e);
+            currentObserver = null;
+            scheduleRetry();
+        }
+    }
+
+    private void scheduleRetry() {
+        if (!keepAliveRunning) {
+            return;
+        }
+
+        // Cancel any existing retry task
+        if (Objects.nonNull(retryFuture) && !retryFuture.isDone()) {
+            retryFuture.cancel(false);
+        }
+
+        // Calculate exponential backoff delay
+        int currentRetry = retryCount.getAndIncrement();
+        long delaySeconds = Math.min(INITIAL_RETRY_DELAY_SECONDS * (1L << currentRetry), MAX_RETRY_DELAY_SECONDS);
+
+        retryFuture = retryExecutor.schedule(() -> {
+            if (keepAliveRunning) {
+                try {
+                    // Try to renew lease if it might have expired
+                    if (currentRetry > 0 && currentRetry % 10 == 0) {
+                        LOG.info("Attempting to renew lease after {} retries", currentRetry);
+                        try {
+                            globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
+                            retryCount.set(0);
+                        } catch (InterruptedException | ExecutionException e) {
+                            LOG.warn("Failed to renew lease, will retry keep-alive", e);
+                            if (e instanceof InterruptedException) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                    }
+                    keepAlive();
+                } catch (Exception e) {
+                    LOG.error("Error during keep alive retry", e);
+                    scheduleRetry();
+                }
+            }
+        }, delaySeconds, TimeUnit.SECONDS);
+
+        LOG.debug("Scheduled keep alive retry in {} seconds (retry count: {})", delaySeconds, currentRetry);
     }
 
     /**
