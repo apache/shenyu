@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -57,13 +60,18 @@ public class AiProxyRealKeyResolver {
     /** selectorId -> in-flight resolving future. */
     private final Map<String, CompletableFuture<String>> inFlight = new ConcurrentHashMap<>();
 
+    private final ExecutorService executorService;
+
     public AiProxyRealKeyResolver(final SelectorMapper selectorMapper, final ObjectMapper objectMapper) {
         this.selectorMapper = selectorMapper;
         this.objectMapper = objectMapper;
+        this.executorService = Executors.newFixedThreadPool(10,
+                ShenyuThreadFactory.create("ai-proxy-key-resolver", false));
     }
 
     /**
      * Resolve real api key by selector id with single-flight.
+     * 
      * @param selectorId selector id
      * @return optional real api key
      */
@@ -78,21 +86,22 @@ public class AiProxyRealKeyResolver {
             return Optional.ofNullable(ref.get());
         }
         // single-flight: only one resolving task per selectorId
-        final CompletableFuture<String> future = inFlight.computeIfAbsent(selectorId, id ->
-                CompletableFuture.supplyAsync(() -> doResolve(id))
+        final CompletableFuture<String> future = inFlight.computeIfAbsent(selectorId,
+                id -> CompletableFuture.supplyAsync(() -> doResolve(id), executorService)
                         .whenComplete((val, ex) -> {
                             try {
-                                cache.put(id, new AtomicReference<>(val));
                                 if (Objects.nonNull(ex)) {
-                                    LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", id, ex.getMessage());
+                                    LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", id,
+                                            ex.getMessage());
                                 } else {
-                                    LOG.info("[AiProxyRealKeyResolver] resolved selectorId={}, masked={}...", id, mask(val));
+                                    cache.put(id, new AtomicReference<>(val));
+                                    LOG.info("[AiProxyRealKeyResolver] resolved selectorId={}, masked={}...", id,
+                                            mask(val));
                                 }
                             } finally {
                                 inFlight.remove(id);
                             }
-                        })
-        );
+                        }));
         try {
             return Optional.ofNullable(future.get(RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS));
         } catch (InterruptedException ex) {
@@ -100,16 +109,19 @@ public class AiProxyRealKeyResolver {
             LOG.warn("[AiProxyRealKeyResolver] resolve interrupted for selectorId={}", selectorId);
             return Optional.empty();
         } catch (TimeoutException ex) {
-            LOG.warn("[AiProxyRealKeyResolver] resolve timed out after {}s for selectorId={}", RESOLVE_TIMEOUT_SECONDS, selectorId);
+            LOG.warn("[AiProxyRealKeyResolver] resolve timed out after {}s for selectorId={}", RESOLVE_TIMEOUT_SECONDS,
+                    selectorId);
             return Optional.empty();
         } catch (ExecutionException ex) {
-            LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", selectorId, Objects.nonNull(ex.getCause()) ? ex.getCause().getMessage() : ex.getMessage());
+            LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", selectorId,
+                    Objects.nonNull(ex.getCause()) ? ex.getCause().getMessage() : ex.getMessage());
             return Optional.empty();
         }
     }
 
     /**
      * Invalidate cache and in-flight for a selector.
+     * 
      * @param selectorId selector id
      */
     public void invalidate(final String selectorId) {
@@ -124,6 +136,7 @@ public class AiProxyRealKeyResolver {
 
     /**
      * Force refresh (invalidate then resolve once).
+     * 
      * @param selectorId selector id
      * @return optional real api key
      */
@@ -133,15 +146,11 @@ public class AiProxyRealKeyResolver {
     }
 
     private String doResolve(final String selectorId) {
-        try {
-            final SelectorDO selector = selectorMapper.selectById(selectorId);
-            if (Objects.isNull(selector) || StringUtils.isBlank(selector.getHandle())) {
-                return null;
-            }
-            return extractApiKey(selector.getHandle());
-        } catch (Exception e) {
+        final SelectorDO selector = selectorMapper.selectById(selectorId);
+        if (Objects.isNull(selector) || StringUtils.isBlank(selector.getHandle())) {
             return null;
         }
+        return extractApiKey(selector.getHandle());
     }
 
     private String extractApiKey(final String handleJson) {
@@ -191,4 +200,4 @@ public class AiProxyRealKeyResolver {
         }
         return v.substring(0, Math.min(6, v.length()));
     }
-} 
+}
