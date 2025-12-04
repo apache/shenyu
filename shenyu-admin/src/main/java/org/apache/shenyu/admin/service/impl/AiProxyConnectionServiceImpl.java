@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
 import org.apache.shenyu.admin.service.AiProxyConnectionService;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.utils.NamespaceUtils;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -39,56 +40,60 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AiProxyConnectionServiceImpl implements AiProxyConnectionService {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyConnectionServiceImpl.class);
-    
+
     private final AiProxyRealKeyResolver aiProxyRealKeyResolver;
-    
+
     private final AiProxyApiKeyMapper aiProxyApiKeyMapper;
-    
+
     private final ApplicationEventPublisher eventPublisher;
-    
+
     public AiProxyConnectionServiceImpl(final AiProxyRealKeyResolver aiProxyRealKeyResolver,
-                                        final AiProxyApiKeyMapper aiProxyApiKeyMapper,
-                                        final ApplicationEventPublisher eventPublisher) {
+            final AiProxyApiKeyMapper aiProxyApiKeyMapper,
+            final ApplicationEventPublisher eventPublisher) {
         this.aiProxyRealKeyResolver = aiProxyRealKeyResolver;
         this.aiProxyApiKeyMapper = aiProxyApiKeyMapper;
         this.eventPublisher = eventPublisher;
     }
-    
+
     @Override
     public void refreshApiKeysBySelectorId(final String selectorId) {
-        // 1. Invalidate resolver cache to ensure next step fetches the new key from selector's handle
+        // 1. Invalidate resolver cache to ensure next step fetches the new key from
+        // selector's handle
         aiProxyRealKeyResolver.invalidate(selectorId);
         LOG.info("[AiProxyConnectionService] invalidated real-key resolver for selectorId={}", selectorId);
-        
+
         // 2. Find all proxy api keys associated with this selector
         List<ProxyApiKeyDO> keys = aiProxyApiKeyMapper.selectBySelectorId(selectorId);
         if (CollectionUtils.isEmpty(keys)) {
             LOG.info("[AiProxyConnectionService] no api keys found for selectorId={}, skipping refresh", selectorId);
             return;
         }
-        
+
         // 3. Convert to ProxyApiKeyData, which will resolve the new realApiKey
         List<ProxyApiKeyData> apiKeyDataList = keys.stream()
                 .map(this::buildData)
                 .collect(Collectors.toList());
-        
+
         // 4. Publish an UPDATE event to sync data to gateway
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.AI_PROXY_API_KEY, DataEventTypeEnum.UPDATE, apiKeyDataList));
-        LOG.info("[AiProxyConnectionService] published UPDATE event for {} api keys under selectorId={}", apiKeyDataList.size(), selectorId);
+        eventPublisher.publishEvent(
+                new DataChangedEvent(ConfigGroupEnum.AI_PROXY_API_KEY, DataEventTypeEnum.UPDATE, apiKeyDataList));
+        LOG.info("[AiProxyConnectionService] published UPDATE event for {} api keys under selectorId={}",
+                apiKeyDataList.size(), selectorId);
     }
-    
+
     private ProxyApiKeyData buildData(final ProxyApiKeyDO apiKeyDO) {
         String realApiKey = aiProxyRealKeyResolver.resolveRealKey(apiKeyDO.getSelectorId()).orElse(null);
+        String normalizedNs = NamespaceUtils.normalizeNamespace(apiKeyDO.getNamespaceId());
         ProxyApiKeyData data = new ProxyApiKeyData();
         data.setSelectorId(apiKeyDO.getSelectorId());
-        data.setNamespaceId(apiKeyDO.getNamespaceId());
+        data.setNamespaceId(normalizedNs);
         data.setProxyApiKey(apiKeyDO.getProxyApiKey());
         data.setRealApiKey(realApiKey);
         data.setEnabled(Boolean.TRUE.equals(apiKeyDO.getEnabled()));
         data.setDescription(apiKeyDO.getDescription());
         return data;
     }
-    
-} 
+
+}
