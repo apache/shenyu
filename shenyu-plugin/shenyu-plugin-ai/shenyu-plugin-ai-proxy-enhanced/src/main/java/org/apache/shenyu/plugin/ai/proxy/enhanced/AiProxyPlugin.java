@@ -60,6 +60,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyPlugin.class);
 
+    /**
+     * Maximum request body size: 5MB.
+     */
+    private static final long MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024L;
+
     private final AiModelFactoryRegistry aiModelFactoryRegistry;
 
     private final AiProxyConfigService aiProxyConfigService;
@@ -95,14 +100,18 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         CacheKeyUtils.INST.getKey(
                                 selector.getId(), Constants.DEFAULT_RULE));
 
-        long contentLength = exchange.getRequest().getHeaders().getContentLength();
-        if (contentLength > 5 * 1024 * 1024) {
-            exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
-            return exchange.getResponse().setComplete();
-        }
-
         return DataBufferUtils.join(exchange.getRequest().getBody())
                 .flatMap(dataBuffer -> {
+                    // Validate actual body size after reading, not just Content-Length header
+                    final int actualSize = dataBuffer.readableByteCount();
+                    if (actualSize > MAX_REQUEST_BODY_SIZE_BYTES) {
+                        DataBufferUtils.release(dataBuffer);
+                        LOG.warn("[AiProxy] Request body size {} exceeds maximum allowed size {}", 
+                                actualSize, MAX_REQUEST_BODY_SIZE_BYTES);
+                        exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
+                        return exchange.getResponse().setComplete();
+                    }
+                    
                     final String requestBody = dataBuffer.toString(StandardCharsets.UTF_8);
                     DataBufferUtils.release(dataBuffer);
 
@@ -153,9 +162,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
         final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
+        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
         final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
                 selector.getId(), requestBody);
-        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
         final ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
 
@@ -180,9 +189,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
         final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
+        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
         final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
                 selector.getId(), requestBody);
-        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
 
         return aiProxyExecutorService
                 .execute(mainClient, fallbackClient, prompt)
@@ -219,8 +228,28 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                                 }));
     }
 
+    /**
+     * Generate cache key based on config fields excluding apiKey.
+     * This ensures cache consistency even when apiKey is updated at runtime.
+     *
+     * @param config the config
+     * @return cache key hash
+     */
+    private int generateConfigCacheKey(final AiCommonConfig config) {
+        return Objects.hash(
+                config.getProvider(),
+                config.getBaseUrl(),
+                config.getModel(),
+                config.getTemperature(),
+                config.getMaxTokens(),
+                config.getStream()
+                // Explicitly exclude apiKey to avoid cache misses when apiKey changes
+        );
+    }
+
     private ChatClient createMainChatClient(final String selectorId, final AiCommonConfig config) {
-        final String cacheKey = selectorId + "_" + config.hashCode();
+        final int configHash = generateConfigCacheKey(config);
+        final String cacheKey = selectorId + "|main_" + configHash;
         return chatClientCache.computeIfAbsent(
                 cacheKey,
                 () -> {
@@ -231,7 +260,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private ChatClient createAdminFallbackClient(
             final String selectorId, final AiCommonConfig fallbackConfig) {
-        final String fallbackCacheKey = selectorId + "|adminFallback_" + fallbackConfig.hashCode();
+        final int configHash = generateConfigCacheKey(fallbackConfig);
+        final String fallbackCacheKey = selectorId + "|adminFallback_" + configHash;
         return chatClientCache.computeIfAbsent(
                 fallbackCacheKey,
                 () -> {
