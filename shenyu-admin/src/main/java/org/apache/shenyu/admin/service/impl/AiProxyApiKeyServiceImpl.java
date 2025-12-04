@@ -134,9 +134,24 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public List<ProxyApiKeyVO> findByIds(final List<String> ids) {
-        return mapper.selectByIds(ids).stream()
+        List<ProxyApiKeyVO> voList = mapper.selectByIds(ids).stream()
                 .map(ProxyApiKeyTransfer.INSTANCE::mapToVO)
                 .collect(Collectors.toList());
+        // Populate realApiKey for each VO using batch resolver
+        List<String> selectorIds = voList.stream()
+                .map(ProxyApiKeyVO::getSelectorId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (!selectorIds.isEmpty()) {
+            // resolveRealKeys returns Map<String, String> mapping selectorId to realApiKey
+            java.util.Map<String, String> realKeyMap = realKeyResolver.resolveRealKeys(selectorIds);
+            for (ProxyApiKeyVO vo : voList) {
+                if (vo.getSelectorId() != null) {
+                    vo.setRealApiKey(realKeyMap.get(vo.getSelectorId()));
+                }
+            }
+        }
+        return voList;
     }
 
     @Override
