@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
@@ -27,30 +30,27 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
-import org.apache.shenyu.admin.transfer.ProxyApiKeyTransfer;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.transfer.ProxyApiKeyTransfer;
+import org.apache.shenyu.admin.utils.NamespaceUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.shenyu.common.constant.Constants;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 
 /** Implementation of AiProxyApiKeyService. */
 @Service
@@ -248,11 +248,11 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public void syncDataByNamespaceId(final String namespaceId) {
-        final String target = normalizeNamespace(namespaceId);
+        final String target = NamespaceUtils.normalizeNamespace(namespaceId);
         List<ProxyApiKeyDO> all = mapper.selectAll();
         List<ProxyApiKeyDO> list = Objects.isNull(all) ? java.util.Collections.emptyList()
                 : all.stream()
-                        .filter(e -> StringUtils.equals(normalizeNamespace(e.getNamespaceId()), target))
+                        .filter(e -> StringUtils.equals(NamespaceUtils.normalizeNamespace(e.getNamespaceId()), target))
                         .collect(Collectors.toList());
         LOG.info("[AiProxySync] syncDataByNamespaceId {}, normalized:{}, matched:{} of total:{}",
                 namespaceId, target, list.size(), Objects.isNull(all) ? 0 : all.size());
@@ -314,7 +314,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     }
 
     private ProxyApiKeyData convert(final ProxyApiKeyDO entity) {
-        final String normalizedNs = normalizeNamespace(entity.getNamespaceId());
+        final String normalizedNs = NamespaceUtils.normalizeNamespace(entity.getNamespaceId());
         if (!StringUtils.equals(entity.getNamespaceId(), normalizedNs)) {
             LOG.info("[AiProxySync] normalize namespace from {} to {} for proxyKey={}",
                     entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
@@ -324,7 +324,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     }
 
     private ProxyApiKeyData convert(final ProxyApiKeyDO entity, final String resolvedRealKey) {
-        final String normalizedNs = normalizeNamespace(entity.getNamespaceId());
+        final String normalizedNs = NamespaceUtils.normalizeNamespace(entity.getNamespaceId());
         if (!StringUtils.equals(entity.getNamespaceId(), normalizedNs)) {
             LOG.info("[AiProxySync] normalize namespace from {} to {} for proxyKey={}",
                     entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
@@ -337,12 +337,5 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                 .namespaceId(normalizedNs)
                 .selectorId(entity.getSelectorId())
                 .build();
-    }
-
-    private String normalizeNamespace(final String namespaceId) {
-        if (StringUtils.isBlank(namespaceId) || StringUtils.equalsIgnoreCase(namespaceId, "default")) {
-            return Constants.SYS_DEFAULT_NAMESPACE_ID;
-        }
-        return namespaceId;
     }
 }

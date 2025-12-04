@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.support;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -27,9 +28,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -200,12 +206,12 @@ public class AiProxyRealKeyResolver {
      * @param selectorIds set of selector ids
      * @return map of selectorId -> real api key
      */
-    public Map<String, String> resolveRealKeys(final java.util.Set<String> selectorIds) {
+    public Map<String, String> resolveRealKeys(final Collection<String> selectorIds) {
         if (Objects.isNull(selectorIds) || selectorIds.isEmpty()) {
-            return java.util.Collections.emptyMap();
+            return Collections.emptyMap();
         }
-        final Map<String, String> result = new java.util.HashMap<>();
-        final java.util.Set<String> missing = new java.util.HashSet<>();
+        final Map<String, String> result = new HashMap<>();
+        final Set<String> missing = new HashSet<>();
 
         for (String id : selectorIds) {
             AtomicReference<String> ref = cache.get(id);
@@ -236,6 +242,22 @@ public class AiProxyRealKeyResolver {
             }
         }
         return result;
+    }
+
+    /**
+     * Shutdown executor service when bean is destroyed.
+     */
+    @PreDestroy
+    public void destroy() {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private String mask(final String v) {

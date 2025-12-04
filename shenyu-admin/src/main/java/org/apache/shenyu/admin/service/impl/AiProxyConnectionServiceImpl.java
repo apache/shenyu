@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
 import org.apache.shenyu.admin.service.AiProxyConnectionService;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.utils.NamespaceUtils;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -84,7 +85,7 @@ public class AiProxyConnectionServiceImpl implements AiProxyConnectionService {
 
     private ProxyApiKeyData buildData(final ProxyApiKeyDO apiKeyDO) {
         String realApiKey = aiProxyRealKeyResolver.resolveRealKey(apiKeyDO.getSelectorId()).orElse(null);
-        String normalizedNs = normalizeNamespace(apiKeyDO.getNamespaceId());
+        String normalizedNs = NamespaceUtils.normalizeNamespace(apiKeyDO.getNamespaceId());
         ProxyApiKeyData data = new ProxyApiKeyData();
         data.setSelectorId(apiKeyDO.getSelectorId());
         data.setNamespaceId(normalizedNs);
@@ -93,14 +94,6 @@ public class AiProxyConnectionServiceImpl implements AiProxyConnectionService {
         data.setEnabled(Boolean.TRUE.equals(apiKeyDO.getEnabled()));
         data.setDescription(apiKeyDO.getDescription());
         return data;
-    }
-
-    private String normalizeNamespace(final String namespaceId) {
-        if (org.apache.commons.lang3.StringUtils.isBlank(namespaceId)
-                || org.apache.commons.lang3.StringUtils.equalsIgnoreCase(namespaceId, "default")) {
-            return org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-        }
-        return namespaceId;
     }
 
 }
