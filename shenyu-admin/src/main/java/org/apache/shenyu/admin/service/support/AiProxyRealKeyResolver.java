@@ -194,6 +194,62 @@ public class AiProxyRealKeyResolver {
         return null;
     }
 
+    /**
+     * Batch resolve real api keys.
+     *
+     * @param selectorIds set of selector ids
+     * @return map of selectorId -> real api key
+     */
+    public Map<String, String> resolveRealKeys(final java.util.Set<String> selectorIds) {
+        if (Objects.isNull(selectorIds) || selectorIds.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+        final Map<String, String> result = new java.util.HashMap<>();
+        final java.util.Set<String> missing = new java.util.HashSet<>();
+
+        for (String id : selectorIds) {
+            AtomicReference<String> ref = cache.get(id);
+            if (Objects.nonNull(ref)) {
+                result.put(id, ref.get());
+            } else {
+                missing.add(id);
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            java.util.List<SelectorDO> selectors = selectorMapper.selectByIdSet(missing);
+            if (Objects.nonNull(selectors)) {
+                for (SelectorDO selector : selectors) {
+                    String apiKey = extractApiKey(selector.getHandle());
+                    cache.put(selector.getId(), new AtomicReference<>(apiKey));
+                    result.put(selector.getId(), apiKey);
+                }
+            }
+            // For IDs that were not found in DB, cache them as null to avoid repeated DB
+            // hits?
+            // Current single-resolve logic returns Optional.empty() but doesn't cache null
+            // if exception occurs (my fix).
+            // But if selector is not found, doResolve returns null.
+            // My previous fix in doResolve:
+            // if (Objects.isNull(selector) ... ) return null;
+            // And resolveRealKey:
+            // .whenComplete((val, ex) -> { ... cache.put(id, new AtomicReference<>(val));
+            // ... })
+            // So nulls ARE cached.
+
+            // So for missing IDs in DB, we should also cache null.
+            for (String id : missing) {
+                if (!result.containsKey(id)) {
+                    // If not found in DB or handle is invalid, it wasn't added to result.
+                    // We should add it as null to result and cache.
+                    cache.put(id, new AtomicReference<>(null));
+                    result.put(id, null);
+                }
+            }
+        }
+        return result;
+    }
+
     private String mask(final String v) {
         if (StringUtils.isBlank(v)) {
             return "null";
