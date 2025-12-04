@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
@@ -40,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -80,6 +83,30 @@ public class ZookeeperClient implements AutoCloseable {
         }
 
         this.client = builder.build();
+        
+        // Add connection state listener for better error handling and logging
+        this.client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+            @Override
+            public void stateChanged(final CuratorFramework client, final ConnectionState newState) {
+                switch (newState) {
+                    case CONNECTED:
+                        LOG.info("ZooKeeper client connected successfully to {}", config.getUrl());
+                        break;
+                    case RECONNECTED:
+                        LOG.info("ZooKeeper client reconnected to {}", config.getUrl());
+                        break;
+                    case SUSPENDED:
+                        LOG.warn("ZooKeeper client connection suspended to {}", config.getUrl());
+                        break;
+                    case LOST:
+                        LOG.error("ZooKeeper client connection lost to {}", config.getUrl());
+                        break;
+                    default:
+                        LOG.debug("ZooKeeper client state changed to {} for {}", newState, config.getUrl());
+                        break;
+                }
+            }
+        });
     }
 
     /**
@@ -88,7 +115,17 @@ public class ZookeeperClient implements AutoCloseable {
     public void start() {
         this.client.start();
         try {
-            this.client.blockUntilConnected();
+            // Use blockUntilConnected with timeout to avoid indefinite blocking
+            // Use connection timeout + session timeout as maximum wait time
+            int maxWaitTime = config.getConnectionTimeoutMilliseconds() 
+                    + (Objects.nonNull(config.getSessionTimeoutMilliseconds()) ? config.getSessionTimeoutMilliseconds() : 60000);
+            boolean connected = this.client.blockUntilConnected(
+                    Math.min(maxWaitTime, 30000) / 1000, TimeUnit.SECONDS);
+            if (!connected) {
+                LOG.warn("ZooKeeper client failed to connect within timeout to {}", config.getUrl());
+            } else {
+                LOG.info("ZooKeeper client connected successfully to {}", config.getUrl());
+            }
         } catch (InterruptedException e) {
             LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();
