@@ -63,6 +63,7 @@ public class EtcdClientTest {
             when(client.getLeaseClient()).thenReturn(lease);
             final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
             final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+            when(leaseGrantResponse.getID()).thenReturn(1L);
 
             when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
             when(completableFuture.get()).thenReturn(leaseGrantResponse);
@@ -82,7 +83,7 @@ public class EtcdClientTest {
             });
 
             doThrow(new InterruptedException("error")).when(completableFuture).get();
-            Assertions.assertDoesNotThrow(() -> EtcdClient.builder().client(Client.builder().endpoints("url").build())).ttl(60L).timeout(3000L).build();
+            Assertions.assertThrows(ShenyuException.class, () -> EtcdClient.builder().client(Client.builder().endpoints("url").build()).ttl(60L).timeout(3000L).build());
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
@@ -113,7 +114,7 @@ public class EtcdClientTest {
             etcdClient.putEphemeral("key", "value");
 
             doThrow(new InterruptedException("error")).when(completableFuture).get(anyLong(), any(TimeUnit.class));
-            etcdClient.putEphemeral("key", "value");
+            Assertions.assertThrows(ShenyuException.class, () -> etcdClient.putEphemeral("key", "value"));
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
@@ -129,6 +130,7 @@ public class EtcdClientTest {
         when(client.getLeaseClient()).thenReturn(lease);
         final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
         final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+        when(leaseGrantResponse.getID()).thenReturn(1L);
         when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
         when(completableFuture.get()).thenReturn(leaseGrantResponse);
         return client;

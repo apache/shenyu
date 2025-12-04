@@ -419,7 +419,11 @@ public class EtcdClient {
         try {
             this.globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
             keepAlive();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            LOG.error("initLease error.", e);
+            Thread.currentThread().interrupt();
+            throw new ShenyuException(e);
+        } catch (ExecutionException e) {
             LOG.error("initLease error.", e);
             throw new ShenyuException(e);
         }
