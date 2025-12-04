@@ -15,30 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.zookeeper;
+package org.apache.shenyu.infra.zookeeper.client;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Zookeeper client.
+ */
+@SuppressWarnings("deprecation")
 public class ZookeeperClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperClient.class);
@@ -47,24 +57,56 @@ public class ZookeeperClient implements AutoCloseable {
 
     private final CuratorFramework client;
 
-    private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
+    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
+
+    private final Map<String, TreeCache> treeCaches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
         this.config = zookeeperConfig;
-        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(config.getBaseSleepTimeMilliseconds(), config.getMaxRetries(), config.getMaxSleepTimeMilliseconds());
+        ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(
+                config.getBaseSleepTimeMilliseconds(),
+                config.getMaxRetries(),
+                config.getMaxSleepTimeMilliseconds());
 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                .connectString(config.getServerLists())
+                .connectString(config.getUrl())
                 .retryPolicy(retryPolicy)
                 .connectionTimeoutMs(config.getConnectionTimeoutMilliseconds())
-                .sessionTimeoutMs(config.getSessionTimeoutMilliseconds())
-                .namespace(config.getNamespace());
+                .sessionTimeoutMs(config.getSessionTimeoutMilliseconds());
 
-        if (!StringUtils.isEmpty(config.getDigest())) {
+        if (StringUtils.isNotEmpty(config.getNamespace())) {
+            builder.namespace(config.getNamespace());
+        }
+
+        if (StringUtils.isNotEmpty(config.getDigest())) {
             builder.authorization("digest", config.getDigest().getBytes(StandardCharsets.UTF_8));
         }
 
         this.client = builder.build();
+        
+        // Add connection state listener for better error handling and logging
+        this.client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+            @Override
+            public void stateChanged(final CuratorFramework client, final ConnectionState newState) {
+                switch (newState) {
+                    case CONNECTED:
+                        LOG.info("ZooKeeper client connected successfully to {}", config.getUrl());
+                        break;
+                    case RECONNECTED:
+                        LOG.info("ZooKeeper client reconnected to {}", config.getUrl());
+                        break;
+                    case SUSPENDED:
+                        LOG.warn("ZooKeeper client connection suspended to {}", config.getUrl());
+                        break;
+                    case LOST:
+                        LOG.error("ZooKeeper client connection lost to {}", config.getUrl());
+                        break;
+                    default:
+                        LOG.debug("ZooKeeper client state changed to {} for {}", newState, config.getUrl());
+                        break;
+                }
+            }
+        });
     }
 
     /**
@@ -73,7 +115,17 @@ public class ZookeeperClient implements AutoCloseable {
     public void start() {
         this.client.start();
         try {
-            this.client.blockUntilConnected();
+            // Use blockUntilConnected with timeout to avoid indefinite blocking
+            // Use connection timeout + session timeout as maximum wait time
+            int maxWaitTime = config.getConnectionTimeoutMilliseconds() 
+                    + (Objects.nonNull(config.getSessionTimeoutMilliseconds()) ? config.getSessionTimeoutMilliseconds() : 60000);
+            boolean connected = this.client.blockUntilConnected(
+                    Math.min(maxWaitTime, 30000) / 1000, TimeUnit.SECONDS);
+            if (!connected) {
+                LOG.warn("ZooKeeper client failed to connect within timeout to {}", config.getUrl());
+            } else {
+                LOG.info("ZooKeeper client connected successfully to {}", config.getUrl());
+            }
         } catch (InterruptedException e) {
             LOG.warn("Interrupted during zookeeper client starting.");
             Thread.currentThread().interrupt();
@@ -81,12 +133,16 @@ public class ZookeeperClient implements AutoCloseable {
     }
 
     /**
-     * start.
+     * close.
      */
     @Override
     public void close() {
         // close all caches
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
+            CloseableUtils.closeQuietly(cache.getValue());
+        }
+        // close all tree caches
+        for (Map.Entry<String, TreeCache> cache : treeCaches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());
         }
         // close client
@@ -138,17 +194,17 @@ public class ZookeeperClient implements AutoCloseable {
      * @return value.
      */
     public String get(final String key) {
-        TreeCache cache = findFromcache(key);
+        CuratorCache cache = findFromCache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
-        ChildData data = cache.getCurrentData(key);
+        ChildData data = cache.get(key).orElse(null);
         if (Objects.isNull(data)) {
             return getDirectly(key);
         }
         return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
-    
+
     /**
      * create or update key with value.
      *
@@ -213,8 +269,7 @@ public class ZookeeperClient implements AutoCloseable {
         try {
             return client.getChildren().forPath(key);
         } catch (Exception e) {
-            LOG.error("zookeeper get child error=", e);
-            return Collections.emptyList();
+            throw new ShenyuException(e);
         }
     }
 
@@ -223,7 +278,7 @@ public class ZookeeperClient implements AutoCloseable {
      * @param path path.
      * @return cache.
      */
-    public TreeCache getCache(final String path) {
+    public CuratorCache getCache(final String path) {
         return caches.get(path);
     }
 
@@ -233,12 +288,12 @@ public class ZookeeperClient implements AutoCloseable {
      * @param listeners listeners.
      * @return cache.
      */
-    public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
-        TreeCache cache = TreeCache.newBuilder(client, path).build();
+    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
+        CuratorCache cache = CuratorCache.build(client, path);
         caches.put(path, cache);
         if (ArrayUtils.isNotEmpty(listeners)) {
-            for (TreeCacheListener listener : listeners) {
-                cache.getListenable().addListener(listener);
+            for (CuratorCacheListener listener : listeners) {
+                cache.listenable().addListener(listener);
             }
         }
         try {
@@ -250,16 +305,99 @@ public class ZookeeperClient implements AutoCloseable {
     }
 
     /**
+     * add new curator cache.
+     * @param path path.
+     * @param listeners listeners.
+     * @return cache.
+     */
+    public CuratorCache addCuratorCache(final String path, final CuratorCacheListener... listeners) {
+        return addCache(path, listeners);
+    }
+
+    /**
+     * add new tree cache.
+     * @param path path.
+     * @param listeners listeners.
+     * @return tree cache.
+     * @deprecated Use {@link #addCuratorCache(String, CuratorCacheListener...)} instead.
+     */
+    @Deprecated
+    public TreeCache addTreeCache(final String path, final TreeCacheListener... listeners) {
+        TreeCache cache = TreeCache.newBuilder(client, path).build();
+        treeCaches.put(path, cache);
+        if (ArrayUtils.isNotEmpty(listeners)) {
+            for (TreeCacheListener listener : listeners) {
+                cache.getListenable().addListener(listener);
+            }
+        }
+        try {
+            cache.start();
+        } catch (Exception e) {
+            throw new ShenyuException("failed to add tree cache.", e);
+        }
+        return cache;
+    }
+
+    /**
+     * get created tree cache.
+     * @param path path.
+     * @return tree cache.
+     * @deprecated Use {@link #getCache(String)} instead.
+     */
+    @Deprecated
+    public TreeCache getTreeCache(final String path) {
+        return treeCaches.get(path);
+    }
+
+    /**
+     * add children watcher.
+     * @param key selectKey
+     * @param curatorWatcher watcher
+     * @return children List
+     */
+    public List<String> subscribeChildrenChanges(final String key, final CuratorWatcher curatorWatcher) {
+        try {
+            return client.getChildren().usingWatcher(curatorWatcher).forPath(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
      * find cache with  key.
      * @param key key.
      * @return cache.
      */
-    private TreeCache findFromcache(final String key) {
-        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
+    private CuratorCache findFromCache(final String key) {
+        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
             }
         }
         return null;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private ZookeeperConfig config;
+
+        /**
+         * private constructor. not allow to create instance.
+         */
+        private Builder() {
+        }
+
+        public Builder config(final ZookeeperConfig config) {
+            this.config = config;
+            return this;
+        }
+
+        public ZookeeperClient build() {
+            return new ZookeeperClient(config);
+        }
     }
 }
