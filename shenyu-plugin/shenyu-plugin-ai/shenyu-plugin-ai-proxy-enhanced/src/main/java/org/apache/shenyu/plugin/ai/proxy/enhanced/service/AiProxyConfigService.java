@@ -38,7 +38,8 @@ public class AiProxyConfigService {
     private static final String FALLBACK_CONFIG = "fallbackConfig";
 
     /**
-     * Resolves the primary configuration for the AI call by merging global and selector-level settings.
+     * Resolves the primary configuration for the AI call by merging global and
+     * selector-level settings.
      *
      * @param handle the selector handle
      * @return the primary AiCommonConfig
@@ -71,7 +72,8 @@ public class AiProxyConfigService {
      * @param requestBody   the request body
      * @return an Optional containing the final fallback AiCommonConfig
      */
-    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig, final String requestBody) {
+    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig,
+            final String requestBody) {
         return extractDynamicFallbackConfig(requestBody)
                 .map(dynamicConfig -> {
                     LOG.info("Resolved dynamic fallback config: {}", dynamicConfig);
@@ -86,7 +88,8 @@ public class AiProxyConfigService {
      * @param handle        the selector handle
      * @return an Optional containing the final fallback AiCommonConfig
      */
-    public Optional<AiCommonConfig> resolveAdminFallbackConfig(final AiCommonConfig primaryConfig, final AiProxyHandle handle) {
+    public Optional<AiCommonConfig> resolveAdminFallbackConfig(final AiCommonConfig primaryConfig,
+            final AiProxyHandle handle) {
         return Optional.ofNullable(handle)
                 .map(AiProxyHandle::getFallbackConfig)
                 .map(fallback -> {
@@ -120,5 +123,31 @@ public class AiProxyConfigService {
             return Optional.of(config);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Extract prompt from request body if it contains fallback config.
+     *
+     * @param requestBody the request body
+     * @return the extracted prompt or original body
+     */
+    public String extractPrompt(final String requestBody) {
+        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
+            return requestBody;
+        }
+        try {
+            JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
+            if (jsonNode.has(FALLBACK_CONFIG)) {
+                if (jsonNode.has("prompt")) {
+                    return jsonNode.get("prompt").asText();
+                }
+                if (jsonNode.has("content")) {
+                    return jsonNode.get("content").asText();
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return requestBody;
     }
 }

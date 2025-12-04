@@ -72,10 +72,10 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     public AiProxyPlugin(
             final AiModelFactoryRegistry aiModelFactoryRegistry,
-                         final AiProxyConfigService aiProxyConfigService,
-                         final AiProxyExecutorService aiProxyExecutorService,
-                         final ChatClientCache chatClientCache,
-                         final AiProxyPluginHandler aiProxyPluginHandler) {
+            final AiProxyConfigService aiProxyConfigService,
+            final AiProxyExecutorService aiProxyExecutorService,
+            final ChatClientCache chatClientCache,
+            final AiProxyPluginHandler aiProxyPluginHandler) {
         this.aiModelFactoryRegistry = aiModelFactoryRegistry;
         this.aiProxyConfigService = aiProxyConfigService;
         this.aiProxyExecutorService = aiProxyExecutorService;
@@ -89,25 +89,30 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final ShenyuPluginChain chain,
             final SelectorData selector,
             final RuleData rule) {
-        final AiProxyHandle selectorHandle =
-                aiProxyPluginHandler
-                        .getSelectorCachedHandle()
-                        .obtainHandle(
-                                CacheKeyUtils.INST.getKey(
-                                        selector.getId(), Constants.DEFAULT_RULE));
+        final AiProxyHandle selectorHandle = aiProxyPluginHandler
+                .getSelectorCachedHandle()
+                .obtainHandle(
+                        CacheKeyUtils.INST.getKey(
+                                selector.getId(), Constants.DEFAULT_RULE));
+
+        long contentLength = exchange.getRequest().getHeaders().getContentLength();
+        if (contentLength > 5 * 1024 * 1024) {
+            exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
+            return exchange.getResponse().setComplete();
+        }
 
         return DataBufferUtils.join(exchange.getRequest().getBody())
                 .flatMap(dataBuffer -> {
                     final String requestBody = dataBuffer.toString(StandardCharsets.UTF_8);
                     DataBufferUtils.release(dataBuffer);
 
-                    final AiCommonConfig primaryConfig =
-                            aiProxyConfigService.resolvePrimaryConfig(selectorHandle);
+                    final AiCommonConfig primaryConfig = aiProxyConfigService.resolvePrimaryConfig(selectorHandle);
 
                     // override apiKey by proxy key if provided in header
                     final HttpHeaders headers = exchange.getRequest().getHeaders();
                     final String proxyApiKey = headers.getFirst(Constants.X_API_KEY);
-                    final boolean proxyEnabled = Objects.nonNull(selectorHandle) && "true".equalsIgnoreCase(String.valueOf(selectorHandle.getProxyEnabled()));
+                    final boolean proxyEnabled = Objects.nonNull(selectorHandle)
+                            && "true".equalsIgnoreCase(String.valueOf(selectorHandle.getProxyEnabled()));
 
                     if (proxyEnabled) {
                         // if proxy mode enabled but header missing -> 401
@@ -116,12 +121,13 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                             return exchange.getResponse().setComplete();
                         }
 
-                        final String realKey =
-                                AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyApiKey);
+                        final String realKey = AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(),
+                                proxyApiKey);
                         if (Objects.nonNull(realKey)) {
                             primaryConfig.setApiKey(realKey);
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("[AiProxy] proxy key hit, selectorId={}, key={}... (masked)", selector.getId(), proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())));
+                                LOG.debug("[AiProxy] proxy key hit, selectorId={}, key={}... (masked)",
+                                        selector.getId(), proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())));
                             }
                             LOG.info("[AiProxy] proxy key hit, cacheSize={}", AiProxyApiKeyCache.getInstance().size());
                         } else {
@@ -147,22 +153,22 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
         final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
-        final Optional<ChatClient> fallbackClient =
-                resolveFallbackClient(primaryConfig, selectorHandle, selector.getId(), requestBody);
+        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
+                selector.getId(), requestBody);
+        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
         final ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
 
-        final Flux<ChatResponse> chatResponseFlux =
-                aiProxyExecutorService.executeStream(mainClient, fallbackClient, requestBody);
+        final Flux<ChatResponse> chatResponseFlux = aiProxyExecutorService.executeStream(mainClient, fallbackClient,
+                prompt);
 
-        final Flux<DataBuffer> sseFlux =
-                chatResponseFlux.map(
-                        chatResponse -> {
-                            final String json = JsonUtils.toJson(chatResponse);
-                            final String sseData = "data: " + json + "\n\n";
-                            return response.bufferFactory()
-                                    .wrap(sseData.getBytes(StandardCharsets.UTF_8));
-                        });
+        final Flux<DataBuffer> sseFlux = chatResponseFlux.map(
+                chatResponse -> {
+                    final String json = JsonUtils.toJson(chatResponse);
+                    final String sseData = "data: " + json + "\n\n";
+                    return response.bufferFactory()
+                            .wrap(sseData.getBytes(StandardCharsets.UTF_8));
+                });
 
         return response.writeWith(sseFlux);
     }
@@ -174,15 +180,15 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
         final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
-        final Optional<ChatClient> fallbackClient =
-                resolveFallbackClient(primaryConfig, selectorHandle, selector.getId(), requestBody);
+        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
+                selector.getId(), requestBody);
+        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
 
         return aiProxyExecutorService
-                .execute(mainClient, fallbackClient, requestBody)
+                .execute(mainClient, fallbackClient, prompt)
                 .flatMap(
                         response -> {
-                            byte[] jsonBytes =
-                                    JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
+                            byte[] jsonBytes = JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
                             return WebFluxResultUtils.result(exchange, jsonBytes);
                         });
     }
@@ -202,36 +208,36 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     return createDynamicFallbackClient(cfg);
                 })
                 .or(
-                        () ->
-                                aiProxyConfigService
-                                        .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
-                                        .map(adminFallbackConfig -> {
-                                            LOG.info("[AiProxy] use admin fallback");
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
-                                            }
-                                            return createAdminFallbackClient(selectorId, adminFallbackConfig);
-                                        }));
+                        () -> aiProxyConfigService
+                                .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
+                                .map(adminFallbackConfig -> {
+                                    LOG.info("[AiProxy] use admin fallback");
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
+                                    }
+                                    return createAdminFallbackClient(selectorId, adminFallbackConfig);
+                                }));
     }
 
     private ChatClient createMainChatClient(final String selectorId, final AiCommonConfig config) {
+        final String cacheKey = selectorId + "_" + config.hashCode();
         return chatClientCache.computeIfAbsent(
-                selectorId,
+                cacheKey,
                 () -> {
-                    LOG.info("Creating and caching main model for selector: {}", selectorId);
+                    LOG.info("Creating and caching main model for selector: {}, key: {}", selectorId, cacheKey);
                     return createChatModel(config);
                 });
     }
 
     private ChatClient createAdminFallbackClient(
             final String selectorId, final AiCommonConfig fallbackConfig) {
-        final String fallbackCacheKey = selectorId + "|adminFallback";
+        final String fallbackCacheKey = selectorId + "|adminFallback_" + fallbackConfig.hashCode();
         return chatClientCache.computeIfAbsent(
                 fallbackCacheKey,
                 () -> {
                     LOG.info(
-                            "Creating and caching admin fallback model for selector: {}",
-                            selectorId);
+                            "Creating and caching admin fallback model for selector: {}, key: {}",
+                            selectorId, fallbackCacheKey);
                     return createChatModel(fallbackConfig);
                 });
     }
