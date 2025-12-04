@@ -225,19 +225,7 @@ public class AiProxyRealKeyResolver {
                     result.put(selector.getId(), apiKey);
                 }
             }
-            // For IDs that were not found in DB, cache them as null to avoid repeated DB
-            // hits?
-            // Current single-resolve logic returns Optional.empty() but doesn't cache null
-            // if exception occurs (my fix).
-            // But if selector is not found, doResolve returns null.
-            // My previous fix in doResolve:
-            // if (Objects.isNull(selector) ... ) return null;
-            // And resolveRealKey:
-            // .whenComplete((val, ex) -> { ... cache.put(id, new AtomicReference<>(val));
-            // ... })
-            // So nulls ARE cached.
-
-            // So for missing IDs in DB, we should also cache null.
+            // Cache null for IDs not found in DB to avoid repeated DB hits.
             for (String id : missing) {
                 if (!result.containsKey(id)) {
                     // If not found in DB or handle is invalid, it wasn't added to result.
