@@ -146,7 +146,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
             // resolveRealKeys returns Map<String, String> mapping selectorId to realApiKey
             java.util.Map<String, String> realKeyMap = realKeyResolver.resolveRealKeys(selectorIds);
             for (ProxyApiKeyVO vo : voList) {
-                if (vo.getSelectorId() != null) {
+                if (Objects.nonNull(vo.getSelectorId())) {
                     vo.setRealApiKey(realKeyMap.get(vo.getSelectorId()));
                 }
             }
