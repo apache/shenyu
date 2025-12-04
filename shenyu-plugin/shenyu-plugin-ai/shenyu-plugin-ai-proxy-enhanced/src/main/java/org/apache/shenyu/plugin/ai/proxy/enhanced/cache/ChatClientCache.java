@@ -33,7 +33,21 @@ public final class ChatClientCache {
     
     private static final Logger LOG = LoggerFactory.getLogger(ChatClientCache.class);
     
-    private static final int MAX_CACHE_SIZE = 500;
+    private static final int MAX_CACHE_SIZE = getCacheSize();
+
+    private static int getCacheSize() {
+        String value = System.getProperty("shenyu.plugin.ai.proxy.enhanced.cache.maxSize",
+                System.getenv("SHENYU_PLUGIN_AI_PROXY_ENHANCED_CACHE_MAXSIZE"));
+        if (value != null) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                LoggerFactory.getLogger(ChatClientCache.class)
+                        .warn("[ChatClientCache] Invalid cache size '{}', using default 500.", value);
+            }
+        }
+        return 500;
+    }
     
     private final Map<String, ChatClient> chatClientMap = new ConcurrentHashMap<>();
     
