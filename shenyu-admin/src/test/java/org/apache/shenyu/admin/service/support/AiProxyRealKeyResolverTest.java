@@ -178,7 +178,8 @@ public final class AiProxyRealKeyResolverTest {
 
         // Verify null is cached - second call should not query database
         Map<String, String> result2 = resolver.resolveRealKeys(selectorIds);
-        assertThat(result2, hasEntry(SELECTOR_ID_NOT_EXIST, nullValue()));
+        assertThat(result2, hasKey(SELECTOR_ID_NOT_EXIST));
+        assertThat(result2.get(SELECTOR_ID_NOT_EXIST), is(nullValue()));
         verify(selectorMapper, times(1)).selectByIdSet(selectorIds);
     }
 
