@@ -63,7 +63,9 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
         if (CollectionUtils.isEmpty(upstreamList)) {
             throw new ShenyuException("shenyu TcpProxy don't have any upstream");
         }
-        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, new LoadBalanceData());
+        LoadBalanceData data = new LoadBalanceData();
+        data.setIp(ip);
+        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, data);
         return cover(upstream);
     }
 

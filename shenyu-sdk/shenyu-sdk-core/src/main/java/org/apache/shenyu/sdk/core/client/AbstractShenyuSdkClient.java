@@ -172,7 +172,8 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         // loadBalancer upstreams
         LoadBalanceData data = new LoadBalanceData();
         data.setHeaders(request.getHeaders());
-        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, new LoadBalanceData());
+        data.setHttpMethod(request.getHttpMethod().name());
+        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, data);
         return replaceUrl(upstream.getUrl(), request.getUrl());
     }
 
