@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import java.security.SecureRandom;
-import java.util.List;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
+
+import java.security.SecureRandom;
+import java.util.List;
 
 /**
  * random algorithm impl.
@@ -31,7 +33,7 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
-    public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    public Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         int length = upstreamList.size();
         // every upstream has the same weight?
         boolean sameWeight = true;
