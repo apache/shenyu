@@ -37,7 +37,7 @@ import java.util.Objects;
 /**
  * The type Loadbalancer utils.
  */
-public class LoadbalancerUtils {
+public final class LoadbalancerUtils {
     
     private LoadbalancerUtils() {
     }
