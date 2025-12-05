@@ -50,7 +50,7 @@ public class LoadbalancerUtils {
      * @param exchange the exchange
      * @return the for exchange
      */
-    public static Upstream getForExchange(List<Upstream> upstreamList, final String algorithm, ServerWebExchange exchange) {
+    public static Upstream getForExchange(final List<Upstream> upstreamList, final String algorithm, final ServerWebExchange exchange) {
         LoadBalanceData loadBalanceData = buildLoadBalanceData(exchange);
         return LoadBalancerFactory.selector(upstreamList, algorithm, loadBalanceData);
     }
@@ -62,7 +62,7 @@ public class LoadbalancerUtils {
      * @param algorithm the algorithm
      * @return the for no exchange
      */
-    public static Upstream getForNoExchange(List<Upstream> upstreamList, final String algorithm) {
+    public static Upstream getForNoExchange(final List<Upstream> upstreamList, final String algorithm) {
         return LoadBalancerFactory.selector(upstreamList, algorithm, new LoadBalanceData());
     }
     
