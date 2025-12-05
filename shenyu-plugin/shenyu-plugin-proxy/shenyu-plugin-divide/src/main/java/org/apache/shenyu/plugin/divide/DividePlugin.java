@@ -104,7 +104,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
-        List<String> specifyDomains  = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         if (CollectionUtils.isNotEmpty(specifyDomains)) {
             upstream.setUrl(specifyDomains.get(0));
         }
