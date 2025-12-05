@@ -251,7 +251,7 @@ public class UpstreamCheckService {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
             return false;
         }
-        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getProtocol(), commonUpstream.getUpstreamUrl());
         if (pass) {
             this.submit(selectorId, commonUpstream);
             return false;
@@ -310,7 +310,7 @@ public class UpstreamCheckService {
         ZOMBIE_SET.remove(zombieUpstream);
         String selectorId = zombieUpstream.getSelectorId();
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
-        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getProtocol(), commonUpstream.getUpstreamUrl());
         if (pass) {
             commonUpstream.setTimestamp(System.currentTimeMillis());
             commonUpstream.setStatus(true);
@@ -332,7 +332,7 @@ public class UpstreamCheckService {
         final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
         for (CommonUpstream commonUpstream : upstreamList) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
-                final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+                final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getProtocol(), commonUpstream.getUpstreamUrl());
                 if (pass) {
                     if (!commonUpstream.isStatus()) {
                         commonUpstream.setTimestamp(System.currentTimeMillis());
