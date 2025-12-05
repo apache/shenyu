@@ -44,7 +44,8 @@ public class UpstreamCheckUtils {
     /**
      * Check url boolean.
      *
-     * @param url the url
+     * @param protocol  the protocol
+     * @param url       the url
      * @return the boolean
      */
     public static boolean checkUrl(final String protocol, final String url) {
@@ -54,8 +55,9 @@ public class UpstreamCheckUtils {
     /**
      * Check url boolean.
      *
-     * @param url     the url
-     * @param timeout timeout
+     * @param protocol  the protocol
+     * @param url       the url
+     * @param timeout   timeout
      * @return the boolean
      */
     public static boolean checkUrl(final String protocol, final String url, final int timeout) {
