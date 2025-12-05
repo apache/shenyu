@@ -90,7 +90,6 @@ public class LoadbalancerUtils {
         return resultMap;
     }
     
-    
     private static Map<String, String> buildCookies(final MultiValueMap<String, HttpCookie> cookies) {
         Map<String, String> resultMap = new HashMap<>();
         if (MapUtils.isNotEmpty(cookies)) {
