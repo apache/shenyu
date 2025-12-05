@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.GrpcRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
@@ -45,19 +46,19 @@ public class ShenyuPicker extends AbstractReadyPicker {
 
     @Override
     protected SubChannelCopy pick(final List<SubChannelCopy> list) {
-
         String grpcRuleId = GrpcConstants.GRPC_RULE_ID.get();
         String selectorId = GrpcConstants.GRPC_SELECTOR_ID.get();
         String remoteAddressIp = GrpcConstants.GRPC_REMOTE_ADDRESS.get();
         final GrpcRuleHandle cacheRuleHandle = ApplicationConfigCache.getInstance().getCacheRuleHandle(grpcRuleId);
         List<GrpcUpstream> grpcUpstreams = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(selectorId);
         if (CollectionUtils.isNotEmpty(grpcUpstreams)) {
-            Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(grpcUpstreams), cacheRuleHandle.getLoadBalance(), remoteAddressIp);
+            LoadBalanceData data = new LoadBalanceData();
+            data.setIp(remoteAddressIp);
+            Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(grpcUpstreams), cacheRuleHandle.getLoadBalance(), data);
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
                 return randomPicker.pick(list);
             }
-
-            final List<SubChannelCopy> invokerGrays = list.stream().filter(each -> each.getUrl().equals(upstream.getUrl())).collect(Collectors.toList());
+            final List<SubChannelCopy> invokerGrays = list.stream().filter(each -> each.getUrl().equals(upstream.getUrl())).toList();
             return invokerGrays.stream().findFirst().orElse(null);
         }
         return randomPicker.pick(list);
@@ -72,5 +73,4 @@ public class ShenyuPicker extends AbstractReadyPicker {
                 .timestamp(u.getTimestamp())
                 .build()).collect(Collectors.toList());
     }
-
 }

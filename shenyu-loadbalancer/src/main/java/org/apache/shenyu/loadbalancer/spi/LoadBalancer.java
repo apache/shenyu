@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.SPI;
 
@@ -32,8 +33,8 @@ public interface LoadBalancer {
      * this is select one for upstream list.
      *
      * @param upstreamList upstream list
-     * @param ip ip
+     * @param data data
      * @return upstream
      */
-    Upstream select(List<Upstream> upstreamList, String ip);
+    Upstream select(List<Upstream> upstreamList, LoadBalanceData data);
 }

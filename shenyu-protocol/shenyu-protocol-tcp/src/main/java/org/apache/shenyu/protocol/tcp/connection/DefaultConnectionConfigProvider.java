@@ -20,6 +20,7 @@ package org.apache.shenyu.protocol.tcp.connection;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.protocol.tcp.UpstreamProvider;
@@ -62,7 +63,9 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
         if (CollectionUtils.isEmpty(upstreamList)) {
             throw new ShenyuException("shenyu TcpProxy don't have any upstream");
         }
-        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, ip);
+        LoadBalanceData data = new LoadBalanceData();
+        data.setIp(ip);
+        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, data);
         return cover(upstream);
     }
 

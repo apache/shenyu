@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
@@ -31,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
 
     @Override
-    protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         int length = upstreamList.size();
         long shortestResponse = Long.MAX_VALUE;
         int shortestCount = 0;

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
@@ -169,7 +170,10 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     .collect(Collectors.toList());
         }
         // loadBalancer upstreams
-        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
+        LoadBalanceData data = new LoadBalanceData();
+        data.setHeaders(request.getHeaders());
+        data.setHttpMethod(request.getHttpMethod().name());
+        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, data);
         return replaceUrl(upstream.getUrl(), request.getUrl());
     }
 

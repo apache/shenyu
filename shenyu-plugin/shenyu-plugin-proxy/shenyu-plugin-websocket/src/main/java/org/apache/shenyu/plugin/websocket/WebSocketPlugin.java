@@ -27,7 +27,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -36,6 +35,7 @@ import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,8 +96,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         final WebSocketRuleHandle ruleHandle = buildRuleHandle(rule);
-        final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
+        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream, error:{}", rule);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
