@@ -151,27 +151,4 @@ public class AiProxyConfigService {
         return Optional.empty();
     }
 
-    /**
-     * Extract prompt from request body if it contains fallback config.
-     *
-     * @param requestBody the request body
-     * @return the extracted prompt or original body
-     */
-    public String extractPrompt(final String requestBody) {
-        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
-            return requestBody;
-        }
-        try {
-            JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
-            if (jsonNode.has("prompt")) {
-                return jsonNode.get("prompt").asText();
-            }
-            if (jsonNode.has("content")) {
-                return jsonNode.get("content").asText();
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-        return requestBody;
-    }
 }
