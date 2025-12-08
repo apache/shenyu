@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.List;
-import java.util.Collections;
-import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -44,12 +38,19 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -140,8 +141,7 @@ public class ApacheDubboProxyService {
         }
 
         List<Upstream> upstreams = this.convertUpstreamList(dubboUpstreams);
-        String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        Upstream upstream = LoadBalancerFactory.selector(upstreams, LoadBalanceEnum.RANDOM.getName(), ip);
+        Upstream upstream = LoadbalancerUtils.getForExchange(upstreams, LoadBalanceEnum.RANDOM.getName(), exchange);
         DubboUpstream dubboUpstream = dubboUpstreams.get(0);
         for (DubboUpstream upstreamItem : dubboUpstreams) {
             if (Objects.equals(upstreamItem.getRegistry(), upstream.getUrl())

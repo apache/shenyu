@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ public class ShortestResponseLoadBalancerTest {
         int loop = 10000;
         ShortestResponseLoadBalancer lb = new ShortestResponseLoadBalancer();
         for (int i = 0; i < loop; i++) {
-            Upstream upstream = lb.select(upstreamList, "");
+            Upstream upstream = lb.select(upstreamList, new LoadBalanceData());
             if (upstream.getUrl().equals("upstream-1")) {
                 select1++;
             }
@@ -71,7 +72,7 @@ public class ShortestResponseLoadBalancerTest {
         upstreamList.get(0).getSucceeded().addAndGet(1);
         upstreamList.get(0).getSucceededElapsed().addAndGet(50000);
         for (int i = 0; i < loop; i++) {
-            Upstream upstream = lb.select(upstreamList, "");
+            Upstream upstream = lb.select(upstreamList, new LoadBalanceData());
             if (upstream.getUrl().equals("upstream-1")) {
                 select1++;
             }

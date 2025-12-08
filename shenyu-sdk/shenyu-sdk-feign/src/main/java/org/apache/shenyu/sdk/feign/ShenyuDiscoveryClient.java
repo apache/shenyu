@@ -17,18 +17,13 @@
 
 package org.apache.shenyu.sdk.feign;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.HttpSchemeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
@@ -38,6 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class ShenyuDiscoveryClient {
 
@@ -92,7 +94,7 @@ public class ShenyuDiscoveryClient {
         }
         Upstream upstream = upstreams.get(0);
         if (CollectionUtils.isNotEmpty(upstreams) && upstreams.size() > 1) {
-            upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
+            upstream = LoadBalancerFactory.selector(upstreams, algorithm, new LoadBalanceData());
         }
 
         final URI uri = UriUtils.createUri(upstream.getUrl());
