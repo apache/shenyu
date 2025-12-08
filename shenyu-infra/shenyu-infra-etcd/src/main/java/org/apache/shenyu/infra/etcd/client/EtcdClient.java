@@ -433,79 +433,68 @@ public class EtcdClient {
         if (!keepAliveRunning) {
             return;
         }
-
-        currentObserver = new StreamObserver<>() {
-            @Override
-            public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
-                // Reset retry count on successful keep-alive
-                retryCount.set(0);
-            }
-
-            @Override
-            public void onError(final Throwable throwable) {
-                LOG.error("keep alive error", throwable);
-                currentObserver = null;
-                scheduleRetry();
-            }
-
-            @Override
-            public void onCompleted() {
-                LOG.warn("keep alive stream completed");
-                currentObserver = null;
-                if (keepAliveRunning) {
-                    scheduleRetry();
-                }
-            }
-        };
-
-        try {
-            client.getLeaseClient().keepAlive(globalLeaseId, currentObserver);
-        } catch (Exception e) {
-            LOG.error("Failed to start keep alive", e);
-            currentObserver = null;
-            scheduleRetry();
-        }
+        retryCount.set(0);
+        scheduleRetryInternal(0);
     }
 
     private void scheduleRetry() {
+        int attempt = retryCount.incrementAndGet();
+        scheduleRetryInternal(attempt);
+    }
+
+    private void scheduleRetryInternal(final int attempt) {
         if (!keepAliveRunning) {
             return;
         }
 
-        // Cancel any existing retry task
         if (Objects.nonNull(retryFuture) && !retryFuture.isDone()) {
             retryFuture.cancel(false);
         }
 
-        // Calculate exponential backoff delay
-        int currentRetry = retryCount.getAndIncrement();
-        long delaySeconds = Math.min(INITIAL_RETRY_DELAY_SECONDS * (1L << currentRetry), MAX_RETRY_DELAY_SECONDS);
+        long delaySeconds;
+        if (attempt <= 0) {
+            delaySeconds = 0;
+        } else {
+            long backoffFactor = 1L << Math.min(Math.max(attempt - 1, 0), 6);
+            delaySeconds = Math.min(INITIAL_RETRY_DELAY_SECONDS * backoffFactor, MAX_RETRY_DELAY_SECONDS);
+        }
 
         retryFuture = retryExecutor.schedule(() -> {
-            if (keepAliveRunning) {
-                try {
-                    // Try to renew lease if it might have expired
-                    if (currentRetry > 0 && currentRetry % 10 == 0) {
-                        LOG.info("Attempting to renew lease after {} retries", currentRetry);
-                        try {
-                            globalLeaseId = client.getLeaseClient().grant(ttl).get().getID();
-                            retryCount.set(0);
-                        } catch (InterruptedException | ExecutionException e) {
-                            LOG.warn("Failed to renew lease, will retry keep-alive", e);
-                            if (e instanceof InterruptedException) {
-                                Thread.currentThread().interrupt();
-                            }
-                        }
-                    }
-                    keepAlive();
-                } catch (Exception e) {
-                    LOG.error("Error during keep alive retry", e);
+            if (!keepAliveRunning) {
+                return;
+            }
+
+            currentObserver = new StreamObserver<>() {
+                @Override
+                public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
+                    retryCount.set(0);
+                }
+
+                @Override
+                public void onError(final Throwable throwable) {
+                    LOG.error("keep alive error", throwable);
+                    currentObserver = null;
                     scheduleRetry();
                 }
+
+                @Override
+                public void onCompleted() {
+                    LOG.warn("keep alive stream completed");
+                    currentObserver = null;
+                    scheduleRetry();
+                }
+            };
+
+            try {
+                client.getLeaseClient().keepAlive(globalLeaseId, currentObserver);
+            } catch (Exception e) {
+                LOG.error("Failed to start keep alive", e);
+                currentObserver = null;
+                scheduleRetry();
             }
         }, delaySeconds, TimeUnit.SECONDS);
 
-        LOG.debug("Scheduled keep alive retry in {} seconds (retry count: {})", delaySeconds, currentRetry);
+        LOG.debug("Scheduled keep alive retry in {} seconds (attempt: {})", delaySeconds, attempt);
     }
 
     /**

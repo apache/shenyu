@@ -33,8 +33,10 @@ import org.mockito.MockedStatic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -86,6 +88,45 @@ public class EtcdClientTest {
             Assertions.assertThrows(ShenyuException.class, () -> EtcdClient.builder().client(Client.builder().endpoints("url").build()).ttl(60L).timeout(3000L).build());
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
+        }
+    }
+
+    @Test
+    public void keepAliveRetryTest() throws ExecutionException, InterruptedException {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final Client client = this.mockEtcd(clientMockedStatic);
+            final Lease lease = client.getLeaseClient();
+
+            AtomicInteger keepAliveInvoked = new AtomicInteger(0);
+            CountDownLatch latch = new CountDownLatch(2);
+            CountDownLatch firstCallLatch = new CountDownLatch(1);
+            List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
+
+            doAnswer(invocation -> {
+                keepAliveInvoked.incrementAndGet();
+                latch.countDown();
+                firstCallLatch.countDown();
+                observerList.add(invocation.getArgument(1));
+                return lease;
+            }).when(lease).keepAlive(anyLong(), any());
+
+            EtcdClient etcdClient = EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build();
+
+            // Wait for the initial keepAlive registration to complete
+            Assertions.assertTrue(firstCallLatch.await(1, TimeUnit.SECONDS), "Initial keepAlive should run");
+
+            // Trigger error to schedule retry keep-alive
+            observerList.get(0).onError(new RuntimeException("test-error"));
+
+            boolean retried = latch.await(3, TimeUnit.SECONDS);
+            etcdClient.close();
+
+            Assertions.assertTrue(retried, "keepAlive should retry after onError");
+            Assertions.assertTrue(keepAliveInvoked.get() >= 2, "Expected retry keepAlive invocation");
         }
     }
 
