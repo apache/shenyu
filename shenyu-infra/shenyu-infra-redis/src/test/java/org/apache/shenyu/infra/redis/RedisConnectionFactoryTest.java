@@ -21,8 +21,10 @@ import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.redis.connection.RedisNode;
 
 import java.time.Duration;
+import java.lang.reflect.Method;
 
 import static org.mockito.Mockito.when;
 
@@ -48,5 +50,61 @@ public class RedisConnectionFactoryTest {
         when(redisConfigProperties.getPassword()).thenReturn("password");
         when(redisConfigProperties.getMaxWait()).thenReturn(Duration.ofMillis(-1));
         Assertions.assertDoesNotThrow(() -> new RedisConnectionFactory(redisConfigProperties));
+    }
+
+    @Test
+    public void parseRedisNodeValidInputs() throws Exception {
+        RedisConnectionFactory factory = createFactoryWithDefaultUrl();
+        Method parseMethod = RedisConnectionFactory.class.getDeclaredMethod("parseRedisNode", String.class);
+        parseMethod.setAccessible(true);
+
+        // IPv4 with custom port
+        Assertions.assertAll(
+                () -> {
+                    RedisNode node = (RedisNode) parseMethod.invoke(factory, "localhost:6380");
+                    Assertions.assertEquals("localhost", node.getHost());
+                    Assertions.assertEquals(6380, node.getPort());
+                },
+                () -> {
+                    RedisNode node = (RedisNode) parseMethod.invoke(factory, "[::1]:6381");
+                    Assertions.assertEquals("::1", node.getHost());
+                    Assertions.assertEquals(6381, node.getPort());
+                },
+                () -> {
+                    RedisNode node = (RedisNode) parseMethod.invoke(factory, "[::1]");
+                    Assertions.assertEquals("::1", node.getHost());
+                    Assertions.assertEquals(6379, node.getPort());
+                },
+                () -> {
+                    RedisNode node = (RedisNode) parseMethod.invoke(factory, "redis.internal");
+                    Assertions.assertEquals("redis.internal", node.getHost());
+                    Assertions.assertEquals(6379, node.getPort());
+                }
+        );
+    }
+
+    @Test
+    public void parseRedisNodeInvalidInputs() throws Exception {
+        RedisConnectionFactory factory = createFactoryWithDefaultUrl();
+        Method parseMethod = RedisConnectionFactory.class.getDeclaredMethod("parseRedisNode", String.class);
+        parseMethod.setAccessible(true);
+
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(IllegalArgumentException.class,
+                        () -> parseMethod.invoke(factory, "")),
+                () -> Assertions.assertThrows(IllegalArgumentException.class,
+                        () -> parseMethod.invoke(factory, "[::1]:")),
+                () -> Assertions.assertThrows(IllegalArgumentException.class,
+                        () -> parseMethod.invoke(factory, "localhost:70000")),
+                () -> Assertions.assertThrows(IllegalArgumentException.class,
+                        () -> parseMethod.invoke(factory, "[]:6379"))
+        );
+    }
+
+    private RedisConnectionFactory createFactoryWithDefaultUrl() {
+        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
+        redisConfigProperties.setUrl("localhost:6379");
+        redisConfigProperties.setMode(RedisModeEnum.STANDALONE.getName());
+        return new RedisConnectionFactory(redisConfigProperties);
     }
 }

@@ -110,14 +110,16 @@ public class EtcdClientTest {
                 return lease;
             }).when(lease).keepAlive(anyLong(), any());
 
-            EtcdClient etcdClient = EtcdClient.builder()
+            final EtcdClient etcdClient = EtcdClient.builder()
                     .client(Client.builder().endpoints("url").build())
                     .ttl(60L)
                     .timeout(3000L)
                     .build();
+            Assertions.assertNotNull(etcdClient);
 
             // Wait for the initial keepAlive registration to complete
-            Assertions.assertTrue(firstCallLatch.await(1, TimeUnit.SECONDS), "Initial keepAlive should run");
+            Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
+            Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
 
             // Trigger error to schedule retry keep-alive
             observerList.get(0).onError(new RuntimeException("test-error"));
@@ -127,6 +129,45 @@ public class EtcdClientTest {
 
             Assertions.assertTrue(retried, "keepAlive should retry after onError");
             Assertions.assertTrue(keepAliveInvoked.get() >= 2, "Expected retry keepAlive invocation");
+        }
+    }
+
+    @Test
+    public void keepAliveCompletedRetryTest() throws ExecutionException, InterruptedException {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final Client client = this.mockEtcd(clientMockedStatic);
+            final Lease lease = client.getLeaseClient();
+
+            AtomicInteger keepAliveInvoked = new AtomicInteger(0);
+            CountDownLatch callsLatch = new CountDownLatch(2);
+            CountDownLatch firstCallLatch = new CountDownLatch(1);
+            List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
+
+            doAnswer(invocation -> {
+                keepAliveInvoked.incrementAndGet();
+                callsLatch.countDown();
+                firstCallLatch.countDown();
+                observerList.add(invocation.getArgument(1));
+                return lease;
+            }).when(lease).keepAlive(anyLong(), any());
+
+            final EtcdClient etcdClient = EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build();
+            Assertions.assertNotNull(etcdClient);
+
+            Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
+            Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
+
+            observerList.get(0).onCompleted();
+
+            boolean retried = callsLatch.await(3, TimeUnit.SECONDS);
+            etcdClient.close();
+
+            Assertions.assertTrue(retried, "keepAlive should retry after onCompleted");
+            Assertions.assertTrue(keepAliveInvoked.get() >= 2, "Expected keepAlive invocation after completion");
         }
     }
 
