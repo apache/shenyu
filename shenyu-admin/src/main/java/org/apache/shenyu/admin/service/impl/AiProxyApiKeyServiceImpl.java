@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
@@ -27,30 +30,27 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
-import org.apache.shenyu.admin.transfer.ProxyApiKeyTransfer;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.apache.shenyu.admin.transfer.ProxyApiKeyTransfer;
+import org.apache.shenyu.admin.utils.NamespaceUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.shenyu.common.constant.Constants;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 
 /** Implementation of AiProxyApiKeyService. */
 @Service
@@ -93,7 +93,8 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         }
         entity.setSelectorId(selectorId);
         // unique check for proxyApiKey if provided
-        if (StringUtils.isNotBlank(entity.getProxyApiKey()) && Boolean.TRUE.equals(mapper.proxyApiKeyExisted(selectorId, entity.getProxyApiKey()))) {
+        if (StringUtils.isNotBlank(entity.getProxyApiKey())
+                && Boolean.TRUE.equals(mapper.proxyApiKeyExisted(selectorId, entity.getProxyApiKey()))) {
             throw new ShenyuException(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
         }
         if (Objects.isNull(entity.getEnabled())) {
@@ -129,6 +130,28 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
             vo.setRealApiKey(real);
         }
         return vo;
+    }
+
+    @Override
+    public List<ProxyApiKeyVO> findByIds(final List<String> ids) {
+        List<ProxyApiKeyVO> voList = mapper.selectByIds(ids).stream()
+                .map(ProxyApiKeyTransfer.INSTANCE::mapToVO)
+                .collect(Collectors.toList());
+        // Populate realApiKey for each VO using batch resolver
+        List<String> selectorIds = voList.stream()
+                .map(ProxyApiKeyVO::getSelectorId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (!selectorIds.isEmpty()) {
+            // resolveRealKeys returns Map<String, String> mapping selectorId to realApiKey
+            java.util.Map<String, String> realKeyMap = realKeyResolver.resolveRealKeys(selectorIds);
+            for (ProxyApiKeyVO vo : voList) {
+                if (Objects.nonNull(vo.getSelectorId())) {
+                    vo.setRealApiKey(realKeyMap.get(vo.getSelectorId()));
+                }
+            }
+        }
+        return voList;
     }
 
     @Override
@@ -168,6 +191,16 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         final int size = query.getPageParameter().getPageSize();
         PageHelper.startPage(current, size);
         final List<ProxyApiKeyVO> list = mapper.selectByCondition(query);
+
+        if (CollectionUtils.isNotEmpty(list)) {
+            java.util.Set<String> selectorIds = list.stream().map(ProxyApiKeyVO::getSelectorId)
+                    .collect(Collectors.toSet());
+            java.util.Map<String, String> realKeys = realKeyResolver.resolveRealKeys(selectorIds);
+            for (ProxyApiKeyVO vo : list) {
+                vo.setRealApiKey(realKeys.get(vo.getSelectorId()));
+            }
+        }
+
         final PageInfo<ProxyApiKeyVO> pageInfo = new PageInfo<>(list);
         return new CommonPager<>(new PageParameter(current, size, (int) pageInfo.getTotal()), list);
     }
@@ -181,7 +214,16 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public List<ProxyApiKeyData> listAll() {
-        List<ProxyApiKeyData> list = mapper.selectAll().stream().map(this::convert).collect(Collectors.toList());
+        List<ProxyApiKeyDO> all = mapper.selectAll();
+        if (CollectionUtils.isEmpty(all)) {
+            return java.util.Collections.emptyList();
+        }
+        java.util.Set<String> selectorIds = all.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet());
+        java.util.Map<String, String> realKeys = realKeyResolver.resolveRealKeys(selectorIds);
+
+        List<ProxyApiKeyData> list = all.stream()
+                .map(e -> convert(e, realKeys.get(e.getSelectorId())))
+                .collect(Collectors.toList());
         LOG.info("[AiProxySync] listAll size:{}", list.size());
         return list;
     }
@@ -194,26 +236,31 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
             return;
         }
         LOG.info("[AiProxySync] syncData triggered, total records:{}", all.size());
+
+        java.util.Set<String> selectorIds = all.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet());
+        java.util.Map<String, String> realKeys = realKeyResolver.resolveRealKeys(selectorIds);
+
         all.stream()
                 .collect(Collectors.groupingBy(ProxyApiKeyDO::getNamespaceId))
                 .values()
-                .forEach(list -> publishRefresh(list));
+                .forEach(list -> publishRefresh(list, realKeys));
     }
 
     @Override
     public void syncDataByNamespaceId(final String namespaceId) {
-        final String target = normalizeNamespace(namespaceId);
+        final String target = NamespaceUtils.normalizeNamespace(namespaceId);
         List<ProxyApiKeyDO> all = mapper.selectAll();
         List<ProxyApiKeyDO> list = Objects.isNull(all) ? java.util.Collections.emptyList()
                 : all.stream()
-                .filter(e -> StringUtils.equals(normalizeNamespace(e.getNamespaceId()), target))
-                .collect(Collectors.toList());
+                        .filter(e -> StringUtils.equals(NamespaceUtils.normalizeNamespace(e.getNamespaceId()), target))
+                        .collect(Collectors.toList());
         LOG.info("[AiProxySync] syncDataByNamespaceId {}, normalized:{}, matched:{} of total:{}",
                 namespaceId, target, list.size(), Objects.isNull(all) ? 0 : all.size());
         if (list.isEmpty()) {
             return;
         }
-        publishRefresh(list);
+        publishRefresh(list, realKeyResolver
+                .resolveRealKeys(list.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet())));
     }
 
     // private utils
@@ -224,13 +271,14 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         }
         final ProxyApiKeyData data = convert(entity);
         eventPublisher.publishEvent(new DataChangedEvent(
-                        ConfigGroupEnum.AI_PROXY_API_KEY,
-                        type,
-                        java.util.Collections.singletonList(data)));
+                ConfigGroupEnum.AI_PROXY_API_KEY,
+                type,
+                java.util.Collections.singletonList(data)));
         final String ns = data.getNamespaceId();
         LOG.info("[AiProxySync] publish {}, size=1, namespaceId={}", type, ns);
         if (LOG.isDebugEnabled()) {
-            String masked = Objects.isNull(entity.getProxyApiKey()) ? null : entity.getProxyApiKey().substring(0, Math.min(6, entity.getProxyApiKey().length()));
+            String masked = Objects.isNull(entity.getProxyApiKey()) ? null
+                    : entity.getProxyApiKey().substring(0, Math.min(6, entity.getProxyApiKey().length()));
             LOG.debug("[AiProxySync] published {}, proxyKeyMask={}..., ns={}", type, masked, ns);
         }
     }
@@ -243,7 +291,8 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         final List<ProxyApiKeyData> dataList = entities.stream().map(this::convert).collect(Collectors.toList());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.AI_PROXY_API_KEY, type, dataList));
         // summarize namespaces for info log
-        final java.util.Set<String> nsSet = dataList.stream().map(ProxyApiKeyData::getNamespaceId).filter(Objects::nonNull).collect(Collectors.toSet());
+        final java.util.Set<String> nsSet = dataList.stream().map(ProxyApiKeyData::getNamespaceId)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
         final String nsSummary = nsSet.isEmpty() ? "unknown" : (nsSet.size() == 1 ? nsSet.iterator().next() : "multi");
         LOG.info("[AiProxySync] publish {}, size={}, namespace={} ", type, dataList.size(), nsSummary);
         if (LOG.isDebugEnabled()) {
@@ -254,8 +303,10 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         }
     }
 
-    private void publishRefresh(final List<ProxyApiKeyDO> entities) {
-        List<ProxyApiKeyData> dataList = entities.stream().map(this::convert).collect(Collectors.toList());
+    private void publishRefresh(final List<ProxyApiKeyDO> entities, final java.util.Map<String, String> realKeys) {
+        List<ProxyApiKeyData> dataList = entities.stream()
+                .map(e -> convert(e, realKeys.get(e.getSelectorId())))
+                .collect(Collectors.toList());
         eventPublisher.publishEvent(new DataChangedEvent(
                 ConfigGroupEnum.AI_PROXY_API_KEY,
                 DataEventTypeEnum.REFRESH,
@@ -263,12 +314,21 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     }
 
     private ProxyApiKeyData convert(final ProxyApiKeyDO entity) {
-        final String normalizedNs = normalizeNamespace(entity.getNamespaceId());
+        final String normalizedNs = NamespaceUtils.normalizeNamespace(entity.getNamespaceId());
         if (!StringUtils.equals(entity.getNamespaceId(), normalizedNs)) {
             LOG.info("[AiProxySync] normalize namespace from {} to {} for proxyKey={}",
                     entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
         }
         final String resolvedRealKey = realKeyResolver.resolveRealKey(entity.getSelectorId()).orElse(null);
+        return convert(entity, resolvedRealKey);
+    }
+
+    private ProxyApiKeyData convert(final ProxyApiKeyDO entity, final String resolvedRealKey) {
+        final String normalizedNs = NamespaceUtils.normalizeNamespace(entity.getNamespaceId());
+        if (!StringUtils.equals(entity.getNamespaceId(), normalizedNs)) {
+            LOG.info("[AiProxySync] normalize namespace from {} to {} for proxyKey={}",
+                    entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
+        }
         return ProxyApiKeyData.builder()
                 .proxyApiKey(entity.getProxyApiKey())
                 .realApiKey(resolvedRealKey)
@@ -277,12 +337,5 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                 .namespaceId(normalizedNs)
                 .selectorId(entity.getSelectorId())
                 .build();
-    }
-
-    private String normalizeNamespace(final String namespaceId) {
-        if (StringUtils.isBlank(namespaceId) || StringUtils.equalsIgnoreCase(namespaceId, "default")) {
-            return Constants.SYS_DEFAULT_NAMESPACE_ID;
-        }
-        return namespaceId;
     }
 }
