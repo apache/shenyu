@@ -146,53 +146,77 @@ public class AiProxyConfigServiceTest {
     }
 
     @Test
-    void testExtractPromptNullOrEmpty() {
-        assertEquals("", configService.extractPrompt(""));
-        assertNull(configService.extractPrompt(null));
+    void testExtractPromptNullInput() {
+        String result = configService.extractPrompt(null);
+        assertEquals(null, result);
     }
 
     @Test
-    void testExtractPromptWithFallbackAndPrompt() {
-        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}, \"prompt\": \"hello\"}";
-
-        String result = configService.extractPrompt(requestBody);
-
-        assertEquals("hello", result);
+    void testExtractPromptEmptyInput() {
+        String result = configService.extractPrompt("");
+        assertEquals("", result);
     }
 
     @Test
-    void testExtractPromptWithFallbackAndContent() {
-        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}, \"content\": \"hi\"}";
-
+    void testExtractPromptWithPromptField() {
+        String requestBody = "{\"prompt\": \"test prompt content\"}";
         String result = configService.extractPrompt(requestBody);
-
-        assertEquals("hi", result);
+        assertEquals("test prompt content", result);
     }
 
     @Test
-    void testExtractPromptWithFallbackButNoPromptOrContent() {
-        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}}";
-
+    void testExtractPromptWithContentField() {
+        String requestBody = "{\"content\": \"test content\"}";
         String result = configService.extractPrompt(requestBody);
+        assertEquals("test content", result);
+    }
 
+    @Test
+    void testExtractPromptPromptTakesPrecedenceOverContent() {
+        String requestBody = "{\"prompt\": \"prompt value\", \"content\": \"content value\"}";
+        String result = configService.extractPrompt(requestBody);
+        assertEquals("prompt value", result);
+    }
+
+    @Test
+    void testExtractPromptWithFallbackConfigAndPrompt() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test-model\"}, \"prompt\": \"test prompt\"}";
+        String result = configService.extractPrompt(requestBody);
+        assertEquals("test prompt", result);
+    }
+
+    @Test
+    void testExtractPromptWithFallbackConfigAndContent() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test-model\"}, \"content\": \"test content\"}";
+        String result = configService.extractPrompt(requestBody);
+        assertEquals("test content", result);
+    }
+
+    @Test
+    void testExtractPromptWithFallbackConfigButNoPromptOrContent() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test-model\"}, \"messages\": [{\"role\": \"user\"}]}";
+        String result = configService.extractPrompt(requestBody);
         assertEquals(requestBody, result);
     }
 
     @Test
-    void testExtractPromptWithoutFallbackConfig() {
-        String requestBody = "{\"prompt\": \"hello\"}";
-
+    void testExtractPromptWithoutPromptOrContent() {
+        String requestBody = "{\"messages\": [{\"role\": \"user\", \"content\": \"hello\"}]}";
         String result = configService.extractPrompt(requestBody);
-
         assertEquals(requestBody, result);
     }
 
     @Test
     void testExtractPromptMalformedJson() {
-        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"";
-
+        String requestBody = "{\"prompt\": \"test\"";
         String result = configService.extractPrompt(requestBody);
+        assertEquals(requestBody, result);
+    }
 
+    @Test
+    void testExtractPromptEmptyJson() {
+        String requestBody = "{}";
+        String result = configService.extractPrompt(requestBody);
         assertEquals(requestBody, result);
     }
 }
