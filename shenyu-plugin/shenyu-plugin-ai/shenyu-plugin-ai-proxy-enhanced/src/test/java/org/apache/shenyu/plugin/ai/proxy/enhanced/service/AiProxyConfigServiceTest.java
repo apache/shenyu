@@ -29,6 +29,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -142,5 +143,56 @@ public class AiProxyConfigServiceTest {
         Optional<AiCommonConfig> result = configService.resolveAdminFallbackConfig(primaryConfig, handle);
 
         assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testExtractPromptNullOrEmpty() {
+        assertEquals("", configService.extractPrompt(""));
+        assertNull(configService.extractPrompt(null));
+    }
+
+    @Test
+    void testExtractPromptWithFallbackAndPrompt() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}, \"prompt\": \"hello\"}";
+
+        String result = configService.extractPrompt(requestBody);
+
+        assertEquals("hello", result);
+    }
+
+    @Test
+    void testExtractPromptWithFallbackAndContent() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}, \"content\": \"hi\"}";
+
+        String result = configService.extractPrompt(requestBody);
+
+        assertEquals("hi", result);
+    }
+
+    @Test
+    void testExtractPromptWithFallbackButNoPromptOrContent() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"}}";
+
+        String result = configService.extractPrompt(requestBody);
+
+        assertEquals(requestBody, result);
+    }
+
+    @Test
+    void testExtractPromptWithoutFallbackConfig() {
+        String requestBody = "{\"prompt\": \"hello\"}";
+
+        String result = configService.extractPrompt(requestBody);
+
+        assertEquals(requestBody, result);
+    }
+
+    @Test
+    void testExtractPromptMalformedJson() {
+        String requestBody = "{\"fallbackConfig\": {\"model\": \"test\"";
+
+        String result = configService.extractPrompt(requestBody);
+
+        assertEquals(requestBody, result);
     }
 }

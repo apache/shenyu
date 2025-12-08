@@ -102,6 +102,32 @@ public class AiProxyConfigService {
                 });
     }
 
+    /**
+     * Extract prompt from request body when fallback config is present.
+     *
+     * @param requestBody the request body
+     * @return prompt or content value, otherwise original request body
+     */
+    public String extractPrompt(final String requestBody) {
+        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
+            return requestBody;
+        }
+        try {
+            JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
+            if (jsonNode.has(FALLBACK_CONFIG)) {
+                if (jsonNode.has("prompt")) {
+                    return jsonNode.get("prompt").asText();
+                }
+                if (jsonNode.has("content")) {
+                    return jsonNode.get("content").asText();
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return requestBody;
+    }
+
     private Optional<AiCommonConfig> extractDynamicFallbackConfig(final String requestBody) {
         if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
             return Optional.empty();
