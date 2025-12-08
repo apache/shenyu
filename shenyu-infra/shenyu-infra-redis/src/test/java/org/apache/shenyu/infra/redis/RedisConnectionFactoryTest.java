@@ -25,6 +25,7 @@ import org.springframework.data.redis.connection.RedisNode;
 
 import java.time.Duration;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 import static org.mockito.Mockito.when;
 
@@ -90,14 +91,10 @@ public class RedisConnectionFactoryTest {
         parseMethod.setAccessible(true);
 
         Assertions.assertAll(
-                () -> Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> parseMethod.invoke(factory, "")),
-                () -> Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> parseMethod.invoke(factory, "[::1]:")),
-                () -> Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> parseMethod.invoke(factory, "localhost:70000")),
-                () -> Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> parseMethod.invoke(factory, "[]:6379"))
+                () -> assertInvalidNode(parseMethod, factory, ""),
+                () -> assertInvalidNode(parseMethod, factory, "[::1]:"),
+                () -> assertInvalidNode(parseMethod, factory, "localhost:70000"),
+                () -> assertInvalidNode(parseMethod, factory, "[]:6379")
         );
     }
 
@@ -106,5 +103,19 @@ public class RedisConnectionFactoryTest {
         redisConfigProperties.setUrl("localhost:6379");
         redisConfigProperties.setMode(RedisModeEnum.STANDALONE.getName());
         return new RedisConnectionFactory(redisConfigProperties);
+    }
+
+    private void assertInvalidNode(final Method parseMethod, final RedisConnectionFactory factory, final String url) {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            try {
+                parseMethod.invoke(factory, url);
+            } catch (InvocationTargetException e) {
+                // unwrap to the original IllegalArgumentException
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                }
+                throw new RuntimeException(e.getCause());
+            }
+        });
     }
 }
