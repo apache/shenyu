@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.spi.Join;
 
 /**
  * least active algorithm impl.
@@ -36,7 +37,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
     private final Map<String, Long> countMap = new ConcurrentHashMap<>();
 
     @Override
-    protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         Map<String, Upstream> domainMap = upstreamList.stream()
                 .collect(Collectors.toConcurrentMap(Upstream::buildDomain, upstream -> upstream));
 
@@ -51,7 +52,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
                 .map(Map.Entry::getKey)
                 .orElse(upstreamList.get(0).buildDomain());
 
-        countMap.computeIfPresent(domain, (key, actived) -> Optional.of(actived).orElse(Long.MIN_VALUE) + 1);
+        countMap.computeIfPresent(domain, (key, activated) -> Optional.of(activated).orElse(Long.MIN_VALUE) + 1);
         return domainMap.get(domain);
     }
     

@@ -26,10 +26,12 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -155,7 +157,7 @@ public final class UpstreamCacheManager {
         }
 
         // Use a Set for O(1) lookups instead of nested loops
-        java.util.Set<Upstream> existUpstreamSet = new java.util.HashSet<>(existUpstreamList);
+        Set<Upstream> existUpstreamSet = new HashSet<>(existUpstreamList);
         offlineUpstreamList.forEach(offlineUp -> {
             if (existUpstreamSet.contains(offlineUp)) {
                 task.triggerRemoveOne(selectorId, offlineUp);
