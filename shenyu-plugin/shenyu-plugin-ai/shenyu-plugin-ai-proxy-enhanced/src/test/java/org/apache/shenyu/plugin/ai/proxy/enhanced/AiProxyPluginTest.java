@@ -155,7 +155,8 @@ public class AiProxyPluginTest {
         when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
         when(configService.resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY)).thenReturn(fallbackConfig);
         when(configService.resolveAdminFallbackConfig(primaryConfig, handle)).thenReturn(fallbackConfig);
-        when(executorService.execute(any(), any(), anyString())).thenReturn(Mono.just(chatResponse));
+        when(configService.extractPrompt(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(executorService.execute(any(), any(), any())).thenReturn(Mono.just(chatResponse));
     }
 
     @Test
@@ -172,7 +173,7 @@ public class AiProxyPluginTest {
         verify(configService).resolvePrimaryConfig(handle);
         verify(configService).resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY);
         verify(configService).resolveAdminFallbackConfig(primaryConfig, handle);
-        verify(executorService).execute(any(), any(), anyString());
+        verify(executorService).execute(any(), any(), any());
     }
 
     @Test
@@ -189,7 +190,7 @@ public class AiProxyPluginTest {
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
                 .verifyComplete();
 
-        verify(executorService).execute(any(ChatClient.class), any(Optional.class), anyString());
+        verify(executorService).execute(any(ChatClient.class), any(Optional.class), any());
     }
 
     @Test
@@ -261,7 +262,7 @@ public class AiProxyPluginTest {
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
                 .verifyComplete();
 
-        verify(executorService).execute(any(ChatClient.class), any(Optional.class), anyString());
+        verify(executorService).execute(any(ChatClient.class), any(Optional.class), any());
     }
 
     @Test
@@ -280,7 +281,8 @@ public class AiProxyPluginTest {
         when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
         when(configService.resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY)).thenReturn(Optional.empty());
         when(configService.resolveAdminFallbackConfig(primaryConfig, handle)).thenReturn(Optional.of(fallbackConfig));
-        when(executorService.execute(any(), any(), anyString())).thenReturn(Mono.just(chatResponse));
+        when(configService.extractPrompt(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(executorService.execute(any(), any(), any())).thenReturn(Mono.just(chatResponse));
 
         // Execute the test - focus on successful execution rather than cache verification
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
@@ -289,7 +291,7 @@ public class AiProxyPluginTest {
         // Verify that the configuration methods were called correctly
         verify(configService).resolvePrimaryConfig(handle);
         verify(configService).resolveAdminFallbackConfig(primaryConfig, handle);
-        verify(executorService).execute(any(), any(), anyString());
+        verify(executorService).execute(any(), any(), any());
     }
 
     @Test
@@ -305,12 +307,13 @@ public class AiProxyPluginTest {
         when(configService.resolvePrimaryConfig(handle)).thenReturn(primaryConfig);
         when(configService.resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY)).thenReturn(Optional.empty());
         when(configService.resolveAdminFallbackConfig(primaryConfig, handle)).thenReturn(Optional.empty());
+        when(configService.extractPrompt(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         
         // Mock registry to return null factory for invalid provider - this should cause IllegalArgumentException
         when(registry.getFactory(any())).thenReturn(null);
         
         // Mock executorService to return a proper Mono to avoid NullPointerException
-        when(executorService.execute(any(), any(), anyString())).thenReturn(Mono.error(new IllegalArgumentException("AI model factory not found")));
+        when(executorService.execute(any(), any(), any())).thenReturn(Mono.error(new IllegalArgumentException("AI model factory not found")));
 
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
                 .expectError(IllegalArgumentException.class)
@@ -325,7 +328,7 @@ public class AiProxyPluginTest {
         final RuntimeException exception = new RuntimeException("AI execution failed");
         setupSuccessMocks(handle, primaryConfig, Optional.empty());
 
-        when(executorService.execute(any(), any(), anyString())).thenReturn(Mono.error(exception));
+        when(executorService.execute(any(), any(), any())).thenReturn(Mono.error(exception));
 
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
                 .expectErrorMatches(exception::equals)
@@ -334,6 +337,6 @@ public class AiProxyPluginTest {
         verify(configService).resolvePrimaryConfig(handle);
         verify(configService).resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY);
         verify(configService).resolveAdminFallbackConfig(primaryConfig, handle);
-        verify(executorService).execute(any(), any(), anyString());
+        verify(executorService).execute(any(), any(), any());
     }
 }
