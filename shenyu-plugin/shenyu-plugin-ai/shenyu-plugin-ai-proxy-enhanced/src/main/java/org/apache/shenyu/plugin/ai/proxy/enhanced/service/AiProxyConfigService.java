@@ -117,16 +117,14 @@ public class AiProxyConfigService {
         }
         try {
             JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
-            if (jsonNode.has(FALLBACK_CONFIG)) {
-                if (jsonNode.has("prompt")) {
-                    return jsonNode.get("prompt").asText();
-                }
-                if (jsonNode.has("content")) {
-                    return jsonNode.get("content").asText();
-                }
+            if (jsonNode.has("prompt")) {
+                return jsonNode.get("prompt").asText();
+            }
+            if (jsonNode.has("content")) {
+                return jsonNode.get("content").asText();
             }
         } catch (Exception e) {
-            // ignore
+            // ignore parsing errors and fall back to original body
         }
         return requestBody;
     }
