@@ -119,7 +119,7 @@ public class EtcdClientTest {
 
             // Wait for the initial keepAlive registration to complete
             Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
-            Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
+            awaitObserverRegistered(observerList);
 
             // Trigger error to schedule retry keep-alive
             observerList.get(0).onError(new RuntimeException("test-error"));
@@ -159,7 +159,7 @@ public class EtcdClientTest {
             Assertions.assertNotNull(etcdClient);
 
             Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
-            Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
+            awaitObserverRegistered(observerList);
 
             observerList.get(0).onCompleted();
 
@@ -216,6 +216,14 @@ public class EtcdClientTest {
         when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
         when(completableFuture.get()).thenReturn(leaseGrantResponse);
         return client;
+    }
+
+    private void awaitObserverRegistered(final List<StreamObserver<LeaseKeepAliveResponse>> observerList)
+            throws InterruptedException {
+        for (int i = 0; i < 20 && observerList.isEmpty(); i++) {
+            Thread.sleep(50);
+        }
+        Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
     }
 
 }
