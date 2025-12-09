@@ -33,8 +33,10 @@ import org.mockito.MockedStatic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -63,28 +65,119 @@ public class EtcdClientTest {
             when(client.getLeaseClient()).thenReturn(lease);
             final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
             final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+            when(leaseGrantResponse.getID()).thenReturn(1L);
 
             when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
             when(completableFuture.get()).thenReturn(leaseGrantResponse);
-            Assertions.assertDoesNotThrow(() -> EtcdClient.builder().client(Client.builder().endpoints("url").build())).ttl(60L).timeout(3000L).build();
-
             List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
             doAnswer(invocation -> {
                 observerList.add(invocation.getArgument(1));
                 return lease;
             }).when(lease).keepAlive(anyLong(), any());
-            Assertions.assertDoesNotThrow(() -> EtcdClient.builder().client(Client.builder().endpoints("url").build())).ttl(60L).timeout(3000L).build();
+
+            final EtcdClient etcdClient = Assertions.assertDoesNotThrow(() -> EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build());
+            Assertions.assertNotNull(etcdClient);
+
             final LeaseKeepAliveResponse leaseKeepAliveResponse = mock(LeaseKeepAliveResponse.class);
             observerList.forEach(streamObserver -> {
                 streamObserver.onCompleted();
                 streamObserver.onError(new ShenyuException("test"));
                 streamObserver.onNext(leaseKeepAliveResponse);
             });
+            etcdClient.close();
 
             doThrow(new InterruptedException("error")).when(completableFuture).get();
-            Assertions.assertDoesNotThrow(() -> EtcdClient.builder().client(Client.builder().endpoints("url").build())).ttl(60L).timeout(3000L).build();
+            Assertions.assertThrows(ShenyuException.class, () -> EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build());
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
+        }
+    }
+
+    @Test
+    public void keepAliveRetryTest() throws ExecutionException, InterruptedException {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final Client client = this.mockEtcd(clientMockedStatic);
+            final Lease lease = client.getLeaseClient();
+
+            AtomicInteger keepAliveInvoked = new AtomicInteger(0);
+            CountDownLatch latch = new CountDownLatch(2);
+            CountDownLatch firstCallLatch = new CountDownLatch(1);
+            List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
+
+            doAnswer(invocation -> {
+                keepAliveInvoked.incrementAndGet();
+                latch.countDown();
+                firstCallLatch.countDown();
+                observerList.add(invocation.getArgument(1));
+                return lease;
+            }).when(lease).keepAlive(anyLong(), any());
+
+            final EtcdClient etcdClient = EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build();
+            Assertions.assertNotNull(etcdClient);
+
+            // Wait for the initial keepAlive registration to complete
+            Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
+            awaitObserverRegistered(observerList);
+
+            // Trigger error to schedule retry keep-alive
+            observerList.get(0).onError(new RuntimeException("test-error"));
+
+            boolean retried = latch.await(3, TimeUnit.SECONDS);
+            etcdClient.close();
+
+            Assertions.assertTrue(retried, "keepAlive should retry after onError");
+            Assertions.assertTrue(keepAliveInvoked.get() >= 2, "Expected retry keepAlive invocation");
+        }
+    }
+
+    @Test
+    public void keepAliveCompletedRetryTest() throws ExecutionException, InterruptedException {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final Client client = this.mockEtcd(clientMockedStatic);
+            final Lease lease = client.getLeaseClient();
+
+            AtomicInteger keepAliveInvoked = new AtomicInteger(0);
+            CountDownLatch callsLatch = new CountDownLatch(2);
+            CountDownLatch firstCallLatch = new CountDownLatch(1);
+            List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
+
+            doAnswer(invocation -> {
+                keepAliveInvoked.incrementAndGet();
+                callsLatch.countDown();
+                firstCallLatch.countDown();
+                observerList.add(invocation.getArgument(1));
+                return lease;
+            }).when(lease).keepAlive(anyLong(), any());
+
+            final EtcdClient etcdClient = EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build();
+            Assertions.assertNotNull(etcdClient);
+
+            Assertions.assertTrue(firstCallLatch.await(2, TimeUnit.SECONDS), "Initial keepAlive should run");
+            awaitObserverRegistered(observerList);
+
+            observerList.get(0).onCompleted();
+
+            boolean retried = callsLatch.await(3, TimeUnit.SECONDS);
+            etcdClient.close();
+
+            Assertions.assertTrue(retried, "keepAlive should retry after onCompleted");
+            Assertions.assertTrue(keepAliveInvoked.get() >= 2, "Expected keepAlive invocation after completion");
         }
     }
 
@@ -113,7 +206,7 @@ public class EtcdClientTest {
             etcdClient.putEphemeral("key", "value");
 
             doThrow(new InterruptedException("error")).when(completableFuture).get(anyLong(), any(TimeUnit.class));
-            etcdClient.putEphemeral("key", "value");
+            Assertions.assertThrows(ShenyuException.class, () -> etcdClient.putEphemeral("key", "value"));
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
@@ -129,9 +222,18 @@ public class EtcdClientTest {
         when(client.getLeaseClient()).thenReturn(lease);
         final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
         final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+        when(leaseGrantResponse.getID()).thenReturn(1L);
         when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
         when(completableFuture.get()).thenReturn(leaseGrantResponse);
         return client;
+    }
+
+    private void awaitObserverRegistered(final List<StreamObserver<LeaseKeepAliveResponse>> observerList)
+            throws InterruptedException {
+        for (int i = 0; i < 20 && observerList.isEmpty(); i++) {
+            Thread.sleep(50);
+        }
+        Assertions.assertFalse(observerList.isEmpty(), "Observer should be registered");
     }
 
 }
