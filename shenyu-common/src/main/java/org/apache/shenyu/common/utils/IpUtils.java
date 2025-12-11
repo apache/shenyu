@@ -370,7 +370,7 @@ public final class IpUtils {
      * @return the name postfix
      */
     private static Integer getNamePostfix(final String name) {
-        LOG.info("getNamePostfix name: {}", name);
+        LOG.debug("getNamePostfix name: {}", name);
         Matcher matcher = NET_CARD_PATTERN.matcher(name);
         if (matcher.find()) {
             String numberStr = matcher.group();
