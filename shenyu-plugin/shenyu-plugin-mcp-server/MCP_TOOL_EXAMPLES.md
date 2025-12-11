@@ -287,7 +287,7 @@
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/header\",\"method\":\"GET\",\"headers\":[{\"key\":\"header_key1\",\"value\":\"{{.headerKey1}}\"}],\"timeout\":30000},\"argsPosition\":{\"headerKey1\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/header\",\"method\":\"GET\",\"headers\":[{\"key\":\"header_key1\",\"value\":\"{{.headerKey1}}\"}],\"timeout\":30000},\"argsPosition\":{\"headerKey1\":\"header\"}}",
   "description": "请求头测试"
 }
 ```
@@ -321,7 +321,7 @@
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/cookie\",\"method\":\"GET\",\"headers\":[{\"key\":\"Cookie\",\"value\":\"userId={{.userId}}\"}],\"timeout\":30000},\"argsPosition\":{\"userId\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/cookie\",\"method\":\"GET\",\"headers\":[{\"key\":\"Cookie\",\"value\":\"userId={{.userId}}\"}],\"timeout\":30000},\"argsPosition\":{\"userId\":\"header\"}}",
   "description": "Cookie 测试"
 }
 ```
@@ -376,7 +376,7 @@
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/order/oauth2/test\",\"method\":\"GET\",\"headers\":[{\"key\":\"Authorization\",\"value\":\"Bearer {{.token}}\"}],\"timeout\":30000},\"argsPosition\":{\"token\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/order/oauth2/test\",\"method\":\"GET\",\"headers\":[{\"key\":\"Authorization\",\"value\":\"Bearer {{.token}}\"}],\"timeout\":30000},\"argsPosition\":{\"token\":\"header\"}}",
   "description": "OAuth2 认证测试"
 }
 ```
@@ -470,7 +470,7 @@
 4. **请求头**: 使用 `key` 和 `value` 字段配置
 5. **查询参数**: 使用 `queryParams` 数组配置，值使用 `${paramName}` 格式
 6. **路径参数**: 在 URL 中使用 `{{.paramName}}` 格式
-7. **参数映射**: 通过 `argsPosition` 指定参数位置：`path`、`query`、`body`
+7. **参数映射**: 通过 `argsPosition` 指定参数位置：`path`、`query`、`body`、`header`
 
 ## 最佳实践
 

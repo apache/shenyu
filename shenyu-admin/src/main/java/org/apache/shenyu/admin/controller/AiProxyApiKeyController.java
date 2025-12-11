@@ -57,7 +57,8 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
 
     private final SelectorMapper selectorMapper;
 
-    public AiProxyApiKeyController(final AiProxyApiKeyService aiProxyApiKeyService, final SelectorMapper selectorMapper) {
+    public AiProxyApiKeyController(final AiProxyApiKeyService aiProxyApiKeyService,
+            final SelectorMapper selectorMapper) {
         this.aiProxyApiKeyService = aiProxyApiKeyService;
         this.selectorMapper = selectorMapper;
     }
@@ -66,13 +67,13 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
      * Create or bind real->proxy api key mapping.
      *
      * @param selectorId selector id
-     * @param dto dto
+     * @param dto        dto
      * @return result
      */
     @PostMapping
     @RequiresPermissions("system:aiProxyApiKey:add")
     public ShenyuAdminResult create(@PathVariable("selectorId") final String selectorId,
-                                    @Valid @RequestBody final ProxyApiKeyDTO dto) {
+            @Valid @RequestBody final ProxyApiKeyDTO dto) {
         // derive namespaceId from selector to avoid mismatch
         final SelectorDO selector = selectorMapper.selectById(selectorId);
         if (Objects.nonNull(selector)) {
@@ -89,10 +90,10 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     /**
      * List mappings by page.
      *
-     * @param selectorId selector id
+     * @param selectorId  selector id
      * @param namespaceId namespace id
      * @param currentPage current page
-     * @param pageSize page size
+     * @param pageSize    page size
      * @param proxyApiKey optional filter
      * @return list pager
      */
@@ -123,8 +124,8 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
      * Update mapping description or enabled flag.
      *
      * @param selectorId selector id
-     * @param id id
-     * @param dto dto
+     * @param id         id
+     * @param dto        dto
      * @return result
      */
     @PutMapping("/{id}")
@@ -150,20 +151,20 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
      * Batch delete.
      *
      * @param selectorId selector id
-     * @param request ids container
+     * @param request    ids container
      * @return result
      */
     @PostMapping("/batchDelete")
     @RequiresPermissions("system:aiProxyApiKey:delete")
     public ShenyuAdminResult batchDelete(@PathVariable("selectorId") final String selectorId,
-                                         @Valid @RequestBody final BatchIdsDTO request) {
+            @Valid @RequestBody final BatchIdsDTO request) {
         final List<String> allIds = request.getIds();
         final List<String> validIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(allIds)) {
-            for (String id : allIds) {
-                final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
+            List<ProxyApiKeyVO> exists = aiProxyApiKeyService.findByIds(allIds);
+            for (ProxyApiKeyVO exist : exists) {
                 if (Objects.nonNull(exist) && selectorId.equals(exist.getSelectorId())) {
-                    validIds.add(id);
+                    validIds.add(exist.getId());
                 }
             }
         }
@@ -179,29 +180,28 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     /**
      * Batch enable/disable.
      *
-     * @param selectorId selector id
+     * @param selectorId     selector id
      * @param batchCommonDTO ids and enabled
      * @return result
      */
     @PostMapping("/batchEnabled")
     @RequiresPermissions("system:aiProxyApiKey:disable")
     public ShenyuAdminResult batchEnabled(@PathVariable("selectorId") final String selectorId,
-                                          @Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
+            @Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final List<String> allIds = batchCommonDTO.getIds();
         final List<String> validIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(allIds)) {
-            for (String id : allIds) {
-                final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
+            List<ProxyApiKeyVO> exists = aiProxyApiKeyService.findByIds(allIds);
+            for (ProxyApiKeyVO exist : exists) {
                 if (Objects.nonNull(exist) && selectorId.equals(exist.getSelectorId())) {
-                    validIds.add(id);
+                    validIds.add(exist.getId());
                 }
             }
         }
         if (validIds.isEmpty()) {
             return ShenyuAdminResult.error(AdminConstants.PROXY_SELECTOR_ID_IS_NOT_EXIST);
         }
-        final String result =
-                aiProxyApiKeyService.enabled(validIds, batchCommonDTO.getEnabled());
+        final String result = aiProxyApiKeyService.enabled(validIds, batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
@@ -213,4 +213,3 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
         return aiProxyApiKeyService;
     }
 }
- 
