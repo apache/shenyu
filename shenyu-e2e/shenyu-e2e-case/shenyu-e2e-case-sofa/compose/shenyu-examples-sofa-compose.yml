@@ -18,7 +18,7 @@ version: '3.8'
 
 services:
   shenyu-zookeeper:
-    image: zookeeper:3.5
+    image: zookeeper:3.9
     container_name: shenyu-zookeeper
     ports:
       - "2181:2181"  # Client
