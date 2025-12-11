@@ -367,7 +367,7 @@ public final class IpUtils {
         Matcher matcher = NET_CARD_PATTERN.matcher(name);
         if (matcher.find()) {
             String numberStr = matcher.group();
-            LOG.info("getNamePostfix matcher.group(): {}", numberStr);
+            LOG.debug("getNamePostfix matcher.group(): {}", numberStr);
             // Limit the number length to avoid parsing very large numbers (e.g., Docker network interface names)
             // Common network interface suffixes are usually 1-4 digits (e.g., eth0, enp3s0)
             if (numberStr.length() > 4) {
