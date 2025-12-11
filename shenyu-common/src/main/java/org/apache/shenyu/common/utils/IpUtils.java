@@ -216,10 +216,17 @@ public final class IpUtils {
                                     final List<NetCard> ipv4Result, final List<NetCard> ipv6Result) {
         String hostAddress = inetAddress.getHostAddress();
         if (inetAddress instanceof Inet4Address && isCompleteHost(hostAddress)) {
+            int ipv4Postfix = 0;
+            try {
+                String[] segments = hostAddress.split("\\.");
+                ipv4Postfix = Integer.parseInt(segments[3]);
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                // Log the error if desired, or leave as default 0
+            }
             NetCard netCard = new NetCard(hostAddress,
                     getName(interfaceName),
                     getNamePostfix(interfaceName),
-                    Integer.parseInt(hostAddress.split("\\.")[3]));
+                    ipv4Postfix);
             ipv4Result.add(netCard);
         } else {
             NetCard netCard = new NetCard(hostAddress,
