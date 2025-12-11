@@ -18,13 +18,18 @@ version: '3.9'
 
 services:
   shenyu-zookeeper-sync:
-    image: zookeeper:3.5
+    image: zookeeper:3.9
     container_name: shenyu-zookeeper-sync
     ports:
       - "12181:2181"  # Client
       - "12888:2888"  # Server
       - "13888:3888"  # Leader election
       - "18080:8080"  # Website
+    environment:
+      # Increase max client connections to prevent connection limit issues
+      - ZOO_MAX_CLIENT_CNXNS=200
+      # Increase jute maxbuffer for larger data transfers
+      - ZOO_JUTE_MAXBUFFER=4194304
     healthcheck:
       test: [ "CMD-SHELL", "echo srvr | nc localhost 2181" ]
       interval: 10s
@@ -78,8 +83,9 @@ services:
       - spring.datasource.password=shenyue2e
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
       - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
-      - shenyu.sync.zookeeper.sessionTimeout=5000
-      - shenyu.sync.zookeeper.connectionTimeout=2000
+      # Increase timeouts to prevent rapid reconnection attempts
+      - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=30000
+      - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=10000
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
@@ -105,8 +111,9 @@ services:
     environment:
       - TZ=Asia/Beijing
       - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
-      - shenyu.sync.zookeeper.sessionTimeout=5000
-      - shenyu.sync.zookeeper.connectionTimeout=2000
+      # Increase timeouts to prevent rapid reconnection attempts
+      - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=30000
+      - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=10000
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s

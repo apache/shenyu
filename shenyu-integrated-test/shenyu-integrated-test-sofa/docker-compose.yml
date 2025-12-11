@@ -17,7 +17,7 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:3.5
+    image: zookeeper:3.9
     restart: always
     ports:
     - "2181:2181"

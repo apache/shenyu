@@ -15,29 +15,41 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.infra.etcd.autoconfig;
+package org.apache.shenyu.infra.zookeeper.autoconfig;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.infra.common.InfraConstants;
 import org.apache.shenyu.infra.common.InfraParentProperties;
-import org.apache.shenyu.infra.etcd.config.EtcdConfig;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
+/**
+ * The type Zookeeper properties.
+ */
 @ConfigurationProperties(InfraParentProperties.PARENT_CONFIG_PREFIX)
-public class EtcdProperties extends InfraParentProperties {
+public class ZookeeperProperties extends InfraParentProperties {
 
-    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ETCD;
+    public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ZOOKEEPER;
 
     @NestedConfigurationProperty
-    private EtcdConfig etcd = EtcdConfig.builder().build();
+    private ZookeeperConfig zookeeper = ZookeeperConfig.builder().build();
 
-    public EtcdConfig getEtcd() {
-        return etcd;
+    /**
+     * Get zookeeper.
+     *
+     * @return zookeeper
+     */
+    public ZookeeperConfig getZookeeper() {
+        return zookeeper;
     }
 
-    public void setEtcd(final EtcdConfig etcd) {
-        this.etcd = etcd;
+    /**
+     * Set zookeeper.
+     *
+     * @param zookeeper zookeeper
+     */
+    public void setZookeeper(final ZookeeperConfig zookeeper) {
+        this.zookeeper = zookeeper;
     }
-
 }

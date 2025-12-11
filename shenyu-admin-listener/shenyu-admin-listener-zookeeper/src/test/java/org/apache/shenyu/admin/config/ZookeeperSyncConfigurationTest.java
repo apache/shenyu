@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.shenyu.admin.config.properties.ZookeeperConfig;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,7 +36,14 @@ public class ZookeeperSyncConfigurationTest {
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         zkServer = new TestingServer();
-        ZookeeperConfig config = new ZookeeperConfig(zkServer.getConnectString());
+        ZookeeperConfig config = ZookeeperConfig.builder()
+                .url(zkServer.getConnectString())
+                .maxSleepTimeMilliseconds(3000)
+                .baseSleepTimeMilliseconds(3000)
+                .connectionTimeoutMilliseconds(3000)
+                .sessionTimeoutMilliseconds(3000)
+                .maxRetries(3)
+                .build();
         zkClient = new ZookeeperClient(config);
     }
     
