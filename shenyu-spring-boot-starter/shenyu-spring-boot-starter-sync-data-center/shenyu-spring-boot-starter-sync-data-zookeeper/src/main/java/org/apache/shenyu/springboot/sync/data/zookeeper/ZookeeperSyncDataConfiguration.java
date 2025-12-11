@@ -18,34 +18,34 @@
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ConditionOnSyncZookeeper;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
-import org.apache.shenyu.sync.data.zookeeper.ZookeeperConfig;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Zookeeper sync data configuration for spring boot.
  */
+
 @Configuration
+@ConditionOnSyncZookeeper
 @ConditionalOnClass(ZookeeperSyncDataService.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperSyncDataConfiguration {
 
@@ -71,27 +71,16 @@ public class ZookeeperSyncDataConfiguration {
                                            final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers,
                                            final ObjectProvider<List<DiscoveryUpstreamDataSubscriber>> discoveryUpstreamDataSubscribers) {
-        LOGGER.info("you use zookeeper sync shenyu data.......");
-        return new ZookeeperSyncDataService(shenyuConfig.getIfAvailable(), zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
-                proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList), discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList));
-    }
 
-    /**
-     * register zkClient in spring ioc.
-     *
-     * @param zookeeperProps the zookeeper configuration
-     * @return ZookeeperClient {@linkplain ZookeeperClient}
-     */
-    @Bean
-    public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProps) {
-        int sessionTimeout = Objects.isNull(zookeeperProps.getSessionTimeout()) ? 3000 : zookeeperProps.getSessionTimeout();
-        int connectionTimeout = Objects.isNull(zookeeperProps.getConnectionTimeout()) ? 3000 : zookeeperProps.getConnectionTimeout();
-        ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProps.getUrl());
-        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
-        ZookeeperClient client = new ZookeeperClient(zkConfig);
-        client.start();
-        return client;
+        LOGGER.info("you use zookeeper sync shenyu data.......");
+        return new ZookeeperSyncDataService(
+                shenyuConfig.getIfAvailable(),
+                zookeeperClient.getIfAvailable(),
+                pluginSubscriber.getIfAvailable(),
+                metaSubscribers.getIfAvailable(Collections::emptyList),
+                authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList),
+                discoveryUpstreamDataSubscribers.getIfAvailable(Collections::emptyList)
+        );
     }
 }
