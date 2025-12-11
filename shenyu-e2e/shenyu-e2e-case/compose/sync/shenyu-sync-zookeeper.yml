@@ -84,8 +84,8 @@ services:
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
       - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
       # Increase timeouts to prevent rapid reconnection attempts
-      - shenyu.sync.zookeeper.sessionTimeout=30000
-      - shenyu.sync.zookeeper.connectionTimeout=10000
+      - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=30000
+      - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=10000
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
@@ -112,8 +112,8 @@ services:
       - TZ=Asia/Beijing
       - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
       # Increase timeouts to prevent rapid reconnection attempts
-      - shenyu.sync.zookeeper.sessionTimeout=30000
-      - shenyu.sync.zookeeper.connectionTimeout=10000
+      - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=30000
+      - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=10000
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
       interval: 10s
