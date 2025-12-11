@@ -134,7 +134,7 @@ public final class IpUtils {
      * @return normalized pattern
      */
     private static String normalizeFilterPattern(final String filterHost) {
-        if ("*".equals(filterHost) || (filterHost != null && filterHost.length() == 0)) {
+        if ("*".equals(filterHost) || (Objects.nonNull(filterHost) && filterHost.length() == 0)) {
             return null;
         }
         if (Objects.nonNull(filterHost) && !filterHost.contains("*") && !isCompleteHost(filterHost)) {
