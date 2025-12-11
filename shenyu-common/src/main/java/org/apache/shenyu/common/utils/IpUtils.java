@@ -369,7 +369,7 @@ public final class IpUtils {
             String numberStr = matcher.group();
             LOG.info("getNamePostfix matcher.group(): {}", numberStr);
             // Limit the number length to avoid parsing very large numbers (e.g., Docker network interface names)
-            // Common network interface suffixes are usually 1-3 digits (e.g., eth0, enp3s0)
+            // Common network interface suffixes are usually 1-4 digits (e.g., eth0, enp3s0)
             if (numberStr.length() > 4) {
                 LOG.debug("getNamePostfix: number too long, ignoring: {}", numberStr);
                 return -1;
