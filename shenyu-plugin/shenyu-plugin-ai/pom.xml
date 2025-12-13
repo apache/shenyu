@@ -32,7 +32,7 @@
         <module>shenyu-plugin-ai-prompt</module>
         <module>shenyu-plugin-ai-token-limiter</module>
         <module>shenyu-plugin-ai-request-transformer</module>
-        <module>shenyu-plugin-ai-proxy-enhanced</module>
+        <module>shenyu-plugin-ai-proxy</module>
         <module>shenyu-plugin-ai-response-transformer</module>
     </modules>
 
