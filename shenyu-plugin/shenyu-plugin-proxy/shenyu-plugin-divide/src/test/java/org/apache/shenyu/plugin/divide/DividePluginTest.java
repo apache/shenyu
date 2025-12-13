@@ -126,7 +126,7 @@ public final class DividePluginTest {
 
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
-        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyInt())).thenReturn(true);
+        mockCheckUtils.when(() -> UpstreamCheckUtils.checkUrl(anyString(), anyString(), anyInt())).thenReturn(true);
         initMockInfo();
     }
 
