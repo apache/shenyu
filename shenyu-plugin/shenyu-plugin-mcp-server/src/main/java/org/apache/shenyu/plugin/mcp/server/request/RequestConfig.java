@@ -30,13 +30,16 @@ public class RequestConfig {
     private JsonObject requestTemplate;
     
     private boolean argsToJsonBody;
+
+    private JsonObject inputJson;
     
-    public RequestConfig(final String method, final String path, final JsonObject bodyJson, final JsonObject requestTemplate, final boolean argsToJsonBody) {
+    public RequestConfig(final String method, final String path, final JsonObject bodyJson, final JsonObject requestTemplate, final boolean argsToJsonBody, final JsonObject inputJson) {
         this.method = method;
         this.path = path;
         this.bodyJson = bodyJson;
         this.requestTemplate = requestTemplate;
         this.argsToJsonBody = argsToJsonBody;
+        this.inputJson = inputJson;
     }
     
     public String getMethod() {
@@ -77,5 +80,13 @@ public class RequestConfig {
     
     public void setArgsToJsonBody(final boolean argsToJsonBody) {
         this.argsToJsonBody = argsToJsonBody;
+    }
+
+    public JsonObject getInputJson() {
+        return inputJson;
+    }
+
+    public void setInputJson(final JsonObject inputJson) {
+        this.inputJson = inputJson;
     }
 }

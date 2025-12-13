@@ -346,7 +346,7 @@ public class ShenyuToolCallback implements ToolCallback {
         // Build body with parameter formatting (only format body parameters that need it)
         final JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
 
-        return new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody);
+        return new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody, inputJson);
     }
 
     /**
@@ -470,10 +470,20 @@ public class ShenyuToolCallback implements ToolCallback {
         if (requestConfig.getRequestTemplate().has("headers")) {
             for (final var headerElem : requestConfig.getRequestTemplate().getAsJsonArray("headers")) {
                 final JsonObject headerObj = headerElem.getAsJsonObject();
-                requestBuilder.header(
-                        headerObj.get("key").getAsString(),
-                        headerObj.get("value").getAsString()
-                );
+                String headerKey = headerObj.get("key").getAsString();
+                String headerValue = headerObj.get("value").getAsString();
+                if (headerValue.contains("{{.")) {
+                    JsonObject inputJson = requestConfig.getInputJson();
+                    if (Objects.nonNull(inputJson)) {
+                        for (String key : inputJson.keySet()) {
+                            if (inputJson.get(key).isJsonPrimitive() && inputJson.get(key).getAsJsonPrimitive().isString()) {
+                                String value = inputJson.get(key).getAsString();
+                                headerValue = headerValue.replace("{{." + key + "}}", value);
+                            }
+                        }
+                    }
+                }
+                requestBuilder.header(headerKey, headerValue);
             }
         }
     }
