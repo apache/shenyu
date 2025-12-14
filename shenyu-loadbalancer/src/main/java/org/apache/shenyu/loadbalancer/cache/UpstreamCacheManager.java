@@ -26,9 +26,12 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -142,12 +145,47 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        List<Upstream> validUpstreamList = upstreamList.stream().filter(Upstream::isStatus).collect(Collectors.toList());
-        List<Upstream> existUpstream = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
-        existUpstream.stream().filter(upstream -> !validUpstreamList.contains(upstream))
-                .forEach(upstream -> task.triggerRemoveOne(selectorId, upstream));
-        validUpstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))
-                .forEach(upstream -> task.triggerAddOne(selectorId, upstream));
-        UPSTREAM_MAP.put(selectorId, validUpstreamList);
+        List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
+        Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
+                .collect(Collectors.partitioningBy(Upstream::isStatus));
+        List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
+        List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
+        List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
+
+        if (actualUpstreamList.isEmpty()) {
+            existUpstreamList.forEach(up -> task.triggerRemoveOne(selectorId, up));
+        }
+
+        // Use a Set for O(1) lookups instead of nested loops
+        Set<Upstream> existUpstreamSet = new HashSet<>(existUpstreamList);
+        offlineUpstreamList.forEach(offlineUp -> {
+            if (existUpstreamSet.contains(offlineUp)) {
+                task.triggerRemoveOne(selectorId, offlineUp);
+            }
+        });
+
+        if (!validUpstreamList.isEmpty()) {
+            // update upstream weight
+            Map<String, Upstream> existUpstreamMap = existUpstreamList.stream()
+                .collect(Collectors.toMap(this::upstreamMapKey, existUp -> existUp, (existing, replacement) -> existing));
+            validUpstreamList.forEach(validUp -> {
+                String key = upstreamMapKey(validUp);
+                Upstream matchedExistUp = existUpstreamMap.get(key);
+                if (Objects.nonNull(matchedExistUp)) {
+                    matchedExistUp.setWeight(validUp.getWeight());
+                }
+            });
+
+            validUpstreamList.stream()
+                .filter(validUp -> !existUpstreamList.contains(validUp))
+                .forEach(up -> task.triggerAddOne(selectorId, up));
+        }
+
+        List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
+        UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private String upstreamMapKey(final Upstream upstream) {
+        return String.join("_", upstream.getProtocol(), upstream.getUrl());
     }
 }

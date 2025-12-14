@@ -46,4 +46,14 @@ public enum DataType {
      * Discovery config type enum.
      */
     DISCOVERY_CONFIG,
+    
+    /**
+     * Instance info type enum.
+     */
+    INSTANCE_INFO,
+
+    /**
+     * mcp tools type enum.
+     */
+    MCP_TOOLS
 }

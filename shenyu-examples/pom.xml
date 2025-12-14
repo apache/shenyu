@@ -23,7 +23,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu-examples</artifactId>
-    <version>2.7.0.2-SNAPSHOT</version>
+    <version>2.7.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -58,8 +58,8 @@
         <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>
         <module>shenyu-examples-sdk</module>
+        <module>shenyu-examples-mcp</module>
     </modules>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -69,7 +69,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
         <plugins>
             <plugin>

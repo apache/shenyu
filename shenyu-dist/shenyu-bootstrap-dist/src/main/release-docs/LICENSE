@@ -215,6 +215,7 @@ Apache 2.0 licenses
 The following components are provided under the Apache License. See project link for details.
 The text of each license is the standard Apache 2.0 license.
 
+    context-propagation 1.1.1: https://github.com/micrometer-metrics/context-propagation, Apache 2.0
     perfmark-api 0.26.0: https://github.com/perfmark/perfmark, Apache 2.0
     accessors-smart 2.5.1: https://www.minidev.net, Apache 2.0
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
@@ -238,6 +239,7 @@ The text of each license is the standard Apache 2.0 license.
     caffeine 2.9.3: https://github.com/ben-manes/caffeine, Apache 2.0
     cap-std 1.0.7: https://github.com/bytecodealliance/cap-std, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
+    classmate 1.7.0: https://github.com/FasterXML/java-classmate, Apache 2.0
     clickhouse-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-client, Apache 2.0
     clickhouse-http-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-http-client, Apache 2.0
 	collector 0.15.0: http://github.com/prometheus/jmx_exporter, Apache 2.0
@@ -253,6 +255,7 @@ The text of each license is the standard Apache 2.0 license.
     commons-jxpath 1.3: https://github.com/apache/commons-jxpath, Apache 2.0
     commons-lang 2.6: https://github.com/apache/commons-lang, Apache 2.0
     commons-lang3 3.12.0: https://github.com/apache/commons-lang, Apache 2.0
+    commons-lang3 3.18.0: https://github.com/apache/commons-lang, Apache 2.0
     commons-logging 1.2: https://github.com/apache/commons-logging, Apache 2.0
     commons-pool 1.6: https://commons.apache.org/proper/commons-pool, Apache 2.0
     commons-pool2 2.12.0: https://commons.apache.org/proper/commons-pool, Apache 2.0
@@ -327,6 +330,9 @@ The text of each license is the standard Apache 2.0 license.
     jackson-module-afterburner 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-module-jaxb-annotations 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-module-parameter-names 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jackson-module-jsonSchema 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
+    jsonschema-module-jackson 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
+    jsonschema-module-swagger-2 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     jakarta.validation-api 2.0.1: http://beanvalidation.org, Apache 2.0
     javapoet 1.8.0: https://github.com/square/javapoet, Apache 2.0
     javassist 3.29.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
@@ -340,6 +346,7 @@ The text of each license is the standard Apache 2.0 license.
     jjwt-api 0.12.3: https://jwt.io, Apache 2.0
     jjwt-impl 0.12.3: https://jwt.io, Apache 2.0
     jjwt-jackson 0.12.3: https://jwt.io, Apache 2.0
+    jna 5.16.0: https://github.com/java-native-access/jna, Apache 2.0 and LGPL
     json-patch 1.9: https://github.com/fge/json-patch, Apache 2.0 and LGPL
     json-path 2.9.0: https://github.com/jayway/JsonPath, Apache 2.0
     json-smart 2.5.1: https://www.minidev.net/, Apache 2.0
@@ -348,6 +355,7 @@ The text of each license is the standard Apache 2.0 license.
     kotlin-stdlib-jdk8 1.9.24: https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-jdk7 1.9.24: https://kotlinlang.org, Apache 2.0
     kafka-clients 3.7.1: https://github.com/apache/kafka, Apache 2.0
+    kafka-clients 3.9.1: https://github.com/apache/kafka, Apache 2.0
     lettuce-core 6.3.2.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
     wasmtime-java 0.19.0: https://github.com/kawamuray/wasmtime-java, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
@@ -466,8 +474,18 @@ The text of each license is the standard Apache 2.0 license.
     snappy-java 1.1.10.5: https://github.com/xerial/snappy-java, Apache 2.0
     sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
     sofa-rpc-all 5.13.0: http://github.com/sofastack/sofa-rpc, Apache 2.0
+    jsonschema-generator 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
+    spring-ai-template-st 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-deepseek 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-openai 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-client-chat 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-retry 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-commons 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-model 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
+    spring-ai-mcp 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-aop 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
     spring-beans 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
+    spring-messaging 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-messaging, Apache 2.0
     spring-boot 3.3.1: https://spring.io, Apache 2.0
     spring-boot-actuator 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator, Apache 2.0
     spring-boot-actuator-autoconfigure 3.3.1: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-actuator-autoconfigure, Apache 2.0
@@ -514,7 +532,9 @@ The text of each license is the standard Apache 2.0 license.
     spring-tx 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-tx, Apache 2.0
     spring-web 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
     spring-webflux 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-webflux, Apache 2.0
+    spring-retry 2.0.6: https://github.com/spring-projects/spring-retry, Apache 2.0
     swagger-annotations 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
+    swagger-annotations 2.2.25: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
     swagger-core 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-core, Apache 2.0
     swagger-models 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
     tracer-core 3.0.8: https://projects.spring.io/spring-boot/#/spring-boot-starter-parent/sofaboot-dependencies/tracer-all-parent/tracer-core, Apache 2.0
@@ -533,7 +553,11 @@ The text of each license is the standard Apache 2.0 license.
     zipkin-sender-urlconnection 3.4.0: https://mvnrepository.com/artifact/io.zipkin.reporter2/zipkin-sender-urlconnection, Apache 2.0
     zkclient 0.11: https://github.com/sgroschupf/zkclient, Apache 2.0
     zookeeper 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.9.4: https://github.com/apache/zookeeper, Apache 2.0
     zookeeper-jute 3.9.2: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.9.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.9.4: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.14.11: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.14.17: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
@@ -603,18 +627,12 @@ The text of each license is the standard Apache 2.0 license.
     lts-sdk-common 1.0.1: https://github.com/huaweicloud/huaweicloud-lts-sdk-java, Apache 2.0
     amqp-client 5.21.0: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
-
-========================================================================
-Apache 2.0 licenses
-========================================================================
-
-The following components are provided under the Apache license. See project link for details.
-The text of each license is also included at licenses/LICENSE-[project].txt.
-
+    javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
     wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasi-common 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasmtime 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     wasmtime-wasi 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    jna-platform 5.16.0: https://github.com/java-native-access/jna, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -623,8 +641,12 @@ BSD licenses
 The following components are provided under a BSD license. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    ST4 4.3.4: http://www.antlr.org/, BSD-3-Clause
     antlr 2.7.7: http://www.antlr.org/, BSD-3-Clause
+    antlr4-runtime 4.13.1: http://www.antlr.org/, BSD-3-Clause
     antlr-runtime 3.4: http://www.antlr.org/, BSD-3-Clause
+    antlr-runtime 3.5.3: http://www.antlr.org/, BSD-3-Clause
+    antlr-runtime 4.13.1: http://www.antlr.org/, BSD-3-Clause
     asm 7.0: https://github.com/llbit/ow2-asm, BSD 3-Clause
     google-auth-library-credentials 1.4.0: https://github.com/googleapis/google-auth-library-java/google-auth-library-credentials, BSD 3-Clause
     google-auth-library-oauth2-http 1.4.0: https://github.com/googleapis/google-auth-library-java/google-auth-library-oauth2-http, BSD 3-Clause
@@ -636,6 +658,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
     zstd-jni 1.5.6-3: https://github.com/luben/zstd-jni, BSD 2-Clause
+    zstd-jni 1.5.6-4: https://github.com/luben/zstd-jni, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause
     stax2-api 4.2.1: http://github.com/FasterXML/stax2-api, BSD 2-Clause
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
@@ -707,6 +730,9 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    mcp 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
+    mcp-spring-webflux 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
+    jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT
     bcprov-jdk15on 1.69: http://www.bouncycastle.org/licence.html , MIT
@@ -722,6 +748,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
+    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
 MPL licenses

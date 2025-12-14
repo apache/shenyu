@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap</artifactId>
@@ -270,6 +270,22 @@
             <version>${project.version}</version>
         </dependency>
         <!--Ai request transformer Plugin end-->
+
+        <!--Ai response transformer Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-response-transformer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai response transformer Plugin end-->
+
+        <!--Mcp Server Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mcp-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Mcp Server Plugin end-->
 
         <!--shenyu sofa plugin start-->
         <dependency>
@@ -592,6 +608,11 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-client-beat</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu basic-auth plugin end -->

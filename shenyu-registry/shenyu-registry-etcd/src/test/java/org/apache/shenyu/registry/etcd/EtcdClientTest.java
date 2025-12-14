@@ -26,6 +26,7 @@ import io.etcd.jetcd.lease.LeaseGrantResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -62,26 +63,37 @@ public class EtcdClientTest {
             when(client.getLeaseClient()).thenReturn(lease);
             final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
             final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+            when(leaseGrantResponse.getID()).thenReturn(1L);
 
             when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
             when(completableFuture.get()).thenReturn(leaseGrantResponse);
-            Assertions.assertDoesNotThrow(() -> new EtcdClient("url", 60L, 3000L));
-
             List<StreamObserver<LeaseKeepAliveResponse>> observerList = new ArrayList<>();
             doAnswer(invocation -> {
                 observerList.add(invocation.getArgument(1));
                 return lease;
             }).when(lease).keepAlive(anyLong(), any());
-            Assertions.assertDoesNotThrow(() -> new EtcdClient("url", 60L, 3000L));
+
+            final EtcdClient etcdClient = Assertions.assertDoesNotThrow(() -> EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build());
+            Assertions.assertNotNull(etcdClient);
+
             final LeaseKeepAliveResponse leaseKeepAliveResponse = mock(LeaseKeepAliveResponse.class);
             observerList.forEach(streamObserver -> {
                 streamObserver.onCompleted();
                 streamObserver.onError(new ShenyuException("test"));
                 streamObserver.onNext(leaseKeepAliveResponse);
             });
+            etcdClient.close();
 
             doThrow(new InterruptedException("error")).when(completableFuture).get();
-            Assertions.assertDoesNotThrow(() -> new EtcdClient("url", 60L, 3000L));
+            Assertions.assertThrows(ShenyuException.class, () -> EtcdClient.builder()
+                    .client(Client.builder().endpoints("url").build())
+                    .ttl(60L)
+                    .timeout(3000L)
+                    .build());
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
@@ -91,7 +103,7 @@ public class EtcdClientTest {
     public void closeTest() {
         try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
             this.mockEtcd(clientMockedStatic);
-            final EtcdClient etcdClient = new EtcdClient("url", 60L, 3000L);
+            final EtcdClient etcdClient = EtcdClient.builder().client(Client.builder().endpoints("url").build()).ttl(60L).timeout(3000L).build();
             etcdClient.close();
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
@@ -108,11 +120,11 @@ public class EtcdClientTest {
             when(mockKV.put(any(), any(), any())).thenReturn(completableFuture);
             final PutResponse putResponse = mock(PutResponse.class);
             when(completableFuture.get(anyLong(), any(TimeUnit.class))).thenReturn(putResponse);
-            final EtcdClient etcdClient = new EtcdClient("url", 60L, 3000L);
+            final EtcdClient etcdClient = EtcdClient.builder().client(Client.builder().endpoints("url").build()).ttl(60L).timeout(3000L).build();
             etcdClient.putEphemeral("key", "value");
 
             doThrow(new InterruptedException("error")).when(completableFuture).get(anyLong(), any(TimeUnit.class));
-            etcdClient.putEphemeral("key", "value");
+            Assertions.assertThrows(ShenyuException.class, () -> etcdClient.putEphemeral("key", "value"));
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
@@ -128,6 +140,7 @@ public class EtcdClientTest {
         when(client.getLeaseClient()).thenReturn(lease);
         final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
         final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+        when(leaseGrantResponse.getID()).thenReturn(1L);
         when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
         when(completableFuture.get()).thenReturn(leaseGrantResponse);
         return client;

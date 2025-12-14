@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.mode.cluster.service;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
-import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -38,22 +38,22 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private final UpstreamCheckService upstreamCheckService;
     
-    private final LoadServiceDocEntry loadServiceDocEntry;
-    
     private final ScheduledExecutorService executorService;
     
     private final ClusterProperties clusterProperties;
+
+    private final InstanceCheckService instanceCheckService;
     
     public ShenyuClusterService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final UpstreamCheckService upstreamCheckService,
-                                final LoadServiceDocEntry loadServiceDocEntry,
+                                final InstanceCheckService instanceCheckService,
                                 final ClusterProperties clusterProperties) {
         this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
         this.upstreamCheckService = upstreamCheckService;
-        this.loadServiceDocEntry = loadServiceDocEntry;
         this.clusterProperties = clusterProperties;
         this.executorService = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("master-selector", true));
+        this.instanceCheckService = instanceCheckService;
     }
     
     /**
@@ -85,10 +85,9 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             
             // start upstream check task
             upstreamCheckService.setup();
-            
-            // load api
-            loadServiceDocEntry.loadApiDocument();
-            
+
+            instanceCheckService.setup();
+
             boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
@@ -106,6 +105,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             LOG.error("select master error", e);
             // close the upstream check service
             upstreamCheckService.close();
+            instanceCheckService.close();
             
             String message = String.format("renew master fail, %s", e.getMessage());
             throw new ShenyuException(message);

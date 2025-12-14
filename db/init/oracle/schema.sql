@@ -116,10 +116,10 @@ create table selector
 (
     id           VARCHAR2(128) not null primary key,
     plugin_id    VARCHAR2(128) not null,
-    name         VARCHAR2(64) not null,
+    selector_name VARCHAR2(64) not null,
     match_mode   NUMBER(10) not null,
-    type         NUMBER(10) not null,
-    sort         NUMBER(10) not null,
+    selector_type NUMBER(10) not null,
+    sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
@@ -134,13 +134,13 @@ comment on column SELECTOR.id
   is 'primary key id varchar';
 comment on column SELECTOR.plugin_id
   is 'plugin id';
-comment on column SELECTOR.name
+comment on column SELECTOR.selector_name
   is 'selector name';
 comment on column SELECTOR.match_mode
   is 'matching mode (0 and 1 or)';
-comment on column SELECTOR.type
+comment on column SELECTOR.selector_type
   is 'type (0 full flow, 1 custom flow)';
-comment on column SELECTOR.sort
+comment on column SELECTOR.sort_code
   is 'sort';
 comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
@@ -194,13 +194,13 @@ create table rule
     id            VARCHAR2(128) not null PRIMARY KEY,
     selector_id   VARCHAR2(128) not null,
     match_mode    NUMBER(10) not null,
-    name          VARCHAR2(128) not null,
+    rule_name     VARCHAR2(128) not null,
     enabled       NUMBER(3) not null,
     loged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
-    namespace_id VARCHAR2(50) not null,
-    sort          NUMBER(10) not null,
-    handle        VARCHAR2(1024),
+    namespace_id  VARCHAR2(50) not null,
+    sort_code     NUMBER(10) not null,
+    handle        CLOB,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null
 );
@@ -211,7 +211,7 @@ comment on column RULE.selector_id
   is 'selector id';
 comment on column RULE.match_mode
   is 'matching mode (0 and 1 or)';
-comment on column RULE.name
+comment on column RULE.rule_name
   is 'rule name';
 comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
@@ -221,7 +221,7 @@ comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
 comment on column RULE.namespace_id
   is 'namespace id';
-comment on column RULE.sort
+comment on column RULE.sort_code
   is 'sort';
 comment on column RULE.handle
   is 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
@@ -344,6 +344,29 @@ comment on column MOCK_REQUEST_RECORD.date_created
   is 'create time';
 comment on column MOCK_REQUEST_RECORD.date_updated
   is 'update time';
+
+-- Table structure for proxy_api_key_mapping
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE proxy_api_key_mapping';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+CREATE TABLE proxy_api_key_mapping
+(
+    id            VARCHAR2(128) not null,
+    proxy_api_key VARCHAR2(255) not null,
+    description   VARCHAR2(500),
+    enabled       NUMBER(3) default 1 not null,
+    namespace_id  VARCHAR2(50) not null,
+    selector_id   VARCHAR2(255) not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_proxy_api_key_mapping PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX uk_selector_proxy_key ON proxy_api_key_mapping (selector_id, proxy_api_key);
+CREATE INDEX idx_namespace_enabled ON proxy_api_key_mapping (namespace_id, enabled);
 
 create table model
 (
@@ -665,7 +688,7 @@ create table param
     type         NUMBER(10) not null,
     name         VARCHAR2(255) not null,
     param_desc   VARCHAR2(1024) not null,
-    required     NUMBER(3) not null,
+    is_required     NUMBER(3) not null,
     ext          VARCHAR2(1024) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
@@ -838,7 +861,7 @@ create table field
     self_model_id VARCHAR2(128) not null,
     name         VARCHAR2(128) not null,
     field_desc   VARCHAR2(1024) not null,
-    required     NUMBER(3) not null,
+    is_required     NUMBER(3) not null,
     ext          VARCHAR2(1024) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
@@ -1168,9 +1191,10 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('43', 'loggingHuaweiLts', 'Logging', 177, '{"totalSizeInBytes":"104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('44', 'basicAuth', 'Authentication', 150, '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}','0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('45', 'loggingRabbitmq', 'Logging', 171, '{"host":"127.0.0.1","port":5672,"password":"admin","username":"admin","exchangeName":"exchange.logging.plugin","queueName":"queue.logging.plugin","routingKey":"topic.logging","virtualHost":"/","exchangeType":"direct","durable":"true","exclusive":"false","autoDelete":"false"}', '0');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 'Ai', 199, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1","prompt":""}', 'Ai', 199, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0);
 
 /*insert plugin_handle data for sentinel*/
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -1189,7 +1213,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468122', '6', 'upstreamHost', 'host', 2, 1, 0, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1518229897214468123', '6', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}');
+values ('1518229897214468123', '6', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"0","placeholder":"","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468124', '6', 'version', 'version', 2, 1, 4, '{"required":"0","placeholder":"version","rule":""}');
@@ -1220,6 +1244,9 @@ values ('1529402613204173924', '6', 'retries', 'retries', 3, 2, 0, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1529402613204173925', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613204173926', '6', 'registry', 'registry', 2, 1, 0, '{"required":"0","placeholder":"","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468131', '26', 'host', 'host', 2, 1, 0, null);
@@ -1259,6 +1286,12 @@ values ('1518229897214468142', '17', 'registerProtocol', 'registerProtocol', 2, 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1679002911061737473', '17', 'registerAddress', 'registerAddress', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1:2181","placeholder":"registerAddress","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1818229897214468142', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"registerProtocol","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1879002911061737473', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"registerAddress","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468143', '28', 'port', 'port', 1, 3, 1, null);
@@ -1349,6 +1382,36 @@ values ('1518229897218662407', '30', 'maxActive', 'maxActive', 1, 3, 9, '{"requi
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897218662408', '30', 'maxWait', 'maxWait', 3, 3, 10, '{"required":"0","defaultValue":"-1","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468163', '30', 'cacheType', 'cacheType', 3, 1, 1, '{"required":"1","defaultValue":"memory","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662400', '30', 'database', 'database', 1, 1, 2, '{"required":"0","defaultValue":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662401', '30', 'master', 'master', 2, 1, 3, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662402', '30', 'mode', 'mode', 2, 1, 4, '{"required":"0","defaultValue":"standalone","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662403', '30', 'url', 'url', 2, 1, 5, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662404', '30', 'password', 'password', 2, 1, 6, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662405', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{"required":"0","defaultValue":"8","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662406', '30', 'minIdle', 'minIdle', 1, 1, 8, '{"required":"0","defaultValue":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662407', '30', 'maxActive', 'maxActive', 1, 1, 9, '{"required":"0","defaultValue":"8","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897218662408', '30', 'maxWait', 'maxWait', 3, 1, 10, '{"required":"0","defaultValue":"-1","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897218662409', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{"required":"0","defaultValue":"60","rule":""}');
@@ -1469,6 +1532,12 @@ values ('1518229897210273825', '11', 'protocol', 'protocol', 2, 3, 1, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273826', '11', 'register', 'register', 2, 3, 2, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897210273825', '11', 'protocol', 'protocol', 2, 1, 1, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897210273826', '11', 'register', 'register', 2, 1, 2, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273827', '2', 'model', 'model', 2, 3, 1, null);
@@ -1659,7 +1728,6 @@ values ('1518229897214468166', '11', 'queues', 'queues', 1, 3, 6, '{"required":"
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468167', '11', 'threadpool', 'threadpool', 3, 3, 3, '{"required":"0","defaultValue":"default","placeholder":"threadpool","rule":""}');
 
-
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1537326008606343168', '31', 'responseContent', 'responseContent', 2, 2, 0, '{"required":"0","rule":""}');
 
@@ -1706,7 +1774,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468177', '33', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1518229897214468178', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}');
+values ('1518229897214468178', '33', 'bootstrapServer', 'bootstrapServer', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468179', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}');
@@ -1734,6 +1802,24 @@ values ('1518229897214468186', '33', 'userName', 'userName',  2, 3, 10, '{"requi
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468187', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468178', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468182', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{"required":"0","defaultValue":"none"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468184', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468185', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468186', '33', 'userName', 'userName',  2, 1, 10, '{"required":"0","defaultValue":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1718229897214468187', '33', 'passWord', 'passWord', 2, 1, 11, '{"required":"0","defaultValue":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468188', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}');
@@ -2114,6 +2200,44 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1722804548510507008', '45', 'args', 'args', 2, 3, 0, '{"required":"0","defaultValue":"","placeholder":"","rule":"/^\\s*(\\{.*\\}|\\[.*\\])\\s*$/"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821435546642157568', '45', 'host', 'host', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821435708743618560', '45', 'port', 'port', 1, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436368046264320', '45', 'password', 'password', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436500343001088', '45', 'username', 'username', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436639635836928', '45', 'exchangeName', 'exchangeName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821436745583955968', '45', 'queueName', 'queueName', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821509996347617280', '45', 'routingKey', 'routingKey', 2, 1, 0, '{"required":"0","defaultValue":"","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821725585461706752', '45', 'virtualHost', 'virtualHost', 2, 1, 0, '{"required":"0","defaultValue":"/","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1821725662875975680', '45', 'exchangeType', 'exchangeType', 2, 1, 0, '{"required":"0","defaultValue":"direct","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804180904927232', '45', 'durable', 'durable', 2, 1, 0, '{"required":"0","defaultValue":"true","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804370575548416', '45', 'exclusive', 'exclusive', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{"required":"0","defaultValue":"false","placeholder":"true / false","rule":"/^(true|false)$/"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{"required":"0","defaultValue":"","placeholder":"","rule":"/^\\s*(\\{.*\\}|\\[.*\\])\\s*$/"}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1722804548510507009', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -2195,7 +2319,10 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1722804548510507039', '50', 'stream', 'stream', 3, 3, 7, '{"defaultValue":"false","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-values ('1722804548510507040', '50', 'prompt', 'prompt', 2, 3, 8, '{"required":"0","rule":""}');
+values ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 3, 8, '{"required":"0","defaultValue":"false","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1722804548510507040', '50', 'prompt', 'prompt', 2, 3, 9, '{"required":"0","rule":""}');
 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
@@ -2451,7 +2578,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 create table tag
 (
     id            VARCHAR2(128) not null,
-    name          VARCHAR2(255) not null,
+    tag_name      VARCHAR2(255) not null,
     tag_desc      VARCHAR2(255) not null,
     parent_tag_id VARCHAR2(128) not null,
     ext           VARCHAR2(1024) not null,
@@ -2464,7 +2591,7 @@ comment
 on column TAG.id
   is 'primary key id';
 comment
-on column TAG.name
+on column TAG.tag_name
   is 'tag name';
 comment
 on column TAG.tag_desc
@@ -2508,11 +2635,11 @@ comment on column TAG_RELATION.date_updated
 create table discovery
 (
     id                VARCHAR2(128) not null,
-    name            VARCHAR2(255) not null,
-    level            VARCHAR2(64) not null,
+    discovery_name            VARCHAR2(255) not null,
+    discovery_level            VARCHAR2(64) not null,
     plugin_name      VARCHAR2(255),
     namespace_id VARCHAR2(50) not null,
-    type            VARCHAR2(64) not null,
+    discovery_type            VARCHAR2(64) not null,
     server_list      VARCHAR2(255),
     props            CLOB,
     date_created      timestamp(3) default SYSDATE not null,
@@ -2524,7 +2651,7 @@ comment on column DISCOVERY.id
   is 'primary key id';
 comment on column DISCOVERY.name
   is 'the discovery name';
-comment on column DISCOVERY.level
+comment on column DISCOVERY.discovery_level
   is '0 selector,1 plugin  2 global';
 comment on column DISCOVERY.plugin_name
   is 'the plugin name';
@@ -2604,15 +2731,15 @@ create table discovery_upstream
     discovery_handler_id   VARCHAR2(128) not null,
     namespace_id VARCHAR2(50) not null,
     protocol            VARCHAR2(64),
-    url      VARCHAR2(64) not null,
-    status      NUMBER(10) not null,
+    upstream_url      VARCHAR2(64) not null,
+    upstream_status      NUMBER(10) not null,
     weight      NUMBER(10)  not null,
     props       CLOB,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, url);
+CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, upstream_url);
 
 -- Add comments to the columns
 comment on column DISCOVERY_UPSTREAM.id
@@ -2623,9 +2750,9 @@ comment on column DISCOVERY_UPSTREAM.namespace_id
   is 'namespace id';
 comment on column DISCOVERY_UPSTREAM.protocol
   is 'for http, https, tcp, ws';
-comment on column DISCOVERY_UPSTREAM.url
+comment on column DISCOVERY_UPSTREAM.upstream_url
   is 'ip:port';
-comment on column DISCOVERY_UPSTREAM.status
+comment on column DISCOVERY_UPSTREAM.upstream_status
   is 'type (0, healthy, 1 unhealthy)';
 comment on column DISCOVERY_UPSTREAM.weight
   is 'the weight for lists';
@@ -2683,22 +2810,22 @@ create table alert_template
 ;
 -- Add comments to the columns
 comment
-on column ALTER_TEMPLATE.id
+on column ALERT_TEMPLATE.id
   is 'primary key id';
 comment
-on column ALTER_TEMPLATE.name
+on column ALERT_TEMPLATE.name
   is 'alert template name';
 comment
-on column ALTER_TEMPLATE.strategy_name
+on column ALERT_TEMPLATE.strategy_name
   is 'alert template strategy name';
 comment
-on column ALTER_TEMPLATE.content
+on column ALERT_TEMPLATE.content
   is 'alert template content';
 comment
-on column ALTER_TEMPLATE.date_created
+on column ALERT_TEMPLATE.date_created
   is 'create time';
 comment
-on column ALTER_TEMPLATE.date_updated
+on column ALERT_TEMPLATE.date_updated
   is 'update time';
 
 -- ----------------------------
@@ -2760,7 +2887,7 @@ comment
 on column alert_receiver.levels
   is 'alarm levels';
 comment
-on column lert_receiver.namespace_id
+on column alert_receiver.namespace_id
   is 'namespace id';
 comment
 on column alert_receiver.date_created
@@ -2806,22 +2933,22 @@ create table cluster_master
 ;
 -- Add comments to the columns
 comment
-on column alert_receiver.id
+on column cluster_master.id
   is 'primary key id';
 comment
-on column alert_receiver.master_host
+on column cluster_master.master_host
   is 'master host';
 comment
-on column alert_receiver.master_port
+on column cluster_master.master_port
   is 'master port';
 comment
-on column alert_receiver.context_path
+on column cluster_master.context_path
   is 'master context_path';
 comment
-on column alert_receiver.date_created
+on column cluster_master.date_created
   is 'create time';
 comment
-on column alert_receiver.date_updated
+on column cluster_master.date_updated
   is 'update time';
 
 
@@ -2858,16 +2985,16 @@ COMMENT ON COLUMN namespace.description IS 'namespace desc';
 COMMENT ON COLUMN namespace.date_created IS 'create time';
 COMMENT ON COLUMN namespace.date_updated IS 'update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO `namespace` (`id`, `namespace_id`, `name`, `description`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace(id)) */ INTO namespace (id, namespace_id, name, description) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace');
 
 
 CREATE TABLE namespace_plugin_rel (
-                               id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               namespace_id VARCHAR2(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               plugin_id VARCHAR2(128) COLLATE utf8mb4_unicode_ci NOT NULL,
-                               config CLOB COLLATE utf8mb4_unicode_ci,
+                               id VARCHAR2(128) NOT NULL,
+                               namespace_id VARCHAR2(50) NOT NULL,
+                               plugin_id VARCHAR2(128) NOT NULL,
+                               config CLOB,
                                sort NUMBER(11),
-                               enabled NUMBER(4,0) NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                               enabled NUMBER(4,0) DEFAULT 0 NOT NULL CHECK (enabled IN (0, 1)),
                                date_created      timestamp(3) default SYSDATE not null,
                                date_updated      timestamp(3) default SYSDATE not null,
                                CONSTRAINT pk_namespace_plugin_rel PRIMARY KEY (id)
@@ -2926,6 +3053,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespa
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 199, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled) VALUES ('1801816010882822300','649330b6-c2d7-4edc-be8e-8a54df9eb385','66', NULL, 66, 0);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACEPLUGIN', 'namespacePlugin', '/config/namespacePlugin', 'namespacePlugin', 1, 2, 'build', 0, 0, '', 1);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)VALUES ('1792749362445840480', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, '', 1, 0, 'system:namespacePlugin:list', 1);
@@ -2979,9 +3107,9 @@ comment on column SCALE_POLICY.date_created
 comment on column SCALE_POLICY.date_updated
     is 'update time';
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 3, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 1, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('1', 3, 0, 10, NULL, NULL, to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('2', 2, 0, 10, to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-08-01 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (scale_policy(id)) */ INTO scale_policy (id, sort, status, num, begin_time, end_time, date_created, date_updated) VALUES ('3', 1, 0, NULL, NULL, NULL, to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-07-31 20:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 create table scale_rule
 (
@@ -3063,35 +3191,46 @@ comment on column NAMESPACE_USER_REL.date_updated
     is 'update time';
 
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534849', '1346775491550474240', 'aiProxy', 'aiProxy', '/plug/aiProxy', 'aiProxy', 1, 0, 'pic-center', 0, 0, '', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534850', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxySelector:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534851', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxySelector:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534852', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxySelector:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534853', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxySelector:delete', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534854', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534855', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534856', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534857', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxyRule:delete', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534858', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxy:modify', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534900', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.ADD', '', '', '', 2, 0, '', 1, 0, 'system:aiProxyApiKey:add', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534901', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.LIST', '', '', '', 2, 1, '', 1, 0, 'system:aiProxyApiKey:list', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534902', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.EDIT', '', '', '', 2, 2, '', 1, 0, 'system:aiProxyApiKey:edit', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534903', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE', '', '', '', 2, 3, '', 1, 0, 'system:aiProxyApiKey:delete', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+VALUES ('1844026099075534904', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE', '', '', '', 2, 4, '', 1, 0, 'system:aiProxyApiKey:disable', 1);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
 VALUES ('1697146860569542741', '1346358560427216896', '1844026099075534849');
@@ -3123,6 +3262,21 @@ VALUES ('1697146860569542749', '1346358560427216896', '1844026099075534857');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
 VALUES ('1697146860569542750', '1346358560427216896', '1844026099075534858');
 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303960', '1346358560427216896', '1844026099075534900');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303961', '1346358560427216896', '1844026099075534901');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303962', '1346358560427216896', '1844026099075534902');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303963', '1346358560427216896', '1844026099075534903');
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
+VALUES ('1953049887387303964', '1346358560427216896', '1844026099075534904');
+
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507041', '50', 'provider', 'provider', 3, 1, 0, '{"required":"1","defaultValue":"OpenAI","placeholder":"provider","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
@@ -3145,7 +3299,80 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (
 VALUES ('1722804548510507047', '50', 'stream', 'stream', 3, 1, 6, '{"defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 7, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+VALUES ('1899802529972371600', '50', 'proxyEnabled', 'proxyEnabled', 2, 1, 7, '{"required":"0","defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507048', '50', 'prompt', 'prompt', 2, 1, 8, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371601', '50', 'fallbackEnabled', 'fallbackEnabled', 2, 1, 9, '{"required":"0","defaultValue":"false","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371602', '50', 'fallbackProvider', 'fallbackProvider', 2, 1, 10, '{"required":"0","placeholder":"OPENAI","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371603', '50', 'fallbackBaseUrl', 'fallbackBaseUrl', 2, 1, 11, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371604', '50', 'fallbackApiKey', 'fallbackApiKey', 2, 1, 12, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371605', '50', 'fallbackModel', 'fallbackModel', 2, 1, 13, '{"required":"0","placeholder":"gpt-4.1","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371606', '50', 'fallbackTemperature', 'fallbackTemperature', 1, 1, 14, '{"required":"0"}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1899802529972371607', '50', 'fallbackMaxTokens', 'fallbackMaxTokens', 1, 1, 15, '{"required":"0"}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507350', '66', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507351', '66', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507352', '66', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507353', '66', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507354', '66', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', sysdate, sysdate);
+
+-- Plugin handles for rule level configuration (type=2)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507355', '66', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507356', '66', 'baseUrl', 'baseUrl', 2, 2, 1, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507357', '66', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507358', '66', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507359', '66', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', sysdate, sysdate);
+
+
+
+CREATE TABLE instance_info (
+    id            varchar2(128)  NOT NULL,
+    namespace_id  varchar2(50)   NOT NULL,
+    instance_ip   varchar2(128)  NOT NULL,
+    instance_port varchar2(128)  NOT NULL,
+    instance_type varchar2(128)  NOT NULL,
+    instance_info clob          NOT NULL,
+    instance_state number          NOT NULL,
+    date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE instance_info IS 'Instance information table';
+COMMENT ON COLUMN instance_info.id IS 'primary key';
+COMMENT ON COLUMN instance_info.namespace_id IS 'namespace_id';
+COMMENT ON COLUMN instance_info.instance_ip IS 'instance_ip';
+COMMENT ON COLUMN instance_info.instance_port IS 'instance_port';
+COMMENT ON COLUMN instance_info.instance_type IS 'instance_type';
+COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
+COMMENT ON COLUMN instance_info.instance_state IS 'instance_state';
+COMMENT ON COLUMN instance_info.date_created IS 'create time';
+COMMENT ON COLUMN instance_info.date_updated IS 'update time';
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) 
 VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'));
@@ -3192,79 +3419,109 @@ VALUES ('1722804548510507142', '52', 'append', 'append', 2, 3, 3, '{"required":"
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) 
 VALUES ('1722804548510507143', '52', 'postRole', 'postRole', 3, 3, 4, '{"required":"0","rule":""}', to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2024-01-02 17:20:50.233', 'YYYY-MM-DD HH24:MI:SS.FF3'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554850', '1346775491550474240', 'aiPrompt', 'aiPrompt', '/plug/aiPrompt', 'aiPrompt', 1, 0, 'pic-center', 0, 0, '', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554851', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptSelector:add', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554852', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptSelector:query', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554853', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptSelector:edit', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554854', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptSelector:delete', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554855', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptRule:add', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554856', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptRule:query', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554857', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptRule:edit', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554858', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPromptRule:delete', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026099075554859', '1844026099075554850', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiPrompt:modify', 1, to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:58', 'YYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565000', '1346775491550474240', 'aiResponseTransformer', 'aiResponseTransformer', '/plug/aiResponseTransformer', 'aiResponseTransformer', 1, 0, 'pic-center', 0, 0, '', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, desc, sort, enabled, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565001', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:add', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565002', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:query', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565003', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:edit', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565004', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:delete', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565005', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:add', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565006', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:query', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565007', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:edit', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565008', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:delete', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+VALUES ('1844026099075565009', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformer:modify', 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 VALUES ('1679002911061737580', 'preRole', 'ROLE_TYPE_SYSTEM', 'SYSTEM', 'system', 'system', 0, 1, to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, desc, sort, enabled, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 VALUES ('1679002911061737581', 'preRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, desc, sort, enabled, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 VALUES ('1679002911061737582', 'postRole', 'ROLE_TYPE_SYSTEM', 'SYSTEM', 'system', 'system', 0, 1, to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, desc, sort, enabled, date_created, date_updated) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated)
 VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) 
 VALUES ('1801816010882822189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '52', NULL, 171, 0, to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534859', '1346775491550474240', 'aiTokenLimiter', 'aiTokenLimiter', '/plug/aiTokenLimiter', 'aiTokenLimiter', 1, 0, 'pic-center', 0, 0, '', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534860', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534861', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534862', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534863', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterSelector:delete', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534864', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534865', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534866', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534867', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiterRule:delete', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534868', '1844026099075534859', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiTokenLimiter:modify', 1);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 
@@ -3382,34 +3639,34 @@ VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{"required"
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564859', '1346775491550474240', 'aiRequestTransformer', 'aiRequestTransformer', '/plug/aiRequestTransformer', 'aiRequestTransformer', 1, 0, 'pic-center', 0, 0, '', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564860', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564861', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564862', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564863', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:delete',1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564864', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:add', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564865', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:query', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564866', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:edit', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564867', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerRule:delete',1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075564868', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformer:modify', 1);
 
 
@@ -3457,3 +3714,105 @@ VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0"
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507245', '53', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507246', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507247', '53', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507248', '53', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
+VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated)
+VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
+VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', sysdate, sysdate);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534860', '1346775491550474240', 'mcpServer', 'mcpServer', '/plug/mcpServer', 'mcpServer', 1, 0, 'pic-left', 0, 0, '', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534861', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534862', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534863', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534864', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534865', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534866', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534867', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534868', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1844026199075534869', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServer:modify', 1, sysdate, sysdate);
+
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542751', '1346358560427216896', '1844026199075534860', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542752', '1346358560427216896', '1844026199075534861', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542753', '1346358560427216896', '1844026199075534862', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542754', '1346358560427216896', '1844026199075534863', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542755', '1346358560427216896', '1844026199075534864', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542756', '1346358560427216896', '1844026199075534865', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542757', '1346358560427216896', '1844026199075534866', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', sysdate, sysdate);
+
+CREATE TABLE registry_config  (
+    id            varchar2(128) NOT NULL,
+    registry_id   varchar2(50)  NOT NULL,
+    protocol      varchar2(128) NOT NULL,
+    address       varchar2(512) NOT NULL,
+    username      varchar2(50),
+    password      varchar2(100),
+    namespace     varchar2(100),
+    registry_group         varchar2(20),
+    date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT registry_config_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE registry_config IS 'registry config information table';
+COMMENT ON COLUMN registry_config.id IS 'primary key';
+COMMENT ON COLUMN registry_config.registry_id IS 'registry_id';
+COMMENT ON COLUMN registry_config.protocol IS 'protocol';
+COMMENT ON COLUMN registry_config.address IS 'address';
+COMMENT ON COLUMN registry_config.username IS 'username';
+COMMENT ON COLUMN registry_config.password IS 'password';
+COMMENT ON COLUMN registry_config.namespace IS 'namespace';
+COMMENT ON COLUMN registry_config.registry_group IS 'group';
+COMMENT ON COLUMN registry_config.date_created IS 'create time';
+COMMENT ON COLUMN registry_config.date_updated IS 'update time';
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116900', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.REGISTRY', 'registry', '/config/registry', 'registry', 1, 7, 'ordered-list', 0, 0, '', 1, to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116901', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:registry:add', 1, to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116902', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:registry:list', 1, to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116903', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:registry:delete', 1,to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
+VALUES ('1953048313980116904', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 3, '', 1, 0, 'system:registry:edit', 1, to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), to_timestamp('2025-08-06 17:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'));
+
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303901', '1346358560427216896', '1953048313980116900', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303902', '1346358560427216896', '1953048313980116901', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', sysdate, sysdate);

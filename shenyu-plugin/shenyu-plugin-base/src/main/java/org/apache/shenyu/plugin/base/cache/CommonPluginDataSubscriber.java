@@ -27,6 +27,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieEventEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.TrieEvent;
@@ -138,19 +139,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
-        LOG.info("subscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
+        LOG.debug("subscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
-        LOG.info("unSubscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
+        LOG.debug("unSubscribe select data for selector: [id: {}, pluginName: {}, name: {}]", selectorData.getId(), selectorData.getPluginName(), selectorData.getName());
         subscribeDataHandler(selectorData, DataEventTypeEnum.DELETE);
     }
     
     @Override
     public void refreshSelectorDataAll() {
-        LOG.info("start refresh all selector data");
+        LOG.debug("start refresh all selector data");
         BaseDataCache.getInstance().cleanSelectorData();
         MatchDataCache.getInstance().cleanSelectorData();
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
@@ -167,19 +168,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
-        LOG.info("subscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
+        LOG.debug("subscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
-        LOG.info("unSubscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
+        LOG.debug("unSubscribe rule data for rule[id: {}, selectorId: {}, name: {}]", ruleData.getId(), ruleData.getSelectorId(), ruleData.getName());
         subscribeDataHandler(ruleData, DataEventTypeEnum.DELETE);
     }
     
     @Override
     public void refreshRuleDataAll() {
-        LOG.info("start refresh all rule data");
+        LOG.debug("start refresh all rule data");
         BaseDataCache.getInstance().cleanRuleData();
         MatchDataCache.getInstance().cleanRuleDataData();
         ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
@@ -195,12 +196,16 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     private <T> void subscribeDataHandler(final T classData, final DataEventTypeEnum dataType) {
-        if (dataType == DataEventTypeEnum.UPDATE) {
-            Optional.ofNullable(classData)
-                    .ifPresent(data -> updateCacheData(classData));
-        } else if (dataType == DataEventTypeEnum.DELETE) {
-            Optional.ofNullable(classData)
-                    .ifPresent(data -> removeCacheData(classData));
+        try {
+            if (dataType == DataEventTypeEnum.UPDATE) {
+                Optional.ofNullable(classData)
+                        .ifPresent(data -> updateCacheData(classData));
+            } else if (dataType == DataEventTypeEnum.DELETE) {
+                Optional.ofNullable(classData)
+                        .ifPresent(data -> removeCacheData(classData));
+            }
+        } catch (Exception e) {
+            LOG.error("subscribe data handler error, classData: {}, dataType: {}", JsonUtils.toJson(classData), dataType, e);
         }
     }
     

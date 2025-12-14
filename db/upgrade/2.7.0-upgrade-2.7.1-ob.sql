@@ -105,6 +105,18 @@ INSERT INTO `shenyu_dict` VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
+CREATE TABLE IF NOT EXISTS instance_info (
+                                             `id`            varchar(128)  NOT NULL COMMENT 'primary key',
+    `namespace_id`   varchar(50)  NOT NULL COMMENT 'namespace_id',
+    `instance_ip`    varchar(128)  NOT NULL COMMENT 'instance_ip',
+    `instance_port`    varchar(128)  NOT NULL COMMENT 'instance_port',
+    `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
+    `instance_info`  text  NOT NULL COMMENT 'instance_info',
+    `instance_state`  tiny(4)  NOT NULL COMMENT 'instance_state',
+    `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
+    `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    PRIMARY KEY (`id`)
+);
 INSERT INTO `plugin` VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -153,6 +165,42 @@ INSERT INTO `plugin_handle` VALUES ('1899702411294539776', '51', 'timeWindowSeco
 INSERT INTO `plugin_handle` VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
+UPDATE `plugin_handle` SET `field` = 'bootstrapServer', `label` = 'bootstrapServer' WHERE `id` = '1529402613204172893' AND `plugin_id` = '33';
+
+INSERT INTO `plugin_handle` VALUES ('1729402613204172893', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172897', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172898', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172899', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9,'{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172900', '33', 'userName', 'userName', 2, 1, 10, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172901', '33', 'passWord', 'passWord', 2, 1, 11, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+
+DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
+
+INSERT INTO `plugin_handle` VALUES ('1821435546642157568', '45', 'host', 'host', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:53:11.704', '2023-11-07 13:31:41.010');
+INSERT INTO `plugin_handle` VALUES ('1821435708743618560', '45', 'port', 'port', 1, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:53:50.352', '2023-11-07 13:31:41.016');
+INSERT INTO `plugin_handle` VALUES ('1821436368046264320', '45', 'password', 'password', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:56:27.541', '2023-11-07 13:31:41.021');
+INSERT INTO `plugin_handle` VALUES ('1821436500343001088', '45', 'username', 'username', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:56:59.084', '2023-11-07 13:31:41.025');
+INSERT INTO `plugin_handle` VALUES ('1821436639635836928', '45', 'exchangeName', 'exchangeName', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:32.295', '2023-11-07 13:31:41.030');
+INSERT INTO `plugin_handle` VALUES ('1821436745583955968', '45', 'queueName', 'queueName', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 15:57:57.553', '2023-11-07 13:31:41.035');
+INSERT INTO `plugin_handle` VALUES ('1821509996347617280', '45', 'routingKey', 'routingKey', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2023-11-06 20:49:01.897', '2023-11-07 13:31:41.039');
+INSERT INTO `plugin_handle` VALUES ('1821725585461706752', '45', 'virtualHost', 'virtualHost', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"/\",\"rule\":\"\"}', '2023-11-07 11:05:42.350', '2023-11-07 13:31:41.044');
+INSERT INTO `plugin_handle` VALUES ('1821725662875975680', '45', 'exchangeType', 'exchangeType', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"direct\",\"rule\":\"\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1822804180904927232', '45', 'durable', 'durable', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"true\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1822804370575548416', '45', 'exclusive', 'exclusive', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"false\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1822804461256400896', '45', 'autoDelete', 'autoDelete', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"false\",\"placeholder\":\"true / false\",\"rule\":\"/^(true|false)$/\"}', '2023-11-07 11:06:00.803', '2023-11-07 13:31:41.048');
+INSERT INTO `plugin_handle` VALUES ('1822804548510507008', '45', 'args', 'args', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":"",\"placeholder\":"",\"rule\":\"\"}', '2023-1\1-07 11:06:00.803', '2023-11-07 13:31:41.048');
+
+INSERT INTO `plugin_handle` VALUES ('1729402613204172859', '30', 'cacheType', 'cacheType', 3, 1, 1, '{\"required\":\"1\",\"defaultValue\":\"memory\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172860', '30', 'database', 'database', 1, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172861', '30', 'master', 'master', 2, 1, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172862', '30', 'mode', 'mode', 2, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"standalone\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172863', '30', 'url', 'url', 2, 1, 5, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172864', '30', 'password', 'password', 2, 1, 6, '{\"required\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172865', '30', 'maxIdle', 'maxIdle', 1, 1, 7, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172866', '30', 'minIdle', 'minIdle', 1, 1, 8, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172867', '30', 'maxActive', 'maxActive', 1, 1, 9, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172868', '30', 'maxWait', 'maxWait', 3, 1, 10, '{\"required\":\"0\",\"defaultValue\":\"-1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
 INSERT INTO `plugin` VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -162,6 +210,11 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507241', '53', 'baseUrl', 'bas
 INSERT INTO `plugin_handle` VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507245', '53', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507246', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507247', '53', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507248', '53', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 INSERT INTO `resource` VALUES ('1844026099075564859', '1346775491550474240', 'aiRequestTransformer', 'aiRequestTransformer', '/plug/aiRequestTransformer', 'aiRequestTransformer', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026099075564860', '1844026099075564859', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiRequestTransformerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -185,4 +238,88 @@ INSERT INTO `permission` VALUES ('1697146860569742758', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1697146860569742759', '1346358560427216896', '1844026099075564867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO `permission` VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
-DELETE FROM `plugin_handle` WHERE `plugin_id` = '8';
+INSERT INTO `plugin_handle` VALUES ('1529402613204173925', '6', 'registry', 'registry', 2, 1, 0, '{\"required\":\"0\",\"rule\":\"\"}', '2025-02-27 17:20:50.233', '2025-02-27 17:20:50.233');
+UPDATE `plugin_handle` SET ext_obj = '{\"required\":\"0\",\"rule\":\"\"}' WHERE plugin_id = '6' AND label = 'ip:port' AND data_type = 2;
+
+INSERT INTO `plugin_handle` VALUES ('1729402613199978534', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613199978535', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172874', '11', 'corethreads', 'corethreads', 1, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172875', '11', 'threads', 'threads', 1, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172876', '11', 'queues', 'queues', 1, 1, 6, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1729402613204172877', '11', 'threadpool', 'threadpool', 3, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
+INSERT INTO `plugin_handle` VALUES ('1829402613204172834', '17', 'registerProtocol', 'registerProtocol', 2, 1, 0, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerProtocol\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1829402613204172835', '17', 'corethreads', 'corethreads', 1, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1829402613204172836', '17', 'threads', 'threads', 1, 1, 3, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1829402613204172837', '17', 'queues', 'queues', 1, 1, 4, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1829402613204172838', '17', 'threadpool', 'threadpool', 3, 1, 5, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1878997557628272641', '17', 'registerAddress', 'registerAddress', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"registerAddress\",\"rule\":\"\"}', '2023-01-10 10:08:01.158', '2023-01-10 10:08:01.158');
+
+INSERT INTO `plugin_handle` VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
+
+
+INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882832189','649330b6-c2d7-4edc-be8e-8a54df9eb385','61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+
+INSERT INTO `resource` VALUES ('1844026199075534860', '1346775491550474240', 'mcpServer', 'mcpServer', '/plug/mcpServer', 'mcpServer', 1, 0, 'pic-left', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534861', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534862', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534863', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534864', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534865', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534866', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534867', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534868', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1844026199075534869', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServer:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+
+INSERT INTO `permission` VALUES ('1697146861569542751', '1346358560427216896', '1844026199075534860', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO `permission` VALUES ('1697146861569542752', '1346358560427216896', '1844026199075534861', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO `permission` VALUES ('1697146861569542753', '1346358560427216896', '1844026199075534862', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO `permission` VALUES ('1697146861569542754', '1346358560427216896', '1844026199075534863', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO `permission` VALUES ('1697146861569542755', '1346358560427216896', '1844026199075534864', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1697146861569542756', '1346358560427216896', '1844026199075534865', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1697146861569542757', '1346358560427216896', '1844026199075534866', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+CREATE TABLE `registry_config`  (
+                                    `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+                                    `registry_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'registry_id',
+                                    `protocol` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'protocol',
+                                    `address` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'address',
+                                    `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'username',
+                                    `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'password',
+                                    `namespace` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'namespace',
+                                    `registry_group` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'group',
+                                    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+                                    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+                                    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116900', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.REGISTRY', 'registry', '/config/registry', 'registry', 1, 7, 'ordered-list', 0, 0, '', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116901', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.ADD', '', '', '', 2, 0, '', 1, 0, 'system:registry:add', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116902', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 1, '', 1, 0, 'system:registry:list', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116903', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 2, '', 1, 0, 'system:registry:delete', 1,'2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1953048313980116904', '1953048313980116900', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 3, '', 1, 0, 'system:registry:edit', 1, '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303901', '1346358560427216896', '1953048313980116900', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303902', '1346358560427216896', '1953048313980116901', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+ALTER TABLE `rule` MODIFY COLUMN `handle` text;
+
+ALTER TABLE `selector` CHANGE COLUMN `type` `selector_type` int(0) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)';
+ALTER TABLE `selector` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 'sort';
+ALTER TABLE `selector` CHANGE COLUMN `name` `selector_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name';
+ALTER TABLE `tag` CHANGE COLUMN `name` `tag_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name';
+ALTER TABLE `rule` CHANGE COLUMN `sort` `sort_code` int(0) NOT NULL COMMENT 'sort';
+
+ALTER TABLE `rule` CHANGE COLUMN `name` `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name';
+ALTER TABLE `discovery` CHANGE COLUMN `type` `discovery_type` int(0) NOT NULL COMMENT 'discovery type';
+ALTER TABLE `discovery` CHANGE COLUMN `name` `discovery_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'discovery name';
+ALTER TABLE `discovery_upstream` CHANGE COLUMN `url` `upstream_url` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ip:port';
+ALTER TABLE `discovery_upstream` CHANGE COLUMN `status` `upstream_status` int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)';
+
+ALTER TABLE `discovery` CHANGE COLUMN `level` `discovery_level` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global';

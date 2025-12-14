@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.0.2-SNAPSHOT</version>
+    <version>2.7.1-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -48,6 +48,7 @@
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
+        <module>shenyu-infra/shenyu-infra-common</module>
     </modules>
 
     <licenses>
@@ -108,7 +109,7 @@
         <jasypt.version>1.9.2</jasypt.version>
         <mybatis.starter.version>3.0.3</mybatis.starter.version>
         <mysql.version>8.3.0</mysql.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
@@ -129,7 +130,7 @@
         <tars.version>1.7.2</tars.version>
         <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
-        <zookeeper.version>3.9.2</zookeeper.version>
+        <zookeeper.version>3.9.4</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
@@ -186,6 +187,8 @@
         <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.0.0</spring-ai.version>
+        <mcp.version>0.10.0</mcp.version>
+        <swagger-parser.version>2.1.30</swagger-parser.version>
         <!-- dependency version end -->
     </properties>
 
@@ -196,6 +199,22 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-bom</artifactId>
+                <version>${mcp.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -588,6 +607,12 @@
                 <artifactId>oceanbase-client</artifactId>
                 <version>${oceanbase.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
             </dependency>
 
         </dependencies>

@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-sync-data-center</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sync-data-etcd</artifactId>
@@ -31,23 +31,11 @@
             <artifactId>shenyu-sync-data-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>io.etcd</groupId>
-            <artifactId>jetcd-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>grpc-netty</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>grpc-protobuf</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>grpc-stub</artifactId>
-                    <groupId>io.grpc</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-infra-etcd</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

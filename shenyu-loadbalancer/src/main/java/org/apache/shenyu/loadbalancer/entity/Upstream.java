@@ -19,8 +19,10 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -41,7 +43,7 @@ public final class Upstream {
     /**
      * weight.
      */
-    private final int weight;
+    private int weight;
 
     /**
      * false close, true open.
@@ -102,7 +104,10 @@ public final class Upstream {
      * this is gray.
      */
     private boolean gray;
-
+    
+    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    
+    
     /**
      * Total number of requests being processed.
      */
@@ -123,7 +128,7 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
     }
-
+    
     /**
      * Gets protocol.
      *
@@ -132,7 +137,7 @@ public final class Upstream {
     public String getProtocol() {
         return protocol;
     }
-
+    
     /**
      * Is status boolean.
      *
@@ -141,7 +146,7 @@ public final class Upstream {
     public boolean isStatus() {
         return status;
     }
-
+    
     /**
      * Sets status.
      *
@@ -150,7 +155,7 @@ public final class Upstream {
     public void setStatus(final boolean status) {
         this.status = status;
     }
-
+    
     /**
      * Gets timestamp.
      *
@@ -159,7 +164,7 @@ public final class Upstream {
     public long getTimestamp() {
         return timestamp;
     }
-
+    
     /**
      * Gets warmup.
      *
@@ -168,7 +173,7 @@ public final class Upstream {
     public int getWarmup() {
         return warmup;
     }
-
+    
     /**
      * Gets url.
      *
@@ -177,7 +182,7 @@ public final class Upstream {
     public String getUrl() {
         return url;
     }
-
+    
     /**
      * Sets url.
      *
@@ -186,7 +191,7 @@ public final class Upstream {
     public void setUrl(final String url) {
         this.url = url;
     }
-
+    
     /**
      * get weight.
      *
@@ -195,7 +200,16 @@ public final class Upstream {
     public int getWeight() {
         return weight;
     }
-
+    
+    /**
+     * Sets weight.
+     *
+     * @param weight the weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
+    }
+    
     /**
      * Is healthy boolean.
      *
@@ -204,7 +218,7 @@ public final class Upstream {
     public boolean isHealthy() {
         return healthy;
     }
-
+    
     /**
      * Sets healthy.
      *
@@ -213,7 +227,7 @@ public final class Upstream {
     public void setHealthy(final boolean healthy) {
         this.healthy = healthy;
     }
-
+    
     /**
      * Gets last health timestamp.
      *
@@ -222,7 +236,7 @@ public final class Upstream {
     public long getLastHealthTimestamp() {
         return lastHealthTimestamp;
     }
-
+    
     /**
      * Sets last health timestamp.
      *
@@ -231,7 +245,7 @@ public final class Upstream {
     public void setLastHealthTimestamp(final long lastHealthTimestamp) {
         this.lastHealthTimestamp = lastHealthTimestamp;
     }
-
+    
     /**
      * Gets last unhealthy timestamp.
      *
@@ -240,7 +254,7 @@ public final class Upstream {
     public long getLastUnhealthyTimestamp() {
         return lastUnhealthyTimestamp;
     }
-
+    
     /**
      * Sets last unhealthy timestamp.
      *
@@ -249,7 +263,7 @@ public final class Upstream {
     public void setLastUnhealthyTimestamp(final long lastUnhealthyTimestamp) {
         this.lastUnhealthyTimestamp = lastUnhealthyTimestamp;
     }
-
+    
     /**
      * Gets group.
      *
@@ -258,7 +272,7 @@ public final class Upstream {
     public String getGroup() {
         return group;
     }
-
+    
     /**
      * Sets group.
      *
@@ -267,7 +281,7 @@ public final class Upstream {
     public void setGroup(final String group) {
         this.group = group;
     }
-
+    
     /**
      * Gets version.
      *
@@ -276,7 +290,7 @@ public final class Upstream {
     public String getVersion() {
         return version;
     }
-
+    
     /**
      * Sets version.
      *
@@ -285,7 +299,7 @@ public final class Upstream {
     public void setVersion(final String version) {
         this.version = version;
     }
-
+    
     /**
      * Gets lag.
      *
@@ -294,15 +308,16 @@ public final class Upstream {
     public long getLag() {
         return lag;
     }
-
+    
     /**
      * Sets lag.
+     *
      * @param lag the lag
      */
     public void setLag(final long lag) {
         this.lag = lag;
     }
-
+    
     /**
      * Gets responseStamp.
      *
@@ -311,15 +326,16 @@ public final class Upstream {
     public long getResponseStamp() {
         return responseStamp;
     }
-
+    
     /**
      * Sets responseStamp.
+     *
      * @param responseStamp the responseStamp
      */
     public void setResponseStamp(final long responseStamp) {
         this.responseStamp = responseStamp;
     }
-
+    
     /**
      * Gets lastPickedStamp.
      *
@@ -328,15 +344,16 @@ public final class Upstream {
     public long getLastPicked() {
         return lastPicked;
     }
-
+    
     /**
      * Sets lastPickedStamp.
+     *
      * @param lastPicked the lastPickedStamp
      */
     public void setLastPicked(final long lastPicked) {
         this.lastPicked = lastPicked;
     }
-
+    
     /**
      * Gets inflight.
      *
@@ -345,24 +362,25 @@ public final class Upstream {
     public AtomicLong getInflight() {
         return inflight;
     }
-
+    
     /**
      * Sets inflight.
+     *
      * @param inflight the inflight
      */
     public void setInflight(final AtomicLong inflight) {
         this.inflight = inflight;
     }
-
+    
     /**
      * gray.
      *
-     * @return Gray
+     * @return Gray boolean
      */
     public boolean isGray() {
         return gray;
     }
-
+    
     /**
      * set gray.
      *
@@ -371,25 +389,46 @@ public final class Upstream {
     public void setGray(final boolean gray) {
         this.gray = gray;
     }
-
+    
+    /**
+     * Gets metadata.
+     *
+     * @return the metadata
+     */
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+    
+    /**
+     * Sets metadata.
+     *
+     * @param metadata the metadata
+     */
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+    
     /**
      * Gets succeeded.
+     *
      * @return the succeeded
      */
     public AtomicLong getSucceeded() {
         return succeeded;
     }
-
+    
     /**
      * Gets succeededElapsed.
+     *
      * @return the succeededElapsed
      */
     public AtomicLong getSucceededElapsed() {
         return succeededElapsed;
     }
-
+    
     /**
      * Gets succeededAverageElapsed.
+     *
      * @return the succeededAverageElapsed.
      */
     public long getSucceededAverageElapsed() {
@@ -399,11 +438,11 @@ public final class Upstream {
         }
         return getSucceededElapsed().get() / succeeded;
     }
-
+    
     /**
      * build request domain.
      *
-     * @return domain
+     * @return domain string
      */
     public String buildDomain() {
         String protocol = this.getProtocol();
@@ -417,12 +456,12 @@ public final class Upstream {
      * Build request with protocol.
      *
      * @param protocol protocol
-     * @return domain
+     * @return domain string
      */
     public String buildDomain(final String protocol) {
         return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
-
+    
     /**
      * class builder.
      *
@@ -441,7 +480,7 @@ public final class Upstream {
             return false;
         }
         Upstream that = (Upstream) o;
-        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol) && Objects.equals(weight, that.weight);
+        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol);
     }
 
     @Override
@@ -462,7 +501,7 @@ public final class Upstream {
                 + ", version='" + version
                 + '}';
     }
-
+    
     /**
      * class builder.
      */
@@ -518,7 +557,7 @@ public final class Upstream {
          */
         private Builder() {
         }
-
+        
         /**
          * build new Object.
          *
@@ -527,7 +566,7 @@ public final class Upstream {
         public Upstream build() {
             return new Upstream(this);
         }
-
+        
         /**
          * build protocol.
          *
@@ -538,7 +577,7 @@ public final class Upstream {
             this.protocol = protocol;
             return this;
         }
-
+        
         /**
          * build url.
          *
@@ -549,7 +588,7 @@ public final class Upstream {
             this.url = url;
             return this;
         }
-
+        
         /**
          * build weight.
          *
@@ -560,7 +599,7 @@ public final class Upstream {
             this.weight = weight;
             return this;
         }
-
+        
         /**
          * build status.
          *
@@ -571,7 +610,7 @@ public final class Upstream {
             this.status = status;
             return this;
         }
-
+        
         /**
          * build timestamp.
          *
@@ -582,7 +621,7 @@ public final class Upstream {
             this.timestamp = timestamp;
             return this;
         }
-
+        
         /**
          * build warmup.
          *
@@ -593,7 +632,7 @@ public final class Upstream {
             this.warmup = warmup;
             return this;
         }
-
+        
         /**
          * build group.
          *
@@ -604,7 +643,7 @@ public final class Upstream {
             this.group = group;
             return this;
         }
-
+        
         /**
          * build version.
          *
@@ -615,8 +654,8 @@ public final class Upstream {
             this.version = version;
             return this;
         }
-
-
+        
+        
         /**
          * build gray.
          *

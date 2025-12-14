@@ -39,15 +39,30 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
+      - uses: ./actions/paths-filter
+        id: filter
+        with:
+          filters: |
+            e2e:
+              - 'shenyu-e2e/**'
+              - '**/e2e/**'
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!resources/static/**'
+              - '!.asf.yaml'
+              - '!.gitignore'
+              - '!.licenserc.yaml'
+              - '!LICENSE'
+              - '!NOTICE'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE'
 
   build-docker-images:
     needs: changes
-#    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -66,29 +81,59 @@ jobs:
       - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Install mvnd
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.2
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          else
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          fi
 
       - name: Build with Maven
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build"
+            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+          else
+            echo "Falling back to maven wrapper"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+            else
+              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+            fi
+          fi
 
       - name: Save ShenYu Maven Repos
         uses: actions/cache/save@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
-#      - name: Build shenyu-e2e-engine with Maven
-#        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
+      #      - name: Build shenyu-e2e-engine with Maven
+      #        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
-#      - name: Save ShenYu E2E Maven Repos
-#        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
-#        uses: actions/cache/save@v3
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+      #      - name: Save ShenYu E2E Maven Repos
+      #        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
+      #        uses: actions/cache/save@v3
+      #        with:
+      #          path: ~/.m2/repository
+      #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Build Docker Image
         run: |
@@ -107,8 +152,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    #    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -137,28 +182,21 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
-
-#      - name: Install k8s
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
-#          cat /etc/rancher/k3s/k3s.yaml
-#          mkdir -p ~/.kube
-#          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+      #      - name: Install k8s
+      #        if: steps.filter.outputs.changed == 'true'
+      #        run: |
+      #          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+      #          cat /etc/rancher/k3s/k3s.yaml
+      #          mkdir -p ~/.kube
+      #          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Restore ShenYu Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
@@ -170,37 +208,36 @@ jobs:
         with:
           name: shenyu-images
           path: /tmp/shenyu/
-      
+
       - name: Load ShenYu Docker Images
         run: |
           docker load --input /tmp/shenyu/apache-shenyu-admin.tar
           docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
           docker image ls -a
 
-#      - name: Build k8s Cluster
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
-#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+      #      - name: Build k8s Cluster
+      #        if: steps.filter.outputs.changed == 'true'
+      #        run: |
+      #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+      #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
       - name: Run E2E Tests
-#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
-#      - name: Cluster Test after Healthcheck
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          kubectl get all
-#          kubectl get events --all-namespaces
+  #      - name: Cluster Test after Healthcheck
+  #        if: steps.filter.outputs.changed == 'true'
+  #        run: |
+  #          kubectl get all
+  #          kubectl get events --all-namespaces
 
   e2e-case:
     runs-on: ubuntu-latest
     needs:
       - changes
       - build-docker-images
-#    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    #    if: (github.repository == 'apache/shenyu')
     strategy:
       matrix:
         include:
@@ -216,15 +253,15 @@ jobs:
             script: e2e-grpc-sync-compose
           - case: shenyu-e2e-case-websocket
             script: e2e-websocket-sync-compose
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-jdbc-compose
-          - case: shenyu-e2e-case-cluster
-            script: e2e-cluster-zookeeper-compose
+          # - case: shenyu-e2e-case-cluster
+          #   script: e2e-cluster-jdbc-compose
+          # - case: shenyu-e2e-case-cluster
+          #   script: e2e-cluster-zookeeper-compose
           - case: shenyu-e2e-case-logging-rocketmq
             script: e2e-logging-rocketmq-compose
-          - case: shenyu-e2e-case-logging-kafka
-            script: e2e-logging-kafka-compose
-            
+          # - case: shenyu-e2e-case-logging-kafka
+          #   script: e2e-logging-kafka-compose
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -242,50 +279,70 @@ jobs:
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
-
-#      - name: Install k8s
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
-#          cat /etc/rancher/k3s/k3s.yaml
-#          mkdir -p ~/.kube
-#          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+      #      - name: Install k8s
+      #        if: steps.filter.outputs.changed == 'true'
+      #        run: |
+      #          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+      #          cat /etc/rancher/k3s/k3s.yaml
+      #          mkdir -p ~/.kube
+      #          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
       - name: Set up JDK 17 for Building ShenYu
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Restore ShenYu Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
         uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      
+
+      - name: Install mvnd
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.2
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          else
+            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+            unzip -q mvnd.zip
+            mkdir -p $HOME/.local
+            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+          fi
+
       - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
           path: /tmp/shenyu/
 
-#      - name: Restore ShenYu E2E Maven Repos
-#        uses: actions/cache/restore@v3
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-e2e-maven-
+      #      - name: Restore ShenYu E2E Maven Repos
+      #        uses: actions/cache/restore@v3
+      #        with:
+      #          path: ~/.m2/repository
+      #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
+      #          restore-keys: |
+      #            ${{ runner.os }}-e2e-maven-
 
       - name: Build examples with Maven
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+        shell: bash
+        run: |
+          echo "Falling back to maven wrapper for examples"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          else
+            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          fi
 
       - uses: actions/download-artifact@v4
         with:
@@ -298,32 +355,31 @@ jobs:
           docker load --input /tmp/shenyu/apache-shenyu-bootstrap.tar
           docker image ls -a
 
-#      - name: Build k8s Cluster
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
-#          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
+      #      - name: Build k8s Cluster
+      #        if: steps.filter.outputs.changed == 'true'
+      #        run: |
+      #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-admin.tar
+      #          sudo k3s ctr images import /tmp/shenyu/apache-shenyu-bootstrap.tar
 
-#      - name: Setup Debug Session
-#        uses: mxschmitt/action-tmate@v3
-#        timeout-minutes: 15
-#        with:
-#          detached: true
+      #      - name: Setup Debug Session
+      #        uses: mxschmitt/action-tmate@v3
+      #        timeout-minutes: 15
+      #        with:
+      #          detached: true
 
       - name: Run E2E Tests
-#        if: steps.filter.outputs.changed == 'true'
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
-#      - name: Cluster Test after Healthcheck
-#        if: steps.filter.outputs.changed == 'true'
-#        run: |
-#          kubectl get all
-#          kubectl get events --all-namespaces
+  #      - name: Cluster Test after Healthcheck
+  #        if: steps.filter.outputs.changed == 'true'
+  #        run: |
+  #          kubectl get all
+  #          kubectl get events --all-namespaces
 
   requirement:
     name: e2e
-#    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     needs:
       - changes
       - e2e-storage

@@ -20,14 +20,17 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-infra</artifactId>
     <packaging>pom</packaging>
 
     <modules>
+        <module>shenyu-infra-etcd</module>
+        <module>shenyu-infra-nacos</module>
         <module>shenyu-infra-redis</module>
+        <module>shenyu-infra-zookeeper</module>
     </modules>
 
 </project>

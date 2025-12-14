@@ -238,8 +238,8 @@ shenyu:
 #      namespace: application
 #    zookeeper:
 #      url: localhost:2181
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
+#      sessionTimeoutMilliseconds: 5000
+#      connectionTimeoutMilliseconds: 2000
 #    http:
 #      url: http://localhost:9095
 #      username:
@@ -266,6 +266,12 @@ shenyu:
 #      url: http://localhost:8500
 #      waitTime: 10000
 #      watchDelay: 10000
+  heartbeat:
+    enabled: true
+    serverLists: http://localhost:9095
+    props:
+      username: admin
+      password: 123456
   exclude:
     enabled: false
     paths:
