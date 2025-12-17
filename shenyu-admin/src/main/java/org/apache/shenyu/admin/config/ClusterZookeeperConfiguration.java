@@ -23,8 +23,6 @@ import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterSelectMasterSe
 import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterZookeeperClient;
 import org.apache.shenyu.admin.mode.cluster.impl.zookeeper.ClusterZookeeperConfig;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -38,9 +36,7 @@ import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry;
 @EnableConfigurationProperties({ClusterProperties.class, ClusterZookeeperProperties.class})
 @ConditionalOnProperty(value = {"shenyu.cluster.type"}, havingValue = "zookeeper", matchIfMissing = false)
 public class ClusterZookeeperConfiguration {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterZookeeperConfiguration.class);
-    
+
     private static final String LOCK_PATH = "/shenyu-cluster-lock";
     
     /**

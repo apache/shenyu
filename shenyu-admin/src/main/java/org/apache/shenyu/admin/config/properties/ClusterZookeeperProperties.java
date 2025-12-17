@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.StringJoiner;
