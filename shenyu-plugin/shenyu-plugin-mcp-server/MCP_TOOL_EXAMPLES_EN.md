@@ -287,7 +287,7 @@ This document provides comprehensive examples of tool configurations for the She
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/header\",\"method\":\"GET\",\"headers\":[{\"key\":\"header_key1\",\"value\":\"{{.headerKey1}}\"}],\"timeout\":30000},\"argsPosition\":{\"headerKey1\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/header\",\"method\":\"GET\",\"headers\":[{\"key\":\"header_key1\",\"value\":\"{{.headerKey1}}\"}],\"timeout\":30000},\"argsPosition\":{\"headerKey1\":\"header\"}}",
   "description": "Request header test"
 }
 ```
@@ -321,7 +321,7 @@ This document provides comprehensive examples of tool configurations for the She
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/cookie\",\"method\":\"GET\",\"headers\":[{\"key\":\"Cookie\",\"value\":\"userId={{.userId}}\"}],\"timeout\":30000},\"argsPosition\":{\"userId\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/request/cookie\",\"method\":\"GET\",\"headers\":[{\"key\":\"Cookie\",\"value\":\"userId={{.userId}}\"}],\"timeout\":30000},\"argsPosition\":{\"userId\":\"header\"}}",
   "description": "Cookie test"
 }
 ```
@@ -376,7 +376,7 @@ This document provides comprehensive examples of tool configurations for the She
       "required": true
     }
   ],
-  "requestConfig": "{\"requestTemplate\":{\"url\":\"/order/oauth2/test\",\"method\":\"GET\",\"headers\":[{\"key\":\"Authorization\",\"value\":\"Bearer {{.token}}\"}],\"timeout\":30000},\"argsPosition\":{\"token\":\"query\"}}",
+  "requestConfig": "{\"requestTemplate\":{\"url\":\"/order/oauth2/test\",\"method\":\"GET\",\"headers\":[{\"key\":\"Authorization\",\"value\":\"Bearer {{.token}}\"}],\"timeout\":30000},\"argsPosition\":{\"token\":\"header\"}}",
   "description": "OAuth2 authentication test"
 }
 ```
@@ -470,7 +470,7 @@ This document provides comprehensive examples of tool configurations for the She
 4. **Request Headers**: Configure using `key` and `value` fields
 5. **Query Parameters**: Configure using `queryParams` array with `${paramName}` format values
 6. **Path Parameters**: Use `{{.paramName}}` format in URL
-7. **Parameter Mapping**: Use `argsPosition` to specify parameter location: `path`, `query`, `body`
+7. **Parameter Mapping**: Use `argsPosition` to specify parameter location: `path`, `query`, `body`, `header`
 
 ## Best Practices
 

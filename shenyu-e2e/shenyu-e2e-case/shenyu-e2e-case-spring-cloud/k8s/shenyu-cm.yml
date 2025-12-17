@@ -470,8 +470,8 @@ data:
       sync:
         zookeeper:
           url: shenyu-zookeeper:2181
-          sessionTimeout: 5000
-          connectionTimeout: 2000
+          sessionTimeoutMilliseconds: 5000
+          connectionTimeoutMilliseconds: 2000
 
   application-admin-sync-etcd.yml: |
     shenyu:
@@ -515,8 +515,8 @@ data:
       sync:
         zookeeper:
           url: shenyu-zookeeper:2181
-          sessionTimeout: 5000
-          connectionTimeout: 2000
+          sessionTimeoutMilliseconds: 5000
+          connectionTimeoutMilliseconds: 2000
 
   application-bootstrap-sync-etcd.yml: |
     shenyu:
