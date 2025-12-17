@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 
 /**
  * Resilience4J plugin test.
@@ -85,7 +86,9 @@ public final class Resilience4JPluginTest {
 
     @Test
     public void normalTest() {
-        resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
+        RateLimiterExecutor rateLimiterExecutor = mock(RateLimiterExecutor.class);
+        when(rateLimiterExecutor.run(any(), any(), any())).thenReturn(Mono.empty());
+        resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), rateLimiterExecutor);
         RuleData data = mock(RuleData.class);
         data.setSelectorId("SHENYU");
         data.setId("SHENYU");
