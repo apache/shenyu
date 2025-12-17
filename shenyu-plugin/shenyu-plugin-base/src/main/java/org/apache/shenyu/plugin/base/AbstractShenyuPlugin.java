@@ -18,43 +18,21 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
-import org.apache.shenyu.common.utils.ListUtil;
-import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.base.cache.MatchDataCache;
-import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.maker.PluginDataDecisionMaker;
 import org.apache.shenyu.plugin.base.maker.RuleDataDecisionMaker;
 import org.apache.shenyu.plugin.base.maker.SelectorDataDecisionMaker;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrieNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
