@@ -44,22 +44,24 @@ public class UpstreamCheckUtils {
     /**
      * Check url boolean.
      *
-     * @param url the url
+     * @param protocol  the protocol
+     * @param url       the url
      * @return the boolean
      */
-    public static boolean checkUrl(final String url) {
-        return checkUrl(url, DEFAULT_TIMEOUT);
+    public static boolean checkUrl(final String protocol, final String url) {
+        return checkUrl(protocol, url, DEFAULT_TIMEOUT);
     }
 
     /**
      * Check url boolean.
      *
-     * @param url     the url
-     * @param timeout timeout
+     * @param protocol  the protocol
+     * @param url       the url
+     * @param timeout   timeout
      * @return the boolean
      */
-    public static boolean checkUrl(final String url, final int timeout) {
-        if (StringUtils.isBlank(url)) {
+    public static boolean checkUrl(final String protocol, final String url, final int timeout) {
+        if (StringUtils.isBlank(protocol) || StringUtils.isBlank(url)) {
             return false;
         }
         String[] hostPort;
@@ -69,7 +71,7 @@ public class UpstreamCheckUtils {
         } else {
             hostPort = StringUtils.split(url, Constants.COLONS);
         }
-        final boolean isHttps = url.startsWith(HTTPS);
+        final boolean isHttps = protocol.startsWith(HTTPS);
         final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1].trim()) : isHttps ? 443 : 80;
         return isHostConnector(hostPort[0].trim(), port, timeout);
     }
