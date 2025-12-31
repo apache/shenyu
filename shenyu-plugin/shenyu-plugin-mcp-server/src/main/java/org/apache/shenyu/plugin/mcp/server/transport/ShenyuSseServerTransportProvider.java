@@ -193,18 +193,15 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                 .then();
     }
 
-    // FIXME: This javadoc makes claims about using isClosing flag but it's not
-    // actually
-    // doing that.
-
     /**
-     * Closes all active sessions gracefully. This method should be called when the
-     * transport is shutting down to ensure all sessions are closed properly.
+     * Closes all active sessions gracefully. This method sets the isClosing flag
+     * to prevent new connections, then closes all existing sessions properly.
      *
      * @return A Mono that completes when all sessions have been closed
      */
     @Override
     public Mono<Void> closeGracefully() {
+        isClosing = true;
         return Flux.fromIterable(sessions
                 .values())
                 .doFirst(() -> LOGGER.debug("Initiating graceful shutdown with {} active sessions", sessions.size()))
