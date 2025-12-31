@@ -130,7 +130,7 @@ public class DisruptorProviderManage<T> {
         disruptor.setDefaultExceptionHandler(new IgnoreExceptionHandler());
         disruptor.start();
         RingBuffer<DataEvent<T>> ringBuffer = disruptor.getRingBuffer();
-        provider = new DisruptorProvider<>(ringBuffer, disruptor, isOrderly);
+        provider = new DisruptorProvider<>(ringBuffer, disruptor, isOrderly, executor);
     }
     
     /**
