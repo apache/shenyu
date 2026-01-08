@@ -1,0 +1,225 @@
+# ShenYu Enhanced Configuration - Phase 1 Optimized
+# This configuration enables the performance improvements from the enhanced architecture
+
+server:
+  port: 9195
+  address: 0.0.0.0
+  compression:
+    enabled: true
+    min-response-size: 1MB
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: shenyu-bootstrap
+  codec:
+    # Increased for better performance with large requests
+    max-in-memory-size: 8MB  # Enhanced from 2MB
+  cloud:
+    discovery:
+      enabled: false
+
+# Enhanced ShenYu Configuration
+shenyu:
+  # Core system configuration
+  core:
+    namespace: ${SHENYU_NAMESPACE:649330b6-c2d7-4edc-be8e-8a54df9eb385}
+    mode: ${SHENYU_MODE:standalone}  # standalone, cluster
+
+  # Enhanced performance configuration
+  performance:
+    # Smart caching with adaptive strategies
+    cache:
+      enabled: true
+      strategy: adaptive  # adaptive, lru_only, trie_only, hybrid
+
+      # Selector cache configuration
+      selector:
+        strategy: adaptive
+        initialCapacity: 10000
+        maximumSize: 65536
+        expireAfterWrite: 30m
+        expireAfterAccess: 10m
+
+      # Rule cache configuration
+      rule:
+        strategy: adaptive
+        initialCapacity: 20000
+        maximumSize: 131072
+        expireAfterWrite: 30m
+        expireAfterAccess: 10m
+
+      # Plugin metadata cache
+      plugin:
+        strategy: lru_only
+        initialCapacity: 1000
+        maximumSize: 10000
+        expireAfterWrite: 60m
+
+      # Adaptive behavior configuration
+      adaptive:
+        switchThreshold: 1000
+        hitRatioThreshold: 0.8
+        evaluationInterval: 5m
+        autoOptimization: true
+
+    # Netty performance tuning
+    netty:
+      enabled: true
+      bossThreads: 1
+      workerThreads: ${SHENYU_WORKER_THREADS:8}  # Enhanced: configurable via env
+      maxConnections: 10000
+      backlog: 1024
+
+    # Enhanced thread pool configuration
+    threadPool:
+      enabled: true  # Enhanced: enabled by default
+      coreSize: ${SHENYU_CORE_THREADS:200}
+      maxSize: ${SHENYU_MAX_THREADS:2000}
+      queueCapacity: ${SHENYU_QUEUE_CAPACITY:10000}
+      keepAliveTime: 60s
+      threadNamePrefix: "shenyu-exec-"
+
+  # Enhanced observability configuration
+  observability:
+    # Comprehensive metrics collection
+    metrics:
+      enabled: true  # Enhanced: enabled by default
+      provider: prometheus
+      endpoint: /actuator/prometheus
+      collectInterval: 15s
+
+      # Detailed metric categories
+      categories:
+        plugin_execution: true
+        cache_performance: true
+        route_matching: true
+        error_tracking: true
+        jvm_metrics: true
+
+      # Custom labels for better monitoring
+      labels:
+        application: ${spring.application.name}
+        instance: ${HOSTNAME:${random.value}}
+        version: ${shenyu.version:2.7.1-enhanced}
+        environment: ${SHENYU_ENV:development}
+
+    # Enhanced logging configuration
+    logging:
+      enabled: true
+      level: ${SHENYU_LOG_LEVEL:INFO}
+
+      # Structured logging patterns
+      patterns:
+        request: "[%thread] %X{traceId:-N/A} %X{pluginName:-system} - %msg%n"
+        plugin: "[%thread] %X{traceId:-N/A} [%X{pluginName}] - %msg%n"
+        cache: "[%thread] %X{traceId:-N/A} [CACHE-%X{cacheType}] - %msg%n"
+
+      # Log sampling for high-traffic scenarios
+      sampling:
+        enabled: true
+        rate: 0.1  # Log 10% of requests
+
+    # Distributed tracing
+    tracing:
+      enabled: ${SHENYU_TRACING_ENABLED:false}
+      provider: ${SHENYU_TRACING_PROVIDER:zipkin}  # zipkin, jaeger, otel
+      samplingProbability: 0.1
+
+  # Enhanced health checking
+  health:
+    enabled: true
+    paths:
+      - /actuator/health
+      - /health_check
+
+    # Deep health checks
+    checks:
+      cache: true
+      database: true
+      upstream: true
+      memory: true
+
+    # Health check thresholds
+    thresholds:
+      memoryUsagePercent: 90
+      cacheHitRatio: 0.5
+      errorRate: 0.05
+
+  # Enhanced upstream checking
+  upstreamCheck:
+    enabled: true  # Enhanced: enabled by default
+    poolSize: ${SHENYU_UPSTREAM_POOL_SIZE:20}  # Enhanced: increased pool size
+    timeout: ${SHENYU_UPSTREAM_TIMEOUT:3000}
+    healthyThreshold: 2  # Enhanced: stricter health requirements
+    unhealthyThreshold: 3
+    interval: ${SHENYU_UPSTREAM_INTERVAL:5000}
+    circuitBreakerEnabled: true  # Enhanced: circuit breaker support
+
+  # Smart plugin management
+  plugins:
+    # Intelligent defaults based on usage patterns
+    defaults:
+      globalPlugin: { enabled: true, order: 0 }
+      signPlugin: { enabled: true, order: 10 }
+      wafPlugin: { enabled: true, order: 20 }
+      rateLimiterPlugin: { enabled: true, order: 30 }
+      dividePlugin: { enabled: true, order: 100 }
+      springCloudPlugin: { enabled: false, order: 200 }
+      dubboPlugin: { enabled: false, order: 300 }
+      responsePlugin: { enabled: true, order: 1000 }
+
+    # Plugin auto-discovery and loading
+    discovery:
+      enabled: true
+      scanPackages:
+        - "org.apache.shenyu.plugin"
+        - "com.custom.shenyu.plugin"
+
+  # Legacy compatibility (for migration period)
+  legacy:
+    selectorMatchCache:
+      cache:
+        enabled: true  # Bridged to new cache system
+        initialCapacity: 10000
+        maximumSize: 10000
+    ruleMatchCache:
+      cache:
+        enabled: true  # Bridged to new cache system
+        initialCapacity: 10000
+        maximumSize: 65536
+
+# Spring Boot Actuator configuration for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'info'
+          - 'metrics'
+          - 'prometheus'
+          - 'caches'
+          - 'threaddump'
+          - 'heapdump'
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+
+# Enhanced logging configuration
+logging:
+  level:
+    root: ${SHENYU_LOG_LEVEL:INFO}
+    org.apache.shenyu: INFO
+    org.apache.shenyu.plugin.base.cache: DEBUG  # Enhanced cache logging
+    org.apache.shenyu.plugin.base.metrics: DEBUG  # Enhanced metrics logging
+    org.apache.shenyu.plugin.base.route: DEBUG   # Enhanced routing logging
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} %X{traceId:-N/A} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %X{traceId:-N/A} %X{pluginName:-system} - %msg%n"
