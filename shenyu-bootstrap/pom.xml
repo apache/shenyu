@@ -217,6 +217,20 @@
         </dependency>
         <!--shenyu grpc plugin end-->
 
+        <!--shenyu tars plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tencent.tars</groupId>
+            <artifactId>tars-client</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+        <!--shenyu tars plugin end-->
+
         <!--Tcp Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -225,14 +239,231 @@
         </dependency>
         <!--Tcp Plugin end-->
 
+        <!--Ai proxy Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-proxy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai proxy Plugin end-->
+        
+        <!--Ai prompt Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-prompt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai prompt Plugin end-->
+
+        <!--Ai token limiter Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-token-limiter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai token limiter Plugin end-->
+
+        <!--Ai request transformer Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-request-transformer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai request transformer Plugin end-->
+
+        <!--Ai response transformer Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-response-transformer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai response transformer Plugin end-->
+
+        <!--Mcp Server Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mcp-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Mcp Server Plugin end-->
+
+        <!--shenyu sofa plugin start-->
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>sofa-rpc-all</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.jcip</groupId>
+                    <artifactId>jcip-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>okio</artifactId>
+                    <groupId>com.squareup.okio</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>sofa-common-tools</artifactId>
+                    <groupId>com.alipay.sofa.common</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa.common</groupId>
+            <artifactId>sofa-common-tools</artifactId>
+            <version>${sofa-common-tools.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu sofa plugin end-->
+
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <version>${nacos-discovery.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-loadbalancer</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--            <version>${eureka-client.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.springframework.cloud</groupId>-->
+<!--                    <artifactId>spring-cloud-starter-loadbalancer</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+            <version>${spring-cloud-commons.version}</version>
+        </dependency>
+        <!--shenyu springCloud plugin end-->
+
+        <!--shenyu key-auth plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-key-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu key-auth plugin end -->
+
+        <!--shenyu mock plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu mock plugin end-->
+
+        <!--shenyu  apache dubbo plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>${apache.dubbo.version}</version>
+        </dependency>
+        <!-- Dubbo Nacos registry dependency -->
+        <!--  <dependency>
+              <groupId>org.apache.dubbo</groupId>
+              <artifactId>dubbo-registry-nacos</artifactId>
+              <version>2.7.15</version>
+          </dependency>
+          <dependency>
+              <groupId>com.alibaba.nacos</groupId>
+              <artifactId>nacos-client</artifactId>
+              <version>2.0.4</version>
+          </dependency>-->
+        <!-- Dubbo zookeeper registry dependency start -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <version>${apache.dubbo.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+            <type>pom</type>
+        </dependency>
+        <!-- Dubbo zookeeper registry dependency end -->
+        <!-- shenyu  apache dubbo plugin end-->
+
+        <!--shenyu motan plugin start-->
+        <!--If you plan to use the motan plugin and want to use the hessian serialization,
+        please check the sofa plugin related dependencies.In particular, the reliance on sofa-hessian should be excluded.
+        Because sofa-hessian and caucho-hessian can cause class loading conflicts and cause some unexpected problems-->
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-core</artifactId>
+            <version>${motan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-transport-netty4</artifactId>
+            <version>${motan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-registry-zookeeper</artifactId>
+            <version>${motan.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-springsupport</artifactId>
+            <version>${motan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-motan</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu motan plugin end-->
+
         <!--shenyu data sync start use zookeeper-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
 
         <!--shenyu data sync start use websocket-->
         <dependency>
@@ -249,17 +480,13 @@
         </dependency>
 
         <!--shenyu data sync start use nacos-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-nacos</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
-
 
         <!--shenyu data sync start use etcd-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>
@@ -275,121 +502,98 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        -->
         <!--shenyu debug plugin end-->
 
         <!--shenyu data sync start use consul-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu registry start-->
 
         <!--shenyu data sync start use polaris-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-polaris</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
 
         <!--shenyu instance start-->
 
         <!--shenyu registry end-->
 
         <!--shenyu logging-rocketmq plugin start-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-rocketmq</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu logging-rocketmq plugin end-->
 
         <!--shenyu logging-kafka plugin start-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-kafka</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu logging-kafka plugin end-->
 
         <!--shenyu logging-rabbitmq plugin start-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-rabbitmq</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu logging-rabbitmq plugin end-->
 
         <!--shenyu logging-elasticsearch plugin start-->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!--shenyu logging-elasticsearch plugin end-->
 
         <!-- shenyu logging-aliyunsls plugin start -->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!-- shenyu logging-aliyunsls plugin end -->
 
         <!-- shenyu logging-pulsar plugin start -->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!-- shenyu logging-pulsar plugin end -->
 
         <!-- shenyu logging-tencentcls plugin start -->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-tencent-cls</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!-- shenyu logging-tencentcls plugin end -->
 
         <!-- shenyu logging-huaweilts plugin start -->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!-- shenyu logging-huaweilts plugin end -->
 
 
         <!-- shenyu logging-clickhouse plugin start -->
-        <!--
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-logging-clickhouse</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <!-- shenyu logging-clickhouse plugin end -->
 
         <!-- shenyu kubernetes controller starter -->
@@ -437,14 +641,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
