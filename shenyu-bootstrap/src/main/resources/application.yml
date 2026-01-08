@@ -108,7 +108,7 @@ shenyu:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      # workerCount: 8
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soBackLog: 128

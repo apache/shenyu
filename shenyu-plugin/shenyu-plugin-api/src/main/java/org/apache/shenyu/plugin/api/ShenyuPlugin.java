@@ -138,9 +138,7 @@ public interface ShenyuPlugin {
      * @param exchange context
      */
     default void before(ServerWebExchange exchange) {
-        if (LOG.isDebugEnabled()) {
-            exchange.getAttributes().put(Constants.PLUGIN_START_TIME + named(), System.currentTimeMillis());
-        }
+        exchange.getAttributes().put(Constants.PLUGIN_START_TIME + named(), System.currentTimeMillis());
     }
 
     /**
@@ -149,13 +147,11 @@ public interface ShenyuPlugin {
      * @param exchange context
      */
     default void after(ServerWebExchange exchange) {
-        if (LOG.isDebugEnabled()) {
-            long currentTimeMillis = System.currentTimeMillis();
-            Object startTime = exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
-            if (Objects.nonNull(startTime)) {
-                LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), currentTimeMillis - (long) startTime);
-                exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
-            }
+        long currentTimeMillis = System.currentTimeMillis();
+        Object startTime = exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
+        if (Objects.nonNull(startTime)) {
+            LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), currentTimeMillis - (long) startTime);
+            exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
         }
     }
 }
