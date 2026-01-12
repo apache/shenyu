@@ -366,6 +366,7 @@ public class SelectorData extends BaseData {
         private Boolean matchRestful;
 
         private List<ConditionData> beforeConditionList;
+
         /**
          * no args constructor.
          */
