@@ -25,11 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap</artifactId>
 
-    <properties>
-        <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
-        <eureka-client.version>4.1.2</eureka-client.version>
-    </properties>
-
     <dependencies>
         <!-- Spring Boot Starters -->
         <dependency>

@@ -189,6 +189,8 @@
         <spring-ai.version>1.0.0</spring-ai.version>
         <mcp.version>0.10.0</mcp.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
+        <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
+        <eureka-client.version>4.1.2</eureka-client.version>
         <!-- dependency version end -->
     </properties>
 
