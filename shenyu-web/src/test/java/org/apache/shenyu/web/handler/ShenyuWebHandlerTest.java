@@ -41,8 +41,12 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -89,9 +93,88 @@ public final class ShenyuWebHandlerTest {
 
     @Test
     public void putExtPlugins() {
+        // Test empty list
         shenyuWebHandler.putExtPlugins(Collections.emptyList());
-        shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin2()));
-        shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin3()));
+
+        // Test adding new plugin
+        ShenyuPlugin newPlugin = new TestPlugin3();
+        shenyuWebHandler.putExtPlugins(Collections.singletonList(newPlugin));
+        List<ShenyuPlugin> pluginsAfterAdd = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertTrue(pluginsAfterAdd.contains(newPlugin));
+
+        // Test updating existing plugin
+        ShenyuPlugin updatedPlugin2 = new TestPlugin2() {
+            @Override
+            public int getOrder() {
+                return 999;
+            }
+        };
+        shenyuWebHandler.putExtPlugins(Collections.singletonList(updatedPlugin2));
+        List<ShenyuPlugin> pluginsAfterUpdate = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+
+        // Verify that the updated plugin is in the list and has the new order
+        boolean foundUpdated = false;
+        for (ShenyuPlugin plugin : pluginsAfterUpdate) {
+            if ("test-plugin2".equals(plugin.named()) && plugin.getOrder() == 999) {
+                foundUpdated = true;
+                break;
+            }
+        }
+        assertTrue(foundUpdated);
+
+        // Test mixed add and update
+        ShenyuPlugin anotherNewPlugin = new TestPlugin4();
+        shenyuWebHandler.putExtPlugins(Arrays.asList(updatedPlugin2, anotherNewPlugin));
+        List<ShenyuPlugin> pluginsAfterMixed = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        assertTrue(pluginsAfterMixed.contains(anotherNewPlugin));
+    }
+
+    @Test
+    public void concurrentPutExtPlugins() throws InterruptedException {
+        // Create multiple threads that concurrently add plugins
+        int threadCount = 10;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            final int pluginIndex = i;
+            executor.submit(() -> {
+                try {
+                    ShenyuPlugin plugin = new ShenyuPlugin() {
+                        @Override
+                        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+                            return chain.execute(exchange);
+                        }
+
+                        @Override
+                        public int getOrder() {
+                            return pluginIndex;
+                        }
+
+                        @Override
+                        public String named() {
+                            return "concurrent-plugin-" + pluginIndex;
+                        }
+                    };
+                    shenyuWebHandler.putExtPlugins(Collections.singletonList(plugin));
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        // Verify that all plugins were added
+        List<ShenyuPlugin> plugins = (List<ShenyuPlugin>) ReflectionTestUtils.getField(shenyuWebHandler, "plugins");
+        int concurrentPluginCount = 0;
+        for (ShenyuPlugin plugin : plugins) {
+            if (plugin.named().startsWith("concurrent-plugin-")) {
+                concurrentPluginCount++;
+            }
+        }
+        assertEquals(threadCount, concurrentPluginCount);
     }
 
     @Test
@@ -214,6 +297,29 @@ public final class ShenyuWebHandlerTest {
         @Override
         public String named() {
             return "test-plugin3";
+        }
+
+        @Override
+        public boolean skip(final ServerWebExchange exchange) {
+            return ShenyuPlugin.super.skip(exchange);
+        }
+    }
+
+    static class TestPlugin4 implements ShenyuPlugin {
+
+        @Override
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return chain.execute(exchange);
+        }
+
+        @Override
+        public int getOrder() {
+            return 4;
+        }
+
+        @Override
+        public String named() {
+            return "test-plugin4";
         }
 
         @Override

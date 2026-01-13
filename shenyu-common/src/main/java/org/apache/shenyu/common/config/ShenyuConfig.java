@@ -48,9 +48,11 @@ public class ShenyuConfig {
     private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
-    
+
     private Scheduler scheduler = new Scheduler();
-    
+
+    private PluginConfig plugin = new PluginConfig();
+
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
@@ -74,6 +76,24 @@ public class ShenyuConfig {
     private AlertConfig alert = new AlertConfig();
 
     private String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
+
+    /**
+     * get plugin config.
+     *
+     * @return plugin config
+     */
+    public PluginConfig getPlugin() {
+        return plugin;
+    }
+
+    /**
+     * set plugin config.
+     *
+     * @param plugin plugin config
+     */
+    public void setPlugin(final PluginConfig plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * shenyu bootstrap namespace.
@@ -2111,6 +2131,52 @@ public class ShenyuConfig {
          */
         public void setAdmins(final String admins) {
             this.admins = admins;
+        }
+    }
+
+    /**
+     * The type Plugin config.
+     */
+    public static class PluginConfig {
+
+        private boolean enabled = true;
+
+        private long minCost;
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Gets min cost.
+         *
+         * @return the min cost
+         */
+        public long getMinCost() {
+            return minCost;
+        }
+
+        /**
+         * Sets min cost.
+         *
+         * @param minCost the min cost
+         */
+        public void setMinCost(final long minCost) {
+            this.minCost = minCost;
         }
     }
 }
