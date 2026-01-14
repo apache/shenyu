@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.api;
 
+import java.util.Objects;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.utils.PluginSkipHelper;
@@ -144,7 +145,7 @@ public interface ShenyuPlugin {
         }
         long currentTimeMillis = System.currentTimeMillis();
         Long startTime = exchange.getAttribute(Constants.PLUGIN_START_TIME + named());
-        if (startTime == null) {
+        if (Objects.isNull(startTime)) {
             exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
             return;
         }
