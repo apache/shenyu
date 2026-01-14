@@ -151,7 +151,7 @@ public interface ShenyuPlugin {
         long cost = currentTimeMillis - startTime;
         Long minCost = exchange.getAttributeOrDefault(Constants.LOGGING_MIN_COST, 0L);
         if (cost >= minCost) {
-            LOG.info("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), cost);
+            LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), cost);
         }
         exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
     }
