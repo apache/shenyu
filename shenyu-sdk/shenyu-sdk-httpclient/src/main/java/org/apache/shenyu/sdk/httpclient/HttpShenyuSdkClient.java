@@ -76,7 +76,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
             final String maxPerRoute = props.getProperty("http.maxPerRoute", "200");
             final String serverRequestTimeOut = props.getProperty("http.serverRequestTimeOut", "2000");
             final String serverResponseTimeOut = props.getProperty("http.serverResponseTimeOut", "2000");
-            final String connectionRequestTimeOut = props.getProperty("http.connectionRequestTimeOut ", "2000");
+            final String connectionRequestTimeOut = props.getProperty("http.connectionRequestTimeOut", "2000");
             Registry<SchemeIOSessionStrategy> sessionStrategyRegistry = RegistryBuilder.<SchemeIOSessionStrategy>create()
                     .register("https", SSLIOSessionStrategy.getDefaultStrategy())
                     .register("http", NoopIOSessionStrategy.INSTANCE)
