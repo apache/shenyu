@@ -56,7 +56,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
 
     /**
-     * this field uses volatile List for thread-safe operations.
+     * Volatile reference to the current plugins list to ensure visibility across threads.
+     * Thread safety of list updates is provided by the surrounding update logic, not by volatile alone.
      */
     private volatile List<ShenyuPlugin> plugins;
 
