@@ -84,7 +84,7 @@ public final class PluginSkipHelper {
      * if return true this plugin can not execute.
      *
      * @param exchange the current server exchange
-     * @return http/spring cloud return true, others false.
+     * @return http/spring cloud/ai return false (not skipped), others return true (skipped).
      */
     public static boolean skipExceptHttpLike(final ServerWebExchange exchange) {
         return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.AI);
