@@ -117,7 +117,7 @@ public interface ShenyuPlugin {
      * if return true this plugin can not execute.
      *
      * @param exchange the current server exchange
-     * @return http/spring cloud return true, others false.
+     * @return http/spring cloud/ai return false (not skipped), others return true (skipped).
      */
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
         return PluginSkipHelper.skipExceptHttpLike(exchange);
