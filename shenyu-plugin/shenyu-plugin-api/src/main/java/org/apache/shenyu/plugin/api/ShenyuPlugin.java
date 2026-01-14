@@ -143,7 +143,11 @@ public interface ShenyuPlugin {
             return;
         }
         long currentTimeMillis = System.currentTimeMillis();
-        long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
+        Long startTime = exchange.getAttribute(Constants.PLUGIN_START_TIME + named());
+        if (startTime == null) {
+            exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
+            return;
+        }
         long cost = currentTimeMillis - startTime;
         Long minCost = exchange.getAttributeOrDefault(Constants.LOGGING_MIN_COST, 0L);
         if (cost >= minCost) {
