@@ -78,7 +78,14 @@ public enum DiscoveryTransfer {
     public CommonUpstream mapToCommonUpstream(DiscoveryUpstreamData discoveryUpstreamData) {
         return Optional.ofNullable(discoveryUpstreamData).map(data -> {
             String url = data.getUrl();
-            return new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false, data.getDateCreated().getTime());
+            CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false,
+                    data.getDateCreated().getTime());
+            Properties properties = Optional.ofNullable(data.getProps())
+                    .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                    .orElse(new Properties());
+            commonUpstream
+                    .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+            return commonUpstream;
         }).orElse(null);
     }
 
@@ -103,7 +110,6 @@ public enum DiscoveryTransfer {
         }).orElse(null);
     }
 
-
     public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
         return Optional.ofNullable(discoveryRelDO).map(data -> {
             DiscoveryRelVO discoveryRelVO = new DiscoveryRelVO();
@@ -115,7 +121,6 @@ public enum DiscoveryTransfer {
             return discoveryRelVO;
         }).orElse(null);
     }
-
 
     public DiscoveryRelDO mapToDO(DiscoveryRelDTO discoveryRelDTO) {
         return Optional.ofNullable(discoveryRelDTO).map(data -> {
@@ -335,13 +340,24 @@ public enum DiscoveryTransfer {
             return discoveryUpstreamDTO;
         }).orElse(null);
     }
-    
+
     /**
      * mapToDiscoveryUpstreamData.
+     * 
      * @param commonUpstream commonUpstream
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
-        return mapToData(CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(commonUpstream.getUpstreamUrl().split(":")[0], Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]), commonUpstream.getProtocol(),commonUpstream.getNamespaceId()));
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
+                commonUpstream.getUpstreamUrl().split(":")[0],
+                Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]),
+                commonUpstream.getProtocol(),
+                commonUpstream.getNamespaceId());
+        Properties properties = Optional.ofNullable(discoveryUpstreamDTO.getProps())
+                .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                .orElse(new Properties());
+        properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
+        discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
+        return mapToData(discoveryUpstreamDTO);
     }
 }

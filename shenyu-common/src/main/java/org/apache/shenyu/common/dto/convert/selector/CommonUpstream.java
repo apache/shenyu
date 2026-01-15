@@ -60,6 +60,11 @@ public class CommonUpstream {
     private boolean gray;
 
     /**
+     * health check enabled.
+     */
+    private boolean healthCheckEnabled = true;
+
+    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -210,6 +215,24 @@ public class CommonUpstream {
     }
 
     /**
+     * get healthCheckEnabled.
+     *
+     * @return healthCheckEnabled
+     */
+    public boolean isHealthCheckEnabled() {
+        return healthCheckEnabled;
+    }
+
+    /**
+     * set healthCheckEnabled.
+     *
+     * @param healthCheckEnabled healthCheckEnabled
+     */
+    public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
+        this.healthCheckEnabled = healthCheckEnabled;
+    }
+
+    /**
      * set namespaceId.
      *
      * @param namespaceId namespaceId
@@ -259,6 +282,8 @@ public class CommonUpstream {
                 + namespaceId
                 + ", gray="
                 + gray
+                + ", healthCheckEnabled="
+                + healthCheckEnabled
                 + '}';
     }
 }

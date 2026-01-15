@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Assertions;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * The type UpstreamCacheManager check task test.
  */
@@ -78,5 +77,33 @@ public class UpstreamCacheManagerTest {
     public void findUpstreamListBySelectorIdTest() {
         final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
         Assertions.assertNull(upstreamCacheManager.findUpstreamListBySelectorId(SELECTOR_ID));
+    }
+
+    @Test
+    @Order(5)
+    public void testSubmitSyncsHealthCheckEnabled() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String testSelectorId = "HEALTH_CHECK_SYNC_TEST";
+
+        // First submit with healthCheckEnabled = true (default)
+        List<Upstream> upstreamList = new ArrayList<>(1);
+        upstreamList.add(Upstream.builder()
+                .url("health-check-url:8080")
+                .status(true)
+                .healthCheckEnabled(true)
+                .build());
+        upstreamCacheManager.submit(testSelectorId, upstreamList);
+
+        // Now submit with the same URL but healthCheckEnabled = false
+        List<Upstream> updatedList = new ArrayList<>(1);
+        updatedList.add(Upstream.builder()
+                .url("health-check-url:8080")
+                .status(true)
+                .healthCheckEnabled(false)
+                .build());
+        upstreamCacheManager.submit(testSelectorId, updatedList);
+
+        // Clean up
+        upstreamCacheManager.removeByKey(testSelectorId);
     }
 }

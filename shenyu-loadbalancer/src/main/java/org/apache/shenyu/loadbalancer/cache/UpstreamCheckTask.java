@@ -190,6 +190,13 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream) {
+        if (!upstream.isHealthCheckEnabled()) {
+            if (!upstream.isHealthy()) {
+                upstream.setHealthy(true);
+                upstream.setLastHealthTimestamp(System.currentTimeMillis());
+            }
+            return new UpstreamWithSelectorId(selectorId, upstream);
+        }
         boolean pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
         if (pass) {
             if (upstream.isHealthy()) {

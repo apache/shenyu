@@ -173,6 +173,10 @@ public final class UpstreamCacheManager {
                 Upstream matchedExistUp = existUpstreamMap.get(key);
                 if (Objects.nonNull(matchedExistUp)) {
                     matchedExistUp.setWeight(validUp.getWeight());
+                    matchedExistUp.setHealthCheckEnabled(validUp.isHealthCheckEnabled());
+                    if (!matchedExistUp.isHealthCheckEnabled()) {
+                        matchedExistUp.setHealthy(true);
+                    }
                 }
             });
 
