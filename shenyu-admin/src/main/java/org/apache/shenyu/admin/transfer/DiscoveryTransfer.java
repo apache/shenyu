@@ -343,14 +343,28 @@ public enum DiscoveryTransfer {
 
     /**
      * mapToDiscoveryUpstreamData.
-     * 
+     *
      * @param commonUpstream commonUpstream
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
+        String upstreamUrl = commonUpstream.getUpstreamUrl();
+        String[] parts = Optional.ofNullable(upstreamUrl)
+                .map(url -> url.split(":", 2))
+                .orElseThrow(() -> new IllegalArgumentException("Upstream URL must not be null"));
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("Invalid upstream URL, expected 'host:port' format but was: " + upstreamUrl);
+        }
+        String host = parts[0];
+        int port;
+        try {
+            port = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Invalid port in upstream URL: " + upstreamUrl, ex);
+        }
         DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
-                commonUpstream.getUpstreamUrl().split(":")[0],
-                Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]),
+                host,
+                port,
                 commonUpstream.getProtocol(),
                 commonUpstream.getNamespaceId());
         Properties properties = Optional.ofNullable(discoveryUpstreamDTO.getProps())
