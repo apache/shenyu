@@ -327,4 +327,86 @@ public final class UpstreamCheckServiceTest {
         upstreamMap.put("UrlReachableAnother", Collections.singletonList(divideUpstream1));
         upstreamMap.put("UrlErrorAnother", Collections.singletonList(divideUpstream2));
     }
+
+    @Test
+    public void testCheckAndSubmitWithHealthCheckDisabled() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("unreachable-url:8080")
+                .upstreamHost("unreachable-host")
+                .healthCheckEnabled(false)
+                .status(false)
+                .build();
+
+        boolean result = upstreamCheckService.checkAndSubmit("testSelector", divideUpstream);
+
+        assertFalse(result);
+        assertTrue(divideUpstream.isStatus());
+        assertTrue(upstreamMap.containsKey("testSelector"));
+    }
+
+    @Test
+    public void testSubmitWithHealthCheckDisabled() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("any-url:8080")
+                .upstreamHost("any-host")
+                .healthCheckEnabled(false)
+                .status(true)
+                .build();
+
+        upstreamCheckService.submit("testSelectorDisabled", divideUpstream);
+
+        assertTrue(upstreamMap.containsKey("testSelectorDisabled"));
+        assertEquals(1, upstreamMap.get("testSelectorDisabled").size());
+    }
+
+    @Test
+    public void testHealthCheckEnabledDefaultsToTrue() {
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("test-url:8080")
+                .upstreamHost("test-host")
+                .build();
+
+        assertTrue(divideUpstream.isHealthCheckEnabled());
+    }
+
+    @Test
+    public void testSubmitSyncsHealthCheckEnabledForExistingUpstream() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+
+        final String selectorId = "testSyncSelector";
+
+        final DivideUpstream upstream1 = DivideUpstream.builder()
+                .upstreamUrl("sync-url:8080")
+                .upstreamHost("sync-host")
+                .healthCheckEnabled(true)
+                .status(true)
+                .build();
+        upstreamCheckService.submit(selectorId, upstream1);
+
+        assertTrue(upstreamMap.containsKey(selectorId));
+        assertEquals(1, upstreamMap.get(selectorId).size());
+        assertTrue(upstreamMap.get(selectorId).get(0).isHealthCheckEnabled());
+
+        final DivideUpstream upstream2 = DivideUpstream.builder()
+                .upstreamUrl("sync-url:8080")
+                .upstreamHost("sync-host")
+                .healthCheckEnabled(false)
+                .status(true)
+                .build();
+        upstreamCheckService.submit(selectorId, upstream2);
+
+        assertEquals(1, upstreamMap.get(selectorId).size());
+        assertFalse(upstreamMap.get(selectorId).get(0).isHealthCheckEnabled());
+        assertTrue(upstreamMap.get(selectorId).get(0).isStatus());
+    }
 }

@@ -71,6 +71,7 @@ public class ShenyuPicker extends AbstractReadyPicker {
                 .weight(u.getWeight())
                 .status(u.isStatus())
                 .timestamp(u.getTimestamp())
+                .healthCheckEnabled(u.isHealthCheckEnabled())
                 .build()).collect(Collectors.toList());
     }
 }
