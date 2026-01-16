@@ -146,6 +146,12 @@ public final class UpstreamCacheManager {
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
         List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
+        actualUpstreamList.forEach(upstream -> {
+            if (!upstream.isHealthCheckEnabled()) {
+                upstream.setStatus(true);
+                upstream.setHealthy(true);
+            }
+        });
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
                 .collect(Collectors.partitioningBy(Upstream::isStatus));
         List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
@@ -173,6 +179,10 @@ public final class UpstreamCacheManager {
                 Upstream matchedExistUp = existUpstreamMap.get(key);
                 if (Objects.nonNull(matchedExistUp)) {
                     matchedExistUp.setWeight(validUp.getWeight());
+                    matchedExistUp.setHealthCheckEnabled(validUp.isHealthCheckEnabled());
+                    if (!matchedExistUp.isHealthCheckEnabled()) {
+                        matchedExistUp.setHealthy(true);
+                    }
                 }
             });
 
