@@ -123,4 +123,45 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.triggerRemoveAll(selectorId);
         assertFalse(healthCheckTask.getHealthyUpstream().containsKey(selectorId));
     }
+
+    /**
+     * Test that upstream with healthCheckEnabled=false is always marked as healthy.
+     */
+    @Test
+    @Timeout(10000)
+    public void testHealthCheckDisabled() {
+        final String selectorId = "healthCheckDisabledSelector";
+
+        // Create upstream with healthCheckEnabled = false, and set healthy to false
+        // manually
+        Upstream upstream = Upstream.builder()
+                .url("unreachable-url:8080")
+                .healthCheckEnabled(false)
+                .build();
+        upstream.setHealthy(false);
+
+        healthCheckTask.triggerAddOne(selectorId, upstream);
+        healthCheckTask.setPoolSize(1);
+        healthCheckTask.schedule();
+
+        // Wait for health check to complete
+        Awaitility.await().pollDelay(3500, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+
+        // When healthCheckEnabled is false, upstream should be marked as healthy
+        assertTrue(healthCheckTask.getHealthyUpstream().containsKey(selectorId));
+        assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId).get(0).isHealthy());
+    }
+
+    /**
+     * Test that healthCheckEnabled defaults to true in Upstream.
+     */
+    @Test
+    public void testHealthCheckEnabledDefaultsToTrue() {
+        Upstream upstream = Upstream.builder()
+                .url("test-url:8080")
+                .build();
+
+        assertTrue(upstream.isHealthCheckEnabled());
+    }
 }
