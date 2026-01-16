@@ -160,9 +160,9 @@ public final class UpstreamCheckServiceTest {
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
-            mocked.when(() -> UpstreamCheckUtils.checkUrl("ReachableUrl"))
+            mocked.when(() -> UpstreamCheckUtils.checkUrl("https://", "ReachableUrl"))
                     .thenReturn(true);
-            mocked.when(() -> UpstreamCheckUtils.checkUrl("ErrorUrl"))
+            mocked.when(() -> UpstreamCheckUtils.checkUrl("https://", "ErrorUrl"))
                     .thenReturn(false);
 
             zombieSet.clear();

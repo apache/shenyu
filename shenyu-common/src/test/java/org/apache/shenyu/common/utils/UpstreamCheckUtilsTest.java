@@ -40,7 +40,7 @@ public final class UpstreamCheckUtilsTest {
 
     @Test
     public void testBlank() {
-        assertFalse(UpstreamCheckUtils.checkUrl(""));
+        assertFalse(UpstreamCheckUtils.checkUrl("https://", ""));
     }
 
     @Test
@@ -63,9 +63,9 @@ public final class UpstreamCheckUtilsTest {
             Thread.yield();
         }
 
-        assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:" + port));
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + (port == 0 ? port + 1 : port - 1)));
-        assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + port));
-        assertTrue(UpstreamCheckUtils.checkUrl("https://shenyu.apache.org"));
+        assertTrue(UpstreamCheckUtils.checkUrl("https://", "127.0.0.1:" + port));
+        assertFalse(UpstreamCheckUtils.checkUrl("https://", "127.0.0.1:" + (port == 0 ? port + 1 : port - 1)));
+        assertTrue(UpstreamCheckUtils.checkUrl("http://", "127.0.0.1:" + port));
+        assertTrue(UpstreamCheckUtils.checkUrl("https://", "shenyu.apache.org"));
     }
 }
