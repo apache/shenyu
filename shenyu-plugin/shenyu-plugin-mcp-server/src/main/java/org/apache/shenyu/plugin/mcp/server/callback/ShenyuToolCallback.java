@@ -617,7 +617,7 @@ public class ShenyuToolCallback implements ToolCallback {
      * @return raw path if URI parsing succeeds, otherwise the original string
      */
     private String extractRawPath(final String path) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(path)) {
+        if (StringUtils.isEmpty(path)) {
             return path;
         }
         try {
