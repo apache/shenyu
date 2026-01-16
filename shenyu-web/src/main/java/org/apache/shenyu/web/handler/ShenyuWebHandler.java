@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -308,7 +307,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {
 
-        private final AtomicInteger index = new AtomicInteger(0);
+        private int index;
 
         private final List<ShenyuPlugin> plugins;
 
@@ -330,9 +329,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange) {
             return Mono.defer(() -> {
-                int pos;
-                while ((pos = index.getAndIncrement()) < plugins.size()) {
-                    ShenyuPlugin plugin = plugins.get(pos);
+                while (this.index < plugins.size()) {
+                    ShenyuPlugin plugin = plugins.get(this.index++);
                     if (plugin.skip(exchange)) {
                         continue;
                     }
