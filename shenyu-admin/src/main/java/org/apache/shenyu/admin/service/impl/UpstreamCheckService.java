@@ -222,6 +222,8 @@ public class UpstreamCheckService {
             if (!exists.isPresent()) {
                 upstreams.add(commonUpstream);
             } else {
+                CommonUpstream existUpstream = exists.get();
+                existUpstream.setHealthCheckEnabled(commonUpstream.isHealthCheckEnabled());
                 LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
             }
             PENDING_SYNC.add(commonUpstream.hashCode());
@@ -249,6 +251,12 @@ public class UpstreamCheckService {
      */
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return false;
+        }
+        if (!commonUpstream.isHealthCheckEnabled()) {
+            commonUpstream.setStatus(true);
+            commonUpstream.setTimestamp(System.currentTimeMillis());
+            this.submit(selectorId, commonUpstream);
             return false;
         }
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
@@ -310,6 +318,14 @@ public class UpstreamCheckService {
         ZOMBIE_SET.remove(zombieUpstream);
         String selectorId = zombieUpstream.getSelectorId();
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
+        if (!commonUpstream.isHealthCheckEnabled()) {
+            commonUpstream.setTimestamp(System.currentTimeMillis());
+            commonUpstream.setStatus(true);
+            List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
+            this.submitJust(selectorId, commonUpstream);
+            updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
+            return;
+        }
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
             commonUpstream.setTimestamp(System.currentTimeMillis());
@@ -332,6 +348,14 @@ public class UpstreamCheckService {
         final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
         for (CommonUpstream commonUpstream : upstreamList) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
+                if (!commonUpstream.isHealthCheckEnabled()) {
+                    if (!commonUpstream.isStatus()) {
+                        commonUpstream.setTimestamp(System.currentTimeMillis());
+                        commonUpstream.setStatus(true);
+                        PENDING_SYNC.add(commonUpstream.hashCode());
+                    }
+                    return commonUpstream;
+                }
                 final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
                 if (pass) {
                     if (!commonUpstream.isStatus()) {

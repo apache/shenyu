@@ -137,6 +137,7 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
                 .warmup(u.getWarmup())
                 .group(u.getGroup())
                 .version(u.getVersion())
+                .healthCheckEnabled(u.isHealthCheckEnabled())
                 .build()).collect(Collectors.toList());
     }
 }

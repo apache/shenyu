@@ -104,6 +104,11 @@ public final class Upstream {
      * this is gray.
      */
     private boolean gray;
+
+    /**
+     * health check enabled.
+     */
+    private boolean healthCheckEnabled = true;
     
     private Map<String, String> metadata = new ConcurrentHashMap<>();
     
@@ -127,6 +132,7 @@ public final class Upstream {
         this.group = builder.group;
         this.version = builder.version;
         this.gray = builder.gray;
+        this.healthCheckEnabled = builder.healthCheckEnabled;
     }
     
     /**
@@ -226,6 +232,24 @@ public final class Upstream {
      */
     public void setHealthy(final boolean healthy) {
         this.healthy = healthy;
+    }
+
+    /**
+     * Is health check enabled.
+     *
+     * @return the boolean
+     */
+    public boolean isHealthCheckEnabled() {
+        return healthCheckEnabled;
+    }
+
+    /**
+     * Sets health check enabled.
+     *
+     * @param healthCheckEnabled the health check enabled
+     */
+    public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
+        this.healthCheckEnabled = healthCheckEnabled;
     }
     
     /**
@@ -553,6 +577,11 @@ public final class Upstream {
         private Boolean gray = false;
 
         /**
+         * health check enabled.
+         */
+        private boolean healthCheckEnabled = true;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -664,6 +693,17 @@ public final class Upstream {
          */
         public Builder gray(final Boolean gray) {
             this.gray = gray;
+            return this;
+        }
+
+        /**
+         * build healthCheckEnabled.
+         *
+         * @param healthCheckEnabled healthCheckEnabled
+         * @return this builder
+         */
+        public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
+            this.healthCheckEnabled = healthCheckEnabled;
             return this;
         }
 
