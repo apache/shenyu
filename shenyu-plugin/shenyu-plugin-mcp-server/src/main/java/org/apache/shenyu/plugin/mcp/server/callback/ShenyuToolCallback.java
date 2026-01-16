@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.mcp.server.callback;
 
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -55,6 +56,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tool Callback Implementation for Shenyu Gateway MCP Integration.
@@ -91,6 +94,11 @@ public class ShenyuToolCallback implements ToolCallback {
      * Streamable HTTP protocol path indicator.
      */
     private static final String STREAMABLE_HTTP_PATH = "/streamablehttp";
+
+    /**
+     * Regex pattern for template variable interpolation in tool inputs.
+     **/
+    private static final Pattern TEMPLATE_VARIABLE_PATTERN = Pattern.compile("\\{\\{\\.(.*?)\\}\\}");
 
     private final ToolDefinition toolDefinition;
 
@@ -467,25 +475,62 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private void addCustomHeaders(final ServerHttpRequest.Builder requestBuilder,
                                   final RequestConfig requestConfig) {
-        if (requestConfig.getRequestTemplate().has("headers")) {
-            for (final var headerElem : requestConfig.getRequestTemplate().getAsJsonArray("headers")) {
-                final JsonObject headerObj = headerElem.getAsJsonObject();
-                String headerKey = headerObj.get("key").getAsString();
-                String headerValue = headerObj.get("value").getAsString();
-                if (headerValue.contains("{{.")) {
-                    JsonObject inputJson = requestConfig.getInputJson();
-                    if (Objects.nonNull(inputJson)) {
-                        for (String key : inputJson.keySet()) {
-                            if (inputJson.get(key).isJsonPrimitive() && inputJson.get(key).getAsJsonPrimitive().isString()) {
-                                String value = inputJson.get(key).getAsString();
-                                headerValue = headerValue.replace("{{." + key + "}}", value);
-                            }
-                        }
-                    }
+        if (!requestConfig.getRequestTemplate().has("headers")) {
+            return;
+        }
+
+        JsonArray headersArray = requestConfig.getRequestTemplate().getAsJsonArray("headers");
+        if (Objects.isNull(headersArray) || headersArray.isEmpty()) {
+            return;
+        }
+
+        JsonObject inputJson = requestConfig.getInputJson();
+        for (JsonElement headerElem : headersArray) {
+            if (!headerElem.isJsonObject()) {
+                continue;
+            }
+
+            JsonObject headerObj = headerElem.getAsJsonObject();
+            if (!headerObj.has("key") || !headerObj.has("value")
+                    || !headerObj.get("key").isJsonPrimitive() || !headerObj.get("value").isJsonPrimitive()) {
+                continue;
+            }
+
+            String headerKey = headerObj.get("key").getAsString();
+            String headerValue = headerObj.get("value").getAsString();
+
+            // Process template variables if present
+            if (headerValue.contains("{{.") && Objects.nonNull(inputJson)) {
+                headerValue = resolveTemplateVariables(headerValue, inputJson);
+            }
+
+            requestBuilder.header(headerKey, headerValue);
+        }
+    }
+
+    /**
+     * Resolves template variables in the format {{.variableName}} with values from the input JSON.
+     *
+     * @param templateValue the template string containing variables
+     * @param inputJson     the JSON object containing values for substitution
+     * @return the resolved string with variables replaced
+     */
+    private String resolveTemplateVariables(final String templateValue, final JsonObject inputJson) {
+        String result = templateValue;
+        Matcher matcher = TEMPLATE_VARIABLE_PATTERN.matcher(templateValue);
+
+        while (matcher.find()) {
+            String variableName = matcher.group(1);
+            if (inputJson.has(variableName)) {
+                JsonElement element = inputJson.get(variableName);
+                if (element.isJsonPrimitive()) {
+                    String value = element.getAsString();
+                    result = result.replace("{{." + variableName + "}}", value);
                 }
-                requestBuilder.header(headerKey, headerValue);
             }
         }
+
+        return result;
     }
 
     /**
