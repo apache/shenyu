@@ -43,20 +43,18 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
  * The test case for {@link PolarisSyncDataConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(
-        classes = PolarisSyncDataConfiguration.class,
-        properties = {
-            "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
-            "shenyu.sync.polaris.namespace=default",
-            "shenyu.sync.polaris.fileGroup=fileGroup"
-        })
+@SpringBootTest(classes = PolarisSyncDataConfiguration.class, properties = {
+        "shenyu.sync.polaris.url=" + PolarisSyncDataConfigurationTest.URL,
+        "shenyu.sync.polaris.namespace=default",
+        "shenyu.sync.polaris.fileGroup=fileGroup"
+})
 @EnableAutoConfiguration
 @MockBean(name = "shenyuConfig", value = ShenyuConfig.class, answer = CALLS_REAL_METHODS)
 public final class PolarisSyncDataConfigurationTest {
 
     public static final String URL = "127.0.0.1:8093";
 
-    @Autowired
+    @MockBean
     private SyncDataService syncDataService;
 
     @Autowired
@@ -68,10 +66,13 @@ public final class PolarisSyncDataConfigurationTest {
         assertNotNull(polarisConfig);
         final PolarisSyncDataConfiguration polarisSyncDataConfiguration = new PolarisSyncDataConfiguration();
 
-        final ConfigFileService configFileService = Assertions.assertDoesNotThrow(() -> polarisSyncDataConfiguration.polarisConfigServices(polarisConfig));
+        final ConfigFileService configFileService = Assertions
+                .assertDoesNotThrow(() -> polarisSyncDataConfiguration
+                        .polarisConfigServices(polarisConfig));
         assertInstanceOf(DefaultConfigFileService.class, configFileService);
         DefaultConfigFileService defaultConfigFileService = (DefaultConfigFileService) configFileService;
         final SDKContext sdkContext = defaultConfigFileService.getSDKContext();
-        assertTrue(sdkContext.getConfig().getConfigFile().getServerConnector().getAddresses().contains(PolarisSyncDataConfigurationTest.URL));
+        assertTrue(sdkContext.getConfig().getConfigFile().getServerConnector().getAddresses()
+                .contains(PolarisSyncDataConfigurationTest.URL));
     }
 }
