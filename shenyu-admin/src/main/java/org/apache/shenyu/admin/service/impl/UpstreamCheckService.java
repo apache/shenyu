@@ -224,10 +224,6 @@ public class UpstreamCheckService {
             } else {
                 CommonUpstream existUpstream = exists.get();
                 existUpstream.setHealthCheckEnabled(commonUpstream.isHealthCheckEnabled());
-                if (!existUpstream.isHealthCheckEnabled()) {
-                    existUpstream.setStatus(true);
-                    existUpstream.setTimestamp(System.currentTimeMillis());
-                }
                 LOG.info("upstream host {} is exists.", commonUpstream.getUpstreamHost());
             }
             PENDING_SYNC.add(commonUpstream.hashCode());

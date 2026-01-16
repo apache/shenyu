@@ -254,12 +254,13 @@ public class CommonUpstream {
                 && Objects.equals(protocol, that.protocol)
                 && Objects.equals(gray, that.gray)
                 && Objects.equals(upstreamUrl, that.upstreamUrl)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(healthCheckEnabled, that.healthCheckEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray, healthCheckEnabled);
     }
 
     @Override
