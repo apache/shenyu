@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.base.maker;
 
 import org.apache.shenyu.common.dto.BaseData;
@@ -10,6 +27,7 @@ import java.util.List;
 
 /**
  * Abstract base class for making match decisions in plugins using the Template Method pattern.
+ *
  * <p>
  * This class provides a template for processing data matching logic in plugins. Subclasses are expected
  * to implement the abstract methods to define specific behaviors for handling empty data, matching data,
@@ -24,15 +42,18 @@ import java.util.List;
  * @param <T> the type of data to be matched, extending {@link BaseData}
  */
 public abstract class AbstractMatchDecisionMaker<T extends BaseData> {
-    private final DataProvider<T> dataProvider;
+
     protected static final String URI_CONDITION_TYPE = "uri";
+
+    private final DataProvider<T> dataProvider;
+
 
     /**
      * Constructs an AbstractMatchDecisionMaker with the specified data provider.
      *
      * @param dataProvider the data provider used to retrieve data for matching
      */
-    protected AbstractMatchDecisionMaker(DataProvider<T> dataProvider) {
+    protected AbstractMatchDecisionMaker(final DataProvider<T> dataProvider) {
         this.dataProvider = dataProvider;
     }
 
@@ -42,7 +63,7 @@ public abstract class AbstractMatchDecisionMaker<T extends BaseData> {
      * @param key the key used to retrieve data
      * @return a list of data objects associated with the key
      */
-    public List<T> getData(String key) {
+    public List<T> getData(final String key) {
         return dataProvider.getData(key);
     }
 

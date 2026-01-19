@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.base.maker;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,8 +37,12 @@ import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrieNode;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
@@ -58,6 +79,7 @@ import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> {
 
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
+
     private ShenyuTrie ruleTrie;
 
     /**
@@ -86,7 +108,7 @@ public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> 
      * @return a Mono indicating completion of the empty handler operation
      */
     @Override
-    public Mono<Void> handleEmpty(String pluginName, ServerWebExchange exchange, ShenyuPluginChain chain) {
+    public Mono<Void> handleEmpty(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
@@ -111,7 +133,7 @@ public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> 
      * @return the matched RuleData, or null if no suitable rule is found
      */
     @Override
-    public RuleData matchData(ServerWebExchange exchange, String ruleName, List<RuleData> dataList, String path, SelectorData selectorData) {
+    public RuleData matchData(final ServerWebExchange exchange, final String ruleName, final List<RuleData> dataList, final String path, final SelectorData selectorData) {
         return dataList.isEmpty() ? trieMatchRule(exchange, ruleName, selectorData, path) : dataList.get(0);
     }
 
@@ -126,9 +148,10 @@ public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> 
      * @param data the rule data to evaluate for continuation
      * @return true if the rule is enabled and should continue processing, false otherwise
      */
+
     @Override
-    public boolean shouldContinue(RuleData data) {
-        return data != null && data.getEnabled();
+    public boolean shouldContinue(final RuleData data) {
+        return data.getEnabled();
     }
 
     /**
@@ -167,7 +190,7 @@ public class RuleDataDecisionMaker extends AbstractMatchDecisionMaker<RuleData> 
      * @param path the request path to match
      * @return the matched RuleData, or null if no match is found or trie matching is disabled
      */
-    private RuleData trieMatchRule(final ServerWebExchange exchange, String ruleName, final SelectorData selectorData, final String path) {
+    private RuleData trieMatchRule(final ServerWebExchange exchange, final String ruleName, final SelectorData selectorData, final String path) {
         if (!ruleMatchConfig.getTrie().getEnabled()) {
             return null;
         }

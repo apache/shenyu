@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * abstract shenyu plugin please extends.
@@ -71,7 +72,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         final String pluginName = named();
         final String path = getRawPath(exchange);
 
-
         List<PluginData> pluginDataList = pluginDataDecisionMaker.getData(pluginName);
         if (CollectionUtils.isEmpty(pluginDataList) || !pluginDataDecisionMaker.shouldContinue(pluginDataList.get(0))) {
             return pluginDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
@@ -82,8 +82,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return selectorDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
 
-        SelectorData selectorData = selectorDataDecisionMaker.matchData(exchange,pluginName, selectorDataList, path, null);
-        if (selectorData == null) {
+        SelectorData selectorData = selectorDataDecisionMaker.matchData(exchange, pluginName, selectorDataList, path, null);
+        if (Objects.isNull(selectorData)) {
             return selectorDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
 
@@ -91,8 +91,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (!selectorDataDecisionMaker.shouldContinue(selectorData)) {
             return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
         }
-
-
 
         List<RuleData> ruleDataList = ruleDataDecisionMaker.getData(selectorData.getId());
         if (CollectionUtils.isEmpty(ruleDataList)) {
@@ -105,8 +103,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return doExecute(exchange, chain, selectorData, rule);
         }
 
-        RuleData ruleData = ruleDataDecisionMaker.matchData(exchange,named(), ruleDataList, path, selectorData);
-        if (ruleData == null) {
+        RuleData ruleData = ruleDataDecisionMaker.matchData(exchange, named(), ruleDataList, path, selectorData);
+        if (Objects.isNull(ruleData)) {
             return ruleDataDecisionMaker.handleEmpty(pluginName, exchange, chain);
         }
 

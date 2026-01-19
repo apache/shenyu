@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.base.maker;
 
 import org.apache.shenyu.common.dto.PluginData;
@@ -61,7 +78,7 @@ public class PluginDataDecisionMaker extends AbstractMatchDecisionMaker<PluginDa
      * @return a Mono indicating completion of the empty handler operation
      */
     @Override
-    public Mono<Void> handleEmpty(String pluginName, ServerWebExchange exchange, ShenyuPluginChain chain) {
+    public Mono<Void> handleEmpty(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
@@ -85,7 +102,7 @@ public class PluginDataDecisionMaker extends AbstractMatchDecisionMaker<PluginDa
      * @return the matched PluginData, or null if the data list is empty
      */
     @Override
-    public PluginData matchData(ServerWebExchange exchange, String dataName, List<PluginData> dataList, String path, SelectorData selectorData) {
+    public PluginData matchData(final ServerWebExchange exchange, final String dataName, final List<PluginData> dataList, final String path, final SelectorData selectorData) {
         return dataList.isEmpty() ? null : dataList.get(0);
     }
 
@@ -104,7 +121,7 @@ public class PluginDataDecisionMaker extends AbstractMatchDecisionMaker<PluginDa
      * @return true if the plugin is enabled and should continue processing, false otherwise
      */
     @Override
-    public boolean shouldContinue(PluginData data) {
-        return data != null && data.getEnabled();
+    public boolean shouldContinue(final PluginData data) {
+        return data.getEnabled();
     }
 }
