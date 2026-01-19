@@ -633,20 +633,18 @@ public class ShenyuToolCallback implements ToolCallback {
                 decoratedExchange.getAttributes().put(Constants.META_DATA, metaData);
                 shenyuContext.setRpcType(metaData.getRpcType());
             }
-            try {
-                URI uri = new URI(decoratedPath);
-                shenyuContext.setPath(uri.getRawPath());
-            } catch (URISyntaxException ignore) {
-                shenyuContext.setPath(decoratedPath);
-            }
-            Map<String, Object> attributes = decoratedExchange.getAttributes();
-            String contextPath = (String) attributes.get(Constants.CONTEXT_PATH);
-            if (org.apache.commons.lang3.StringUtils.isBlank(contextPath)) {
-                shenyuContext.setRealUrl(decoratedPath);
+
+            shenyuContext.setPath(extractRawPath(decoratedPath));
+
+            final Map<String, Object> attributes = decoratedExchange.getAttributes();
+            final String contextPath = (String) attributes.getOrDefault(Constants.CONTEXT_PATH, org.apache.commons.lang3.StringUtils.EMPTY);
+            if (org.apache.commons.lang3.StringUtils.isEmpty(contextPath) || !decoratedPath.startsWith(contextPath)) {
+                shenyuContext.setRealUrl(extractRawPath(decoratedPath));
             } else {
-                String realURI = decoratedPath.substring(contextPath.length());
-                shenyuContext.setRealUrl(realURI);
+                final String realURI = decoratedPath.substring(contextPath.length());
+                shenyuContext.setRealUrl(extractRawPath(realURI));
             }
+
             LOG.debug("Configured RpcType to HTTP for tool call, session: {}", sessionId);
 
             decoratedExchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
@@ -654,6 +652,23 @@ public class ShenyuToolCallback implements ToolCallback {
             // Add MCP tool call markers to prevent loops
             decoratedExchange.getAttributes().put(MCP_TOOL_CALL_ATTR, true);
             decoratedExchange.getAttributes().put(MCP_SESSION_ID_ATTR, sessionId);
+        }
+    }
+
+    /**
+     * Safely extracts raw path from a URI string, falling back to original string on failure.
+     *
+     * @param path the path string to process
+     * @return raw path if URI parsing succeeds, otherwise the original string
+     */
+    private String extractRawPath(final String path) {
+        if (StringUtils.isEmpty(path)) {
+            return path;
+        }
+        try {
+            return new URI(path).getRawPath();
+        } catch (final URISyntaxException e) {
+            return path;
         }
     }
 
