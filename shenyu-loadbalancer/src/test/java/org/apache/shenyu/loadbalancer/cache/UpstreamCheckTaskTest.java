@@ -209,8 +209,7 @@ public class UpstreamCheckTaskTest {
         assertThat(healthCheckTask.getUnhealthyUpstream().get(selectorId).size(), is(1));
 
         // Verify it's not in healthy map
-        assertTrue(!healthCheckTask.getHealthyUpstream().containsKey(selectorId)
-                || healthCheckTask.getHealthyUpstream().get(selectorId).isEmpty());
+        assertTrue(CollectionUtils.isEmpty(healthCheckTask.getHealthyUpstream().get(selectorId)));
 
         // Clean up
         healthCheckTask.triggerRemoveAll(selectorId);
