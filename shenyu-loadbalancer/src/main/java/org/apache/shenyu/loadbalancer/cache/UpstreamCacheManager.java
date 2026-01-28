@@ -147,6 +147,14 @@ public final class UpstreamCacheManager {
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
         List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
+
+        // Check if the list is empty first to avoid unnecessary processing
+        if (actualUpstreamList.isEmpty()) {
+            List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
+            removeAllUpstreams(selectorId, existUpstreamList);
+            return;
+        }
+
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
@@ -154,10 +162,6 @@ public final class UpstreamCacheManager {
         List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
         List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
-
-        if (actualUpstreamList.isEmpty()) {
-            removeAllUpstreams(selectorId, existUpstreamList);
-        }
 
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
