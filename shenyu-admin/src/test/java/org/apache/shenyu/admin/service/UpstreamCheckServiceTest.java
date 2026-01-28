@@ -105,7 +105,7 @@ public final class UpstreamCheckServiceTest {
     private SelectorConditionMapper selectorConditionMapper;
 
     private SelectorHandleConverterFactor converterFactor;
-    
+
     @Mock
     private DiscoveryUpstreamService discoveryUpstreamService;
 
@@ -119,7 +119,8 @@ public final class UpstreamCheckServiceTest {
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerSpy);
+        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class))
+                .thenReturn(loggerSpy);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
@@ -133,12 +134,17 @@ public final class UpstreamCheckServiceTest {
         shenyuRegisterCenterConfig.setRegisterType("http");
         shenyuRegisterCenterConfig.getProps().setProperty(Constants.IS_CHECKED, "true");
         // get static variable reference by reflection
-        upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
-        zombieSet = (Set<ZombieUpstream>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET");
+        upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        upstreamMap.clear();
+        zombieSet = (Set<ZombieUpstream>) ReflectionTestUtils.getField(UpstreamCheckService.class,
+                "ZOMBIE_SET");
+        zombieSet.clear();
         Map<String, SelectorHandleConverter> maps = new HashMap<>();
         maps.put(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter());
         converterFactor = new SelectorHandleConverterFactor(maps);
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper,
+                selectorConditionMapper,
                 shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
     }
 
@@ -186,20 +192,24 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testSubmit() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
-        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
-        final DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamUrl("divide-upstream-60")
-                .weight(60)
-                .build();
-        // Test submit when selector name not exists
-        testSubmitOnce(divideUpstream);
-        // Test submit when selector name exists
-        testSubmitOnce(divideUpstream);
-        // Test service deleted
-        divideUpstream.setStatus(false);
-        testSubmitDeleted(divideUpstream);
-        testSubmitDeleted(divideUpstream);
+        try (MockedStatic<UpstreamCheckUtils> mocked = mockStatic(UpstreamCheckUtils.class)) {
+            mocked.when(() -> UpstreamCheckUtils.checkUrl(anyString())).thenReturn(true);
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                    ShenyuThreadFactory.create("scheduled-upstream-task", false));
+            ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+            final DivideUpstream divideUpstream = DivideUpstream.builder()
+                    .upstreamUrl("divide-upstream-60")
+                    .weight(60)
+                    .build();
+            // Test submit when selector name not exists
+            testSubmitOnce(divideUpstream);
+            // Test submit when selector name exists
+            testSubmitOnce(divideUpstream);
+            // Test service deleted
+            divideUpstream.setStatus(false);
+            testSubmitDeleted(divideUpstream);
+            testSubmitDeleted(divideUpstream);
+        }
     }
 
     private void testSubmitOnce(final DivideUpstream divideUpstream) {
@@ -214,7 +224,8 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testReplace() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                ShenyuThreadFactory.create("scheduled-upstream-task", false));
         ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamHost("localhost")
@@ -257,8 +268,10 @@ public final class UpstreamCheckServiceTest {
                 .status(0)
                 .build();
         when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
-        when(selectorMapper.findByPluginIds(anyList())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
-        when(discoveryUpstreamService.findBySelectorId(anyString())).thenReturn(Lists.newArrayList(discoveryUpstreamData));
+        when(selectorMapper.findByPluginIds(anyList()))
+                .thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
+        when(discoveryUpstreamService.findBySelectorId(anyString()))
+                .thenReturn(Lists.newArrayList(discoveryUpstreamData));
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
         assertEquals(2, upstreamMap.get(MOCK_SELECTOR_NAME).size());
@@ -271,7 +284,8 @@ public final class UpstreamCheckServiceTest {
         Properties properties = new Properties();
         properties.setProperty(Constants.IS_CHECKED, "true");
         shenyuRegisterCenterConfig.setProps(properties);
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper,
+                selectorConditionMapper,
                 shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
         upstreamCheckService.close();
     }

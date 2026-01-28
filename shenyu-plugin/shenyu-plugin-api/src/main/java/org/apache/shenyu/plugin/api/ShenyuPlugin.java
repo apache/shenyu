@@ -17,17 +17,14 @@
 
 package org.apache.shenyu.plugin.api;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.Objects;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.PluginSkipHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * the shenyu plugin interface.
@@ -93,12 +90,7 @@ public interface ShenyuPlugin {
      * @return current rpcType == someone rpcType
      */
     default boolean skip(ServerWebExchange exchange, RpcTypeEnum... rpcTypes) {
-        if (ArrayUtils.isEmpty(rpcTypes)) {
-            return false;
-        }
-        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        Objects.requireNonNull(shenyuContext);
-        return Arrays.stream(rpcTypes).anyMatch(type -> Objects.equals(shenyuContext.getRpcType(), type.getName()));
+        return PluginSkipHelper.skip(exchange, rpcTypes);
     }
 
     /**
@@ -118,7 +110,7 @@ public interface ShenyuPlugin {
      * @return current rpcType != someone exceptRpcType
      */
     default boolean skipExcept(ServerWebExchange exchange, RpcTypeEnum... exceptRpcTypes) {
-        return !skip(exchange, exceptRpcTypes);
+        return PluginSkipHelper.skipExcept(exchange, exceptRpcTypes);
     }
 
     /**
@@ -126,10 +118,10 @@ public interface ShenyuPlugin {
      * if return true this plugin can not execute.
      *
      * @param exchange the current server exchange
-     * @return http/spring cloud return true, others false.
+     * @return http/spring cloud/ai return false (not skipped), others return true (skipped).
      */
     default boolean skipExceptHttpLike(ServerWebExchange exchange) {
-        return !skip(exchange, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.AI);
+        return PluginSkipHelper.skipExceptHttpLike(exchange);
     }
 
     /**
@@ -147,9 +139,21 @@ public interface ShenyuPlugin {
      * @param exchange context
      */
     default void after(ServerWebExchange exchange) {
+        Boolean loggingEnabled = exchange.getAttributeOrDefault(Constants.LOGGING_ENABLED, true);
+        if (!loggingEnabled) {
+            return;
+        }
         long currentTimeMillis = System.currentTimeMillis();
-        long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
-        LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), currentTimeMillis - startTime);
+        Long startTime = exchange.getAttribute(Constants.PLUGIN_START_TIME + named());
+        if (Objects.isNull(startTime)) {
+            exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
+            return;
+        }
+        long cost = currentTimeMillis - startTime;
+        Long minCost = exchange.getAttributeOrDefault(Constants.LOGGING_MIN_COST, 0L);
+        if (cost >= minCost) {
+            LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), cost);
+        }
         exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
     }
 }

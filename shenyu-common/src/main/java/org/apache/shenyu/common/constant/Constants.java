@@ -1079,6 +1079,16 @@ public interface Constants {
     String GB = "GB";
 
     /**
+     * the constant LOGGING_ENABLED.
+     */
+    String LOGGING_ENABLED = "loggingEnabled";
+
+    /**
+     * the constant LOGGING_MIN_COST.
+     */
+    String LOGGING_MIN_COST = "loggingMinCost";
+
+    /**
      * String q.
      */
     default void findConstants() {

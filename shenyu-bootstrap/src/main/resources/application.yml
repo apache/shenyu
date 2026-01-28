@@ -309,6 +309,9 @@ shenyu:
     interval: 5000
     printEnabled: true
     printInterval: 60000
+  plugin:
+    enabled: true
+    minCost: 0
   springCloudCache:
     enabled: false
   ribbon:
