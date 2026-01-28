@@ -501,7 +501,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         List<AppAuthData> authDataList = appAuthDOList.stream().map(appAuthDO -> {
             String id = appAuthDO.getId();
-            appAuthDO.setEnabled(enabled);
+            appAuthDO.setOpen(enabled);
             return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
         }).collect(Collectors.toList());
 
