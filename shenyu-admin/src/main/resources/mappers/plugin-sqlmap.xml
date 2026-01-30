@@ -93,6 +93,9 @@
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
+            <if test="role != null and role != ''">
+                AND role LIKE #{role, jdbcType=VARCHAR}
+            </if>
             <if test="enabled != null">
                 AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
