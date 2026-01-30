@@ -164,4 +164,140 @@ public class UpstreamCheckTaskTest {
 
         assertTrue(upstream.isHealthCheckEnabled());
     }
+
+    /**
+     * Test public putToMap method.
+     */
+    @Test
+    public void testPutToMap() {
+        final String selectorId = "putToMapTest";
+        Upstream upstream1 = Upstream.builder()
+                .url("upstream1:8080")
+                .build();
+        Upstream upstream2 = Upstream.builder()
+                .url("upstream2:8080")
+                .build();
+
+        // Test adding to healthy map
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream1);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(1));
+
+        // Test adding another upstream
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream2);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(2));
+
+        // Test adding duplicate (should not add again)
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream1);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(2));
+
+        // Clean up
+        healthCheckTask.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * Test public putToMap method with unhealthy map.
+     */
+    @Test
+    public void testPutToMapUnhealthy() {
+        final String selectorId = "putToMapUnhealthyTest";
+        Upstream upstream = Upstream.builder()
+                .url("unhealthy-upstream:8080")
+                .build();
+
+        // Test adding to unhealthy map
+        healthCheckTask.putToMap(healthCheckTask.getUnhealthyUpstream(), selectorId, upstream);
+        assertThat(healthCheckTask.getUnhealthyUpstream().get(selectorId).size(), is(1));
+
+        // Verify it's not in healthy map
+        assertTrue(CollectionUtils.isEmpty(healthCheckTask.getHealthyUpstream().get(selectorId)));
+
+        // Clean up
+        healthCheckTask.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * Test public removeFromMap method.
+     */
+    @Test
+    public void testRemoveFromMap() {
+        final String selectorId = "removeFromMapTest";
+        Upstream upstream1 = Upstream.builder()
+                .url("remove1:8080")
+                .build();
+        Upstream upstream2 = Upstream.builder()
+                .url("remove2:8080")
+                .build();
+
+        // Add upstreams to healthy map
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream1);
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream2);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(2));
+
+        // Remove one upstream
+        healthCheckTask.removeFromMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream1);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(1));
+
+        // Verify correct upstream remains
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).get(0).getUrl(), is("remove2:8080"));
+
+        // Clean up
+        healthCheckTask.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * Test public removeFromMap method with unhealthy map.
+     */
+    @Test
+    public void testRemoveFromMapUnhealthy() {
+        final String selectorId = "removeFromMapUnhealthyTest";
+        Upstream upstream = Upstream.builder()
+                .url("unhealthy-to-remove:8080")
+                .build();
+
+        // Add to unhealthy map
+        healthCheckTask.putToMap(healthCheckTask.getUnhealthyUpstream(), selectorId, upstream);
+        assertThat(healthCheckTask.getUnhealthyUpstream().get(selectorId).size(), is(1));
+
+        // Remove from unhealthy map
+        healthCheckTask.removeFromMap(healthCheckTask.getUnhealthyUpstream(), selectorId, upstream);
+        assertTrue(!healthCheckTask.getUnhealthyUpstream().containsKey(selectorId)
+                || healthCheckTask.getUnhealthyUpstream().get(selectorId).isEmpty());
+    }
+
+    /**
+     * Test moving upstream between healthy and unhealthy maps using public methods.
+     */
+    @Test
+    public void testMoveUpstreamBetweenMaps() {
+        final String selectorId = "moveBetweenMapsTest";
+        Upstream upstream = Upstream.builder()
+                .url("moving-upstream:8080")
+                .build();
+        upstream.setHealthy(true);
+
+        // Start in healthy map
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream);
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(1));
+
+        // Move to unhealthy map
+        healthCheckTask.removeFromMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream);
+        healthCheckTask.putToMap(healthCheckTask.getUnhealthyUpstream(), selectorId, upstream);
+
+        // Verify moved
+        assertTrue(!healthCheckTask.getHealthyUpstream().containsKey(selectorId)
+                || healthCheckTask.getHealthyUpstream().get(selectorId).isEmpty());
+        assertThat(healthCheckTask.getUnhealthyUpstream().get(selectorId).size(), is(1));
+
+        // Move back to healthy
+        healthCheckTask.removeFromMap(healthCheckTask.getUnhealthyUpstream(), selectorId, upstream);
+        healthCheckTask.putToMap(healthCheckTask.getHealthyUpstream(), selectorId, upstream);
+
+        // Verify moved back
+        assertThat(healthCheckTask.getHealthyUpstream().get(selectorId).size(), is(1));
+        assertTrue(!healthCheckTask.getUnhealthyUpstream().containsKey(selectorId)
+                || healthCheckTask.getUnhealthyUpstream().get(selectorId).isEmpty());
+
+        // Clean up
+        healthCheckTask.triggerRemoveAll(selectorId);
+    }
 }
