@@ -26,17 +26,23 @@ RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 # FROM amazoncorretto:17.0.11-alpine3.19
 FROM eclipse-temurin:17-centos7
 
+RUN groupadd -r shenyu && \
+    useradd -r -g shenyu -m -d /home/shenyu shenyu && \
+    chown -R shenyu:shenyu /home/shenyu
+
 # RUN apk --no-cache add wget curl
 
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 ENV BOOT_JVM ""
 
-COPY --from=prepare ${LOCAL_PATH} ${LOCAL_PATH}
-COPY docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
-COPY docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
+COPY --chown=shenyu:shenyu --from=prepare ${LOCAL_PATH} ${LOCAL_PATH}
+COPY --chown=shenyu:shenyu docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
+COPY --chown=shenyu:shenyu docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
 RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
 
 WORKDIR ${LOCAL_PATH}
+
+USER shenyu
 
 EXPOSE 9195
 
