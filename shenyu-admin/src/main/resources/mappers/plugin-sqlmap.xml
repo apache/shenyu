@@ -94,6 +94,7 @@
                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="role != null and role != ''">
+                <bind name="role" value="('%' + role + '%')"/>
                 AND role LIKE #{role, jdbcType=VARCHAR}
             </if>
             <if test="enabled != null">
