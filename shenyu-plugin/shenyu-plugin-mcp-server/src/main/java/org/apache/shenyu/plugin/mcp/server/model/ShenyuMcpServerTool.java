@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.mcp.server.model;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +45,7 @@ public class ShenyuMcpServerTool {
     /**
      * requestTemplate of the tool .
      */
-    private String requestConfig;
+    private JsonElement requestConfig;
     
     /**
      * Parameters of the tool .
@@ -93,7 +95,13 @@ public class ShenyuMcpServerTool {
      * @return requestConfig
      */
     public String getRequestConfig() {
-        return requestConfig;
+        if (Objects.isNull(requestConfig) || requestConfig.isJsonNull()) {
+            return null;
+        }
+        if (requestConfig.isJsonPrimitive() && requestConfig.getAsJsonPrimitive().isString()) {
+            return requestConfig.getAsString();
+        }
+        return requestConfig.toString();
     }
     
     /**
@@ -102,6 +110,19 @@ public class ShenyuMcpServerTool {
      * @param requestConfig requestConfig
      */
     public void setRequestConfig(final String requestConfig) {
+        if (Objects.isNull(requestConfig)) {
+            this.requestConfig = null;
+            return;
+        }
+        this.requestConfig = new JsonPrimitive(requestConfig);
+    }
+
+    /**
+     * Setter for requestConfig.
+     *
+     * @param requestConfig requestConfig
+     */
+    public void setRequestConfig(final JsonElement requestConfig) {
         this.requestConfig = requestConfig;
     }
     
@@ -157,7 +178,7 @@ public class ShenyuMcpServerTool {
         return String.format("McpServerPluginRuleHandle: name: %s, description: %s, requestConfig: %s, parameters: %s",
                 name,
                 description,
-                requestConfig,
+                getRequestConfig(),
                 parameters);
     }
 }
