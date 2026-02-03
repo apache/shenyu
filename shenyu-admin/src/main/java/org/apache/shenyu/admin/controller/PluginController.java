@@ -65,15 +65,16 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      *
      * @param name        plugin name.
      * @param enabled     plugin enabled.
+     * @param role        plugin role.
      * @param currentPage current page.
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping
-    public ShenyuAdminResult queryPlugins(final String name, final Integer enabled,
+    public ShenyuAdminResult queryPlugins(final String name, final Integer enabled, final String role,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
-        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));
+        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, role, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
     
