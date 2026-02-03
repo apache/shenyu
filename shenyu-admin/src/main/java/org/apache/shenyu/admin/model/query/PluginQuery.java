@@ -102,6 +102,24 @@ public class PluginQuery implements Serializable {
     }
 
     /**
+     * Gets the value of role.
+     *
+     * @return the value of role
+     */
+    public String getRole() {
+        return role;
+    }
+
+    /**
+     * Sets the role.
+     *
+     * @param role role
+     */
+    public void setRole(final String role) {
+        this.role = role;
+    }
+
+    /**
      * Gets the value of pageParameter.
      *
      * @return the value of pageParameter
