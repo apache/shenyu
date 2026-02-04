@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +46,8 @@ import java.util.Objects;
  */
 public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientResponse> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
+
     private final HttpClient httpClient;
 
     /**
@@ -61,6 +65,9 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         ServerHttpRequest request = exchange.getRequest();
         final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
         this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("NettyHttpClient request: method={}, uri={}", httpMethod, uri);
+        }
         return Mono.from(httpClient.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
@@ -71,6 +78,9 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
                 .responseConnection((res, connection) -> {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("NettyHttpClient response: status={}", res.status().code());
+                    }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
                     final ServerHttpResponse response = exchange.getResponse();
@@ -89,7 +99,11 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     } else {
                         throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
                     }
-                    response.getHeaders().putAll(headers);
+                    try {
+                        response.getHeaders().putAll(headers);
+                    } catch (UnsupportedOperationException ex) {
+                        LOG.debug("Skip setting response headers because they are read-only: {}", ex.getMessage());
+                    }
                     return Mono.just(res);
                 }));
     }

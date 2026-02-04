@@ -215,11 +215,17 @@ public class ShenyuToolCallback implements ToolCallback {
                                    final String configStr,
                                    final String input) {
 
+        final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
+        final String toolMethod = configHelper.getMethod();
+        final String toolUrl = configHelper.getUrlTemplate();
+        final JsonObject requestTemplate = configHelper.getRequestTemplate();
+        final String toolTimeout = requestTemplate.has("timeout") ? requestTemplate.get("timeout").getAsString() : "default";
         final CompletableFuture<String> responseFuture = new CompletableFuture<>();
         final ServerWebExchange decoratedExchange = buildDecoratedExchange(
                 originExchange, responseFuture, sessionId, configStr, input);
 
-        LOG.debug("Executing plugin chain for session: {}", sessionId);
+        LOG.debug("Executing plugin chain for session: {} (method: {}, url: {}, timeoutMs: {})",
+                sessionId, toolMethod, toolUrl, toolTimeout);
 
         // Check if this is a temporary session that needs cleanup
         final boolean isTemporarySession = sessionId.startsWith("temp_");
@@ -233,7 +239,12 @@ public class ShenyuToolCallback implements ToolCallback {
                         responseFuture.completeExceptionally(e);
                     }
                 })
-                .doOnSuccess(v -> LOG.debug("Plugin chain completed successfully for session: {}", sessionId))
+                .doOnSuccess(v -> {
+                    LOG.debug("Plugin chain completed successfully for session: {}", sessionId);
+                    if (!responseFuture.isDone()) {
+                        responseFuture.complete("");
+                    }
+                })
                 .doOnCancel(() -> {
                     LOG.warn("Plugin chain execution cancelled for session: {}", sessionId);
                     if (!responseFuture.isDone()) {
@@ -352,7 +363,11 @@ public class ShenyuToolCallback implements ToolCallback {
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
 
         // Build body with parameter formatting (only format body parameters that need it)
-        final JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
+        JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
+        // Fallback: if argsToJsonBody is false but input has content for body methods, use the raw input as body
+        if (!argsToJsonBody && bodyJson.size() == 0 && isRequestBodyMethod(method) && inputJson.size() > 0) {
+            bodyJson = inputJson.deepCopy();
+        }
 
         return new RequestConfig(method, path, bodyJson, requestTemplate, argsToJsonBody, inputJson);
     }
@@ -603,8 +618,11 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private ServerWebExchange handleRequestBody(final ServerWebExchange decoratedExchange,
                                                 final RequestConfig requestConfig) {
-        if (isRequestBodyMethod(requestConfig.getMethod()) && requestConfig.getBodyJson().size() > 0) {
-            return new BodyWriterExchange(decoratedExchange, requestConfig.getBodyJson().toString());
+        if (isRequestBodyMethod(requestConfig.getMethod())) {
+            String body = requestConfig.getBodyJson().size() > 0
+                    ? requestConfig.getBodyJson().toString()
+                    : "{}";
+            return new BodyWriterExchange(decoratedExchange, body);
         }
         return decoratedExchange;
     }
