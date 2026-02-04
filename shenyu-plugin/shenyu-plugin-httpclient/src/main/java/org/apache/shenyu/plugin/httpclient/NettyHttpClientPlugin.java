@@ -102,7 +102,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     try {
                         response.getHeaders().putAll(headers);
                     } catch (UnsupportedOperationException ex) {
-                        LOG.debug("Skip setting response headers because they are read-only: {}", ex.getMessage());
+                        LOG.warn("Failed to set response headers because they are read-only. "
+                                + "This may indicate unexpected response decorator usage. "
+                                + "responseClass={}, statusCode={}, message={}",
+                                response.getClass().getName(), res.status().code(), ex.getMessage());
                     }
                     return Mono.just(res);
                 }));
