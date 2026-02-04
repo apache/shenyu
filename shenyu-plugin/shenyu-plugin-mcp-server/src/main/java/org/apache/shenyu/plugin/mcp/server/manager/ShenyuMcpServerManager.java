@@ -432,11 +432,28 @@ public class ShenyuMcpServerManager {
                 LOG.info("Removed tool '{}' from shared server for path: {} (removed from protocols: {})",
                         name, normalizedPath, protocols);
             } catch (Exception e) {
+                if (isToolNotFoundError(e)) {
+                    LOG.debug("Tool '{}' not found on shared server for path: {} (skip removal)",
+                            name, normalizedPath);
+                    return;
+                }
                 LOG.error("Failed to remove tool '{}' from shared server for path: {}", name, normalizedPath, e);
             }
         } else {
             LOG.warn("No shared server found for path: {}", normalizedPath);
         }
+    }
+
+    private boolean isToolNotFoundError(final Throwable error) {
+        Throwable current = error;
+        while (Objects.nonNull(current)) {
+            String message = current.getMessage();
+            if (Objects.nonNull(message) && message.contains("Tool with name") && message.contains("not found")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     /**
