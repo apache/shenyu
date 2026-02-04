@@ -224,7 +224,7 @@ public class ShenyuToolCallback implements ToolCallback {
         final ServerWebExchange decoratedExchange = buildDecoratedExchange(
                 originExchange, responseFuture, sessionId, configStr, input);
 
-        LOG.debug("Executing plugin chain for session: {} (method: {}, url: {}, timeoutMs: {})",
+        LOG.debug("Executing plugin chain for session: {} (method: {}, url: {}, timeout: {})",
                 sessionId, toolMethod, toolUrl, toolTimeout);
 
         // Check if this is a temporary session that needs cleanup
