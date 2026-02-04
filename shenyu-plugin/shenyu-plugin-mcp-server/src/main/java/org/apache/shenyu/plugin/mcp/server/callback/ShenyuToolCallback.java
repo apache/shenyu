@@ -366,6 +366,10 @@ public class ShenyuToolCallback implements ToolCallback {
         JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
         // Fallback: if argsToJsonBody is false but input has content for body methods, use the raw input as body
         if (!argsToJsonBody && bodyJson.size() == 0 && isRequestBodyMethod(method) && inputJson.size() > 0) {
+            LOG.warn("Using fallback body mapping: argsToJsonBody=false and no body-mapped args, "
+                    + "but method {} expects a request body and inputJson has content. "
+                    + "Using full inputJson as request body. Check tool configuration (urlTemplate={}, argsPosition={}).",
+                    method, urlTemplate, argsPosition);
             bodyJson = inputJson.deepCopy();
         }
 
