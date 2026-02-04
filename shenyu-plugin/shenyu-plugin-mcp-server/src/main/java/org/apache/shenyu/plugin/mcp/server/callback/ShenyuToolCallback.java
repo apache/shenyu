@@ -622,12 +622,14 @@ public class ShenyuToolCallback implements ToolCallback {
      */
     private ServerWebExchange handleRequestBody(final ServerWebExchange decoratedExchange,
                                                 final RequestConfig requestConfig) {
-        if (isRequestBodyMethod(requestConfig.getMethod())) {
-            String body = requestConfig.getBodyJson().size() > 0
-                    ? requestConfig.getBodyJson().toString()
-                    : "{}";
+        if (isRequestBodyMethod(requestConfig.getMethod())
+                && requestConfig.getBodyJson() != null
+                && requestConfig.getBodyJson().size() > 0) {
+            String body = requestConfig.getBodyJson().toString();
             return new BodyWriterExchange(decoratedExchange, body);
         }
+        // For methods without a request body or when no body is configured,
+       // return the original exchange to avoid sending an unintended "{}" body.
         return decoratedExchange;
     }
 
