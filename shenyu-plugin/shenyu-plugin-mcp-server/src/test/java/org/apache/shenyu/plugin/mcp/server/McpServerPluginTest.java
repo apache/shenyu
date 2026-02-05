@@ -80,6 +80,7 @@ class McpServerPluginTest {
     @BeforeEach
     void setUp() {
         mcpServerPlugin = new McpServerPlugin(shenyuMcpServerManager, messageReaders);
+        when(selector.getId()).thenReturn("selector-1");
     }
 
     @Test
