@@ -58,6 +58,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     private static final String SLASH = "/";
 
     private static final String STAR = "/**";
+    
+    private static final String STREAMABLE_HTTP_PATH = "/streamablehttp";
 
     private final ShenyuMcpServerManager shenyuMcpServerManager;
 
@@ -94,6 +96,9 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         // Get or create McpServer for this URI
         if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
             shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
+        }
+        if (StringUtils.isNotBlank(path)) {
+            shenyuMcpServerManager.getOrCreateStreamableHttpTransport(path + STREAMABLE_HTTP_PATH);
         }
 
         // the update is also need to clean, but there is no way to

@@ -143,8 +143,17 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         LOG.debug("Processing MCP request with URI: {}", uri);
 
         if (!shenyuMcpServerManager.canRoute(uri)) {
-            LOG.debug("URI not handled by MCP server, continuing chain: {}", uri);
-            return chain.execute(exchange);
+            ShenyuMcpServer server = McpServerPluginDataHandler.CACHED_SERVER.get().obtainHandle(selector.getId());
+            if (Objects.nonNull(server)) {
+                String serverPath = server.getPath();
+                String messageEndpoint = server.getMessageEndpoint();
+                shenyuMcpServerManager.getOrCreateMcpServerTransport(serverPath, messageEndpoint);
+                shenyuMcpServerManager.getOrCreateStreamableHttpTransport(serverPath + STREAMABLE_HTTP_PATH);
+            }
+            if (!shenyuMcpServerManager.canRoute(uri)) {
+                LOG.debug("URI not handled by MCP server, continuing chain: {}", uri);
+                return chain.execute(exchange);
+            }
         }
 
         LOG.debug("Handling MCP request for URI: {}", uri);
@@ -572,7 +581,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
     private void setCorsHeaders(final ServerWebExchange exchange) {
         exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.getResponse().getHeaders().set("Access-Control-Allow-Headers",
-                "Content-Type, Mcp-Session-Id, Authorization, Last-Event-ID");
+                "Content-Type, Mcp-Session-Id, Authorization, Last-Event-ID, Mcp-Protocol-Version");
         exchange.getResponse().getHeaders().set("Access-Control-Allow-Methods",
                 "GET, POST, OPTIONS");
     }
