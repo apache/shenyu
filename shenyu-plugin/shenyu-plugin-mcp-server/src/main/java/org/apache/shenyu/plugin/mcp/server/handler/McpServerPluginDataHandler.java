@@ -78,15 +78,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             return;
         }
 
-        // Get the URI from selector data
-        String uri = selectorData.getConditionList().stream()
-                .filter(condition -> Constants.URI.equals(condition.getParamType()))
-                .map(ConditionData::getParamValue)
-                .findFirst()
-                .orElse(null);
-
-        String path = StringUtils.removeEnd(uri, SLASH);
-        path = StringUtils.removeEnd(path, STAR);
+        String uri = extractSelectorUri(selectorData);
+        String path = normalizeSelectorPath(uri);
         ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(StringUtils.isBlank(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
@@ -94,8 +87,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                 shenyuMcpServer);
         String messageEndpoint = shenyuMcpServer.getMessageEndpoint();
         // Get or create McpServer for this URI
-        if (StringUtils.isNotBlank(uri) && !shenyuMcpServerManager.hasMcpServer(uri)) {
-            shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
+        if (StringUtils.isNotBlank(path) && !shenyuMcpServerManager.hasMcpServer(path)) {
+            shenyuMcpServerManager.getOrCreateMcpServerTransport(path, messageEndpoint);
         }
         if (StringUtils.isNotBlank(path)) {
             shenyuMcpServerManager.getOrCreateStreamableHttpTransport(path + STREAMABLE_HTTP_PATH);
@@ -108,31 +101,27 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
+            return;
+        }
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
 
-        // Remove the McpServer for this URI
-        // First try to get URI from handle, then from condition list
-        String uri = selectorData.getHandle();
-        if (StringUtils.isBlank(uri)) {
-            // Try to get URI from condition list
-            uri = selectorData.getConditionList().stream()
-                    .filter(condition -> Constants.URI.equals(condition.getParamType()))
-                    .map(ConditionData::getParamValue)
-                    .findFirst()
-                    .orElse(null);
-        }
+        String path = normalizeSelectorPath(extractSelectorUri(selectorData));
 
         CACHED_SERVER.get().removeHandle(selectorData.getId());
 
-        if (StringUtils.isNotBlank(uri) && shenyuMcpServerManager.hasMcpServer(uri)) {
-            shenyuMcpServerManager.removeMcpServer(uri);
+        if (StringUtils.isNotBlank(path) && shenyuMcpServerManager.hasMcpServer(path)) {
+            shenyuMcpServerManager.removeMcpServer(path);
         }
     }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
+        if (Objects.isNull(ruleData)) {
+            return;
+        }
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
             CACHED_TOOL.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mcpServerTool);
@@ -158,10 +147,15 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
+        if (Objects.isNull(ruleData)) {
+            return;
+        }
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            shenyuMcpServerManager.removeTool(server.getPath(), ruleData.getName());
+            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
+                shenyuMcpServerManager.removeTool(server.getPath(), ruleData.getName());
+            }
         });
         MetaDataCache.getInstance().clean();
     }
@@ -169,6 +163,26 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     @Override
     public String pluginNamed() {
         return PluginEnum.MCP_SERVER.getName();
+    }
+
+    private String extractSelectorUri(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData) || CollectionUtils.isEmpty(selectorData.getConditionList())) {
+            return null;
+        }
+        return selectorData.getConditionList().stream()
+                .filter(condition -> Constants.URI.equals(condition.getParamType()))
+                .map(ConditionData::getParamValue)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String normalizeSelectorPath(final String selectorUri) {
+        if (StringUtils.isBlank(selectorUri)) {
+            return selectorUri;
+        }
+        String path = StringUtils.removeEnd(selectorUri, STAR);
+        path = StringUtils.removeEnd(path, SLASH);
+        return StringUtils.defaultIfBlank(path, SLASH);
     }
 
 }

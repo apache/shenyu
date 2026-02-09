@@ -102,7 +102,7 @@ class McpServerPluginDataHandlerTest {
         
         dataHandler.handlerSelector(selectorData);
         
-        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport(eq("/mcp/test/**"), eq("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport(eq("/mcp/test"), eq("/message"));
     }
 
     @Test
@@ -138,7 +138,7 @@ class McpServerPluginDataHandlerTest {
         
         dataHandler.removeSelector(selectorData);
         
-        verify(shenyuMcpServerManager).removeMcpServer(eq("/mcp/test/**"));
+        verify(shenyuMcpServerManager).removeMcpServer(eq("/mcp/test"));
     }
 
     @Test

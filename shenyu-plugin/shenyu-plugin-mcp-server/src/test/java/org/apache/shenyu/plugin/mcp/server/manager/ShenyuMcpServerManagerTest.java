@@ -154,8 +154,7 @@ class ShenyuMcpServerManagerTest {
         
         shenyuMcpServerManager.getOrCreateStreamableHttpTransport(uri);
         
-        // Use base path since that's what the manager uses internally
-        Set<String> protocols = shenyuMcpServerManager.getSupportedProtocols("/mcp");
+        Set<String> protocols = shenyuMcpServerManager.getSupportedProtocols("/mcp/test");
         assertNotNull(protocols);
         assertTrue(protocols.contains("Streamable HTTP"));
     }
