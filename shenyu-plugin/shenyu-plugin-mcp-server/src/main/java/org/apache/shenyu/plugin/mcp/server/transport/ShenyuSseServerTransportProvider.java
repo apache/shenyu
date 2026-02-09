@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server.transport;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.TypeRef;
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.spec.McpError;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
@@ -70,6 +72,8 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
     private static final String DEFAULT_BASE_URL = "";
 
     private final ObjectMapper objectMapper;
+
+    private final McpJsonMapper jsonMapper;
 
     /**
      * Base URL for the message endpoint. This is used to construct the full URL for
@@ -153,6 +157,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         Assert.notNull(sseEndpoint, "SSE endpoint must not be null");
 
         this.objectMapper = objectMapper;
+        this.jsonMapper = new JacksonMcpJsonMapper(this.objectMapper);
         this.baseUrl = baseUrl;
         this.messageEndpoint = messageEndpoint;
         this.sseEndpoint = sseEndpoint;
@@ -349,7 +354,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
 
         return request.bodyToMono(String.class).flatMap(body -> {
             try {
-                McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(objectMapper, body);
+                McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
                 return session.handle(message).flatMap(response -> ServerResponse.ok().build()).onErrorResume(error -> {
                     LOGGER.error("Error processing  message: {}", error.getMessage());
                     // instead of signalling the error, just respond with 200 OK
@@ -397,7 +402,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                 .flatMap(body -> {
                     try {
                         LOGGER.debug("Received message body: {}", body);
-                        McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(objectMapper, body);
+                        McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
                         LOGGER.info("Deserialized JSON-RPC message for session: {}", sessionId);
 
                         return session.handle(message)
@@ -456,7 +461,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         public Mono<Void> sendMessage(final McpSchema.JSONRPCMessage message) {
             return Mono.fromSupplier(() -> {
                 try {
-                    return objectMapper.writeValueAsString(message);
+                    return jsonMapper.writeValueAsString(message);
                 } catch (IOException e) {
                     throw Exceptions.propagate(e);
                 }
@@ -472,8 +477,8 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         }
 
         @Override
-        public <T> T unmarshalFrom(final Object data, final TypeReference<T> typeRef) {
-            return objectMapper.convertValue(data, typeRef);
+        public <T> T unmarshalFrom(final Object data, final TypeRef<T> typeRef) {
+            return jsonMapper.convertValue(data, typeRef);
         }
 
         @Override
