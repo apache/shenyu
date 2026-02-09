@@ -171,7 +171,7 @@ public interface RuleMapper extends ExistProvider {
     List<RuleDO> selectAllByNamespaceIds(List<String> namespaceIds);
 
     /**
-     * search by condition join selector
+     * search by condition join selector.
      *
      * @param condition condition
      * @return list
