@@ -81,16 +81,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         String uri = extractSelectorUri(selectorData);
         if (StringUtils.isBlank(uri)) {
             return;
-        String uri = extractSelectorUri(selectorData);
-        if (StringUtils.isBlank(uri)) {
-            // No valid URI condition found; do not cache or create transports.
-            return;
         }
         String path = normalizeSelectorPath(uri);
-        if (StringUtils.isBlank(path)) {
-            // Normalization did not yield a usable path; abort handling.
-            return;
-        }
         if (StringUtils.isBlank(path)) {
             return;
         }
