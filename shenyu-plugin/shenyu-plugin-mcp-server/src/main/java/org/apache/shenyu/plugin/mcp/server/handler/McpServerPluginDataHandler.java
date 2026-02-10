@@ -79,7 +79,13 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         }
 
         String uri = extractSelectorUri(selectorData);
+        if (StringUtils.isBlank(uri)) {
+            return;
+        }
         String path = normalizeSelectorPath(uri);
+        if (StringUtils.isBlank(path)) {
+            return;
+        }
         ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(StringUtils.isBlank(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
         CACHED_SERVER.get().cachedHandle(
@@ -134,7 +140,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             // Create JSON schema from parameters
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            if (Objects.nonNull(server)) {
+            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
                 shenyuMcpServerManager.addTool(server.getPath(),
                         StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
                                 : mcpServerTool.getName(),

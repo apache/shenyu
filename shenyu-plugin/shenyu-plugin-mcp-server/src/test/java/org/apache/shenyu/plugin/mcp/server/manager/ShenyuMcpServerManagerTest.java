@@ -169,4 +169,14 @@ class ShenyuMcpServerManagerTest {
         assertTrue(shenyuMcpServerManager.hasMcpServer(uri));
         assertTrue(shenyuMcpServerManager.hasMcpServer("/mcp/test"));
     }
+
+    @Test
+    void testRegisterRouteWithFullUriAndQuery() {
+        String uri = "http://localhost:9195/mcp/test/streamablehttp?debug=true#anchor";
+
+        shenyuMcpServerManager.getOrCreateStreamableHttpTransport(uri);
+
+        assertTrue(shenyuMcpServerManager.canRoute("/mcp/test/streamablehttp"));
+        assertTrue(shenyuMcpServerManager.hasMcpServer("/mcp/test"));
+    }
 }

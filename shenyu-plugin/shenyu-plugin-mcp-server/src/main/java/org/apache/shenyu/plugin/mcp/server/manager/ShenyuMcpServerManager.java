@@ -510,12 +510,36 @@ public class ShenyuMcpServerManager {
         if (routePath.isEmpty()) {
             return "/";
         }
+
+        try {
+            URI uri = URI.create(routePath);
+            if (Objects.nonNull(uri.getScheme())) {
+                routePath = uri.getRawPath();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Keep original input when it's not a full URI.
+        }
+
+        if (Objects.isNull(routePath) || routePath.isEmpty()) {
+            routePath = "/";
+        }
         if (!routePath.startsWith("/")) {
             routePath = "/" + routePath;
+        }
+        int queryStart = routePath.indexOf('?');
+        if (queryStart >= 0) {
+            routePath = routePath.substring(0, queryStart);
+        }
+        int fragmentStart = routePath.indexOf('#');
+        if (fragmentStart >= 0) {
+            routePath = routePath.substring(0, fragmentStart);
         }
         routePath = routePath.replaceAll("/{2,}", "/");
         if (routePath.length() > 1 && routePath.endsWith("/")) {
             routePath = routePath.substring(0, routePath.length() - 1);
+        }
+        if (routePath.isEmpty()) {
+            return "/";
         }
         return routePath;
     }
