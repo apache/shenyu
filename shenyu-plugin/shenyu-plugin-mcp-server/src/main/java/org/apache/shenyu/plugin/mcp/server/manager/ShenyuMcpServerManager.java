@@ -523,8 +523,31 @@ public class ShenyuMcpServerManager {
         if (Objects.isNull(routePath) || routePath.isEmpty()) {
             routePath = "/";
         }
+
+        // Handle full URIs similarly to normalizeServerPath.
+        try {
+            URI uri = URI.create(routePath);
+            if (Objects.nonNull(uri.getScheme())) {
+                routePath = uri.getRawPath();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Keep original input when it's not a full URI.
+        }
+
+        if (Objects.isNull(routePath) || routePath.isEmpty()) {
+            routePath = "/";
+        }
         if (!routePath.startsWith("/")) {
             routePath = "/" + routePath;
+        }
+
+        int queryStart = routePath.indexOf('?');
+        if (queryStart >= 0) {
+            routePath = routePath.substring(0, queryStart);
+        }
+        int fragmentStart = routePath.indexOf('#');
+        if (fragmentStart >= 0) {
+            routePath = routePath.substring(0, fragmentStart);
         }
         int queryStart = routePath.indexOf('?');
         if (queryStart >= 0) {
