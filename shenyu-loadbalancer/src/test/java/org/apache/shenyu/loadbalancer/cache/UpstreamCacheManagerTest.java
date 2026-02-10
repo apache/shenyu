@@ -278,6 +278,44 @@ public class UpstreamCacheManagerTest {
         upstreamCacheManager.removeByKey(testSelectorId);
     }
 
+    @Test
+    @Order(10)
+    public void testSubmitCanRecoverAfterEmptyUpstreamEvent() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String testSelectorId = "RECOVER_AFTER_EMPTY_EVENT_TEST";
+
+        List<Upstream> initialList = new ArrayList<>(1);
+        initialList.add(Upstream.builder()
+                .protocol("http://")
+                .url("recover-upstream:8080")
+                .status(true)
+                .healthCheckEnabled(false)
+                .build());
+        upstreamCacheManager.submit(testSelectorId, initialList);
+        List<Upstream> firstSubmitResult = upstreamCacheManager.findUpstreamListBySelectorId(testSelectorId);
+        Assertions.assertNotNull(firstSubmitResult);
+        Assertions.assertFalse(firstSubmitResult.isEmpty());
+
+        upstreamCacheManager.submit(testSelectorId, new ArrayList<>());
+        List<Upstream> afterEmptySubmitResult = upstreamCacheManager.findUpstreamListBySelectorId(testSelectorId);
+        Assertions.assertTrue(Objects.isNull(afterEmptySubmitResult) || afterEmptySubmitResult.isEmpty());
+
+        List<Upstream> recoveredList = new ArrayList<>(1);
+        recoveredList.add(Upstream.builder()
+                .protocol("http://")
+                .url("recover-upstream:8080")
+                .status(true)
+                .healthCheckEnabled(false)
+                .build());
+        upstreamCacheManager.submit(testSelectorId, recoveredList);
+        List<Upstream> secondSubmitResult = upstreamCacheManager.findUpstreamListBySelectorId(testSelectorId);
+        Assertions.assertNotNull(secondSubmitResult);
+        Assertions.assertFalse(secondSubmitResult.isEmpty());
+        Assertions.assertTrue(secondSubmitResult.stream().anyMatch(upstream -> "recover-upstream:8080".equals(upstream.getUrl())));
+
+        upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
     /**
      * Helper method to get the UpstreamCheckTask using reflection.
      */

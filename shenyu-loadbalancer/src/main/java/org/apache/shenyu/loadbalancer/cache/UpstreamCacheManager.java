@@ -150,8 +150,11 @@ public final class UpstreamCacheManager {
 
         // Check if the list is empty first to avoid unnecessary processing
         if (actualUpstreamList.isEmpty()) {
-            List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
-            removeAllUpstreams(selectorId, existUpstreamList);
+            List<Upstream> existUpstreamList = UPSTREAM_MAP.get(selectorId);
+            if (Objects.nonNull(existUpstreamList)) {
+                removeAllUpstreams(selectorId, existUpstreamList);
+            }
+            UPSTREAM_MAP.remove(selectorId);
             return;
         }
 
