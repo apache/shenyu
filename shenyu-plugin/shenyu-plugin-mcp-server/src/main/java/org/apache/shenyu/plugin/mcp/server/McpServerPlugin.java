@@ -635,15 +635,9 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         final String allowHeaders = Objects.nonNull(configuredCorsAllowHeaders) && !configuredCorsAllowHeaders.isBlank()
                 ? configuredCorsAllowHeaders : CORS_FALLBACK_ALLOW_HEADERS;
         for (String header : allowHeaders.split(",")) {
-            allowedHeaders.add(header.trim());
-        }
-        final String requestedHeaders = exchange.getRequest().getHeaders().getFirst("Access-Control-Request-Headers");
-        if (Objects.nonNull(requestedHeaders) && !requestedHeaders.isBlank()) {
-            for (String requestedHeader : requestedHeaders.split(",")) {
-                final String header = requestedHeader.trim();
-                if (!header.isEmpty()) {
-                    allowedHeaders.add(header);
-                }
+            final String trimmed = header.trim();
+            if (!trimmed.isEmpty()) {
+                allowedHeaders.add(trimmed);
             }
         }
         return String.join(", ", allowedHeaders);
