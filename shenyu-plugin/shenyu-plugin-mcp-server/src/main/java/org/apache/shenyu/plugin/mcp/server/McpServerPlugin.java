@@ -43,9 +43,11 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -109,9 +111,16 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      */
     private static final String BEARER_PREFIX = "Bearer ";
 
+    private static final String CORS_ALLOW_METHODS = "GET, POST, OPTIONS";
+
+    private static final String CORS_FALLBACK_ALLOW_HEADERS =
+            "Content-Type, Mcp-Session-Id, Authorization, Last-Event-ID, Mcp-Protocol-Version, X-Request, XRequest, xrequest";
+
     private final ShenyuMcpServerManager shenyuMcpServerManager;
 
     private final List<HttpMessageReader<?>> messageReaders;
+
+    private final String configuredCorsAllowHeaders;
 
     /**
      * Constructs a new MCP server plugin.
@@ -121,8 +130,22 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      */
     public McpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager,
                            final List<HttpMessageReader<?>> messageReaders) {
+        this(shenyuMcpServerManager, messageReaders, null);
+    }
+
+    /**
+     * Constructs a new MCP server plugin.
+     *
+     * @param shenyuMcpServerManager   the MCP server manager for handling transport providers
+     * @param messageReaders           the HTTP message readers for request processing
+     * @param configuredCorsAllowHeaders CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
+     */
+    public McpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager,
+                           final List<HttpMessageReader<?>> messageReaders,
+                           final String configuredCorsAllowHeaders) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
         this.messageReaders = messageReaders;
+        this.configuredCorsAllowHeaders = configuredCorsAllowHeaders;
     }
 
     @Override
@@ -203,6 +226,10 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                                        final SelectorData selector,
                                        final String uri) {
 
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequest().getMethod().name())) {
+            return handleCorsPreflight(exchange);
+        }
+
         if (isStreamableHttpProtocol(uri)) {
             return handleStreamableHttpRequest(exchange, chain, request, uri);
         } else if (isSseProtocol(uri)) {
@@ -274,6 +301,19 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      */
     private boolean isSseProtocol(final String uri) {
         return uri.contains(SSE_PATH) || uri.endsWith(SSE_PATH) || uri.endsWith(MESSAGE_ENDPOINT);
+    }
+
+    /**
+     * Handles CORS preflight (OPTIONS) requests.
+     *
+     * @param exchange the server web exchange
+     * @return a Mono representing completion
+     */
+    private Mono<Void> handleCorsPreflight(final ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.OK);
+        setCorsHeaders(exchange);
+        exchange.getResponse().getHeaders().set("Access-Control-Max-Age", "3600");
+        return exchange.getResponse().setComplete();
     }
 
     /**
@@ -579,11 +619,34 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
      * @param exchange the server web exchange
      */
     private void setCorsHeaders(final ServerWebExchange exchange) {
-        exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", "*");
-        exchange.getResponse().getHeaders().set("Access-Control-Allow-Headers",
-                "Content-Type, Mcp-Session-Id, Authorization, Last-Event-ID, Mcp-Protocol-Version");
-        exchange.getResponse().getHeaders().set("Access-Control-Allow-Methods",
-                "GET, POST, OPTIONS");
+        exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", resolveAllowOrigin(exchange));
+        exchange.getResponse().getHeaders().set("Access-Control-Allow-Headers", resolveAllowHeaders(exchange));
+        exchange.getResponse().getHeaders().set("Access-Control-Allow-Methods", CORS_ALLOW_METHODS);
+        exchange.getResponse().getHeaders().set("Vary", "Origin, Access-Control-Request-Headers");
+    }
+
+    private String resolveAllowOrigin(final ServerWebExchange exchange) {
+        final String origin = exchange.getRequest().getHeaders().getFirst("Origin");
+        return Objects.nonNull(origin) && !origin.isBlank() ? origin : "*";
+    }
+
+    private String resolveAllowHeaders(final ServerWebExchange exchange) {
+        final Set<String> allowedHeaders = new LinkedHashSet<>();
+        final String allowHeaders = Objects.nonNull(configuredCorsAllowHeaders) && !configuredCorsAllowHeaders.isBlank()
+                ? configuredCorsAllowHeaders : CORS_FALLBACK_ALLOW_HEADERS;
+        for (String header : allowHeaders.split(",")) {
+            allowedHeaders.add(header.trim());
+        }
+        final String requestedHeaders = exchange.getRequest().getHeaders().getFirst("Access-Control-Request-Headers");
+        if (Objects.nonNull(requestedHeaders) && !requestedHeaders.isBlank()) {
+            for (String requestedHeader : requestedHeaders.split(",")) {
+                final String header = requestedHeader.trim();
+                if (!header.isEmpty()) {
+                    allowedHeaders.add(header);
+                }
+            }
+        }
+        return String.join(", ", allowedHeaders);
     }
 
     /**

@@ -42,6 +42,8 @@ public class StreamableHttpProviderBuilder {
 
     private String endpoint = DEFAULT_ENDPOINT;
 
+    private String allowedHeaders;
+
     /**
      * Sets the ObjectMapper for JSON serialization/deserialization.
      *
@@ -69,6 +71,17 @@ public class StreamableHttpProviderBuilder {
     }
 
     /**
+     * Sets configured CORS allow headers.
+     *
+     * @param allowedHeaders comma-separated headers from configuration
+     * @return this builder for method chaining
+     */
+    public StreamableHttpProviderBuilder allowedHeaders(final String allowedHeaders) {
+        this.allowedHeaders = allowedHeaders;
+        return this;
+    }
+
+    /**
      * Builds a new ShenyuStreamableHttpServerTransportProvider instance.
      *
      * @return the configured transport provider
@@ -76,6 +89,6 @@ public class StreamableHttpProviderBuilder {
      */
     public ShenyuStreamableHttpServerTransportProvider build() {
         Assert.notNull(objectMapper, "ObjectMapper must be configured");
-        return new ShenyuStreamableHttpServerTransportProvider(objectMapper, endpoint);
+        return new ShenyuStreamableHttpServerTransportProvider(objectMapper, endpoint, allowedHeaders);
     }
 }
