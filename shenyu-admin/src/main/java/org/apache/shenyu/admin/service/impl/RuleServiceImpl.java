@@ -116,9 +116,14 @@ public class RuleServiceImpl implements RuleService {
     public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
         RuleQueryCondition condition = pageCondition.getCondition();
         doConditionPreProcessing(condition);
-        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
-        final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByConditionJoinSelector(condition));
+        condition.setSelectors(
+                Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
+                        .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
+                        .orElse(null)
+        );
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
+        final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
         PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
         for (RuleVO rule : doPageInfo.getList()) {
             rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
