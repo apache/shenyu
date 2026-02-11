@@ -20,12 +20,14 @@ package org.apache.shenyu.client.mcp;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.utils.RequestMethodUtils;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpToolParam;
+import org.apache.shenyu.client.mcp.common.eunm.McpParameterType;
 import org.apache.shenyu.client.mcp.generator.McpOpenApiGenerator;
 import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
 import org.apache.shenyu.client.mcp.utils.OpenApiConvertorUtil;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -63,14 +66,20 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
 
     private static final Logger log = LoggerFactory.getLogger(McpServiceEventListener.class);
 
+    private final Environment env;
+
     /**
      * Instantiates a new context refreshed event listener.
      *
      * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
+     * @param env                            the spring environment
      */
-    public McpServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public McpServiceEventListener(final ShenyuClientConfig clientConfig,
+                                   final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                   final Environment env) {
         super(clientConfig, shenyuClientRegisterRepository);
+        this.env = env;
     }
 
     @Override
@@ -214,6 +223,14 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
                     if (StringUtils.isBlank(parameterObject.getDescription())) {
                         parameterObject.setDescription(parameterNames[i]);
                     }
+                    // inject type
+                    if (Objects.isNull(parameterObject.getSchema()) || StringUtils.isBlank(parameterObject.getSchema().getType())) {
+                        Schema<Object> schema = new Schema<>();
+                        McpParameterType parameterType = McpParameterType.fromParameter(parameters[i]);
+                        schema.setType(parameterType.getTypeName());
+
+                        parameterObject.setSchema(schema);
+                    }
                     parametersList.add(parameterObject);
                 }
 
@@ -257,10 +274,15 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         }
 
         List<String> combinedPaths = new ArrayList<>();
+        final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
+        final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
+        final String rootPath = concatPaths(servletContextPath, servletPath);
         for (String cp : classPaths) {
             for (String mp : methodPaths) {
                 String path = concatPaths(cp, mp);
-                combinedPaths.add(path);
+                String prefix = concatPaths(getContextPath(), rootPath);
+                String finalPath = concatPaths(prefix, path);
+                combinedPaths.add(finalPath);
             }
         }
         return combinedPaths;

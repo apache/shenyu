@@ -29,15 +29,8 @@ public class EtcdProperties extends InfraParentProperties {
 
     public static final String CONFIG_PREFIX = PARENT_CONFIG_PREFIX + Constants.DOT + InfraConstants.SHENYU_ETCD;
 
-    private static final Integer DEFAULT_SESSION_TIMEOUT = 30 * 1000;
-
-    private static final Integer DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
-
     @NestedConfigurationProperty
-    private EtcdConfig etcd = EtcdConfig.builder()
-            .connectionTimeout(DEFAULT_CONNECT_TIMEOUT)
-            .sessionTimeout(DEFAULT_SESSION_TIMEOUT)
-            .build();
+    private EtcdConfig etcd = EtcdConfig.builder().build();
 
     public EtcdConfig getEtcd() {
         return etcd;

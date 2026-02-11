@@ -110,6 +110,7 @@ public final class PluginControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template")
                         .param("name", "t_n")
                         .param("enabled", "1")
+                        .param("role", "super")
                         .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
                         .param("pageSize", String.valueOf(pageParameter.getPageSize())))
                 .andExpect(status().isOk())

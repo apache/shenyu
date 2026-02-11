@@ -87,7 +87,8 @@ public class McpRequestConfigGenerator {
         JsonArray headers = new JsonArray();
         shenyuMcpRequestConfig.getHeaders().forEach((key, value) -> {
             JsonObject headerJson = new JsonObject();
-            headerJson.addProperty(key, value);
+            headerJson.addProperty("key", key);
+            headerJson.addProperty("value", value);
             headers.add(headerJson);
         });
         requestTemplate.add(RequestTemplateConstants.HEADERS_KEY, headers);

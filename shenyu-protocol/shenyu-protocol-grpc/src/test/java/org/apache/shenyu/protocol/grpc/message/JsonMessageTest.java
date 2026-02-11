@@ -126,6 +126,13 @@ public class JsonMessageTest {
 
     @Test
     public void testCreateJsonMarshallerMethodDescriptor() {
+        // reset static cache to avoid pollution from earlier tests
+        try {
+            java.lang.reflect.Field f = JsonMessage.class.getDeclaredField("METHOD_DESCRIPTOR_CACHE");
+            f.setAccessible(true);
+            ((java.util.Map<?, ?>) f.get(null)).clear();
+        } catch (Exception ignored) {
+        }
         DynamicMessage jsonMessage = JsonMessage.buildJsonMessage();
         MethodDescriptor<DynamicMessage, DynamicMessage> echo = JsonMessage.createJsonMarshallerMethodDescriptor("echo.service",
                 "echo",

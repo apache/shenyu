@@ -250,7 +250,7 @@ CREATE TABLE "public"."field" (
   "self_model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "field_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
-  "required" int2 NOT NULL,
+  "is_required" int2 NOT NULL,
   "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -261,7 +261,7 @@ COMMENT ON COLUMN "public"."field"."model_id" IS 'this field belongs to which mo
 COMMENT ON COLUMN "public"."field"."self_model_id" IS 'which model of this field is';
 COMMENT ON COLUMN "public"."field"."name" IS 'field name';
 COMMENT ON COLUMN "public"."field"."field_desc" IS 'field description';
-COMMENT ON COLUMN "public"."field"."required" IS 'whether to require (0 not required, 1 required)';
+COMMENT ON COLUMN "public"."field"."is_required" IS 'whether to require (0 not required, 1 required)';
 COMMENT ON COLUMN "public"."field"."ext" IS 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
 COMMENT ON COLUMN "public"."field"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."field"."date_updated" IS 'update time';
@@ -430,7 +430,7 @@ CREATE TABLE "public"."param" (
   "type"         int4 NOT NULL,
   "name"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
   "param_desc"   varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
-  "required"     int2 NOT NULL,
+  "is_required"     int2 NOT NULL,
   "ext"          varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -441,7 +441,7 @@ COMMENT ON COLUMN "public"."param"."model_id" IS 'the model id, empty if not a m
 COMMENT ON COLUMN "public"."param"."type" IS '0-requestPathVariable,1-requestUrlParam,2-requestHeader,3-requestBody,4-responseHeader,5-responseBody';
 COMMENT ON COLUMN "public"."param"."name" IS 'the param name';
 COMMENT ON COLUMN "public"."param"."param_desc" IS 'the param description';
-COMMENT ON COLUMN "public"."param"."required" IS 'whether to require (0 not required, 1 required)';
+COMMENT ON COLUMN "public"."param"."is_required" IS 'whether to require (0 not required, 1 required)';
 COMMENT ON COLUMN "public"."param"."ext" IS 'extended fields';
 COMMENT ON COLUMN "public"."param"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."param"."date_updated" IS 'update time';
@@ -2572,11 +2572,11 @@ CREATE TABLE "public"."discovery" (
 )
 ;
 COMMENT ON COLUMN "public"."discovery"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."discovery"."name" IS 'the discovery name';
+COMMENT ON COLUMN "public"."discovery"."discovery_name" IS 'the discovery name';
 COMMENT ON COLUMN "public"."discovery"."discovery_level" IS '0 selector,1 plugin  2 global';
 COMMENT ON COLUMN "public"."discovery"."plugin_name" IS 'the plugin name';
 COMMENT ON COLUMN "public"."discovery"."namespace_id" IS 'the namespace id';
-COMMENT ON COLUMN "public"."discovery"."type" IS 'local,zookeeper,etcd,consul,nacos';
+COMMENT ON COLUMN "public"."discovery"."discovery_type" IS 'local,zookeeper,etcd,consul,nacos';
 COMMENT ON COLUMN "public"."discovery"."server_list" IS 'register server url (,)';
 COMMENT ON COLUMN "public"."discovery"."props" IS 'the discovery pops (json) ';
 COMMENT ON COLUMN "public"."discovery"."date_created" IS 'create time';

@@ -27,6 +27,8 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
+import org.apache.shenyu.infra.zookeeper.config.ZookeeperConfig;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -53,7 +55,7 @@ import java.util.stream.Collectors;
 /**
  * The type Zookeeper instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperInstanceRegisterRepository.class);
@@ -79,18 +81,20 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
         watchPath = props.getProperty("watchPath", null);
 
-        ZookeeperConfig zkConfig = new ZookeeperConfig(config.getServerLists());
-        zkConfig.setBaseSleepTimeMilliseconds(baseSleepTime)
-                .setMaxRetries(maxRetries)
-                .setMaxSleepTimeMilliseconds(maxSleepTime)
-                .setSessionTimeoutMilliseconds(sessionTimeout)
-                .setConnectionTimeoutMilliseconds(connectionTimeout);
+        ZookeeperConfig zkConfig = ZookeeperConfig.builder()
+                .url(config.getServerLists())
+                .baseSleepTimeMilliseconds(baseSleepTime)
+                .maxRetries(maxRetries)
+                .maxSleepTimeMilliseconds(maxSleepTime)
+                .sessionTimeoutMilliseconds(sessionTimeout)
+                .connectionTimeoutMilliseconds(connectionTimeout)
+                .build();
 
         String digest = props.getProperty("digest");
-        if (!StringUtils.isEmpty(digest)) {
+        if (StringUtils.isNotEmpty(digest)) {
             zkConfig.setDigest(digest);
         }
-        this.client = new ZookeeperClient(zkConfig);
+        this.client = ZookeeperClient.builder().config(zkConfig).build();
         this.client.getClient().getConnectionStateListenable().addListener((c, newState) -> {
             if (newState == ConnectionState.RECONNECTED) {
                 nodeDataMap.forEach((k, v) -> {

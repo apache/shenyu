@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -48,6 +51,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.plugin.BatchNamespacePluginDeletedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
@@ -80,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.util.CastUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,6 +156,21 @@ public class SelectorServiceImpl implements SelectorService {
         if (SessionUtil.isAdmin()) {
             condition.setUserId(null);
         }
+    }
+
+    @Override
+    public PageInfo<SelectorVO> searchByPage(final PageCondition<SelectorQueryCondition> pageCondition) {
+        SelectorQueryCondition condition = pageCondition.getCondition();
+        doConditionPreProcessing(condition);
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
+        condition.init();
+        final Page<SelectorDO> doList = CastUtils.cast(selectorMapper.selectByCondition(condition));
+        PageInfo<SelectorVO> doPageInfo = doList.toPageInfo(SelectorVO::buildSelectorVO);
+        for (SelectorVO selector : doPageInfo.getList()) {
+            selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));
+            selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));
+        }
+        return doPageInfo;
     }
 
     @Override

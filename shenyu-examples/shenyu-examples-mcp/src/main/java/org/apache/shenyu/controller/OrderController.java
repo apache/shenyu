@@ -29,6 +29,7 @@ import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpHeader;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpToolParam;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
                 servers = @Server(url = "http://localhost:8150")
         )
 )
+@ShenyuSpringMvcClient("/order")
 @ApiModule(value = "order")
 public class OrderController {
 
@@ -57,7 +59,7 @@ public class OrderController {
     @GetMapping("/findById")
     @ShenyuMcpTool(
             operation = @Operation(
-                    method = "Get", description = "find order by id"
+                    method = "GET", description = "find order by id"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
                     bodyToJson = "false",
@@ -67,6 +69,7 @@ public class OrderController {
             ),
             enabled = true, toolName = "findOrderById"
     )
+    @ShenyuSpringMvcClient("/findById")
     @ApiDoc(desc = "findById")
     public OrderDTO findById(@ShenyuMcpToolParam(
             parameter = @Parameter(
@@ -93,7 +96,7 @@ public class OrderController {
     @GetMapping("/findAll")
     @ShenyuMcpTool(
             operation = @Operation(
-                    method = "Get", description = "find all order"
+                    method = "GET", description = "find all order"
             ),
             requestConfig = @ShenyuMcpRequestConfig(
                     bodyToJson = "false",
@@ -103,9 +106,10 @@ public class OrderController {
             ),
             enabled = true, toolName = "findAllOrder"
     )
+    @ShenyuSpringMvcClient("/findAll")
     @ApiDoc(desc = "findAll")
     public String findAll() {
-        return "findAll success";
+        return "hello apache shenyu , mcp findAll success";
     }
 
     /**
@@ -116,6 +120,7 @@ public class OrderController {
      */
     @GetMapping("/findByName")
     @ShenyuMcpTool
+    @ShenyuSpringMvcClient("/findByName")
     @ApiDoc(desc = "findName")
     public OrderDTO findByName(@ShenyuMcpToolParam final String name) {
         OrderDTO dto = new OrderDTO();

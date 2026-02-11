@@ -25,11 +25,7 @@ import java.util.Objects;
  *
  * @since 2.0.0
  */
-public class RuleData {
-
-    private String id;
-
-    private String name;
+public class RuleData extends BaseData {
 
     private String pluginName;
 
@@ -39,10 +35,6 @@ public class RuleData {
      * match way（0 and  1 or).
      */
     private Integer matchMode;
-
-    private Integer sort;
-
-    private Boolean enabled;
 
     private Boolean loged;
 
@@ -59,11 +51,6 @@ public class RuleData {
      * match restful.
      */
     private Boolean matchRestful;
-    
-    /**
-     * namespaceId.
-     */
-    private String namespaceId;
 
     /**
      * no args constructor.
@@ -77,19 +64,19 @@ public class RuleData {
      * @param builder builder
      */
     private RuleData(final Builder builder) {
-        this.id = builder.id;
-        this.name = builder.name;
+        this.setId(builder.id);
+        this.setName(builder.name);
         this.pluginName = builder.pluginName;
         this.selectorId = builder.selectorId;
         this.matchMode = builder.matchMode;
-        this.sort = builder.sort;
-        this.enabled = builder.enabled;
+        this.setSort(builder.sort);
+        this.setEnabled(builder.enabled);
         this.loged = builder.loged;
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
         this.matchRestful = builder.matchRestful;
-        this.namespaceId = builder.namespaceId;
+        this.setNamespaceId(builder.namespaceId);
     }
 
     /**
@@ -99,46 +86,6 @@ public class RuleData {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     * @return this
-     */
-    public RuleData setId(final String id) {
-        this.id = id;
-        return this;
-    }
-
-    /**
-     * get name.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * set name.
-     *
-     * @param name name
-     * @return this
-     */
-    public RuleData setName(final String name) {
-        this.name = name;
-        return this;
     }
 
     /**
@@ -158,6 +105,61 @@ public class RuleData {
      */
     public RuleData setPluginName(final String pluginName) {
         this.pluginName = pluginName;
+        return this;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     * @return this
+     */
+    public RuleData setId(final String id) {
+        super.setId(id);
+        return this;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     * @return this
+     */
+    public RuleData setName(final String name) {
+        super.setName(name);
+        return this;
+    }
+
+    /**
+     * set sort.
+     *
+     * @param sort sort
+     * @return this
+     */
+    public RuleData setSort(final Integer sort) {
+        super.setSort(sort);
+        return this;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     * @return this
+     */
+    public RuleData setEnabled(final Boolean enabled) {
+        super.setEnabled(enabled);
+        return this;
+    }
+
+    /**
+     * set namespaceId.
+     *
+     * @param namespaceId namespaceId
+     * @return this
+     */
+    public RuleData setNamespaceId(final String namespaceId) {
+        super.setNamespaceId(namespaceId);
         return this;
     }
 
@@ -198,46 +200,6 @@ public class RuleData {
      */
     public RuleData setMatchMode(final Integer matchMode) {
         this.matchMode = matchMode;
-        return this;
-    }
-
-    /**
-     * get sort.
-     *
-     * @return sort
-     */
-    public Integer getSort() {
-        return sort;
-    }
-
-    /**
-     * set sort.
-     *
-     * @param sort sort
-     * @return this
-     */
-    public RuleData setSort(final Integer sort) {
-        this.sort = sort;
-        return this;
-    }
-
-    /**
-     * get enabled.
-     *
-     * @return enabled
-     */
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * set enabled.
-     *
-     * @param enabled enabled
-     * @return this
-     */
-    public RuleData setEnabled(final Boolean enabled) {
-        this.enabled = enabled;
         return this;
     }
 
@@ -337,22 +299,6 @@ public class RuleData {
         this.matchRestful = matchRestful;
     }
     
-    /**
-     * get namespaceId.
-     * @return namespaceId
-     */
-    public String getNamespaceId() {
-        return namespaceId;
-    }
-    
-    /**
-     * set namespaceId.
-     * @param namespaceId namespaceId
-     */
-    public void setNamespaceId(final String namespaceId) {
-        this.namespaceId = namespaceId;
-    }
-    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -362,35 +308,35 @@ public class RuleData {
             return false;
         }
         final RuleData ruleData = (RuleData) o;
-        return Objects.equals(id, ruleData.id)
-                && Objects.equals(name, ruleData.name)
+        return Objects.equals(getId(), ruleData.getId())
+                && Objects.equals(getName(), ruleData.getName())
                 && Objects.equals(pluginName, ruleData.pluginName)
                 && Objects.equals(selectorId, ruleData.selectorId)
                 && Objects.equals(matchMode, ruleData.matchMode)
-                && Objects.equals(sort, ruleData.sort)
-                && Objects.equals(enabled, ruleData.enabled)
+                && Objects.equals(getSort(), ruleData.getSort())
+                && Objects.equals(getEnabled(), ruleData.getEnabled())
                 && Objects.equals(loged, ruleData.loged)
                 && Objects.equals(handle, ruleData.handle)
                 && Objects.equals(conditionDataList, ruleData.conditionDataList)
                 && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
                 && Objects.equals(matchRestful, ruleData.matchRestful)
-                && Objects.equals(namespaceId, ruleData.namespaceId);
+                && Objects.equals(getNamespaceId(), ruleData.getNamespaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
-                beforeConditionDataList, matchRestful, namespaceId);
+        return Objects.hash(getId(), getName(), pluginName, selectorId, matchMode, getSort(), getEnabled(), loged, handle, conditionDataList,
+                beforeConditionDataList, matchRestful, getNamespaceId());
     }
 
     @Override
     public String toString() {
         return "RuleData{"
                 + "id='"
-                + id
+                + getId()
                 + '\''
                 + ", name='"
-                + name
+                + getName()
                 + '\''
                 + ", pluginName='"
                 + pluginName
@@ -401,9 +347,9 @@ public class RuleData {
                 + ", matchMode="
                 + matchMode
                 + ", sort="
-                + sort
+                + getSort()
                 + ", enabled="
-                + enabled
+                + getEnabled()
                 + ", loged="
                 + loged
                 + ", handle='"
