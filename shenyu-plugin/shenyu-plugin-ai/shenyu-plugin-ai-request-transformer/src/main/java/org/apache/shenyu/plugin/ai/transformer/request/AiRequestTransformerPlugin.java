@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -120,7 +121,8 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         return aiRequestTransformerTemplate.assembleMessage()
                 .flatMap(message -> finalClient.prompt().user(message).stream().content()
                         .collectList()
-                        .map(list -> String.join("", list))
+                        .map(list -> Objects.isNull(list) ? "" : list.stream().filter(Objects::nonNull)
+                                .collect(Collectors.joining("")))
                         .flatMap(aiResponse -> {
                             LOG.debug("Request rewritten to: {}", aiResponse);
                             return convertHeader(exchange, aiResponse)
@@ -306,7 +308,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
     /**
      * For unit test.
      */
-     static String extractRequestPathFromAiResponse(final String aiResponse) {
+    static String extractRequestPathFromAiResponse(final String aiResponse) {
         if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
             return null;
         }

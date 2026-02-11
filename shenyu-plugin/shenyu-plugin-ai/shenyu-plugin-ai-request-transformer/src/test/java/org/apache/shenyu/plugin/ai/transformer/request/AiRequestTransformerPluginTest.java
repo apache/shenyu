@@ -132,10 +132,10 @@ class AiRequestTransformerPluginTest {
     }
 
     @Test
-    void testRewriteRequestPath () {
+    void testRewriteRequestPath() {
 
         String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
-        String result  = AiRequestTransformerPlugin.extractRequestPathFromAiResponse(aiResponse);
+        String result = AiRequestTransformerPlugin.extractRequestPathFromAiResponse(aiResponse);
         assertEquals("/", result);
     }
 }
