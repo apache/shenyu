@@ -117,7 +117,7 @@ class AiRequestTransformerPluginTest {
     @Test
     void testConvertBodyJson() {
 
-        String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"key\":\"value\"}";
+        String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\n\n{\"key\":\"value\"}";
         String result = AiRequestTransformerPlugin.convertBodyJson(aiResponse);
         assertEquals("{\"key\":\"value\"}", result);
     }
@@ -125,9 +125,17 @@ class AiRequestTransformerPluginTest {
     @Test
     void testExtractHeadersFromAiResponse() {
 
-        String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
+        String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
         HttpHeaders headers = AiRequestTransformerPlugin.extractHeadersFromAiResponse(aiResponse);
         assertEquals("application/json", headers.getFirst(HttpHeaders.CONTENT_TYPE));
         assertEquals("Bearer token", headers.getFirst(HttpHeaders.AUTHORIZATION));
+    }
+
+    @Test
+    void testRewriteRequestPath () {
+
+        String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
+        String result  = AiRequestTransformerPlugin.extractRequestPathFromAiResponse(aiResponse);
+        assertEquals("/", result);
     }
 }

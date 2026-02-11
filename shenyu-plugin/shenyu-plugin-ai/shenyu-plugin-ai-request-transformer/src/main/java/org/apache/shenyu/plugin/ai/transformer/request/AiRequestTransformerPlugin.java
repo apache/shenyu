@@ -121,12 +121,19 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
                 .flatMap(message -> finalClient.prompt().user(message).stream().content()
                         .collectList()
                         .map(list -> String.join("", list))
-                        .flatMap(aiResponse -> convertHeader(exchange, aiResponse)
-                                .flatMap(serverWebExchange -> convertBody(serverWebExchange, messageReaders, aiResponse))
-                                .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse))
-                                .flatMap(chain::execute)
+                        .flatMap(aiResponse -> {
+                            LOG.debug("Request rewritten to: {}", aiResponse);
+                            return convertHeader(exchange, aiResponse)
+                                    .flatMap(serverWebExchange -> convertBody(serverWebExchange, messageReaders, aiResponse))
+                                    .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse))
+                                    .flatMap(chain::execute);
+                                }
                         )
-                );
+                )
+                .onErrorResume(throwable -> {
+                    LOG.error("AI request transformation failed, proceeding without AI transformation", throwable);
+                    return chain.execute(exchange);
+                });
     }
 
     private static Mono<ServerWebExchange> convertBody(final ServerWebExchange exchange,
@@ -223,9 +230,27 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     private static Mono<ServerWebExchange> rewriteRequestPath(final ServerWebExchange exchange, final String aiResponse) {
         String newPath = extractRequestPathFromAiResponse(aiResponse);
+
         if (Objects.isNull(newPath) || newPath.isEmpty()) {
             return Mono.just(exchange);
         }
+
+        if (newPath.contains("..")) {
+            LOG.warn("Detected potential path traversal attempt in extracted path: {} , Will continue to use the original path.", newPath);
+            return Mono.just(exchange);
+        }
+
+        if (!newPath.startsWith("/")) {
+            LOG.warn("Extracted path does not start with '/': {} , Will continue to use the original path.", newPath);
+            return Mono.just(exchange);
+        }
+
+        if (!newPath.matches("^/[a-zA-Z0-9/_\\-]*$")) {
+            LOG.warn("Extracted path contains invalid characters: {}, Will continue to use the original path.", newPath);
+            return Mono.just(exchange);
+        }
+
+        LOG.debug("Request path after validation and rewriting: {}", newPath);
 
         ServerHttpRequest originalRequest = exchange.getRequest();
         URI originalUri = originalRequest.getURI();
@@ -278,7 +303,10 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         return headers;
     }
 
-    private static String extractRequestPathFromAiResponse(final String aiResponse) {
+    /**
+     * For unit test.
+     */
+     static String extractRequestPathFromAiResponse(final String aiResponse) {
         if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
             return null;
         }
