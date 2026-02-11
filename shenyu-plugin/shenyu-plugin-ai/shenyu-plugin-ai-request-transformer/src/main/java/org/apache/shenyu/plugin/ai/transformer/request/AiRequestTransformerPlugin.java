@@ -41,14 +41,15 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
@@ -115,15 +116,17 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
         AiRequestTransformerTemplate aiRequestTransformerTemplate = new AiRequestTransformerTemplate(aiRequestTransformerConfig.getContent(), exchange.getRequest());
         ChatClient finalClient = client;
+
         return aiRequestTransformerTemplate.assembleMessage()
-                .flatMap(message -> Mono.fromCallable(() -> finalClient.prompt().user(message).call().content())
-                        .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(message -> finalClient.prompt().user(message).stream().content()
+                        .collectList()
+                        .map(list -> String.join("", list))
                         .flatMap(aiResponse -> convertHeader(exchange, aiResponse)
                                 .flatMap(serverWebExchange -> convertBody(serverWebExchange, messageReaders, aiResponse))
-                                    .flatMap(chain::execute)
+                                .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse))
+                                .flatMap(chain::execute)
                         )
                 );
-
     }
 
     private static Mono<ServerWebExchange> convertBody(final ServerWebExchange exchange,
@@ -218,6 +221,28 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         return Mono.just(exchange);
     }
 
+    private static Mono<ServerWebExchange> rewriteRequestPath(final ServerWebExchange exchange, final String aiResponse) {
+        String newPath = extractRequestPathFromAiResponse(aiResponse);
+        if (Objects.isNull(newPath) || newPath.isEmpty()) {
+            return Mono.just(exchange);
+        }
+
+        ServerHttpRequest originalRequest = exchange.getRequest();
+        URI originalUri = originalRequest.getURI();
+
+        URI newUri = originalUri.resolve(newPath);
+
+        ServerHttpRequest newRequest = originalRequest.mutate()
+                .uri(newUri)
+                .build();
+
+        ServerWebExchange newExchange = exchange.mutate()
+                .request(newRequest)
+                .build();
+
+        return Mono.just(newExchange);
+    }
+
     /**
      * For unit test.
      */
@@ -251,6 +276,24 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             LOG.error("AI request transformer plugin: extract headers from AiResponse fail");
         }
         return headers;
+    }
+
+    private static String extractRequestPathFromAiResponse(final String aiResponse) {
+        if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
+            return null;
+        }
+        String[] lines = aiResponse.split("\r?\n");
+        if (lines.length == 0) {
+            return null;
+        }
+
+        String startLine = lines[0].trim();
+        String[] parts = startLine.split(" ");
+        if (parts.length < 2) {
+            return null;
+        }
+
+        return parts[1];
     }
 
     @Override

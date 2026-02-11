@@ -45,7 +45,6 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import org.reactivestreams.Publisher;
 
 import java.io.BufferedReader;
@@ -350,9 +349,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                             }
                             
                             final String finalMessage = messageWithResponseBody;
-                            
-                            return Mono.fromCallable(() -> chatClient.prompt().user(finalMessage).call().content())
-                                    .subscribeOn(Schedulers.boundedElastic())
+                            return chatClient.prompt().user(finalMessage).stream().content()
+                                    .collectList()
+                                    .map(list -> String.join("", list))
                                     .flatMap(aiResponse -> {
 
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
