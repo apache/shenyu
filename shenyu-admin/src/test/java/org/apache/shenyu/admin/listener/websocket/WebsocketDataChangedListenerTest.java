@@ -38,6 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Data Change WebSocketListener Test.
@@ -72,13 +78,26 @@ public final class WebsocketDataChangedListenerTest {
      */
     @Test
     public void testOnPluginChanged() {
-        String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"2\",\"name\":\"waf\","
-                + "\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\",\"role\":\"1\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
+        String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\","
+                + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+                .thenAnswer(invocation -> null);
             websocketDataChangedListener.onPluginChanged(pluginDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(verification);
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode expectedJson = mapper.readTree(message);
+                        JsonNode actualJson = mapper.readTree(actualMsg);
+                        return expectedJson.equals(actualJson);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }),
+                eq(DataEventTypeEnum.UPDATE)
+            ));
         }
     }
 
@@ -88,20 +107,39 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnSelectorChanged() {
         String message = "{\"groupType\":\"SELECTOR\",\"eventType\":\"UPDATE\",\"data\":"
-                + "[{\"id\":\"1336329408516136960\",\"pluginId\":\"5\",\"pluginName\":\"divide\",\"name\":"
-                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"logged\":true,"
+                + "[{\"pluginId\":\"5\",\"pluginName\":\"divide\","
+                + "\"matchMode\":0,\"type\":1,\"logged\":true,"
                 + "\"continued\":true,\"handle\":\"[{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\","
                 + "\\\\\\\"protocol\\\\\\\":\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":"
                 + "\\\\\\\"127.0.0.1:8187\\\\\\\",\\\\\\\"weight\\\\\\\":\\\\\\\"51\\\\\\\"},"
                 + "{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\",\\\\\\\"protocol\\\\\\\":"
                 + "\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":\\\\\\\"127.0.0.1:8188\\\\\\\","
                 + "\\\\\\\"weight\\\\\\\":\\\\\\\"49\\\\\\\"}]\",\"conditionList\":[{\"paramType\":\"uri\","
-                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
+                + "\"operator\":\"match\",\"paramName\":\"/\",\"paramValue\":\"/http/**\"}],\"id\":\"1336329408516136960\","
+                + "\"name\":\"/http\",\"enabled\":true,\"sort\":1,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+                .thenAnswer(invocation -> null);
+
+            // 调用被测试的方法
             websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(verification);
+
+            // 验证
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode expectedJson = mapper.readTree(message);
+                        JsonNode actualJson = mapper.readTree(actualMsg);
+                        return expectedJson.equals(actualJson);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }),
+                eq(DataEventTypeEnum.UPDATE)
+            ));
         }
     }
 
@@ -110,17 +148,31 @@ public final class WebsocketDataChangedListenerTest {
      */
     @Test
     public void testOnRuleChanged() {
-        String message = "{\"groupType\":\"RULE\",\"eventType\":\"UPDATE\",\"data\":[{\"id\":\"1336350040008105984\","
-                + "\"name\":\"test\",\"pluginName\":\"waf\",\"selectorId\":\"1336349806465064960\","
-                + "\"matchMode\":1,\"sort\":1,\"enabled\":true,\"loged\":true,\"handle\":"
+        String message = "{\"groupType\":\"RULE\",\"eventType\":\"UPDATE\",\"data\":[{"
+                + "\"pluginName\":\"waf\",\"selectorId\":\"1336349806465064960\","
+                + "\"matchMode\":1,\"loged\":true,\"handle\":"
                 + "\"{\\\\\\\"permission\\\\\\\":\\\\\\\"reject\\\\\\\",\\\\\\\"statusCode\\\\\\\":"
                 + "\\\\\\\"503\\\\\\\"}\",\"conditionDataList\":[{\"paramType\":\"header\",\"operator\":"
-                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
+                + "\"\\u003d\",\"paramName\":\"test\",\"paramValue\":\"a\"}],\"id\":\"1336350040008105984\",\"name\":\"test\","
+                + "\"enabled\":true,\"sort\":1,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+                .thenAnswer(invocation -> null);
             websocketDataChangedListener.onRuleChanged(ruleDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(verification);
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode expectedJson = mapper.readTree(message);
+                        JsonNode actualJson = mapper.readTree(actualMsg);
+                        return expectedJson.equals(actualJson);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }),
+                eq(DataEventTypeEnum.UPDATE)
+            ));
         }
     }
 
@@ -133,11 +185,24 @@ public final class WebsocketDataChangedListenerTest {
                 + "\"D9FD95F496C9495DB5604778A13C3D08\",\"appSecret\":\"02D25048AA1E466F8920E68B08E668DE\","
                 + "\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}]"
                 + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+            mockedStatic.when(() -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE))
+                .thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onAppAuthChanged(appAuthDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(verification);
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode expectedJson = mapper.readTree(message);
+                        JsonNode actualJson = mapper.readTree(actualMsg);
+                        return expectedJson.equals(actualJson);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }),
+                eq(DataEventTypeEnum.UPDATE)
+            ));
         }
     }
 
@@ -149,11 +214,24 @@ public final class WebsocketDataChangedListenerTest {
         String message = "{\"groupType\":\"META_DATA\",\"eventType\":\"CREATE\",\"data\":[{\"appName\":\"axiba\","
                 + "\"path\":\"/test/execute\",\"rpcType\":\"http\",\"serviceName\":\"execute\",\"methodName\":"
                 + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
-        MockedStatic.Verification verification = () -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(verification).thenAnswer((Answer<Void>) invocation -> null);
+            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+                .thenAnswer(invocation -> null);
             websocketDataChangedListener.onMetaDataChanged(metaDataList, DataEventTypeEnum.CREATE);
-            mockedStatic.verify(verification);
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode expectedJson = mapper.readTree(message);
+                        JsonNode actualJson = mapper.readTree(actualMsg);
+                        return expectedJson.equals(actualJson);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }),
+                eq(DataEventTypeEnum.CREATE)
+            ));
         }
     }
 

@@ -31,11 +31,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import java.util.concurrent.ExecutorService;
+
 class DisruptorProviderTest {
 
     private RingBuffer<DataEvent<String>> mockRingBuffer;
 
     private Disruptor<DataEvent<String>> mockDisruptor;
+
+    private ExecutorService mockExecutor;
 
     private DisruptorProvider<String> disruptorProvider;
 
@@ -44,7 +48,8 @@ class DisruptorProviderTest {
 
         mockRingBuffer = mock(RingBuffer.class);
         mockDisruptor = mock(Disruptor.class);
-        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, false);
+        mockExecutor = mock(ExecutorService.class);
+        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, false, mockExecutor);
     }
 
     @Test
@@ -60,7 +65,7 @@ class DisruptorProviderTest {
     @Test
     void testOnDataThrowsExceptionForOrderlyProvider() {
 
-        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, true);
+        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, true, mockExecutor);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> disruptorProvider.onData("testData"));
         assertEquals("The current provider is  of orderly type. Please use onOrderlyData() method.", exception.getMessage());
@@ -69,7 +74,7 @@ class DisruptorProviderTest {
     @Test
     void testOnOrderlyData() {
 
-        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, true);
+        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, mockDisruptor, true, mockExecutor);
         String testData = "testData";
         String[] hashArray = {"hash1", "hash2"};
 
@@ -94,12 +99,13 @@ class DisruptorProviderTest {
         disruptorProvider.shutdown();
 
         verify(mockDisruptor).shutdown();
+        verify(mockExecutor).shutdown();
     }
 
     @Test
     void testShutdownWithNullDisruptor() {
 
-        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, null, false);
+        disruptorProvider = new DisruptorProvider<>(mockRingBuffer, null, false, null);
 
         disruptorProvider.shutdown();
 

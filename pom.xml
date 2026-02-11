@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.0.3-SNAPSHOT</version>
+    <version>2.7.1-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -186,8 +186,9 @@
         <wasmtime-java.version>0.19.0</wasmtime-java.version>
         <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
-        <mcp.version>0.10.0</mcp.version>
+        <spring-ai.version>1.1.2</spring-ai.version>
+        <mcp.version>0.17.0</mcp.version>
+        <swagger-parser.version>2.1.30</swagger-parser.version>
         <!-- dependency version end -->
     </properties>
 
@@ -606,6 +607,12 @@
                 <artifactId>oceanbase-client</artifactId>
                 <version>${oceanbase.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
             </dependency>
 
         </dependencies>

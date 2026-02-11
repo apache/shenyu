@@ -35,8 +35,6 @@ public class HttpUtilsTest {
 
     private static final String TEST_URL = "http://127.0.0.1/";
 
-    private static final String ACTUAL_PARAM_URL = "http://127.0.0.1/?param-1=123&param-2=456";
-
     private final Map<String, Object> formMap = new HashMap<>();
 
     {
@@ -49,7 +47,9 @@ public class HttpUtilsTest {
         Request.Builder builder = HttpUtils.buildRequestBuilder(TEST_URL, formMap, HttpUtils.HTTPMethod.GET);
         Assert.assertNotNull(builder);
         Assert.assertEquals(builder.build().method(), HttpUtils.HTTPMethod.GET.value());
-        Assert.assertEquals(builder.build().url().toString(), ACTUAL_PARAM_URL);
+        Assert.assertEquals(TEST_URL, builder.build().url().newBuilder().query(null).build().toString());
+        Assert.assertEquals("123", builder.build().url().queryParameter("param-1"));
+        Assert.assertEquals("456", builder.build().url().queryParameter("param-2"));
     }
 
     @Test
@@ -82,9 +82,11 @@ public class HttpUtilsTest {
     @Test
     public void buildRequestBuilderForHEADTest() {
         Request.Builder builder = HttpUtils.buildRequestBuilder(TEST_URL, formMap, HttpUtils.HTTPMethod.HEAD);
+        String url = builder.build().url().toString();
         Assert.assertNotNull(builder);
         Assert.assertEquals(builder.build().method(), HttpUtils.HTTPMethod.HEAD.value());
-        Assert.assertEquals(builder.build().url().toString(), ACTUAL_PARAM_URL);
+        Assert.assertTrue(url.contains("param-1=123"));
+        Assert.assertTrue(url.contains("param-2=456"));
     }
 
     @Test

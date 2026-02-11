@@ -34,13 +34,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+import java.lang.reflect.Field;
+
 class AiPromptPluginDataHandlerTest {
 
     private AiPromptPluginDataHandler handler;
 
     @BeforeEach
-    void setUp() {
+    void setUp()throws Exception {
         handler = new AiPromptPluginDataHandler();
+
+        Field singles = Singleton.class.getDeclaredField("SINGLES");
+        singles.setAccessible(true);
+        Map<String, Object> map = (Map<String, Object>) singles.get(null);
+        map.clear();
     }
 
     @Test

@@ -688,7 +688,7 @@ create table param
     type         NUMBER(10) not null,
     name         VARCHAR2(255) not null,
     param_desc   VARCHAR2(1024) not null,
-    required     NUMBER(3) not null,
+    is_required     NUMBER(3) not null,
     ext          VARCHAR2(1024) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
@@ -710,7 +710,7 @@ comment on column PARAM.name
   is 'the param name';
 comment on column PARAM.param_desc
   is 'the param description';
-comment on column PARAM.required
+comment on column PARAM.is_required
   is 'whether to require (0 not required, 1 required)';
 comment on column PARAM.ext
   is 'extended fields';
@@ -861,7 +861,7 @@ create table field
     self_model_id VARCHAR2(128) not null,
     name         VARCHAR2(128) not null,
     field_desc   VARCHAR2(1024) not null,
-    required     NUMBER(3) not null,
+    is_required     NUMBER(3) not null,
     ext          VARCHAR2(1024) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
@@ -881,7 +881,7 @@ comment on column FIELD.name
   is 'field name';
 comment on column FIELD.field_desc
   is 'field description';
-comment on column FIELD.required
+comment on column FIELD.is_required
   is 'whether to require (0 not required, 1 required)';
 comment on column FIELD.ext
   is 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
@@ -2649,7 +2649,7 @@ create table discovery
 -- Add comments to the columns
 comment on column DISCOVERY.id
   is 'primary key id';
-comment on column DISCOVERY.name
+comment on column DISCOVERY.discovery_name
   is 'the discovery name';
 comment on column DISCOVERY.discovery_level
   is '0 selector,1 plugin  2 global';
@@ -2657,7 +2657,7 @@ comment on column DISCOVERY.plugin_name
   is 'the plugin name';
 comment on column DISCOVERY.namespace_id
   is 'namespace id';
-comment on column DISCOVERY.type
+comment on column DISCOVERY.discovery_type
   is 'local,zookeeper,etcd,consul,nacos';
 comment on column DISCOVERY.server_list
   is 'register server url (,)';
@@ -3221,15 +3221,15 @@ VALUES ('1844026099075534857', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.RULE
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534858', '1844026099075534849', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiProxy:modify', 1);
 
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534900', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.ADD', '', '', '', 2, 0, '', 1, 0, 'system:aiProxyApiKey:add', 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534901', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.LIST', '', '', '', 2, 1, '', 1, 0, 'system:aiProxyApiKey:list', 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534902', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.EDIT', '', '', '', 2, 2, '', 1, 0, 'system:aiProxyApiKey:edit', 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534903', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE', '', '', '', 2, 3, '', 1, 0, 'system:aiProxyApiKey:delete', 1);
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO resource (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) 
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
 VALUES ('1844026099075534904', '1844026099075534849', 'SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE', '', '', '', 2, 4, '', 1, 0, 'system:aiProxyApiKey:disable', 1);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id) 

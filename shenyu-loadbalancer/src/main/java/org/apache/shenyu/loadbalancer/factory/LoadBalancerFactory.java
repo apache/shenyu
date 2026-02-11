@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.loadbalancer.factory;
 
-import java.util.List;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.spi.ExtensionLoader;
+
+import java.util.List;
 
 /**
  * The type Load balance Factory.
@@ -35,11 +37,11 @@ public final class LoadBalancerFactory {
      *
      * @param upstreamList the upstream list
      * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
+     * @param data the data
      * @return the upstream
      */
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
+    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final LoadBalanceData data) {
         LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+        return loadBalance.select(upstreamList, data);
     }
 }

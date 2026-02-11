@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server.transport;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.TypeRef;
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.spec.McpError;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
@@ -33,7 +35,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -77,6 +78,14 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
     private static final String DEFAULT_PROTOCOL_VERSION = "2025-03-26";
 
     /**
+     * Supported MCP protocol versions.
+     */
+    private static final java.util.Set<String> SUPPORTED_PROTOCOL_VERSIONS = java.util.Set.of(
+            DEFAULT_PROTOCOL_VERSION,
+            "2025-11-25"
+    );
+
+    /**
      * Server information constants.
      */
     private static final String SERVER_NAME = "ShenyuMcpServer";
@@ -84,6 +93,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
     private static final String SERVER_VERSION = "1.0.0";
 
     private final ObjectMapper objectMapper;
+
+    private final McpJsonMapper jsonMapper;
 
     private McpServerSession.Factory sessionFactory;
 
@@ -115,6 +126,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         Assert.notNull(objectMapper, "ObjectMapper must not be null");
         Assert.notNull(endpoint, "Endpoint must not be null");
         this.objectMapper = objectMapper;
+        this.jsonMapper = new JacksonMcpJsonMapper(objectMapper);
         LOGGER.debug("Created Streamable HTTP transport provider for endpoint: {}", endpoint);
     }
 
@@ -185,7 +197,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             // Handle CORS preflight requests
             return ServerResponse.ok()
                     .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
                     .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
                     .header("Access-Control-Max-Age", "3600")
                     .build();
@@ -193,7 +205,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             // Streamable HTTP protocol does not support GET requests, return 405 error
             return ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
                     .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
                     .header("Access-Control-Allow-Methods", "POST, OPTIONS")
                     .header("Allow", "POST, OPTIONS")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +221,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             return handleMessageEndpoint(exchange, request).flatMap(result -> {
                 ServerResponse.BodyBuilder builder = ServerResponse.status(HttpStatus.valueOf(result.getStatusCode()))
                         .header("Access-Control-Allow-Origin", "*")
-                        .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization")
+                        .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
                         .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                 if (Objects.nonNull(result.getSessionId())) {
                     builder.header(SESSION_ID_HEADER, result.getSessionId());
@@ -240,7 +252,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                     LOGGER.debug("Received request body with length: {} chars", body.length());
                     try {
                         // Deserialize JSON-RPC request
-                        final McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(objectMapper, body);
+                        final McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
                         LOGGER.debug("Parsed JSON-RPC message of type: {}", message.getClass().getSimpleName());
                         // Handle initialize requests specially
                         if (isInitializeRequest(message)) {
@@ -301,7 +313,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 LOGGER.warn("Unsupported protocol version requested: {}", clientProtocolVersion);
                 cleanupInvalidSession(newSessionId);
                 final Object errorResponse = createJsonRpcError(messageId, -32600,
-                        "Unsupported protocol version. Supported versions: ['" + DEFAULT_PROTOCOL_VERSION + "']");
+                        "Unsupported protocol version. Supported versions: " + SUPPORTED_PROTOCOL_VERSIONS);
                 return Mono.just(new MessageHandlingResult(400, errorResponse, null));
             }
             // Create initialize response
@@ -552,7 +564,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * @return true if the version is supported
      */
     private boolean isSupportedProtocolVersion(final String version) {
-        return DEFAULT_PROTOCOL_VERSION.equals(version);
+        return SUPPORTED_PROTOCOL_VERSIONS.contains(version);
     }
 
     /**
@@ -711,7 +723,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             LOGGER.debug("Starting backend initialization for session: {}", sessionId);
             // Create a proper initialize request
             final String initRequestJson = createInitializeRequest();
-            final McpSchema.JSONRPCMessage initRequest = McpSchema.deserializeJsonRpcMessage(objectMapper, initRequestJson);
+            final McpSchema.JSONRPCMessage initRequest = McpSchema.deserializeJsonRpcMessage(jsonMapper, initRequestJson);
             LOGGER.debug("Created initialize request for session: {}", sessionId);
             // Use subscribe instead of block to avoid blocking in Netty thread
             session.handle(initRequest)
@@ -769,7 +781,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         request.put("method", INITIALIZE_METHOD);
         request.put("params", params);
         try {
-            return objectMapper.writeValueAsString(request);
+            return jsonMapper.writeValueAsString(request);
         } catch (Exception e) {
             LOGGER.error("Failed to create initialize request JSON: {}", e.getMessage());
             return "{\"jsonrpc\":\"2.0\",\"id\":\"__backend_init\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"" + DEFAULT_PROTOCOL_VERSION + "\"}}";
@@ -843,8 +855,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 notification.put("jsonrpc", JSONRPC_VERSION);
                 notification.put("method", "notifications/initialized");
                 notification.put("params", new java.util.HashMap<>());
-                final String notificationJson = objectMapper.writeValueAsString(notification);
-                final McpSchema.JSONRPCMessage notificationMessage = McpSchema.deserializeJsonRpcMessage(objectMapper, notificationJson);
+                final String notificationJson = jsonMapper.writeValueAsString(notification);
+                final McpSchema.JSONRPCMessage notificationMessage = McpSchema.deserializeJsonRpcMessage(jsonMapper, notificationJson);
                 session.handle(notificationMessage)
                         .doOnSuccess(v -> {
                             LOGGER.debug("Initialized notification sent successfully for session: {}", sessionId);
@@ -954,12 +966,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
 
         @Override
-        public <T> T unmarshalFrom(final Object data, final TypeReference<T> typeRef) {
-            try {
-                return new ObjectMapper().convertValue(data, typeRef);
-            } catch (Exception e) {
-                throw Exceptions.propagate(e);
-            }
+        public <T> T unmarshalFrom(final Object data, final TypeRef<T> typeRef) {
+            return jsonMapper.convertValue(data, typeRef);
         }
 
         @Override
