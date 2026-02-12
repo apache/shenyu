@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
@@ -84,6 +85,9 @@ public final class PluginControllerTest {
     @Mock
     private PluginMapper pluginMapper;
 
+    @Mock
+    private PluginRepository pluginRepository;
+
     private PluginVO pluginVO;
 
     @BeforeEach
@@ -147,8 +151,8 @@ public final class PluginControllerTest {
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
         pluginDTO.setFile(Base64.getEncoder().encodeToString(file.getBytes()));
-        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
+        when(SpringBeanUtils.getInstance().getBean(PluginRepository.class)).thenReturn(pluginRepository);
+        when(pluginRepository.existed(pluginDTO.getId())).thenReturn(false);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
 
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin-template")
@@ -162,7 +166,7 @@ public final class PluginControllerTest {
                 .andReturn();
         // update success
         pluginDTO.setId("123");
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
+        when(pluginRepository.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin-template")
                         .param("file", pluginDTO.getFile())
@@ -197,8 +201,8 @@ public final class PluginControllerTest {
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
-        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginRepository.class)).thenReturn(pluginRepository);
+        when(pluginRepository.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -209,7 +213,7 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(null);
+        when(pluginRepository.existed(pluginDTO.getId())).thenReturn(null);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
                         .param("name", pluginDTO.getName())
@@ -218,7 +222,7 @@ public final class PluginControllerTest {
                         .param("sort", String.valueOf(pluginDTO.getSort())))
                 .andExpect(jsonPath("$.message", Matchers.containsString("Request error! invalid argument")))
                 .andReturn();
-        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
+        when(pluginRepository.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-template/{id}", pluginDTO.getId())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)

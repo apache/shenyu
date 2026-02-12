@@ -45,7 +45,7 @@
         date_updated
     </sql>
 
-    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.AppAuthVO">
+    <select id="selectByCondition" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM app_auth

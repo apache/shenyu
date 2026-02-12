@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.jpa.repository.DiscoveryHandlerRepository;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
@@ -83,7 +83,7 @@ public class DiscoveryUpstreamController {
     @PutMapping("/{discoveryHandlerId}")
     public ShenyuAdminResult updateDiscoveryUpstream(@PathVariable("discoveryHandlerId")
                                                      @Existed(message = "discovery upstream is not existed",
-                                                             provider = DiscoveryHandlerMapper.class) final String discoveryHandlerId,
+                                                             provider = DiscoveryHandlerRepository.class) final String discoveryHandlerId,
                                                      @Valid @RequestBody final List<DiscoveryUpstreamDTO> discoveryUpstreamDTO) {
         return ShenyuAdminResult.success(discoveryUpstreamService.updateBatch(discoveryHandlerId, discoveryUpstreamDTO));
     }

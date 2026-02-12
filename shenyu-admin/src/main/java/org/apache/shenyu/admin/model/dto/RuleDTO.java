@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.RuleRepository;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.Valid;
@@ -40,14 +40,14 @@ public final class RuleDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = RuleMapper.class, nullOfIgnore = true, message = "rule is not existed")
+    @Existed(provider = RuleRepository.class, nullOfIgnore = true, message = "rule is not existed")
     private String id;
     
     /**
      * selector id.
      */
     @NotBlank
-    @Existed(provider = SelectorMapper.class, message = "selector is not existed")
+    @Existed(provider = SelectorRepository.class, message = "selector is not existed")
     private String selectorId;
     
     /**
@@ -99,7 +99,7 @@ public final class RuleDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
     
     public RuleDTO() {

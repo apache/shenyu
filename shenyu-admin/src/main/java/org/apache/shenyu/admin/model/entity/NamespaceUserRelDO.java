@@ -17,11 +17,18 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.util.Objects;
 
 /**
  * NamespaceUserRelDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "namespace_user_rel")
 public final class NamespaceUserRelDO extends BaseDO {
     
     /**

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -83,7 +83,7 @@ public class ApiController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailApi(@PathVariable("id")
                                        @Existed(message = "api is not existed",
-                                               provider = ApiMapper.class) final String id) {
+                                               provider = ApiRepository.class) final String id) {
         ApiVO apiVO = apiService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, apiVO);
     }
@@ -111,7 +111,7 @@ public class ApiController {
     @RequiresPermissions("system:api:edit")
     public ShenyuAdminResult updateApi(@PathVariable("id")
                                        @Existed(message = "api is not existed",
-                                               provider = ApiMapper.class) final String id,
+                                               provider = ApiRepository.class) final String id,
                                        @Valid @RequestBody final ApiDTO apiDTO) {
         apiDTO.setId(id);
         return ShenyuAdminResult.success(apiService.createOrUpdate(apiDTO));

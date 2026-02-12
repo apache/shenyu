@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -30,6 +34,9 @@ import java.util.Optional;
 /**
  * DashboardUserDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "dashboard_user")
 public final class DashboardUserDO extends BaseDO {
 
     private static final long serialVersionUID = 3464935043890680423L;
@@ -62,6 +69,7 @@ public final class DashboardUserDO extends BaseDO {
     /**
      * current role list.
      */
+    @Transient
     private List<String> roles;
 
     public DashboardUserDO() {

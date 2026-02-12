@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.jpa.repository.InstanceInfoRepository;
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -53,11 +54,14 @@ public final class InstanceInfoServiceTest {
     @Mock
     private InstanceInfoMapper instanceInfoMapper;
 
+    @Mock
+    private InstanceInfoRepository instanceInfoRepository;
+
     private InstanceInfoVO vo;
 
     @BeforeEach
     void setUp() {
-        instanceInfoService = new InstanceInfoServiceImpl(instanceInfoMapper);
+        instanceInfoService = new InstanceInfoServiceImpl(instanceInfoMapper, instanceInfoRepository);
         vo = buildVO();
     }
 
@@ -91,7 +95,7 @@ public final class InstanceInfoServiceTest {
 
     @Test
     void testList() {
-        when(instanceInfoMapper.selectAll()).thenReturn(Collections.singletonList(buildDO()));
+        when(instanceInfoRepository.findAll()).thenReturn(Collections.singletonList(buildDO()));
         List<InstanceInfoVO> list = instanceInfoService.list();
         assertThat(list, hasSize(1));
     }

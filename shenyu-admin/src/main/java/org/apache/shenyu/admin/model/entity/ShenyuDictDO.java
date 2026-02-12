@@ -17,9 +17,13 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -28,6 +32,9 @@ import java.util.Optional;
 /**
  * ShenyuDictDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "shenyu_dict")
 public final class ShenyuDictDO extends BaseDO {
 
     private static final long serialVersionUID = -3968123108441795604L;
@@ -55,6 +62,7 @@ public final class ShenyuDictDO extends BaseDO {
     /**
      * dict desc.
      */
+    @Column(name = "\"desc\"")
     private String desc;
 
     /**

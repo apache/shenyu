@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.jpa.repository.ResourceRepository;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
@@ -53,15 +54,19 @@ import java.util.stream.Collectors;
 public class ResourceServiceImpl implements ResourceService {
     
     private final ResourceMapper resourceMapper;
+
+    private final ResourceRepository resourceRepository;
     
     private final ResourceEventPublisher publisher;
     
     private final DashboardProperties properties;
     
     public ResourceServiceImpl(final ResourceMapper resourceMapper,
+                               final ResourceRepository resourceRepository,
                                final ResourceEventPublisher publisher,
                                final DashboardProperties properties) {
         this.resourceMapper = resourceMapper;
+        this.resourceRepository = resourceRepository;
         this.publisher = publisher;
         this.properties = properties;
     }
@@ -131,7 +136,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public ResourceVO findById(final String id) {
-        return ResourceVO.buildResourceVO(resourceMapper.selectById(id));
+        return ResourceVO.buildResourceVO(resourceRepository.findById(id).orElse(null));
     }
     
     /**
@@ -179,7 +184,7 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public List<MenuInfo> getMenuTree() {
         // Hide super administrator special privileges
-        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
+        List<ResourceVO> resourceVOList = resourceRepository.findAll()
                 .stream()
                 .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
                 .map(ResourceVO::buildResourceVO)

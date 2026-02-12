@@ -17,11 +17,18 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 
 /**
  * The Mock Request Record Entity.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "mock_request_record")
 public class MockRequestRecordDO extends BaseDO {
 
     private static final long serialVersionUID = -30960666013060928L;

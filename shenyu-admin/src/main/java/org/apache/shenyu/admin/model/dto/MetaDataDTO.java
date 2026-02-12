@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.MetaDataRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +30,7 @@ public class MetaDataDTO implements Serializable {
     
     private static final long serialVersionUID = 7476312364813536366L;
     
-    @Existed(provider = MetaDataMapper.class, nullOfIgnore = true, message = "meta data is not existed")
+    @Existed(provider = MetaDataRepository.class, nullOfIgnore = true, message = "meta data is not existed")
     private String id;
     
     /**
@@ -98,7 +98,7 @@ public class MetaDataDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
     
     /**

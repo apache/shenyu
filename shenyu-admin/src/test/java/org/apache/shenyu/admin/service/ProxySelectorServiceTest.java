@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.ProxySelectorRepository;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -65,6 +66,9 @@ class ProxySelectorServiceTest {
     private ProxySelectorMapper proxySelectorMapper;
 
     @Mock
+    private ProxySelectorRepository proxySelectorRepository;
+
+    @Mock
     private DiscoveryMapper discoveryMapper;
 
     @Mock
@@ -85,7 +89,7 @@ class ProxySelectorServiceTest {
     @BeforeEach
     void testSetUp() {
 
-        proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, discoveryMapper, discoveryUpstreamMapper,
+        proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, proxySelectorRepository, discoveryMapper, discoveryUpstreamMapper,
                 discoveryHandlerMapper, discoveryRelMapper, selectorMapper, discoveryProcessorHolder);
     }
 
@@ -131,7 +135,7 @@ class ProxySelectorServiceTest {
     @Test
     void testListAllData() {
         List<ProxySelectorDO> selectorDOList = Collections.singletonList(buildProxySelectorDO());
-        given(proxySelectorMapper.selectAll()).willReturn(selectorDOList);
+        given(proxySelectorRepository.findAll()).willReturn(selectorDOList);
         given(discoveryRelMapper.selectByProxySelectorId(any())).willReturn(buildDiscoveryRelDO());
         List<ProxySelectorVO> selectorVOList = proxySelectorService.listAllData();
         assertNotNull(selectorVOList);

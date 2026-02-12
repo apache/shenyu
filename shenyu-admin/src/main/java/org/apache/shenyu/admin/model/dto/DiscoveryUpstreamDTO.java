@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.DiscoveryUpstreamRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -36,7 +36,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
     /**
      * id.
      */
-    @Existed(provider = DiscoveryUpstreamMapper.class, nullOfIgnore = true, message = "discovery upstream not exited")
+    @Existed(provider = DiscoveryUpstreamRepository.class, nullOfIgnore = true, message = "discovery upstream not exited")
     private String id;
 
     /**
@@ -49,7 +49,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
 
     /**
