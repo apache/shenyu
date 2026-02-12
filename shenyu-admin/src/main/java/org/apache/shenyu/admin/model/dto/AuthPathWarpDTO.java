@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
@@ -33,7 +33,7 @@ public class AuthPathWarpDTO implements Serializable {
 
     private static final long serialVersionUID = -3167442906221294444L;
     
-    @Existed(message = "app key not existed", provider = AppAuthMapper.class)
+    @Existed(message = "app key not existed", provider = AppAuthRepository.class)
     private String id;
 
     @NotEmpty(message = "auth path is not empty")

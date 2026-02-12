@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.jpa.repository.PermissionRepository;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -76,7 +77,10 @@ public final class PermissionServiceTest {
     
     @Mock
     private PermissionMapper mockPermissionMapper;
-    
+
+    @Mock
+    private PermissionRepository mockPermissionRepository;
+
     @Mock
     private ResourceMapper mockResourceMapper;
     

@@ -20,8 +20,8 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.RuleRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
@@ -72,7 +72,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
                                                        @RequestParam @NotNull final Integer currentPage,
                                                        @RequestParam @NotNull final Integer pageSize,
                                                        @Valid @Existed(message = "namespaceId is not existed",
-                                                               provider = NamespaceMapper.class) final String namespaceId) {
+                                                               provider = NamespaceRepository.class) final String namespaceId) {
         final RuleQueryCondition condition = new RuleQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
         condition.setSelectors(ListUtil.of(selectorId));
@@ -89,7 +89,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailRule(@Valid @PathVariable("id")
-                                        @Existed(provider = RuleMapper.class, message = "rule is not existed") final String id) {
+                                        @Existed(provider = RuleRepository.class, message = "rule is not existed") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
@@ -115,7 +115,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @PutMapping("/{id}")
     public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
-                                        @Existed(provider = RuleMapper.class,
+                                        @Existed(provider = RuleRepository.class,
                                                 message = "rule is not existed") final String id,
                                         @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);

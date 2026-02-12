@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.jpa.repository.AiProxyApiKeyRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
 import org.apache.shenyu.admin.service.AiProxyConnectionService;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
@@ -45,15 +45,15 @@ public class AiProxyConnectionServiceImpl implements AiProxyConnectionService {
 
     private final AiProxyRealKeyResolver aiProxyRealKeyResolver;
 
-    private final AiProxyApiKeyMapper aiProxyApiKeyMapper;
+    private final AiProxyApiKeyRepository aiProxyApiKeyRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
     public AiProxyConnectionServiceImpl(final AiProxyRealKeyResolver aiProxyRealKeyResolver,
-            final AiProxyApiKeyMapper aiProxyApiKeyMapper,
-            final ApplicationEventPublisher eventPublisher) {
+                                        final AiProxyApiKeyRepository aiProxyApiKeyRepository,
+                                        final ApplicationEventPublisher eventPublisher) {
         this.aiProxyRealKeyResolver = aiProxyRealKeyResolver;
-        this.aiProxyApiKeyMapper = aiProxyApiKeyMapper;
+        this.aiProxyApiKeyRepository = aiProxyApiKeyRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -65,7 +65,7 @@ public class AiProxyConnectionServiceImpl implements AiProxyConnectionService {
         LOG.info("[AiProxyConnectionService] invalidated real-key resolver for selectorId={}", selectorId);
 
         // 2. Find all proxy api keys associated with this selector
-        List<ProxyApiKeyDO> keys = aiProxyApiKeyMapper.selectBySelectorId(selectorId);
+        List<ProxyApiKeyDO> keys = aiProxyApiKeyRepository.findBySelectorId(selectorId);
         if (CollectionUtils.isEmpty(keys)) {
             LOG.info("[AiProxyConnectionService] no api keys found for selectorId={}, skipping refresh", selectorId);
             return;

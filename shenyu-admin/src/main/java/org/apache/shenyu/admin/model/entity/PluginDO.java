@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shiro.codec.Base64;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -32,6 +36,9 @@ import java.util.Optional;
  * The config field has been added in 2.0
  * PluginDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "plugin")
 public final class PluginDO extends BaseDO {
 
     private static final long serialVersionUID = -3414676617520629553L;
@@ -61,6 +68,7 @@ public final class PluginDO extends BaseDO {
      */
     private Integer sort;
 
+    @Lob
     private byte[] pluginJar;
 
     public PluginDO() {

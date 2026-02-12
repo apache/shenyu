@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.MetaDataMapper;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.MetaDataRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -79,10 +79,10 @@ public final class MetaDataControllerTest {
     private MetaDataService metaDataService;
     
     @Mock
-    private MetaDataMapper metaDataMapper;
+    private MetaDataRepository metaDataRepository;
 
     @Mock
-    private NamespaceMapper namespaceMapper;
+    private NamespaceRepository namespaceRepository;
 
     private final MetaDataVO metaDataVO = new MetaDataVO("appName", "appPath", "desc", "rpcType", "serviceName", "methodName", "types", "rpcExt",
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
@@ -167,11 +167,11 @@ public final class MetaDataControllerTest {
         metaDataDTO.setEnabled(false);
         metaDataDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
-        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(MetaDataRepository.class)).thenReturn(metaDataRepository);
+        when(metaDataRepository.existed(metaDataDTO.getId())).thenReturn(true);
         given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
@@ -194,10 +194,10 @@ public final class MetaDataControllerTest {
         metaDataDTO.setEnabled(false);
         metaDataDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
-        when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(null);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(MetaDataRepository.class)).thenReturn(metaDataRepository);
+        when(metaDataRepository.existed(metaDataDTO.getId())).thenReturn(null);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
@@ -214,8 +214,8 @@ public final class MetaDataControllerTest {
         ids.add("2");
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         given(this.metaDataService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(2);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         final BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
         batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         batchNamespaceCommonDTO.setIds(ids);

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.TagMapper;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -77,7 +77,7 @@ public class TagController {
      */
     @GetMapping("/id/{id}")
     public ShenyuAdminResult queryById(@PathVariable("id") @Valid
-                                        @Existed(provider = TagMapper.class,
+                                        @Existed(provider = TagRepository.class,
                                                 message = "tag is not existed") final String id) {
         TagVO tagVO = tagService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);

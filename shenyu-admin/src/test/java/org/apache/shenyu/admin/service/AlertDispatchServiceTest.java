@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
+import org.apache.shenyu.admin.jpa.repository.AlertReceiverRepository;
+import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
 import org.apache.shenyu.admin.service.impl.AlertDispatchServiceImpl;
+import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
@@ -93,7 +95,7 @@ public class AlertDispatchServiceTest {
     private AlertNotifyHandler wechatHandler;
 
     @Mock
-    private AlertReceiverMapper alertReceiverMapper;
+    private AlertReceiverRepository alertReceiverRepository;
 
     @BeforeEach
     void setUp() {
@@ -103,7 +105,7 @@ public class AlertDispatchServiceTest {
 
         List<AlertNotifyHandler> handlers = Arrays.asList(emailHandler, webhookHandler, wechatHandler);
         
-        alertDispatchService = new AlertDispatchServiceImpl(handlers, alertReceiverMapper);
+        alertDispatchService = new AlertDispatchServiceImpl(handlers, alertReceiverRepository);
     }
 
     @AfterEach
@@ -128,9 +130,9 @@ public class AlertDispatchServiceTest {
 
     @Test
     void testDispatchAlertSuccess() throws InterruptedException {
-        final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO receiver = createTestReceiver(EMAIL_TYPE, true, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -147,8 +149,8 @@ public class AlertDispatchServiceTest {
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Alert dispatch should complete within 5 seconds");
         
         // Verify handler was called
-        Mockito.verify(emailHandler, times(1)).send(eq(receiver), eq(alarmContent));
-        verify(alertReceiverMapper, times(1)).selectAll();
+        Mockito.verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver)), eq(alarmContent));
+        verify(alertReceiverRepository, times(1)).findAll();
     }
 
     @Test
@@ -164,15 +166,15 @@ public class AlertDispatchServiceTest {
         verify(emailHandler, never()).send(any(), any());
         verify(webhookHandler, never()).send(any(), any());
         verify(wechatHandler, never()).send(any(), any());
-        verify(alertReceiverMapper, never()).selectAll();
+        verify(alertReceiverRepository, never()).findAll();
     }
 
     @Test
     void testDispatchAlertWithMultipleReceivers() throws InterruptedException {
-        final AlertReceiverDTO emailReceiver = createTestReceiver(EMAIL_TYPE, true, false);
-        final AlertReceiverDTO webhookReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(emailReceiver, webhookReceiver));
+        final AlertReceiverDO emailReceiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO webhookReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(emailReceiver, webhookReceiver));
         
         final CountDownLatch latch = new CountDownLatch(2);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -193,15 +195,15 @@ public class AlertDispatchServiceTest {
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Alert dispatch should complete within 5 seconds");
         
         // Verify both handlers were called
-        verify(emailHandler, times(1)).send(eq(emailReceiver), eq(alarmContent));
-        verify(webhookHandler, times(1)).send(eq(webhookReceiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(emailReceiver)), eq(alarmContent));
+        verify(webhookHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(webhookReceiver)), eq(alarmContent));
     }
 
     @Test
     void testDispatchAlertWithHandlerException() throws InterruptedException {
-        final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        final AlertReceiverDO receiver = createTestReceiver(EMAIL_TYPE, true, false);
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -215,13 +217,13 @@ public class AlertDispatchServiceTest {
         
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Alert dispatch should complete within 5 seconds");
         
-        verify(emailHandler, times(1)).send(eq(receiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver)), eq(alarmContent));
     }
 
     @Test
     void testClearCache() throws Exception {
-        final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        final AlertReceiverDO receiver = createTestReceiver(EMAIL_TYPE, true, false);
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -244,13 +246,13 @@ public class AlertDispatchServiceTest {
 
     @Test
     void testSendNoticeMsgSuccess() {
-        final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO receiver = createTestReceiver(EMAIL_TYPE, true, false);
         final AlarmContent alarmContent = createTestAlarmContent();
 
-        final boolean result = alertDispatchService.sendNoticeMsg(receiver, alarmContent);
+        final boolean result = alertDispatchService.sendNoticeMsg(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver), alarmContent);
 
         assertTrue(result);
-        verify(emailHandler, times(1)).send(eq(receiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver)), eq(alarmContent));
     }
 
     @Test
@@ -266,10 +268,10 @@ public class AlertDispatchServiceTest {
 
     @Test
     void testSendNoticeMsgWithNullReceiverType() {
-        final AlertReceiverDTO receiver = createTestReceiver(null, true, false);
+        final AlertReceiverDO receiver = createTestReceiver(null, true, false);
         final AlarmContent alarmContent = createTestAlarmContent();
 
-        final boolean result = alertDispatchService.sendNoticeMsg(receiver, alarmContent);
+        final boolean result = alertDispatchService.sendNoticeMsg(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver), alarmContent);
 
         assertFalse(result);
         verify(emailHandler, never()).send(any(), any());
@@ -277,10 +279,10 @@ public class AlertDispatchServiceTest {
 
     @Test
     void testSendNoticeMsgWithUnknownType() {
-        final AlertReceiverDTO receiver = createTestReceiver(UNKNOWN_TYPE, true, false);
+        final AlertReceiverDO receiver = createTestReceiver(UNKNOWN_TYPE, true, false);
         final AlarmContent alarmContent = createTestAlarmContent();
 
-        final boolean result = alertDispatchService.sendNoticeMsg(receiver, alarmContent);
+        final boolean result = alertDispatchService.sendNoticeMsg(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver), alarmContent);
 
         assertFalse(result);
         verify(emailHandler, never()).send(any(), any());
@@ -291,9 +293,9 @@ public class AlertDispatchServiceTest {
     @Test
     void testReceiverMatchingWithMatchAll() throws InterruptedException {
         final AlarmContent alarmContent = createTestAlarmContent();
-        final AlertReceiverDTO matchAllReceiver = createTestReceiver(EMAIL_TYPE, true, true);
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchAllReceiver));
+        final AlertReceiverDO matchAllReceiver = createTestReceiver(EMAIL_TYPE, true, true);
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(matchAllReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -304,15 +306,15 @@ public class AlertDispatchServiceTest {
         alertDispatchService.dispatchAlert(alarmContent);
         
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        verify(emailHandler, times(1)).send(eq(matchAllReceiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(matchAllReceiver)), eq(alarmContent));
     }
 
     @Test
     void testReceiverMatchingWithDisabledReceiver() throws InterruptedException {
         final AlarmContent alarmContent = createTestAlarmContent();
-        final AlertReceiverDTO disabledReceiver = createTestReceiver(EMAIL_TYPE, false, false);
+        final AlertReceiverDO disabledReceiver = createTestReceiver(EMAIL_TYPE, false, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(disabledReceiver));
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(disabledReceiver));
         
         alertDispatchService.dispatchAlert(alarmContent);
         
@@ -326,13 +328,13 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         alarmContent.setNamespaceId(TEST_NAMESPACE_ID);
         
-        final AlertReceiverDTO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
         matchingReceiver.setNamespaceId(TEST_NAMESPACE_ID);
         
-        final AlertReceiverDTO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
+        final AlertReceiverDO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         nonMatchingReceiver.setNamespaceId("different-namespace");
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -343,7 +345,7 @@ public class AlertDispatchServiceTest {
         alertDispatchService.dispatchAlert(alarmContent);
         
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        verify(emailHandler, times(1)).send(eq(matchingReceiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(matchingReceiver)), eq(alarmContent));
         verify(webhookHandler, never()).send(any(), any());
     }
 
@@ -353,13 +355,13 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         alarmContent.setLevel(alertLevel);
         
-        final AlertReceiverDTO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
         matchingReceiver.setLevels(Arrays.asList((byte) 0, (byte) 1, (byte) 2));
         
-        final AlertReceiverDTO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
+        final AlertReceiverDO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         nonMatchingReceiver.setLevels(Arrays.asList((byte) 0, (byte) 2));
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -370,7 +372,7 @@ public class AlertDispatchServiceTest {
         alertDispatchService.dispatchAlert(alarmContent);
         
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        verify(emailHandler, times(1)).send(eq(matchingReceiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(matchingReceiver)), eq(alarmContent));
         verify(webhookHandler, never()).send(any(), any());
     }
 
@@ -383,17 +385,17 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         alarmContent.setLabels(alertLabels);
         
-        final AlertReceiverDTO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO matchingReceiver = createTestReceiver(EMAIL_TYPE, true, false);
         final Map<String, String> matchingLabels = new HashMap<>();
         matchingLabels.put("service", "gateway");
         matchingReceiver.setLabels(matchingLabels);
         
-        final AlertReceiverDTO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
+        final AlertReceiverDO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         final Map<String, String> nonMatchingLabels = new HashMap<>();
         nonMatchingLabels.put("service", "api");
         nonMatchingReceiver.setLabels(nonMatchingLabels);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -404,7 +406,7 @@ public class AlertDispatchServiceTest {
         alertDispatchService.dispatchAlert(alarmContent);
         
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        verify(emailHandler, times(1)).send(eq(matchingReceiver), eq(alarmContent));
+        verify(emailHandler, times(1)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(matchingReceiver)), eq(alarmContent));
         verify(webhookHandler, never()).send(any(), any());
     }
 
@@ -413,12 +415,12 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         alarmContent.setLabels(null);
         
-        final AlertReceiverDTO receiverWithLabels = createTestReceiver(EMAIL_TYPE, true, false);
+        final AlertReceiverDO receiverWithLabels = createTestReceiver(EMAIL_TYPE, true, false);
         final Map<String, String> requiredLabels = new HashMap<>();
         requiredLabels.put("service", "gateway");
         receiverWithLabels.setLabels(requiredLabels);
 
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiverWithLabels));
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(receiverWithLabels));
 
         alertDispatchService.dispatchAlert(alarmContent);
         
@@ -431,9 +433,9 @@ public class AlertDispatchServiceTest {
     @Test
     void testReceiverCacheUsage() throws InterruptedException {
         final AlarmContent alarmContent = createTestAlarmContent();
-        final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
-        
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        final AlertReceiverDO receiver = createTestReceiver(EMAIL_TYPE, true, false);
+
+        when(alertReceiverRepository.findAll()).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch1 = new CountDownLatch(1);
         final CountDownLatch latch2 = new CountDownLatch(1);
@@ -455,8 +457,8 @@ public class AlertDispatchServiceTest {
         assertTrue(latch2.await(5, TimeUnit.SECONDS));
         
         // verify mapper is called only once (cache is used for second call)
-        verify(alertReceiverMapper, times(1)).selectAll();
-        verify(emailHandler, times(2)).send(eq(receiver), eq(alarmContent));
+        verify(alertReceiverRepository, times(1)).findAll();
+        verify(emailHandler, times(2)).send(eq(AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiver)), eq(alarmContent));
     }
 
     @Test
@@ -489,8 +491,8 @@ public class AlertDispatchServiceTest {
                 .build();
     }
 
-    private AlertReceiverDTO createTestReceiver(final Byte type, final boolean enabled, final boolean matchAll) {
-        AlertReceiverDTO receiver = new AlertReceiverDTO();
+    private AlertReceiverDO createTestReceiver(final Byte type, final boolean enabled, final boolean matchAll) {
+        AlertReceiverDO receiver = new AlertReceiverDO();
         receiver.setId(TEST_RECEIVER_ID);
         receiver.setName("Test Receiver");
         receiver.setType(type);

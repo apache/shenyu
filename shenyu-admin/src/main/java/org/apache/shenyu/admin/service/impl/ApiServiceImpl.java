@@ -18,10 +18,10 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
@@ -40,17 +40,17 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.ApiSourceEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -58,6 +58,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,6 +79,8 @@ public class ApiServiceImpl implements ApiService {
 
     private final ApiMapper apiMapper;
 
+    private final ApiRepository apiRepository;
+
     private final TagRelationMapper tagRelationMapper;
 
     private final TagMapper tagMapper;
@@ -86,12 +89,14 @@ public class ApiServiceImpl implements ApiService {
                           final RuleService ruleService,
                           final MetaDataService metaDataService,
                           final ApiMapper apiMapper,
+                          final ApiRepository apiRepository,
                           final TagRelationMapper tagRelationMapper,
                           final TagMapper tagMapper) {
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.metaDataService = metaDataService;
         this.apiMapper = apiMapper;
+        this.apiRepository = apiRepository;
         this.tagRelationMapper = tagRelationMapper;
         this.tagMapper = tagMapper;
     }
@@ -234,7 +239,7 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public ApiVO findById(final String id) {
-        return Optional.ofNullable(apiMapper.selectByPrimaryKey(id)).map(item -> {
+        return apiRepository.findById(id).map(item -> {
             List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
             List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
             List<TagVO> tagVOs = Lists.newArrayList();
@@ -287,7 +292,7 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public String offlineByContextPath(final String contextPath) {
-        apiMapper.updateOfflineByContextPath(contextPath);
+        apiRepository.updateOfflineByContextPath(contextPath);
         return ShenyuResultMessage.SUCCESS;
     }
 }

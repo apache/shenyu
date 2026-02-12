@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -111,6 +112,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final SelectorMapper selectorMapper;
 
+    private final SelectorRepository selectorRepository;
+
     private final SelectorConditionMapper selectorConditionMapper;
 
     private final PluginMapper pluginMapper;
@@ -130,6 +133,7 @@ public class SelectorServiceImpl implements SelectorService {
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
+                               final SelectorRepository selectorRepository,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final ApplicationEventPublisher eventPublisher,
@@ -140,6 +144,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
+        this.selectorRepository = selectorRepository;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.discoveryMapper = discoveryMapper;
@@ -344,7 +349,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public SelectorVO findById(final String id) {
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorRepository.findById(id).orElse(null), conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
         if (Objects.nonNull(discoveryHandlerDO)) {
             selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
@@ -455,7 +460,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorData> listAll() {
-        return this.buildSelectorDataList(selectorMapper.selectAll());
+        return this.buildSelectorDataList(selectorRepository.findAll());
     }
 
     @Override
@@ -465,7 +470,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorVO> listAllData() {
-        return this.buildSelectorExportVOList(selectorMapper.selectAll());
+        return this.buildSelectorExportVOList(selectorRepository.findAll());
     }
 
     @Override

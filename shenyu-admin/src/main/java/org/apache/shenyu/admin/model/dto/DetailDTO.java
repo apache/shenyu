@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.DetailMapper;
+import org.apache.shenyu.admin.jpa.repository.DetailRepository;
 import org.apache.shenyu.admin.model.entity.DetailDO;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -28,7 +28,7 @@ public class DetailDTO {
 
     private static final long serialVersionUID = 7247613164345326366L;
 
-    @Existed(provider = DetailMapper.class, nullOfIgnore = true, message = "detail is not existed")
+    @Existed(provider = DetailRepository.class, nullOfIgnore = true, message = "detail is not existed")
     private String id;
 
     /**

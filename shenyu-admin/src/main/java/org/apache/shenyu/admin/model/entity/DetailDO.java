@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
  * DetailDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "detail")
 public class DetailDO extends BaseDO {
 
     /**

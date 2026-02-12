@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.jpa.repository.ScalePolicyRepository;
 import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
 import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
 import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
@@ -37,14 +38,18 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
 
     private final ScalePolicyMapper scalePolicyMapper;
 
+    private final ScalePolicyRepository scalePolicyRepository;
+
     private final ScalePolicyCache scalePolicyCache;
 
     private final ScaleService scaleService;
 
     public ScalePolicyServiceImpl(final ScalePolicyMapper scalePolicyMapper,
+                                  final ScalePolicyRepository scalePolicyRepository,
                                   final ScalePolicyCache scalePolicyCache,
                                   final ScaleService scaleService) {
         this.scalePolicyMapper = scalePolicyMapper;
+        this.scalePolicyRepository = scalePolicyRepository;
         this.scalePolicyCache = scalePolicyCache;
         this.scaleService = scaleService;
     }
@@ -56,7 +61,7 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
      */
     @Override
     public List<ScalePolicyVO> selectAll() {
-        return ListUtil.map(scalePolicyMapper.selectAll(), ScalePolicyVO::buildScalePolicyVO);
+        return ListUtil.map(scalePolicyRepository.findAll(), ScalePolicyVO::buildScalePolicyVO);
     }
 
     /**
@@ -67,7 +72,7 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
      */
     @Override
     public ScalePolicyVO findById(final String id) {
-        return ScalePolicyVO.buildScalePolicyVO(scalePolicyMapper.selectByPrimaryKey(id));
+        return ScalePolicyVO.buildScalePolicyVO(scalePolicyRepository.findById(id).orElse(null));
     }
 
     /**

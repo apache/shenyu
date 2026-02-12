@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AlertReceiverQuery;
@@ -111,7 +111,7 @@ public class AlertReceiverController {
     public ShenyuAdminResult getReceivers(@RequestParam @NotNull final Integer currentPage,
                                           @RequestParam @NotNull final Integer pageSize,
                                           @Valid @Existed(message = "namespaceId is not existed",
-                                                  provider = NamespaceMapper.class) final String namespaceId
+                                                  provider = NamespaceRepository.class) final String namespaceId
     ) {
         CommonPager<AlertReceiverDTO> commonPager = alertReceiverService.listByPage(new AlertReceiverQuery(new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(commonPager);

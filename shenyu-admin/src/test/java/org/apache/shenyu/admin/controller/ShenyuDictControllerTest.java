@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -71,7 +71,7 @@ public final class ShenyuDictControllerTest {
     private ShenyuDictService shenyuDictService;
     
     @Mock
-    private ShenyuDictMapper shenyuDictMapper;
+    private ShenyuDictRepository shenyuDictRepository;
 
     private final ShenyuDictVO shenyuDictVO = new ShenyuDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
@@ -126,8 +126,8 @@ public final class ShenyuDictControllerTest {
         ShenyuDictDTO shenyuDictDTO = buildTestDict();
         
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(ShenyuDictMapper.class)).thenReturn(shenyuDictMapper);
-        when(shenyuDictMapper.existed(shenyuDictDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(ShenyuDictRepository.class)).thenReturn(shenyuDictRepository);
+        when(shenyuDictRepository.existed(shenyuDictDTO.getId())).thenReturn(true);
         
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
@@ -143,8 +143,8 @@ public final class ShenyuDictControllerTest {
         ShenyuDictDTO shenyuDictDTO = buildTestDict();
         
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(ShenyuDictMapper.class)).thenReturn(shenyuDictMapper);
-        when(shenyuDictMapper.existed(shenyuDictDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(ShenyuDictRepository.class)).thenReturn(shenyuDictRepository);
+        when(shenyuDictRepository.existed(shenyuDictDTO.getId())).thenReturn(true);
         
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/shenyu-dict/{id}", "123")

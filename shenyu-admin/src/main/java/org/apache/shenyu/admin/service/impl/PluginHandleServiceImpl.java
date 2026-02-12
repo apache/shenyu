@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.PluginHandleRepository;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
@@ -65,14 +66,18 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     private final PluginHandleMapper pluginHandleMapper;
 
+    private final PluginHandleRepository pluginHandleRepository;
+
     private final ShenyuDictMapper shenyuDictMapper;
 
     private final PluginHandleEventPublisher eventPublisher;
 
     public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper,
+                                   final PluginHandleRepository pluginHandleRepository,
                                    final ShenyuDictMapper shenyuDictMapper,
                                    final PluginHandleEventPublisher eventPublisher) {
         this.pluginHandleMapper = pluginHandleMapper;
+        this.pluginHandleRepository = pluginHandleRepository;
         this.shenyuDictMapper = shenyuDictMapper;
         this.eventPublisher = eventPublisher;
     }
@@ -120,28 +125,24 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     @Override
     public PluginHandleVO findById(final String id) {
-        return buildPluginHandleVO(pluginHandleMapper.selectById(id));
+        return buildPluginHandleVO(pluginHandleRepository.findById(id).orElse(null));
     }
 
     @Override
     public List<PluginHandleVO> list(final String pluginId, final Integer type) {
-        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(PluginHandleQuery.builder()
-                .pluginId(pluginId)
-                .type(type)
-                .build());
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleRepository.findByPluginId(pluginId);
         return buildPluginHandleVO(pluginHandleDOList);
     }
 
     @Override
     public List<PluginHandleVO> listAllData() {
-        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByQuery(PluginHandleQuery.builder()
-                .build());
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleRepository.findAll();
         return buildPluginHandleVO(pluginHandleDOList);
     }
-    
+
     @Override
     public List<PluginHandleVO> listAllDataByPluginIds(final Collection<String> pluginIds) {
-        List<PluginHandleDO> pluginHandleDOList = pluginHandleMapper.selectByPluginIds(pluginIds);
+        List<PluginHandleDO> pluginHandleDOList = pluginHandleRepository.findByPluginIdIn(pluginIds);
         if (CollectionUtils.isEmpty(pluginHandleDOList)) {
             return Lists.newArrayList();
         }
@@ -201,7 +202,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
      */
     @EventListener(value = BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        deletePluginHandles(ListUtil.map(pluginHandleMapper.selectByPluginIdList(event.getDeletedPluginIds()), BaseDO::getId));
+        deletePluginHandles(ListUtil.map(pluginHandleRepository.findByPluginIdIn(event.getDeletedPluginIds()), BaseDO::getId));
     }
 
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {

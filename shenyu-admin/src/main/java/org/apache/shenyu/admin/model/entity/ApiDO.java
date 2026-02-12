@@ -17,10 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -29,10 +38,15 @@ import java.util.Optional;
 /**
  * api.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "api")
+@EntityListeners(AuditingEntityListener.class)
 public class ApiDO {
     /**
      * primary key id.
      */
+    @Id
     private String id;
 
     /**
@@ -108,11 +122,14 @@ public class ApiDO {
     /**
      * create time.
      */
+    @CreatedDate
+    @Column(updatable = false)
     private Date dateCreated;
 
     /**
      * update time.
      */
+    @LastModifiedDate
     private Date dateUpdated;
 
     /**

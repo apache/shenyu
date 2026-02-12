@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -117,7 +117,7 @@ public class NamespaceController {
     @RequiresPermissions("system:namespace:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("id")
                                           @Existed(message = "namespaceId is not existed",
-                                                  provider = NamespaceMapper.class) final String namespaceId) {
+                                                  provider = NamespaceRepository.class) final String namespaceId) {
         NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespaceVO);
     }

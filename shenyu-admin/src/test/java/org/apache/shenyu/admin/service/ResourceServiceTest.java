@@ -28,6 +28,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.jpa.repository.ResourceRepository;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
@@ -47,6 +48,7 @@ import org.apache.shenyu.common.enums.AdminResourceEnum;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.Lists;
@@ -70,6 +72,9 @@ public class ResourceServiceTest {
     
     @Mock
     private ResourceMapper resourceMapper;
+
+    @Mock
+    private ResourceRepository resourceRepository;
     
     @Mock
     private PermissionMapper permissionMapper;
@@ -154,7 +159,7 @@ public class ResourceServiceTest {
         resourceDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         
         reset(resourceMapper);
-        when(resourceMapper.selectById(mockResourceId)).thenReturn(resourceDO);
+        when(resourceRepository.findById(mockResourceId)).thenReturn(Optional.of(resourceDO));
         assertThat(resourceService.findById(mockResourceId), equalTo(ResourceVO.buildResourceVO(resourceDO)));
     }
     
@@ -193,7 +198,7 @@ public class ResourceServiceTest {
     @Test
     public void testGetMenuTreeWhenTheresNoResource() {
         reset(resourceMapper);
-        when(resourceMapper.selectAll()).thenReturn(Collections.emptyList());
+        when(resourceRepository.findAll()).thenReturn(Collections.emptyList());
         assertNull(resourceService.getMenuTree());
     }
     
@@ -226,7 +231,7 @@ public class ResourceServiceTest {
         final List<ResourceDO> mockSelectAllResult = newArrayList(parentResource, childResource1, childResource2);
         
         reset(resourceMapper);
-        when(resourceMapper.selectAll()).thenReturn(mockSelectAllResult);
+        when(resourceRepository.findAll()).thenReturn(mockSelectAllResult);
    
         List<PermissionMenuVO.MenuInfo> menuInfoList = ResourceUtil.buildMenu(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
         assertThat(resourceService.getMenuTree(), equalTo(menuInfoList));

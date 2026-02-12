@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.DetailRepository;
 import org.apache.shenyu.admin.mapper.DetailMapper;
 import org.apache.shenyu.admin.model.dto.DetailDTO;
 import org.apache.shenyu.admin.model.entity.DetailDO;
@@ -40,8 +41,11 @@ public class DetailServiceImpl implements DetailService {
 
     private final DetailMapper detailMapper;
 
-    public DetailServiceImpl(final DetailMapper detailMapper) {
+    private final DetailRepository detailRepository;
+
+    public DetailServiceImpl(final DetailMapper detailMapper, final DetailRepository detailRepository) {
         this.detailMapper = detailMapper;
+        this.detailRepository = detailRepository;
     }
 
     @Override
@@ -61,7 +65,7 @@ public class DetailServiceImpl implements DetailService {
 
     @Override
     public DetailVO findById(final String id) {
-        DetailDO detailDO = detailMapper.selectByPrimaryKey(id);
+        DetailDO detailDO = detailRepository.findById(id).orElse(null);
         DetailVO.DetailVOBuilder builder = DetailVO.builder();
         if (Objects.nonNull(detailDO)) {
             builder.id(detailDO.getId())

@@ -21,7 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.exception.ValidFailException;
-import org.apache.shenyu.admin.mapper.DashboardUserMapper;
+import org.apache.shenyu.admin.jpa.repository.DashboardUserRepository;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
@@ -136,7 +136,7 @@ public class DashboardUserController {
     @PutMapping("/{id}")
     @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id")
-                                                 @Existed(provider = DashboardUserMapper.class,
+                                                 @Existed(provider = DashboardUserRepository.class,
                                                          message = "user is not found") final String id,
                                                  @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         dashboardUserDTO.setId(id);
@@ -156,7 +156,7 @@ public class DashboardUserController {
      */
     @PutMapping("/modify-password/{id}")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
-                                            @Existed(provider = DashboardUserMapper.class,
+                                            @Existed(provider = DashboardUserRepository.class,
                                                     message = "user is not found") final String id,
                                             @Valid @RequestBody final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();

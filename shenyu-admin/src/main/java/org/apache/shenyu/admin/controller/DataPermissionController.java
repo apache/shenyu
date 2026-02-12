@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -68,7 +68,7 @@ public class DataPermissionController {
                                                              @RequestParam("pluginId") final String pluginId,
                                                              @RequestParam(value = "name", required = false) final String name,
                                                              @Valid @Existed(message = "namespaceId is not existed",
-                                                                     provider = NamespaceMapper.class) final String namespaceId) {
+                                                                     provider = NamespaceRepository.class) final String namespaceId) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
                 new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize), namespaceId), userId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);

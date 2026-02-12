@@ -21,6 +21,9 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
+import org.apache.shenyu.admin.jpa.repository.MockRequestRecordRepository;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
@@ -53,6 +56,9 @@ public class MockRequestRecordServiceTest {
     @Mock
     private MockRequestRecordMapper mockRequestRecordMapper;
 
+    @Mock
+    private MockRequestRecordRepository mockRequestRecordRepository;
+
     @Test
     public void testCreateOrUpdate() {
         MockRequestRecordDTO mockRequestRecordDTO = buildMockRequestRecordDTO();
@@ -67,7 +73,7 @@ public class MockRequestRecordServiceTest {
 
     @Test
     public void testFindById() {
-        given(this.mockRequestRecordMapper.queryById("1")).willReturn(buildMockRequestRecordDO());
+        given(this.mockRequestRecordRepository.findById("1")).willReturn(Optional.of(buildMockRequestRecordDO()));
         MockRequestRecordVO mockRequestRecordVO = mockRequestRecordService.findById("1");
         assertEquals("123", mockRequestRecordVO.getApiId());
     }

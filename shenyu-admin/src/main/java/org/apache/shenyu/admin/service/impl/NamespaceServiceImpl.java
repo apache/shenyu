@@ -21,7 +21,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
@@ -64,6 +65,8 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private final NamespaceMapper namespaceMapper;
 
+    private final NamespaceRepository namespaceRepository;
+
     private final NamespaceUserService namespaceUserService;
 
     private final NamespaceEventPublisher namespaceEventPublisher;
@@ -80,10 +83,10 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
-    private final AppAuthMapper appAuthMapper;
-
+    private final AppAuthRepository appAuthRepository;
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
+                                final NamespaceRepository namespaceRepository,
                                 final NamespaceUserService namespaceUserService,
                                 final NamespaceEventPublisher namespaceEventPublisher,
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
@@ -92,8 +95,9 @@ public class NamespaceServiceImpl implements NamespaceService {
                                 final AuthPathMapper authPathMapper,
                                 final MetaDataMapper metaDataMapper,
                                 final DiscoveryMapper discoveryMapper,
-                                final AppAuthMapper appAuthMapper) {
+                                final AppAuthRepository appAuthRepository) {
         this.namespaceMapper = namespaceMapper;
+        this.namespaceRepository = namespaceRepository;
         this.namespaceUserService = namespaceUserService;
         this.namespaceEventPublisher = namespaceEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
@@ -102,7 +106,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         this.authPathMapper = authPathMapper;
         this.metaDataMapper = metaDataMapper;
         this.discoveryMapper = discoveryMapper;
-        this.appAuthMapper = appAuthMapper;
+        this.appAuthRepository = appAuthRepository;
     }
 
     @Override
@@ -116,7 +120,7 @@ public class NamespaceServiceImpl implements NamespaceService {
     public CommonPager<NamespaceVO> listByPage(final NamespaceQuery namespaceQuery) {
         List<String> namespaceIds;
         if (SessionUtil.isAdmin()) {
-            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            List<NamespaceDO> allList = namespaceRepository.findAll();
             namespaceIds = allList.stream().map(NamespaceDO::getNamespaceId).toList();
         } else {
             namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
@@ -156,7 +160,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isNotEmpty(metaDataDOList)) {
             throw new ShenyuAdminException("metaData exist under those namespace!");
         }
-        List<AppAuthDO> appPathDOList = appAuthMapper.findByNamespaceIds(namespaceIdList);
+        List<AppAuthDO> appPathDOList = appAuthRepository.findByNamespaceIdIn(namespaceIdList);
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
         }
@@ -166,22 +170,22 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public NamespaceVO findById(final String id) {
-        return NamespaceTransfer.INSTANCE.mapToVo(namespaceMapper.selectById(id));
+        return NamespaceTransfer.INSTANCE.mapToVo(namespaceRepository.findById(id).orElse(null));
     }
 
     @Override
     public NamespaceVO findByNamespaceId(final String namespaceId) {
-        return NamespaceTransfer.INSTANCE.mapToVo(namespaceMapper.selectByNamespaceId(namespaceId));
+        return NamespaceTransfer.INSTANCE.mapToVo(namespaceRepository.findByNamespaceId(namespaceId).orElse(null));
     }
 
     @Override
     public List<NamespaceVO> list(final String name) {
-        
+
         if (SessionUtil.isAdmin()) {
-            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            List<NamespaceDO> allList = namespaceRepository.findAll();
             return allList.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
         }
-        
+
         List<String> namespaceIds = namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId());
 
         if (CollectionUtils.isEmpty(namespaceIds)) {
@@ -197,7 +201,7 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public List<NamespaceVO> listAll() {
-        List<NamespaceDO> namespaceDOS = namespaceMapper.selectAll();
+        List<NamespaceDO> namespaceDOS = namespaceRepository.findAll();
         return namespaceDOS.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
 
     }

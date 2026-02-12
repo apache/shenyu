@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.RuleRepository;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -88,6 +89,9 @@ public final class RuleServiceTest {
     private RuleMapper ruleMapper;
 
     @Mock
+    private RuleRepository ruleRepository;
+
+    @Mock
     private RuleConditionMapper ruleConditionMapper;
 
     @Mock
@@ -105,7 +109,7 @@ public final class RuleServiceTest {
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleRepository, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher);
     }
 
     @Test
@@ -135,7 +139,7 @@ public final class RuleServiceTest {
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
+        given(this.ruleRepository.findById("123")).willReturn(Optional.of(ruleDO));
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
@@ -172,7 +176,7 @@ public final class RuleServiceTest {
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
         List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
-        given(this.ruleMapper.selectAll()).willReturn(ruleDOList);
+        given(this.ruleRepository.findAll()).willReturn(ruleDOList);
         List<RuleVO> dataList = this.ruleService.listAllData();
         assertNotNull(dataList);
         assertEquals(ruleDOList.size(), dataList.size());
@@ -223,7 +227,7 @@ public final class RuleServiceTest {
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
         List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
-        given(this.ruleMapper.selectAll()).willReturn(ruleDOList);
+        given(this.ruleRepository.findAll()).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.listAll();
         assertNotNull(dataList);
         assertEquals(Optional.ofNullable(expected).orElse(ruleDOList.size()), dataList.size());
@@ -237,7 +241,7 @@ public final class RuleServiceTest {
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
         List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
-        given(this.ruleMapper.findBySelectorId("456")).willReturn(ruleDOList);
+        given(this.ruleRepository.findBySelectorId("456")).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.findBySelectorId("456");
         assertNotNull(dataList);
         assertEquals(ruleDOList.size(), dataList.size());
@@ -251,7 +255,7 @@ public final class RuleServiceTest {
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
         List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
-        given(this.ruleMapper.findBySelectorIds(Collections.singletonList("456"))).willReturn(ruleDOList);
+        given(this.ruleRepository.findBySelectorIdIn(Collections.singletonList("456"))).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.findBySelectorIdList(Collections.singletonList("456"));
         assertNotNull(dataList);
         assertEquals(ruleDOList.size(), dataList.size());

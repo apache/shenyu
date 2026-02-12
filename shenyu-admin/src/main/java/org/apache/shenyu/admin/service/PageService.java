@@ -22,6 +22,8 @@ import com.github.pagehelper.PageInfo;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,15 @@ public interface PageService<Q, R> {
      */
     default PageInfo<R> searchByPage(final PageCondition<Q> pageCondition) {
         doConditionPreProcessing(pageCondition.getCondition());
+        if (useJpaPage()) {
+            Page<R> page = jpaSearchByCondition(pageCondition);
+            com.github.pagehelper.Page<R> phPage = new com.github.pagehelper.Page<>();
+            phPage.addAll(page.getContent());
+            phPage.setPageNum(pageCondition.getPageNum());
+            phPage.setPageSize(pageCondition.getPageSize());
+            phPage.setTotal(page.getTotalElements());
+            return new PageInfo<>(phPage);
+        }
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         return new PageInfo<>(searchByCondition(pageCondition.getCondition()));
     }
@@ -75,5 +86,24 @@ public interface PageService<Q, R> {
     default void doConditionPreProcessing(final Q condition) {
         // default is nothing, override condition.
     }
-    
+
+    /**
+     * use jpa page.
+     *
+     * @see PageService#jpaSearchByCondition(PageCondition)
+     * @return true if use jpa page
+     */
+    default boolean useJpaPage() {
+        return false;
+    }
+
+    /**
+     * jpa search by condition.
+     *
+     * @param pageCondition page condition
+     * @return  page
+     */
+    default Page<R> jpaSearchByCondition(final PageCondition<Q> pageCondition) {
+        return new PageImpl<>(new ArrayList<>());
+    }
 }

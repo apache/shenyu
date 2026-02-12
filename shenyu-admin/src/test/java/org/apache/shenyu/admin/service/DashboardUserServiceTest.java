@@ -20,6 +20,9 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
+import org.apache.shenyu.admin.jpa.repository.DashboardUserRepository;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
+import org.apache.shenyu.admin.jpa.repository.UserRoleRepository;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -30,6 +33,7 @@ import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
@@ -45,6 +49,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -52,6 +57,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,10 +90,19 @@ public final class DashboardUserServiceTest {
     private DashboardUserMapper dashboardUserMapper;
 
     @Mock
+    private DashboardUserRepository dashboardUserRepository;
+
+    @Mock
     private UserRoleMapper userRoleMapper;
 
     @Mock
+    private UserRoleRepository userRoleRepository;
+
+    @Mock
     private RoleMapper roleMapper;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private UserEventPublisher publisher;
@@ -145,35 +160,35 @@ public final class DashboardUserServiceTest {
     @Test
     public void testFindById() {
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        given(dashboardUserMapper.selectById(eq(TEST_ID))).willReturn(dashboardUserDO);
+        given(dashboardUserRepository.findById(eq(TEST_ID))).willReturn(Optional.of(dashboardUserDO));
 
         DashboardUserVO dashboardUserVO = dashboardUserService.findById(TEST_ID);
         assertEquals(TEST_ID, dashboardUserVO.getId());
-        verify(dashboardUserMapper).selectById(eq(TEST_ID));
+        verify(dashboardUserRepository).findById(eq(TEST_ID));
     }
 
     @Test
     public void testFindByQuery() {
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        given(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), eq(TEST_PASSWORD))).willReturn(dashboardUserDO);
+        given(dashboardUserRepository.findByUserNameAndPassword(eq(TEST_USER_NAME), eq(TEST_PASSWORD))).willReturn(Optional.of(dashboardUserDO));
 
         DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(TEST_USER_NAME, TEST_PASSWORD);
         assertEquals(TEST_ID, dashboardUserVO.getId());
         assertEquals(TEST_USER_NAME, dashboardUserVO.getUserName());
         assertEquals(TEST_PASSWORD, dashboardUserVO.getPassword());
-        verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), eq(TEST_PASSWORD));
+        verify(dashboardUserRepository).findByUserNameAndPassword(eq(TEST_USER_NAME), eq(TEST_PASSWORD));
     }
 
     @Test
     public void testFindByUsername() {
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        given(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).willReturn(dashboardUserDO);
+        given(dashboardUserRepository.findByUserName(eq(TEST_USER_NAME))).willReturn(Optional.of(dashboardUserDO));
 
         DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(TEST_USER_NAME);
         assertEquals(TEST_ID, dashboardUserVO.getId());
         assertEquals(TEST_USER_NAME, dashboardUserVO.getUserName());
         assertEquals(TEST_PASSWORD, dashboardUserVO.getPassword());
-        verify(dashboardUserMapper).selectByUserName(eq(TEST_USER_NAME));
+        verify(dashboardUserRepository).findByUserName(eq(TEST_USER_NAME));
     }
 
     @Test
@@ -183,16 +198,18 @@ public final class DashboardUserServiceTest {
         PageParameter pageParameter = new PageParameter();
         dashboardUserQuery.setPageParameter(pageParameter);
 
-        given(dashboardUserMapper.countByQuery(eq(dashboardUserQuery))).willReturn(1);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        given(dashboardUserMapper.selectByQuery(eq(dashboardUserQuery))).willReturn(Collections.singletonList(dashboardUserDO));
+
+        PageImpl<DashboardUserDO> page = new PageImpl<>(Collections.singletonList(dashboardUserDO),
+                PageResultUtils.of(pageParameter), 1);
+        given(dashboardUserRepository.findByQuery(eq(TEST_USER_NAME), eq(PageResultUtils.of(pageParameter))))
+                .willReturn(page);
 
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(dashboardUserQuery);
         assertThat(commonPager.getDataList()).isNotNull().isNotEmpty();
         assertEquals(1, commonPager.getDataList().size());
         assertEquals(TEST_ID, commonPager.getDataList().get(0).getId());
-        verify(dashboardUserMapper).countByQuery(eq(dashboardUserQuery));
-        verify(dashboardUserMapper).selectByQuery(eq(dashboardUserQuery));
+        verify(dashboardUserRepository).findByQuery(eq(TEST_USER_NAME), eq(PageResultUtils.of(pageParameter)));
     }
 
     @Test
@@ -201,9 +218,9 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
 
-        when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
+        when(dashboardUserRepository.findByUserNameAndPassword(eq(TEST_USER_NAME), anyString())).thenReturn(Optional.of(dashboardUserDO));
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
-        given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
+        given(roleRepository.findByRoleName("default")).willReturn(Optional.of(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null))));
 
         // test loginByLdap
         LdapProperties ldapProperties = new LdapProperties();
@@ -217,9 +234,9 @@ public final class DashboardUserServiceTest {
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
-        verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserRepository).findByUserNameAndPassword(eq(TEST_USER_NAME), anyString());
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
-        verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserRepository, times(2)).findByUserNameAndPassword(eq(TEST_USER_NAME), anyString());
 
         // test loginByDatabase AES password
         SecretProperties secretPropertiesTmp = new SecretProperties();
@@ -228,9 +245,9 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
-        verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserRepository, times(3)).findByUserNameAndPassword(eq(TEST_USER_NAME), anyString());
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
-        verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserRepository, times(4)).findByUserNameAndPassword(eq(TEST_USER_NAME), anyString());
 
     }
 

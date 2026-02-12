@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
@@ -42,6 +43,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -74,6 +76,9 @@ public final class ApiServiceTest {
     private ApiMapper apiMapper;
 
     @Mock
+    private ApiRepository apiRepository;
+
+    @Mock
     private TagRelationMapper tagRelationMapper;
 
     @Mock
@@ -82,7 +87,7 @@ public final class ApiServiceTest {
     @BeforeEach
     public void setUp() {
         apiService = new ApiServiceImpl(selectorService, ruleService,
-                metaDataService, apiMapper, tagRelationMapper, tagMapper);
+                metaDataService, apiMapper, apiRepository, tagRelationMapper, tagMapper);
     }
 
     @Test
@@ -103,7 +108,7 @@ public final class ApiServiceTest {
     public void testFindById() {
         String id = "123";
         final ApiDO apiDO = buildApiDO(id);
-        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        given(this.apiRepository.findById(eq(id))).willReturn(Optional.of(apiDO));
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
     }

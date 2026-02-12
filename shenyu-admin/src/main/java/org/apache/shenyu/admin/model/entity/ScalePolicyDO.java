@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -32,6 +35,9 @@ import java.util.Optional;
 /**
  * Table: scale_policy.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "scale_policy")
 public final class ScalePolicyDO extends BaseDO {
 
     private static final long serialVersionUID = -6895279885108899135L;
