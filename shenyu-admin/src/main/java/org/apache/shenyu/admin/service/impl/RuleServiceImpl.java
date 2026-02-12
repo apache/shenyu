@@ -67,6 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -112,16 +113,25 @@ public class RuleServiceImpl implements RuleService {
         }
     }
 
+
     @Override
     public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
         RuleQueryCondition condition = pageCondition.getCondition();
         doConditionPreProcessing(condition);
         condition.init();
-        condition.setSelectors(
-                Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
-                        .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
-                        .orElse(null)
-        );
+        List<String> namespaceSelectors = Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
+                .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+
+        List<String> finalSelectors = Optional.ofNullable(condition.getSelectors())
+                .orElseGet(Collections::emptyList);
+
+        if (!namespaceSelectors.isEmpty()) {
+            Set<String> selectorSet = new LinkedHashSet<>(finalSelectors);
+            selectorSet.addAll(namespaceSelectors);
+            finalSelectors = new ArrayList<>(selectorSet);
+        }
+        condition.setSelectors(finalSelectors);
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
         PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
@@ -258,12 +268,12 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }
-    
+
     @Override
     public List<RuleVO> listAllDataByNamespaceId(final String namespaceId) {
         return this.buildRuleVOList(ruleMapper.selectAllByNamespaceId(namespaceId));
     }
-    
+
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
         return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));
@@ -327,7 +337,7 @@ public class RuleServiceImpl implements RuleService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<RuleDTO> ruleList, final ConfigsImportContext context) {
@@ -339,7 +349,7 @@ public class RuleServiceImpl implements RuleService {
                 .selectAllByNamespaceId(namespace)
                 .stream()
                 .collect(Collectors.groupingBy(RuleDO::getSelectorId));
-        
+
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (RuleDTO ruleDTO : ruleList) {
@@ -358,7 +368,7 @@ public class RuleServiceImpl implements RuleService {
                     .stream()
                     .map(RuleDO::getRuleName)
                     .collect(Collectors.toSet());
-            
+
             if (existRuleNameSet.contains(ruleName)) {
                 errorMsgBuilder
                         .append(ruleName)
@@ -372,10 +382,10 @@ public class RuleServiceImpl implements RuleService {
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             Optional.ofNullable(ruleDTO.getRuleConditions())
-                            .orElse(Collections.emptyList()).forEach(c -> {
-                                c.setRuleId(ruleId);
-                                c.setId(null);
-                            });
+                    .orElse(Collections.emptyList()).forEach(c -> {
+                        c.setRuleId(ruleId);
+                        c.setId(null);
+                    });
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
                 successCount++;
