@@ -45,7 +45,6 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import org.reactivestreams.Publisher;
 
 import java.io.BufferedReader;
@@ -56,6 +55,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -350,9 +350,10 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                             }
                             
                             final String finalMessage = messageWithResponseBody;
-                            
-                            return Mono.fromCallable(() -> chatClient.prompt().user(finalMessage).call().content())
-                                    .subscribeOn(Schedulers.boundedElastic())
+                            return chatClient.prompt().user(finalMessage).stream().content()
+                                    .collectList()
+                                    .map(list -> Objects.isNull(list) ? "" : list.stream().filter(Objects::nonNull)
+                                            .collect(Collectors.joining("")))
                                     .flatMap(aiResponse -> {
 
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
