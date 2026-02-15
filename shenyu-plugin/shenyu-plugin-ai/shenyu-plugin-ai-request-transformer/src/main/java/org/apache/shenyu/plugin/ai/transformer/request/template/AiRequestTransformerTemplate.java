@@ -156,7 +156,14 @@ public class AiRequestTransformerTemplate {
 
                     ObjectNode requestNode = objectMapper.createObjectNode();
                     requestNode.set("headers", headersJson);
+                    String fullPath = originalRequest.getURI().getRawPath();
+                    String query = originalRequest.getURI().getRawQuery();
 
+                    if (Objects.nonNull(query)) {
+                        fullPath += "?" + query;
+                    }
+
+                    requestNode.put("path", fullPath);
                     if (Objects.nonNull(contentType)) {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(contentType)) {
                             try {
