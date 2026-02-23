@@ -118,6 +118,7 @@ class McpServerPluginTest {
 
     @Test
     void testDoExecuteWhenCannotRoute() {
+        when(selector.getId()).thenReturn("selector-1");
         when(exchange.getAttribute(Constants.CONTEXT)).thenReturn(shenyuContext);
         when(exchange.getRequest()).thenReturn(request);
         when(request.getURI()).thenReturn(URI.create("http://localhost:8080/test"));
@@ -130,6 +131,7 @@ class McpServerPluginTest {
 
     @Test
     void testDoExecuteWhenCanRoute() {
+        when(selector.getId()).thenReturn("selector-1");
         when(exchange.getAttribute(Constants.CONTEXT)).thenReturn(shenyuContext);
         when(exchange.getRequest()).thenReturn(request);
         when(request.getURI()).thenReturn(URI.create("http://localhost:8080/mcp/sse"));

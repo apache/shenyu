@@ -76,7 +76,7 @@ public final class ShiroConfigurationTest {
         assertNotNull(shiroFilterFactoryBean.getFilters().get("statelessAuth"));
         Map<String, String> map = shiroFilterFactoryBean.getFilterChainDefinitionMap();
         assertNotNull(map);
-        whiteList.stream().forEach(s -> assertEquals("anon", map.get(s)));
+        whiteList.forEach(s -> assertEquals("anon", map.get(s)));
         assertEquals("statelessAuth", map.get("/**"));
     }
     
