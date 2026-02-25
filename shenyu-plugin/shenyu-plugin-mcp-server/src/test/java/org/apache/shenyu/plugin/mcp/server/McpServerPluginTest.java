@@ -30,14 +30,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -149,5 +154,52 @@ class McpServerPluginTest {
         
         String rawPath = mcpServerPlugin.getRawPath(exchange);
         assertEquals("/test/path", rawPath);
+    }
+
+    @Test
+    void testPreflightWithConfiguredAllowHeaders() {
+        final McpServerPlugin plugin = new McpServerPlugin(shenyuMcpServerManager,
+                HandlerStrategies.withDefaults().messageReaders(), "Content-Type, XRequest, Authorization");
+        final MockServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .options("/mcp/streamablehttp")
+                .header("Origin", "http://localhost:6274")
+                .header("Access-Control-Request-Headers", "xrequest, authorization")
+                .build());
+        webExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        webExchange.getResponse().getHeaders().setVary(List.of("Accept-Encoding"));
+        when(shenyuMcpServerManager.canRoute("/mcp/streamablehttp")).thenReturn(true);
+
+        StepVerifier.create(plugin.doExecute(webExchange, chain, selector, rule))
+                .verifyComplete();
+
+        assertEquals(HttpStatus.OK, webExchange.getResponse().getStatusCode());
+        assertEquals("http://localhost:6274",
+                webExchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Origin"));
+        assertEquals("POST, OPTIONS",
+                webExchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Methods"));
+        assertEquals("Content-Type, XRequest, Authorization",
+                webExchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Headers"));
+        assertTrue(webExchange.getResponse().getHeaders().getVary().contains("Accept-Encoding"));
+        assertTrue(webExchange.getResponse().getHeaders().getVary().contains("Origin"));
+        assertTrue(webExchange.getResponse().getHeaders().getVary().contains("Access-Control-Request-Headers"));
+    }
+
+    @Test
+    void testPreflightWithFallbackAllowHeaders() {
+        final McpServerPlugin plugin = new McpServerPlugin(shenyuMcpServerManager,
+                HandlerStrategies.withDefaults().messageReaders());
+        final MockServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .options("/mcp/streamablehttp")
+                .header("Origin", "http://localhost:6274")
+                .header("Access-Control-Request-Headers", "xrequest")
+                .build());
+        webExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        when(shenyuMcpServerManager.canRoute("/mcp/streamablehttp")).thenReturn(true);
+
+        StepVerifier.create(plugin.doExecute(webExchange, chain, selector, rule))
+                .verifyComplete();
+
+        final String allowHeaders = webExchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Headers");
+        assertTrue(allowHeaders.toLowerCase(Locale.ROOT).contains("xrequest"));
     }
 }
