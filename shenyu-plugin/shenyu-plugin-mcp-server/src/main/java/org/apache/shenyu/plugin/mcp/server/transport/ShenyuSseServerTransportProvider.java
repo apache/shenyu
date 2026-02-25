@@ -27,6 +27,7 @@ import io.modelcontextprotocol.spec.McpServerSession;
 import io.modelcontextprotocol.spec.McpServerTransport;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
 import io.modelcontextprotocol.util.Assert;
+import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -210,7 +211,12 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         return Flux.fromIterable(sessions
                 .values())
                 .doFirst(() -> LOGGER.debug("Initiating graceful shutdown with {} active sessions", sessions.size()))
-                .flatMap(McpServerSession::closeGracefully).then();
+                .flatMap(McpServerSession::closeGracefully)
+                .then()
+                .doFinally(signalType -> {
+                    sessions.keySet().forEach(ShenyuMcpExchangeHolder::remove);
+                    sessions.clear();
+                });
     }
 
     /**
@@ -259,6 +265,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                         sink.onCancel(() -> {
                             LOGGER.debug("Session {} cancelled", sessionId);
                             sessions.remove(sessionId);
+                            ShenyuMcpExchangeHolder.remove(sessionId);
                         });
                     } catch (Exception e) {
                         LOGGER.error("Error creating SSE session", e);
@@ -312,11 +319,13 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                 sink.onCancel(() -> {
                     LOGGER.info("Session {} cancelled by client", sessionId);
                     sessions.remove(sessionId);
+                    ShenyuMcpExchangeHolder.remove(sessionId);
                 });
 
                 sink.onDispose(() -> {
                     LOGGER.info("Session {} disposed", sessionId);
                     sessions.remove(sessionId);
+                    ShenyuMcpExchangeHolder.remove(sessionId);
                 });
 
             } catch (Exception e) {

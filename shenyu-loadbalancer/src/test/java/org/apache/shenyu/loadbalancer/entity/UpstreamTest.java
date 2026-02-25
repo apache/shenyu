@@ -73,7 +73,15 @@ public class UpstreamTest {
                 .weight(1)
                 .status(true)
                 .build();
+        Upstream upstream4 = Upstream.builder()
+                .protocol("https://")
+                .url("url")
+                .weight(2)
+                .status(true)
+                .build();
         Assertions.assertEquals(upstream2, upstream3);
+        Assertions.assertEquals(upstream2, upstream4);
+        Assertions.assertEquals(upstream2.hashCode(), upstream4.hashCode());
         Assertions.assertNotNull(upstream2.toString());
         Assertions.assertTrue(upstream2.hashCode() >= 0);
     }
