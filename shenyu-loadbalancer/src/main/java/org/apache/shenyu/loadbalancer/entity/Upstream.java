@@ -509,7 +509,7 @@ public final class Upstream {
 
     @Override
     public int hashCode() {
-        return Objects.hash(protocol, url, weight);
+        return Objects.hash(protocol, url);
     }
 
     @Override
