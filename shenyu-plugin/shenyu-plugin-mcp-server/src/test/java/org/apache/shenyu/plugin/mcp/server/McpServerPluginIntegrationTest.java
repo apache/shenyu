@@ -93,7 +93,7 @@ class McpServerPluginIntegrationTest {
         dataHandler.handlerSelector(selectorData);
         
         // Verify that the server can now route to this path
-        assertTrue(mcpServerManager.hasMcpServer("/mcp"));
+        assertTrue(mcpServerManager.hasMcpServer("/mcp/test"));
         assertTrue(mcpServerManager.canRoute("/mcp/test/sse"));
         assertTrue(mcpServerManager.canRoute("/mcp/test/message"));
         assertTrue(mcpServerManager.canRoute("/mcp/test/anything"));
@@ -160,7 +160,7 @@ class McpServerPluginIntegrationTest {
         
         // Verify all tools are handled (this tests the fix for the multiple tools issue)
         assertTrue(mcpServerManager.canRoute("/mcp/api/sse"));
-        assertTrue(mcpServerManager.hasMcpServer("/mcp"));
+        assertTrue(mcpServerManager.hasMcpServer("/mcp/api"));
         
         // Test that the plugin can handle requests (setup verification only)
         // Mock setup removed since we're not executing the plugin
@@ -188,7 +188,7 @@ class McpServerPluginIntegrationTest {
         mcpServerManager.getOrCreateStreamableHttpTransport("/mcp/stream/streamablehttp");
         
         assertTrue(mcpServerManager.canRoute("/mcp/stream/streamablehttp"));
-        Set<String> protocols = mcpServerManager.getSupportedProtocols("/mcp");
+        Set<String> protocols = mcpServerManager.getSupportedProtocols("/mcp/stream");
         assertTrue(protocols.contains("Streamable HTTP"));
     }
     

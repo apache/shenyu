@@ -26,7 +26,6 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -150,8 +149,7 @@ public final class UpstreamCacheManager {
 
         // Check if the list is empty first to avoid unnecessary processing
         if (actualUpstreamList.isEmpty()) {
-            List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
-            removeAllUpstreams(selectorId, existUpstreamList);
+            removeByKey(selectorId);
             return;
         }
 
@@ -177,11 +175,6 @@ public final class UpstreamCacheManager {
                 upstream.setHealthy(true);
             }
         });
-    }
-
-    private void removeAllUpstreams(final String selectorId, final List<Upstream> existUpstreamList) {
-        List<Upstream> toRemove = new ArrayList<>(existUpstreamList);
-        toRemove.forEach(up -> task.triggerRemoveOne(selectorId, up));
     }
 
     private void processOfflineUpstreams(final String selectorId, final List<Upstream> offlineUpstreamList,
