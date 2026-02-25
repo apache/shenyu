@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -172,7 +173,7 @@ public class ShenyuMcpServerManager {
      * @return normalized path
      */
     private String processPath(final String uri) {
-        return normalizeServerPath(extractBasePath(uri));
+        return normalizeServerPath(uri);
     }
 
     /**
@@ -244,7 +245,7 @@ public class ShenyuMcpServerManager {
      * Creates SSE transport provider.
      */
     private ShenyuSseServerTransportProvider createSseTransport(final String normalizedPath, final String messageEndPoint) {
-        String messageEndpoint = normalizedPath + messageEndPoint;
+        String messageEndpoint = joinPath(normalizedPath, messageEndPoint);
         ShenyuSseServerTransportProvider transportProvider = ShenyuSseServerTransportProvider.builder()
                 .objectMapper(objectMapper)
                 .sseEndpoint(normalizedPath)
@@ -285,37 +286,15 @@ public class ShenyuMcpServerManager {
      */
     private void registerRoutes(final String primaryPath, final String secondaryPath, 
                                final HandlerFunction<?> primaryHandler, final HandlerFunction<?> secondaryHandler) {
-        routeMap.put(primaryPath, primaryHandler);
-        routeMap.put(primaryPath + "/**", primaryHandler);
+        String normalizedPrimaryPath = normalizeRoutePath(primaryPath);
+        routeMap.put(normalizedPrimaryPath, primaryHandler);
+        routeMap.put(normalizedPrimaryPath + "/**", primaryHandler);
         
         if (Objects.nonNull(secondaryPath) && Objects.nonNull(secondaryHandler)) {
-            routeMap.put(secondaryPath, secondaryHandler);
-            routeMap.put(secondaryPath + "/**", secondaryHandler);
+            String normalizedSecondaryPath = normalizeRoutePath(secondaryPath);
+            routeMap.put(normalizedSecondaryPath, secondaryHandler);
+            routeMap.put(normalizedSecondaryPath + "/**", secondaryHandler);
         }
-    }
-
-    /**
-     * Extract the base path from a URI by removing the /message suffix and any sub-paths.
-     *
-     * @param uri The URI to extract base path from
-     * @return The base path
-     */
-    private String extractBasePath(final String uri) {
-        String basePath = uri;
-
-        // Remove /message suffix if present
-        if (basePath.endsWith("/message")) {
-            basePath = basePath.substring(0, basePath.length() - "/message".length());
-        }
-
-        // For sub-paths, extract the main MCP server path
-        String[] pathSegments = basePath.split("/");
-        if (pathSegments.length >= 2) {
-            // Keep only the first two segments (empty + server-name)
-            basePath = "/" + pathSegments[1];
-        }
-
-        return basePath;
     }
 
     /**
@@ -390,7 +369,7 @@ public class ShenyuMcpServerManager {
      */
     public synchronized void addTool(final String serverPath, final String name, final String description,
                         final String requestTemplate, final String inputSchema) {
-        String normalizedPath = normalizeServerPath(extractBasePath(serverPath));
+        String normalizedPath = processPath(serverPath);
 
         // Remove existing tool first
         try {
@@ -442,7 +421,7 @@ public class ShenyuMcpServerManager {
      * @param name       the tool name
      */
     public void removeTool(final String serverPath, final String name) {
-        String normalizedPath = normalizeServerPath(serverPath);
+        String normalizedPath = processPath(serverPath);
         LOG.debug("Removing tool from shared server - name: {}, path: {}", name, normalizedPath);
 
         McpAsyncServer sharedServer = sharedServerMap.get(normalizedPath);
@@ -485,7 +464,7 @@ public class ShenyuMcpServerManager {
      * @return Set of supported protocols
      */
     public Set<String> getSupportedProtocols(final String serverPath) {
-        String normalizedPath = normalizeServerPath(serverPath);
+        String normalizedPath = processPath(serverPath);
         CompositeTransportProvider compositeTransport = compositeTransportMap.get(normalizedPath);
         return Objects.nonNull(compositeTransport) ? compositeTransport.getSupportedProtocols() : new HashSet<>();
     }
@@ -501,15 +480,117 @@ public class ShenyuMcpServerManager {
             return null;
         }
 
-        String normalizedPath = path;
-
-        // Remove /streamablehttp suffix
-        if (normalizedPath.endsWith("/streamablehttp")) {
-            normalizedPath = normalizedPath.substring(0, normalizedPath.length() - "/streamablehttp".length());
-            LOG.debug("Normalized Streamable HTTP path from '{}' to '{}' for shared server", path, normalizedPath);
+        String normalizedPath = path.trim();
+        if (normalizedPath.isEmpty()) {
+            return "/";
         }
 
+        try {
+            URI uri = URI.create(normalizedPath);
+            if (Objects.nonNull(uri.getScheme())) {
+                normalizedPath = uri.getRawPath();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Keep original input when it's not a full URI.
+        }
+
+        if (Objects.isNull(normalizedPath) || normalizedPath.isEmpty()) {
+            normalizedPath = "/";
+        }
+        if (!normalizedPath.startsWith("/")) {
+            normalizedPath = "/" + normalizedPath;
+        }
+        int queryStart = normalizedPath.indexOf('?');
+        if (queryStart >= 0) {
+            normalizedPath = normalizedPath.substring(0, queryStart);
+        }
+        int fragmentStart = normalizedPath.indexOf('#');
+        if (fragmentStart >= 0) {
+            normalizedPath = normalizedPath.substring(0, fragmentStart);
+        }
+
+        normalizedPath = normalizedPath.replaceAll("/{2,}", "/");
+        if (normalizedPath.endsWith("/**")) {
+            normalizedPath = normalizedPath.substring(0, normalizedPath.length() - "/**".length());
+        }
+        normalizedPath = removeSuffix(normalizedPath, "/message");
+        normalizedPath = removeSuffix(normalizedPath, "/sse");
+        normalizedPath = removeSuffix(normalizedPath, "/streamablehttp");
+
+        if (normalizedPath.length() > 1 && normalizedPath.endsWith("/")) {
+            normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
+        }
+        if (normalizedPath.isEmpty()) {
+            return "/";
+        }
         return normalizedPath;
+    }
+
+    private String normalizeRoutePath(final String path) {
+        String routePath = Objects.isNull(path) ? "/" : path;
+        routePath = routePath.trim();
+        if (routePath.isEmpty()) {
+            return "/";
+        }
+
+        try {
+            URI uri = URI.create(routePath);
+            if (Objects.nonNull(uri.getScheme())) {
+                routePath = uri.getRawPath();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Keep original input when it's not a full URI.
+        }
+
+        if (Objects.isNull(routePath) || routePath.isEmpty()) {
+            routePath = "/";
+        }
+        if (!routePath.startsWith("/")) {
+            routePath = "/" + routePath;
+        }
+
+        int queryStart = routePath.indexOf('?');
+        if (queryStart >= 0) {
+            routePath = routePath.substring(0, queryStart);
+        }
+        int fragmentStart = routePath.indexOf('#');
+        if (fragmentStart >= 0) {
+            routePath = routePath.substring(0, fragmentStart);
+        }
+        routePath = routePath.replaceAll("/{2,}", "/");
+        if (routePath.length() > 1 && routePath.endsWith("/")) {
+            routePath = routePath.substring(0, routePath.length() - 1);
+        }
+        if (routePath.isEmpty()) {
+            return "/";
+        }
+        return routePath;
+    }
+
+    private String joinPath(final String basePath, final String subPath) {
+        String safeBase = normalizeRoutePath(basePath);
+        if (Objects.isNull(subPath) || subPath.trim().isEmpty()) {
+            return safeBase;
+        }
+        String safeSub = subPath.trim();
+        if (safeBase.endsWith("/") && safeSub.startsWith("/")) {
+            return safeBase + safeSub.substring(1);
+        }
+        if (!safeBase.endsWith("/") && !safeSub.startsWith("/")) {
+            return safeBase + "/" + safeSub;
+        }
+        return safeBase + safeSub;
+    }
+
+    private String removeSuffix(final String value, final String suffix) {
+        if (Objects.isNull(value) || Objects.isNull(suffix) || suffix.isEmpty()) {
+            return value;
+        }
+        if (value.endsWith(suffix)) {
+            String result = value.substring(0, value.length() - suffix.length());
+            return result.isEmpty() ? "/" : result;
+        }
+        return value;
     }
 
     /**

@@ -304,6 +304,9 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, final ShenyuMcpTool beanShenyuClient) {
         Server[] servers = beanShenyuClient.definition().servers();
+        if (servers.length == 0) {
+            return "";
+        }
         if (servers.length != 1) {
             log.warn("The shenyuMcp service supports only a single server entry. Please ensure that only one server is configured");
         }
@@ -363,7 +366,7 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         validateClientConfig(shenyuMcpTool, url);
         JsonObject openApiJson = McpOpenApiGenerator.generateOpenApiJson(classShenyuClient, shenyuMcpTool, url);
         McpToolsRegisterDTO mcpToolsRegisterDTO = McpToolsRegisterDTOGenerator.generateRegisterDTO(shenyuMcpTool, openApiJson, url, namespaceId);
-        MetaDataRegisterDTO metaDataRegisterDTO = buildMetaDataDTO(bean, classShenyuClient, superPath, clazz, method, namespaceId);
+        MetaDataRegisterDTO metaDataRegisterDTO = buildMetaDataDTO(bean, classShenyuClient, url, clazz, method, namespaceId);
         metaDataRegisterDTO.setEnabled(shenyuMcpTool.getEnable());
         mcpToolsRegisterDTO.setMetaDataRegisterDTO(metaDataRegisterDTO);
         return mcpToolsRegisterDTO;
