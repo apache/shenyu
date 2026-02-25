@@ -37,13 +37,15 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
 import java.net.URI;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Enhanced Manager for MCP servers supporting shared server instances across multiple transport protocols.
@@ -77,6 +79,11 @@ public class ShenyuMcpServerManager {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
+     * CORS allow headers configured by {@code shenyu.cross.allowedHeaders}.
+     */
+    private final String corsAllowedHeaders;
+
+    /**
      * Map to store normalized path to shared McpAsyncServer mapping.
      * Key: normalized server path, Value: shared McpAsyncServer instance
      */
@@ -91,6 +98,22 @@ public class ShenyuMcpServerManager {
      * Map to store composite transport providers for shared servers.
      */
     private final Map<String, CompositeTransportProvider> compositeTransportMap = new ConcurrentHashMap<>();
+
+    /**
+     * Instantiates a new manager with default CORS allow headers handling.
+     */
+    public ShenyuMcpServerManager() {
+        this(null);
+    }
+
+    /**
+     * Instantiates a new manager.
+     *
+     * @param corsAllowedHeaders CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
+     */
+    public ShenyuMcpServerManager(final String corsAllowedHeaders) {
+        this.corsAllowedHeaders = corsAllowedHeaders;
+    }
 
     /**
      * Get or create a shared MCP server for the given path, supporting multiple transport protocols.
@@ -245,6 +268,7 @@ public class ShenyuMcpServerManager {
         ShenyuStreamableHttpServerTransportProvider transportProvider = ShenyuStreamableHttpServerTransportProvider.builder()
                 .objectMapper(objectMapper)
                 .endpoint(originalUri)
+                .allowedHeaders(corsAllowedHeaders)
                 .build();
 
         // Register routes for original URI

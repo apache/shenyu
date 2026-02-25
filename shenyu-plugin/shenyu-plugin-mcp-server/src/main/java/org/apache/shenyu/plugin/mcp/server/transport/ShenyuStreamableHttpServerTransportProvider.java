@@ -30,6 +30,7 @@ import io.modelcontextprotocol.util.Assert;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -39,8 +40,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -92,9 +97,16 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     private static final String SERVER_VERSION = "1.0.0";
 
+    private static final String CORS_ALLOW_METHODS = "POST, OPTIONS";
+
+    private static final String CORS_FALLBACK_ALLOW_HEADERS =
+            "Content-Type, Mcp-Session-Id, Authorization, Last-Event-ID, Mcp-Protocol-Version, X-Request, XRequest, xrequest";
+
     private final ObjectMapper objectMapper;
 
     private final McpJsonMapper jsonMapper;
+
+    private final String configuredCorsAllowHeaders;
 
     private McpServerSession.Factory sessionFactory;
 
@@ -123,10 +135,25 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * @throws IllegalArgumentException if objectMapper or endpoint is null
      */
     public ShenyuStreamableHttpServerTransportProvider(final ObjectMapper objectMapper, final String endpoint) {
+        this(objectMapper, endpoint, null);
+    }
+
+    /**
+     * Constructs a new Streamable HTTP server transport provider instance.
+     *
+     * @param objectMapper                The ObjectMapper to use for JSON serialization/deserialization
+     * @param endpoint                    The endpoint path for the Streamable HTTP MCP transport
+     * @param configuredCorsAllowHeaders  CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
+     * @throws IllegalArgumentException if objectMapper or endpoint is null
+     */
+    public ShenyuStreamableHttpServerTransportProvider(final ObjectMapper objectMapper,
+                                                       final String endpoint,
+                                                       final String configuredCorsAllowHeaders) {
         Assert.notNull(objectMapper, "ObjectMapper must not be null");
         Assert.notNull(endpoint, "Endpoint must not be null");
         this.objectMapper = objectMapper;
         this.jsonMapper = new JacksonMcpJsonMapper(objectMapper);
+        this.configuredCorsAllowHeaders = configuredCorsAllowHeaders;
         LOGGER.debug("Created Streamable HTTP transport provider for endpoint: {}", endpoint);
     }
 
@@ -189,24 +216,19 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         if (isClosing) {
             return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).bodyValue("Server is shutting down");
         }
+        if ("OPTIONS".equalsIgnoreCase(request.methodName())) {
+            // Handle CORS preflight requests
+            return applyCorsHeaders(request, ServerResponse.ok(), CORS_ALLOW_METHODS)
+                    .header("Access-Control-Max-Age", "3600")
+                    .build();
+        }
         if (Objects.isNull(sessionFactory)) {
             LOGGER.error("SessionFactory is null - MCP server not properly initialized");
             return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("MCP server not properly initialized");
         }
-        if ("OPTIONS".equalsIgnoreCase(request.methodName())) {
-            // Handle CORS preflight requests
-            return ServerResponse.ok()
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
-                    .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-                    .header("Access-Control-Max-Age", "3600")
-                    .build();
-        } else if ("GET".equalsIgnoreCase(request.methodName())) {
+        if ("GET".equalsIgnoreCase(request.methodName())) {
             // Streamable HTTP protocol does not support GET requests, return 405 error
-            return ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
-                    .header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            return applyCorsHeaders(request, ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED), CORS_ALLOW_METHODS)
                     .header("Allow", "POST, OPTIONS")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(new java.util.HashMap<String, Object>() {{
@@ -215,14 +237,13 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                                     put("message", "Streamable HTTP does not support GET requests. Please use POST requests for all MCP operations.");
                                 }});
                         }});
-        } else if ("POST".equalsIgnoreCase(request.methodName())) {
+        }
+        if ("POST".equalsIgnoreCase(request.methodName())) {
             // Extract ServerWebExchange from ServerRequest
             final ServerWebExchange exchange = request.exchange();
             return handleMessageEndpoint(exchange, request).flatMap(result -> {
-                ServerResponse.BodyBuilder builder = ServerResponse.status(HttpStatus.valueOf(result.getStatusCode()))
-                        .header("Access-Control-Allow-Origin", "*")
-                        .header("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id, Authorization, Mcp-Protocol-Version")
-                        .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                ServerResponse.BodyBuilder builder = applyCorsHeaders(request,
+                        ServerResponse.status(HttpStatus.valueOf(result.getStatusCode())), CORS_ALLOW_METHODS);
                 if (Objects.nonNull(result.getSessionId())) {
                     builder.header(SESSION_ID_HEADER, result.getSessionId());
                 }
@@ -641,6 +662,81 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
         response.put("error", error);
         return response;
+    }
+
+    private ServerResponse.BodyBuilder applyCorsHeaders(final ServerRequest request,
+                                                        final ServerResponse.BodyBuilder builder,
+                                                        final String allowMethods) {
+        return builder.headers(headers -> {
+            headers.set("Access-Control-Allow-Origin", resolveAllowOrigin(request));
+            headers.set("Access-Control-Allow-Headers", resolveAllowHeaders(request));
+            headers.set("Access-Control-Allow-Methods", allowMethods);
+            mergeVaryHeaders(headers);
+        });
+    }
+
+    private String resolveAllowOrigin(final ServerRequest request) {
+        final String origin = request.headers().firstHeader("Origin");
+        return Objects.nonNull(origin) && !origin.isBlank() ? origin : "*";
+    }
+
+    private String resolveAllowHeaders(final ServerRequest request) {
+        final Set<String> configuredHeaders = toHeaderSet(resolveConfiguredAllowHeaders());
+        final String requestedHeaders = request.headers().firstHeader("Access-Control-Request-Headers");
+        if (configuredHeaders.contains("*")) {
+            if (Objects.nonNull(requestedHeaders) && !requestedHeaders.isBlank()) {
+                return String.join(", ", toHeaderSet(requestedHeaders));
+            }
+            return "*";
+        }
+        if (Objects.isNull(requestedHeaders) || requestedHeaders.isBlank()) {
+            return String.join(", ", configuredHeaders);
+        }
+        final Set<String> configuredLowercaseHeaders = new LinkedHashSet<>();
+        for (String header : configuredHeaders) {
+            configuredLowercaseHeaders.add(header.toLowerCase(Locale.ROOT));
+        }
+        final Set<String> effectiveHeaders = new LinkedHashSet<>();
+        for (String requestedHeader : requestedHeaders.split(",")) {
+            final String header = requestedHeader.trim();
+            if (!header.isEmpty() && configuredLowercaseHeaders.contains(header.toLowerCase(Locale.ROOT))) {
+                effectiveHeaders.add(header);
+            }
+        }
+        return effectiveHeaders.isEmpty()
+                ? String.join(", ", configuredHeaders)
+                : String.join(", ", effectiveHeaders);
+    }
+
+    private String resolveConfiguredAllowHeaders() {
+        return Objects.nonNull(configuredCorsAllowHeaders) && !configuredCorsAllowHeaders.isBlank()
+                ? configuredCorsAllowHeaders : CORS_FALLBACK_ALLOW_HEADERS;
+    }
+
+    private Set<String> toHeaderSet(final String headers) {
+        final Set<String> headerSet = new LinkedHashSet<>();
+        for (String header : headers.split(",")) {
+            final String trimmed = header.trim();
+            if (!trimmed.isEmpty()) {
+                headerSet.add(trimmed);
+            }
+        }
+        return headerSet;
+    }
+
+    private void mergeVaryHeaders(final HttpHeaders headers) {
+        final Set<String> varyValues = new LinkedHashSet<>();
+        for (String varyHeader : headers.getOrEmpty(HttpHeaders.VARY)) {
+            for (String varyValue : varyHeader.split(",")) {
+                final String trimmed = varyValue.trim();
+                if (!trimmed.isEmpty()) {
+                    varyValues.add(trimmed);
+                }
+            }
+        }
+        varyValues.add("Origin");
+        varyValues.add("Access-Control-Request-Headers");
+        headers.setVary(List.copyOf(varyValues));
     }
 
     /**
