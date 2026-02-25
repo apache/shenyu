@@ -154,8 +154,7 @@ class ShenyuMcpServerManagerTest {
         
         shenyuMcpServerManager.getOrCreateStreamableHttpTransport(uri);
         
-        // Use base path since that's what the manager uses internally
-        Set<String> protocols = shenyuMcpServerManager.getSupportedProtocols("/mcp");
+        Set<String> protocols = shenyuMcpServerManager.getSupportedProtocols("/mcp/test");
         assertNotNull(protocols);
         assertTrue(protocols.contains("Streamable HTTP"));
     }
@@ -168,6 +167,16 @@ class ShenyuMcpServerManagerTest {
         
         // Both the original URI and normalized path should work
         assertTrue(shenyuMcpServerManager.hasMcpServer(uri));
+        assertTrue(shenyuMcpServerManager.hasMcpServer("/mcp/test"));
+    }
+
+    @Test
+    void testRegisterRouteWithFullUriAndQuery() {
+        String uri = "http://localhost:9195/mcp/test/streamablehttp?debug=true#anchor";
+
+        shenyuMcpServerManager.getOrCreateStreamableHttpTransport(uri);
+
+        assertTrue(shenyuMcpServerManager.canRoute("/mcp/test/streamablehttp"));
         assertTrue(shenyuMcpServerManager.hasMcpServer("/mcp/test"));
     }
 }

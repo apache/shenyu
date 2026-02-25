@@ -63,6 +63,17 @@ class RequestConfigHelperTest {
     }
 
     @Test
+    void testArgsPositionCompatibilityWithNestedFormat() {
+        String configStr = "{\"requestTemplate\":{\"url\":\"/api/users\","
+                + "\"method\":\"POST\",\"argsPosition\":{\"name\":\"body\",\"email\":\"body\"}}}";
+        RequestConfigHelper helper = new RequestConfigHelper(configStr);
+
+        JsonObject argsPosition = helper.getArgsPosition();
+        assertEquals("body", argsPosition.get("name").getAsString());
+        assertEquals("body", argsPosition.get("email").getAsString());
+    }
+
+    @Test
     void testPathParameterBuilding() {
         JsonObject argsPosition = new JsonObject();
         argsPosition.addProperty("id", "path");
