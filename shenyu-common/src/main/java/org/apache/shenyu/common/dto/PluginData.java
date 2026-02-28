@@ -180,23 +180,13 @@ public class PluginData extends BaseData {
         return Objects.hash(getId(), getName(), config, role, getEnabled(), getSort(), pluginJar, getNamespaceId());
     }
 
-    public static final class Builder {
-
-        private String id;
-
-        private String name;
+    public static final class Builder extends BaseData {
 
         private String config;
 
         private String role;
 
-        private Boolean enabled;
-
-        private Integer sort;
-
         private String pluginJar;
-
-        private String namespaceId;
 
         /**
          * no args constructor.
@@ -220,7 +210,7 @@ public class PluginData extends BaseData {
          * @return this
          */
         public Builder id(final String id) {
-            this.id = id;
+            setId(id);
             return this;
         }
 
@@ -231,7 +221,7 @@ public class PluginData extends BaseData {
          * @return this
          */
         public Builder name(final String name) {
-            this.name = name;
+            setName(name);
             return this;
         }
 
@@ -264,7 +254,7 @@ public class PluginData extends BaseData {
          * @return this
          */
         public Builder enabled(final Boolean enabled) {
-            this.enabled = enabled;
+            setEnabled(enabled);
             return this;
         }
 
@@ -275,7 +265,7 @@ public class PluginData extends BaseData {
          * @return this
          */
         public Builder sort(final Integer sort) {
-            this.sort = sort;
+            setSort(sort);
             return this;
         }
 
@@ -297,7 +287,7 @@ public class PluginData extends BaseData {
          * @return this
          */
         public Builder namespaceId(final String namespaceId) {
-            this.namespaceId = namespaceId;
+            setNamespaceId(namespaceId);
             return this;
         }
 
@@ -308,14 +298,14 @@ public class PluginData extends BaseData {
          */
         public PluginData build() {
             PluginData pluginData = new PluginData();
-            pluginData.setId(id);
-            pluginData.setName(name);
+            pluginData.setId(getId());
+            pluginData.setName(getName());
             pluginData.setConfig(config);
             pluginData.setRole(role);
-            pluginData.setEnabled(enabled);
-            pluginData.setSort(sort);
+            pluginData.setEnabled(getEnabled());
+            pluginData.setSort(getSort());
             pluginData.setPluginJar(pluginJar);
-            pluginData.setNamespaceId(namespaceId);
+            pluginData.setNamespaceId(getNamespaceId());
             return pluginData;
         }
     }

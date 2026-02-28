@@ -64,19 +64,19 @@ public class RuleData extends BaseData {
      * @param builder builder
      */
     private RuleData(final Builder builder) {
-        this.setId(builder.id);
-        this.setName(builder.name);
+        this.setId(builder.getId());
+        this.setName(builder.getName());
         this.pluginName = builder.pluginName;
         this.selectorId = builder.selectorId;
         this.matchMode = builder.matchMode;
-        this.setSort(builder.sort);
-        this.setEnabled(builder.enabled);
+        this.setSort(builder.getSort());
+        this.setEnabled(builder.getEnabled());
         this.loged = builder.loged;
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
         this.matchRestful = builder.matchRestful;
-        this.setNamespaceId(builder.namespaceId);
+        this.setNamespaceId(builder.getNamespaceId());
     }
 
     /**
@@ -298,7 +298,7 @@ public class RuleData extends BaseData {
     public void setMatchRestful(final Boolean matchRestful) {
         this.matchRestful = matchRestful;
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -365,21 +365,13 @@ public class RuleData extends BaseData {
     /**
      * class builder.
      */
-    public static final class Builder {
-
-        private String id;
-
-        private String name;
+    public static final class Builder extends BaseData {
 
         private String pluginName;
 
         private String selectorId;
 
         private Integer matchMode;
-
-        private Integer sort;
-
-        private Boolean enabled;
 
         private Boolean loged;
 
@@ -388,10 +380,8 @@ public class RuleData extends BaseData {
         private List<ConditionData> conditionDataList;
 
         private List<ConditionData> beforeConditionDataList;
-        
+
         private Boolean matchRestful;
-        
-        private String namespaceId;
 
         /**
          * no args constructor.
@@ -415,7 +405,7 @@ public class RuleData extends BaseData {
          * @return this
          */
         public Builder id(final String id) {
-            this.id = id;
+            setId(id);
             return this;
         }
 
@@ -426,7 +416,7 @@ public class RuleData extends BaseData {
          * @return this
          */
         public Builder name(final String name) {
-            this.name = name;
+            setName(name);
             return this;
         }
 
@@ -470,7 +460,7 @@ public class RuleData extends BaseData {
          * @return this
          */
         public Builder sort(final Integer sort) {
-            this.sort = sort;
+            setSort(sort);
             return this;
         }
 
@@ -481,7 +471,7 @@ public class RuleData extends BaseData {
          * @return this
          */
         public Builder enabled(final Boolean enabled) {
-            this.enabled = enabled;
+            setEnabled(enabled);
             return this;
         }
 
@@ -528,7 +518,7 @@ public class RuleData extends BaseData {
             this.beforeConditionDataList = beforeConditionDataList;
             return this;
         }
-    
+
         /**
          * build match restful.
          *
@@ -539,7 +529,7 @@ public class RuleData extends BaseData {
             this.matchRestful = matchRestful;
             return this;
         }
-        
+
         /**
          * build namespaceId.
          *
@@ -547,7 +537,7 @@ public class RuleData extends BaseData {
          * @return this
          */
         public Builder namespaceId(final String namespaceId) {
-            this.namespaceId = namespaceId;
+            setNamespaceId(namespaceId);
             return this;
         }
     }
