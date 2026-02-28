@@ -17,6 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.apache.shenyu.admin.jpa.converter.ListByteConverter;
+import org.apache.shenyu.admin.jpa.converter.MapStringConverter;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +37,16 @@ import java.util.Map;
 /**
  * AlertReceiver.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "alert_receiver")
+@EntityListeners(AuditingEntityListener.class)
 public class AlertReceiverDO {
     
     /**
      * primary key id.
      */
+    @Id
     private String id;
     
     /**
@@ -146,11 +164,13 @@ public class AlertReceiverDO {
     /**
      * match alert levels.
      */
+    @Convert(converter = ListByteConverter.class)
     private List<Byte> levels;
     
     /**
      * match alert labels.
      */
+    @Convert(converter = MapStringConverter.class)
     private Map<String, String> labels;
 
     /**
@@ -161,11 +181,14 @@ public class AlertReceiverDO {
     /**
      * create time.
      */
+    @CreatedDate
+    @Column(updatable = false)
     private Date dateCreated;
     
     /**
      * update time.
      */
+    @LastModifiedDate
     private Date dateUpdated;
     
     /**

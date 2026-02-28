@@ -18,9 +18,9 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.RuleRepository;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -81,13 +81,13 @@ public final class RuleControllerTest {
     private RuleService ruleService;
 
     @Mock
-    private RuleMapper ruleMapper;
+    private RuleRepository ruleRepository;
 
     @Mock
-    private SelectorMapper selectorMapper;
+    private SelectorRepository selectorRepository;
 
     @Mock
-    private NamespaceMapper namespaceMapper;
+    private NamespaceRepository namespaceRepository;
 
     private final RuleConditionVO rCondition1 = new RuleConditionVO(
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
@@ -162,12 +162,12 @@ public final class RuleControllerTest {
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
-        when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(RuleRepository.class)).thenReturn(ruleRepository);
+        when(ruleRepository.existed(ruleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/rule", ruleDTO)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -205,12 +205,12 @@ public final class RuleControllerTest {
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
-        when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(RuleRepository.class)).thenReturn(ruleRepository);
+        when(ruleRepository.existed(ruleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/rule/{id}", "666")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -227,8 +227,8 @@ public final class RuleControllerTest {
         batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         batchNamespaceCommonDTO.setIds(Collections.singletonList("111"));
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.deleteByIdsAndNamespaceId(Collections.singletonList("111"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -253,12 +253,12 @@ public final class RuleControllerTest {
             .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
             .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(RuleMapper.class)).thenReturn(ruleMapper);
-        when(ruleMapper.existed(ruleDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(ruleDTO.getSelectorId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(RuleRepository.class)).thenReturn(ruleRepository);
+        when(ruleRepository.existed(ruleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(ruleDTO.getSelectorId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.ruleService.enabledByIdsAndNamespaceId(Arrays.asList(ruleDTO.getId()), false, SYS_DEFAULT_NAMESPACE_ID)).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(ruleDTO.getId()));

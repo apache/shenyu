@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -72,9 +72,9 @@ public class RoleControllerTest {
 
     @Mock
     private RoleService roleService;
-    
+
     @Mock
-    private RoleMapper roleMapper;
+    private RoleRepository roleRepository;
 
     @BeforeEach
     public void setUp() {
@@ -126,8 +126,8 @@ public class RoleControllerTest {
         RoleDTO roleDTO = buildRoleDTO();
         given(roleService.createOrUpdate(roleDTO)).willReturn(1);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(RoleMapper.class)).thenReturn(roleMapper);
-        when(roleMapper.existed(roleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(RoleRepository.class)).thenReturn(roleRepository);
+        when(roleRepository.existed(roleDTO.getId())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/role")
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
@@ -149,8 +149,8 @@ public class RoleControllerTest {
         RoleDTO roleDTO = buildRoleDTO();
         given(roleService.createOrUpdate(roleDTO)).willReturn(1);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(RoleMapper.class)).thenReturn(roleMapper);
-        when(roleMapper.existed(roleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(RoleRepository.class)).thenReturn(roleRepository);
+        when(roleRepository.existed(roleDTO.getId())).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/role/{id}", roleDTO.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))

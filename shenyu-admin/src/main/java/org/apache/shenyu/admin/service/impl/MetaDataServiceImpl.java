@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.MetaDataRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -68,14 +69,18 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     private final MetaDataMapper metaDataMapper;
 
+    private final MetaDataRepository metaDataRepository;
+
     private final ApplicationEventPublisher eventPublisher;
 
     private final MetaDataEventPublisher publisher;
 
     public MetaDataServiceImpl(final MetaDataMapper metaDataMapper,
+                               final MetaDataRepository metaDataRepository,
                                final ApplicationEventPublisher eventPublisher,
                                final MetaDataEventPublisher publisher) {
         this.metaDataMapper = metaDataMapper;
+        this.metaDataRepository = metaDataRepository;
         this.eventPublisher = eventPublisher;
         this.publisher = publisher;
     }
@@ -156,7 +161,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public MetaDataVO findById(final String id) {
-        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElseGet(MetaDataVO::new);
+        return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataRepository.findById(id).orElse(null))).orElseGet(MetaDataVO::new);
     }
 
     @Override
@@ -170,7 +175,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<MetaDataVO> findAll() {
-        return MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
+        return MetaDataTransfer.INSTANCE.mapToVOList(metaDataRepository.findAll());
     }
 
     @Override
@@ -180,27 +185,27 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public List<MetaData> listAll() {
-        return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToData);
+        return ListUtil.map(metaDataRepository.findAll(), MetaDataTransfer.INSTANCE::mapToData);
     }
 
     @Override
     public List<MetaDataVO> listAllData() {
-        return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToVO);
+        return ListUtil.map(metaDataRepository.findAll(), MetaDataTransfer.INSTANCE::mapToVO);
     }
-    
+
     @Override
     public List<MetaDataVO> listAllDataByNamespaceId(final String namespaceId) {
-        return ListUtil.map(metaDataMapper.findAllByNamespaceId(namespaceId), MetaDataTransfer.INSTANCE::mapToVO);
+        return ListUtil.map(metaDataRepository.findByNamespaceId(namespaceId), MetaDataTransfer.INSTANCE::mapToVO);
     }
-    
+
     @Override
     public MetaDataDO findByPathAndNamespaceId(final String path, final String namespaceId) {
-        return metaDataMapper.findByPathAndNamespaceId(path, namespaceId);
+        return metaDataRepository.findByPathAndNamespaceId(path, namespaceId).orElse(null);
     }
 
     @Override
     public MetaDataDO findByServiceNameAndMethodNameAndNamespaceId(final String serviceName, final String methodName, final String namespaceId) {
-        final List<MetaDataDO> metadataList = metaDataMapper.findByServiceNameAndMethodAndNamespaceId(serviceName, methodName, namespaceId);
+        final List<MetaDataDO> metadataList = metaDataRepository.findByServiceNameAndMethodNameAndNamespaceId(serviceName, methodName, namespaceId);
         return CollectionUtils.isEmpty(metadataList) ? null : metadataList.get(0);
     }
 

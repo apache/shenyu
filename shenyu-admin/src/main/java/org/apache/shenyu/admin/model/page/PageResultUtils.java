@@ -17,10 +17,15 @@
 
 package org.apache.shenyu.admin.model.page;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The type Page result utils.
@@ -54,5 +59,50 @@ public class PageResultUtils {
      */
     public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<List<T>> listSupplier) {
         return new CommonPager<>(pageParameter, listSupplier.get());
+    }
+
+    /**
+     * Result common pager.
+     *
+     * @param <R> the type parameter
+     * @param <T> the type parameter
+     * @param pageParameter the page parameter
+     * @param page the page
+     * @param mapper the mapper
+     * @return the common pager
+     */
+    public static <R, T> CommonPager<T> result(final PageParameter pageParameter, final Page<R> page, final Function<R, T> mapper) {
+        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), (int) page.getTotalElements()), page.get().map(mapper).collect(Collectors.toList()));
+    }
+
+    /**
+     * Result common pager.
+     *
+     * @param <T> the type parameter
+     * @param pageParameter the page parameter
+     * @param page the page
+     * @return the common pager
+     */
+    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Page<T> page) {
+        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), (int) page.getTotalElements()), page.getContent());
+    }
+
+    /**
+     * Of page request.
+     *
+     * @param pageParameter the page parameter
+     * @return the page request
+     */
+    public static PageRequest of(final PageParameter pageParameter) {
+        return PageRequest.of(pageParameter.getCurrentPage() - 1, pageParameter.getPageSize());
+    }
+
+    /**
+     * of page request.
+     * @param pageCondition the page condition
+     * @return the page request
+     */
+    public static PageRequest of(final PageCondition<?> pageCondition) {
+        return PageRequest.of(pageCondition.getPageNum() - 1, pageCondition.getPageSize());
     }
 }

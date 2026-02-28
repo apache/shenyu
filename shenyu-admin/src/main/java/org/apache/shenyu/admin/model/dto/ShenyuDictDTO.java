@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ public class ShenyuDictDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = ShenyuDictMapper.class, nullOfIgnore = true, message = "dict is not existed")
+    @Existed(provider = ShenyuDictRepository.class, nullOfIgnore = true, message = "dict is not existed")
     private String id;
     
     /**

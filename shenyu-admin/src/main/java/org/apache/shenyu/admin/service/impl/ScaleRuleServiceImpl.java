@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.ScaleRuleRepository;
 import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
 import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
@@ -42,10 +43,13 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
 
     private final ScaleRuleMapper scaleRuleMapper;
 
+    private final ScaleRuleRepository scaleRuleRepository;
+
     private final ScaleRuleCache scaleRuleCache;
 
-    public ScaleRuleServiceImpl(final ScaleRuleMapper scaleRuleMapper, final ScaleRuleCache scaleRuleCache) {
+    public ScaleRuleServiceImpl(final ScaleRuleMapper scaleRuleMapper, final ScaleRuleRepository scaleRuleRepository, final ScaleRuleCache scaleRuleCache) {
         this.scaleRuleMapper = scaleRuleMapper;
+        this.scaleRuleRepository = scaleRuleRepository;
         this.scaleRuleCache = scaleRuleCache;
     }
 
@@ -57,7 +61,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public List<ScaleRuleVO> selectAll() {
-        return ListUtil.map(scaleRuleMapper.selectAll(), ScaleRuleVO::buildScaleRuleVO);
+        return ListUtil.map(scaleRuleRepository.findAll(), ScaleRuleVO::buildScaleRuleVO);
     }
 
     /**
@@ -83,7 +87,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public ScaleRuleVO findById(final String id) {
-        return ScaleRuleVO.buildScaleRuleVO(scaleRuleMapper.selectByPrimaryKey(id));
+        return ScaleRuleVO.buildScaleRuleVO(scaleRuleRepository.findById(id).orElse(null));
     }
 
     /**

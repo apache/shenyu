@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.jpa.repository.ResourceRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -32,7 +32,7 @@ public class ResourceDTO {
     /**
      * primary key.
      */
-    @Existed(provider = ResourceMapper.class, nullOfIgnore = true, message = "resource not existed")
+    @Existed(provider = ResourceRepository.class, nullOfIgnore = true, message = "resource not existed")
     private String id;
     
     /**

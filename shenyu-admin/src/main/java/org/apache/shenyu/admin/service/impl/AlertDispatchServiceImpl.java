@@ -20,7 +20,8 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
+import org.apache.shenyu.admin.jpa.repository.AlertReceiverRepository;
+import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
 import org.apache.shenyu.common.dto.AlarmContent;
@@ -51,15 +52,15 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     private static final Logger log = LoggerFactory.getLogger(AlertDispatchServiceImpl.class);
     
     private final Map<Byte, AlertNotifyHandler> alertNotifyHandlerMap;
-    
-    private final AlertReceiverMapper alertReceiverMapper;
-    
+
     private final AtomicReference<List<AlertReceiverDTO>> alertReceiverReference;
 
     private final ThreadPoolExecutor workerExecutor;
+
+    private final AlertReceiverRepository alertReceiverRepository;
     
-    public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverMapper alertReceiverMapper) {
-        this.alertReceiverMapper = alertReceiverMapper;
+    public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverRepository alertReceiverRepository) {
+        this.alertReceiverRepository = alertReceiverRepository;
         this.alertReceiverReference = new AtomicReference<>();
         alertNotifyHandlerMap = Maps.newHashMapWithExpectedSize(alertNotifyHandlerList.size());
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
@@ -148,7 +149,10 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
         private List<AlertReceiverDTO> matchReceiverByRules(final AlarmContent alert) {
             List<AlertReceiverDTO> dtoList = alertReceiverReference.get();
             if (Objects.isNull(dtoList)) {
-                dtoList = alertReceiverMapper.selectAll();
+                dtoList = alertReceiverRepository.findAll()
+                        .stream()
+                        .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
+                        .collect(Collectors.toList());
                 alertReceiverReference.set(dtoList);
             }
             return dtoList.stream().filter(item -> {

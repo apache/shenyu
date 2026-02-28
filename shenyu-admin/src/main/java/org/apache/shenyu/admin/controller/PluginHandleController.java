@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.PluginHandleMapper;
+import org.apache.shenyu.admin.jpa.repository.PluginHandleRepository;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -94,7 +94,7 @@ public class PluginHandleController {
     @GetMapping("/{id}")
     @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
-                                        @Existed(provider = PluginHandleMapper.class,
+                                        @Existed(provider = PluginHandleRepository.class,
                                                 message = "rule not exited") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginHandleVO);
@@ -123,7 +123,7 @@ public class PluginHandleController {
     @PutMapping("/{id}")
     @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult updatePluginHandle(@PathVariable("id") @Valid
-                                                @Existed(provider = PluginHandleMapper.class,
+                                                @Existed(provider = PluginHandleRepository.class,
                                                         message = "rule not exited") final String id,
                                                 @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         pluginHandleDTO.setId(id);

@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Objects;
@@ -24,6 +28,9 @@ import java.util.Objects;
 /**
  * ScaleHistoryDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "scale_history")
 public final class ScaleHistoryDO extends BaseDO {
 
     private static final long serialVersionUID = 9073404091200662252L;

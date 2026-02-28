@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -51,6 +52,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -78,6 +80,9 @@ public final class PluginServiceTest {
     private PluginMapper pluginMapper;
 
     @Mock
+    private PluginRepository pluginRepository;
+
+    @Mock
     private SelectorMapper selectorMapper;
 
     @Mock
@@ -88,7 +93,7 @@ public final class PluginServiceTest {
 
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, namespacePluginRelMapper);
+        pluginService = new PluginServiceImpl(pluginMapper, pluginRepository, modelDataEventPublisher, namespacePluginRelMapper);
     }
 
     @Test
@@ -147,7 +152,7 @@ public final class PluginServiceTest {
     @Test
     public void testFindById() {
         PluginDO pluginDO = buildPluginDO();
-        given(this.pluginMapper.selectById(eq("123"))).willReturn(pluginDO);
+        given(this.pluginRepository.findById(eq("123"))).willReturn(Optional.of(pluginDO));
         PluginVO pluginVO = this.pluginService.findById("123");
         assertNotNull(pluginVO);
         assertEquals(pluginDO.getId(), pluginVO.getId());
@@ -170,7 +175,7 @@ public final class PluginServiceTest {
     public void testListAll() {
         PluginDO pluginDO = buildPluginDO("123");
         List<PluginDO> pluginDOList = Collections.singletonList(pluginDO);
-        given(this.pluginMapper.selectAll()).willReturn(pluginDOList);
+        given(this.pluginRepository.findAll()).willReturn(pluginDOList);
         List<PluginData> dataList = this.pluginService.listAll();
         assertNotNull(dataList);
         assertEquals(pluginDOList.size(), dataList.size());
@@ -180,7 +185,7 @@ public final class PluginServiceTest {
     public void testListAllData() {
         PluginDO pluginDO = buildPluginDO("123");
         List<PluginDO> pluginDOList = Collections.singletonList(pluginDO);
-        given(this.pluginMapper.selectAll()).willReturn(pluginDOList);
+        given(this.pluginRepository.findAll()).willReturn(pluginDOList);
         List<PluginVO> dataList = this.pluginService.listAllData();
         assertNotNull(dataList);
         assertEquals(pluginDOList.size(), dataList.size());

@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -25,6 +28,9 @@ import java.util.Objects;
 /**
  * The type Auth param do.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "auth_param")
 public final class AuthParamDO extends BaseDO {
 
     private static final long serialVersionUID = -6719996683886817375L;

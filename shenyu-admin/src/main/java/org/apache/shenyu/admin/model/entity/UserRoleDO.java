@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.UserRoleDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -28,6 +31,9 @@ import java.util.Optional;
 /**
  * The User Role Entity.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "user_role")
 public final class UserRoleDO extends BaseDO {
 
     private static final long serialVersionUID = -6072114067735588550L;

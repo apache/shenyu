@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.DiscoveryUpstreamRepository;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -72,6 +73,9 @@ public final class DiscoveryUpstreamServiceTest {
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
     @Mock
+    private DiscoveryUpstreamRepository discoveryUpstreamRepository;
+
+    @Mock
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
@@ -99,6 +103,7 @@ public final class DiscoveryUpstreamServiceTest {
     public void setUp() {
 
         discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper,
+                discoveryUpstreamRepository,
                 discoveryHandlerMapper,
                 proxySelectorMapper,
                 discoveryMapper,
@@ -149,7 +154,7 @@ public final class DiscoveryUpstreamServiceTest {
     @Test
     public void testListAllData() {
         List<DiscoveryUpstreamDO> list = Collections.singletonList(buildDiscoveryUpstreamDO(""));
-        when(discoveryUpstreamMapper.selectAll()).thenReturn(list);
+        when(discoveryUpstreamRepository.findAll()).thenReturn(list);
         List<DiscoveryUpstreamVO> upstreamVOList = discoveryUpstreamService.listAllData();
         assertEquals(upstreamVOList.size(), list.size());
     }

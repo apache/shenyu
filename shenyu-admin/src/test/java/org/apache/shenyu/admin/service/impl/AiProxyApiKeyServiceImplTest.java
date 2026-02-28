@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.jpa.repository.AiProxyApiKeyRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -45,11 +47,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.springframework.data.domain.PageImpl;
 
 class AiProxyApiKeyServiceImplTest {
 
     @Mock
     private AiProxyApiKeyMapper mapper;
+
+    @Mock
+    private AiProxyApiKeyRepository repository;
 
     @Mock
     private ApplicationEventPublisher publisher;
@@ -63,7 +69,7 @@ class AiProxyApiKeyServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new AiProxyApiKeyServiceImpl(mapper, publisher, realKeyResolver);
+        service = new AiProxyApiKeyServiceImpl(mapper, repository, publisher, realKeyResolver);
     }
 
     @Test
@@ -138,13 +144,14 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyQuery query = new ProxyApiKeyQuery();
         query.setNamespaceId("default");
         query.setPageParameter(new PageParameter(1, 10));
-        ProxyApiKeyVO vo = new ProxyApiKeyVO();
-        vo.setId("1");
-        vo.setProxyApiKey("p");
-        vo.setDescription("d");
-        vo.setEnabled(Boolean.TRUE);
-        vo.setNamespaceId("default");
-        when(mapper.selectByCondition(any())).thenReturn(Collections.singletonList(vo));
+        ProxyApiKeyDO proxyApiKeyDO = new ProxyApiKeyDO();
+        proxyApiKeyDO.setId("1");
+        proxyApiKeyDO.setProxyApiKey("p");
+        proxyApiKeyDO.setDescription("d");
+        proxyApiKeyDO.setEnabled(Boolean.TRUE);
+        proxyApiKeyDO.setNamespaceId("default");
+        PageImpl<ProxyApiKeyDO> page = new PageImpl<>(Collections.singletonList(proxyApiKeyDO), PageResultUtils.of(query.getPageParameter()), 1);
+        when(repository.pageByCondition(any(), any())).thenReturn(page);
         CommonPager<ProxyApiKeyVO> pager = service.listByPage(query);
         assertEquals(1, pager.getDataList().size());
         assertEquals("p", pager.getDataList().get(0).getProxyApiKey());
@@ -154,10 +161,10 @@ class AiProxyApiKeyServiceImplTest {
     void testSearchByCondition() {
         ProxyApiKeyQuery query = new ProxyApiKeyQuery();
         query.setNamespaceId("default");
-        ProxyApiKeyVO vo = new ProxyApiKeyVO();
-        vo.setId("2");
-        vo.setProxyApiKey("px");
-        when(mapper.selectByCondition(any())).thenReturn(Collections.singletonList(vo));
+        ProxyApiKeyDO proxyApiKeyDO = new ProxyApiKeyDO();
+        proxyApiKeyDO.setId("2");
+        proxyApiKeyDO.setProxyApiKey("px");
+        when(repository.selectByCondition(any())).thenReturn(Collections.singletonList(proxyApiKeyDO));
         List<ProxyApiKeyVO> list = service.searchByCondition(query);
         assertEquals(1, list.size());
         assertEquals("px", list.get(0).getProxyApiKey());

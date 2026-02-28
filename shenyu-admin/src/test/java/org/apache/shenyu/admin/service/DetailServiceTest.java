@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.jpa.repository.DetailRepository;
 import org.apache.shenyu.admin.mapper.DetailMapper;
 import org.apache.shenyu.admin.model.dto.DetailDTO;
 import org.apache.shenyu.admin.model.entity.DetailDO;
@@ -34,6 +35,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
@@ -55,9 +57,12 @@ public final class DetailServiceTest {
     @Mock
     private DetailMapper detailMapper;
 
+    @Mock
+    private DetailRepository detailRepository;
+
     @BeforeEach
     public void setUp() {
-        detailService = new DetailServiceImpl(detailMapper);
+        detailService = new DetailServiceImpl(detailMapper, detailRepository);
     }
 
     @Test
@@ -82,9 +87,9 @@ public final class DetailServiceTest {
         detailDO.setFieldValue("field value");
         detailDO.setFieldId("field id");
 
-        when(detailMapper.selectByPrimaryKey("1")).thenReturn(detailDO);
+        when(detailRepository.findById("1")).thenReturn(Optional.of(detailDO));
 
-        DetailService detailService = new DetailServiceImpl(detailMapper);
+        DetailService detailService = new DetailServiceImpl(detailMapper, detailRepository);
 
         DetailVO detailVO = detailService.findById("1");
 
@@ -96,7 +101,7 @@ public final class DetailServiceTest {
         assertEquals(detailDO.getDateUpdated(), detailVO.getDateUpdated());
         assertEquals(detailDO.getDateCreated(), detailVO.getDateCreated());
 
-        verify(detailMapper, times(1)).selectByPrimaryKey("1");
+        verify(detailRepository, times(1)).findById("1");
     }
 
     private void testCreate() {

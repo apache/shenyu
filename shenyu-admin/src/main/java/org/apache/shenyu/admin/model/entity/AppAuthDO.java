@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -30,6 +33,9 @@ import java.util.Optional;
 /**
  * AppAuthDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "app_auth")
 public final class AppAuthDO extends BaseDO {
 
     private static final long serialVersionUID = 5683408559456006830L;

@@ -18,9 +18,9 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
@@ -79,13 +79,13 @@ public final class SelectorControllerTest {
     private SelectorService selectorService;
 
     @Mock
-    private SelectorMapper selectorMapper;
+    private SelectorRepository selectorRepository;
 
     @Mock
-    private PluginMapper pluginMapper;
+    private PluginRepository pluginRepository;
 
     @Mock
-    private NamespaceMapper namespaceMapper;
+    private NamespaceRepository namespaceRepository;
 
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),
@@ -133,12 +133,12 @@ public final class SelectorControllerTest {
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(selectorDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginRepository.class)).thenReturn(pluginRepository);
+        when(pluginRepository.existed(selectorDTO.getPluginId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/selector")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -163,12 +163,12 @@ public final class SelectorControllerTest {
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(selectorDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginRepository.class)).thenReturn(pluginRepository);
+        when(pluginRepository.existed(selectorDTO.getPluginId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/{id}", "123")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -181,8 +181,8 @@ public final class SelectorControllerTest {
     @Test
     public void deleteSelector() throws Exception {
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.deleteByNamespaceId(Collections.singletonList("123"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
         final BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
         batchNamespaceCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
@@ -199,8 +199,8 @@ public final class SelectorControllerTest {
     public void detailSelector() throws Exception {
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
 
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(NamespaceRepository.class)).thenReturn(namespaceRepository);
+        when(namespaceRepository.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         given(this.selectorService.findById("1")).willReturn(selectorVO);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}/", "1"))
@@ -225,10 +225,10 @@ public final class SelectorControllerTest {
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(SelectorMapper.class)).thenReturn(selectorMapper);
-        when(selectorMapper.existed(selectorDTO.getId())).thenReturn(true);
-        when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        when(pluginMapper.existed(selectorDTO.getPluginId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(SelectorRepository.class)).thenReturn(selectorRepository);
+        when(selectorRepository.existed(selectorDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginRepository.class)).thenReturn(pluginRepository);
+        when(pluginRepository.existed(selectorDTO.getPluginId())).thenReturn(true);
         given(this.selectorService.enabledByIdsAndNamespaceId(Arrays.asList(selectorDTO.getId()), false, SYS_DEFAULT_NAMESPACE_ID)).willReturn(true);
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList(selectorDTO.getId()));

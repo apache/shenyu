@@ -25,6 +25,9 @@ import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
+import org.apache.shenyu.admin.jpa.repository.DashboardUserRepository;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
+import org.apache.shenyu.admin.jpa.repository.UserRoleRepository;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -57,6 +60,7 @@ import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapEncoder;
@@ -79,9 +83,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final DashboardUserMapper dashboardUserMapper;
 
+    private final DashboardUserRepository dashboardUserRepository;
+
     private final UserRoleMapper userRoleMapper;
 
+    private final UserRoleRepository userRoleRepository;
+
     private final RoleMapper roleMapper;
+
+    private final RoleRepository roleRepository;
 
     @Nullable
     private final LdapProperties ldapProperties;
@@ -100,8 +110,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private final NamespaceUserService namespaceUserService;
 
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
+                                    final DashboardUserRepository dashboardUserRepository,
                                     final UserRoleMapper userRoleMapper,
+                                    final UserRoleRepository userRoleRepository,
                                     final RoleMapper roleMapper,
+                                    final RoleRepository roleRepository,
                                     @Nullable final LdapProperties ldapProperties,
                                     @Nullable final LdapTemplate ldapTemplate,
                                     final JwtProperties jwtProperties,
@@ -110,8 +123,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                                     final SecretProperties secretProperties,
                                     final NamespaceUserService namespaceUserService) {
         this.dashboardUserMapper = dashboardUserMapper;
+        this.dashboardUserRepository = dashboardUserRepository;
         this.userRoleMapper = userRoleMapper;
+        this.userRoleRepository = userRoleRepository;
         this.roleMapper = roleMapper;
+        this.roleRepository = roleRepository;
         this.ldapProperties = ldapProperties;
         this.ldapTemplate = ldapTemplate;
         this.jwtProperties = jwtProperties;
@@ -214,14 +230,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public DashboardUserEditVO findById(final String id) {
 
-        DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
+        DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserRepository.findById(id).orElse(null));
 
-        Set<String> roleIdSet = userRoleMapper.findByUserId(id)
+        Set<String> roleIdSet = userRoleRepository.findByUserId(id)
                 .stream()
                 .map(UserRoleDO::getRoleId)
                 .collect(Collectors.toSet());
 
-        List<RoleDO> allRoleDOList = roleMapper.selectAll();
+        List<RoleDO> allRoleDOList = roleRepository.findAll();
         List<RoleVO> allRoles = ListUtil.map(allRoleDOList, RoleVO::buildRoleVO);
 
         List<RoleDO> roleDOList = allRoleDOList.stream()
@@ -241,7 +257,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserVO findByQuery(final String userName, final String password) {
-        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserRepository.findByUserNameAndPassword(userName, password).orElse(null));
     }
 
     /**
@@ -252,7 +268,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserVO findByUserName(final String userName) {
-        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectByUserName(userName));
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserRepository.findByUserName(userName).orElse(null));
     }
 
     /**
@@ -263,9 +279,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
-            () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
-            () -> ListUtil.map(dashboardUserMapper.selectByQuery(dashboardUserQuery), DashboardUserVO::buildDashboardUserVO));
+        Page<DashboardUserDO> page = dashboardUserRepository.findByQuery(dashboardUserQuery.getUserName(), PageResultUtils.of(dashboardUserQuery.getPageParameter()));
+        return PageResultUtils.result(dashboardUserQuery.getPageParameter(), page, DashboardUserVO::buildDashboardUserVO);
     }
 
     /**
@@ -336,7 +351,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     @Override
     public boolean checkUserPassword(final String userId) {
-        final DashboardUserDO userDO = dashboardUserMapper.selectById(userId);
+        final DashboardUserDO userDO = dashboardUserRepository.findById(userId).orElse(null);
 
         WebI18nAssert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), FailI18nMessage.PASSWORD_IS_DEFAULT);
 
@@ -357,7 +372,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             if (Objects.nonNull(ldapTemplate) && ldapTemplate.authenticate(searchBase, filter, password)) {
                 dashboardUserVO = findByUserName(userName);
                 if (Objects.isNull(dashboardUserVO)) {
-                    RoleDO role = roleMapper.findByRoleName("default");
+                    RoleDO role = roleRepository.findByRoleName("default").orElse(null);
                     DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                             .userName(userName)
                             .password(DigestUtils.sha512Hex(password))
@@ -392,7 +407,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (CollectionUtils.isEmpty(roleIds) || StringUtils.isBlank(userId)) {
             return;
         }
-        userRoleMapper.insertBatch(roleIds.stream()
+        userRoleRepository.saveAll(roleIds.stream()
                 .map(roleId -> UserRoleDO.buildUserRoleDO(UserRoleDTO.builder()
                         .userId(userId)
                         .roleId(roleId)

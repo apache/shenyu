@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import jakarta.validation.Valid;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
+import org.apache.shenyu.admin.jpa.repository.ScalePolicyRepository;
 import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ScalePolicyVO;
@@ -64,7 +64,7 @@ public class ScalePolicyController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailPolicy(@PathVariable("id")
                                           @Valid
-                                          @Existed(provider = ScalePolicyMapper.class,
+                                          @Existed(provider = ScalePolicyRepository.class,
                                                   message = "scale policy is not existed") final String id) {
         ScalePolicyVO scalePolicyVO = scalePolicyService.findById(id);
         return Optional.ofNullable(scalePolicyVO)

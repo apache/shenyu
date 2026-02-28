@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
@@ -47,11 +48,16 @@ import java.util.stream.Collectors;
 public class ShenyuDictServiceImpl implements ShenyuDictService {
     
     private final ShenyuDictMapper shenyuDictMapper;
-    
+
+    private final ShenyuDictRepository shenyuDictRepository;
+
     private final DictEventPublisher publisher;
-    
-    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper, final DictEventPublisher publisher) {
+
+    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper,
+                                  final ShenyuDictRepository shenyuDictRepository,
+                                  final DictEventPublisher publisher) {
         this.shenyuDictMapper = shenyuDictMapper;
+        this.shenyuDictRepository = shenyuDictRepository;
         this.publisher = publisher;
     }
     
@@ -144,27 +150,24 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
 
     @Override
     public ShenyuDictVO findById(final String id) {
-        return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectById(id));
+        return ShenyuDictVO.buildShenyuDictVO(shenyuDictRepository.findById(id).orElse(null));
     }
     
     @Override
     public ShenyuDictVO findByDictCodeName(final String dictCode, final String dictName) {
-        return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
+        return ShenyuDictVO.buildShenyuDictVO(shenyuDictRepository.findByDictCodeAndDictName(dictCode, dictName).orElse(null));
     }
     
     @Override
     public List<ShenyuDictVO> list(final String type) {
-        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
-        shenyuDictQuery.setType(type);
-        return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
+        return shenyuDictRepository.findByType(type).stream()
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ShenyuDictVO> listAllData() {
-        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
-        return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
+        return shenyuDictRepository.findAll().stream()
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
     }

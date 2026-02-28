@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -96,7 +96,7 @@ public class RoleController {
     @GetMapping("/{id}")
     @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult detailRole(@PathVariable("id") @Valid
-                                        @Existed(provider = RoleMapper.class,
+                                        @Existed(provider = RoleRepository.class,
                                                 message = "role is not existed") final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
         return Optional.ofNullable(roleEditVO)
@@ -129,7 +129,7 @@ public class RoleController {
     @PutMapping("/{id}")
     @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult updateRole(@PathVariable("id") @Valid
-                                        @Existed(provider = RoleMapper.class,
+                                        @Existed(provider = RoleRepository.class,
                                                 message = "role is not existed") final String id,
                                         @Valid @RequestBody final RoleDTO roleDTO) {
         roleDTO.setId(id);

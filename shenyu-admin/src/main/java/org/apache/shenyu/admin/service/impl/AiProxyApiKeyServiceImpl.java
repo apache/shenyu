@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.AiProxyApiKeyRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
@@ -45,11 +45,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /** Implementation of AiProxyApiKeyService. */
@@ -60,15 +62,18 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     private final AiProxyApiKeyMapper mapper;
 
+    private final AiProxyApiKeyRepository aiProxyApiKeyRepository;
+
     private final ApplicationEventPublisher eventPublisher;
 
     private final AiProxyRealKeyResolver realKeyResolver;
 
     @Autowired
     public AiProxyApiKeyServiceImpl(
-            final AiProxyApiKeyMapper mapper, final ApplicationEventPublisher eventPublisher,
+            final AiProxyApiKeyMapper mapper, final AiProxyApiKeyRepository aiProxyApiKeyRepository, final ApplicationEventPublisher eventPublisher,
             final AiProxyRealKeyResolver realKeyResolver) {
         this.mapper = mapper;
+        this.aiProxyApiKeyRepository = aiProxyApiKeyRepository;
         this.eventPublisher = eventPublisher;
         this.realKeyResolver = realKeyResolver;
     }
@@ -124,7 +129,8 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public ProxyApiKeyVO findById(final String id) {
-        final ProxyApiKeyVO vo = ProxyApiKeyTransfer.INSTANCE.mapToVO(mapper.selectById(id));
+        Optional<ProxyApiKeyDO> byId = aiProxyApiKeyRepository.findById(id);
+        final ProxyApiKeyVO vo = ProxyApiKeyTransfer.INSTANCE.mapToVO(byId.orElse(null));
         if (Objects.nonNull(vo)) {
             final String real = realKeyResolver.resolveRealKey(vo.getSelectorId()).orElse(null);
             vo.setRealApiKey(real);
@@ -134,7 +140,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public List<ProxyApiKeyVO> findByIds(final List<String> ids) {
-        List<ProxyApiKeyVO> voList = mapper.selectByIds(ids).stream()
+        List<ProxyApiKeyVO> voList = aiProxyApiKeyRepository.findAllById(ids).stream()
                 .map(ProxyApiKeyTransfer.INSTANCE::mapToVO)
                 .collect(Collectors.toList());
         // Populate realApiKey for each VO using batch resolver
@@ -189,8 +195,11 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     public CommonPager<ProxyApiKeyVO> listByPage(final ProxyApiKeyQuery query) {
         final int current = query.getPageParameter().getCurrentPage();
         final int size = query.getPageParameter().getPageSize();
-        PageHelper.startPage(current, size);
-        final List<ProxyApiKeyVO> list = mapper.selectByCondition(query);
+        final Page<ProxyApiKeyDO> page = aiProxyApiKeyRepository.pageByCondition(query, PageResultUtils.of(query.getPageParameter()));
+
+        final List<ProxyApiKeyVO> list = page.stream()
+                .map(ProxyApiKeyTransfer.INSTANCE::mapToVO)
+                .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(list)) {
             java.util.Set<String> selectorIds = list.stream().map(ProxyApiKeyVO::getSelectorId)
@@ -201,20 +210,22 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
             }
         }
 
-        final PageInfo<ProxyApiKeyVO> pageInfo = new PageInfo<>(list);
-        return new CommonPager<>(new PageParameter(current, size, (int) pageInfo.getTotal()), list);
+        return new CommonPager<>(new PageParameter(current, size, (int) page.getTotalElements()), list);
     }
 
     @Override
     public List<ProxyApiKeyVO> searchByCondition(final ProxyApiKeyQuery condition) {
-        return mapper.selectByCondition(condition);
+        List<ProxyApiKeyDO> proxyApiKeyDOS = aiProxyApiKeyRepository.selectByCondition(condition);
+        return proxyApiKeyDOS.stream()
+                .map(ProxyApiKeyTransfer.INSTANCE::mapToVO)
+                .collect(Collectors.toList());
     }
 
     // sync & listAll
 
     @Override
     public List<ProxyApiKeyData> listAll() {
-        List<ProxyApiKeyDO> all = mapper.selectAll();
+        List<ProxyApiKeyDO> all = aiProxyApiKeyRepository.findAll();
         if (CollectionUtils.isEmpty(all)) {
             return java.util.Collections.emptyList();
         }
@@ -231,7 +242,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     @Override
     public void syncData() {
         // group by namespace and publish REFRESH respectively
-        List<ProxyApiKeyDO> all = mapper.selectAll();
+        List<ProxyApiKeyDO> all = aiProxyApiKeyRepository.findAll();
         if (CollectionUtils.isEmpty(all)) {
             return;
         }
@@ -249,7 +260,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
     @Override
     public void syncDataByNamespaceId(final String namespaceId) {
         final String target = NamespaceUtils.normalizeNamespace(namespaceId);
-        List<ProxyApiKeyDO> all = mapper.selectAll();
+        List<ProxyApiKeyDO> all = aiProxyApiKeyRepository.findAll();
         List<ProxyApiKeyDO> list = Objects.isNull(all) ? java.util.Collections.emptyList()
                 : all.stream()
                         .filter(e -> StringUtils.equals(NamespaceUtils.normalizeNamespace(e.getNamespaceId()), target))

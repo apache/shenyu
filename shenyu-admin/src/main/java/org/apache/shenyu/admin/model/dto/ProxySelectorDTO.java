@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.ProxySelectorRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ public class ProxySelectorDTO implements Serializable {
     /**
      * id.
      */
-    @Existed(provider = ProxySelectorMapper.class, nullOfIgnore = true, message = "proxy selector not exited")
+    @Existed(provider = ProxySelectorRepository.class, nullOfIgnore = true, message = "proxy selector not exited")
     private String id;
 
     /**
@@ -72,7 +72,7 @@ public class ProxySelectorDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
 
     /**

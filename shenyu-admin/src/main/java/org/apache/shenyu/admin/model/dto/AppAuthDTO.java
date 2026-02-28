@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.Valid;
@@ -39,7 +39,7 @@ public class AppAuthDTO implements Serializable {
      * primary key.
      */
     @NotBlank(message = "app auth id not null")
-    @Existed(message = "app auth is not existed", provider = AppAuthMapper.class)
+    @Existed(message = "app auth is not existed", provider = AppAuthRepository.class)
     private String id;
     
     /**
@@ -81,7 +81,7 @@ public class AppAuthDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
     
     /**

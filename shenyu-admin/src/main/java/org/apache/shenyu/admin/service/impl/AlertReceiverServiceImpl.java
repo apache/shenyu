@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
+import org.apache.shenyu.admin.jpa.repository.AlertReceiverRepository;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -29,12 +28,13 @@ import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -46,15 +46,14 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
     private static final String ALERT_TEST_TITLE = "Alarm Test";
     
     private static final String ALERT_TEST_CONTENT = "test send msg! \n This is the test data. It is proved that it can be received successfully";
-    
-    private final AlertReceiverMapper alertReceiverMapper;
-    
+
     private final AlertDispatchService alertDispatchService;
 
-    public AlertReceiverServiceImpl(final AlertReceiverMapper alertReceiverMapper,
-                                    final AlertDispatchService alertDispatchService) {
-        this.alertReceiverMapper = alertReceiverMapper;
+    private final AlertReceiverRepository alertReceiverRepository;
+
+    public AlertReceiverServiceImpl(final AlertDispatchService alertDispatchService, final AlertReceiverRepository alertReceiverRepository) {
         this.alertDispatchService = alertDispatchService;
+        this.alertReceiverRepository = alertReceiverRepository;
     }
 
     @Override
@@ -64,46 +63,41 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         receiverDO.setDateCreated(currentTime);
         receiverDO.setDateUpdated(currentTime);
-        alertReceiverMapper.insert(receiverDO);
+        alertReceiverRepository.save(receiverDO);
         alertDispatchService.clearCache();
     }
 
     @Override
     public void deleteReceiver(final List<String> ids) {
-        alertReceiverMapper.deleteByIds(ids);
+        alertReceiverRepository.deleteAllByIdInBatch(ids);
         alertDispatchService.clearCache();
     }
 
     @Override
     public void updateReceiver(final AlertReceiverDTO alertReceiverDTO) {
         AlertReceiverDO receiverDO = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
-        alertReceiverMapper.updateByPrimaryKey(receiverDO);
+        alertReceiverRepository.save(receiverDO);
         alertDispatchService.clearCache();
     }
     
     @Override
     public List<AlertReceiverDTO> getAll() {
-        return alertReceiverMapper.selectAll();
+        return alertReceiverRepository.findAll()
+                .stream()
+                .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
+                .collect(Collectors.toList());
     }
     
     @Override
-    @Pageable
     public CommonPager<AlertReceiverDTO> listByPage(final AlertReceiverQuery receiverQuery) {
-        return PageResultUtils.result(receiverQuery.getPageParameter(), 
-            () -> alertReceiverMapper.selectByQuery(receiverQuery)
-                          .stream()
-                          .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
-                          .collect(Collectors.toList()));
+        Page<AlertReceiverDO> page = alertReceiverRepository.pageByDynamicConditions(receiverQuery, PageResultUtils.of(receiverQuery.getPageParameter()));
+        return PageResultUtils.result(receiverQuery.getPageParameter(), page, AlertTransfer.INSTANCE::mapToAlertReceiverDTO);
     }
     
     @Override
     public AlertReceiverDTO detail(final String id) {
-        AlertReceiverDO receiverDO = alertReceiverMapper.selectByPrimaryKey(id);
-        if (Objects.nonNull(receiverDO)) {
-            return AlertTransfer.INSTANCE.mapToAlertReceiverDTO(receiverDO);
-        } else {
-            return null;
-        }
+        Optional<AlertReceiverDO> receiverDO = alertReceiverRepository.findById(id);
+        return receiverDO.map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO).orElse(null);
     }
     
     @Override

@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -28,6 +31,9 @@ import java.util.Optional;
 /**
  * SelectorConditionDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "selector_condition")
 public final class SelectorConditionDO extends BaseDO {
 
     private static final long serialVersionUID = 756287802698140201L;

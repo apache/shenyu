@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
@@ -27,6 +30,9 @@ import java.util.Optional;
 /**
  * discovery upstream do.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "discovery_upstream")
 public class DiscoveryUpstreamDO extends BaseDO {
 
     private static final long serialVersionUID = 4636503463949130337L;

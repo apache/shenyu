@@ -20,6 +20,17 @@ server:
 spring:
   profiles:
     active: h2
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 30
+        order_inserts: true
+        order_updates: true
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -125,3 +136,5 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
