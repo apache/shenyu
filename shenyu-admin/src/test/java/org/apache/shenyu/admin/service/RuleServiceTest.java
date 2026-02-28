@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +38,11 @@ import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
@@ -58,6 +62,7 @@ import org.mockito.stubbing.Answer;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -68,9 +73,11 @@ import java.util.stream.IntStream;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -259,6 +266,74 @@ public final class RuleServiceTest {
         List<RuleData> dataList = this.ruleService.findBySelectorIdList(Collections.singletonList("456"));
         assertNotNull(dataList);
         assertEquals(ruleDOList.size(), dataList.size());
+    }
+
+    @Test
+    public void testSearchByPage() {
+        testSelectorMergeScenario(
+                null,
+                Arrays.asList(buildSelectorDO()),
+                1,
+                Collections.singletonList(buildSelectorDO().getId())
+        );
+
+        SelectorDO selectorDO1 = SelectorDO.builder().id("s1").build();
+        SelectorDO selectorDO2 = SelectorDO.builder().id("s2").build();
+        testSelectorMergeScenario(
+                new ArrayList<>(Arrays.asList("s1", "s3")),
+                Arrays.asList(selectorDO1, selectorDO2),
+                3,
+                Arrays.asList("s1", "s2", "s3")
+        );
+
+        testSelectorMergeScenario(
+                new ArrayList<>(Arrays.asList("s1", "s2")),
+                Collections.emptyList(),
+                2,
+                Arrays.asList("s1", "s2")
+        );
+
+        testSelectorMergeScenario(
+                new ArrayList<>(Arrays.asList("s1", "s2")),
+                null,
+                2,
+                Arrays.asList("s1", "s2")
+        );
+    }
+
+    private void testSelectorMergeScenario(final List<String> userSelectors,
+                                           final List<SelectorDO> namespaceSelectorDOs,
+                                           final int expectedSize,
+                                           final List<String> expectedContains) {
+        Page<RuleDO> emptyPage = new Page<>();
+        // 1. 构建分页条件
+        PageCondition<RuleQueryCondition> pageCondition = buildPageCondition();
+        RuleQueryCondition condition = pageCondition.getCondition();
+        condition.setSelectors(userSelectors);
+
+        // 2. Mock依赖行为
+        given(this.selectorMapper.selectAllByNamespaceId(anyString())).willReturn(namespaceSelectorDOs);
+        given(this.ruleMapper.selectByCondition(any(RuleQueryCondition.class))).willReturn(emptyPage);
+
+        // 3. 执行测试方法
+        PageInfo<RuleVO> result = ruleService.searchByPage(pageCondition);
+
+        // 4. 统一验证
+        assertNotNull(result);
+        List<String> finalSelectors = condition.getSelectors();
+        assertEquals(expectedSize, finalSelectors.size());
+        assertTrue(finalSelectors.containsAll(expectedContains));
+    }
+
+
+    private PageCondition<RuleQueryCondition> buildPageCondition() {
+        RuleQueryCondition condition = new RuleQueryCondition();
+        condition.setNamespaceId("test-namespace");
+        PageCondition<RuleQueryCondition> pageCondition = new PageCondition<>();
+        pageCondition.setCondition(condition);
+        pageCondition.setPageNum(1);
+        pageCondition.setPageSize(10);
+        return pageCondition;
     }
 
     private void publishEvent() {
