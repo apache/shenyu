@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.util.Objects;
 import java.sql.Timestamp;
 
 /**
  * field.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "field")
 public class FieldDO extends BaseDO {
 
     /**

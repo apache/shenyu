@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.jpa.repository.OperationRecordLogRepository;
 import org.apache.shenyu.admin.mapper.OperationRecordLogMapper;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
 
 /**
  * OperationRecordLogServiceImpl.
@@ -37,12 +39,16 @@ import java.util.List;
 public class OperationRecordLogServiceImpl implements OperationRecordLogService {
     
     private final OperationRecordLogMapper recordLogMapper;
+
+    private final OperationRecordLogRepository operationRecordLogRepository;
     
     private final DashboardProperties dashboardProperties;
     
     public OperationRecordLogServiceImpl(final OperationRecordLogMapper recordLogMapper,
+                                         final OperationRecordLogRepository operationRecordLogRepository,
                                          final DashboardProperties dashboardProperties) {
         this.recordLogMapper = recordLogMapper;
+        this.operationRecordLogRepository = operationRecordLogRepository;
         this.dashboardProperties = dashboardProperties;
     }
     
@@ -59,13 +65,14 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     public List<OperationRecordLog> searchByCondition(final RecordLogQueryCondition condition) {
         return recordLogMapper.selectByCondition(condition);
     }
-    
+
     @Override
     public List<OperationRecordLog> list() {
+        PageRequest pageRequest = PageRequest.of(0, dashboardProperties.getRecordLogLimit());
         if (SessionUtil.isAdmin()) {
-            return recordLogMapper.selectLimit(null, dashboardProperties.getRecordLogLimit());
+            return operationRecordLogRepository.findByOrderByOperationTimeDesc(pageRequest);
         }
-        return recordLogMapper.selectLimit(SessionUtil.visitorName(), dashboardProperties.getRecordLogLimit());
+        return operationRecordLogRepository.findByOperatorOrderByOperationTimeDesc(SessionUtil.visitorName(), pageRequest);
     }
     
     @Override

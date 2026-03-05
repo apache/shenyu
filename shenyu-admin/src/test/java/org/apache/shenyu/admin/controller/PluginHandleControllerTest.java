@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.jpa.repository.PluginHandleRepository;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -68,6 +69,9 @@ public final class PluginHandleControllerTest {
 
     @Mock
     private PluginHandleMapper handleMapper;
+
+    @Mock
+    private PluginHandleRepository pluginHandleRepository;
 
     private final PluginHandleVO pluginHandleVO = new PluginHandleVO("1", "2", "3", "label",
             1, 1, 1, null, DateUtils.localDateTimeToString(LocalDateTime.now()),
@@ -138,8 +142,8 @@ public final class PluginHandleControllerTest {
         pluginHandleDTO.setType(1);
         pluginHandleDTO.setSort(1);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(PluginHandleMapper.class)).thenReturn(handleMapper);
-        when(handleMapper.existed(pluginHandleDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(PluginHandleRepository.class)).thenReturn(pluginHandleRepository);
+        when(pluginHandleRepository.existed(pluginHandleDTO.getId())).thenReturn(true);
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin-handle/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
+import org.apache.shenyu.admin.jpa.repository.MockRequestRecordRepository;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
@@ -79,7 +79,7 @@ public class MockRequestRecordController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/{id}")
-    public ShenyuAdminResult delete(@PathVariable @Valid @Existed(provider = MockRequestRecordMapper.class,
+    public ShenyuAdminResult delete(@PathVariable @Valid @Existed(provider = MockRequestRecordRepository.class,
             message = " is not existed") final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, mockRequestRecordService.delete(id));
     }

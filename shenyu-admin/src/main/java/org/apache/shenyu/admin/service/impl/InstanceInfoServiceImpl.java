@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.jpa.repository.InstanceInfoRepository;
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -44,8 +45,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     private final InstanceInfoMapper instanceInfoMapper;
 
-    public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper) {
+    private final InstanceInfoRepository instanceInfoRepository;
+
+    public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper, final InstanceInfoRepository instanceInfoRepository) {
         this.instanceInfoMapper = instanceInfoMapper;
+        this.instanceInfoRepository = instanceInfoRepository;
     }
 
     @Override
@@ -85,12 +89,12 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     @Override
     public List<InstanceInfoVO> list() {
-        return this.buildInstanceInfoVO(instanceInfoMapper.selectAll());
+        return this.buildInstanceInfoVO(instanceInfoRepository.findAll());
     }
 
     @Override
     public InstanceInfoVO findById(final String id) {
-        return null;
+        return instanceInfoRepository.findById(id).map(this::buildInstanceInfoVO).orElse(null);
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
