@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
-import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
@@ -36,8 +36,11 @@ public class TagRelationServiceImpl implements TagRelationService {
 
     private final TagRelationMapper tagRelationMapper;
 
-    public TagRelationServiceImpl(final TagRelationMapper tagRelationMapper) {
+    private final TagRelationRepository tagRelationRepository;
+
+    public TagRelationServiceImpl(final TagRelationMapper tagRelationMapper, final TagRelationRepository tagRelationRepository) {
         this.tagRelationMapper = tagRelationMapper;
+        this.tagRelationRepository = tagRelationRepository;
     }
 
     @Override
@@ -61,20 +64,16 @@ public class TagRelationServiceImpl implements TagRelationService {
 
     @Override
     public TagRelationDO findById(final String id) {
-        return tagRelationMapper.selectByPrimaryKey(id);
+        return tagRelationRepository.findById(id).orElse(null);
     }
 
     @Override
     public List<TagRelationDO> findByTagId(final String tagId) {
-        TagRelationQuery tagRelationQuery = new TagRelationQuery();
-        tagRelationQuery.setTagId(tagId);
-        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
+        return Optional.ofNullable(tagRelationRepository.findByTagId(tagId)).orElse(Lists.newArrayList());
     }
 
     @Override
     public List<TagRelationDO> findApiId(final String apiId) {
-        TagRelationQuery tagRelationQuery = new TagRelationQuery();
-        tagRelationQuery.setApiId(apiId);
-        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
+        return Optional.ofNullable(tagRelationRepository.findByApiId(apiId)).orElse(Lists.newArrayList());
     }
 }

@@ -17,15 +17,24 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * TagDO.
+ */
+@DynamicUpdate
+@Entity
+@Table(name = "tag")
 public final class TagDO extends BaseDO {
 
     private static final long serialVersionUID = -3968123108441095604L;

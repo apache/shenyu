@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryHandlerVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryRelVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
+import org.apache.shenyu.admin.jpa.repository.DiscoveryRepository;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
@@ -72,6 +73,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryMapper discoveryMapper;
 
+    private final DiscoveryRepository discoveryRepository;
+
     private final ProxySelectorMapper proxySelectorMapper;
 
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
@@ -85,6 +88,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
+                                final DiscoveryRepository discoveryRepository,
                                 final ProxySelectorMapper proxySelectorMapper,
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
@@ -92,6 +96,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                                 final SelectorMapper selectorMapper,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
+        this.discoveryRepository = discoveryRepository;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
         this.discoveryRelMapper = discoveryRelMapper;
@@ -272,7 +277,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public void syncData() {
         LOG.info("shenyu DiscoveryService sync db ");
-        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
+        List<DiscoveryDO> discoveryDOS = discoveryRepository.findAll();
         syncData(discoveryDOS);
     }
 
@@ -280,7 +285,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public void syncDataByNamespaceId(final String namespaceId) {
         LOG.info("shenyu DiscoveryService sync db ");
-        List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAllByNamespaceId(namespaceId);
+        List<DiscoveryDO> discoveryDOS = discoveryRepository.findByNamespaceId(namespaceId);
         syncData(discoveryDOS);
     }
 
@@ -296,8 +301,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToVo)
                 .collect(Collectors.toMap(DiscoveryRelVO::getDiscoveryHandlerId, x -> x));
-        return discoveryMapper
-                .selectAll()
+        return discoveryRepository
+                .findAll()
                 .stream()
                 .map(x -> {
                     DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(x);
@@ -314,8 +319,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     
     @Override
     public List<DiscoveryVO> listAllDataByNamespaceId(final String namespaceId) {
-        List<DiscoveryDO> discoveryDOList = discoveryMapper
-                .selectAllByNamespaceId(namespaceId);
+        List<DiscoveryDO> discoveryDOList = discoveryRepository
+                .findByNamespaceId(namespaceId);
         if (CollectionUtils.isEmpty(discoveryDOList)) {
             return Lists.newArrayList();
         }

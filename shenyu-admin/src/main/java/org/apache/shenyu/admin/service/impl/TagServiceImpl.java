@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
@@ -49,8 +50,11 @@ public class TagServiceImpl implements TagService {
 
     private final TagMapper tagMapper;
 
-    public TagServiceImpl(final TagMapper tagMapper) {
+    private final TagRepository tagRepository;
+
+    public TagServiceImpl(final TagMapper tagMapper, final TagRepository tagRepository) {
         this.tagMapper = tagMapper;
+        this.tagRepository = tagRepository;
     }
 
     @Override
@@ -109,8 +113,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public TagVO findById(final String id) {
-        TagDO tagDO = tagMapper.selectByPrimaryKey(id);
-        return TagVO.buildTagVO(tagDO);
+        return TagVO.buildTagVO(tagRepository.findById(id).orElse(null));
     }
 
     @Override
@@ -129,14 +132,12 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagVO> findByParentTagId(final String parentTagId) {
-        TagQuery tagQuery = new TagQuery();
-        tagQuery.setParentTagId(parentTagId);
-        List<TagDO> tagDOS = tagMapper.selectByQuery(tagQuery);
+        List<TagDO> tagDOS = tagRepository.findByParentTagId(parentTagId);
         if (CollectionUtils.isEmpty(tagDOS)) {
             return Lists.newArrayList();
         }
         List<String> rootIds = tagDOS.stream().map(TagDO::getId).collect(Collectors.toList());
-        List<TagDO> tagDOList = tagMapper.selectByParentTagIds(rootIds);
+        List<TagDO> tagDOList = tagRepository.findByParentTagIdIn(rootIds);
         Map<String, Boolean> map = tagDOList.stream().collect(
                 Collectors.toMap(TagDO::getParentTagId, tagDO -> true, (a, b) -> b, ConcurrentHashMap::new));
         return tagDOS.stream().map(tag -> {

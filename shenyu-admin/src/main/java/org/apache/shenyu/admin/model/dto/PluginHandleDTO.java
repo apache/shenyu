@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.PluginHandleMapper;
+import org.apache.shenyu.admin.jpa.repository.PluginHandleRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ public class PluginHandleDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = PluginHandleMapper.class, nullOfIgnore = true, message = "rule not exited")
+    @Existed(provider = PluginHandleRepository.class, nullOfIgnore = true, message = "rule not exited")
     private String id;
     
     /**

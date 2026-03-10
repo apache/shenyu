@@ -17,11 +17,18 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 
 /**
  * Namespace do.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "namespace")
 public class NamespaceDO extends BaseDO {
 
     /**

@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -24,6 +28,9 @@ import java.util.Objects;
 /**
  * The type Meta data do.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "meta_data")
 public final class MetaDataDO extends BaseDO implements Serializable {
 
     private static final long serialVersionUID = 3566656950011853160L;

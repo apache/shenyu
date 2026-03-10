@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -69,7 +69,7 @@ public class MetaDataController {
                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize,
                                        @Valid @Existed(message = "namespaceId is not existed",
-                                               provider = NamespaceMapper.class) final String namespaceId) {
+                                               provider = NamespaceRepository.class) final String namespaceId) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize), namespaceId));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }

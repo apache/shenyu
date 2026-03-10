@@ -22,6 +22,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
@@ -52,6 +55,9 @@ public class TagRelationServiceTest {
     @Mock
     private TagRelationMapper tagRelationMapper;
 
+    @Mock
+    private TagRelationRepository tagRelationRepository;
+
     @Test
     public void testCreate() {
         TagRelationDTO tagRelationDTO = buildTagRelationDTO();
@@ -78,7 +84,7 @@ public class TagRelationServiceTest {
 
     @Test
     public void testFindId() {
-        given(this.tagRelationMapper.selectByPrimaryKey(any())).willReturn(buildTagRelationDO());
+        given(this.tagRelationRepository.findById(any())).willReturn(Optional.of(buildTagRelationDO()));
         TagRelationDO tagRelationDO = tagRelationService.findById("11111");
         assertNotNull(tagRelationDO);
     }
@@ -87,7 +93,7 @@ public class TagRelationServiceTest {
     public void testFindByTagId() {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
-        given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
+        given(this.tagRelationRepository.findByTagId(any())).willReturn(tagRelationDOList);
         List<TagRelationDO> tagRelationDOS = tagRelationService.findByTagId("123");
         assertEquals(tagRelationDOS.size(), 1);
     }
@@ -96,7 +102,7 @@ public class TagRelationServiceTest {
     public void testFindByApiId() {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
-        given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
+        given(this.tagRelationRepository.findByApiId(any())).willReturn(tagRelationDOList);
         List<TagRelationDO> tagRelationDOS = tagRelationService.findApiId("123456");
         assertEquals(tagRelationDOS.size(), 1);
     }

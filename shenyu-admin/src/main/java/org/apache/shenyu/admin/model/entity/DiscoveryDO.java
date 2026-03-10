@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
  * DiscoveryDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "discovery")
 public final class DiscoveryDO extends BaseDO {
 
     private String discoveryName;
@@ -43,7 +50,7 @@ public final class DiscoveryDO extends BaseDO {
 
     }
 
-    public DiscoveryDO(final String discoveryName, final String discoveryType, final String level, final String serverList,
+    public DiscoveryDO(final String discoveryName, final String discoveryType, final String discoveryLevel, final String serverList,
                        final String pluginName, final String props) {
         this.discoveryName = discoveryName;
         this.discoveryType = discoveryType;

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.hibernate.validator.constraints.Range;
 
@@ -42,14 +42,14 @@ public final class SelectorDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = SelectorMapper.class, nullOfIgnore = true, message = "selector is not existed")
+    @Existed(provider = SelectorRepository.class, nullOfIgnore = true, message = "selector is not existed")
     private String id;
     
     /**
      * plugin id.
      */
     @NotBlank
-    @Existed(provider = PluginMapper.class, message = "plugin is not existed")
+    @Existed(provider = PluginRepository.class, message = "plugin is not existed")
     private String pluginId;
     
     /**
@@ -118,7 +118,7 @@ public final class SelectorDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
     
     public SelectorDTO() {

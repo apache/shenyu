@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.jpa.repository.RegistryRepository;
 import org.apache.shenyu.admin.mapper.RegistryMapper;
 import org.apache.shenyu.admin.model.dto.RegistryDTO;
 import org.apache.shenyu.admin.model.entity.RegistryDO;
@@ -42,8 +43,11 @@ public class RegistryServiceImpl implements RegistryService {
 
     private final RegistryMapper registryMapper;
 
-    public RegistryServiceImpl(final RegistryMapper registryMapper) {
+    private final RegistryRepository registryRepository;
+
+    public RegistryServiceImpl(final RegistryMapper registryMapper, final RegistryRepository registryRepository) {
         this.registryMapper = registryMapper;
+        this.registryRepository = registryRepository;
     }
 
     @Override
@@ -68,17 +72,17 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public RegistryVO findById(final String id) {
-        return RegistryTransfer.INSTANCE.mapToVo(registryMapper.selectById(id));
+        return RegistryTransfer.INSTANCE.mapToVo(registryRepository.findById(id).orElse(null));
     }
 
     @Override
     public RegistryVO findByRegistryId(final String registryId) {
-        return RegistryTransfer.INSTANCE.mapToVo(registryMapper.selectByRegistryId(registryId));
+        return RegistryTransfer.INSTANCE.mapToVo(registryRepository.findByRegistryId(registryId).orElse(null));
     }
 
     @Override
     public List<RegistryVO> listAll() {
-        List<RegistryDO> registryDOS = registryMapper.selectAll();
+        List<RegistryDO> registryDOS = registryRepository.findAll();
         return registryDOS.stream().map(RegistryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
     }
 
