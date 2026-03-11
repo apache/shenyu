@@ -46,8 +46,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public final class SentinelPluginTest extends AbstractPluginDataInit {
 
-    private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
-
     private static final String TEST_SENTINEL_FALLBACK_PATH = "/http/test/request/accepted";
 
     @BeforeAll
@@ -59,31 +57,33 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void test() throws IOException {
+        String uri = "/http/test/sentinel/pass";
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(null));
+                initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(uri, null));
         assertThat(selectorAndRulesResult, is("success"));
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(uri, returnType);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-        result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        result = HttpHelper.INSTANCE.postGateway(uri, returnType);
         assertEquals("You have been restricted, please try again later!", result.get("message"));
     }
 
     @Test
     public void testFallbackUri() throws IOException {
+        String uri = "/http/test/sentinel/fallback";
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(TEST_SENTINEL_FALLBACK_PATH));
+                initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(uri, TEST_SENTINEL_FALLBACK_PATH));
         assertThat(selectorAndRulesResult, is("success"));
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        Map<String, Object> result = HttpHelper.INSTANCE.postGateway(uri, returnType);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-        ResultBean fallbackRet = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, ResultBean.class);
+        ResultBean fallbackRet = HttpHelper.INSTANCE.postGateway(uri, ResultBean.class);
         assertEquals(202, fallbackRet.getCode());
     }
 
@@ -95,7 +95,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList(final String fallbackUri) {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String uri, final String fallbackUri) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
         SentinelHandle sentinelHandle = new SentinelHandle();
         sentinelHandle.setDegradeRuleCount(1d);
@@ -117,7 +117,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(TEST_SENTINEL_PATH);
+        conditionData.setParamValue(uri);
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
 
         return Lists.newArrayList(ruleLocalData);
