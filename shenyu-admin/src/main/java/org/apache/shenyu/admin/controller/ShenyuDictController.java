@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -94,7 +94,7 @@ public class ShenyuDictController {
     @GetMapping("/{id}")
     @RequiresPermissions("system:dict:edit")
     public ShenyuAdminResult detail(@PathVariable("id") @Valid
-                                    @Existed(provider = ShenyuDictMapper.class,
+                                    @Existed(provider = ShenyuDictRepository.class,
                                             message = "dict is not existed") final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, shenyuDictService.findById(id));
     }
@@ -121,7 +121,7 @@ public class ShenyuDictController {
     @PutMapping("/{id}")
     @RequiresPermissions("system:dict:edit")
     public ShenyuAdminResult updateShenyuDict(@PathVariable("id") @Valid
-                                              @Existed(provider = ShenyuDictMapper.class,
+                                              @Existed(provider = ShenyuDictRepository.class,
                                                       message = "dict is not existed") final String id,
                                               @Valid @NotNull @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         shenyuDictDTO.setId(id);

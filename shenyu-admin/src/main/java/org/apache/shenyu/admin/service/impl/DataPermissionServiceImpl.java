@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.DataPermissionRepository;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.NamespaceUserRelMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -60,20 +61,24 @@ import java.util.stream.Stream;
  */
 @Service
 public class DataPermissionServiceImpl implements DataPermissionService {
-    
+
     private final DataPermissionMapper dataPermissionMapper;
-    
+
+    private final DataPermissionRepository dataPermissionRepository;
+
     private final RuleMapper ruleMapper;
-    
+
     private final SelectorMapper selectorMapper;
-    
+
     private final NamespaceUserRelMapper namespaceUserRelMapper;
-    
+
     public DataPermissionServiceImpl(final DataPermissionMapper dataPermissionMapper,
+                                     final DataPermissionRepository dataPermissionRepository,
                                      final RuleMapper ruleMapper,
                                      final SelectorMapper selectorMapper,
                                      final NamespaceUserRelMapper namespaceUserRelMapper) {
         this.dataPermissionMapper = dataPermissionMapper;
+        this.dataPermissionRepository = dataPermissionRepository;
         this.ruleMapper = ruleMapper;
         this.selectorMapper = selectorMapper;
         this.namespaceUserRelMapper = namespaceUserRelMapper;
@@ -87,9 +92,9 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      */
     @Override
     public List<DataPermissionDO> getUserDataPermissionList(final String userId) {
-        return dataPermissionMapper.listByUserId(userId);
+        return dataPermissionRepository.findByUserId(userId);
     }
-    
+
     /**
      * get data permission by user id.
      *

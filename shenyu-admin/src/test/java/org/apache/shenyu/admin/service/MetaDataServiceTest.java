@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.MetaDataRepository;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -52,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -80,6 +82,9 @@ public final class MetaDataServiceTest {
 
     @Mock
     private MetaDataMapper metaDataMapper;
+
+    @Mock
+    private MetaDataRepository metaDataRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -175,14 +180,14 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testFindById() {
-        when(metaDataMapper.selectById(anyString())).thenReturn(null);
+        when(metaDataRepository.findById(anyString())).thenReturn(Optional.empty());
         MetaDataVO dataVo = metaDataService.findById(anyString());
         Assertions.assertEquals(new MetaDataVO(), dataVo);
 
         final String appName = "appName";
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         metaDataDO.setAppName(appName);
-        when(metaDataMapper.selectById(anyString())).thenReturn(metaDataDO);
+        when(metaDataRepository.findById(anyString())).thenReturn(Optional.of(metaDataDO));
         dataVo = metaDataService.findById(anyString());
         assertEquals(appName, dataVo.getAppName());
     }
@@ -206,7 +211,7 @@ public final class MetaDataServiceTest {
     @Test
     public void testFindAll() {
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
-        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+        when(metaDataRepository.findAll()).thenReturn(metaDataDOList);
         List<MetaDataVO> all = metaDataService.findAll();
         Assertions.assertEquals(metaDataDOList.size(), all.size(),
                 "The list should be contain " + metaDataDOList.size() + " element.");
@@ -217,7 +222,7 @@ public final class MetaDataServiceTest {
      */
     @Test
     public void testFindAllGroup() {
-        when(metaDataMapper.selectAll()).thenReturn(getMetaDataDOList());
+        when(metaDataRepository.findAll()).thenReturn(getMetaDataDOList());
         Map<String, List<MetaDataVO>> allGroup = metaDataService.findAllGroup();
         Assertions.assertEquals(3, allGroup.keySet().size(),
                 "There should be 3 groups.");
@@ -230,7 +235,7 @@ public final class MetaDataServiceTest {
     public void testListAll() {
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
         metaDataDOList.add(null);
-        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+        when(metaDataRepository.findAll()).thenReturn(metaDataDOList);
         List<MetaData> all = metaDataService.listAll();
         Assertions.assertEquals(metaDataDOList.size() - 1, all.size(),
                 "The List should be contain " + (metaDataDOList.size() - 1) + " element.");
@@ -243,7 +248,7 @@ public final class MetaDataServiceTest {
     public void testListAllData() {
         ArrayList<MetaDataDO> metaDataDOList = getMetaDataDOList();
         metaDataDOList.add(null);
-        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+        when(metaDataRepository.findAll()).thenReturn(metaDataDOList);
         List<MetaDataVO> all = metaDataService.listAllData();
         Assertions.assertEquals(metaDataDOList.size() - 1, all.size(),
                 "The List should be contain " + (metaDataDOList.size() - 1) + " element.");
@@ -252,7 +257,7 @@ public final class MetaDataServiceTest {
     @Test
     public void testImportData() {
         List<MetaDataDO> metaDataDOList = getMetaDataDOList();
-        when(metaDataMapper.selectAll()).thenReturn(metaDataDOList);
+        when(metaDataRepository.findAll()).thenReturn(metaDataDOList);
 
         final List<MetaDataDTO> metaDataDTOList = getMetaDataDTOList();
         given(this.metaDataMapper.insert(any())).willReturn(1);
@@ -272,7 +277,7 @@ public final class MetaDataServiceTest {
                 .appName("appName1")
                 .path("path1")
                 .build();
-        given(this.metaDataMapper.findByPathAndNamespaceId(any(), any())).willReturn(metaDataDO1);
+        given(this.metaDataRepository.findByPathAndNamespaceId(any(), any())).willReturn(Optional.of(metaDataDO1));
         MetaDataDO metaDataDO = metaDataService.findByPathAndNamespaceId("path1", SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataDO);
         Assertions.assertEquals(metaDataDO, metaDataDO1);
@@ -287,7 +292,7 @@ public final class MetaDataServiceTest {
                 .serviceName("serviceName1")
                 .methodName("method1")
                 .build();
-        given(this.metaDataMapper.findByServiceNameAndMethodAndNamespaceId(any(), any(), any()))
+        given(this.metaDataRepository.findByServiceNameAndMethodNameAndNamespaceId(any(), any(), any()))
                 .willReturn(Collections.singletonList(metaDataDO1));
         MetaDataDO metaDataDO = metaDataService
                 .findByServiceNameAndMethodNameAndNamespaceId("serviceName1", "method1", SYS_DEFAULT_NAMESPACE_ID);

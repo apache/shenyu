@@ -23,7 +23,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
+import org.apache.shenyu.admin.jpa.repository.ScaleRuleRepository;
 import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -52,11 +52,11 @@ public class ScaleRlueController {
 
     private final ScaleRuleService scaleRuleService;
 
-    private final ScaleRuleMapper scaleRuleMapper;
+    private final ScaleRuleRepository scaleRuleRepository;
 
-    public ScaleRlueController(final ScaleRuleService scaleRuleService, final ScaleRuleMapper scaleRuleMapper) {
+    public ScaleRlueController(final ScaleRuleService scaleRuleService, final ScaleRuleRepository scaleRuleRepository) {
         this.scaleRuleService = scaleRuleService;
-        this.scaleRuleMapper = scaleRuleMapper;
+        this.scaleRuleRepository = scaleRuleRepository;
     }
 
     /**
@@ -99,7 +99,7 @@ public class ScaleRlueController {
     @GetMapping("/{id}")
     public ShenyuAdminResult detailRule(@PathVariable("id")
                                         @Valid
-                                        @Existed(provider = ScaleRuleMapper.class,
+                                        @Existed(provider = ScaleRuleRepository.class,
                                                 message = "scale role is not existed") final String id) {
         ScaleRuleVO scaleRuleVO = scaleRuleService.findById(id);
         return Optional.ofNullable(scaleRuleVO)
@@ -126,7 +126,7 @@ public class ScaleRlueController {
      */
     @PutMapping
     public ShenyuAdminResult updateRule(@Valid @RequestBody final ScaleRuleDTO scaleRuleDTO) {
-        if (!scaleRuleMapper.existed(scaleRuleDTO.getId())) {
+        if (!scaleRuleRepository.existed(scaleRuleDTO.getId())) {
             throw new ShenyuAdminException("scale rule is not existed");
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, scaleRuleService.createOrUpdate(scaleRuleDTO));

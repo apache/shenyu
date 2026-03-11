@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
@@ -56,7 +56,7 @@ public class AuthApplyDTO implements Serializable {
      * namespaceId.
      */
     @NotBlank
-    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+    @Existed(message = "namespaceId is not existed", provider = NamespaceRepository.class)
     private String namespaceId;
 
     /**

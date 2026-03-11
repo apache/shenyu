@@ -35,6 +35,17 @@
         <dependency>
             <groupId>com.netflix.eureka</groupId>
             <artifactId>eureka-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.netflix.servo</groupId>
+                    <artifactId>servo-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.netflix.servo</groupId>
+            <artifactId>servo-core</artifactId>
         </dependency>
 
         <dependency>

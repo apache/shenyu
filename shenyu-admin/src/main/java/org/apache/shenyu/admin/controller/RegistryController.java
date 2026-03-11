@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.RegistryMapper;
+import org.apache.shenyu.admin.jpa.repository.RegistryRepository;
 import org.apache.shenyu.admin.model.dto.RegistryDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -121,7 +121,7 @@ public class RegistryController {
     @RequiresPermissions("system:registry:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("id")
                                           @Existed(message = "id is not existed",
-                                                  provider = RegistryMapper.class) final String id) {
+                                                  provider = RegistryRepository.class) final String id) {
         RegistryVO registryVO = registryService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, registryVO);
     }
