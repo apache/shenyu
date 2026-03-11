@@ -29,8 +29,8 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -50,8 +50,9 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_SENTINEL_FALLBACK_PATH = "/http/test/request/accepted";
 
-    @BeforeEach
-    public void setup() throws IOException {
+    @BeforeAll
+    public static void globalSetup() throws IOException {
+        cleanPluginData(PluginEnum.SENTINEL.getName());
         String pluginResult = initPlugin(PluginEnum.SENTINEL.getName(), "{\"model\":\"black\"}");
         assertThat(pluginResult, is("success"));
     }
@@ -122,8 +123,8 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         return Lists.newArrayList(ruleLocalData);
     }
 
-    @AfterEach
-    public void clean() throws IOException {
+    @AfterAll
+    public static void clean() throws IOException {
         cleanPluginData(PluginEnum.SENTINEL.getName());
     }
 }
