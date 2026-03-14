@@ -17,25 +17,19 @@
 
 package org.apache.shenyu.plugin.base;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
-import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -71,7 +65,6 @@ public final class AbstractShenyuPluginTest {
 
     @BeforeEach
     public void setUp() {
-        mockShenyuConfig();
         this.ruleData = RuleData.builder()
                 .id("1")
                 .pluginName("SHENYU")
@@ -251,14 +244,6 @@ public final class AbstractShenyuPluginTest {
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
 
-    private void mockShenyuConfig() {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
-        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
-        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
-        SpringBeanUtils.getInstance().setApplicationContext(context);
-    }
-    
     @AfterEach
     public void clear() {
         MatchDataCache.getInstance().cleanSelectorData();

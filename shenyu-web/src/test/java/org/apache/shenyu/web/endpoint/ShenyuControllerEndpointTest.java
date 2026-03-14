@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.web.endpoint;
 
-import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +30,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link ShenyuControllerEndpoint}.
@@ -47,8 +44,6 @@ public final class ShenyuControllerEndpointTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuControllerEndpoint).build();
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(mock(ShenyuTrie.class));
-        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(mock(ShenyuTrie.class));
     }
 
     @Test
