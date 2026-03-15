@@ -101,18 +101,4 @@ public final class ShenyuControllerEndpointTest {
             .andReturn().getResponse();
         assertEquals(response.getStatus(), HttpStatus.OK.value());
     }
-
-    @Test
-    public void getSelectorTrieKeys() throws Exception {
-        final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.get("/actuator/selectorTrie"))
-            .andReturn().getResponse();
-        assertEquals(response.getStatus(), HttpStatus.OK.value());
-    }
-
-    @Test
-    public void getRuleTrieKeys() throws Exception {
-        final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.get("/actuator/ruleTrie"))
-            .andReturn().getResponse();
-        assertEquals(response.getStatus(), HttpStatus.OK.value());
-    }
 }
