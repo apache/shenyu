@@ -297,63 +297,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
     
-//    private SelectorData trieMatchSelector(final ServerWebExchange exchange, final String pluginName, final String path) {
-//        if (!selectorMatchConfig.getTrie().getEnabled()) {
-//            return null;
-//        }
-//        SelectorData selectorData = null;
-//        ShenyuTrieNode shenyuTrieNode = selectorTrie.match(path, pluginName);
-//        if (Objects.nonNull(shenyuTrieNode)) {
-//            LogUtils.info(LOG, "{} selector match path from shenyu trie, path:{}", pluginName, path);
-//            List<?> collection = shenyuTrieNode.getPathCache().get(pluginName);
-//            if (CollectionUtils.isNotEmpty(collection)) {
-//                Pair<Boolean, SelectorData> selectorDataPair;
-//                if (collection.size() > 1) {
-//                    selectorDataPair = matchSelector(exchange, ListUtil.castList(collection, SelectorData.class::cast));
-//                } else {
-//                    Object selectorObj = collection.stream().findFirst().orElse(null);
-//                    SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
-//                    boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
-//                    selectorDataPair = Pair.of(cached, selector);
-//                }
-//                selectorData = selectorDataPair.getRight();
-//                if (selectorDataPair.getLeft() && Objects.nonNull(selectorData)) {
-//                    cacheSelectorData(path, selectorData);
-//                }
-//            }
-//        }
-//        return selectorData;
-//    }
-    
-//    private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
-//        if (!ruleMatchConfig.getTrie().getEnabled()) {
-//            return null;
-//        }
-//        RuleData ruleData = null;
-//        ShenyuTrieNode shenyuTrieNode = ruleTrie.match(path, selectorData.getId());
-//        if (Objects.nonNull(shenyuTrieNode)) {
-//            LogUtils.info(LOG, "{} rule match path from shenyu trie", named());
-//            List<?> collection = shenyuTrieNode.getPathCache().get(selectorData.getId());
-//            if (CollectionUtils.isNotEmpty(collection)) {
-//                Pair<Boolean, RuleData> ruleDataPair;
-//                if (collection.size() > 1) {
-//                    ruleDataPair = matchRule(exchange, ListUtil.castList(collection, RuleData.class::cast));
-//                } else {
-//                    Object ruleObj = collection.stream().findFirst().orElse(null);
-//                    RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;
-//                    boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
-//                    ruleDataPair = Pair.of(cached, rule);
-//                }
-//                ruleData = ruleDataPair.getRight();
-//                if (ruleDataPair.getLeft() && Objects.nonNull(ruleData)) {
-//                    // exist only one rule data, cache rule
-//                    cacheRuleData(path, ruleData);
-//                }
-//            }
-//        }
-//        return ruleData;
-//    }
-    
     private SelectorData defaultMatchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors, final String path) {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
         SelectorData selectorData = matchSelectorPair.getRight();
