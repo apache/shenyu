@@ -56,7 +56,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
-    
 
     private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
     
