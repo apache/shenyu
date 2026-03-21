@@ -748,7 +748,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
 MPL licenses
