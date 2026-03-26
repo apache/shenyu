@@ -67,7 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,19 +118,15 @@ public class RuleServiceImpl implements RuleService {
         RuleQueryCondition condition = pageCondition.getCondition();
         doConditionPreProcessing(condition);
         condition.init();
-        List<String> namespaceSelectors = Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
-                .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
 
-        List<String> finalSelectors = Optional.ofNullable(condition.getSelectors())
-                .orElseGet(Collections::emptyList);
-
-        if (!namespaceSelectors.isEmpty()) {
-            Set<String> selectorSet = new LinkedHashSet<>(finalSelectors);
-            selectorSet.addAll(namespaceSelectors);
-            finalSelectors = new ArrayList<>(selectorSet);
+        if (CollectionUtils.isEmpty(condition.getSelectors())) {
+            // Only populating selectors from namespace when condition.getSelectors() is null/empty.
+            List<String> namespaceSelectors = Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
+                    .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
+                    .orElse(Collections.emptyList());
+            condition.setSelectors(namespaceSelectors);
         }
-        condition.setSelectors(finalSelectors);
+
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
         PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
