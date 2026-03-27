@@ -30,8 +30,8 @@ jobs:
         include:
           - java: 17
             os: ubuntu-latest
-          - java: 18
-            os: ubuntu-latest
+#          - java: 18
+#            os: ubuntu-latest
           - java: 19
             os: ubuntu-latest
           - java: 20
