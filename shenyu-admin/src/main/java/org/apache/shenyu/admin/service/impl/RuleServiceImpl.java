@@ -120,7 +120,7 @@ public class RuleServiceImpl implements RuleService {
         condition.init();
 
         if (CollectionUtils.isEmpty(condition.getSelectors())) {
-            // Only populating selectors from namespace when condition.getSelectors() is null/empty.
+            // Populate selectors from the namespace only when condition selectors are null or empty.
             List<String> namespaceSelectors = Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
                     .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
                     .orElse(Collections.emptyList());
