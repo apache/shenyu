@@ -576,7 +576,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://checkerframework.org/, MIT
     jopt-simple 5.0.4: https://github.com/jopt-simple/jopt-simple, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
 MPL licenses
