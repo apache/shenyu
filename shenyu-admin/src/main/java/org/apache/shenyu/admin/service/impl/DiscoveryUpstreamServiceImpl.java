@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.DiscoveryUpstreamRepository;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -60,6 +61,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
+    private final DiscoveryUpstreamRepository discoveryUpstreamRepository;
+
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
     private final DiscoveryRelMapper discoveryRelMapper;
@@ -75,6 +78,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
     public DiscoveryUpstreamServiceImpl(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                        final DiscoveryUpstreamRepository discoveryUpstreamRepository,
                                         final DiscoveryHandlerMapper discoveryHandlerMapper,
                                         final ProxySelectorMapper proxySelectorMapper,
                                         final DiscoveryMapper discoveryMapper,
@@ -83,6 +87,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                                         final PluginMapper pluginMapper,
                                         final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.discoveryUpstreamRepository = discoveryUpstreamRepository;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.discoveryMapper = discoveryMapper;
@@ -172,17 +177,17 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     public List<DiscoveryUpstreamVO> listAllData() {
-        return discoveryUpstreamMapper
-                .selectAll()
+        return discoveryUpstreamRepository
+                .findAll()
                 .stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToVo)
                 .collect(Collectors.toList());
     }
-    
+
     @Override
     public List<DiscoveryUpstreamVO> listAllDataByNamespaceId(final String namespaceId) {
-        return discoveryUpstreamMapper
-                .selectByNamespaceId(namespaceId)
+        return discoveryUpstreamRepository
+                .findByNamespaceId(namespaceId)
                 .stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToVo)
                 .collect(Collectors.toList());

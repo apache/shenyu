@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -35,6 +36,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -50,6 +52,9 @@ public class TagServiceTest {
 
     @Mock
     private TagMapper tagMapper;
+
+    @Mock
+    private TagRepository tagRepository;
 
     @InjectMocks
     private TagServiceImpl tagService;
@@ -92,7 +97,7 @@ public class TagServiceTest {
 
     @Test
     public void testFindById() {
-        given(this.tagMapper.selectByPrimaryKey(any())).willReturn(buildTagDO());
+        given(this.tagRepository.findById(any())).willReturn(Optional.of(buildTagDO()));
         TagVO tagVO = tagService.findById("123");
         assertNotNull(tagVO);
     }
@@ -106,7 +111,8 @@ public class TagServiceTest {
 
     @Test
     public void testFindByParentTagId() {
-        given(this.tagMapper.selectByQuery(any())).willReturn(Lists.newArrayList(buildTagDO()));
+        given(this.tagRepository.findByParentTagId(any())).willReturn(Lists.newArrayList(buildTagDO()));
+        given(this.tagRepository.findByParentTagIdIn(any())).willReturn(Lists.newArrayList(buildTagDO()));
         List<TagVO> tagVOList = tagService.findByParentTagId("111111");
         assertEquals(tagVOList.size(), 1);
     }

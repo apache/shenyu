@@ -31,7 +31,10 @@ import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -44,6 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
@@ -57,6 +61,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    @Order(1)
     public void test() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(null));
@@ -72,6 +77,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    @Order(2)
     public void testFallbackUri() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(TEST_SENTINEL_FALLBACK_PATH));

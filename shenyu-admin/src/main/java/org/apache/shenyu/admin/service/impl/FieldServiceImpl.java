@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.FieldRepository;
 import org.apache.shenyu.admin.mapper.FieldMapper;
 import org.apache.shenyu.admin.model.dto.FieldDTO;
 import org.apache.shenyu.admin.model.entity.FieldDO;
@@ -33,15 +34,17 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FieldServiceImpl implements FieldService {
 
     private final FieldMapper fieldMapper;
 
-    public FieldServiceImpl(final FieldMapper fieldMapper) {
+    private final FieldRepository fieldRepository;
+
+    public FieldServiceImpl(final FieldMapper fieldMapper, final FieldRepository fieldRepository) {
         this.fieldMapper = fieldMapper;
+        this.fieldRepository = fieldRepository;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public FieldVO findById(final String id) {
-        FieldDO fieldDO = fieldMapper.selectByPrimaryKey(id);
+        FieldDO fieldDO = fieldRepository.findById(id).orElse(null);
         FieldVO.FieldVOBuilder builder = FieldVO.builder();
         if (Objects.nonNull(fieldDO)) {
             builder.id(fieldDO.getId())
@@ -81,7 +84,7 @@ public class FieldServiceImpl implements FieldService {
     @Pageable
     public CommonPager<FieldVO> listByPage(final FieldQuery fieldQuery) {
         List<FieldDO> list = fieldMapper.selectByQuery(fieldQuery);
-        return PageResultUtils.result(fieldQuery.getPageParameter(), () -> list.stream().map(FieldVO::buildFieldVO).collect(Collectors.toList()));
+        return PageResultUtils.result(fieldQuery.getPageParameter(), () -> list.stream().map(FieldVO::buildFieldVO).toList());
     }
 
     private int create(final FieldDTO fieldDTO) {

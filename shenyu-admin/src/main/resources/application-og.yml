@@ -19,6 +19,8 @@ shenyu:
       init_enable: true
 
 spring:
+  jpa:
+    database: POSTGRESQL
   datasource:
     url: jdbc:opengauss://localhost:5432/shenyu
     username: root

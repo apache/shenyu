@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
@@ -65,6 +66,9 @@ public final class ShenyuDictServiceTest {
 
     @Mock
     private ShenyuDictMapper shenyuDictMapper;
+
+    @Mock
+    private ShenyuDictRepository shenyuDictRepository;
     
     @Mock
     private DictEventPublisher publisher;
@@ -72,7 +76,7 @@ public final class ShenyuDictServiceTest {
     @Test
     public void testFindByType() {
         ShenyuDictDO shenyuDictDO = buildShenyuDictDO();
-        given(this.shenyuDictMapper.selectByQuery(any())).willReturn(Collections.singletonList(shenyuDictDO));
+        given(this.shenyuDictRepository.findByType(any())).willReturn(Collections.singletonList(shenyuDictDO));
         List<ShenyuDictVO> shenyuDictVOList = this.shenyuDictService.list("rule");
         assertEquals(1, shenyuDictVOList.size());
         assertEquals(shenyuDictDO.getId(), shenyuDictVOList.get(0).getId());
@@ -81,7 +85,7 @@ public final class ShenyuDictServiceTest {
     @Test
     public void testFindById() {
         ShenyuDictDO shenyuDictDO = buildShenyuDictDO();
-        given(this.shenyuDictMapper.selectById(eq("123"))).willReturn(shenyuDictDO);
+        given(this.shenyuDictRepository.findById(eq("123"))).willReturn(Optional.of(shenyuDictDO));
         ShenyuDictVO shenyuDictVO = this.shenyuDictService.findById("123");
         assertNotNull(shenyuDictVO);
         assertEquals(shenyuDictDO.getId(), shenyuDictVO.getId());
@@ -154,7 +158,7 @@ public final class ShenyuDictServiceTest {
     @Test
     public void testListAllData() {
         List<ShenyuDictDO> shenyuDictDOList = IntStream.range(0, 10).mapToObj(i -> buildShenyuDictDO()).collect(Collectors.toList());
-        given(this.shenyuDictMapper.selectByQuery(any())).willReturn(shenyuDictDOList);
+        given(this.shenyuDictRepository.findAll()).willReturn(shenyuDictDOList);
         List<ShenyuDictVO> shenyuDictVOList = shenyuDictService.listAllData();
         assertEquals(shenyuDictVOList.size(), shenyuDictDOList.size());
     }
@@ -162,7 +166,7 @@ public final class ShenyuDictServiceTest {
     @Test
     public void testImportData() {
         List<ShenyuDictDO> shenyuDictDOList = Collections.singletonList(buildShenyuDictDO("haha"));
-        given(this.shenyuDictMapper.selectByQuery(any())).willReturn(shenyuDictDOList);
+        given(this.shenyuDictRepository.findAll()).willReturn(shenyuDictDOList);
         List<ShenyuDictDTO> shenyuDictDTOList = Collections.singletonList(buildShenyuDictDTO(null, "lala"));
         ConfigImportResult configImportResult = shenyuDictService.importData(shenyuDictDTOList);
 

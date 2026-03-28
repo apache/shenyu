@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.jpa.repository.DataPermissionRepository;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -66,6 +67,9 @@ public final class DataPermissionServiceTest {
     private DataPermissionMapper dataPermissionMapper;
 
     @Mock
+    private DataPermissionRepository dataPermissionRepository;
+
+    @Mock
     private RuleMapper ruleMapper;
 
     @Mock
@@ -91,14 +95,14 @@ public final class DataPermissionServiceTest {
     @Test
     public void assertGetUserDataPermissionList() {
         List<DataPermissionDO> list = Collections.singletonList(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
-        given(dataPermissionMapper.listByUserId("1001")).willReturn(list);
+        given(dataPermissionRepository.findByUserId("1001")).willReturn(list);
         assertThat(dataPermissionService.getUserDataPermissionList("1001"), is(list));
     }
 
     @Test
     public void assertGetDataPermission() {
         List<DataPermissionDO> list = Collections.singletonList(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
-        given(dataPermissionMapper.listByUserId("1001")).willReturn(list);
+        given(dataPermissionRepository.findByUserId("1001")).willReturn(list);
         List<String> target = Collections.singletonList("1");
         assertThat(dataPermissionService.getDataPermission("1001"), is(target));
     }
