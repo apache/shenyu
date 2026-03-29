@@ -263,11 +263,6 @@ public enum PluginEnum {
     GRPC(310, 0, "grpc"),
     
     /**
-     * Motan plugin enum.
-     */
-    MOTAN(310, 0, "motan"),
-
-    /**
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),

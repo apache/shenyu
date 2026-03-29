@@ -30,7 +30,6 @@ jobs:
           - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
           - shenyu-integrated-test-https
-          - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
           - shenyu-integrated-test-websocket
