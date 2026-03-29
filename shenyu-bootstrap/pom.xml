@@ -217,20 +217,6 @@
         </dependency>
         <!--shenyu grpc plugin end-->
 
-        <!--shenyu tars plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-tars</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.tencent.tars</groupId>
-            <artifactId>tars-client</artifactId>
-            <version>1.7.2</version>
-        </dependency>
-        <!--shenyu tars plugin end-->
-
         <!--Tcp Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

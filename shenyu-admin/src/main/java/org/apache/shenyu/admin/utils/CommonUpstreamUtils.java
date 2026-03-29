@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
-import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.register.common.enums.EventType;
 
@@ -206,34 +205,6 @@ public class CommonUpstreamUtils {
     public static GrpcUpstream buildAliveGrpcUpstream(final String upstreamUrl) {
         return GrpcUpstream.builder().upstreamUrl(upstreamUrl).weight(50)
                 .timestamp(System.currentTimeMillis()).build();
-    }
-
-    /**
-     * Build default tars upstream tars upstream.
-     *
-     * @param host the host
-     * @param port the port
-     * @return the tars upstream
-     */
-    public static TarsUpstream buildDefaultTarsUpstream(final String host, final Integer port) {
-        return TarsUpstream.builder().upstreamUrl(buildUrl(host, port))
-                .weight(DEFAULT_WEIGHT).warmup(Constants.WARMUP_TIME)
-                .timestamp(System.currentTimeMillis())
-                .status(Objects.nonNull(port) && StringUtils.isNotBlank(host))
-                .build();
-    }
-
-    /**
-     * Build alive tars upstream tars upstream.
-     *
-     * @param upstreamUrl the upstreamUrl
-     * @return the tars upstream
-     */
-    public static TarsUpstream buildAliveTarsUpstream(final String upstreamUrl) {
-        return TarsUpstream.builder().upstreamUrl(upstreamUrl).weight(DEFAULT_WEIGHT)
-                .warmup(Constants.WARMUP_TIME)
-                .timestamp(System.currentTimeMillis())
-                .build();
     }
 
     /**

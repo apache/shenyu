@@ -38,11 +38,6 @@ public enum RegisterTypeEnum {
     SOFA("sofa"),
 
     /**
-     * Tars rpc type enum.
-     */
-    TARS("tars"),
-
-    /**
      * Motan rpc type enum.
      */
     MOTAN("motan"),

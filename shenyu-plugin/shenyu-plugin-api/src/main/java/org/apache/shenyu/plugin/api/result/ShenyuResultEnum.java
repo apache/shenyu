@@ -93,16 +93,6 @@ public enum ShenyuResultEnum {
     SOFA_HAVE_BODY_PARAM(432, "Sofa must have body param, please enter the JSON format in the body!"),
     
     /**
-     * Tars have body param shenyu result enum.
-     */
-    TARS_HAVE_BODY_PARAM(433, "Tars must have body param, please enter the JSON format in the body!"),
-    
-    /**
-     * Tars invoke shenyu result enum.
-     */
-    TARS_INVOKE(434, "Tars invoke error!"),
-    
-    /**
      * Grpc have body param shenyu result enum.
      */
     GRPC_HAVE_BODY_PARAM(435, "Grpc must have body param, please enter the JSON format in the body!"),
