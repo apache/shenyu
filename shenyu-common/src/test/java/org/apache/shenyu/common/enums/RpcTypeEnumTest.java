@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -35,7 +36,6 @@ public class RpcTypeEnumTest {
         assertEquals("dubbo", RpcTypeEnum.DUBBO.getName());
         assertEquals("http", RpcTypeEnum.HTTP.getName());
         assertEquals("motan", RpcTypeEnum.MOTAN.getName());
-        assertEquals("sofa", RpcTypeEnum.SOFA.getName());
         assertEquals("springCloud", RpcTypeEnum.SPRING_CLOUD.getName());
         assertEquals("tars", RpcTypeEnum.TARS.getName());
         assertEquals("websocket", RpcTypeEnum.WEB_SOCKET.getName());
@@ -47,7 +47,6 @@ public class RpcTypeEnumTest {
         assertTrue(RpcTypeEnum.DUBBO.getSupport());
         assertTrue(RpcTypeEnum.HTTP.getSupport());
         assertTrue(RpcTypeEnum.MOTAN.getSupport());
-        assertTrue(RpcTypeEnum.SOFA.getSupport());
         assertTrue(RpcTypeEnum.TARS.getSupport());
         assertTrue(RpcTypeEnum.WEB_SOCKET.getSupport());
     }
@@ -83,12 +82,17 @@ public class RpcTypeEnumTest {
         List<RpcTypeEnum> rpcTypeEnumList = RpcTypeEnum.acquireSupportMetadatas();
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.DUBBO));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.GRPC));
-        assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SOFA));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.TARS));
     }
 
     @Test
     public void testGetRpcTypeEnumByNameInvalid() {
         assertThrows(ShenyuException.class, () -> RpcTypeEnum.acquireByName("InvalidName"));
+    }
+
+    @Test
+    public void testRemovedSofaSupport() {
+        assertFalse(Arrays.stream(RpcTypeEnum.values()).map(RpcTypeEnum::name).anyMatch("SOFA"::equals));
+        assertFalse(RpcTypeEnum.acquireSupportMetadatas().stream().map(RpcTypeEnum::name).anyMatch("SOFA"::equals));
     }
 }

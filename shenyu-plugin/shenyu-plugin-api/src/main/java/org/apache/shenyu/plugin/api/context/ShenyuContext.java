@@ -38,7 +38,7 @@ public class ShenyuContext implements Serializable {
     private String method;
 
     /**
-     * is rpcType data. now we only support "http","dubbo","sofa".
+     * is rpcType data.
      */
     private String rpcType;
 

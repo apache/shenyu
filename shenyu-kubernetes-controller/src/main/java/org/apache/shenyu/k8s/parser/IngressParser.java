@@ -71,9 +71,8 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         boolean webSocketEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
-        boolean sofaEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SOFA_ENABLED);
 
-        if (!dubboEnabled || !motanEnabled || !sofaEnabled) {
+        if (!dubboEnabled || !motanEnabled) {
             contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
         }
         if (dubboEnabled) {
@@ -88,9 +87,6 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         } else if (grpcEnabled) {
             GrpcParser grpcParser = new GrpcParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(grpcParser.parse(ingress, coreV1Api));
-        } else if (sofaEnabled) {
-            SofaParser sofaParser = new SofaParser(serviceLister, endpointsLister);
-            shenyuMemoryConfigList.add(sofaParser.parse(ingress, coreV1Api));
         } else {
             DivideIngressParser divideIngressParser = new DivideIngressParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(divideIngressParser.parse(ingress, coreV1Api));

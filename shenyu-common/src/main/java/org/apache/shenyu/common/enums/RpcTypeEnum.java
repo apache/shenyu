@@ -39,11 +39,6 @@ public enum RpcTypeEnum {
     DUBBO("dubbo", true),
 
     /**
-     * Sofa rpc type enum.
-     */
-    SOFA("sofa", true),
-
-    /**
      * Tars rpc type enum.
      */
     TARS("tars", true),
@@ -136,7 +131,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportMetadatas() {
-        return Arrays.asList(RpcTypeEnum.HTTP, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS, RpcTypeEnum.MOTAN);
+        return Arrays.asList(RpcTypeEnum.HTTP, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.TARS, RpcTypeEnum.MOTAN);
     }
 
     /**

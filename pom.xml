@@ -125,8 +125,6 @@
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
         <springdoc.version>2.5.0</springdoc.version>
-        <sofa.rpc.version>5.13.0</sofa.rpc.version>
-        <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <tars.version>1.7.2</tars.version>
         <curator.version>5.7.0</curator.version>
         <wiremock.version>3.0.1</wiremock.version>
@@ -288,38 +286,6 @@
                 <groupId>org.apache.dubbo</groupId>
                 <artifactId>dubbo</artifactId>
                 <version>${apache.dubbo.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alipay.sofa</groupId>
-                <artifactId>sofa-rpc-all</artifactId>
-                <version>${sofa.rpc.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>net.jcip</groupId>
-                        <artifactId>jcip-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.grpc</groupId>
-                        <artifactId>grpc-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-api</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-protobuf</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-stub</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-netty-shaded</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>

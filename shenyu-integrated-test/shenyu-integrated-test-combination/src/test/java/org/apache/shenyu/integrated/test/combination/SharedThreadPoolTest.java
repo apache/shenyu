@@ -59,9 +59,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         // for motan
         pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerProtocol\": \"zk\", \"registerAddress\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
-        // for sofa
-        pluginResult = initPlugin(PluginEnum.SOFA.getName(), "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
-        assertThat(pluginResult, Matchers.is("success"));
     }
     
     @Test
@@ -102,6 +99,5 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, grpc);
         String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
         assertEquals(spring, motan);
-        // TODO test sofa
     }
 }

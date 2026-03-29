@@ -331,3 +331,32 @@ ALTER TABLE `discovery_upstream` CHANGE COLUMN `url` `upstream_url` varchar(64) 
 ALTER TABLE `discovery_upstream` CHANGE COLUMN `status` `upstream_status` int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)';
 
 ALTER TABLE `discovery` CHANGE COLUMN `level` `discovery_level` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global';
+
+/* remove sofa plugin */
+DELETE FROM `api_rule_relation` WHERE `rule_id` IN (
+    SELECT `id` FROM (SELECT `r`.`id`
+        FROM `rule` `r`
+        INNER JOIN `selector` `s` ON `r`.`selector_id` = `s`.`id`
+        WHERE `s`.`plugin_id` = '11') AS `sofa_rule_ids`
+);
+DELETE FROM `rule_condition` WHERE `rule_id` IN (
+    SELECT `id` FROM (SELECT `r`.`id`
+        FROM `rule` `r`
+        INNER JOIN `selector` `s` ON `r`.`selector_id` = `s`.`id`
+        WHERE `s`.`plugin_id` = '11') AS `sofa_rule_ids`
+);
+DELETE FROM `rule` WHERE `selector_id` IN (
+    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `sofa_selector_ids`
+);
+DELETE FROM `selector_condition` WHERE `selector_id` IN (
+    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `sofa_selector_ids`
+);
+DELETE FROM `selector` WHERE `plugin_id` = '11';
+DELETE FROM `meta_data` WHERE `rpc_type` = 'sofa';
+DELETE FROM `api` WHERE `rpc_type` = 'sofa';
+DELETE FROM `permission` WHERE `resource_id` IN ('1529402639284355073', '1529402639368241170', '1529402639368241171', '1529402639368241172', '1529402639368241173', '1529402639368241174', '1529402639368241175', '1529402639368241176', '1529402639368241177', '1529402639368241178');
+DELETE FROM `resource` WHERE `id` IN ('1529402639284355073', '1529402639368241170', '1529402639368241171', '1529402639368241172', '1529402639368241173', '1529402639368241174', '1529402639368241175', '1529402639368241176', '1529402639368241177', '1529402639368241178');
+DELETE FROM `namespace_plugin_rel` WHERE `plugin_id` = '11';
+DELETE FROM `plugin_handle` WHERE `plugin_id` = '11';
+DELETE FROM `plugin` WHERE `id` = '11';
+ALTER TABLE `api` MODIFY COLUMN `rpc_type` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,tars,websocket,springCloud,motan,grpc';

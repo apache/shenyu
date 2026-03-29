@@ -88,11 +88,6 @@ public enum ShenyuResultEnum {
     DUBBO_HAVE_BODY_PARAM(431, "Dubbo must have body param, please enter the JSON format in the body!"),
     
     /**
-     * Sofa have body param shenyu result enum.
-     */
-    SOFA_HAVE_BODY_PARAM(432, "Sofa must have body param, please enter the JSON format in the body!"),
-    
-    /**
      * Tars have body param shenyu result enum.
      */
     TARS_HAVE_BODY_PARAM(433, "Tars must have body param, please enter the JSON format in the body!"),

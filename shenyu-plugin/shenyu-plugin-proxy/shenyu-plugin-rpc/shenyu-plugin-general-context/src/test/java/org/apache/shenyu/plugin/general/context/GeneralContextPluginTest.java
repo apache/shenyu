@@ -104,7 +104,7 @@ public class GeneralContextPluginTest {
 
         assertEquals(shenyuGeneralContext.get("addGeneralContextKey"), "addGeneralContextValue");
         assertEquals(shenyuGeneralContext.get("shenyuTestHeaderNewKey"), "shenyuTestHeaderValue");
-        shenyuGeneralContext = ((Map<String, Map<String, String>>) newExchange.getValue().getAttributes().get(Constants.GENERAL_CONTEXT)).get(PluginEnum.SOFA.getName());
+        shenyuGeneralContext = ((Map<String, Map<String, String>>) newExchange.getValue().getAttributes().get(Constants.GENERAL_CONTEXT)).get(PluginEnum.TARS.getName());
         assertNull(shenyuGeneralContext);
     }
 

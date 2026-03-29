@@ -33,11 +33,6 @@ public enum RegisterTypeEnum {
     DUBBO("dubbo"),
 
     /**
-     * Sofa rpc type enum.
-     */
-    SOFA("sofa"),
-
-    /**
      * Tars rpc type enum.
      */
     TARS("tars"),
