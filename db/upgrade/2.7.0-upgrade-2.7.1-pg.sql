@@ -346,14 +346,14 @@ ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_st
 
 ALTER TABLE "public"."discovery" RENAME COLUMN "level" TO "discovery_level";
 
-/* remove sofa plugin */
+/* remove deprecated rpc plugin data */
 DELETE FROM "public"."api_rule_relation" WHERE "rule_id" IN (
     SELECT "id" FROM (
         SELECT "r"."id"
         FROM "public"."rule" "r"
         INNER JOIN "public"."selector" "s" ON "r"."selector_id" = "s"."id"
         WHERE "s"."plugin_id" = '11'
-    ) AS "sofa_rule_ids"
+    ) AS "deprecated_rpc_rule_ids"
 );
 DELETE FROM "public"."rule_condition" WHERE "rule_id" IN (
     SELECT "id" FROM (
@@ -361,13 +361,13 @@ DELETE FROM "public"."rule_condition" WHERE "rule_id" IN (
         FROM "public"."rule" "r"
         INNER JOIN "public"."selector" "s" ON "r"."selector_id" = "s"."id"
         WHERE "s"."plugin_id" = '11'
-    ) AS "sofa_rule_ids"
+    ) AS "deprecated_rpc_rule_ids"
 );
 DELETE FROM "public"."rule" WHERE "selector_id" IN (
-    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '11') AS "sofa_selector_ids"
+    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '11') AS "deprecated_rpc_selector_ids"
 );
 DELETE FROM "public"."selector_condition" WHERE "selector_id" IN (
-    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '11') AS "sofa_selector_ids"
+    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '11') AS "deprecated_rpc_selector_ids"
 );
 DELETE FROM "public"."selector" WHERE "plugin_id" = '11';
 DELETE FROM "public"."meta_data" WHERE "rpc_type" = 'sofa';

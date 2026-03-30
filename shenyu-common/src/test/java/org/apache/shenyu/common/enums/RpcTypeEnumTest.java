@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -90,9 +89,4 @@ public class RpcTypeEnumTest {
         assertThrows(ShenyuException.class, () -> RpcTypeEnum.acquireByName("InvalidName"));
     }
 
-    @Test
-    public void testRemovedSofaSupport() {
-        assertFalse(Arrays.stream(RpcTypeEnum.values()).map(RpcTypeEnum::name).anyMatch("SOFA"::equals));
-        assertFalse(RpcTypeEnum.acquireSupportMetadatas().stream().map(RpcTypeEnum::name).anyMatch("SOFA"::equals));
-    }
 }

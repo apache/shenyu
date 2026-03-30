@@ -332,24 +332,24 @@ ALTER TABLE `discovery_upstream` CHANGE COLUMN `status` `upstream_status` int(0)
 
 ALTER TABLE `discovery` CHANGE COLUMN `level` `discovery_level` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0 selector,1 plugin  2 global';
 
-/* remove sofa plugin */
+/* remove deprecated rpc plugin data */
 DELETE FROM `api_rule_relation` WHERE `rule_id` IN (
     SELECT `id` FROM (SELECT `r`.`id`
         FROM `rule` `r`
         INNER JOIN `selector` `s` ON `r`.`selector_id` = `s`.`id`
-        WHERE `s`.`plugin_id` = '11') AS `sofa_rule_ids`
+        WHERE `s`.`plugin_id` = '11') AS `deprecated_rpc_rule_ids`
 );
 DELETE FROM `rule_condition` WHERE `rule_id` IN (
     SELECT `id` FROM (SELECT `r`.`id`
         FROM `rule` `r`
         INNER JOIN `selector` `s` ON `r`.`selector_id` = `s`.`id`
-        WHERE `s`.`plugin_id` = '11') AS `sofa_rule_ids`
+        WHERE `s`.`plugin_id` = '11') AS `deprecated_rpc_rule_ids`
 );
 DELETE FROM `rule` WHERE `selector_id` IN (
-    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `sofa_selector_ids`
+    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `deprecated_rpc_selector_ids`
 );
 DELETE FROM `selector_condition` WHERE `selector_id` IN (
-    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `sofa_selector_ids`
+    SELECT `id` FROM (SELECT `id` FROM `selector` WHERE `plugin_id` = '11') AS `deprecated_rpc_selector_ids`
 );
 DELETE FROM `selector` WHERE `plugin_id` = '11';
 DELETE FROM `meta_data` WHERE `rpc_type` = 'sofa';
