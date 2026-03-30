@@ -69,10 +69,9 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         boolean dubboEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_DUBBO_ENABLED);
         boolean motanEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_MOTAN_ENABLED);
         boolean webSocketEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
-        boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
 
-        if (!dubboEnabled || !motanEnabled) {
+        if (hasContextPathAnnotation(ingress)) {
             contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
         }
         if (dubboEnabled) {
@@ -97,6 +96,11 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
     private boolean getBooleanAnnotation(final V1Ingress ingress, final String annotationKey) {
         String annotationValue = ingress.getMetadata().getAnnotations().get(annotationKey);
         return Objects.nonNull(annotationValue) && Boolean.parseBoolean(annotationValue);
+    }
+
+    private boolean hasContextPathAnnotation(final V1Ingress ingress) {
+        String annotationValue = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH);
+        return Objects.nonNull(annotationValue) && !annotationValue.trim().isEmpty();
     }
 
     private void contextPathParse(final V1Ingress ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList, final CoreV1Api coreV1Api) {
