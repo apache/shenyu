@@ -14,8 +14,8 @@ This plugin is developed and tested with the following SDK versions:
 
 ### Supported Protocols
 
-- **SSE (Server-Sent Events)**: `/sse` endpoint with long-polling session support
-- **Streamable HTTP**: Unified endpoint supporting GET (SSE stream) and POST (message) requests
+- **SSE (Server-Sent Events)**: `/sse` endpoint with a long-lived streaming connection and session ID correlation
+- **Streamable HTTP**: Unified endpoint handling POST message requests for MCP operations
 
 ### Known Limitations
 
@@ -517,4 +517,3 @@ Implement retry mechanisms and proper error responses at the business layer.
 - Monitor and log API performance
 
 These examples are based on **real interfaces from the shenyu-examples-http project** and can be used and tested directly in a Shenyu environment.
-

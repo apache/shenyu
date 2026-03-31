@@ -62,8 +62,8 @@
             - ShenyuStreamableHttpServerTransportProvider uses reflection to access
               McpServerSession.initialized and McpServerSession.state fields for session verification
             - When upgrading SDK versions, verify that these internal fields still exist and
-              update McpSessionHelper.SUPPORTED_SDK_VERSION and
-              ShenyuStreamableHttpServerTransportProvider.SUPPORTED_SDK_VERSION accordingly
+              update McpSessionHelper.SUPPORTED_SDK_VERSION and any corresponding
+              SDK compatibility documentation in ShenyuStreamableHttpServerTransportProvider
         -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

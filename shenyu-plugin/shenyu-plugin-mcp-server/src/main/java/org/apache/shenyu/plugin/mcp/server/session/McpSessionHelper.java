@@ -98,16 +98,27 @@ public class McpSessionHelper {
             fieldsResolved = true;
             LOG.info("MCP SDK reflection fields resolved successfully. Tested with SDK version: {}", SUPPORTED_SDK_VERSION);
         } catch (NoSuchFieldException e) {
+            clearReflectionFieldCache();
             LOG.error("SDK COMPATIBILITY ERROR: Failed to resolve reflection fields. "
                     + "This indicates the MCP SDK API has changed. "
                     + "Tested version: {}, Current SDK may be incompatible. "
                     + "Missing field: {}", SUPPORTED_SDK_VERSION, e.getMessage());
-            fieldsResolved = false;
         } catch (SecurityException e) {
+            clearReflectionFieldCache();
             LOG.error("SDK COMPATIBILITY ERROR: Security manager blocked reflection access. "
                     + "Field resolution failed: {}", e.getMessage());
-            fieldsResolved = false;
+        } catch (RuntimeException e) {
+            clearReflectionFieldCache();
+            LOG.error("SDK COMPATIBILITY ERROR: Unexpected runtime exception during reflection field resolution. "
+                    + "This may indicate module access restrictions or an incompatible SDK version "
+                    + "(tested: {}). Error: {}", SUPPORTED_SDK_VERSION, e.getMessage(), e);
         }
+    }
+
+    private static void clearReflectionFieldCache() {
+        asyncExchangeFieldCache = null;
+        sessionFieldCache = null;
+        fieldsResolved = false;
     }
 
     /**
@@ -142,11 +153,7 @@ public class McpSessionHelper {
      * @throws IllegalStateException if SDK reflection fails (API incompatibility)
      */
     public static String getSessionId(final McpSyncServerExchange mcpSyncServerExchange) {
-        McpServerSession session = getSession(mcpSyncServerExchange);
-        if (Objects.isNull(session)) {
-            throw new IllegalArgumentException("Session is required in McpAsyncServerExchange");
-        }
-        return session.getId();
+        return getSession(mcpSyncServerExchange).getId();
     }
 
     /**
