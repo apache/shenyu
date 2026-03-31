@@ -95,13 +95,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleSelectorIfNull(pluginName, exchange, chain);
         }
         SelectorData selectorData = obtainSelectorDataCacheIfEnabled(path);
-        // handle Selector
-        if (Objects.nonNull(selectorData) && StringUtils.isBlank(selectorData.getId())) {
-            return handleSelectorIfNull(pluginName, exchange, chain);
-        }
-        selectorData = defaultMatchSelector(exchange, selectors, path);
-        if (Objects.isNull(selectorData)) {
-            return handleSelectorIfNull(pluginName, exchange, chain);
+        if (Objects.nonNull(selectorData)) {
+            if (StringUtils.isBlank(selectorData.getId())) {
+                return handleSelectorIfNull(pluginName, exchange, chain);
+            }
+        } else {
+            selectorData = defaultMatchSelector(exchange, selectors, path);
+            if (Objects.isNull(selectorData)) {
+                return handleSelectorIfNull(pluginName, exchange, chain);
+            }
         }
         printLog(selectorData, pluginName);
         if (!selectorData.getContinued()) {
@@ -122,12 +124,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         // if the L1 cache fails to hit, using L2 cache based on trie cache.
         // if the L2 cache fails to hit, execute default strategy.
         RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
-        if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
-            return handleRuleIfNull(pluginName, exchange, chain);
-        }
-        ruleData = defaultMatchRule(exchange, rules, path);
-        if (Objects.isNull(ruleData)) {
-            return handleRuleIfNull(pluginName, exchange, chain);
+        if (Objects.nonNull(ruleData)) {
+            if (Objects.isNull(ruleData.getId())) {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
+        } else {
+            ruleData = defaultMatchRule(exchange, rules, path);
+            if (Objects.isNull(ruleData)) {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
         }
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);

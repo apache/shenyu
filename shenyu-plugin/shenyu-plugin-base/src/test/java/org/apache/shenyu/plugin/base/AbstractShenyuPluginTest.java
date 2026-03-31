@@ -29,9 +29,12 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
+import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -42,7 +45,9 @@ import reactor.test.StepVerifier;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -246,6 +251,52 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeSelectorCacheHitShouldNotReMatchTest() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        this.selectorData.setContinued(false);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        MatchDataCache.getInstance().cacheSelectorData(exchange.getRequest().getURI().getRawPath(), selectorData, 1000, 10000L);
+        try (MockedStatic<MatchStrategyFactory> mockedStatic = Mockito.mockStatic(MatchStrategyFactory.class)) {
+            mockedStatic.when(() -> MatchStrategyFactory.match(selectorData.getMatchMode(), selectorData.getConditionList(), exchange)).thenReturn(true);
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            verify(testShenyuPlugin).doExecute(Mockito.same(exchange), Mockito.same(shenyuPluginChain), Mockito.same(selectorData),
+                    argThat(rule -> Constants.DEFAULT_RULE.equals(rule.getId()) && selectorData.getId().equals(rule.getSelectorId())));
+            mockedStatic.verifyNoInteractions();
+            verify(shenyuPluginChain, never()).execute(exchange);
+        }
+    }
+
+    @Test
+    public void executeRuleCacheHitShouldNotReMatchTest() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        this.selectorData.setContinued(true);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        MatchDataCache.getInstance().cacheSelectorData(exchange.getRequest().getURI().getRawPath(), selectorData, 1000, 10000L);
+        MatchDataCache.getInstance().cacheRuleData(exchange.getRequest().getURI().getRawPath(), ruleData, 1000, 10000L);
+        try (MockedStatic<MatchStrategyFactory> mockedStatic = Mockito.mockStatic(MatchStrategyFactory.class)) {
+            mockedStatic.when(() -> MatchStrategyFactory.match(selectorData.getMatchMode(), selectorData.getConditionList(), exchange)).thenReturn(true);
+            mockedStatic.when(() -> MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange)).thenReturn(true);
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+            mockedStatic.verifyNoInteractions();
+        }
     }
 
     @AfterEach
