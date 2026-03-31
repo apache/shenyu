@@ -35,17 +35,17 @@ public enum PluginEnum {
     /**
      * Tcp plugin enum.
      */
-    TCP(0, 0, "tcp"),
+    TCP(320, 0, "tcp"),
     
     /**
      * Mqtt plugin enum.
      */
-    MQTT(0, 0, "mqtt"),
+    MQTT(125, 0, "mqtt"),
 
     /**
      * the mock plugin enum.
      */
-    MOCK(8, 0, "mock"),
+    MOCK(1, 0, "mock"),
     
     /**
      * the cache plugin enum.
@@ -145,7 +145,7 @@ public enum PluginEnum {
     /**
      * Resilience4J plugin enum.
      */
-    RESILIENCE4J(150, 0, "resilience4j"),
+    RESILIENCE4J(310, 0, "resilience4j"),
     
     /**
      * Logging console plugin enum.
@@ -275,7 +275,7 @@ public enum PluginEnum {
     /**
      * Key-auth plugin enum.
      */
-    KEY_AUTH(430, 0, "keyAuth"),
+    KEY_AUTH(150, 0, "keyAuth"),
 
     /**
      * Ai-proxy plugin enum.
@@ -295,7 +295,7 @@ public enum PluginEnum {
     /**
      * Basic-auth plugin enum.
      */
-    BASIC_AUTH(35, 0, "basicAuth");
+    BASIC_AUTH(150, 0, "basicAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.
