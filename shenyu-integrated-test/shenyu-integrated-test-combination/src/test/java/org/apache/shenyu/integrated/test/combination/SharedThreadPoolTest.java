@@ -26,7 +26,6 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
