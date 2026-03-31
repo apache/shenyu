@@ -2,6 +2,27 @@
 
 This document provides comprehensive examples of tool configurations for the Shenyu MCP Server Plugin based on **real interfaces from the shenyu-examples-http project**, covering different HTTP request methods, parameter types, and configuration patterns.
 
+## SDK Version Compatibility
+
+This plugin is developed and tested with the following SDK versions:
+
+| Dependency | Version |
+|------------|---------|
+| MCP SDK (io.modelcontextprotocol.sdk:mcp-bom) | 0.17.0 |
+| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.2 |
+| Spring Boot | 3.3.1 |
+
+### Supported Protocols
+
+- **SSE (Server-Sent Events)**: `/sse` endpoint with long-polling session support
+- **Streamable HTTP**: Unified endpoint supporting GET (SSE stream) and POST (message) requests
+
+### Known Limitations
+
+1. **Session Management**: Uses reflection to access SDK internal fields for Session ID retrieval; SDK version upgrades may affect compatibility
+2. **Tool Call Timeout**: Default 60 seconds, configurable via `requestTemplate.timeout`
+3. **CORS Support**: Configure allowed headers via `shenyu.cross.allowedHeaders`
+
 ## 1. Simple GET Request Examples
 
 ### 1.1 GET Request with No Parameters

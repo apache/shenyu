@@ -761,20 +761,24 @@ public class ShenyuToolCallback implements ToolCallback {
      *
      * @param mcpExchange the MCP sync server exchange
      * @return the session ID
-     * @throws IllegalStateException if session ID cannot be extracted
+     * @throws IllegalStateException if session ID cannot be extracted (SDK compatibility issue)
      */
     private String extractSessionId(final McpSyncServerExchange mcpExchange) {
-        final String sessionId;
         try {
-            sessionId = McpSessionHelper.getSessionId(mcpExchange);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            final String sessionId = McpSessionHelper.getSessionId(mcpExchange);
+            if (StringUtils.hasText(sessionId)) {
+                LOG.debug("Extracted session ID: {}", sessionId);
+                return sessionId;
+            }
+            throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
+        } catch (IllegalStateException e) {
+            // Re-throw SDK compatibility errors with additional context
+            throw new IllegalStateException(
+                    "Failed to extract session ID from MCP exchange. "
+                    + "This may indicate an SDK compatibility issue. "
+                    + "Tested SDK version: " + McpSessionHelper.getSupportedSdkVersion() + ". "
+                    + "Original error: " + e.getMessage(), e);
         }
-        if (StringUtils.hasText(sessionId)) {
-            LOG.debug("Extracted session ID: {}", sessionId);
-            return sessionId;
-        }
-        throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
     }
 
     /**
