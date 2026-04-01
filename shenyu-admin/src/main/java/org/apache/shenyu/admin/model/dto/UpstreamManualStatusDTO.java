@@ -27,13 +27,13 @@ public class UpstreamManualStatusDTO {
     /**
      * selector id.
      */
-    @NotBlank(message = "selectorId can't be null")
+    @NotBlank(message = "selectorId can't be blank")
     private String selectorId;
 
     /**
      * upstream url.
      */
-    @NotBlank(message = "url can't be null")
+    @NotBlank(message = "url can't be blank")
     private String url;
 
     /**
