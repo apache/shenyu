@@ -60,6 +60,11 @@ public class DiscoveryUpstreamVO {
     private String startupTime;
 
     /**
+     * manual status.
+     */
+    private String manualStatus;
+
+    /**
      * getId.
      *
      * @return id
@@ -201,5 +206,23 @@ public class DiscoveryUpstreamVO {
      */
     public void setStartupTime(final String startupTime) {
         this.startupTime = startupTime;
+    }
+
+    /**
+     * get manualStatus.
+     *
+     * @return manualStatus
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * set manualStatus.
+     *
+     * @param manualStatus manualStatus
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = manualStatus;
     }
 }

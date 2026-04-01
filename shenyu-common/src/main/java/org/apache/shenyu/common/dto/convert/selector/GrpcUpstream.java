@@ -47,6 +47,7 @@ public final class GrpcUpstream extends CommonUpstream {
         setTimestamp(builder.timestamp);
         setNamespaceId(builder.namespaceId);
         setHealthCheckEnabled(builder.healthCheckEnabled);
+        setManualStatus(builder.manualStatus);
     }
 
     /**
@@ -170,6 +171,11 @@ public final class GrpcUpstream extends CommonUpstream {
         private boolean healthCheckEnabled = true;
 
         /**
+         * manual status.
+         */
+        private String manualStatus;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -270,6 +276,17 @@ public final class GrpcUpstream extends CommonUpstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build manualStatus.
+         *
+         * @param manualStatus manualStatus
+         * @return this
+         */
+        public Builder manualStatus(final String manualStatus) {
+            this.manualStatus = manualStatus;
             return this;
         }
     }

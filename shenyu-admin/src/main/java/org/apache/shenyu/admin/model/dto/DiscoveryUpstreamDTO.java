@@ -20,11 +20,13 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * discovery upstream dto.
@@ -91,6 +93,11 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * updated time.
      */
     private Timestamp dateUpdated;
+
+    /**
+     * manual status.
+     */
+    private String manualStatus;
 
     /**
      * getId.
@@ -283,5 +290,23 @@ public class DiscoveryUpstreamDTO implements Serializable {
      */
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
+    }
+
+    /**
+     * get manualStatus.
+     *
+     * @return manualStatus
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * set manualStatus.
+     *
+     * @param manualStatus manualStatus
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = Objects.isNull(manualStatus) ? null : UpstreamManualStatusEnum.normalize(manualStatus);
     }
 }
