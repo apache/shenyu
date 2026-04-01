@@ -254,7 +254,7 @@
 
     <update id="updateManualStatusByUrl">
         UPDATE discovery_upstream
-        SET manual_status = #{manualStatus}
+        SET manual_status = #{manualStatus}, date_updated = CURRENT_TIMESTAMP
         WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
     </update>
 
