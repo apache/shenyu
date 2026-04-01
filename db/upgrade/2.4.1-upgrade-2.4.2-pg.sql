@@ -20,7 +20,6 @@
 -- name & role
 UPDATE plugin SET role = 'Authentication' WHERE name = 'sign';
 UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'sentinel';
-UPDATE plugin SET role = 'Proxy' WHERE name = 'sofa';
 UPDATE plugin SET role = 'FaultTolerance' WHERE name = 'resilience4j';
 UPDATE plugin SET role = 'Proxy' WHERE name = 'tars';
 UPDATE plugin SET role = 'HttpProcess', name = 'contextPath' WHERE name = 'context_path';

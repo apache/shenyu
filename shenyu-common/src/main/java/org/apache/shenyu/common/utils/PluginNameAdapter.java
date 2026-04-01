@@ -42,8 +42,6 @@ public class PluginNameAdapter {
                 return PluginEnum.DUBBO.getName();
             case TARS:
                 return PluginEnum.TARS.getName();
-            case SOFA:
-                return PluginEnum.SOFA.getName();
             case WEB_SOCKET:
                 return PluginEnum.WEB_SOCKET.getName();
             case MOTAN:

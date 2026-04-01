@@ -66,7 +66,7 @@ public class ApiDO {
     private String version;
 
     /**
-     * http,dubbo,sofa,tars,websocket,springCloud,motan,grpc.
+     * rpc type.
      */
     private String rpcType;
 

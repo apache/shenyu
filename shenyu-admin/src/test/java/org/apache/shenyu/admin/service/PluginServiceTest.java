@@ -159,7 +159,7 @@ public final class PluginServiceTest {
         pageParameter.setPageSize(5);
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
-        PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter);
+        PluginQuery pluginQuery = new PluginQuery("grpc", 1, pageParameter);
         List<PluginDO> pluginDOList = IntStream.range(0, 10).mapToObj(i -> buildPluginDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.pluginMapper.selectByQuery(pluginQuery)).willReturn(pluginDOList);
         final CommonPager<PluginVO> pluginDOCommonPager = this.pluginService.listByPage(pluginQuery);

@@ -44,7 +44,6 @@ public enum Plugin {
     SPRING_CLOUD("springCloud", 8),
     HYSTRIX("hystrix", 9),
     SENTINEL("sentinel", 10),
-    SOFA("sofa", 11),
     RESILIENCE4J("resilience4j", 12),
     TARS("tars", 13),
     CONTEXT_PATH("contextPath", 14),

@@ -35,7 +35,6 @@ public class RpcTypeEnumTest {
         assertEquals("dubbo", RpcTypeEnum.DUBBO.getName());
         assertEquals("http", RpcTypeEnum.HTTP.getName());
         assertEquals("motan", RpcTypeEnum.MOTAN.getName());
-        assertEquals("sofa", RpcTypeEnum.SOFA.getName());
         assertEquals("springCloud", RpcTypeEnum.SPRING_CLOUD.getName());
         assertEquals("tars", RpcTypeEnum.TARS.getName());
         assertEquals("websocket", RpcTypeEnum.WEB_SOCKET.getName());
@@ -47,7 +46,6 @@ public class RpcTypeEnumTest {
         assertTrue(RpcTypeEnum.DUBBO.getSupport());
         assertTrue(RpcTypeEnum.HTTP.getSupport());
         assertTrue(RpcTypeEnum.MOTAN.getSupport());
-        assertTrue(RpcTypeEnum.SOFA.getSupport());
         assertTrue(RpcTypeEnum.TARS.getSupport());
         assertTrue(RpcTypeEnum.WEB_SOCKET.getSupport());
     }
@@ -83,7 +81,6 @@ public class RpcTypeEnumTest {
         List<RpcTypeEnum> rpcTypeEnumList = RpcTypeEnum.acquireSupportMetadatas();
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.DUBBO));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.GRPC));
-        assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.SOFA));
         assertTrue(rpcTypeEnumList.contains(RpcTypeEnum.TARS));
     }
 
@@ -91,4 +88,5 @@ public class RpcTypeEnumTest {
     public void testGetRpcTypeEnumByNameInvalid() {
         assertThrows(ShenyuException.class, () -> RpcTypeEnum.acquireByName("InvalidName"));
     }
+
 }

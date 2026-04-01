@@ -313,7 +313,7 @@ CREATE TABLE IF NOT EXISTS `api` (
     `consume`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'consume content-type',
     `produce`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'produce content-type',
     `version`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'api version,for example V0.01',
-    `rpc_type`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
+    `rpc_type`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,tars,websocket,springCloud,motan,grpc',
     `state`        tinyint(4) NOT NULL COMMENT '0-unpublished,1-published,2-offline',
     `ext`          varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'extended fields',
     `api_owner`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL COMMENT 'api_owner',

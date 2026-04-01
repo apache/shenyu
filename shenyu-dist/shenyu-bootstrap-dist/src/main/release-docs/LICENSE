@@ -232,7 +232,6 @@ The text of each license is the standard Apache 2.0 license.
 	bouncy-castle-bc 3.2.3-pkg: https://mvnrepository.com/artifact/org.apache.pulsar/bouncy-castle-bc, Apache 2.0
     audience-annotations 0.12.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     auto-value-annotations 1.9: https://github.com/google/auto/tree/master/value, Apache 2.0
-    bolt 1.6.10: https://github.com/alipay/sofa-bolt, Apache 2.0
     btf 1.2: https://github.com/fge/btf, LGPL and Apache 2.0
     byte-buddy 1.12.6: https://bytebuddy.net/byte-buddy, Apache 2.0
     byte-buddy-agent 1.11.22: https://bytebuddy.net/byte-buddy, Apache 2.0
@@ -302,9 +301,7 @@ The text of each license is the standard Apache 2.0 license.
     gson 2.9.0: https://github.com/google/gson, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     guava 32.0.0-jre: https://github.com/google/guava, Apache 2.0
-    hessian 3.3.7: http://github.com/alipay/sofa-hessian, Apache 2.0
-    hessian 3.5.3: http://github.com/alipay/sofa-hessian, Apache 2.0
-    hessian 4.0.38: http://github.com/alipay/sofa-hessian, Apache 2.0
+    hessian 4.0.38: https://mvnrepository.com/artifact/com.caucho/hessian, Apache 2.0
     httpasyncclient 4.1.5: https://github.com/apache/httpcomponents-client , Apache 2.0
     hibernate-validator 6.0.18.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
     httpclient 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
@@ -362,7 +359,6 @@ The text of each license is the standard Apache 2.0 license.
     log4j-api 2.23.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j 1.2-api-2.23.1:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
 	log4j-to-slf4j 2.23.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
-    lookout-api 1.4.1: https://github.com/sofastack/sofa-lookout/lookout-api, Apache 2.0
     lz4 1.3.0: https://github.com/jpountz/lz4-java, Apache 2.0
     lz4-java 1.8.0: https://github.com/jpountz/lz4-java, Apache 2.0
     metrics-core 3.0.1: https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core, Apache 2.0
@@ -472,8 +468,6 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
     snappy-java 1.1.10.5: https://github.com/xerial/snappy-java, Apache 2.0
-    sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
-    sofa-rpc-all 5.13.0: http://github.com/sofastack/sofa-rpc, Apache 2.0
     jsonschema-generator 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     spring-ai-template-st 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-deepseek 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
@@ -537,7 +531,7 @@ The text of each license is the standard Apache 2.0 license.
     swagger-annotations 2.2.25: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
     swagger-core 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-core, Apache 2.0
     swagger-models 1.6.9: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
-    tracer-core 3.0.8: https://projects.spring.io/spring-boot/#/spring-boot-starter-parent/sofaboot-dependencies/tracer-all-parent/tracer-core, Apache 2.0
+    tracer-core 3.0.8: https://spring.io/projects/spring-boot, Apache 2.0
     transmittable-thread-local 2.12.1: https://mvnrepository.com/artifact/com.alibaba/transmittable-thread-local, Apache 2.0
     spring-context-support 1.0.11: https://mvnrepository.com/artifact/com.alibaba.spring/spring-context-support/1.0.11, Apache 2.0
     validation-api 2.0.1.Final: http://beanvalidation.org/licensing, Apache 2.0

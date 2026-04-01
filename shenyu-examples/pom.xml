@@ -49,7 +49,6 @@
         <module>shenyu-examples-dubbo</module>
         <module>shenyu-examples-springcloud</module>
         <module>shenyu-examples-eureka</module>
-        <module>shenyu-examples-sofa</module>
         <module>shenyu-examples-tars</module>
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-motan</module>

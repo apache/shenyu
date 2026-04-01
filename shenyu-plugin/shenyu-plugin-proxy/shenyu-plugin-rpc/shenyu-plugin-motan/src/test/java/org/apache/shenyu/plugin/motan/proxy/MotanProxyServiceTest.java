@@ -57,7 +57,7 @@ public class MotanProxyServiceTest {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
-        metaData.setAppName("sofa");
+        metaData.setAppName("motan");
         metaData.setPath("/motan/findAll");
         metaData.setServiceName("org.apache.shenyu.test.motan.api.service.MotanTestService");
         metaData.setMethodName("findAll");
