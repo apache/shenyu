@@ -66,7 +66,6 @@ public class ResponsePluginTest {
         writerMap.put(RpcTypeEnum.DUBBO.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.SOFA.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.GRPC.getName(), messageWriter);
-        writerMap.put(RpcTypeEnum.MOTAN.getName(), messageWriter);
         writerMap.put(RpcTypeEnum.TARS.getName(), messageWriter);
         responsePlugin = new ResponsePlugin(writerMap);
     }
@@ -84,9 +83,6 @@ public class ResponsePluginTest {
 
         ServerWebExchange grpcExchange = generateServerWebExchange(RpcTypeEnum.GRPC.getName());
         StepVerifier.create(responsePlugin.execute(grpcExchange, chain)).expectSubscription().verifyComplete();
-
-        ServerWebExchange motanExchange = generateServerWebExchange(RpcTypeEnum.MOTAN.getName());
-        StepVerifier.create(responsePlugin.execute(motanExchange, chain)).expectSubscription().verifyComplete();
 
         ServerWebExchange tarsExchange = generateServerWebExchange(RpcTypeEnum.TARS.getName());
         StepVerifier.create(responsePlugin.execute(tarsExchange, chain)).expectSubscription().verifyComplete();

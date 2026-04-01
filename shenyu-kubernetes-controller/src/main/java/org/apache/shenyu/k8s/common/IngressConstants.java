@@ -81,33 +81,6 @@ public class IngressConstants {
     // The configuration key to specify parameter types for the Dubbo plugin, in string
     public static final String PLUGIN_DUBBO_PARAMENT_TYPE = "shenyu.apache.org/plugin-dubbo-parament-type";
 
-    // The configuration key to specify the Tars path for the plugin, in string
-    public static final String PLUGIN_MOTAN_ENABLED = "shenyu.apache.org/plugin-motan-enabled";
-
-    // The configuration key to specify the Tars path for the plugin, in string
-    public static final String PLUGIN_MOTAN_CONTEXT_PATH = "shenyu.apache.org/plugin-motan-context-path";
-
-    // The configuration key to specify the Tars path for the plugin, in string
-    public static final String PLUGIN_MOTAN_APP_NAME = "shenyu.apache.org/plugin-motan-app-name";
-
-    // The configuration key to specify the Tars method name for the plugin, in string
-    public static final String PLUGIN_MOTAN_METHOD_NAME = "shenyu.apache.org/plugin-motan-method-name";
-
-    // The configuration key to specify the Tars path for the plugin, in string
-    public static final String PLUGIN_MOTAN_PATH = "shenyu.apache.org/plugin-motan-path";
-
-    // The configuration key to specify the Tars service name for the plugin, in string
-    public static final String PLUGIN_MOTAN_SREVICE_NAME = "shenyu.apache.org/plugin-motan-service-name";
-
-    // The configuration key to specify the Tars RPC type for the plugin, in string
-    public static final String PLUGIN_MOTAN_RPC_TYPE = "shenyu.apache.org/plugin-motan-rpc-type";
-
-    // The configuration key to specify the Tars parameter types for the plugin, in string
-    public static final String PLUGIN_MOTAN_PARAMS_TYPE = "shenyu.apache.org/plugin-motan-params-type";
-
-    // The configuration key to specify additional RPC extension for the Tars plugin, in string
-    public static final String PLUGIN_MOTAN_RPC_EXPAND = "shenyu.apache.org/plugin-motan-rpc-expand";
-
     //Determining whether to use the WebSocket plugin, in String
     public static final String PLUGIN_WEB_SOCKET_ENABLED = "shenyu.apache.org/plugin-web-socket-enabled";
 

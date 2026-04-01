@@ -19,12 +19,10 @@ package org.apache.shenyu.integrated.test.combination;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
-import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
@@ -34,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,9 +52,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertThat(pluginResult, is("success"));
         // for grpc
         pluginResult = initPlugin(PluginEnum.GRPC.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\",\"threadpool\": \"shared\"}");
-        assertThat(pluginResult, is("success"));
-        // for motan
-        pluginResult = initPlugin(PluginEnum.MOTAN.getName(), "{\"registerProtocol\": \"zk\", \"registerAddress\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
         // for sofa
         pluginResult = initPlugin(PluginEnum.SOFA.getName(), "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
@@ -84,15 +78,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals("ReceivedHELLO", result.get("message"));
     }
     
-    @Test
-    public void testMotan() throws Exception {
-        MotanDTO request = new MotanDTO("shenyu");
-        Type returnType = new TypeToken<String>() {
-        }.getType();
-        String response = HttpHelper.INSTANCE.postGateway("/motan/demo/hello", request, returnType);
-        assertEquals("hello shenyu", response);
-    }
-    
     @AfterAll
     public static void testIsOneThreadPool() throws IOException {
         String spring = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSpring", String.class);
@@ -100,8 +85,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, dubbo);
         String grpc = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromGrpc", String.class);
         assertEquals(spring, grpc);
-        String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
-        assertEquals(spring, motan);
         // TODO test sofa
     }
 }

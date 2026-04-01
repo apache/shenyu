@@ -75,7 +75,7 @@ public class ApiDTO implements Serializable {
     private String version;
 
     /**
-     * http,dubbo,sofa,tars,websocket,springCloud,motan,grpc.
+     * http,dubbo,sofa,tars,websocket,springCloud,grpc.
      */
     private String rpcType;
 
