@@ -2733,6 +2733,7 @@ create table discovery_upstream
     protocol            VARCHAR2(64),
     upstream_url      VARCHAR2(64) not null,
     upstream_status      NUMBER(10) not null,
+    manual_status      VARCHAR2(32) default 'NONE' not null,
     weight      NUMBER(10)  not null,
     props       CLOB,
     date_created      timestamp(3) default SYSDATE not null,
@@ -2754,6 +2755,8 @@ comment on column DISCOVERY_UPSTREAM.upstream_url
   is 'ip:port';
 comment on column DISCOVERY_UPSTREAM.upstream_status
   is 'type (0, healthy, 1 unhealthy)';
+comment on column DISCOVERY_UPSTREAM.manual_status
+  is 'manual status (NONE, FORCE_OFFLINE)';
 comment on column DISCOVERY_UPSTREAM.weight
   is 'the weight for lists';
 comment on column DISCOVERY_UPSTREAM.props

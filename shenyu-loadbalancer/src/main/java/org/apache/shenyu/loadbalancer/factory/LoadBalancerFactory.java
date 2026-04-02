@@ -23,6 +23,7 @@ import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Load balance Factory.
@@ -41,7 +42,17 @@ public final class LoadBalancerFactory {
      * @return the upstream
      */
     public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final LoadBalanceData data) {
+        if (Objects.isNull(upstreamList)) {
+            return null;
+        }
+        List<Upstream> availableUpstreamList = upstreamList.stream()
+                .filter(Objects::nonNull)
+                .filter(upstream -> !upstream.isManualOffline())
+                .toList();
+        if (availableUpstreamList.isEmpty()) {
+            return null;
+        }
         LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, data);
+        return loadBalance.select(availableUpstreamList, data);
     }
 }

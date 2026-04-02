@@ -27,6 +27,7 @@
         <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
         <result column="upstream_url" jdbcType="VARCHAR" property="upstreamUrl"/>
         <result column="upstream_status" jdbcType="INTEGER" property="upstreamStatus"/>
+        <result column="manual_status" jdbcType="VARCHAR" property="manualStatus"/>
         <result column="weight" jdbcType="INTEGER" property="weight"/>
         <result column="props" jdbcType="VARCHAR" property="props"/>
     </resultMap>
@@ -40,6 +41,7 @@
         protocol,
         upstream_url,
         upstream_status,
+        manual_status,
         weight,
         props
     </sql>
@@ -58,6 +60,7 @@
         protocol,
         upstream_url,
         upstream_status,
+        manual_status,
         weight,
         props,
         date_created,
@@ -69,6 +72,7 @@
         #{protocol,jdbcType=VARCHAR},
         #{upstreamUrl,jdbcType=VARCHAR},
         #{upstreamStatus,jdbcType=INTEGER},
+        #{manualStatus,jdbcType=VARCHAR},
         #{weight,jdbcType=INTEGER},
         #{props,jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
@@ -82,6 +86,7 @@
         protocol=#{protocol,jdbcType=VARCHAR},
         upstream_url=#{upstreamUrl,jdbcType=VARCHAR},
         upstream_status=#{upstreamStatus,jdbcType=INTEGER},
+        manual_status=#{manualStatus,jdbcType=VARCHAR},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
@@ -103,6 +108,9 @@
         <if test="upstreamStatus != null">
             upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         </if>
+        <if test="manualStatus != null">
+            manual_status=#{manualStatus,jdbcType=VARCHAR},
+        </if>
         <if test="weight != null">
             weight=#{weight,jdbcType=INTEGER},
         </if>
@@ -120,6 +128,7 @@
         SET
         protocol=#{protocol,jdbcType=VARCHAR},
         upstream_status=#{upstreamStatus,jdbcType=INTEGER},
+        manual_status=#{manualStatus,jdbcType=VARCHAR},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
@@ -176,9 +185,11 @@
         du.date_created,
         du.date_updated,
         du.discovery_handler_id,
+        du.namespace_id,
         du.protocol,
         du.upstream_url,
         du.upstream_status,
+        du.manual_status,
         du.weight,
         du.props
         FROM discovery_upstream du
@@ -186,7 +197,7 @@
     </sql>
 
     <select id="selectByDiscoveryHandlerIdAndUrl"
-            resultType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
+            resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/> from discovery_upstream where discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl} for update
     </select>
 
@@ -205,6 +216,7 @@
         protocol,
         upstream_url,
         upstream_status,
+        manual_status,
         weight,
         props,
         date_created,
@@ -217,6 +229,7 @@
             #{item.protocol,jdbcType=VARCHAR},
             #{item.upstreamUrl,jdbcType=VARCHAR},
             #{item.upstreamStatus,jdbcType=INTEGER},
+            #{item.manualStatus,jdbcType=VARCHAR},
             #{item.weight,jdbcType=INTEGER},
             #{item.props,jdbcType=VARCHAR},
             #{item.dateCreated, jdbcType=TIMESTAMP},
@@ -236,6 +249,12 @@
     <update id="updateStatusByUrl">
         UPDATE discovery_upstream
         SET upstream_status = #{upstreamStatus}
+        WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
+    </update>
+
+    <update id="updateManualStatusByUrl">
+        UPDATE discovery_upstream
+        SET manual_status = #{manualStatus}, date_updated = CURRENT_TIMESTAMP
         WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
     </update>
 
