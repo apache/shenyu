@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
-import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -106,10 +106,10 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        List<TarsUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, TarsUpstream.class);
-        List<TarsUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        List<GrpcUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, GrpcUpstream.class);
+        List<GrpcUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(expectedList, actualList);
-        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        List<GrpcUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
 
         list.clear();
@@ -118,7 +118,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 3);
 
         list.clear();
@@ -126,7 +126,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 1);
     }
     
@@ -138,7 +138,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         try {
             Method testMethod = shenyuClientRegisterGrpcService.getClass().getDeclaredMethod("buildGrpcUpstreamList", List.class);
             testMethod.setAccessible(true);
-            List<TarsUpstream> result = (List<TarsUpstream>) testMethod.invoke(shenyuClientRegisterGrpcService, list);
+            List<GrpcUpstream> result = (List<GrpcUpstream>) testMethod.invoke(shenyuClientRegisterGrpcService, list);
             assertEquals(result.size(), 2);
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());

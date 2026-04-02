@@ -23,7 +23,6 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -108,10 +107,10 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         String actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
-        List<TarsUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, TarsUpstream.class);
-        List<TarsUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        List<DivideUpstream> expectedList = GsonUtils.getInstance().fromCurrentList(expected, DivideUpstream.class);
+        List<DivideUpstream> actualList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(expectedList, actualList);
-        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        List<DivideUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 2);
 
         list.clear();
@@ -120,7 +119,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 3);
 
         list.clear();
@@ -128,7 +127,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
-        resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 1);
     }
 

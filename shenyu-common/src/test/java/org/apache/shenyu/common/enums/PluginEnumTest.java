@@ -90,7 +90,6 @@ public final class PluginEnumTest {
             "modifyResponse, 220",
             "dubbo, 310",
             "sofa, 310",
-            "tars, 310",
             "grpc, 310",
             "motan, 310",
             "cryptorResponse, 410",
