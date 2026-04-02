@@ -19,6 +19,8 @@ shenyu:
     init_enable: true
 
 spring:
+  jpa:
+    database: ORACLE
   datasource:
     url: jdbc:oracle:thin:@localhost:1521/shenyu
     username: root

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.jpa.repository.ResourceRepository;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -147,7 +147,7 @@ public class ResourceController {
     @PutMapping("/{id}")
     @RequiresPermissions(value = {"system:resource:editMenu", "system:resource:editButton"}, logical = Logical.OR)
     public ShenyuAdminResult updateResource(@PathVariable("id") @Valid
-                                            @Existed(provider = ResourceMapper.class,
+                                            @Existed(provider = ResourceRepository.class,
                                                     message = "resource not existed") final String id,
                                             @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);

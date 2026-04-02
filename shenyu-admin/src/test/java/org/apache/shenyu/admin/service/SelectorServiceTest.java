@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -69,6 +70,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,6 +102,9 @@ public final class SelectorServiceTest {
 
     @Mock
     private SelectorMapper selectorMapper;
+
+    @Mock
+    private SelectorRepository selectorRepository;
 
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
@@ -153,7 +158,8 @@ public final class SelectorServiceTest {
         when(discoveryHandlerMapper.selectBySelectorId(anyString())).thenReturn(discoveryHandlerDO);
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
-        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
+        selectorService = new SelectorServiceImpl(selectorMapper, selectorRepository, selectorConditionMapper,
+                pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
                 discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
     }
 
@@ -202,7 +208,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
+        given(this.selectorRepository.findById(eq("123"))).willReturn(Optional.of(selectorDO));
         SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
         assertEquals(selectorVO.getId(), selectorDO.getId());
@@ -241,7 +247,7 @@ public final class SelectorServiceTest {
     @Test
     public void testListAll() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
-        given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+        given(this.selectorRepository.findAll()).willReturn(selectorDOs);
         given(this.pluginMapper.selectByIds(any())).willReturn(Collections.singletonList(buildPluginDO()));
         List<SelectorData> dataList = this.selectorService.listAll();
         assertNotNull(dataList);
@@ -260,7 +266,7 @@ public final class SelectorServiceTest {
     @Test
     public void testListAllData() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
-        given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
+        given(this.selectorRepository.findAll()).willReturn(selectorDOs);
         given(this.pluginMapper.selectByIds(any())).willReturn(Collections.singletonList(buildPluginDO()));
         List<SelectorVO> dataList = this.selectorService.listAllData();
         assertNotNull(dataList);

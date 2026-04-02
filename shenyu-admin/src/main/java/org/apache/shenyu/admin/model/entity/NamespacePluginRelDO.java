@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +30,9 @@ import java.util.Optional;
 /**
  * NamespacePluginRel do.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "namespace_plugin_rel")
 public final class NamespacePluginRelDO extends BaseDO {
 
     /**

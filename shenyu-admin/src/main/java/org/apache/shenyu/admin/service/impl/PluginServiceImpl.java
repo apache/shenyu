@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
@@ -74,14 +75,18 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginMapper pluginMapper;
 
+    private final PluginRepository pluginRepository;
+
     private final PluginEventPublisher pluginEventPublisher;
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
     public PluginServiceImpl(final PluginMapper pluginMapper,
+                             final PluginRepository pluginRepository,
                              final PluginEventPublisher pluginEventPublisher,
                              final NamespacePluginRelMapper namespacePluginRelMapper) {
         this.pluginMapper = pluginMapper;
+        this.pluginRepository = pluginRepository;
         this.pluginEventPublisher = pluginEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
     }
@@ -173,7 +178,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public PluginVO findById(final String id) {
-        return PluginVO.buildPluginVO(pluginMapper.selectById(id));
+        return PluginVO.buildPluginVO(pluginRepository.findById(id).orElse(null));
     }
 
     /**
@@ -198,12 +203,12 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public List<PluginData> listAll() {
-        return ListUtil.map(pluginMapper.selectAll(), PluginTransfer.INSTANCE::mapToData);
+        return ListUtil.map(pluginRepository.findAll(), PluginTransfer.INSTANCE::mapToData);
     }
     
     @Override
     public List<PluginVO> listAllData() {
-        return pluginMapper.selectAll()
+        return pluginRepository.findAll()
                 .stream()
                 .filter(Objects::nonNull)
                 .map(PluginVO::buildPluginVO).collect(Collectors.toList());
@@ -211,12 +216,12 @@ public class PluginServiceImpl implements PluginService {
     
     @Override
     public List<PluginData> listAllNotInResource() {
-        return ListUtil.map(pluginMapper.listAllNotInResource(), PluginTransfer.INSTANCE::mapToData);
+        return ListUtil.map(pluginRepository.listAllNotInResource(), PluginTransfer.INSTANCE::mapToData);
     }
 
     @Override
     public String selectIdByName(final String name) {
-        PluginDO pluginDO = pluginMapper.selectByName(name);
+        PluginDO pluginDO = pluginRepository.findByName(name).orElse(null);
         Objects.requireNonNull(pluginDO);
         return pluginDO.getId();
     }
@@ -229,7 +234,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public PluginDO findByName(final String name) {
-        return pluginMapper.selectByName(name);
+        return pluginRepository.findByName(name).orElse(null);
     }
 
     /**

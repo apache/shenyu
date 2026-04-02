@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -28,6 +31,9 @@ import java.util.Optional;
 /**
  * plugin handle json definition.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "plugin_handle")
 public final class PluginHandleDO extends BaseDO {
 
     private static final long serialVersionUID = 3854807942396454551L;

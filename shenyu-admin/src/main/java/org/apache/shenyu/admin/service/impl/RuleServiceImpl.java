@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.RuleRepository;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -85,6 +86,8 @@ public class RuleServiceImpl implements RuleService {
 
     private final RuleMapper ruleMapper;
 
+    private final RuleRepository ruleRepository;
+
     private final RuleConditionMapper ruleConditionMapper;
 
     private final SelectorMapper selectorMapper;
@@ -94,11 +97,13 @@ public class RuleServiceImpl implements RuleService {
     private final RuleEventPublisher ruleEventPublisher;
 
     public RuleServiceImpl(final RuleMapper ruleMapper,
+                           final RuleRepository ruleRepository,
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
                            final RuleEventPublisher ruleEventPublisher) {
         this.ruleMapper = ruleMapper;
+        this.ruleRepository = ruleRepository;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
@@ -232,7 +237,7 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public RuleVO findById(final String id) {
-        return RuleVO.buildRuleVO(ruleMapper.selectById(id),
+        return RuleVO.buildRuleVO(ruleRepository.findById(id).orElse(null),
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
 
@@ -251,7 +256,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public List<RuleData> listAll() {
-        return this.buildRuleDataList(ruleMapper.selectAll());
+        return this.buildRuleDataList(ruleRepository.findAll());
     }
 
     @Override
@@ -261,7 +266,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public List<RuleVO> listAllData() {
-        return this.buildRuleVOList(ruleMapper.selectAll());
+        return this.buildRuleVOList(ruleRepository.findAll());
     }
 
     @Override
@@ -271,12 +276,12 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
-        return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));
+        return this.buildRuleDataList(ruleRepository.findBySelectorId(selectorId));
     }
 
     @Override
     public List<RuleData> findBySelectorIdList(final List<String> selectorIdList) {
-        return this.buildRuleDataList(ruleMapper.findBySelectorIds(selectorIdList));
+        return this.buildRuleDataList(ruleRepository.findBySelectorIdIn(selectorIdList));
     }
 
     @Override
@@ -286,7 +291,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public RuleDO findBySelectorIdAndName(final String selectorId, final String name) {
-        return ruleMapper.findBySelectorIdAndName(selectorId, name);
+        return ruleRepository.findBySelectorIdAndRuleName(selectorId, name).orElse(null);
     }
 
     @Override

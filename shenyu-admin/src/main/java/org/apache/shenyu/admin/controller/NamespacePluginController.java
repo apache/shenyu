@@ -21,9 +21,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
-import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.jpa.repository.NamespacePluginRelRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
+import org.apache.shenyu.admin.jpa.repository.PluginRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
@@ -81,7 +81,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     public ShenyuAdminResult queryPlugins(@RequestParam(name = "name", required = false) final String name,
                                           @RequestParam(name = "enabled", required = false) final Integer enabled,
                                           @Existed(message = "namespace is not existed",
-                                                  provider = NamespaceMapper.class)
+                                                  provider = NamespaceRepository.class)
                                           @RequestParam(name = "namespaceId") final String namespaceId,
                                           @NotNull @RequestParam(name = "currentPage") final Integer currentPage,
                                           @NotNull @RequestParam(name = "pageSize") final Integer pageSize) {
@@ -96,7 +96,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{namespaceId}")
-    public ShenyuAdminResult queryAllNamespacePlugins(@Existed(message = "namespace is not existed", provider = NamespaceMapper.class)
+    public ShenyuAdminResult queryAllNamespacePlugins(@Existed(message = "namespace is not existed", provider = NamespaceRepository.class)
                                              @PathVariable("namespaceId") final String namespaceId) {
         List<PluginData> pluginDataList = namespacePluginService.listAll(namespaceId);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
@@ -110,7 +110,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      */
     @GetMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult detailNamespacePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+    public ShenyuAdminResult detailNamespacePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelRepository.class)
                                                    @PathVariable("id") final String id) {
         NamespacePluginVO namespacePluginVO = namespacePluginService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, namespacePluginVO);
@@ -125,7 +125,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      */
     @PutMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult updatePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelMapper.class)
+    public ShenyuAdminResult updatePlugin(@Existed(message = "namespace plugin relation is not exist", provider = NamespacePluginRelRepository.class)
                                           @PathVariable("id") final String id,
                                           @Valid @RequestBody final NamespacePluginDTO namespacePluginDTO) {
         namespacePluginDTO.setId(id);
@@ -141,9 +141,9 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
      */
     @PostMapping("/{namespaceId}/{pluginId}")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult generateNamespacePlugin(@Existed(message = "namespace is not exist", provider = NamespaceMapper.class)
+    public ShenyuAdminResult generateNamespacePlugin(@Existed(message = "namespace is not exist", provider = NamespaceRepository.class)
                                           @PathVariable("namespaceId") final String namespaceId,
-                                       @Existed(message = "plugin is not exist", provider = PluginMapper.class)
+                                       @Existed(message = "plugin is not exist", provider = PluginRepository.class)
                                        @PathVariable("pluginId") final String pluginId) {
         return ShenyuAdminResult.success(namespacePluginService.create(namespaceId, pluginId));
     }

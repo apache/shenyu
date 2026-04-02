@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.MockRequestRecordRepository;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
@@ -42,8 +43,11 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
 
     private final MockRequestRecordMapper mockRequestRecordMapper;
 
-    public MockRequestRecordServiceImpl(final MockRequestRecordMapper mockRequestRecordMapper) {
+    private final MockRequestRecordRepository mockRequestRecordRepository;
+
+    public MockRequestRecordServiceImpl(final MockRequestRecordMapper mockRequestRecordMapper, final MockRequestRecordRepository mockRequestRecordRepository) {
         this.mockRequestRecordMapper = mockRequestRecordMapper;
+        this.mockRequestRecordRepository = mockRequestRecordRepository;
 
     }
 
@@ -72,7 +76,7 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
         if (StringUtils.isBlank(id)) {
             return mockRequestRecordVO;
         }
-        MockRequestRecordDO mockRequestRecordDO = mockRequestRecordMapper.queryById(id);
+        MockRequestRecordDO mockRequestRecordDO = mockRequestRecordRepository.findById(id).orElse(null);
         if (Objects.isNull(mockRequestRecordDO)) {
             return mockRequestRecordVO;
         }
@@ -128,9 +132,7 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
 
     @Override
     public MockRequestRecordVO queryByApiId(final String apiId) {
-        MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
-        mockRequestRecordQuery.setApiId(apiId);
-        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordRepository.findByApiId(apiId);
         return mockRequestRecordDOList.isEmpty()
                 ? new MockRequestRecordVO()
                 : MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDOList.get(0));

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ public class RoleDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = RoleMapper.class, nullOfIgnore = true, message = "role is not existed")
+    @Existed(provider = RoleRepository.class, nullOfIgnore = true, message = "role is not existed")
     private String id;
     
     /**

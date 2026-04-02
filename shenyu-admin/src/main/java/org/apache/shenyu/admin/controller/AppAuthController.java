@@ -19,9 +19,9 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
+import org.apache.shenyu.admin.jpa.repository.AuthPathRepository;
+import org.apache.shenyu.admin.jpa.repository.NamespaceRepository;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -33,7 +33,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.PageService;
-import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -85,7 +84,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @GetMapping("/updateSk")
     public ShenyuAdminResult updateSk(@RequestParam("appKey")
                                       @Existed(message = "app key not existed",
-                                              provider = AppKeyProvider.class) final String appKey,
+                                              provider = AppAuthRepository.class) final String appKey,
                                       @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
@@ -106,7 +105,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
                                              @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                              @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize,
                                              @Valid @Existed(message = "namespaceId is not existed",
-                                                     provider = NamespaceMapper.class) final String namespaceId) {
+                                                     provider = NamespaceRepository.class) final String namespaceId) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
@@ -126,7 +125,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detail(@RequestParam("id")
                                     @Existed(message = "app key not existed",
-                                            provider = AppAuthMapper.class) final String id) {
+                                            provider = AppAuthRepository.class) final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
@@ -152,8 +151,8 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id")
                                             @Existed(message = "auth path not existed",
-                                                    providerMethodName = "existedByAuthId",
-                                                    provider = AuthPathMapper.class)
+                                                    providerMethodName = "existsByAuthId",
+                                                    provider = AuthPathRepository.class)
                                         @NotBlank final String authId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
     }
