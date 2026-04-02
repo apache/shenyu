@@ -21,12 +21,12 @@ import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
+import org.springframework.util.StringUtils;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Objects;
 
 /**
  * discovery upstream dto.
@@ -307,6 +307,6 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * @param manualStatus manualStatus
      */
     public void setManualStatus(final String manualStatus) {
-        this.manualStatus = Objects.isNull(manualStatus) ? null : UpstreamManualStatusEnum.normalize(manualStatus);
+        this.manualStatus = StringUtils.hasLength(manualStatus) ? UpstreamManualStatusEnum.normalize(manualStatus) : null;
     }
 }

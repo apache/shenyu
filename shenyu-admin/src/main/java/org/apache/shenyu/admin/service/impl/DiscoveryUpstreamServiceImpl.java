@@ -133,11 +133,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             if (!StringUtils.hasLength(discoveryUpstreamDTO.getManualStatus())) {
-                DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(
-                        discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
-                if (Objects.nonNull(existingRecord)) {
-                    discoveryUpstreamDO.setManualStatus(existingRecord.getManualStatus());
-                }
+                discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDTO.getId())).stream()
+                        .findFirst()
+                        .ifPresent(existing -> discoveryUpstreamDO.setManualStatus(existing.getManualStatus()));
             }
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {

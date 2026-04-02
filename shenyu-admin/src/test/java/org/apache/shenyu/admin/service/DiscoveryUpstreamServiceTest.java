@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -220,6 +221,20 @@ public final class DiscoveryUpstreamServiceTest {
         discoveryUpstreamService.changeStatusBySelectorIdAndUrl("selector_1", "url1", Boolean.TRUE);
 
         verify(discoveryUpstreamMapper, never()).updateStatusByUrl(anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    public void testNativeCreateOrUpdateShouldPreserveManualStatusWhenUrlChanges() {
+        when(discoveryUpstreamMapper.updateSelective(any())).thenReturn(1);
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123")))
+                .thenReturn(Collections.singletonList(buildDiscoveryUpstreamDO("123", "123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE)));
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("123", "123", "url2");
+
+        discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals(UpstreamManualStatusEnum.FORCE_OFFLINE.name(), captor.getValue().getManualStatus());
     }
 
     private void testUpdate() {
