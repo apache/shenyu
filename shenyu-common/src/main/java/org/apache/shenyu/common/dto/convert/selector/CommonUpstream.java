@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -58,6 +60,11 @@ public class CommonUpstream {
      * this is gray.
      */
     private boolean gray;
+
+    /**
+     * metadata.
+     */
+    private Map<String, String> metadata = new HashMap<>();
 
     /**
      * health check enabled.
@@ -197,24 +204,6 @@ public class CommonUpstream {
     }
 
     /**
-     * gray.
-     *
-     * @return Gray
-     */
-    public boolean isGray() {
-        return gray;
-    }
-
-    /**
-     * set gray.
-     *
-     * @param gray gray
-     */
-    public void setGray(final boolean gray) {
-        this.gray = gray;
-    }
-
-    /**
      * get healthCheckEnabled.
      *
      * @return healthCheckEnabled
@@ -241,6 +230,42 @@ public class CommonUpstream {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * gray.
+     *
+     * @return Gray
+     */
+    public boolean isGray() {
+        return gray;
+    }
+
+    /**
+     * set gray.
+     *
+     * @param gray gray
+     */
+    public void setGray(final boolean gray) {
+        this.gray = gray;
+    }
+
+    /**
+     * get metadata.
+     *
+     * @return metadata
+     */
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * set metadata.
+     *
+     * @param metadata metadata
+     */
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = Objects.nonNull(metadata) ? metadata : new HashMap<>();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -255,12 +280,13 @@ public class CommonUpstream {
                 && Objects.equals(gray, that.gray)
                 && Objects.equals(upstreamUrl, that.upstreamUrl)
                 && Objects.equals(namespaceId, that.namespaceId)
-                && Objects.equals(healthCheckEnabled, that.healthCheckEnabled);
+                && Objects.equals(healthCheckEnabled, that.healthCheckEnabled)
+                && Objects.equals(metadata, that.metadata);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray, healthCheckEnabled);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray, healthCheckEnabled, metadata);
     }
 
     @Override
@@ -285,6 +311,8 @@ public class CommonUpstream {
                 + gray
                 + ", healthCheckEnabled="
                 + healthCheckEnabled
+                + ", metadata="
+                + metadata
                 + '}';
     }
 }

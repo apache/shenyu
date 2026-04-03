@@ -22,6 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.GrayCondition;
+import org.apache.shenyu.common.dto.convert.rule.GrayConfig;
+import org.apache.shenyu.common.dto.convert.rule.MetadataMatch;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -29,6 +32,7 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.spi.GrayLoadBalancer;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -45,6 +49,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -97,7 +102,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        String lbAlgorithm = ruleHandle.getLoadBalance();
+        if (ruleHandle.isGrayEnabled()) {
+            exchange.getAttributes().put(GrayLoadBalancer.GRAY_CONFIG_KEY, buildGrayConfig(ruleHandle));
+            lbAlgorithm = GrayLoadBalancer.GRAY;
+        }
+        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, lbAlgorithm, exchange);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
@@ -116,12 +126,13 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
-        exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(lbAlgorithm, LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
+        final String effectiveLb = ruleHandle.getLoadBalance();
+        if (effectiveLb.equals(P2C)) {
             return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
             )).doOnError(throwable -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+        } else if (effectiveLb.equals(SHORTEST_RESPONSE)) {
             beginTime = System.currentTimeMillis();
             return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
             ));
@@ -156,6 +167,26 @@ public class DividePlugin extends AbstractShenyuPlugin {
     
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    private GrayConfig buildGrayConfig(final DivideRuleHandle ruleHandle) {
+        List<GrayCondition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(ruleHandle.getGrayConditionParamType())) {
+            GrayCondition condition = new GrayCondition();
+            condition.setParamType(ruleHandle.getGrayConditionParamType());
+            condition.setParamName(ruleHandle.getGrayConditionParamName());
+            condition.setOperator(ruleHandle.getGrayConditionOperator());
+            condition.setParamValue(ruleHandle.getGrayConditionParamValue());
+            conditions.add(condition);
+        }
+        MetadataMatch metadataMatch = null;
+        if (StringUtils.isNotBlank(ruleHandle.getGrayMetadataKey())) {
+            metadataMatch = new MetadataMatch();
+            metadataMatch.setKey(ruleHandle.getGrayMetadataKey());
+            metadataMatch.setValue(ruleHandle.getGrayMetadataValue());
+        }
+        return new GrayConfig(conditions, ruleHandle.getGrayPercent(),
+                ruleHandle.getLoadBalance(), metadataMatch);
     }
 
     private void responseTrigger(final Upstream upstream) {
