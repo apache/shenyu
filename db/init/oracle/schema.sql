@@ -2735,10 +2735,12 @@ create table discovery_upstream
     upstream_status      NUMBER(10) not null,
     weight      NUMBER(10)  not null,
     props       CLOB,
+    metadata    CLOB,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+COMMENT ON COLUMN discovery_upstream.metadata IS 'user-defined metadata for gray release';
 CREATE UNIQUE INDEX discovery_upstream_idx ON discovery_upstream (discovery_handler_id, upstream_url);
 
 -- Add comments to the columns

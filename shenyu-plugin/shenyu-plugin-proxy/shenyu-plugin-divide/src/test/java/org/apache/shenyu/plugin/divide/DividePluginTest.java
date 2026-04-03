@@ -22,7 +22,9 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.GrayConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -30,6 +32,7 @@ import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.loadbalancer.spi.GrayLoadBalancer;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
@@ -79,6 +82,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class DividePluginTest {
+
+    private static final String GRAY_LOAD_BALANCE = "gray";
 
     private RuleData ruleData;
 
@@ -159,10 +164,11 @@ public final class DividePluginTest {
         when(selectorData.getHandle()).thenReturn(null);
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         // hit `Objects.isNull(upstream)`
-        MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
-        loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
-                .thenReturn(null);
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        try (MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class)) {
+            loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
+                    .thenReturn(null);
+            dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        }
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
@@ -176,6 +182,42 @@ public final class DividePluginTest {
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void doExecuteGrayModeShouldExposeGrayConfigAndLoadBalanceAttribute() {
+        DivideRuleHandle divideRuleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        divideRuleHandle.setGrayEnabled(true);
+        divideRuleHandle.setGrayPercent(20);
+        divideRuleHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
+
+        Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+
+        assertEquals(GRAY_LOAD_BALANCE, exchange.getAttribute(Constants.LOAD_BALANCE));
+        GrayConfig grayConfig = exchange.getAttribute(GrayLoadBalancer.GRAY_CONFIG_KEY);
+        assertNotNull(grayConfig);
+        assertEquals(20, grayConfig.getPercent());
+        assertEquals(LoadBalanceEnum.ROUND_ROBIN.getName(), grayConfig.getLoadBalance());
+    }
+
+    @Test
+    public void doExecuteGrayModeShouldStillTriggerShortestResponseCallback() {
+        DivideRuleHandle divideRuleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        divideRuleHandle.setGrayEnabled(true);
+        divideRuleHandle.setLoadBalance("shortestResponse");
+
+        Upstream upstream = UpstreamCacheManager.getInstance()
+                .findUpstreamListBySelectorId(selectorData.getId()).get(0);
+        assertEquals(0L, upstream.getSucceeded().get());
+
+        Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+
+        assertEquals(1L, upstream.getSucceeded().get());
+        assertEquals(GRAY_LOAD_BALANCE, exchange.getAttribute(Constants.LOAD_BALANCE));
     }
 
     /**

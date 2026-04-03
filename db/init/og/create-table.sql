@@ -2544,6 +2544,7 @@ CREATE TABLE "public"."discovery_upstream"
     "upstream_status"      int4  NOT NULL,
     "weight"      int4  NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
+    "metadata"     text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
@@ -2556,6 +2557,7 @@ COMMENT ON COLUMN "public"."discovery_upstream"."upstream_url" IS 'ip:port';
 COMMENT ON COLUMN "public"."discovery_upstream"."upstream_status" IS 'type (0, healthy, 1 unhealthy)';
 COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
+COMMENT ON COLUMN "public"."discovery_upstream"."metadata" IS 'user-defined metadata for gray release';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
 CREATE INDEX "unique_discovery_upstream_discovery_handler_id" ON "public"."discovery_upstream" USING btree (

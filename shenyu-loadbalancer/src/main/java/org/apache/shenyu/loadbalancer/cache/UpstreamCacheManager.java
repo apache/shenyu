@@ -216,6 +216,8 @@ public final class UpstreamCacheManager {
             if (Objects.nonNull(matchedExistUp)) {
                 matchedExistUp.setWeight(validUp.getWeight());
                 matchedExistUp.setHealthCheckEnabled(validUp.isHealthCheckEnabled());
+                matchedExistUp.setGray(validUp.isGray());
+                matchedExistUp.setMetadata(validUp.getMetadata());
                 if (!matchedExistUp.isHealthCheckEnabled()) {
                     matchedExistUp.setHealthy(true);
                 }
