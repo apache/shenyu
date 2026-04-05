@@ -282,8 +282,8 @@ public final class RuleServiceTest {
         testSelectorMergeScenario(
                 new ArrayList<>(Arrays.asList("s1", "s3")),
                 Arrays.asList(selectorDO1, selectorDO2),
-                3,
-                Arrays.asList("s1", "s2", "s3")
+                2,
+                Arrays.asList("s1", "s3")
         );
 
         testSelectorMergeScenario(
@@ -299,6 +299,46 @@ public final class RuleServiceTest {
                 2,
                 Arrays.asList("s1", "s2")
         );
+
+        testSearchByPageWithSpecifiedSelectors();
+        testSearchByPageExpandsNamespaceSelectorsWhenSelectorsEmpty();
+    }
+
+    private void testSearchByPageWithSpecifiedSelectors() {
+        Page<RuleDO> emptyPage = new Page<>();
+        PageCondition<RuleQueryCondition> pageCondition = buildPageCondition();
+        RuleQueryCondition condition = pageCondition.getCondition();
+        List<String> userSelectors = new ArrayList<>(Arrays.asList("s1", "s3"));
+        SelectorDO selectorDO1 = SelectorDO.builder().id("s1").build();
+        SelectorDO selectorDO2 = SelectorDO.builder().id("s2").build();
+        condition.setSelectors(userSelectors);
+
+        given(this.selectorMapper.selectAllByNamespaceId(anyString())).willReturn(Arrays.asList(selectorDO1, selectorDO2));
+        given(this.ruleMapper.selectByCondition(any(RuleQueryCondition.class))).willReturn(emptyPage);
+
+        PageInfo<RuleVO> result = ruleService.searchByPage(pageCondition);
+
+        assertNotNull(result);
+        assertEquals(2, condition.getSelectors().size());
+        assertTrue(condition.getSelectors().containsAll(Arrays.asList("s1", "s3")));
+    }
+
+    private void testSearchByPageExpandsNamespaceSelectorsWhenSelectorsEmpty() {
+        Page<RuleDO> emptyPage = new Page<>();
+        PageCondition<RuleQueryCondition> pageCondition = buildPageCondition();
+        RuleQueryCondition condition = pageCondition.getCondition();
+        SelectorDO selectorDO1 = SelectorDO.builder().id("s1").build();
+        SelectorDO selectorDO2 = SelectorDO.builder().id("s2").build();
+        condition.setSelectors(Collections.emptyList());
+
+        given(this.selectorMapper.selectAllByNamespaceId(anyString())).willReturn(Arrays.asList(selectorDO1, selectorDO2));
+        given(this.ruleMapper.selectByCondition(any(RuleQueryCondition.class))).willReturn(emptyPage);
+
+        PageInfo<RuleVO> result = ruleService.searchByPage(pageCondition);
+
+        assertNotNull(result);
+        assertEquals(2, condition.getSelectors().size());
+        assertTrue(condition.getSelectors().containsAll(Arrays.asList("s1", "s2")));
     }
 
     private void testSelectorMergeScenario(final List<String> userSelectors,

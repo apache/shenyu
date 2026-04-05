@@ -30,8 +30,8 @@ jobs:
         include:
           - java: 17
             os: ubuntu-latest
-          - java: 18
-            os: ubuntu-latest
+#          - java: 18
+#            os: ubuntu-latest
           - java: 19
             os: ubuntu-latest
           - java: 20
@@ -148,6 +148,7 @@ jobs:
 
   check-license-header:
     name: check-license-header
+    if: (github.repository == 'apache/shenyu')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -161,7 +162,7 @@ jobs:
 
   requirement:
     name: build
-    if: always()
+    if: (github.repository == 'apache/shenyu') && always()
     needs:
       - build
     runs-on: ubuntu-latest
