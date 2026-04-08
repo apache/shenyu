@@ -79,6 +79,8 @@ public class DivideUpstreamDataHandlerTest {
     @AfterEach
     public void tearDown() {
         mockCheckUtils.close();
+        UpstreamCacheManager.getInstance().removeByKey("handler");
+        UpstreamCacheManager.getInstance().removeByKey("metadata-test");
     }
 
     /**

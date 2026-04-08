@@ -88,9 +88,15 @@ public enum DiscoveryTransfer {
                     .orElse(new Properties());
             commonUpstream
                     .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
-            commonUpstream.setMetadata(StringUtils.isBlank(data.getMetadata())
-                    ? Collections.emptyMap()
-                    : GsonUtils.getInstance().toObjectMap(data.getMetadata(), String.class));
+            Map<String, String> metadataMap;
+            try {
+                metadataMap = StringUtils.isBlank(data.getMetadata())
+                        ? Collections.emptyMap()
+                        : GsonUtils.getInstance().toObjectMap(data.getMetadata(), String.class);
+            } catch (Exception ex) {
+                metadataMap = Collections.emptyMap();
+            }
+            commonUpstream.setMetadata(metadataMap);
             return commonUpstream;
         }).orElse(null);
     }

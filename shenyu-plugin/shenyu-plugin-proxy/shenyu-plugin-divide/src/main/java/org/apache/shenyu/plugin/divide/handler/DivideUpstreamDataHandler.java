@@ -65,10 +65,15 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }
         return upstreamList.stream().map(u -> {
             Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
-            Map<String, String> metadata = Optional.ofNullable(u.getMetadata())
-                    .filter(value -> !value.isBlank())
-                    .map(value -> GsonUtils.getInstance().toObjectMap(value, String.class))
-                    .orElse(Collections.emptyMap());
+            Map<String, String> metadata;
+            try {
+                metadata = Optional.ofNullable(u.getMetadata())
+                        .filter(value -> !value.isBlank())
+                        .map(value -> GsonUtils.getInstance().toObjectMap(value, String.class))
+                        .orElse(Collections.emptyMap());
+            } catch (Exception ex) {
+                metadata = Collections.emptyMap();
+            }
             return Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
