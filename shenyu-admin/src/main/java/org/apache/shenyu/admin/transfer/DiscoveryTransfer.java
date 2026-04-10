@@ -39,6 +39,7 @@ import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
