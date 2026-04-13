@@ -167,8 +167,6 @@ public class HttpUtils {
         httpLoggingInterceptor.setLevel(Level.BODY);
         httpClient = new OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
-            .followRedirects(false)
-            .followSslRedirects(false)
             .connectTimeout(httpToolConfig.connectTimeoutSeconds, TimeUnit.SECONDS)
             .readTimeout(httpToolConfig.readTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(httpToolConfig.writeTimeoutSeconds, TimeUnit.SECONDS)
@@ -327,10 +325,30 @@ public class HttpUtils {
      */
     public Response requestForResponse(final String url, final Map<String, ?> form, final Map<String, String> header,
         final HTTPMethod method) throws IOException {
+        return requestForResponse(url, form, header, method, true);
+    }
+
+    /**
+     * request data with configurable redirect handling.
+     *
+     * @param url request url
+     * @param form request data
+     * @param header header
+     * @param method method
+     * @param followRedirects whether redirects should be followed
+     * @return Response
+     * @throws IOException IOException
+     */
+    public Response requestForResponse(final String url, final Map<String, ?> form, final Map<String, String> header,
+        final HTTPMethod method, final boolean followRedirects) throws IOException {
         Request.Builder requestBuilder = buildRequestBuilder(url, form, method);
         addHeader(requestBuilder, header);
         Request request = requestBuilder.build();
-        return httpClient
+        OkHttpClient client = followRedirects ? httpClient : httpClient.newBuilder()
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .build();
+        return client
             .newCall(request)
             .execute();
     }

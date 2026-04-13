@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import java.net.InetSocketAddress;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,10 +120,41 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public void requestForResponseShouldNotFollowRedirects() throws IOException {
+    public void requestForResponseShouldNotFollowRedirectsWhenExplicitlyDisabled() throws IOException {
         HttpServer targetServer = HttpServer.create(new InetSocketAddress(0), 0);
         targetServer.createContext("/internal", exchange -> {
-            byte[] body = "target".getBytes();
+            byte[] body = "target".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        targetServer.start();
+
+        HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
+        String redirectLocation = "http://127.0.0.1:" + targetServer.getAddress().getPort() + "/internal";
+        redirectServer.createContext("/swagger.json", exchange -> {
+            exchange.getResponseHeaders().add("Location", redirectLocation);
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+        redirectServer.start();
+
+        HttpUtils httpUtils = new HttpUtils();
+        String redirectUrl = "http://127.0.0.1:" + redirectServer.getAddress().getPort() + "/swagger.json";
+        try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET, false)) {
+            Assert.assertEquals(302, response.code());
+            Assert.assertEquals(redirectLocation, response.header("Location"));
+        } finally {
+            redirectServer.stop(0);
+            targetServer.stop(0);
+        }
+    }
+
+    @Test
+    public void requestForResponseShouldFollowRedirectsByDefault() throws IOException {
+        HttpServer targetServer = HttpServer.create(new InetSocketAddress(0), 0);
+        targetServer.createContext("/internal", exchange -> {
+            byte[] body = "target".getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(200, body.length);
             exchange.getResponseBody().write(body);
             exchange.close();
@@ -141,8 +173,7 @@ public class HttpUtilsTest {
         HttpUtils httpUtils = new HttpUtils();
         String redirectUrl = "http://127.0.0.1:" + redirectServer.getAddress().getPort() + "/swagger.json";
         try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET)) {
-            Assert.assertEquals(302, response.code());
-            Assert.assertEquals(redirectLocation, response.header("Location"));
+            Assert.assertEquals(200, response.code());
         } finally {
             redirectServer.stop(0);
             targetServer.stop(0);
