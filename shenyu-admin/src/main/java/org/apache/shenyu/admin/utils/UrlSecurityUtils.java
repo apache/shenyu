@@ -31,6 +31,10 @@ import java.util.Set;
  */
 public final class UrlSecurityUtils {
 
+    private static final String HTTP_PROTOCOL = "http";
+
+    private static final String HTTPS_PROTOCOL = "https";
+
     /**
      * Private constructor to prevent instantiation.
      */
@@ -56,7 +60,7 @@ public final class UrlSecurityUtils {
         String protocol = parsedUrl.scheme();
 
         // Only allow HTTP and HTTPS protocols
-        if (!"http".equals(protocol) && !"https".equals(protocol)) {
+        if (!HTTP_PROTOCOL.equals(protocol) && !HTTPS_PROTOCOL.equals(protocol)) {
             throw new IllegalArgumentException("Only HTTP and HTTPS protocols are allowed");
         }
 
