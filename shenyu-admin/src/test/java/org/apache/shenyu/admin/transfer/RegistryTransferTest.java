@@ -30,24 +30,42 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class RegistryTransferTest {
 
+    private static final String TEST_REGISTRY_ID = "registry-id";
+
+    private static final String TEST_REGISTRY_NAME = "registry";
+
+    private static final String TEST_PROTOCOL = "http";
+
+    private static final String TEST_ADDRESS = "127.0.0.1:2181";
+
+    private static final String TEST_USERNAME = "admin";
+
+    private static final String TEST_PASSWORD = "secret-password";
+
+    private static final String TEST_NAMESPACE = "default";
+
+    private static final String TEST_GROUP = "group";
+
+    private static final String PASSWORD_FIELD = "\"password\"";
+
     @Test
     public void mapToVoShouldNotExposePasswordInSerializedJson() throws Exception {
         RegistryDO registryDO = RegistryDO.builder()
-                .id("registry-id")
-                .registryId("registry")
-                .protocol("http")
-                .address("127.0.0.1:2181")
-                .username("admin")
-                .password("secret-password")
-                .namespace("default")
-                .registryGroup("group")
+                .id(TEST_REGISTRY_ID)
+                .registryId(TEST_REGISTRY_NAME)
+                .protocol(TEST_PROTOCOL)
+                .address(TEST_ADDRESS)
+                .username(TEST_USERNAME)
+                .password(TEST_PASSWORD)
+                .namespace(TEST_NAMESPACE)
+                .registryGroup(TEST_GROUP)
                 .build();
 
         RegistryVO registryVO = RegistryTransfer.INSTANCE.mapToVo(registryDO);
         assertNotNull(registryVO);
 
         String json = new ObjectMapper().writeValueAsString(registryVO);
-        assertFalse(json.contains("secret-password"));
-        assertFalse(json.contains("\"password\""));
+        assertFalse(json.contains(TEST_PASSWORD));
+        assertFalse(json.contains(PASSWORD_FIELD));
     }
 }
