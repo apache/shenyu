@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.utils;
 
+import okhttp3.HttpUrl;
+
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -48,21 +48,20 @@ public final class UrlSecurityUtils {
             throw new IllegalArgumentException("URL cannot be empty");
         }
 
-        try {
-            URL parsedUrl = new URL(url);
-            String protocol = parsedUrl.getProtocol();
-
-            // Only allow HTTP and HTTPS protocols
-            if (!"http".equals(protocol) && !"https".equals(protocol)) {
-                throw new IllegalArgumentException("Only HTTP and HTTPS protocols are allowed");
-            }
-
-            // Validate host for SSRF protection
-            validateHostForSSRF(parsedUrl.getHost(), parsedUrl.getPort());
-
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid URL format: " + e.getMessage());
+        HttpUrl parsedUrl = HttpUrl.parse(url);
+        if (Objects.isNull(parsedUrl)) {
+            throw new IllegalArgumentException("Invalid URL format");
         }
+
+        String protocol = parsedUrl.scheme();
+
+        // Only allow HTTP and HTTPS protocols
+        if (!"http".equals(protocol) && !"https".equals(protocol)) {
+            throw new IllegalArgumentException("Only HTTP and HTTPS protocols are allowed");
+        }
+
+        // Validate host for SSRF protection using the same URL parser as request execution.
+        validateHostForSSRF(parsedUrl.host(), parsedUrl.port());
     }
 
     /**

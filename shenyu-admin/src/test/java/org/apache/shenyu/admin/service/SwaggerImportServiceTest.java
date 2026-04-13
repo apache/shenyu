@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.apache.shenyu.admin.service.manager.DocManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test for SwaggerImportService.
@@ -51,4 +52,12 @@ public class SwaggerImportServiceTest {
         // Test valid URL format but may fail to connect
         assertFalse(service.testConnection("http://invalid.example.com/swagger.json"));
     }
-} 
+
+    @Test
+    public void testConnectionShouldRejectParserConfusionPayloadBeforeRequest() {
+        SwaggerImportService service = new SwaggerImportServiceImpl(docManager, httpUtils);
+
+        assertFalse(service.testConnection("http://127.0.0.1:6666\\@1.1.1.1"));
+        verifyNoInteractions(httpUtils);
+    }
+}
