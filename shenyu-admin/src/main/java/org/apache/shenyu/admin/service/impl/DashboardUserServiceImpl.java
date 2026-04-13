@@ -52,9 +52,9 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -63,6 +63,12 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -283,14 +289,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         final String cbcDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())
                 && isPotentialEncryptedPassword(password)) {
-            String decryptPassword;
-            try {
-                decryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
-            } catch (Exception e) {
-                LOG.warn("AES login password decrypt failed, falling back to plain text password", e);
-                decryptPassword = password;
-            }
-            cbcDecryptPassword = decryptPassword;
+            cbcDecryptPassword = tryDecryptPassword(password)
+                    .orElse(password);
         } else {
             cbcDecryptPassword = password;
         }
@@ -331,6 +331,23 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             return decoded.length > 0 && decoded.length % 16 == 0;
         } catch (IllegalArgumentException ignored) {
             return false;
+        }
+    }
+
+    private Optional<String> tryDecryptPassword(final String password) {
+        Security.addProvider(new BouncyCastleProvider());
+        byte[] secretKeyBytes = secretProperties.getKey().getBytes(StandardCharsets.UTF_8);
+        byte[] ivBytes = secretProperties.getIv().getBytes(StandardCharsets.UTF_8);
+        try {
+            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/Pkcs7Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
+            return Optional.of(new String(decryptedBytes, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            LOG.debug("AES login password decrypt failed, falling back to plain text password", e);
+            return Optional.empty();
         }
     }
 
