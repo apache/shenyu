@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.springframework.stereotype.Service;
@@ -29,14 +29,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class SecretServiceImpl implements SecretService {
 
-    public SecretServiceImpl(final SecretProperties secretProperties) {
-    }
-
     @Override
     public String info() {
-        SecretProperties sanitized = new SecretProperties();
+        org.apache.shenyu.admin.config.properties.SecretProperties sanitized =
+                new org.apache.shenyu.admin.config.properties.SecretProperties();
         sanitized.setKey("");
         sanitized.setIv("");
-        return Base64.getEncoder().encodeToString(JsonUtils.toJson(sanitized).getBytes());
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(sanitized).getBytes(StandardCharsets.UTF_8));
     }
 }

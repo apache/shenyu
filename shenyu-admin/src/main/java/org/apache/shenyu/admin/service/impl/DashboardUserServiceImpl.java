@@ -63,6 +63,7 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -280,12 +281,13 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public LoginDashboardUserVO login(final String userName, final String password, final String clientId) {
         DashboardUserVO dashboardUserVO = null;
         final String cbcDecryptPassword;
-        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())
+                && isPotentialEncryptedPassword(password)) {
             String decryptPassword;
             try {
                 decryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
             } catch (Exception e) {
-                LOG.warn("AES login password decrypt failed, falling back to plain text password");
+                LOG.warn("AES login password decrypt failed, falling back to plain text password", e);
                 decryptPassword = password;
             }
             cbcDecryptPassword = decryptPassword;
@@ -318,6 +320,18 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
+    }
+
+    private boolean isPotentialEncryptedPassword(final String password) {
+        if (StringUtils.isBlank(password)) {
+            return false;
+        }
+        try {
+            byte[] decoded = Base64.getDecoder().decode(password);
+            return decoded.length > 0 && decoded.length % 16 == 0;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
     }
 
     /**

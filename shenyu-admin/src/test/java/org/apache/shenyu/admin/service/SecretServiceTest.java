@@ -40,7 +40,7 @@ public class SecretServiceTest {
         secretProperties.setKey("2095132720951327");
         secretProperties.setIv("6075877187097700");
 
-        SecretService secretService = new SecretServiceImpl(secretProperties);
+        SecretService secretService = new SecretServiceImpl();
         String encoded = secretService.info();
         String decoded = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
         @SuppressWarnings("unchecked")
