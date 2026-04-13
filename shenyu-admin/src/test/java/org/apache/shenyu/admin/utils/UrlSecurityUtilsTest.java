@@ -26,9 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class UrlSecurityUtilsTest {
 
+    private static final String PARSER_CONFUSION_PAYLOAD = "http://127.0.0.1:6666\\@1.1.1.1";
+
     @Test
     public void validateUrlForSSRFShouldRejectParserConfusionPayload() {
         assertThrows(IllegalArgumentException.class,
-                () -> UrlSecurityUtils.validateUrlForSSRF("http://127.0.0.1:6666\\@1.1.1.1"));
+                () -> UrlSecurityUtils.validateUrlForSSRF(PARSER_CONFUSION_PAYLOAD));
     }
 }

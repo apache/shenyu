@@ -33,6 +33,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 @ExtendWith(MockitoExtension.class)
 public class SwaggerImportServiceTest {
+
+    private static final String PARSER_CONFUSION_PAYLOAD = "http://127.0.0.1:6666\\@1.1.1.1";
     
     @Mock
     private DocManager docManager;
@@ -57,7 +59,7 @@ public class SwaggerImportServiceTest {
     public void testConnectionShouldRejectParserConfusionPayloadBeforeRequest() {
         SwaggerImportService service = new SwaggerImportServiceImpl(docManager, httpUtils);
 
-        assertFalse(service.testConnection("http://127.0.0.1:6666\\@1.1.1.1"));
+        assertFalse(service.testConnection(PARSER_CONFUSION_PAYLOAD));
         verifyNoInteractions(httpUtils);
     }
 }
