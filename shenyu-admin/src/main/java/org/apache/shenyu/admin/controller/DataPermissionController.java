@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +63,7 @@ public class DataPermissionController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/selector")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult listPageSelectorDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                              @RequestParam("pageSize") final Integer pageSize,
                                                              @RequestParam("userId") final String userId,
@@ -86,6 +88,7 @@ public class DataPermissionController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/rules")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult listPageRuleDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                          @RequestParam("pageSize") final Integer pageSize,
                                                          @RequestParam("userId") final String userId,
@@ -104,6 +107,7 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @PostMapping("/selector")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult saveSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO));
     }
@@ -115,6 +119,7 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @DeleteMapping("/selector")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult deleteSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO));
     }
@@ -126,6 +131,7 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @PostMapping("/rule")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult saveRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO));
     }
@@ -137,6 +143,7 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @DeleteMapping("/rule")
+    @RequiresPermissions("system:manager:configureDataPermission")
     public ShenyuAdminResult deleteRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO));
     }
