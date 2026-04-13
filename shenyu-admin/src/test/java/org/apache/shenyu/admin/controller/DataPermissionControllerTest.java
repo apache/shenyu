@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -40,6 +41,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
@@ -200,7 +202,10 @@ public class DataPermissionControllerTest {
     }
 
     private void assertPermissions(final Method method, final String... expectedPermissions) {
-        RequiresPermissions permissions = method.getAnnotation(RequiresPermissions.class);
+        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
+        if (Objects.isNull(permissions)) {
+            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
+        }
         assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
         assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
     }

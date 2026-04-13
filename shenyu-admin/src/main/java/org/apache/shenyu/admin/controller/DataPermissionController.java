@@ -125,7 +125,7 @@ public class DataPermissionController {
     }
     
     /**
-     * Delete rule data permission.
+     * Create rule data permission.
      *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
@@ -137,7 +137,7 @@ public class DataPermissionController {
     }
     
     /**
-     * Delete selector data permission.
+     * Delete rule data permission.
      *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count

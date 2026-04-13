@@ -46,6 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
@@ -286,7 +288,10 @@ public final class RuleControllerTest {
     }
 
     private void assertPermissions(final Method method, final String... expectedPermissions) {
-        RequiresPermissions permissions = method.getAnnotation(RequiresPermissions.class);
+        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
+        if (Objects.isNull(permissions)) {
+            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
+        }
         assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
         assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
     }
