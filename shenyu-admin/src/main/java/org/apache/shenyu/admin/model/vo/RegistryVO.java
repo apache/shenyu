@@ -56,6 +56,7 @@ public class RegistryVO implements Serializable {
     /**
      * password.
      */
+    @JsonIgnore
     private String password;
 
     /**
