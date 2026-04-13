@@ -40,6 +40,16 @@ public class HttpUtilsTest {
 
     private static final String TEST_URL = "http://127.0.0.1/";
 
+    private static final String REDIRECT_PATH = "/swagger.json";
+
+    private static final String TARGET_PATH = "/internal";
+
+    private static final String TARGET_BODY = "target";
+
+    private static final int HTTP_STATUS_OK = 200;
+
+    private static final int HTTP_STATUS_REDIRECT = 302;
+
     private final Map<String, Object> formMap = new HashMap<>();
 
     {
@@ -122,27 +132,27 @@ public class HttpUtilsTest {
     @Test
     public void requestForResponseShouldNotFollowRedirectsWhenExplicitlyDisabled() throws IOException {
         HttpServer targetServer = HttpServer.create(new InetSocketAddress(0), 0);
-        targetServer.createContext("/internal", exchange -> {
-            byte[] body = "target".getBytes(StandardCharsets.UTF_8);
-            exchange.sendResponseHeaders(200, body.length);
+        targetServer.createContext(TARGET_PATH, exchange -> {
+            byte[] body = TARGET_BODY.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(HTTP_STATUS_OK, body.length);
             exchange.getResponseBody().write(body);
             exchange.close();
         });
         targetServer.start();
 
         HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
-        String redirectLocation = "http://127.0.0.1:" + targetServer.getAddress().getPort() + "/internal";
-        redirectServer.createContext("/swagger.json", exchange -> {
+        String redirectLocation = TEST_URL + targetServer.getAddress().getPort() + TARGET_PATH;
+        redirectServer.createContext(REDIRECT_PATH, exchange -> {
             exchange.getResponseHeaders().add("Location", redirectLocation);
-            exchange.sendResponseHeaders(302, -1);
+            exchange.sendResponseHeaders(HTTP_STATUS_REDIRECT, -1);
             exchange.close();
         });
         redirectServer.start();
 
         HttpUtils httpUtils = new HttpUtils();
-        String redirectUrl = "http://127.0.0.1:" + redirectServer.getAddress().getPort() + "/swagger.json";
+        String redirectUrl = TEST_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
         try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET, false)) {
-            Assert.assertEquals(302, response.code());
+            Assert.assertEquals(HTTP_STATUS_REDIRECT, response.code());
             Assert.assertEquals(redirectLocation, response.header("Location"));
         } finally {
             redirectServer.stop(0);
@@ -153,27 +163,27 @@ public class HttpUtilsTest {
     @Test
     public void requestForResponseShouldFollowRedirectsByDefault() throws IOException {
         HttpServer targetServer = HttpServer.create(new InetSocketAddress(0), 0);
-        targetServer.createContext("/internal", exchange -> {
-            byte[] body = "target".getBytes(StandardCharsets.UTF_8);
-            exchange.sendResponseHeaders(200, body.length);
+        targetServer.createContext(TARGET_PATH, exchange -> {
+            byte[] body = TARGET_BODY.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(HTTP_STATUS_OK, body.length);
             exchange.getResponseBody().write(body);
             exchange.close();
         });
         targetServer.start();
 
         HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
-        String redirectLocation = "http://127.0.0.1:" + targetServer.getAddress().getPort() + "/internal";
-        redirectServer.createContext("/swagger.json", exchange -> {
+        String redirectLocation = TEST_URL + targetServer.getAddress().getPort() + TARGET_PATH;
+        redirectServer.createContext(REDIRECT_PATH, exchange -> {
             exchange.getResponseHeaders().add("Location", redirectLocation);
-            exchange.sendResponseHeaders(302, -1);
+            exchange.sendResponseHeaders(HTTP_STATUS_REDIRECT, -1);
             exchange.close();
         });
         redirectServer.start();
 
         HttpUtils httpUtils = new HttpUtils();
-        String redirectUrl = "http://127.0.0.1:" + redirectServer.getAddress().getPort() + "/swagger.json";
+        String redirectUrl = TEST_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
         try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET)) {
-            Assert.assertEquals(200, response.code());
+            Assert.assertEquals(HTTP_STATUS_OK, response.code());
         } finally {
             redirectServer.stop(0);
             targetServer.stop(0);
