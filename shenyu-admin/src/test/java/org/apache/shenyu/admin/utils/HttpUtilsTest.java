@@ -40,6 +40,8 @@ public class HttpUtilsTest {
 
     private static final String TEST_URL = "http://127.0.0.1/";
 
+    private static final String LOCALHOST_BASE_URL = "http://127.0.0.1:";
+
     private static final String REDIRECT_PATH = "/swagger.json";
 
     private static final String TARGET_PATH = "/internal";
@@ -141,7 +143,7 @@ public class HttpUtilsTest {
         targetServer.start();
 
         HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
-        String redirectLocation = TEST_URL + targetServer.getAddress().getPort() + TARGET_PATH;
+        String redirectLocation = LOCALHOST_BASE_URL + targetServer.getAddress().getPort() + TARGET_PATH;
         redirectServer.createContext(REDIRECT_PATH, exchange -> {
             exchange.getResponseHeaders().add("Location", redirectLocation);
             exchange.sendResponseHeaders(HTTP_STATUS_REDIRECT, -1);
@@ -150,7 +152,7 @@ public class HttpUtilsTest {
         redirectServer.start();
 
         HttpUtils httpUtils = new HttpUtils();
-        String redirectUrl = TEST_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
+        String redirectUrl = LOCALHOST_BASE_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
         try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET, false)) {
             Assert.assertEquals(HTTP_STATUS_REDIRECT, response.code());
             Assert.assertEquals(redirectLocation, response.header("Location"));
@@ -172,7 +174,7 @@ public class HttpUtilsTest {
         targetServer.start();
 
         HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
-        String redirectLocation = TEST_URL + targetServer.getAddress().getPort() + TARGET_PATH;
+        String redirectLocation = LOCALHOST_BASE_URL + targetServer.getAddress().getPort() + TARGET_PATH;
         redirectServer.createContext(REDIRECT_PATH, exchange -> {
             exchange.getResponseHeaders().add("Location", redirectLocation);
             exchange.sendResponseHeaders(HTTP_STATUS_REDIRECT, -1);
@@ -181,7 +183,7 @@ public class HttpUtilsTest {
         redirectServer.start();
 
         HttpUtils httpUtils = new HttpUtils();
-        String redirectUrl = TEST_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
+        String redirectUrl = LOCALHOST_BASE_URL + redirectServer.getAddress().getPort() + REDIRECT_PATH;
         try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET)) {
             Assert.assertEquals(HTTP_STATUS_OK, response.code());
         } finally {
