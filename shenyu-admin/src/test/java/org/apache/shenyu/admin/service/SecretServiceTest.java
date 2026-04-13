@@ -34,11 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  */
 public class SecretServiceTest {
 
+    private static final String TEST_AES_KEY = "2095132720951327";
+
+    private static final String TEST_AES_IV = "6075877187097700";
+
     @Test
     public void infoShouldNotExposeConfiguredSecrets() throws Exception {
         SecretProperties secretProperties = new SecretProperties();
-        secretProperties.setKey("2095132720951327");
-        secretProperties.setIv("6075877187097700");
+        secretProperties.setKey(TEST_AES_KEY);
+        secretProperties.setIv(TEST_AES_IV);
 
         SecretService secretService = new SecretServiceImpl();
         String encoded = secretService.info();
@@ -46,8 +50,8 @@ public class SecretServiceTest {
         @SuppressWarnings("unchecked")
         Map<String, String> secretInfo = new ObjectMapper().readValue(decoded, Map.class);
 
-        assertNotEquals("2095132720951327", secretInfo.get("key"));
-        assertNotEquals("6075877187097700", secretInfo.get("iv"));
+        assertNotEquals(TEST_AES_KEY, secretInfo.get("key"));
+        assertNotEquals(TEST_AES_IV, secretInfo.get("iv"));
         assertEquals("", secretInfo.get("key"));
         assertEquals("", secretInfo.get("iv"));
     }

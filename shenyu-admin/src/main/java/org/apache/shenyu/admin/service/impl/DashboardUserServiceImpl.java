@@ -84,6 +84,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
 
+    private static final int AES_BLOCK_SIZE = 16;
+
     private final DashboardUserMapper dashboardUserMapper;
 
     private final UserRoleMapper userRoleMapper;
@@ -328,7 +330,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
         try {
             byte[] decoded = Base64.getDecoder().decode(password);
-            return decoded.length > 0 && decoded.length % 16 == 0;
+            return decoded.length > 0 && decoded.length % AES_BLOCK_SIZE == 0;
         } catch (IllegalArgumentException ignored) {
             return false;
         }

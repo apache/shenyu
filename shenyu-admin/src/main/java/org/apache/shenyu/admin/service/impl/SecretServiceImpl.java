@@ -29,12 +29,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class SecretServiceImpl implements SecretService {
 
+    private static final String SANITIZED_SECRET_VALUE = "";
+
     @Override
     public String info() {
         org.apache.shenyu.admin.config.properties.SecretProperties sanitized =
                 new org.apache.shenyu.admin.config.properties.SecretProperties();
-        sanitized.setKey("");
-        sanitized.setIv("");
+        sanitized.setKey(SANITIZED_SECRET_VALUE);
+        sanitized.setIv(SANITIZED_SECRET_VALUE);
         return Base64.getEncoder().encodeToString(JsonUtils.toJson(sanitized).getBytes(StandardCharsets.UTF_8));
     }
 }
