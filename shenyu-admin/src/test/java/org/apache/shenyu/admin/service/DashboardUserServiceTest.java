@@ -232,6 +232,10 @@ public final class DashboardUserServiceTest {
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
         verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
 
+        // test loginByDatabase plain password fallback when secret endpoint does not provide key material
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
+        verify(dashboardUserMapper, times(5)).findByQuery(eq(TEST_USER_NAME), anyString());
+
     }
 
     private DashboardUserDO createDashboardUserDO() {

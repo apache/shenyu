@@ -281,7 +281,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         DashboardUserVO dashboardUserVO = null;
         final String cbcDecryptPassword;
         if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
-            cbcDecryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
+            String decryptPassword;
+            try {
+                decryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
+            } catch (Exception e) {
+                LOG.warn("AES login password decrypt failed, falling back to plain text password");
+                decryptPassword = password;
+            }
+            cbcDecryptPassword = decryptPassword;
         } else {
             cbcDecryptPassword = password;
         }

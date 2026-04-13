@@ -29,14 +29,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class SecretServiceImpl implements SecretService {
 
-    private final SecretProperties secretProperties;
-
     public SecretServiceImpl(final SecretProperties secretProperties) {
-        this.secretProperties = secretProperties;
     }
 
     @Override
     public String info() {
-        return Base64.getEncoder().encodeToString(JsonUtils.toJson(secretProperties).getBytes());
+        SecretProperties sanitized = new SecretProperties();
+        sanitized.setKey("");
+        sanitized.setIv("");
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(sanitized).getBytes());
     }
 }
