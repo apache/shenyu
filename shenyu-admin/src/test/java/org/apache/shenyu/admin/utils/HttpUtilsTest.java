@@ -17,12 +17,16 @@
 
 package org.apache.shenyu.admin.utils;
 
+import com.sun.net.httpserver.HttpServer;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+
+import java.net.InetSocketAddress;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -112,5 +116,36 @@ public class HttpUtilsTest {
     public void fileUtilsToBytesByFileNotExistsTest() {
         File file = new File("");
         Assertions.assertThrows(IOException.class, () -> HttpUtils.FileUtils.toBytes(file));
+    }
+
+    @Test
+    public void requestForResponseShouldNotFollowRedirects() throws IOException {
+        HttpServer targetServer = HttpServer.create(new InetSocketAddress(0), 0);
+        targetServer.createContext("/internal", exchange -> {
+            byte[] body = "target".getBytes();
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        targetServer.start();
+
+        HttpServer redirectServer = HttpServer.create(new InetSocketAddress(0), 0);
+        String redirectLocation = "http://127.0.0.1:" + targetServer.getAddress().getPort() + "/internal";
+        redirectServer.createContext("/swagger.json", exchange -> {
+            exchange.getResponseHeaders().add("Location", redirectLocation);
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+        redirectServer.start();
+
+        HttpUtils httpUtils = new HttpUtils();
+        String redirectUrl = "http://127.0.0.1:" + redirectServer.getAddress().getPort() + "/swagger.json";
+        try (Response response = httpUtils.requestForResponse(redirectUrl, new HashMap<>(), new HashMap<>(), HttpUtils.HTTPMethod.GET)) {
+            Assert.assertEquals(302, response.code());
+            Assert.assertEquals(redirectLocation, response.header("Location"));
+        } finally {
+            redirectServer.stop(0);
+            targetServer.stop(0);
+        }
     }
 }

@@ -167,6 +167,8 @@ public class HttpUtils {
         httpLoggingInterceptor.setLevel(Level.BODY);
         httpClient = new OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
+            .followRedirects(false)
+            .followSslRedirects(false)
             .connectTimeout(httpToolConfig.connectTimeoutSeconds, TimeUnit.SECONDS)
             .readTimeout(httpToolConfig.readTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(httpToolConfig.writeTimeoutSeconds, TimeUnit.SECONDS)
