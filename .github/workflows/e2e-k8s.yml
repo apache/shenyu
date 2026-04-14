@@ -21,6 +21,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -84,25 +88,37 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Cache mvnd
+        id: cache-mvnd
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/mvnd
+          key: ${{ runner.os }}-mvnd-1.0.2
+
       - name: Install mvnd
+        if: steps.cache-mvnd.outputs.cache-hit != 'true'
         shell: bash
         run: |
           MVND_VERSION=1.0.2
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          else
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          fi
+          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+
+      - name: Setup mvnd PATH
+        shell: bash
+        run: |
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
       - name: Build with Maven
         shell: bash
@@ -120,7 +136,8 @@ jobs:
           fi
 
       - name: Save ShenYu Maven Repos
-        uses: actions/cache/save@v3
+        if: steps.restore-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -152,8 +169,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    #    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == '2823602869/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    #    if: (github.repository == '2823602869/shenyu')
     strategy:
       matrix:
         include:
@@ -197,7 +214,7 @@ jobs:
           distribution: "temurin"
 
       - name: Restore ShenYu Maven Repos
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -236,8 +253,8 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
-    #    if: (github.repository == 'apache/shenyu')
+    if: (github.repository == '2823602869/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    #    if: (github.repository == '2823602869/shenyu')
     strategy:
       matrix:
         include:
@@ -294,32 +311,35 @@ jobs:
           distribution: "temurin"
 
       - name: Restore ShenYu Maven Repos
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Cache mvnd
+        id: cache-mvnd
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/mvnd
+          key: ${{ runner.os }}-mvnd-1.0.2
+
       - name: Install mvnd
+        if: steps.cache-mvnd.outputs.cache-hit != 'true'
         shell: bash
         run: |
           MVND_VERSION=1.0.2
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          else
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          fi
+          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+
+      - name: Setup mvnd PATH
+        shell: bash
+        run: |
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v4
         with:
@@ -337,17 +357,13 @@ jobs:
       - name: Build examples with Maven
         shell: bash
         run: |
-          echo "Falling back to maven wrapper for examples"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build examples"
+            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
+            echo "Falling back to maven wrapper for examples"
             ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: shenyu-images
-          path: /tmp/shenyu/
 
       - name: Load ShenYu Docker Images
         run: |
