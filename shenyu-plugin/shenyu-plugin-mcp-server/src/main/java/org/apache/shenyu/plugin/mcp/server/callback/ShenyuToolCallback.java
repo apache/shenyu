@@ -96,6 +96,11 @@ public class ShenyuToolCallback implements ToolCallback {
     private static final String STREAMABLE_HTTP_PATH = "/streamablehttp";
 
     /**
+     * Prefix used by McpSessionHelper for SDK compatibility failures.
+     */
+    private static final String SDK_COMPATIBILITY_ERROR_PREFIX = "SDK COMPATIBILITY ERROR";
+
+    /**
      * Regex pattern for template variable interpolation in tool inputs.
      **/
     private static final Pattern TEMPLATE_VARIABLE_PATTERN = Pattern.compile("\\{\\{\\.(.*?)\\}\\}");
@@ -761,20 +766,35 @@ public class ShenyuToolCallback implements ToolCallback {
      *
      * @param mcpExchange the MCP sync server exchange
      * @return the session ID
-     * @throws IllegalStateException if session ID cannot be extracted
+     * @throws IllegalStateException if the session ID is blank or an SDK compatibility issue blocks extraction
+     * @throws IllegalArgumentException if the exchange is missing required session state
      */
     private String extractSessionId(final McpSyncServerExchange mcpExchange) {
-        final String sessionId;
         try {
-            sessionId = McpSessionHelper.getSessionId(mcpExchange);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            final String sessionId = McpSessionHelper.getSessionId(mcpExchange);
+            if (StringUtils.hasText(sessionId)) {
+                LOG.debug("Extracted session ID: {}", sessionId);
+                return sessionId;
+            }
+            throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
+        } catch (RuntimeException e) {
+            if (!isSdkCompatibilityError(e)) {
+                throw e;
+            }
+
+            // Re-throw SDK compatibility errors with additional context.
+            throw new IllegalStateException(
+                    "Failed to extract session ID from MCP exchange. "
+                    + "This may indicate an SDK compatibility issue. "
+                    + "Tested SDK version: " + McpSessionHelper.getSupportedSdkVersion() + ". "
+                    + "Original error: " + e.getMessage(), e);
         }
-        if (StringUtils.hasText(sessionId)) {
-            LOG.debug("Extracted session ID: {}", sessionId);
-            return sessionId;
-        }
-        throw new IllegalStateException("Session ID is empty – it should have been set earlier by handleMessageEndpoint");
+    }
+
+    private boolean isSdkCompatibilityError(final RuntimeException exception) {
+        return exception instanceof IllegalStateException
+                && StringUtils.hasText(exception.getMessage())
+                && exception.getMessage().startsWith(SDK_COMPATIBILITY_ERROR_PREFIX);
     }
 
     /**
