@@ -29,7 +29,7 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    if: (github.repository == '2823602869/shenyu')
+    if: (github.repository == 'apache/shenyu')
 
     strategy:
       fail-fast: false
@@ -49,7 +49,7 @@ jobs:
 
       - name: Restore ShenYu Maven Repos
         id: restore-maven-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
