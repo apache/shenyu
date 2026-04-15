@@ -25,40 +25,20 @@ on:
     branches:
       - master
 
+env:
+  MVND_VERSION: 1.0.2
+  IT_IMAGES_ARTIFACT: shenyu-it-images
+  IT_LOCAL_M2_ARTIFACT: shenyu-it-local-m2
+
 jobs:
-  build:
-    strategy:
-      matrix:
-        case:
-          - shenyu-integrated-test-apache-dubbo
-          - shenyu-integrated-test-grpc
-          - shenyu-integrated-test-http
-          - shenyu-integrated-test-https
-          - shenyu-integrated-test-motan
-          - shenyu-integrated-test-spring-cloud
-          - shenyu-integrated-test-sofa
-          - shenyu-integrated-test-websocket
-          - shenyu-integrated-test-rewrite
-          - shenyu-integrated-test-combination
-          - shenyu-integrated-test-sdk-apache-dubbo
-          - shenyu-integrated-test-sdk-http
+  changes:
     runs-on: ubuntu-latest
-    if: (github.repository == 'apache/shenyu')
+    outputs:
+      integration: ${{ steps.filter.outputs.integration }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      # Copied from https://github.com/jens-maus/RaspberryMatic/blob/ea6b8ce0dd2d53ea88b2766ba8d7f8e1d667281f/.github/workflows/ci.yml#L34-L40
-      # and https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -79,41 +59,53 @@ jobs:
               - '!NOTICE'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+
+  prepare-images:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.integration == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # Copied from https://github.com/jens-maus/RaspberryMatic/blob/ea6b8ce0dd2d53ea88b2766ba8d7f8e1d667281f/.github/workflows/ci.yml#L34-L40
+      # and https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          for image in $(docker image ls --all --quiet); do
+            docker rmi "$image"
+          done
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
+
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.integration == 'true'
-        uses: actions/cache/restore@v3
+        id: restore-maven-cache
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
       - uses: actions/setup-java@v4
-        if: steps.filter.outputs.integration == 'true'
         with:
           java-version: 17
           distribution: "temurin"
+
       - name: Install mvnd
-        if: steps.filter.outputs.integration == 'true'
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          else
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          fi
+          curl -sL "https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip" -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p "$HOME/.local"
+          mv "maven-mvnd-${MVND_VERSION}-linux-amd64" "$HOME/.local/mvnd"
+          echo "$HOME/.local/mvnd/bin" >> "$GITHUB_PATH"
+          echo "MVND_HOME=$HOME/.local/mvnd" >> "$GITHUB_ENV"
+
       - name: Build with Maven
-        if: steps.filter.outputs.integration == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -121,54 +113,157 @@ jobs:
             mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           else
             echo "Falling back to maven wrapper"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-            else
-              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-            fi
+            ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           fi
+
       - name: Build examples
-        if: steps.filter.outputs.integration == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build examples"
-            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            mvnd -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper for examples"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-            else
-              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-            fi
+            ./mvnw -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
+
       - name: Build integrated tests
-        if: steps.filter.outputs.integration == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build integrated tests"
-            mvnd -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+            mvnd -B install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
           else
             echo "Falling back to maven wrapper for integrated tests"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-            else
-              ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-            fi
+            ./mvnw -B install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
           fi
+
+      - name: Export prebuilt images
+        run: |
+          bash .github/scripts/package-integrated-test-local-images.sh \
+            --output /tmp/shenyu-it-images.tar
+
+      - name: Package local Maven artifacts
+        run: |
+          bash .github/scripts/package-shenyu-maven-snapshots.sh \
+            --output /tmp/shenyu-it-local-m2.tar.gz
+
+      - name: Upload prebuilt images
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IT_IMAGES_ARTIFACT }}
+          path: /tmp/shenyu-it-images.tar
+          retention-days: 1
+          compression-level: 0
+
+      - name: Upload local Maven artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IT_LOCAL_M2_ARTIFACT }}
+          path: /tmp/shenyu-it-local-m2.tar.gz
+          retention-days: 1
+          compression-level: 0
+
+      - name: Save ShenYu Maven Repos
+        if: steps.restore-maven-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+  build:
+    needs:
+      - changes
+      - prepare-images
+    strategy:
+      matrix:
+        case:
+          - shenyu-integrated-test-apache-dubbo
+          - shenyu-integrated-test-grpc
+          - shenyu-integrated-test-http
+          - shenyu-integrated-test-https
+          - shenyu-integrated-test-motan
+          - shenyu-integrated-test-spring-cloud
+          - shenyu-integrated-test-sofa
+          - shenyu-integrated-test-websocket
+          - shenyu-integrated-test-rewrite
+          - shenyu-integrated-test-combination
+          - shenyu-integrated-test-sdk-apache-dubbo
+          - shenyu-integrated-test-sdk-http
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.integration == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # Copied from https://github.com/jens-maus/RaspberryMatic/blob/ea6b8ce0dd2d53ea88b2766ba8d7f8e1d667281f/.github/workflows/ci.yml#L34-L40
+      # and https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+      - name: Free disk space
+        run: |
+          df --human-readable
+          sudo apt clean
+          for image in $(docker image ls --all --quiet); do
+            docker rmi "$image"
+          done
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df --human-readable
+
+      - name: Restore ShenYu Maven Repos
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: "temurin"
+
+      - name: Install mvnd
+        shell: bash
+        run: |
+          curl -sL "https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip" -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p "$HOME/.local"
+          mv "maven-mvnd-${MVND_VERSION}-linux-amd64" "$HOME/.local/mvnd"
+          echo "$HOME/.local/mvnd/bin" >> "$GITHUB_PATH"
+          echo "MVND_HOME=$HOME/.local/mvnd" >> "$GITHUB_ENV"
+
+      - name: Download prebuilt images
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.IT_IMAGES_ARTIFACT }}
+          path: /tmp
+
+      - name: Download local Maven artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.IT_LOCAL_M2_ARTIFACT }}
+          path: /tmp
+
+      - name: Restore local Maven artifacts
+        run: |
+          mkdir -p "$HOME/.m2/repository"
+          tar -C "$HOME/.m2/repository" -xzf /tmp/shenyu-it-local-m2.tar.gz
+
+      - name: Load prebuilt images
+        run: docker load --input /tmp/shenyu-it-images.tar
+
       - name: Start docker compose
-        if: steps.filter.outputs.integration == 'true'
         run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+
       - name: Wait for docker compose start up completely
-        if: steps.filter.outputs.integration == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+
       - name: Disk space info
         run: |
           df --human-readable
+
       - name: Run test
         id: test
-        if: steps.filter.outputs.integration == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -176,18 +271,14 @@ jobs:
             mvnd test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
           else
             echo "Falling back to maven wrapper for tests"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-            else
-              ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-            fi
+            ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
           fi
         continue-on-error: true
+
       - name: Check test result
-        if: steps.filter.outputs.integration == 'true'
         run: |
           docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
-          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+          if [[ ${{ steps.test.outcome }} == "failure" ]]; then
             echo "Test Failed"
             exit 1
           else
