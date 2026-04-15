@@ -77,6 +77,10 @@ public final class DashboardUserServiceTest {
 
     public static final String TEST_PASSWORD = "password";
 
+    private static final String TEST_AES_KEY = "2095132720951327";
+
+    private static final String TEST_AES_IV = "6075877187097700";
+
     @InjectMocks
     private DashboardUserServiceImpl dashboardUserService;
 
@@ -223,14 +227,18 @@ public final class DashboardUserServiceTest {
 
         // test loginByDatabase AES password
         SecretProperties secretPropertiesTmp = new SecretProperties();
-        secretPropertiesTmp.setKey("2095132720951327");
-        secretPropertiesTmp.setIv("6075877187097700");
+        secretPropertiesTmp.setKey(TEST_AES_KEY);
+        secretPropertiesTmp.setIv(TEST_AES_IV);
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt(TEST_AES_KEY, TEST_AES_IV, TEST_PASSWORD), null));
         verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
-        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt("2095132720951327", "6075877187097700", TEST_PASSWORD), null));
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt(TEST_AES_KEY, TEST_AES_IV, TEST_PASSWORD), null));
         verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
+
+        // test loginByDatabase plain password fallback when secret endpoint does not provide key material
+        assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
+        verify(dashboardUserMapper, times(5)).findByQuery(eq(TEST_USER_NAME), anyString());
 
     }
 
