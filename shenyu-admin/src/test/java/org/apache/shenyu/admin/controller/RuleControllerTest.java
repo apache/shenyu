@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,19 +46,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -271,6 +277,23 @@ public final class RuleControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
             .andReturn();
+    }
+
+    @Test
+    public void shouldRequirePluginPermissionsForMutatingEndpoints() throws NoSuchMethodException {
+        assertPermissions(RuleController.class.getMethod("createRule", RuleDTO.class), "system:plugin:edit");
+        assertPermissions(RuleController.class.getMethod("updateRule", String.class, RuleDTO.class), "system:plugin:edit");
+        assertPermissions(RuleController.class.getMethod("batchEnabled", BatchCommonDTO.class), "system:plugin:disable");
+        assertPermissions(RuleController.class.getMethod("deleteRules", BatchNamespaceCommonDTO.class), "system:plugin:delete");
+    }
+
+    private void assertPermissions(final Method method, final String... expectedPermissions) {
+        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
+        if (Objects.isNull(permissions)) {
+            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
+        }
+        assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
+        assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
     }
 
 }

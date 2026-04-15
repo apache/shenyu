@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -104,6 +105,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, selectorDTO.getId());
@@ -117,6 +119,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
@@ -132,6 +135,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
+    @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         if (!selectorService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
@@ -146,6 +150,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:plugin:delete")
     public ShenyuAdminResult deleteSelector(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
         Integer deleteCount = selectorService.deleteByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
