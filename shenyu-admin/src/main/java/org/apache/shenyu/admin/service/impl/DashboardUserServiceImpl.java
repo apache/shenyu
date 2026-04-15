@@ -288,14 +288,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password, final String clientId) {
         DashboardUserVO dashboardUserVO = null;
-        final String cbcDecryptPassword;
-        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())
-                && isPotentialEncryptedPassword(password)) {
-            cbcDecryptPassword = tryDecryptPassword(password)
-                    .orElse(password);
-        } else {
-            cbcDecryptPassword = password;
-        }
+        final String cbcDecryptPassword = resolveLoginPassword(password);
 
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
@@ -322,6 +315,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
+    }
+
+    private String resolveLoginPassword(final String password) {
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())
+                && isPotentialEncryptedPassword(password)) {
+            return tryDecryptPassword(password).orElse(password);
+        }
+        return password;
     }
 
     private boolean isPotentialEncryptedPassword(final String password) {
