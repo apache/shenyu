@@ -31,7 +31,7 @@ jobs:
     outputs:
       e2e: ${{ steps.filter.outputs.e2e }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -61,7 +61,7 @@ jobs:
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -117,10 +117,10 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build examples"
-            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            mvnd -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper for examples"
-            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            ./mvnw -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
 
       - name: Save ShenYu Maven Repos
@@ -181,7 +181,7 @@ jobs:
           - case: shenyu-e2e-case-storage
             script: e2e-opengauss-compose
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -255,7 +255,7 @@ jobs:
           # - case: shenyu-e2e-case-logging-kafka
           #   script: e2e-logging-kafka-compose
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 

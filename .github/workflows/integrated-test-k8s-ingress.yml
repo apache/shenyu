@@ -102,10 +102,10 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            mvnd -B install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           else
             echo "Falling back to maven wrapper"
-            ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            ./mvnw -B install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           fi
 
       - name: Build integrated tests
@@ -113,10 +113,10 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build integrated tests"
-            mvnd -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+            mvnd -B install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
           else
             echo "Falling back to maven wrapper for integrated tests"
-            ./mvnw -B clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+            ./mvnw -B install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
           fi
 
       - name: Build examples
@@ -124,10 +124,10 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build examples"
-            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            mvnd -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper for examples"
-            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            ./mvnw -B install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
 
       - name: Export prebuilt images
