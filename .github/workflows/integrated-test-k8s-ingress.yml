@@ -145,11 +145,22 @@ jobs:
             apache/shenyu-integrated-test-k8s-ingress-grpc:latest \
             > /tmp/shenyu-it-k8s-images.tar
 
+      - name: Package local Maven artifacts
+        run: |
+          tar -C "$HOME/.m2/repository" -czf /tmp/shenyu-it-k8s-local-m2.tar.gz org/apache/shenyu
+
       - name: Upload prebuilt images
         uses: actions/upload-artifact@v4
         with:
           name: shenyu-it-k8s-images
           path: /tmp/shenyu-it-k8s-images.tar
+          retention-days: 1
+
+      - name: Upload local Maven artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenyu-it-k8s-local-m2
+          path: /tmp/shenyu-it-k8s-local-m2.tar.gz
           retention-days: 1
 
       - name: Save Maven Repos
@@ -226,6 +237,17 @@ jobs:
         with:
           name: shenyu-it-k8s-images
           path: /tmp
+
+      - name: Download local Maven artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: shenyu-it-k8s-local-m2
+          path: /tmp
+
+      - name: Restore local Maven artifacts
+        run: |
+          mkdir -p "$HOME/.m2/repository"
+          tar -C "$HOME/.m2/repository" -xzf /tmp/shenyu-it-k8s-local-m2.tar.gz
 
       - name: Load prebuilt images
         run: docker load --input /tmp/shenyu-it-k8s-images.tar
