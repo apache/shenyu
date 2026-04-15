@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import org.apache.shenyu.admin.jpa.repository.FieldRepository;
 import org.apache.shenyu.admin.mapper.FieldMapper;
 import org.apache.shenyu.admin.model.dto.FieldDTO;
 import org.apache.shenyu.admin.model.entity.FieldDO;
@@ -44,6 +45,7 @@ import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * test for {@linkplain FieldServiceImpl}.
@@ -57,6 +59,9 @@ public class FieldServiceTest {
 
     @Mock
     private FieldMapper fieldMapper;
+
+    @Mock
+    private FieldRepository fieldRepository;
 
     @Test
     public void testCreateOrUpdate() {
@@ -103,7 +108,7 @@ public class FieldServiceTest {
         fieldDO.setId("mock test id");
 
         reset(fieldMapper);
-        when(fieldMapper.selectByPrimaryKey(anyString())).thenReturn(fieldDO);
+        when(fieldRepository.findById(anyString())).thenReturn(Optional.of(fieldDO));
 
         FieldVO result = fieldService.findById("mock test id");
         assertNotNull(result);

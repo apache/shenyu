@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -44,6 +45,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -68,6 +70,9 @@ public class RoleServiceTest {
 
     @Mock
     private RoleMapper roleMapper;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private PermissionMapper permissionMapper;
@@ -139,7 +144,7 @@ public class RoleServiceTest {
     @Test
     public void testFindById() {
         RoleDO roleDO = buildRoleDO();
-        given(roleMapper.selectById(roleDO.getId())).willReturn(roleDO);
+        given(roleRepository.findById(roleDO.getId())).willReturn(Optional.of(roleDO));
         RoleEditVO result = roleService.findById(roleDO.getId());
         assertEquals(RoleVO.buildRoleVO(roleDO), result.getSysRole());
     }
@@ -147,7 +152,7 @@ public class RoleServiceTest {
     @Test
     public void testFindByQuery() {
         RoleDO roleDO = buildRoleDO();
-        given(roleMapper.findByRoleName(roleDO.getRoleName())).willReturn(roleDO);
+        given(roleRepository.findByRoleName(roleDO.getRoleName())).willReturn(Optional.of(roleDO));
         RoleVO result = roleService.findByQuery(roleDO.getRoleName());
         assertEquals(RoleVO.buildRoleVO(roleDO), result);
     }
@@ -166,7 +171,7 @@ public class RoleServiceTest {
     @Test
     public void testSelectAll() {
         List<RoleDO> roleDOs = Collections.singletonList(buildRoleDO());
-        given(roleMapper.selectAll()).willReturn(roleDOs);
+        given(roleRepository.findAll()).willReturn(roleDOs);
         List<RoleVO> roleVOS = roleService.selectAll();
         assertEquals(roleDOs.stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()), roleVOS);
 

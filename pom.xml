@@ -157,6 +157,7 @@
         <amqp-client.version>5.16.0</amqp-client.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>2.0.2</eureka.version>
+        <servo-core.version>0.13.2</servo-core.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
         <polaris.version>1.13.0</polaris.version>
@@ -576,6 +577,12 @@
                 <groupId>com.netflix.eureka</groupId>
                 <artifactId>eureka-client</artifactId>
                 <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.netflix.servo</groupId>
+                <artifactId>servo-core</artifactId>
+                <version>${servo-core.version}</version>
             </dependency>
 
             <dependency>

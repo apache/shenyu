@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -70,7 +70,7 @@ public final class ApiControllerTest {
     private ApiService apiService;
 
     @Mock
-    private ApiMapper apiMapper;
+    private ApiRepository apiRepository;
 
     private ApiVO apiVO;
 
@@ -217,8 +217,8 @@ public final class ApiControllerTest {
         apiDTO.setDocument("document");
         apiDTO.setExt("ext");
         apiDTO.setId("123");
-        when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
-        when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(ApiRepository.class)).thenReturn(apiRepository);
+        when(apiRepository.existed(apiDTO.getId())).thenReturn(true);
         given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
                         .contentType(MediaType.APPLICATION_JSON)

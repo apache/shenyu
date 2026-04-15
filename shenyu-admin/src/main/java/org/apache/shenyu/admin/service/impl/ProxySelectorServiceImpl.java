@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.jpa.repository.ProxySelectorRepository;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -77,6 +78,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final ProxySelectorMapper proxySelectorMapper;
 
+    private final ProxySelectorRepository proxySelectorRepository;
+
     private final DiscoveryMapper discoveryMapper;
 
     private final DiscoveryRelMapper discoveryRelMapper;
@@ -89,13 +92,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
-    public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper, final DiscoveryMapper discoveryMapper,
-                                    final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper,
+    public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper,
+                                    final ProxySelectorRepository proxySelectorRepository,
+                                    final DiscoveryMapper discoveryMapper,
+                                    final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                    final DiscoveryHandlerMapper discoveryHandlerMapper,
                                     final DiscoveryRelMapper discoveryRelMapper,
                                     final SelectorMapper selectorMapper,
                                     final DiscoveryProcessorHolder discoveryProcessorHolder) {
 
         this.proxySelectorMapper = proxySelectorMapper;
+        this.proxySelectorRepository = proxySelectorRepository;
         this.discoveryMapper = discoveryMapper;
         this.discoveryRelMapper = discoveryRelMapper;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
@@ -415,7 +422,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     @Override
     public List<ProxySelectorData> listAll() {
-        return proxySelectorMapper.selectAll().stream()
+        return proxySelectorRepository.findAll().stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
     }
     
@@ -428,7 +435,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     public List<ProxySelectorVO> listAllData() {
         List<ProxySelectorVO> result = Lists.newArrayList();
-        proxySelectorMapper.selectAll().forEach(proxySelectorDO -> {
+        proxySelectorRepository.findAll().forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
             vo.setName(proxySelectorDO.getName());

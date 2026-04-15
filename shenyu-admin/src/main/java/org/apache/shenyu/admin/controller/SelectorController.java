@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.jpa.repository.SelectorRepository;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.BatchNamespaceCommonDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
@@ -93,7 +93,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
-                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id) {
+                                            @Existed(provider = SelectorRepository.class, message = "selector is not existed") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
@@ -121,7 +121,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     @PutMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
-                                            @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
+                                            @Existed(provider = SelectorRepository.class, message = "selector is not existed") final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);

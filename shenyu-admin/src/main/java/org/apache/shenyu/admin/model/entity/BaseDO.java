@@ -17,6 +17,19 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PostUpdate;
+import jakarta.persistence.Transient;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -24,24 +37,36 @@ import java.util.Objects;
 /**
  * BaseDO.
  */
-public class BaseDO implements Serializable {
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public class BaseDO implements Serializable, Persistable<String> {
 
     private static final long serialVersionUID = 2174741380632669212L;
 
     /**
      * primary key.
      */
+    @Id
     private String id;
 
     /**
      * created time.
      */
+    @CreatedDate
+    @Column(updatable = false)
     private Timestamp dateCreated;
 
     /**
      * updated time.
      */
+    @LastModifiedDate
     private Timestamp dateUpdated;
+
+    /**
+     * mark if the entity is new.
+     */
+    @Transient
+    private boolean isNew = true;
 
     public BaseDO() {
     }
@@ -57,6 +82,7 @@ public class BaseDO implements Serializable {
      *
      * @return the value of id
      */
+    @Override
     public String getId() {
         return id;
     }
@@ -121,5 +147,25 @@ public class BaseDO implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, dateCreated, dateUpdated);
+    }
+
+    /**
+     * Check if the entity is new (not persisted yet).
+     *
+     * @return true if the entity is new, false otherwise
+     */
+    @Override
+    public boolean isNew() {
+        return this.isNew;
+    }
+
+    /**
+     * Mark the entity as not new after persist, update or load.
+     */
+    @PostPersist
+    @PostUpdate
+    @PostLoad
+    public void markNotNew() {
+        this.isNew = false;
     }
 }

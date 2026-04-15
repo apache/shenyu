@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * AlertReceiver.
@@ -613,7 +614,31 @@ public class AlertReceiverDTO implements Serializable {
     public Date getDateUpdated() {
         return dateUpdated;
     }
-    
+
+    @Override
+    public boolean equals(final Object o) {
+        if (Objects.isNull(o) || getClass() != o.getClass()) {
+            return false;
+        }
+        AlertReceiverDTO that = (AlertReceiverDTO) o;
+        return enable == that.enable && matchAll == that.matchAll && Objects.equals(id, that.id) && Objects.equals(name, that.name)
+                && Objects.equals(type, that.type) && Objects.equals(phone, that.phone) && Objects.equals(email, that.email) && Objects.equals(hookUrl, that.hookUrl)
+                && Objects.equals(wechatId, that.wechatId) && Objects.equals(accessToken, that.accessToken) && Objects.equals(tgBotToken, that.tgBotToken)
+                && Objects.equals(tgUserId, that.tgUserId) && Objects.equals(slackWebHookUrl, that.slackWebHookUrl) && Objects.equals(corpId, that.corpId)
+                && Objects.equals(agentId, that.agentId) && Objects.equals(appSecret, that.appSecret) && Objects.equals(discordChannelId, that.discordChannelId)
+                && Objects.equals(discordBotToken, that.discordBotToken) && Objects.equals(smnAk, that.smnAk) && Objects.equals(smnSk, that.smnSk)
+                && Objects.equals(smnProjectId, that.smnProjectId) && Objects.equals(smnRegion, that.smnRegion) && Objects.equals(smnTopicUrn, that.smnTopicUrn)
+                && Objects.equals(levels, that.levels) && Objects.equals(labels, that.labels) && Objects.equals(namespaceId, that.namespaceId) && Objects.equals(dateCreated, that.dateCreated)
+                && Objects.equals(dateUpdated, that.dateUpdated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, enable, type, phone, email, hookUrl, wechatId, accessToken, tgBotToken, tgUserId,
+                slackWebHookUrl, corpId, agentId, appSecret, discordChannelId, discordBotToken, smnAk, smnSk, smnProjectId,
+                smnRegion, smnTopicUrn, matchAll, levels, labels, namespaceId, dateCreated, dateUpdated);
+    }
+
     /**
      * set dateUpdated.
      *

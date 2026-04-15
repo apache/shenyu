@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.jpa.repository.RoleRepository;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -61,6 +62,8 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
     
     private final RoleMapper roleMapper;
+
+    private final RoleRepository roleRepository;
     
     private final DashboardProperties properties;
     
@@ -71,11 +74,13 @@ public class RoleServiceImpl implements RoleService {
     private final RoleEventPublisher roleEventPublisher;
     
     public RoleServiceImpl(final RoleMapper roleMapper,
+                           final RoleRepository roleRepository,
                            final DashboardProperties properties,
                            final PermissionMapper permissionMapper,
                            final ResourceMapper resourceMapper,
                            final RoleEventPublisher roleEventPublisher) {
         this.roleMapper = roleMapper;
+        this.roleRepository = roleRepository;
         this.properties = properties;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
@@ -140,7 +145,7 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public RoleEditVO findById(final String id) {
-        RoleVO sysRole = RoleVO.buildRoleVO(roleMapper.selectById(id));
+        RoleVO sysRole = RoleVO.buildRoleVO(roleRepository.findById(id).orElse(null));
         return Optional.ofNullable(sysRole)
                 .map(item -> new RoleEditVO(getPermissionIdsByRoleId(item.getId()), item, getAllPermissions()))
                 .orElse(null);
@@ -154,7 +159,7 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public RoleVO findByQuery(final String roleName) {
-        return RoleVO.buildRoleVO(roleMapper.findByRoleName(roleName));
+        return RoleVO.buildRoleVO(roleRepository.findByRoleName(roleName).orElse(null));
     }
     
     /**
@@ -179,7 +184,7 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public List<RoleVO> selectAll() {
-        return ListUtil.map(roleMapper.selectAll(), RoleVO::buildRoleVO);
+        return ListUtil.map(roleRepository.findAll(), RoleVO::buildRoleVO);
     }
     
     /**

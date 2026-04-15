@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.jpa.repository.NamespaceUserRelRepository;
 import org.apache.shenyu.admin.mapper.NamespaceUserRelMapper;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.NamespaceUserRelDO;
@@ -36,11 +37,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class NamespaceUserServiceImpl implements NamespaceUserService {
-    
+
     private final NamespaceUserRelMapper namespaceUserRelMapper;
-    
-    public NamespaceUserServiceImpl(final NamespaceUserRelMapper namespaceUserRelMapper) {
+
+    private final NamespaceUserRelRepository namespaceUserRelRepository;
+
+    public NamespaceUserServiceImpl(final NamespaceUserRelMapper namespaceUserRelMapper, final NamespaceUserRelRepository namespaceUserRelRepository) {
         this.namespaceUserRelMapper = namespaceUserRelMapper;
+        this.namespaceUserRelRepository = namespaceUserRelRepository;
     }
     
     @Override
@@ -66,7 +70,7 @@ public class NamespaceUserServiceImpl implements NamespaceUserService {
     
     @Override
     public List<String> listNamespaceIdByUserId(final String userId) {
-        List<NamespaceUserRelDO> namespaceUserRelDOS = namespaceUserRelMapper.selectListByUserId(userId);
+        List<NamespaceUserRelDO> namespaceUserRelDOS = namespaceUserRelRepository.findByUserId(userId);
         if (Objects.isNull(namespaceUserRelDOS)) {
             return Lists.newArrayList();
         }
