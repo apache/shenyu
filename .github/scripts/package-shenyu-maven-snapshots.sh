@@ -14,6 +14,9 @@ Options:
   --group-path DIR Group path under the repository. Default: org/apache/shenyu
   --version VER    Snapshot version to package. Default: parsed from ./pom.xml
   --output FILE    Output tar.gz path. Default: ./artifacts/shenyu-maven-snapshots.tar.gz
+  --include-local-metadata
+                   Include _remote.repositories and maven-metadata-local.xml
+                   for compatibility fallback. Default: disabled
   --dry-run        Print the files that would be packaged
   -h, --help       Show this help
 EOF
@@ -46,6 +49,7 @@ group_path="org/apache/shenyu"
 version=""
 output=""
 dry_run=0
+include_local_metadata=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -64,6 +68,10 @@ while [ "$#" -gt 0 ]; do
     --output)
       output="$2"
       shift 2
+      ;;
+    --include-local-metadata)
+      include_local_metadata=1
+      shift
       ;;
     --dry-run)
       dry_run=1
@@ -97,7 +105,7 @@ trap 'rm -f "$tmp_list"' EXIT
 
 find "$search_root" -type d -path "*/${version}" | while IFS= read -r version_dir; do
   find "$version_dir" -maxdepth 1 -type f \
-    \( -name '*.pom' -o -name '*.jar' -o -name '_remote.repositories' \) \
+    \( -name '*.pom' -o -name '*.jar' \) \
     ! -name '*-sources.jar' \
     ! -name '*-javadoc.jar' \
     ! -name '*.lastUpdated' \
@@ -105,10 +113,17 @@ find "$search_root" -type d -path "*/${version}" | while IFS= read -r version_di
       printf '%s\n' "${artifact_file#${repo%/}/}"
     done
 
-  artifact_dir="$(dirname "$version_dir")"
-  metadata="${artifact_dir}/maven-metadata-local.xml"
-  if [ -f "$metadata" ]; then
-    printf '%s\n' "${metadata#${repo%/}/}"
+  if [ "$include_local_metadata" -eq 1 ]; then
+    metadata="${version_dir}/_remote.repositories"
+    if [ -f "$metadata" ]; then
+      printf '%s\n' "${metadata#${repo%/}/}"
+    fi
+
+    artifact_dir="$(dirname "$version_dir")"
+    metadata="${artifact_dir}/maven-metadata-local.xml"
+    if [ -f "$metadata" ]; then
+      printf '%s\n' "${metadata#${repo%/}/}"
+    fi
   fi
 done | sort -u > "$tmp_list"
 

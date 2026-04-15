@@ -12,7 +12,9 @@ matrix cases in .github/workflows/integrated-test.yml.
 Options:
   --workflow FILE      Workflow to inspect. Default: .github/workflows/integrated-test.yml
   --compose-root DIR   Compose root. Default: shenyu-integrated-test
+  --case NAME          Package images for one workflow matrix case. Repeatable.
   --output FILE        Output tar path. Default: ./artifacts/integrated-test-local-images.tar
+  --exclude-admin      Exclude apache/shenyu-admin:latest.
   --exclude-image IMG  Exclude a specific image. Repeatable.
   --exclude-file FILE  Read excluded images from a file, one per line.
   --image-regex REGEX  Local image regex. Default: ^(apache/shenyu-|shenyu-).+:latest$
@@ -48,6 +50,7 @@ output="$(repo_root)/artifacts/integrated-test-local-images.tar"
 image_regex='^(apache/shenyu-|shenyu-).+:latest$'
 dry_run=0
 exclude_images=()
+selected_cases=()
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -59,9 +62,17 @@ while [ "$#" -gt 0 ]; do
       compose_root="$2"
       shift 2
       ;;
+    --case)
+      selected_cases+=("$2")
+      shift 2
+      ;;
     --output)
       output="$2"
       shift 2
+      ;;
+    --exclude-admin)
+      exclude_images+=("apache/shenyu-admin:latest")
+      shift
       ;;
     --exclude-image)
       exclude_images+=("$2")
@@ -104,8 +115,9 @@ command -v docker >/dev/null 2>&1 || die "docker is required"
 [ -d "$compose_root" ] || die "compose root not found: $compose_root"
 
 tmp_cases="$(mktemp "${TMPDIR:-/tmp}/shenyu-it-cases.XXXXXX")"
+tmp_cases_selected="$(mktemp "${TMPDIR:-/tmp}/shenyu-it-cases-selected.XXXXXX")"
 tmp_images="$(mktemp "${TMPDIR:-/tmp}/shenyu-it-images.XXXXXX")"
-trap 'rm -f "$tmp_cases" "$tmp_images"' EXIT
+trap 'rm -f "$tmp_cases" "$tmp_cases_selected" "$tmp_images"' EXIT
 
 awk '
   $1 == "case:" { in_case = 1; next }
@@ -114,6 +126,18 @@ awk '
 ' "$workflow" > "$tmp_cases"
 
 [ -s "$tmp_cases" ] || die "no matrix cases found in $workflow"
+
+if [ "${#selected_cases[@]}" -gt 0 ]; then
+  for selected_case in "${selected_cases[@]}"; do
+    if grep -Fxq "$selected_case" "$tmp_cases"; then
+      printf '%s\n' "$selected_case" >> "$tmp_cases_selected"
+    else
+      die "matrix case not found in $workflow: $selected_case"
+    fi
+  done
+  sort -u "$tmp_cases_selected" -o "$tmp_cases_selected"
+  mv "$tmp_cases_selected" "$tmp_cases"
+fi
 
 while IFS= read -r case_name; do
   compose_file="${compose_root%/}/${case_name}/docker-compose.yml"
@@ -128,7 +152,7 @@ sort -u "$tmp_images" -o "$tmp_images"
 
 if [ "${#exclude_images[@]}" -gt 0 ]; then
   tmp_filtered="$(mktemp "${TMPDIR:-/tmp}/shenyu-it-images-filtered.XXXXXX")"
-  trap 'rm -f "$tmp_cases" "$tmp_images" "$tmp_filtered"' EXIT
+  trap 'rm -f "$tmp_cases" "$tmp_cases_selected" "$tmp_images" "$tmp_filtered"' EXIT
 
   while IFS= read -r image; do
     if contains_exact "$image" "${exclude_images[@]}"; then
