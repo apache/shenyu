@@ -52,9 +52,9 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -63,6 +63,13 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.Security;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,6 +83,8 @@ import java.util.stream.Collectors;
 public class DashboardUserServiceImpl implements DashboardUserService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
+
+    private static final int AES_BLOCK_SIZE = 16;
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -279,12 +288,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public LoginDashboardUserVO login(final String userName, final String password, final String clientId) {
         DashboardUserVO dashboardUserVO = null;
-        final String cbcDecryptPassword;
-        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())) {
-            cbcDecryptPassword = AesUtils.cbcDecrypt(secretProperties.getKey(), secretProperties.getIv(), password);
-        } else {
-            cbcDecryptPassword = password;
-        }
+        final String cbcDecryptPassword = resolveLoginPassword(password);
 
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, cbcDecryptPassword);
@@ -311,6 +315,43 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
+    }
+
+    private String resolveLoginPassword(final String password) {
+        if (StringUtils.isNotBlank(secretProperties.getKey()) && StringUtils.isNotBlank(secretProperties.getIv())
+                && isPotentialEncryptedPassword(password)) {
+            return tryDecryptPassword(password).orElse(password);
+        }
+        return password;
+    }
+
+    private boolean isPotentialEncryptedPassword(final String password) {
+        if (StringUtils.isBlank(password)) {
+            return false;
+        }
+        try {
+            byte[] decoded = Base64.getDecoder().decode(password);
+            return decoded.length > 0 && decoded.length % AES_BLOCK_SIZE == 0;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
+    private Optional<String> tryDecryptPassword(final String password) {
+        Security.addProvider(new BouncyCastleProvider());
+        byte[] secretKeyBytes = secretProperties.getKey().getBytes(StandardCharsets.UTF_8);
+        byte[] ivBytes = secretProperties.getIv().getBytes(StandardCharsets.UTF_8);
+        try {
+            SecretKey secretKey = new SecretKeySpec(secretKeyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/Pkcs7Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(password));
+            return Optional.of(new String(decryptedBytes, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            LOG.debug("AES login password decrypt failed, falling back to plain text password", e);
+            return Optional.empty();
+        }
     }
 
     /**
