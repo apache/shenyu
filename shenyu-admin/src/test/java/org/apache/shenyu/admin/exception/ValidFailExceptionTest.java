@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test case for {@link ValidFailExceptionTest}.
+ * Test case for {@link ValidFailException}.
  */
 public class ValidFailExceptionTest {
 

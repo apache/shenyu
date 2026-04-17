@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test case for {@link ShenyuAdminExceptionTest}.
+ * Test case for {@link ShenyuAdminException}.
  */
 public class ShenyuAdminExceptionTest {
 

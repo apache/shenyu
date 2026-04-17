@@ -28,7 +28,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test case for {@link WebI18nExceptionTest}.
+ * Test case for {@link WebI18nException}.
  */
 @ExtendWith(MockitoExtension.class)
 public class WebI18nExceptionTest {

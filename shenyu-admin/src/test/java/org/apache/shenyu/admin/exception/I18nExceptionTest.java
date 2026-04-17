@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
- * Test case for {@link I18nExceptionTest}.
+ * Test case for {@link I18nException}.
  */
 public class I18nExceptionTest {
 

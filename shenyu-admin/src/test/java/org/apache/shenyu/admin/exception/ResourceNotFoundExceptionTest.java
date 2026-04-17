@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test case for {@link ResourceNotFoundExceptionTest}.
+ * Test case for {@link ResourceNotFoundException}.
  */
 public class ResourceNotFoundExceptionTest {
 
