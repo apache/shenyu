@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.exception;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Test case for {@link ResourceNotFoundException}.
@@ -31,8 +31,8 @@ public class ResourceNotFoundExceptionTest {
         Throwable cause = new RuntimeException("test cause");
         ResourceNotFoundException exception = new ResourceNotFoundException(cause);
 
-        assertSame(cause, exception.getCause());
-        assertThrows(RuntimeException.class, () -> {
+        Assertions.assertSame(cause, exception.getCause());
+        Assertions.assertThrows(RuntimeException.class, () -> {
             throw exception;
         });
     }
@@ -42,8 +42,8 @@ public class ResourceNotFoundExceptionTest {
         String message = "Resource not found";
         ResourceNotFoundException exception = new ResourceNotFoundException(message);
 
-        assertEquals(message, exception.getMessage());
-        assertNull(exception.getCause());
+        Assertions.assertEquals(message, exception.getMessage());
+        Assertions.assertNull(exception.getCause());
     }
 
     @Test
@@ -52,7 +52,7 @@ public class ResourceNotFoundExceptionTest {
         Throwable cause = new IllegalArgumentException("test cause");
         ResourceNotFoundException exception = new ResourceNotFoundException(message, cause);
 
-        assertEquals(message, exception.getMessage());
-        assertSame(cause, exception.getCause());
+        Assertions.assertEquals(message, exception.getMessage());
+        Assertions.assertSame(cause, exception.getCause());
     }
 }

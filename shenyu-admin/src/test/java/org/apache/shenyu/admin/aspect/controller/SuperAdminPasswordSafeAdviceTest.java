@@ -58,7 +58,9 @@ public class SuperAdminPasswordSafeAdviceTest {
     private SuperAdminPasswordSafeAdvice advice;
 
     private Object bean;
+
     private Method method;
+
     private Stopwatch stopwatch;
 
     @BeforeEach
@@ -69,7 +71,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenEnableOnlySuperAdminPermissionIsFalse_shouldSkip() {
+    void testDoPreProcessWhenEnableOnlySuperAdminPermissionIsFalseShouldSkip() {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(false);
 
         advice.doPreProcess(bean, method, stopwatch);
@@ -79,7 +81,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenEnableSuperAdminPasswordSafeIsFalse_shouldSkip() {
+    void testDoPreProcessWhenEnableSuperAdminPasswordSafeIsFalseShouldSkip() {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(true);
         when(properties.getEnableSuperAdminPasswordSafe()).thenReturn(false);
 
@@ -89,7 +91,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenNotAdmin_shouldSkip() {
+    void testDoPreProcessWhenNotAdminShouldSkip() {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(true);
         when(properties.getEnableSuperAdminPasswordSafe()).thenReturn(true);
 
@@ -103,7 +105,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenNoRequiresPermissions_shouldSkip() {
+    void testDoPreProcessWhenNoRequiresPermissionsShouldSkip() {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(true);
         when(properties.getEnableSuperAdminPasswordSafe()).thenReturn(true);
 
@@ -117,7 +119,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenPermissionNotInList_shouldSkip() throws Exception {
+    void testDoPreProcessWhenPermissionNotInListShouldSkip() throws Exception {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(true);
         when(properties.getEnableSuperAdminPasswordSafe()).thenReturn(true);
 
@@ -138,7 +140,7 @@ public class SuperAdminPasswordSafeAdviceTest {
     }
 
     @Test
-    void testDoPreProcess_whenPermissionInList_shouldCheckPassword() throws Exception {
+    void testDoPreProcessWhenPermissionInListShouldCheckPassword() throws Exception {
         when(properties.getEnableOnlySuperAdminPermission()).thenReturn(true);
         when(properties.getEnableSuperAdminPasswordSafe()).thenReturn(true);
         List<String> permissions = Arrays.asList("admin:permission", "other:permission");

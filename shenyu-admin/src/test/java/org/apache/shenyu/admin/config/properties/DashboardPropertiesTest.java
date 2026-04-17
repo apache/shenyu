@@ -49,7 +49,7 @@ public class DashboardPropertiesTest extends AbstractConfigurationTest {
         Assertions.assertEquals(0, dashboardProperties.getRecordLogLimit());
         Assertions.assertEquals(false, dashboardProperties.getEnableOnlySuperAdminPermission());
         Assertions.assertEquals(false, dashboardProperties.getEnableSuperAdminPasswordSafe());
-        Assertions.assertEquals( 0, dashboardProperties.getSuperAdminPasswordValidDuration());
+        Assertions.assertEquals(0, dashboardProperties.getSuperAdminPasswordValidDuration());
     }
 
     @Test

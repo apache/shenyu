@@ -25,7 +25,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Test case for {@link WebI18nException}.
@@ -38,9 +38,9 @@ public class WebI18nExceptionTest {
         Throwable cause = new RuntimeException("test cause");
         WebI18nException exception = new WebI18nException(cause);
 
-        assertSame(cause, exception.getCause());
-        assertEquals(Locale.getDefault(), exception.getLocale());
-        assertNull(exception.getArgs());
+        Assertions.assertSame(cause, exception.getCause());
+        Assertions.assertEquals(Locale.getDefault(), exception.getLocale());
+        Assertions.assertNull(exception.getArgs());
     }
 
     @Test
@@ -53,9 +53,9 @@ public class WebI18nExceptionTest {
 
             WebI18nException exception = new WebI18nException(message);
 
-            assertEquals(message, exception.getMessage());
-            assertEquals(locale, exception.getLocale());
-            assertInstanceOf(Object[].class, exception.getArgs());
+            Assertions.assertEquals(message, exception.getMessage());
+            Assertions.assertEquals(locale, exception.getLocale());
+            Assertions.assertInstanceOf(Object[].class, exception.getArgs());
         }
     }
 
@@ -70,9 +70,9 @@ public class WebI18nExceptionTest {
 
             WebI18nException exception = new WebI18nException(message, args);
 
-            assertEquals(message, exception.getMessage());
-            assertEquals(locale, exception.getLocale());
-            assertArrayEquals(args, exception.getArgs());
+            Assertions.assertEquals(message, exception.getMessage());
+            Assertions.assertEquals(locale, exception.getLocale());
+            Assertions.assertArrayEquals(args, exception.getArgs());
         }
     }
 
@@ -87,10 +87,10 @@ public class WebI18nExceptionTest {
 
             WebI18nException exception = new WebI18nException(message, cause);
 
-            assertEquals(message, exception.getMessage());
-            assertSame(cause, exception.getCause());
-            assertEquals(locale, exception.getLocale());
-            assertInstanceOf(Object[].class, exception.getArgs());
+            Assertions.assertEquals(message, exception.getMessage());
+            Assertions.assertSame(cause, exception.getCause());
+            Assertions.assertEquals(locale, exception.getLocale());
+            Assertions.assertInstanceOf(Object[].class, exception.getArgs());
         }
     }
 }
