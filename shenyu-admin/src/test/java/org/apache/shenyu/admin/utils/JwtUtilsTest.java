@@ -157,14 +157,8 @@ public class JwtUtilsTest {
 
     @Test
     public void testVerifyTokenWithExpiredToken() {
-        // Generate token with very short expiration (1 second)
-        String token = JwtUtils.generateToken("userName", KEY, "clientId", 1L);
-        // Wait for token to expire
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // Generate token with negative expiration to get an already-expired token
+        String token = JwtUtils.generateToken("userName", KEY, "clientId", -1000L);
         assertThat(JwtUtils.verifyToken(token, KEY), is(false));
     }
 
