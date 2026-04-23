@@ -52,7 +52,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test case for {@link ApolloDataService}
+ * Test case for {@link ApolloDataService}.
  */
 @ExtendWith(MockitoExtension.class)
 class ApolloDataServiceTest {
@@ -241,7 +241,7 @@ class ApolloDataServiceTest {
 
     @Test
     void testNullConfigChange() {
-        ApolloDataService apolloDataService = createApolloDataService();
+        final ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mock(ConfigChangeEvent.class);
         Set<String> keys = new HashSet<>();
@@ -256,7 +256,7 @@ class ApolloDataServiceTest {
 
     @Test
     void testExceptionInChangeHandler() {
-        ApolloDataService apolloDataService = createApolloDataService();
+        final ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mock(ConfigChangeEvent.class);
         Set<String> keys = new HashSet<>();
