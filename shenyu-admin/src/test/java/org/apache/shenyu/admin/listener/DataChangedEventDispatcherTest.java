@@ -31,11 +31,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +48,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +58,7 @@ import static org.mockito.Mockito.when;
  * Test cases for {@link DataChangedEventDispatcher}.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class DataChangedEventDispatcherTest {
 
     @InjectMocks
@@ -212,5 +218,97 @@ public final class DataChangedEventDispatcherTest {
         assertTrue(listeners.contains(nacosDataChangedListener));
         assertTrue(listeners.contains(websocketDataChangedListener));
         assertTrue(listeners.contains(zookeeperDataChangedListener));
+    }
+
+    /**
+     * onApplicationEvent PROXY_SELECTOR configGroupEnum test case.
+     */
+    @Test
+    void onApplicationEventWithProxySelectorConfigGroupTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(true);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onProxySelectorChanged(anyList(), any());
+        verify(nacosDataChangedListener, times(1)).onProxySelectorChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onProxySelectorChanged(anyList(), any());
+        verify(zookeeperDataChangedListener, times(1)).onProxySelectorChanged(anyList(), any());
+    }
+
+    /**
+     * onApplicationEvent AI_PROXY_API_KEY configGroupEnum test case.
+     */
+    @Test
+    void onApplicationEventWithAiProxyApiKeyConfigGroupTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(true);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.AI_PROXY_API_KEY, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onAiProxyApiKeyChanged(anyList(), any());
+        verify(nacosDataChangedListener, times(1)).onAiProxyApiKeyChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onAiProxyApiKeyChanged(anyList(), any());
+        verify(zookeeperDataChangedListener, times(1)).onAiProxyApiKeyChanged(anyList(), any());
+    }
+
+    /**
+     * onApplicationEvent DISCOVER_UPSTREAM configGroupEnum test case — also triggers loadDocOnUpstreamChanged.
+     */
+    @Test
+    void onApplicationEventWithDiscoverUpstreamConfigGroupTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(true);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(nacosDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(zookeeperDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(loadServiceDocEntry, atLeastOnce()).loadDocOnUpstreamChanged(anyList(), any());
+    }
+
+    /**
+     * When cluster is disabled, all listeners receive the event regardless of master status.
+     */
+    @Test
+    void onApplicationEventClusterDisabledAllListenersNotifiedTest() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+    }
+
+    /**
+     * When cluster enabled and not master, non-AbstractDataChangedListener is skipped.
+     */
+    @Test
+    void onApplicationEventNotMasterSkipsNonAbstractListenersTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(false);
+        List<DataChangedListener> orderedListeners = new ArrayList<>();
+        orderedListeners.add(nacosDataChangedListener);
+        ReflectionTestUtils.setField(dataChangedEventDispatcher, "listeners", Collections.unmodifiableList(orderedListeners));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any());
+    }
+
+    /**
+     * When shenyuClusterSelectMasterService is null, all listeners still receive the event.
+     */
+    @Test
+    void onApplicationEventNullMasterServiceDispatchesAllTest() throws NoSuchFieldException, IllegalAccessException {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        Field field = DataChangedEventDispatcher.class.getDeclaredField("shenyuClusterSelectMasterService");
+        field.setAccessible(true);
+        field.set(dataChangedEventDispatcher, null);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
     }
 }
