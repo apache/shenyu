@@ -45,22 +45,28 @@ public class UriConditionValidator {
                         "The URI cannot contain whitespaces. Current value: " + value);
             }
         };
+        Consumer<String> blankPathValidator = value -> {
+            if (StringUtils.isNotBlank(value)) {
+                throw new IllegalArgumentException("The URI must be blank");
+            }
+        };
         VALIDATOR_MAP.put(OperatorEnum.EQ.getAlias(), commonPathValidator);
         VALIDATOR_MAP.put(OperatorEnum.STARTS_WITH.getAlias(), commonPathValidator);
         VALIDATOR_MAP.put(OperatorEnum.ENDS_WITH.getAlias(), commonPathValidator);
+        VALIDATOR_MAP.put(OperatorEnum.MATCH.getAlias(), commonPathValidator);
+        VALIDATOR_MAP.put(OperatorEnum.EXCLUDE.getAlias(), commonPathValidator);
+        VALIDATOR_MAP.put(OperatorEnum.CONTAINS.getAlias(), commonPathValidator);
+        VALIDATOR_MAP.put(OperatorEnum.IS_BLANK.getAlias(), blankPathValidator);
     }
 
     public static void validate(final String operator, final String value) {
-        if (StringUtils.isBlank(value)) {
+        if (!OperatorEnum.IS_BLANK.getAlias().equals(operator) && StringUtils.isBlank(value)) {
             throw new IllegalArgumentException("The URI condition value cannot be empty.");
         }
         Consumer<String> validator = VALIDATOR_MAP.get(operator);
         if (Objects.nonNull(validator)) {
             validator.accept(value);
-        } else {
-            throw new IllegalArgumentException("No such operator: " + operator);
         }
     }
-
 
 }

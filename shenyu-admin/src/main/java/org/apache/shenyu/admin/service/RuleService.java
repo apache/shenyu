@@ -54,10 +54,6 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     default int createOrUpdate(final RuleDTO ruleDTO) {
-
-        // now, only check rule uri condition in pathPattern mode
-        // todo check uri in other modes
-
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
             ruleConditions.stream()
