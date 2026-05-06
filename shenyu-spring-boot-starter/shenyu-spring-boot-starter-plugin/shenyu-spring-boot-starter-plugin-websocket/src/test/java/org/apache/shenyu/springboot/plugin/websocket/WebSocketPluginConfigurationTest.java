@@ -28,8 +28,12 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
+import reactor.netty.http.client.WebsocketClientSpec;
+
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -76,6 +80,11 @@ public class WebSocketPluginConfigurationTest {
         applicationContextRunner.run(context -> {
                 ReactorNettyWebSocketClient client = context.getBean("reactorNettyWebSocketClient", ReactorNettyWebSocketClient.class);
                 assertNotNull(client);
+                @SuppressWarnings("unchecked")
+                Supplier<WebsocketClientSpec.Builder> builderSupplier =
+                        (Supplier<WebsocketClientSpec.Builder>) ReflectionTestUtils.getField(client, "specBuilderSupplier");
+                assertNotNull(builderSupplier);
+                assertThat(builderSupplier.get()).isNotSameAs(builderSupplier.get());
             }
         );
     }
