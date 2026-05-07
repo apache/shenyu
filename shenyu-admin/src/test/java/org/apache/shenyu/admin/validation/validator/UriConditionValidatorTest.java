@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
+import com.google.re2j.PatternSyntaxException;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.util.pattern.PatternParseException;
 
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Test cases for {@link UriConditionValidator}.
