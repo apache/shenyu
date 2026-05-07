@@ -209,8 +209,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         final int initialCapacity = cacheConfig.getInitialCapacity();
         final long maximumSize = cacheConfig.getMaximumSize();
-        // empty-id sentinel: always cached to short-circuit the next miss.
-        if (StringUtils.isBlank(idGetter.apply(data))) {
+        // null-id sentinel: always cached to short-circuit the next miss.
+        if (Objects.isNull(idGetter.apply(data))) {
             cacheWriter.write(path, data, initialCapacity, maximumSize);
             return;
         }
