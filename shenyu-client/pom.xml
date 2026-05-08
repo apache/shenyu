@@ -32,7 +32,6 @@
         <module>shenyu-client-mcp</module>
         <module>shenyu-client-dubbo</module>
         <module>shenyu-client-sofa</module>
-        <module>shenyu-client-tars</module>
         <module>shenyu-client-grpc</module>
         <module>shenyu-client-motan</module>
         <module>shenyu-client-websocket</module>

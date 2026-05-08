@@ -253,11 +253,6 @@ public enum PluginEnum {
     SOFA(310, 0, "sofa"),
     
     /**
-     * Tars plugin enum.
-     */
-    TARS(310, 0, "tars"),
-    
-    /**
      * GPRC plugin enum.
      */
     GRPC(310, 0, "grpc"),
@@ -370,6 +365,6 @@ public enum PluginEnum {
      * @return List string
      */
     public static List<String> getUpstreamNames() {
-        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name, DUBBO.name);
+        return Arrays.asList(DIVIDE.name, GRPC.name, SPRING_CLOUD.name, DUBBO.name);
     }
 }

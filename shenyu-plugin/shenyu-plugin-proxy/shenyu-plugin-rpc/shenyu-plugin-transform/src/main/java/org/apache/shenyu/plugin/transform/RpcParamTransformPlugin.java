@@ -106,7 +106,6 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
         return skipExcept(exchange,
                 RpcTypeEnum.DUBBO,
                 RpcTypeEnum.GRPC,
-                RpcTypeEnum.TARS,
                 RpcTypeEnum.MOTAN,
                 RpcTypeEnum.SOFA);
     }

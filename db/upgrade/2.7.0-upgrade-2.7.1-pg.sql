@@ -345,3 +345,36 @@ ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "url" TO "upstream_url";
 ALTER TABLE "public"."discovery_upstream" RENAME COLUMN "status" TO "upstream_status";
 
 ALTER TABLE "public"."discovery" RENAME COLUMN "level" TO "discovery_level";
+
+/* remove tars plugin */
+DELETE FROM "public"."api_rule_relation" WHERE "rule_id" IN (
+    SELECT "id" FROM (
+        SELECT "r"."id"
+        FROM "public"."rule" "r"
+        INNER JOIN "public"."selector" "s" ON "r"."selector_id" = "s"."id"
+        WHERE "s"."plugin_id" = '13'
+    ) AS "tars_rule_ids"
+);
+DELETE FROM "public"."rule_condition" WHERE "rule_id" IN (
+    SELECT "id" FROM (
+        SELECT "r"."id"
+        FROM "public"."rule" "r"
+        INNER JOIN "public"."selector" "s" ON "r"."selector_id" = "s"."id"
+        WHERE "s"."plugin_id" = '13'
+    ) AS "tars_rule_ids"
+);
+DELETE FROM "public"."rule" WHERE "selector_id" IN (
+    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '13') AS "tars_selector_ids"
+);
+DELETE FROM "public"."selector_condition" WHERE "selector_id" IN (
+    SELECT "id" FROM (SELECT "id" FROM "public"."selector" WHERE "plugin_id" = '13') AS "tars_selector_ids"
+);
+DELETE FROM "public"."selector" WHERE "plugin_id" = '13';
+DELETE FROM "public"."meta_data" WHERE "rpc_type" = 'tars';
+DELETE FROM "public"."api" WHERE "rpc_type" = 'tars';
+DELETE FROM "public"."permission" WHERE "resource_id" IN ('1529403932781187075', '1529403932877656100', '1529403932877656101', '1529403932877656102', '1529403932877656103', '1529403932877656104', '1529403932877656105', '1529403932877656106', '1529403932877656107', '1529403932877656108');
+DELETE FROM "public"."resource" WHERE "id" IN ('1529403932781187075', '1529403932877656100', '1529403932877656101', '1529403932877656102', '1529403932877656103', '1529403932877656104', '1529403932877656105', '1529403932877656106', '1529403932877656107', '1529403932877656108');
+DELETE FROM "public"."namespace_plugin_rel" WHERE "plugin_id" = '13';
+DELETE FROM "public"."plugin_handle" WHERE "plugin_id" = '13';
+DELETE FROM "public"."plugin" WHERE "id" = '13';
+COMMENT ON COLUMN "public"."api"."rpc_type" IS 'http,dubbo,sofa,websocket,springCloud,motan,grpc';
