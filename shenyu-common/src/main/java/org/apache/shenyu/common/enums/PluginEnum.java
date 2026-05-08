@@ -248,11 +248,6 @@ public enum PluginEnum {
     DUBBO(310, 0, "dubbo"),
     
     /**
-     * Sofa plugin enum.
-     */
-    SOFA(310, 0, "sofa"),
-    
-    /**
      * Tars plugin enum.
      */
     TARS(310, 0, "tars"),

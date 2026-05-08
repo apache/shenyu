@@ -60,7 +60,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     private String version;
 
     /**
-     * http,dubbo,sofa,tars,websocket,motan,grpc.
+     * rpc type.
      */
     private String rpcType;
 

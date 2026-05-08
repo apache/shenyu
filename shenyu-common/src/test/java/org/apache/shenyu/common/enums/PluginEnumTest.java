@@ -89,7 +89,6 @@ public final class PluginEnumTest {
             "websocket, 200",
             "modifyResponse, 220",
             "dubbo, 310",
-            "sofa, 310",
             "tars, 310",
             "grpc, 310",
             "motan, 310",

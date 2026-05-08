@@ -31,7 +31,6 @@
         <module>shenyu-plugin-general-context</module>
         <module>shenyu-plugin-grpc</module>
         <module>shenyu-plugin-motan</module>
-        <module>shenyu-plugin-sofa</module>
         <module>shenyu-plugin-tars</module>
         <module>shenyu-plugin-transform</module>
     </modules>

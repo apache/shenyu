@@ -93,11 +93,6 @@ public interface Constants {
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
 
     /**
-     * The constant SOFA_RPC_RESULT_EMPTY.
-     */
-    String SOFA_RPC_RESULT_EMPTY = "sofa has not return value!";
-
-    /**
      * The constant RPC_RESULT.
      */
     String RPC_RESULT = "rpc_result";
@@ -588,11 +583,6 @@ public interface Constants {
      */
     String DUBBO_DEFAULT_APPLICATION_NAME = "shenyu_proxy";
 
-    /**
-     * sofa default application name.
-     */
-    String SOFA_DEFAULT_APPLICATION_NAME = "sofa";
-    
     /**
      * dubbo group.
      */

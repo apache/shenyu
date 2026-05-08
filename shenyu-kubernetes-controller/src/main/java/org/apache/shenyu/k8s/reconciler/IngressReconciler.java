@@ -201,9 +201,6 @@ public class IngressReconciler implements Reconciler {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.GRPC, null);
-        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
-            String zookeeperUrl = getZookeeperUrl(annotations, request);
-            enablePlugin(shenyuCacheRepository, PluginEnum.SOFA, zookeeperUrl);
         }
     }
 
@@ -219,9 +216,6 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
-            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_CONTEXT_PATH));
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
@@ -234,8 +228,6 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
-                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
@@ -284,8 +276,6 @@ public class IngressReconciler implements Reconciler {
                 return "{\"registerProtocol\":\"zk\",\"registerAddress\":\"" + zookeeperUrl + "\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
             case WEB_SOCKET:
                 return "{multiSelectorHandle: 1}";
-            case SOFA:
-                return "{\"protocol\":\"zookeeper\",\"register\":\"" + zookeeperUrl + "\",\"threadpool\":\"shared\"}";
             case GRPC:
                 return "{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}";
             default:
@@ -568,7 +558,6 @@ public class IngressReconciler implements Reconciler {
         String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
         String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
-        String pluginSofaEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED);
         if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
@@ -577,8 +566,6 @@ public class IngressReconciler implements Reconciler {
             pluginName = PluginEnum.WEB_SOCKET.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginGrpcEnabled)) {
             pluginName = PluginEnum.GRPC.getName();
-        } else if ((Boolean.TRUE.toString()).equals(pluginSofaEnabled)) {
-            pluginName = PluginEnum.SOFA.getName();
         } else {
             pluginName = PluginEnum.DIVIDE.getName();
         }

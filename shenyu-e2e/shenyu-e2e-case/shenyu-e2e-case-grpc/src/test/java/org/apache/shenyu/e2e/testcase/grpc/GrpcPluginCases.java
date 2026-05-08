@@ -64,7 +64,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                 .name("test grpc invoker")
                 .beforeEachSpec(
                         ShenYuBeforeEachSpec.builder()
-                                .checker(notExists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hello"))
                                 .checker(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
@@ -103,7 +103,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/grpc/echo"))
                                                 .build()
                                 )
-                                .checker(notExists("/sofa/findAll"))
+                                .checker(notExists("/motan/demo/hello"))
                                 .waiting(exists(Method.POST, "/grpc/echo", body))
                                 .build()
                 )
@@ -114,7 +114,7 @@ public class GrpcPluginCases implements ShenYuScenarioProvider {
                                 .addNotExists("/put")
                                 .addNotExists("/get")
                                 .build())
-                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/sofa/findAll")).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists("/motan/demo/hello")).build())
                 .build();
     }
 
