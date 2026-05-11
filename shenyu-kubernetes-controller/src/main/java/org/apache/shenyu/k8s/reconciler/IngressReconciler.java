@@ -194,9 +194,6 @@ public class IngressReconciler implements Reconciler {
         if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             String zookeeperUrl = getZookeeperUrl(annotations, request);
             enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, zookeeperUrl);
-        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
-            String zookeeperUrl = getZookeeperUrl(annotations, request);
-            enablePlugin(shenyuCacheRepository, PluginEnum.MOTAN, zookeeperUrl);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             enablePlugin(shenyuCacheRepository, PluginEnum.WEB_SOCKET, null);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -212,9 +209,6 @@ public class IngressReconciler implements Reconciler {
         if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
                     oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
-            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_CONTEXT_PATH));
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
         } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -228,8 +222,6 @@ public class IngressReconciler implements Reconciler {
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
             if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED), "true")) {
-                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.MOTAN.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
             } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
@@ -280,8 +272,6 @@ public class IngressReconciler implements Reconciler {
                 return "{multiSelectorHandle: 1, multiRuleHandle:0}";
             case DUBBO:
                 return "{\"register\":\"" + zookeeperUrl + "\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}";
-            case MOTAN:
-                return "{\"registerProtocol\":\"zk\",\"registerAddress\":\"" + zookeeperUrl + "\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}";
             case WEB_SOCKET:
                 return "{multiSelectorHandle: 1}";
             case SOFA:
@@ -564,15 +554,12 @@ public class IngressReconciler implements Reconciler {
     private String getPluginName(final V1Ingress ingress) {
         String pluginName;
         String pluginDubboEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
-        String pluginMotanEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_MOTAN_ENABLED);
         String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
         String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
         String pluginSofaEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED);
         if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
-        } else if ((Boolean.TRUE.toString()).equals(pluginMotanEnabled)) {
-            pluginName = PluginEnum.MOTAN.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {
             pluginName = PluginEnum.WEB_SOCKET.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginGrpcEnabled)) {

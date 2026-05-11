@@ -107,7 +107,6 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
                 RpcTypeEnum.DUBBO,
                 RpcTypeEnum.GRPC,
                 RpcTypeEnum.TARS,
-                RpcTypeEnum.MOTAN,
                 RpcTypeEnum.SOFA);
     }
 

@@ -22,7 +22,6 @@ import org.apache.dubbo.common.threadpool.ThreadPool;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
-import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,18 +68,6 @@ public class SharedThreadPoolController {
     public String getFromGrpc() {
         return Optional.ofNullable(GrpcClientBuilder.buildExecutor())
                 .map(Object::toString)
-                .orElse("");
-    }
-    
-    /**
-     * get the shared thread pool from motan.
-     *
-     * @return the shared thread pool
-     */
-    @GetMapping("/getFromMotan")
-    public String getFromMotan() {
-        return Optional.ofNullable(SpringBeanUtils.getInstance().getBean(MotanProxyService.class).getThreadPool())
-                .map(Objects::toString)
                 .orElse("");
     }
     
