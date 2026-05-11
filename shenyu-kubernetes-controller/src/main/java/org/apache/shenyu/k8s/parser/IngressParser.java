@@ -67,21 +67,17 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
     public List<ShenyuMemoryConfig> parse(final V1Ingress ingress, final CoreV1Api coreV1Api) {
         List<ShenyuMemoryConfig> shenyuMemoryConfigList = new ArrayList<>();
         boolean dubboEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_DUBBO_ENABLED);
-        boolean motanEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_MOTAN_ENABLED);
         boolean webSocketEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
         boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
         boolean sofaEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SOFA_ENABLED);
 
-        if (!dubboEnabled || !motanEnabled || !sofaEnabled) {
+        if (!dubboEnabled || !sofaEnabled) {
             contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
         }
         if (dubboEnabled) {
             DubboIngressParser dubboIngressParser = new DubboIngressParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(dubboIngressParser.parse(ingress, coreV1Api));
-        } else if (motanEnabled) {
-            MotanIngressParser motanIngressParser = new MotanIngressParser(serviceLister, endpointsLister);
-            shenyuMemoryConfigList.add(motanIngressParser.parse(ingress, coreV1Api));
         } else if (webSocketEnabled) {
             WebSocketParser webSocketParser = new WebSocketParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(webSocketParser.parse(ingress, coreV1Api));

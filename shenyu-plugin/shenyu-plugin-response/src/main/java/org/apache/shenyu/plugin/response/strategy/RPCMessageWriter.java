@@ -57,7 +57,7 @@ public class RPCMessageWriter implements MessageWriter {
     
     @Override
     public List<String> supportTypes() {
-        return Lists.newArrayList(RpcTypeEnum.DUBBO.getName(), RpcTypeEnum.SOFA.getName(), 
-                RpcTypeEnum.GRPC.getName(), RpcTypeEnum.MOTAN.getName(), RpcTypeEnum.TARS.getName());
+        return Lists.newArrayList(RpcTypeEnum.DUBBO.getName(), RpcTypeEnum.SOFA.getName(),
+                RpcTypeEnum.GRPC.getName(), RpcTypeEnum.TARS.getName());
     }
 }
