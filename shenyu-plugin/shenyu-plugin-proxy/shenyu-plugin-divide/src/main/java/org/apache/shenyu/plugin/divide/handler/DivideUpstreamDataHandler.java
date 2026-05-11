@@ -30,6 +30,7 @@ import org.springframework.util.ObjectUtils;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -47,12 +48,7 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }
         List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
         final List<Upstream> upstreams = convertUpstreamList(upstreamList);
-        final List<Upstream> grayUpstreamList = upstreams.stream().filter(Upstream::isGray).toList();
-        if (!grayUpstreamList.isEmpty()) {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
-        } else {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
-        }
+        UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
@@ -69,6 +65,15 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }
         return upstreamList.stream().map(u -> {
             Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
+            Map<String, String> metadata;
+            try {
+                metadata = Optional.ofNullable(u.getMetadata())
+                        .filter(value -> !value.isBlank())
+                        .map(value -> GsonUtils.getInstance().toObjectMap(value, String.class))
+                        .orElse(Collections.emptyMap());
+            } catch (Exception ex) {
+                metadata = Collections.emptyMap();
+            }
             return Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
@@ -78,6 +83,7 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
                     .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
+                    .metadata(metadata)
                     .build();
         }).collect(Collectors.toList());
     }

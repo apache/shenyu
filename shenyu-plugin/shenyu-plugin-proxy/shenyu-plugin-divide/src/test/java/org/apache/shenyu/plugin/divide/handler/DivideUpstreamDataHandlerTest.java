@@ -33,11 +33,15 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -75,6 +79,8 @@ public class DivideUpstreamDataHandlerTest {
     @AfterEach
     public void tearDown() {
         mockCheckUtils.close();
+        UpstreamCacheManager.getInstance().removeByKey("handler");
+        UpstreamCacheManager.getInstance().removeByKey("metadata-test");
     }
 
     /**
@@ -96,5 +102,31 @@ public class DivideUpstreamDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         assertEquals(divideUpstreamDataHandler.pluginName(), PluginEnum.DIVIDE.getName());
+    }
+
+    @Test
+    public void testMetadataFromColumn() {
+        DiscoveryUpstreamData upstream = DiscoveryUpstreamData.builder()
+                .url("127.0.0.1:8080")
+                .protocol("http://")
+                .status(0)
+                .weight(50)
+                .props("{\"warmup\":\"10\",\"gray\":\"true\"}")
+                .metadata("{\"customTag\":\"canary\",\"region\":\"us-east\"}")
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        DiscoverySyncData syncData = new DiscoverySyncData();
+        syncData.setSelectorId("metadata-test");
+        syncData.setUpstreamDataList(Collections.singletonList(upstream));
+        syncData.setPluginName("divide");
+
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(syncData);
+        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("metadata-test");
+
+        assertFalse(result.isEmpty());
+        assertTrue(result.get(0).isGray());
+        Map<String, String> metadata = result.get(0).getMetadata();
+        assertEquals("canary", metadata.get("customTag"));
+        assertEquals("us-east", metadata.get("region"));
     }
 }

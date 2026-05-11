@@ -109,7 +109,7 @@ public final class Upstream {
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
-    
+
     private Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
@@ -133,6 +133,7 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
         this.healthCheckEnabled = builder.healthCheckEnabled;
+        this.metadata = new ConcurrentHashMap<>(builder.metadata);
     }
     
     /**
@@ -404,7 +405,7 @@ public final class Upstream {
     public boolean isGray() {
         return gray;
     }
-    
+
     /**
      * set gray.
      *
@@ -413,7 +414,7 @@ public final class Upstream {
     public void setGray(final boolean gray) {
         this.gray = gray;
     }
-    
+
     /**
      * Gets metadata.
      *
@@ -429,7 +430,7 @@ public final class Upstream {
      * @param metadata the metadata
      */
     public void setMetadata(final Map<String, String> metadata) {
-        this.metadata = metadata;
+        this.metadata = Objects.nonNull(metadata) ? new ConcurrentHashMap<>(metadata) : new ConcurrentHashMap<>();
     }
     
     /**
@@ -582,6 +583,11 @@ public final class Upstream {
         private boolean healthCheckEnabled = true;
 
         /**
+         * metadata.
+         */
+        private Map<String, String> metadata = new ConcurrentHashMap<>();
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -684,7 +690,7 @@ public final class Upstream {
             return this;
         }
         
-        
+
         /**
          * build gray.
          *
@@ -704,6 +710,17 @@ public final class Upstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build metadata.
+         *
+         * @param metadata metadata
+         * @return this builder
+         */
+        public Builder metadata(final Map<String, String> metadata) {
+            this.metadata = Objects.nonNull(metadata) ? new ConcurrentHashMap<>(metadata) : new ConcurrentHashMap<>();
             return this;
         }
 

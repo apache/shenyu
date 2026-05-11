@@ -62,6 +62,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
     private String props;
 
     /**
+     * metadata.
+     */
+    private String metadata;
+
+    /**
      * namespaceId.
      */
     private String namespaceId;
@@ -215,6 +220,24 @@ public class DiscoveryUpstreamDO extends BaseDO {
     }
 
     /**
+     * getMetadata.
+     *
+     * @return metadata
+     */
+    public String getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * setMetadata.
+     *
+     * @param metadata metadata
+     */
+    public void setMetadata(final String metadata) {
+        this.metadata = metadata;
+    }
+
+    /**
      * builder.
      *
      * @return DiscoveryUpstreamBuilder
@@ -258,6 +281,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
                     .status(item.getStatus())
                     .weight(item.getWeight())
                     .props(item.getProps())
+                    .metadata(item.getMetadata())
                     .url(item.getUrl())
                     .namespaceId(item.getNamespaceId())
                     .dateCreated(currentTime)
@@ -321,6 +345,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
          * props.
          */
         private String props;
+
+        /**
+         * metadata.
+         */
+        private String metadata;
 
         /**
          * namespaceId.
@@ -436,6 +465,17 @@ public class DiscoveryUpstreamDO extends BaseDO {
         }
 
         /**
+         * metadata.
+         *
+         * @param metadata metadata
+         * @return DiscoveryUpstreamBuilder
+         */
+        public DiscoveryUpstreamBuilder metadata(final String metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        /**
          * build namespaceId.
          *
          * @param namespaceId namespaceId
@@ -461,6 +501,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
             discoveryUpstreamDO.setUpstreamStatus(this.status);
             discoveryUpstreamDO.setWeight(this.weight);
             discoveryUpstreamDO.setProps(this.props);
+            discoveryUpstreamDO.setMetadata(this.metadata);
             discoveryUpstreamDO.setNamespaceId(this.namespaceId);
             discoveryUpstreamDO.setDateCreated(this.dateCreated);
             discoveryUpstreamDO.setDateUpdated(this.dateUpdated);

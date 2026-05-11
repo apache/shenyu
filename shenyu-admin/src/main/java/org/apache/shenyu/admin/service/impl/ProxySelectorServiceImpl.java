@@ -266,6 +266,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .status(discoveryUpstream.getStatus())
                         .weight(discoveryUpstream.getWeight())
                         .props(Optional.ofNullable(discoveryUpstream.getProps()).orElse("{}"))
+                        .metadata(discoveryUpstream.getMetadata())
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build();
@@ -380,6 +381,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     .status(discoveryUpstream.getStatus())
                     .weight(discoveryUpstream.getWeight())
                     .props(discoveryUpstream.getProps())
+                    .metadata(discoveryUpstream.getMetadata())
                     .dateCreated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
                     .dateUpdated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
                     .build();
