@@ -188,6 +188,7 @@
         <spring-ai.version>1.1.2</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
+        <re2j.version>1.8</re2j.version>
         <!-- dependency version end -->
     </properties>
 
@@ -588,6 +589,12 @@
                 <groupId>io.swagger.parser.v3</groupId>
                 <artifactId>swagger-parser</artifactId>
                 <version>${swagger-parser.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.re2j</groupId>
+                <artifactId>re2j</artifactId>
+                <version>${re2j.version}</version>
             </dependency>
 
         </dependencies>

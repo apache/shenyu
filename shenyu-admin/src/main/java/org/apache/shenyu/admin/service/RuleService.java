@@ -28,10 +28,9 @@ import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.validation.validator.UriConditionValidator;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.List;
 
@@ -55,17 +54,13 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     default int createOrUpdate(final RuleDTO ruleDTO) {
-
-        // now, only check rule uri condition in pathPattern mode
-        // todo check uri in other modes
-
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
             ruleConditions.stream()
                     .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                    .filter(conditionData -> OperatorEnum.PATH_PATTERN.getAlias().equals(conditionData.getOperator()))
-                    .map(RuleConditionDTO::getParamValue)
-                    .forEach(PathPatternParser.defaultInstance::parse);
+                    .forEach(conditionData -> {
+                        UriConditionValidator.validate(conditionData.getOperator(), conditionData.getParamValue());
+                    });
         } catch (Exception e) {
             throw new ShenyuAdminException("uri validation of Condition failed, please check.", e);
         }
@@ -91,7 +86,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     /**
      * delete rules by ids and namespaceId.
      *
-     * @param ids primary key.
+     * @param ids         primary key.
      * @param namespaceId namespaceId.
      * @return rows int
      */
@@ -171,7 +166,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * Find by selector id and name rule do.
      *
      * @param selectorId selector id
-     * @param name rule name
+     * @param name       rule name
      * @return {@link RuleDO}
      */
     RuleDO findBySelectorIdAndName(String selectorId, String name);
@@ -188,8 +183,8 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * Import data.
      *
      * @param namespace namespace
-     * @param ruleList rule list
-     * @param context import context
+     * @param ruleList  rule list
+     * @param context   import context
      * @return config import result
      */
     ConfigImportResult importData(String namespace, List<RuleDTO> ruleList, ConfigsImportContext context);
@@ -197,8 +192,8 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     /**
      * Enabled string by ids and namespaceId.
      *
-     * @param ids     the ids
-     * @param enabled the enabled
+     * @param ids         the ids
+     * @param enabled     the enabled
      * @param namespaceId the namespaceId.
      * @return the result
      */
