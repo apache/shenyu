@@ -34,7 +34,6 @@ public class RpcTypeEnumTest {
         assertEquals("grpc", RpcTypeEnum.GRPC.getName());
         assertEquals("dubbo", RpcTypeEnum.DUBBO.getName());
         assertEquals("http", RpcTypeEnum.HTTP.getName());
-        assertEquals("motan", RpcTypeEnum.MOTAN.getName());
         assertEquals("sofa", RpcTypeEnum.SOFA.getName());
         assertEquals("springCloud", RpcTypeEnum.SPRING_CLOUD.getName());
         assertEquals("tars", RpcTypeEnum.TARS.getName());
@@ -46,7 +45,6 @@ public class RpcTypeEnumTest {
         assertTrue(RpcTypeEnum.GRPC.getSupport());
         assertTrue(RpcTypeEnum.DUBBO.getSupport());
         assertTrue(RpcTypeEnum.HTTP.getSupport());
-        assertTrue(RpcTypeEnum.MOTAN.getSupport());
         assertTrue(RpcTypeEnum.SOFA.getSupport());
         assertTrue(RpcTypeEnum.TARS.getSupport());
         assertTrue(RpcTypeEnum.WEB_SOCKET.getSupport());
