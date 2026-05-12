@@ -103,19 +103,9 @@ public interface Constants {
     String RPC_RESULT = "rpc_result";
 
     /**
-     * The constant MOTAN_RPC_RESULT.
-     */
-    String MOTAN_RPC_RESULT = "motan_rpc_result";
-
-    /**
      * The constant TARS_RPC_RESULT_EMPTY.
      */
     String TARS_RPC_RESULT_EMPTY = "tars has not return value!";
-
-    /**
-     * The constant MOTAN_RPC_RESULT_EMPTY.
-     */
-    String MOTAN_RPC_RESULT_EMPTY = "motan has not return value!";
 
     /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.

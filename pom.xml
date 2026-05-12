@@ -134,7 +134,6 @@
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
-        <motan.version>1.2.1</motan.version>
         <spring-boot.version>3.3.1</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
@@ -230,30 +229,6 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${bytebuddy.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-core</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-transport-netty4</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-registry-zookeeper</artifactId>
-                <version>${motan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.weibo</groupId>
-                <artifactId>motan-springsupport</artifactId>
-                <version>${motan.version}</version>
             </dependency>
 
             <dependency>
