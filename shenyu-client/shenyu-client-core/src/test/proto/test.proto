@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package org.apache.shenyu.client.core.test;
+
+option java_package = "org.apache.shenyu.client.core.test";
+
+enum Status {
+  UNKNOWN = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+}
+
+message TestRequest {
+  string id = 1;
+  int32 count = 2;
+  bool enabled = 3;
+  Status status = 4;
+  Address address = 5;
+  repeated string tags = 6;
+  repeated Address addresses = 7;
+}

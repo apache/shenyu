@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.apache.dubbo.service.xml.impl;
 
 import com.google.protobuf.Empty;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.service.DubboProtobufService;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestProtobuf;
@@ -25,21 +27,25 @@ import org.springframework.stereotype.Service;
 
 @Service("dubboProtobufService")
 @ShenyuDubboClient(value = "/protobufSerialization")
+@ApiModule(value = "dubboProtobufService")
 public class DubboProtobufServiceImpl implements DubboProtobufService {
 
     @ShenyuDubboClient("/insert")
+    @ApiDoc(desc = "insert")
     @Override
     public DubboTestProtobuf insert(final DubboTestProtobuf request) {
         return request;
     }
 
     @ShenyuDubboClient("/update")
+    @ApiDoc(desc = "update")
     @Override
     public Empty update(final DubboTestProtobuf request) {
         return Empty.getDefaultInstance();
     }
 
     @ShenyuDubboClient("/findOne")
+    @ApiDoc(desc = "findOne")
     @Override
     public DubboTestProtobuf findOne(final Empty request) {
         return DubboTestProtobuf.newBuilder().setId("1").setName("test1").build();
