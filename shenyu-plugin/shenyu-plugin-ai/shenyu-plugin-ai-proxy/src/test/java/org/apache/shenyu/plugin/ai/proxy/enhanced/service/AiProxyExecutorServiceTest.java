@@ -20,21 +20,19 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletion;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.ai.retry.NonTransientAiException;
-import org.springframework.web.client.RestClientException;
+import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,102 +40,96 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class AiProxyExecutorServiceTest {
 
-    @Mock
-    private ChatModel mainChatModel;
-
-    @Mock
-    private ChatModel fallbackChatModel;
-
-    private ChatClient mainClient;
-
-    private ChatClient fallbackClient;
-
     private AiProxyExecutorService executorService;
 
     @BeforeEach
     void setUp() {
-        executorService = spy(new AiProxyExecutorService());
-        mainClient = ChatClient.create(mainChatModel);
-        fallbackClient = ChatClient.create(fallbackChatModel);
+        executorService = new AiProxyExecutorService();
     }
 
     @Test
-    void testExecuteSuccessOnFirstAttempt() {
-        final ChatResponse successResponse = mock(ChatResponse.class);
-        when(mainChatModel.call(any(Prompt.class))).thenReturn(successResponse);
+    void testExecuteDirectStreamSuccess() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final ChatCompletionChunk chunk = mock(ChatCompletionChunk.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        when(mainApi.chatCompletionStream(request)).thenReturn(Flux.just(chunk));
 
-        StepVerifier.create(executorService.execute(mainClient, Optional.empty(), "request"))
-                .expectNext(successResponse)
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request))
+                .expectNext(chunk)
                 .verifyComplete();
 
-        verify(mainChatModel, times(1)).call(any(Prompt.class));
+        verify(mainApi, times(1)).chatCompletionStream(request);
     }
 
     @Test
-    void testExecuteRetryOnRestClientExceptionAndSucceed() {
-        final ChatResponse successResponse = mock(ChatResponse.class);
-        when(mainChatModel.call(any(Prompt.class)))
-                .thenThrow(new RestClientException("transient error"))
-                .thenReturn(successResponse);
+    void testExecuteDirectStreamErrorWithNoFallback() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        when(mainApi.chatCompletionStream(request)).thenAnswer(inv -> Flux.error(new RuntimeException("upstream error")));
 
-        StepVerifier.create(executorService.execute(mainClient, Optional.empty(), "request"))
-                .expectNext(successResponse)
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request))
+                .expectError(NonTransientAiException.class)
+                .verify();
+    }
+
+    @Test
+    void testExecuteDirectStreamFallbackSuccess() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final OpenAiApi fallbackApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletionChunk fallbackChunk = mock(ChatCompletionChunk.class);
+
+        when(mainApi.chatCompletionStream(request)).thenAnswer(inv -> Flux.error(new RuntimeException("upstream error")));
+        when(fallbackApi.chatCompletionStream(request)).thenReturn(Flux.just(fallbackChunk));
+
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(fallbackApi), request))
+                .expectNext(fallbackChunk)
                 .verifyComplete();
 
-        verify(mainChatModel, times(2)).call(any(Prompt.class));
+        verify(fallbackApi, times(1)).chatCompletionStream(request);
     }
 
     @Test
-    void testExecuteRetryExhaustedThenFallback() {
-        final ChatResponse fallbackResponse = mock(ChatResponse.class);
-        when(mainChatModel.call(any(Prompt.class))).thenThrow(new RestClientException("transient error"));
-        when(fallbackChatModel.call(any(Prompt.class))).thenReturn(fallbackResponse);
+    void testExecuteDirectCallSuccess() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletion completion = mock(ChatCompletion.class);
+        final ResponseEntity<ChatCompletion> responseEntity = ResponseEntity.ok(completion);
+        when(mainApi.chatCompletionEntity(request)).thenReturn(responseEntity);
 
-        StepVerifier.create(executorService.execute(mainClient, Optional.of(fallbackClient), "request"))
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request))
+                .expectNext(responseEntity)
+                .verifyComplete();
+
+        verify(mainApi, times(1)).chatCompletionEntity(request);
+    }
+
+    @Test
+    void testExecuteDirectCallErrorWithNoFallback() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        when(mainApi.chatCompletionEntity(request)).thenThrow(new RuntimeException("upstream error"));
+
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request))
+                .expectError(NonTransientAiException.class)
+                .verify();
+    }
+
+    @Test
+    void testExecuteDirectCallFallbackSuccess() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final OpenAiApi fallbackApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletion fallbackCompletion = mock(ChatCompletion.class);
+        final ResponseEntity<ChatCompletion> fallbackResponse = ResponseEntity.ok(fallbackCompletion);
+
+        when(mainApi.chatCompletionEntity(request)).thenThrow(new RuntimeException("upstream error"));
+        when(fallbackApi.chatCompletionEntity(request)).thenReturn(fallbackResponse);
+
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.of(fallbackApi), request))
                 .expectNext(fallbackResponse)
                 .verifyComplete();
 
-        verify(mainChatModel, times(4)).call(any(Prompt.class));
-        verify(fallbackChatModel, times(1)).call(any(Prompt.class));
-    }
-
-    @Test
-    void testExecuteNonTransientExceptionTriggersFallbackDirectly() {
-        final ChatResponse fallbackResponse = mock(ChatResponse.class);
-        when(mainChatModel.call(any(Prompt.class))).thenThrow(new NonTransientAiException("non-transient error"));
-        when(fallbackChatModel.call(any(Prompt.class))).thenReturn(fallbackResponse);
-
-        StepVerifier.create(executorService.execute(mainClient, Optional.of(fallbackClient), "request"))
-                .expectNext(fallbackResponse)
-                .verifyComplete();
-
-        verify(mainChatModel, times(1)).call(any(Prompt.class));
-        verify(fallbackChatModel, times(1)).call(any(Prompt.class));
-    }
-
-    @Test
-    void testExecuteFallbackFails() {
-        final RestClientException fallbackException = new RestClientException("fallback failed");
-        when(mainChatModel.call(any(Prompt.class))).thenThrow(new NonTransientAiException("non-transient error"));
-        when(fallbackChatModel.call(any(Prompt.class))).thenThrow(fallbackException);
-
-        StepVerifier.create(executorService.execute(mainClient, Optional.of(fallbackClient), "request"))
-                .expectErrorMatches(e -> e == fallbackException)
-                .verify();
-
-        verify(mainChatModel, times(1)).call(any(Prompt.class));
-        verify(fallbackChatModel, times(1)).call(any(Prompt.class));
-    }
-
-    @Test
-    void testExecuteNoFallbackProvided() {
-        final NonTransientAiException mainException = new NonTransientAiException("non-transient error");
-        when(mainChatModel.call(any(Prompt.class))).thenThrow(mainException);
-
-        StepVerifier.create(executorService.execute(mainClient, Optional.empty(), "request"))
-                .expectErrorMatches(e -> e == mainException)
-                .verify();
-
-        verify(mainChatModel, times(1)).call(any(Prompt.class));
+        verify(fallbackApi, times(1)).chatCompletionEntity(request);
     }
 }

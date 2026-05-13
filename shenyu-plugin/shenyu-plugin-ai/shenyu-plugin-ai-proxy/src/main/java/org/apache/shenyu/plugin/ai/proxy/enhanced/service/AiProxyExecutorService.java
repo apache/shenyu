@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import org.apache.shenyu.plugin.ai.common.strategy.SimpleModelFallbackStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletion;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -39,78 +41,77 @@ public class AiProxyExecutorService {
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyExecutorService.class);
 
     /**
-     * Execute the AI call with retry and fallback.
+     * Execute a streaming AI call directly via {@link OpenAiApi}, bypassing Spring AI's
+     * {@code createRequest()} which loses fields like {@code reasoning_content}.
      *
-     * @param mainClient      the main chat client
-     * @param fallbackClientOpt the optional fallback chat client
-     * @param requestBody     the request body
-     * @return a Mono containing the ChatResponse
+     * @param mainApi       the main OpenAiApi
+     * @param fallbackApiOpt the optional fallback OpenAiApi
+     * @param request       the ChatCompletionRequest with all fields preserved
+     * @return a Flux of ChatCompletionChunk
      */
-    public Mono<ChatResponse> execute(final ChatClient mainClient, final Optional<ChatClient> fallbackClientOpt, final String requestBody) {
-        final Mono<ChatResponse> mainCall = doChatCall(mainClient, requestBody);
-
-        return mainCall
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                        .filter(throwable -> !(throwable instanceof NonTransientAiException))
+    public Flux<ChatCompletionChunk> executeDirectStream(final OpenAiApi mainApi,
+            final Optional<OpenAiApi> fallbackApiOpt, final ChatCompletionRequest request) {
+        return mainApi.chatCompletionStream(request)
+                .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
+                .retryWhen(Retry.max(1)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            LOG.warn("Retries exhausted for AI call after {} attempts.",
-                                    retrySignal.totalRetries(), retrySignal.failure());
-                            return new NonTransientAiException("Retries exhausted. Triggering fallback.",
+                            LOG.warn("Direct stream retry exhausted. Triggering fallback.",
+                                    retrySignal.failure());
+                            return new NonTransientAiException(
+                                    "Direct stream failed after 1 retry. Triggering fallback.",
                                     retrySignal.failure());
                         }))
                 .onErrorResume(NonTransientAiException.class,
-                        throwable -> handleFallback(throwable, fallbackClientOpt, requestBody));
-    }
-
-    protected Mono<ChatResponse> doChatCall(final ChatClient client, final String requestBody) {
-        return Mono.fromCallable(() -> client.prompt().user(requestBody).call().chatResponse())
-                .subscribeOn(Schedulers.boundedElastic());
-    }
-
-    private Mono<ChatResponse> handleFallback(final Throwable throwable, final Optional<ChatClient> fallbackClientOpt, final String requestBody) {
-        LOG.warn("AI main call failed or retries exhausted, attempting to fallback...", throwable);
-
-        if (fallbackClientOpt.isEmpty()) {
-            return Mono.error(throwable);
-        }
-
-        return SimpleModelFallbackStrategy.INSTANCE.fallback(fallbackClientOpt.get(), requestBody, throwable);
+                        throwable -> handleDirectFallbackStream(throwable, fallbackApiOpt, request));
     }
 
     /**
-     * Execute the AI call with retry and fallback.
+     * Execute a non-streaming AI call directly via {@link OpenAiApi}.
      *
-     * @param mainClient      the main chat client
-     * @param fallbackClientOpt the optional fallback chat client
-     * @param requestBody     the request body
-     * @return a Flux containing the ChatResponse
+     * @param mainApi       the main OpenAiApi
+     * @param fallbackApiOpt the optional fallback OpenAiApi
+     * @param request       the ChatCompletionRequest with all fields preserved
+     * @return a Mono of ResponseEntity containing ChatCompletion
      */
-    public Flux<ChatResponse> executeStream(final ChatClient mainClient, final Optional<ChatClient> fallbackClientOpt, final String requestBody) {
-        final Flux<ChatResponse> mainStream = doChatStream(mainClient, requestBody);
-
-        return mainStream
-                .retryWhen(Retry.max(1)
+    public Mono<ResponseEntity<ChatCompletion>> executeDirectCall(final OpenAiApi mainApi,
+            final Optional<OpenAiApi> fallbackApiOpt, final ChatCompletionRequest request) {
+        return Mono.fromCallable(() -> mainApi.chatCompletionEntity(request))
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct call"))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                        .filter(throwable -> !(throwable instanceof NonTransientAiException))
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            LOG.warn("Retrying stream once failed. Attempts: {}. Triggering fallback.",
+                            LOG.warn("Direct call retries exhausted after {} attempts. Triggering fallback.",
                                     retrySignal.totalRetries(), retrySignal.failure());
-                            return new NonTransientAiException("Stream failed after 1 retry. Triggering fallback.", retrySignal.failure());
+                            return new NonTransientAiException("Direct call retries exhausted. Triggering fallback.",
+                                    retrySignal.failure());
                         }))
                 .onErrorResume(NonTransientAiException.class,
-                        throwable -> handleFallbackStream(throwable, fallbackClientOpt, requestBody));
+                        throwable -> handleDirectFallbackCall(throwable, fallbackApiOpt, request));
     }
 
-    protected Flux<ChatResponse> doChatStream(final ChatClient client, final String requestBody) {
-        return Flux.defer(() -> client.prompt().user(requestBody).stream().chatResponse())
-                .subscribeOn(Schedulers.boundedElastic());
-    }
+    private Flux<ChatCompletionChunk> handleDirectFallbackStream(final Throwable throwable,
+            final Optional<OpenAiApi> fallbackApiOpt, final ChatCompletionRequest request) {
+        LOG.warn("Main direct stream failed, attempting fallback...", throwable);
 
-    private Flux<ChatResponse> handleFallbackStream(final Throwable throwable, final Optional<ChatClient> fallbackClientOpt, final String requestBody) {
-        LOG.warn("AI main stream failed or retries exhausted, attempting to fallback...", throwable);
-
-        if (fallbackClientOpt.isEmpty()) {
+        if (fallbackApiOpt.isEmpty()) {
             return Flux.error(throwable);
         }
 
-        return SimpleModelFallbackStrategy.INSTANCE.fallbackStream(fallbackClientOpt.get(), requestBody, throwable);
+        LOG.info("Using fallback OpenAiApi for direct stream");
+        return fallbackApiOpt.get().chatCompletionStream(request);
+    }
+
+    private Mono<ResponseEntity<ChatCompletion>> handleDirectFallbackCall(final Throwable throwable,
+            final Optional<OpenAiApi> fallbackApiOpt, final ChatCompletionRequest request) {
+        LOG.warn("Main direct call failed, attempting fallback...", throwable);
+
+        if (fallbackApiOpt.isEmpty()) {
+            return Mono.error(throwable);
+        }
+
+        LOG.info("Using fallback OpenAiApi for direct call");
+        return Mono.fromCallable(() -> fallbackApiOpt.get().chatCompletionEntity(request))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 }

@@ -21,25 +21,24 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
-import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.common.protocol.OpenAiProtocolAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.UpstreamErrorLogger;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
+import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -65,26 +64,18 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
      */
     private static final long MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024L;
 
-    private final AiModelFactoryRegistry aiModelFactoryRegistry;
-
     private final AiProxyConfigService aiProxyConfigService;
 
     private final AiProxyExecutorService aiProxyExecutorService;
 
-    private final ChatClientCache chatClientCache;
-
     private final AiProxyPluginHandler aiProxyPluginHandler;
 
     public AiProxyPlugin(
-            final AiModelFactoryRegistry aiModelFactoryRegistry,
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyExecutorService aiProxyExecutorService,
-            final ChatClientCache chatClientCache,
             final AiProxyPluginHandler aiProxyPluginHandler) {
-        this.aiModelFactoryRegistry = aiModelFactoryRegistry;
         this.aiProxyConfigService = aiProxyConfigService;
         this.aiProxyExecutorService = aiProxyExecutorService;
-        this.chatClientCache = chatClientCache;
         this.aiProxyPluginHandler = aiProxyPluginHandler;
     }
 
@@ -148,7 +139,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         }
                     }
 
-                    if (Boolean.TRUE.equals(primaryConfig.getStream())) {
+                    if (OpenAiProtocolAdapter.resolveStream(requestBody, primaryConfig.getStream())) {
                         return handleStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
                     }
                     return handleNonStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
@@ -161,23 +152,26 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final String requestBody,
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
-        final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
-        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
-        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
-                selector.getId(), requestBody);
+        final OpenAiApi mainApi = createOpenAiApi(primaryConfig);
+        final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, true, primaryConfig);
+        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(primaryConfig, selectorHandle,
+                requestBody);
         final ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
 
-        final Flux<ChatResponse> chatResponseFlux = aiProxyExecutorService.executeStream(mainClient, fallbackClient,
-                prompt);
+        final Flux<ChatCompletionChunk> chunkFlux = aiProxyExecutorService.executeDirectStream(
+                mainApi, fallbackApi, request);
 
-        final Flux<DataBuffer> sseFlux = chatResponseFlux.map(
-                chatResponse -> {
-                    final String json = JsonUtils.toJson(chatResponse);
+        final Flux<DataBuffer> sseFlux = chunkFlux.map(
+                chunk -> {
+                    final String json = JsonUtils.toJson(chunk);
                     final String sseData = "data: " + json + "\n\n";
                     return response.bufferFactory()
                             .wrap(sseData.getBytes(StandardCharsets.UTF_8));
-                });
+                }).concatWith(Mono.fromSupplier(() ->
+                        response.bufferFactory()
+                                .wrap("data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8))))
+                .doOnError(e -> logUpstreamError(e, "stream"));
 
         return response.writeWith(sseFlux);
     }
@@ -188,24 +182,25 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final String requestBody,
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
-        final ChatClient mainClient = createMainChatClient(selector.getId(), primaryConfig);
-        final String prompt = aiProxyConfigService.extractPrompt(requestBody);
-        final Optional<ChatClient> fallbackClient = resolveFallbackClient(primaryConfig, selectorHandle,
-                selector.getId(), requestBody);
+        final OpenAiApi mainApi = createOpenAiApi(primaryConfig);
+        final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, false, primaryConfig);
+        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(primaryConfig, selectorHandle,
+                requestBody);
 
         return aiProxyExecutorService
-                .execute(mainClient, fallbackClient, prompt)
+                .executeDirectCall(mainApi, fallbackApi, request)
                 .flatMap(
-                        response -> {
-                            byte[] jsonBytes = JsonUtils.toJson(response).getBytes(StandardCharsets.UTF_8);
+                        responseEntity -> {
+                            final String responseJson = JsonUtils.toJson(responseEntity.getBody());
+                            byte[] jsonBytes = responseJson.getBytes(StandardCharsets.UTF_8);
                             return WebFluxResultUtils.result(exchange, jsonBytes);
-                        });
+                        })
+                .doOnError(e -> logUpstreamError(e, "non-stream"));
     }
 
-    private Optional<ChatClient> resolveFallbackClient(
+    private Optional<OpenAiApi> resolveFallbackOpenAiApi(
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle,
-            final String selectorId,
             final String requestBody) {
         return aiProxyConfigService
                 .resolveDynamicFallbackConfig(primaryConfig, requestBody)
@@ -214,86 +209,30 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("[AiProxy] dynamic fallback config: {}", cfg);
                     }
-                    return createDynamicFallbackClient(cfg);
+                    return createOpenAiApi(cfg);
                 })
-                .or(
-                        () -> aiProxyConfigService
-                                .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
-                                .map(adminFallbackConfig -> {
-                                    LOG.info("[AiProxy] use admin fallback");
-                                    if (LOG.isDebugEnabled()) {
-                                        LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
-                                    }
-                                    return createAdminFallbackClient(selectorId, adminFallbackConfig);
-                                }));
+                .or(() -> aiProxyConfigService
+                        .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
+                        .map(adminFallbackConfig -> {
+                            LOG.info("[AiProxy] use admin fallback");
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
+                            }
+                            return createOpenAiApi(adminFallbackConfig);
+                        }));
     }
 
-    /**
-     * Generate cache key based on config fields excluding apiKey.
-     * This ensures cache consistency even when apiKey is updated at runtime.
-     *
-     * @param config the config
-     * @return cache key hash
-     */
-    private int generateConfigCacheKey(final AiCommonConfig config) {
-        return Objects.hash(
-                config.getProvider(),
-                config.getBaseUrl(),
-                config.getModel(),
-                config.getTemperature(),
-                config.getMaxTokens(),
-                config.getStream()
-                // Explicitly exclude apiKey to avoid cache misses when apiKey changes
-        );
-    }
-
-    private ChatClient createMainChatClient(final String selectorId, final AiCommonConfig config) {
-        final int configHash = generateConfigCacheKey(config);
-        final String cacheKey = selectorId + "|main_" + configHash;
-        return chatClientCache.computeIfAbsent(
-                cacheKey,
-                () -> {
-                    LOG.info("Creating and caching main model for selector: {}, key: {}", selectorId, cacheKey);
-                    return createChatModel(config);
-                });
-    }
-
-    private ChatClient createAdminFallbackClient(
-            final String selectorId, final AiCommonConfig fallbackConfig) {
-        final int configHash = generateConfigCacheKey(fallbackConfig);
-        final String fallbackCacheKey = selectorId + "|adminFallback_" + configHash;
-        return chatClientCache.computeIfAbsent(
-                fallbackCacheKey,
-                () -> {
-                    LOG.info(
-                            "Creating and caching admin fallback model for selector: {}, key: {}",
-                            selectorId, fallbackCacheKey);
-                    return createChatModel(fallbackConfig);
-                });
-    }
-
-    private ChatClient createDynamicFallbackClient(final AiCommonConfig fallbackConfig) {
-        LOG.info("Creating non-cached dynamic fallback model.");
-        return ChatClient.builder(createChatModel(fallbackConfig)).build();
-    }
-
-    private ChatModel createChatModel(final AiCommonConfig config) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Creating chat model with config: {}", config);
+    private OpenAiApi createOpenAiApi(final AiCommonConfig config) {
+        if (Objects.isNull(config.getBaseUrl()) || config.getBaseUrl().isEmpty()) {
+            throw new IllegalArgumentException("baseUrl must not be empty");
         }
-        final AiModelProviderEnum provider = AiModelProviderEnum.getByName(config.getProvider());
-        if (Objects.isNull(provider)) {
-            throw new IllegalArgumentException(
-                    "Invalid AI model provider in config: " + config.getProvider());
+        if (Objects.isNull(config.getApiKey()) || config.getApiKey().isEmpty()) {
+            throw new IllegalArgumentException("apiKey must not be empty");
         }
-        final var factory = aiModelFactoryRegistry.getFactory(provider);
-        if (Objects.isNull(factory)) {
-            throw new IllegalArgumentException(
-                    "AI model factory not found for provider: " + provider.getName());
-        }
-        return Objects.requireNonNull(
-                factory.createAiModel(config),
-                "The AI model created by the factory must not be null");
+        return OpenAiApi.builder()
+                .baseUrl(config.getBaseUrl())
+                .apiKey(config.getApiKey())
+                .build();
     }
 
     @Override
@@ -304,5 +243,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.AI_PROXY.getName();
+    }
+
+    private void logUpstreamError(final Throwable e, final String mode) {
+        UpstreamErrorLogger.logUpstreamError(LOG, e, mode);
     }
 }
