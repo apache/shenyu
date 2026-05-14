@@ -26,6 +26,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.protocol.OpenAiProtocolAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.OpenAiApiCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
@@ -152,9 +153,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final String requestBody,
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
-        final OpenAiApi mainApi = createOpenAiApi(primaryConfig);
+        final OpenAiApi mainApi = getCachedOpenAiApi(selector.getId(), "main", primaryConfig);
         final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, true, primaryConfig);
-        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(primaryConfig, selectorHandle,
+        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(selector.getId(), primaryConfig, selectorHandle,
                 requestBody);
         final ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
@@ -182,9 +183,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final String requestBody,
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle) {
-        final OpenAiApi mainApi = createOpenAiApi(primaryConfig);
+        final OpenAiApi mainApi = getCachedOpenAiApi(selector.getId(), "main", primaryConfig);
         final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, false, primaryConfig);
-        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(primaryConfig, selectorHandle,
+        final Optional<OpenAiApi> fallbackApi = resolveFallbackOpenAiApi(selector.getId(), primaryConfig, selectorHandle,
                 requestBody);
 
         return aiProxyExecutorService
@@ -199,6 +200,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     }
 
     private Optional<OpenAiApi> resolveFallbackOpenAiApi(
+            final String selectorId,
             final AiCommonConfig primaryConfig,
             final AiProxyHandle selectorHandle,
             final String requestBody) {
@@ -209,7 +211,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("[AiProxy] dynamic fallback config: {}", cfg);
                     }
-                    return createOpenAiApi(cfg);
+                    return getCachedOpenAiApi(selectorId, "dynamicFallback", cfg);
                 })
                 .or(() -> aiProxyConfigService
                         .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
@@ -218,8 +220,13 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
                             }
-                            return createOpenAiApi(adminFallbackConfig);
+                            return getCachedOpenAiApi(selectorId, "adminFallback", adminFallbackConfig);
                         }));
+    }
+
+    private OpenAiApi getCachedOpenAiApi(final String selectorId, final String type, final AiCommonConfig config) {
+        final String cacheKey = selectorId + "|" + type + "_" + config.hashCode();
+        return OpenAiApiCache.getInstance().computeIfAbsent(cacheKey, () -> createOpenAiApi(config));
     }
 
     private OpenAiApi createOpenAiApi(final AiCommonConfig config) {

@@ -23,6 +23,8 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.OpenAiApiCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -36,6 +38,9 @@ public class AiProxyPluginHandler implements PluginDataHandler {
 
     private final CommonHandleCache<String, AiProxyHandle> selectorCachedHandle = new CommonHandleCache<>();
 
+    public AiProxyPluginHandler() {
+    }
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         // Note: The logic for handling global plugin configuration with Singleton has been removed
@@ -45,6 +50,10 @@ public class AiProxyPluginHandler implements PluginDataHandler {
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
+        // Invalidate the cache first when the selector is updated.
+        OpenAiApiCache.getInstance().remove(selectorData.getId());
+        // Do NOT remove AiProxyApiKeyCache here. Admin will push updated AI_PROXY_API_KEY events
+        // with refreshed realApiKey after selector changes. Removing here introduces a window of misses.
         if (Objects.isNull(selectorData.getHandle())) {
             return;
         }
@@ -56,6 +65,9 @@ public class AiProxyPluginHandler implements PluginDataHandler {
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        // Invalidate the cache when the selector is removed.
+        OpenAiApiCache.getInstance().remove(selectorData.getId());
+        AiProxyApiKeyCache.getInstance().removeBySelectorId(selectorData.getId());
         selectorCachedHandle
                 .removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
