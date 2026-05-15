@@ -54,7 +54,7 @@ public class AiProxyPluginHandler implements PluginDataHandler {
         OpenAiApiCache.getInstance().remove(selectorData.getId());
         // Do NOT remove AiProxyApiKeyCache here. Admin will push updated AI_PROXY_API_KEY events
         // with refreshed realApiKey after selector changes. Removing here introduces a window of misses.
-        if (Objects.isNull(selectorData.getHandle())) {
+        if (Objects.isNull(selectorData.getHandle()) || selectorData.getHandle().isEmpty()) {
             return;
         }
         AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), AiProxyHandle.class);

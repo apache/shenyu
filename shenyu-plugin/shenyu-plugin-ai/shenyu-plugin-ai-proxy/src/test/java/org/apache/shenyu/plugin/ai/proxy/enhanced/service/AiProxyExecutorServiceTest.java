@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,6 +41,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class AiProxyExecutorServiceTest {
+
+    private static final String REQUEST_BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}";
 
     private AiProxyExecutorService executorService;
 
@@ -54,7 +58,7 @@ public class AiProxyExecutorServiceTest {
         final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
         when(mainApi.chatCompletionStream(request)).thenReturn(Flux.just(chunk));
 
-        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request))
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request, REQUEST_BODY, true))
                 .expectNext(chunk)
                 .verifyComplete();
 
@@ -67,7 +71,7 @@ public class AiProxyExecutorServiceTest {
         final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
         when(mainApi.chatCompletionStream(request)).thenAnswer(inv -> Flux.error(new RuntimeException("upstream error")));
 
-        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request))
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request, REQUEST_BODY, true))
                 .expectError(NonTransientAiException.class)
                 .verify();
     }
@@ -80,13 +84,17 @@ public class AiProxyExecutorServiceTest {
         final ChatCompletionChunk fallbackChunk = mock(ChatCompletionChunk.class);
 
         when(mainApi.chatCompletionStream(request)).thenAnswer(inv -> Flux.error(new RuntimeException("upstream error")));
-        when(fallbackApi.chatCompletionStream(request)).thenReturn(Flux.just(fallbackChunk));
+        when(fallbackApi.chatCompletionStream(any(ChatCompletionRequest.class))).thenReturn(Flux.just(fallbackChunk));
 
-        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(fallbackApi), request))
+        final AiCommonConfig fallbackConfig = new AiCommonConfig();
+        fallbackConfig.setModel("fallback-model");
+        final AiProxyExecutorService.FallbackContext ctx = new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
+
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(ctx), request, REQUEST_BODY, true))
                 .expectNext(fallbackChunk)
                 .verifyComplete();
 
-        verify(fallbackApi, times(1)).chatCompletionStream(request);
+        verify(fallbackApi, times(1)).chatCompletionStream(any(ChatCompletionRequest.class));
     }
 
     @Test
@@ -97,7 +105,7 @@ public class AiProxyExecutorServiceTest {
         final ResponseEntity<ChatCompletion> responseEntity = ResponseEntity.ok(completion);
         when(mainApi.chatCompletionEntity(request)).thenReturn(responseEntity);
 
-        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request))
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request, REQUEST_BODY))
                 .expectNext(responseEntity)
                 .verifyComplete();
 
@@ -110,7 +118,7 @@ public class AiProxyExecutorServiceTest {
         final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
         when(mainApi.chatCompletionEntity(request)).thenThrow(new RuntimeException("upstream error"));
 
-        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request))
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.empty(), request, REQUEST_BODY))
                 .expectError(NonTransientAiException.class)
                 .verify();
     }
@@ -124,12 +132,16 @@ public class AiProxyExecutorServiceTest {
         final ResponseEntity<ChatCompletion> fallbackResponse = ResponseEntity.ok(fallbackCompletion);
 
         when(mainApi.chatCompletionEntity(request)).thenThrow(new RuntimeException("upstream error"));
-        when(fallbackApi.chatCompletionEntity(request)).thenReturn(fallbackResponse);
+        when(fallbackApi.chatCompletionEntity(any(ChatCompletionRequest.class))).thenReturn(fallbackResponse);
 
-        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.of(fallbackApi), request))
+        final AiCommonConfig fallbackConfig = new AiCommonConfig();
+        fallbackConfig.setModel("fallback-model");
+        final AiProxyExecutorService.FallbackContext ctx = new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
+
+        StepVerifier.create(executorService.executeDirectCall(mainApi, Optional.of(ctx), request, REQUEST_BODY))
                 .expectNext(fallbackResponse)
                 .verifyComplete();
 
-        verify(fallbackApi, times(1)).chatCompletionEntity(request);
+        verify(fallbackApi, times(1)).chatCompletionEntity(any(ChatCompletionRequest.class));
     }
 }

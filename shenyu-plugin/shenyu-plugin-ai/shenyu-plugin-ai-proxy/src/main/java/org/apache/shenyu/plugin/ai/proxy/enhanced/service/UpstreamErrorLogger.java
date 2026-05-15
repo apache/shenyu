@@ -27,17 +27,32 @@ import java.util.Objects;
  */
 public final class UpstreamErrorLogger {
 
+    private static final int MAX_BODY_LOG_LENGTH = 512;
+
     private UpstreamErrorLogger() {
     }
 
     public static void logUpstreamError(final Logger log, final Throwable e, final String mode) {
+        if (Objects.isNull(e)) {
+            return;
+        }
         final WebClientResponseException webClientEx = findWebClientResponseException(e);
         if (Objects.nonNull(webClientEx)) {
             log.error("[AiProxy] {} failed, status={}, upstreamBody={}",
-                    mode, webClientEx.getStatusCode(), webClientEx.getResponseBodyAsString(), e);
+                    mode, webClientEx.getStatusCode(), truncateBody(webClientEx.getResponseBodyAsString()), e);
         } else {
             log.error("[AiProxy] {} failed", mode, e);
         }
+    }
+
+    private static String truncateBody(final String body) {
+        if (Objects.isNull(body)) {
+            return "null";
+        }
+        if (body.length() <= MAX_BODY_LOG_LENGTH) {
+            return body;
+        }
+        return body.substring(0, MAX_BODY_LOG_LENGTH) + "...(truncated, total " + body.length() + " chars)";
     }
 
     private static WebClientResponseException findWebClientResponseException(final Throwable e) {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.common.protocol;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -27,8 +28,17 @@ import java.util.Objects;
 
 /**
  * Adapts between OpenAI Chat Completions wire format and internal representations.
+ *
+ * <p>Note: deserialization into Spring AI's {@link ChatCompletionRequest} preserves fields
+ * modeled by that class (messages, model, temperature, maxTokens, stream, tools, etc.).
+ * Provider-specific extension fields not modeled by {@code ChatCompletionRequest} are dropped
+ * during deserialization. For the OpenAI-compatible providers this plugin currently supports,
+ * all required fields are covered.
  */
 public final class OpenAiProtocolAdapter {
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private OpenAiProtocolAdapter() {
     }
@@ -45,7 +55,7 @@ public final class OpenAiProtocolAdapter {
         if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
             return Boolean.TRUE.equals(fallbackStream);
         }
-        final JsonNode root = JsonUtils.toJsonNode(requestBody);
+        final JsonNode root = parseStrict(requestBody);
         if (Objects.isNull(root)) {
             return Boolean.TRUE.equals(fallbackStream);
         }
@@ -56,8 +66,8 @@ public final class OpenAiProtocolAdapter {
     }
 
     /**
-     * Parse raw request body directly into ChatCompletionRequest, preserving ALL fields
-     * including reasoning_content in assistant messages.
+     * Parse raw request body directly into ChatCompletionRequest, preserving fields
+     * modeled by Spring AI (including reasoning_content in assistant messages).
      *
      * <p>Spring AI's createRequest() loses reasoning_content, refusal, and annotations
      * when reconstructing ChatCompletionMessage from AssistantMessage.
@@ -74,7 +84,7 @@ public final class OpenAiProtocolAdapter {
     }
 
     /**
-     * Parse raw request body directly into ChatCompletionRequest, preserving ALL fields.
+     * Parse raw request body directly into ChatCompletionRequest, preserving modeled fields.
      * For model, temperature, max_tokens: client request takes priority;
      * if missing, falls back to the corresponding field in fallbackConfig.
      *
@@ -88,14 +98,19 @@ public final class OpenAiProtocolAdapter {
         if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
             throw new IllegalArgumentException("Request body must not be empty");
         }
-        final JsonNode root = JsonUtils.toJsonNode(requestBody);
+        final JsonNode root = parseStrict(requestBody);
         if (Objects.isNull(root) || !root.isObject()) {
             throw new IllegalArgumentException("Invalid request body: expected a JSON object");
         }
         final ObjectNode mutableRoot = (ObjectNode) root;
 
         if (root.hasNonNull("max_completion_tokens") && !root.hasNonNull("max_tokens")) {
-            mutableRoot.put("max_tokens", root.get("max_completion_tokens").asInt());
+            final JsonNode tokenNode = root.get("max_completion_tokens");
+            if (!tokenNode.isNumber()) {
+                throw new IllegalArgumentException(
+                        "max_completion_tokens must be a number, got: " + tokenNode.getNodeType());
+            }
+            mutableRoot.put("max_tokens", tokenNode.asInt());
             mutableRoot.remove("max_completion_tokens");
         }
 
@@ -113,6 +128,18 @@ public final class OpenAiProtocolAdapter {
 
         mutableRoot.put("stream", stream);
 
-        return JsonUtils.jsonToObject(mutableRoot.toString(), ChatCompletionRequest.class);
+        final ChatCompletionRequest result = JsonUtils.jsonToObject(mutableRoot.toString(), ChatCompletionRequest.class);
+        if (Objects.isNull(result)) {
+            throw new IllegalArgumentException("Failed to parse request body into ChatCompletionRequest");
+        }
+        return result;
+    }
+
+    private static JsonNode parseStrict(final String json) {
+        try {
+            return MAPPER.readTree(json);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 }

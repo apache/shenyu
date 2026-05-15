@@ -157,7 +157,7 @@ public final class OpenAiProtocolAdapterTest {
     }
 
     @Test
-    void testNoFallbackTemperatureWhenConfigNull() {
+    void testNoFallbackWhenConfigTemperatureIsNull() {
         final AiCommonConfig config = new AiCommonConfig();
         config.setTemperature(null);
 
@@ -234,5 +234,24 @@ public final class OpenAiProtocolAdapterTest {
         assertEquals("client-model", req.model());
         assertEquals(0.1, req.temperature(), 0.001);
         assertEquals(2048, req.maxTokens());
+    }
+
+    @Test
+    void testMalformedJsonThrows() {
+        assertThrows(IllegalArgumentException.class,
+                () -> OpenAiProtocolAdapter.toChatCompletionRequest("not valid json{{{", false));
+    }
+
+    @Test
+    void testMaxCompletionTokensNonNumberThrows() {
+        final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"max_completion_tokens\":\"abc\"}";
+        assertThrows(IllegalArgumentException.class,
+                () -> OpenAiProtocolAdapter.toChatCompletionRequest(body, false));
+    }
+
+    @Test
+    void testResolveStreamMalformedJsonFallsBack() {
+        assertFalse(OpenAiProtocolAdapter.resolveStream("not json{{{", false));
+        assertTrue(OpenAiProtocolAdapter.resolveStream("not json{{{", true));
     }
 }

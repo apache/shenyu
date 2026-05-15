@@ -97,8 +97,10 @@ public final class OpenAiApiCache {
     }
 
     /**
-     * Evict oldest entries when cache size exceeds limit.
-     * Removes approximately 25% of entries to avoid thundering herd problem.
+     * Evict arbitrary entries when cache size exceeds limit.
+     * Note: ConcurrentHashMap iteration order is undefined, so evicted entries are arbitrary,
+     * not guaranteed to be the oldest. Removes approximately 25% of entries to avoid
+     * thundering herd problem.
      */
     private void evictOldestEntries() {
         final int currentSize = openAiApiMap.size();
@@ -107,7 +109,7 @@ public final class OpenAiApiCache {
         }
 
         final int evictCount = Math.max(10, currentSize / 4);
-        LOG.warn("[OpenAiApiCache] Cache size {} exceeded limit {}, evicting {} oldest entries",
+        LOG.warn("[OpenAiApiCache] Cache size {} exceeded limit {}, evicting {} arbitrary entries",
                 currentSize, MAX_CACHE_SIZE, evictCount);
 
         int removed = 0;

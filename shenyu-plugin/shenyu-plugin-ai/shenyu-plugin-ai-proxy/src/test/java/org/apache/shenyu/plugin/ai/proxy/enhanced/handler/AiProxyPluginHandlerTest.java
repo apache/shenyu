@@ -78,6 +78,8 @@ class AiProxyPluginHandlerTest {
         selector.setId("sel-3");
         selector.setHandle("");
 
+        handler.handlerSelector(selector);
+
         String key = CacheKeyUtils.INST.getKey("sel-3", Constants.DEFAULT_RULE);
         assertNull(handler.getSelectorCachedHandle().obtainHandle(key));
     }
