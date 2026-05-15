@@ -120,7 +120,7 @@ public class OpenApiUtils {
 
     /**
      * Generate request parameters for HTTP methods.
-     * This produces OpenAPI-style Parameter objects with in and schema fields.
+     * This produces Parameter objects with name, in, type, and refs fields.
      *
      * @param path   the api path
      * @param method the method
@@ -154,26 +154,25 @@ public class OpenApiUtils {
                     }
                 }
             }
-        } else {
-            List<String> segments = UrlPathUtils.getSegments(path);
-            for (String segment : segments) {
-                if (EVERY_PATH.equals(segment)) {
-                    Parameter parameter = new Parameter();
-                    parameter.setIn("path");
-                    parameter.setName(segment);
-                    parameter.setRequired(true);
-                    parameter.setType("string");
-                    list.add(parameter);
-                }
-                if (segment.startsWith(LEFT_ANGLE_BRACKETS) && segment.endsWith(RIGHT_ANGLE_BRACKETS)) {
-                    String name = segment.substring(1, segment.length() - 1);
-                    Parameter parameter = new Parameter();
-                    parameter.setIn("path");
-                    parameter.setName(name);
-                    parameter.setRequired(true);
-                    parameter.setType("string");
-                    list.add(parameter);
-                }
+        }
+        List<String> segments = UrlPathUtils.getSegments(path);
+        for (String segment : segments) {
+            if (EVERY_PATH.equals(segment)) {
+                Parameter parameter = new Parameter();
+                parameter.setIn("path");
+                parameter.setName(segment);
+                parameter.setRequired(true);
+                parameter.setType("string");
+                list.add(parameter);
+            }
+            if (segment.startsWith(LEFT_ANGLE_BRACKETS) && segment.endsWith(RIGHT_ANGLE_BRACKETS)) {
+                String name = segment.substring(1, segment.length() - 1);
+                Parameter parameter = new Parameter();
+                parameter.setIn("path");
+                parameter.setName(name);
+                parameter.setRequired(true);
+                parameter.setType("string");
+                list.add(parameter);
             }
         }
         return list;
@@ -191,7 +190,7 @@ public class OpenApiUtils {
         List<Parameter> list = new ArrayList<>();
         java.lang.reflect.Parameter[] methodParams = method.getParameters();
         for (java.lang.reflect.Parameter methodParam : methodParams) {
-            Class<?> paramType = methodParam.getType();
+            Type paramType = methodParam.getParameterizedType();
             Schema schema = parseSchema(paramType, 0, new HashMap<>(16));
             Parameter parameter = convertSchemaToParameter(methodParam.getName(), schema);
             parameter.setRequired(true);
@@ -217,7 +216,7 @@ public class OpenApiUtils {
             if (isStreamObserver(methodParam.getType())) {
                 continue;
             }
-            Class<?> paramType = methodParam.getType();
+            Type paramType = methodParam.getParameterizedType();
             Schema schema = parseSchema(paramType, 0, new HashMap<>(16));
             Parameter parameter = convertSchemaToParameter(methodParam.getName(), schema);
             parameter.setRequired(true);
@@ -334,7 +333,6 @@ public class OpenApiUtils {
             if (parameterAnnotation.length > 0 && isQueryName(parameterAnnotation[0].annotationType().getName(), QUERY_CLASSES)) {
                 return Pair.of(true, parameterAnnotations);
             }
-            return Pair.of(false, null);
         }
         return Pair.of(false, null);
     }
@@ -794,6 +792,10 @@ public class OpenApiUtils {
             return new Schema("string", null);
         } else if (isDateType(clazz)) {
             return new Schema("string", "date");
+        } else if (Collection.class.isAssignableFrom(clazz)) {
+            return new Schema("array", null);
+        } else if (Map.class.isAssignableFrom(clazz)) {
+            return new Schema("object", null);
         } else if (isProtobufMessage(clazz)) {
             return parseProtobufClassSchema(clazz, depth, typeVariableMap);
         } else {
@@ -822,12 +824,15 @@ public class OpenApiUtils {
         }
         if (Collection.class.isAssignableFrom(rawType)) {
             Schema elementSchema = parseSchema(actualTypeArguments[0], depth + 1, newTypeVariableMap);
+            elementSchema.setName("items");
             Schema schema = new Schema("array", null);
             schema.setRefs(Collections.singletonList(elementSchema));
             return schema;
         } else if (Map.class.isAssignableFrom(rawType)) {
             Schema keySchema = parseSchema(actualTypeArguments[0], depth + 1, newTypeVariableMap);
+            keySchema.setName("key");
             Schema valueSchema = parseSchema(actualTypeArguments[1], depth + 1, newTypeVariableMap);
+            valueSchema.setName("value");
             Schema schema = new Schema("object", null);
             schema.setRefs(Arrays.asList(keySchema, valueSchema));
             return schema;

@@ -26,6 +26,7 @@ import org.apache.shenyu.client.core.utils.OpenApiUtils.Parameter;
 import org.apache.shenyu.client.core.utils.OpenApiUtils.ResponseType;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -202,6 +203,17 @@ public class OpenApiUtilsTest {
     }
 
     @Test
+    void testGenerateRequestDocParametersWithQueryAndPath() throws Exception {
+        Method method = SpringMvcController.class.getMethod("getByPathWithQuery", String.class, String.class);
+        List<Parameter> params = OpenApiUtils.generateRequestDocParameters("/test/{id}/detail", method);
+        assertThat(params, hasSize(2));
+        assertThat(params.get(0).getName(), is("name"));
+        assertThat(params.get(0).getIn(), is("query"));
+        assertThat(params.get(1).getName(), is("id"));
+        assertThat(params.get(1).getIn(), is("path"));
+    }
+
+    @Test
     void testGenerateRequestDocParametersNoAnnotations() throws Exception {
         Method method = DubboTestService.class.getMethod("findById", String.class);
         List<Parameter> params = OpenApiUtils.generateRequestDocParameters("/dubbo/findById", method);
@@ -235,7 +247,7 @@ public class OpenApiUtilsTest {
         List<Parameter> params = OpenApiUtils.generateRpcRequestDocParameters(method);
         assertThat(params, hasSize(1));
         assertThat(params.get(0).getName(), is("ids"));
-        assertThat(params.get(0).getType(), is("object"));
+        assertThat(params.get(0).getType(), is("array"));
     }
 
     @Test
@@ -427,7 +439,12 @@ public class OpenApiUtilsTest {
         }
 
         @RequestMapping("/{id}")
-        public String getByPath(@RequestParam("id") final String id) {
+        public String getByPath(@PathVariable("id") final String id) {
+            return "";
+        }
+
+        @RequestMapping("/{id}/detail")
+        public String getByPathWithQuery(@PathVariable("id") final String id, @RequestParam("name") final String name) {
             return "";
         }
     }
