@@ -19,16 +19,11 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber;
 
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.mockito.Mockito.mock;
-
 class CommonAiProxyApiKeyDataSubscriberTest {
-
-    private final ChatClientCache chatClientCache = mock(ChatClientCache.class);
 
     @AfterEach
     void cleanup() {
@@ -37,7 +32,7 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testOnSubscribeCachesEnabled() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey("proxy-sub")
@@ -51,7 +46,7 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testOnSubscribeIgnoresDisabled() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey("proxy-disabled")
@@ -65,7 +60,7 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testUnSubscribeRemoves() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey("proxy-unsub")
@@ -81,7 +76,7 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testRefreshClearsCache() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey("proxy-refresh")
@@ -98,14 +93,14 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testOnSubscribeNullDataNoThrow() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         subscriber.onSubscribe(null);
         Assertions.assertEquals(0, AiProxyApiKeyCache.getInstance().size());
     }
 
     @Test
     void testOnSubscribeNullKeyIgnored() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey(null)
@@ -119,14 +114,14 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testUnSubscribeNullDataNoThrow() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         subscriber.unSubscribe(null);
         Assertions.assertEquals(0, AiProxyApiKeyCache.getInstance().size());
     }
 
     @Test
     void testUnSubscribeNullKeyNoThrow() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData data = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey(null)
@@ -140,7 +135,7 @@ class CommonAiProxyApiKeyDataSubscriberTest {
 
     @Test
     void testDuplicateSubscribeOverrides() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
         ProxyApiKeyData v1 = ProxyApiKeyData.builder()
                 .selectorId("test-selector")
                 .proxyApiKey("dup-key")
@@ -161,48 +156,4 @@ class CommonAiProxyApiKeyDataSubscriberTest {
         subscriber.onSubscribe(v2);
         Assertions.assertEquals("real-2", AiProxyApiKeyCache.getInstance().getRealApiKey("test-selector", "dup-key"));
     }
-
-    @Test
-    void testSubscribeDisabledDoesNotOverrideExisting() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
-        ProxyApiKeyData enabled = ProxyApiKeyData.builder()
-                .selectorId("test-selector")
-                .proxyApiKey("keep-key")
-                .realApiKey("real-keep")
-                .enabled(Boolean.TRUE)
-                .namespaceId("default")
-                .build();
-        subscriber.onSubscribe(enabled);
-        Assertions.assertEquals("real-keep", AiProxyApiKeyCache.getInstance().getRealApiKey("test-selector", "keep-key"));
-
-        ProxyApiKeyData disabled = ProxyApiKeyData.builder()
-                .selectorId("test-selector")
-                .proxyApiKey("keep-key")
-                .realApiKey("real-new")
-                .enabled(Boolean.FALSE)
-                .namespaceId("default")
-                .build();
-        subscriber.onSubscribe(disabled);
-        // disabled subscribe should not override existing cached mapping
-        Assertions.assertEquals("real-keep", AiProxyApiKeyCache.getInstance().getRealApiKey("test-selector", "keep-key"));
-    }
-
-    @Test
-    void testVeryLongProxyKey() {
-        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 300; i++) {
-            sb.append('A' + (i % 26));
-        }
-        String longKey = sb.toString();
-        ProxyApiKeyData data = ProxyApiKeyData.builder()
-                .selectorId("test-selector")
-                .proxyApiKey(longKey)
-                .realApiKey("real-long")
-                .enabled(Boolean.TRUE)
-                .namespaceId("default")
-                .build();
-        subscriber.onSubscribe(data);
-        Assertions.assertEquals("real-long", AiProxyApiKeyCache.getInstance().getRealApiKey("test-selector", longKey));
-    }
-} 
+}

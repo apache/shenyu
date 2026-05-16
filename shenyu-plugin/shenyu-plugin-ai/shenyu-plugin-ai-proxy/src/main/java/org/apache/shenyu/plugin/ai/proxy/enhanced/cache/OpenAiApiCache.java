@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.cache;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.openai.api.OpenAiApi;
 
 import java.util.Map;
 import java.util.Objects;
@@ -29,22 +28,34 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
- * This is ChatClient cache.
+ * This is OpenAiApi cache.
+ * Caches OpenAiApi instances by config key to avoid recreating on every request.
  */
-public final class ChatClientCache {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ChatClientCache.class);
-    
+public final class OpenAiApiCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OpenAiApiCache.class);
+
+    private static final OpenAiApiCache INSTANCE = new OpenAiApiCache();
+
     private static final int MAX_CACHE_SIZE = getCacheSize();
-    
-    private final Map<String, ChatClient> chatClientMap = new ConcurrentHashMap<>();
-    
+
+    private final Map<String, OpenAiApi> openAiApiMap = new ConcurrentHashMap<>();
+
     private final AtomicBoolean evictionInProgress = new AtomicBoolean(false);
-    
+
     /**
-     * Instantiates a new Chat client cache.
+     * Instantiates a new OpenAiApi cache.
      */
-    public ChatClientCache() {
+    public OpenAiApiCache() {
+    }
+
+    /**
+     * Gets instance.
+     *
+     * @return singleton
+     */
+    public static OpenAiApiCache getInstance() {
+        return INSTANCE;
     }
 
     private static int getCacheSize() {
@@ -54,30 +65,26 @@ public final class ChatClientCache {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                LoggerFactory.getLogger(ChatClientCache.class)
-                        .warn("[ChatClientCache] Invalid cache size '{}', using default 500.", value);
+                LOG.warn("[OpenAiApiCache] Invalid cache size '{}', using default 500.", value);
             }
         }
         return 500;
     }
-    
+
     /**
-     * Gets client or compute if absent.
+     * Gets OpenAiApi or compute if absent.
      *
-     * @param key the key
-     * @param chatModelSupplier the chat model supplier
-     * @return the chat client
+     * @param key the cache key (typically selectorId|configHash)
+     * @param openAiApiSupplier the supplier to create OpenAiApi if absent
+     * @return the cached or newly created OpenAiApi
      */
-    public ChatClient computeIfAbsent(final String key, final Supplier<ChatModel> chatModelSupplier) {
-        // Check size before computing, but use synchronized block to prevent race conditions
-        final int currentSize = chatClientMap.size();
+    public OpenAiApi computeIfAbsent(final String key, final Supplier<OpenAiApi> openAiApiSupplier) {
+        final int currentSize = openAiApiMap.size();
         if (currentSize > MAX_CACHE_SIZE) {
-            // Use atomic flag to ensure only one thread performs eviction
             if (evictionInProgress.compareAndSet(false, true)) {
                 try {
-                    synchronized (chatClientMap) {
-                        // Double-check after acquiring lock
-                        if (chatClientMap.size() > MAX_CACHE_SIZE) {
+                    synchronized (openAiApiMap) {
+                        if (openAiApiMap.size() > MAX_CACHE_SIZE) {
                             evictOldestEntries();
                         }
                     }
@@ -86,58 +93,57 @@ public final class ChatClientCache {
                 }
             }
         }
-        return chatClientMap.computeIfAbsent(key, k -> ChatClient.builder(chatModelSupplier.get()).build());
+        return openAiApiMap.computeIfAbsent(key, k -> openAiApiSupplier.get());
     }
-    
+
     /**
-     * Evict oldest entries when cache size exceeds limit.
-     * Removes approximately 25% of entries to avoid thundering herd problem.
+     * Evict arbitrary entries when cache size exceeds limit.
+     * Note: ConcurrentHashMap iteration order is undefined, so evicted entries are arbitrary,
+     * not guaranteed to be the oldest. Removes approximately 25% of entries to avoid
+     * thundering herd problem.
      */
     private void evictOldestEntries() {
-        final int currentSize = chatClientMap.size();
+        final int currentSize = openAiApiMap.size();
         if (currentSize <= MAX_CACHE_SIZE) {
             return;
         }
-        
-        // Evict 25% of entries, but at least 10 entries
+
         final int evictCount = Math.max(10, currentSize / 4);
-        LOG.warn("[ChatClientCache] Cache size {} exceeded limit {}, evicting {} oldest entries", 
+        LOG.warn("[OpenAiApiCache] Cache size {} exceeded limit {}, evicting {} arbitrary entries",
                 currentSize, MAX_CACHE_SIZE, evictCount);
-        
-        // Since ConcurrentHashMap doesn't maintain insertion order,
-        // we evict entries based on iteration order (which is somewhat arbitrary but better than clearing all)
+
         int removed = 0;
-        for (final String key : chatClientMap.keySet()) {
+        for (final String key : openAiApiMap.keySet()) {
             if (removed >= evictCount) {
                 break;
             }
-            chatClientMap.remove(key);
+            openAiApiMap.remove(key);
             removed++;
         }
-        
-        LOG.info("[ChatClientCache] Evicted {} entries, cache size now: {}", removed, chatClientMap.size());
+
+        LOG.info("[OpenAiApiCache] Evicted {} entries, cache size now: {}", removed, openAiApiMap.size());
     }
-    
+
     /**
-     * Removes all cached clients associated with a selector ID (by prefix matching
-     * "selectorId|").
+     * Removes all cached OpenAiApi instances associated with a selector ID
+     * (by prefix matching "selectorId|").
      *
      * @param selectorId the selector id
      */
     public void remove(final String selectorId) {
-        if (java.util.Objects.isNull(selectorId)) {
+        if (Objects.isNull(selectorId)) {
             return;
         }
         final String prefix = selectorId + "|";
-        chatClientMap.keySet().removeIf(k -> k.equals(selectorId) || k.startsWith(prefix));
-        LOG.info("[ChatClientCache] invalidate selectorId={} (by prefix)", selectorId);
+        openAiApiMap.keySet().removeIf(k -> k.equals(selectorId) || k.startsWith(prefix));
+        LOG.info("[OpenAiApiCache] invalidate selectorId={} (by prefix)", selectorId);
     }
-    
+
     /**
-     * Clear all cached clients.
+     * Clear all cached OpenAiApi instances.
      */
     public void clearAll() {
-        chatClientMap.clear();
-        LOG.info("[ChatClientCache] cleared all cached clients");
+        openAiApiMap.clear();
+        LOG.info("[OpenAiApiCache] cleared all cached OpenAiApi instances");
     }
 }
