@@ -109,6 +109,60 @@ public final class ApiServiceTest {
     }
 
     @Test
+    public void testFindByIdWithDocumentNotBlank() {
+        String id = "456";
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setId(id);
+        apiDTO.setContextPath("string");
+        apiDTO.setApiPath("string");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setConsume("string");
+        apiDTO.setProduce("string");
+        apiDTO.setVersion("string");
+        apiDTO.setRpcType("string");
+        apiDTO.setState(0);
+        apiDTO.setApiOwner("string");
+        apiDTO.setApiDesc("string");
+        apiDTO.setApiSource(0);
+        apiDTO.setDocument("{\"module\":\"test-module\",\"requestParameters\":[],\"responseParameters\":[]}");
+        ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        apiDO.setDateCreated(now);
+        apiDO.setDateUpdated(now);
+        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        ApiVO byId = this.apiService.findById(id);
+        assertNotNull(byId);
+        assertNotNull(byId.getRequestParameters());
+        assertNotNull(byId.getResponseParameters());
+    }
+
+    @Test
+    public void testFindByIdWithBlankDocument() {
+        String id = "789";
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setId(id);
+        apiDTO.setContextPath("string");
+        apiDTO.setApiPath("string");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setConsume("string");
+        apiDTO.setProduce("string");
+        apiDTO.setVersion("string");
+        apiDTO.setRpcType("string");
+        apiDTO.setState(0);
+        apiDTO.setApiOwner("string");
+        apiDTO.setApiDesc("string");
+        apiDTO.setApiSource(0);
+        apiDTO.setDocument("");
+        ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        apiDO.setDateCreated(now);
+        apiDO.setDateUpdated(now);
+        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        ApiVO byId = this.apiService.findById(id);
+        assertNotNull(byId);
+    }
+
+    @Test
     public void testListByPage() {
         PageParameter pageParameter = new PageParameter();
         pageParameter.setPageSize(5);

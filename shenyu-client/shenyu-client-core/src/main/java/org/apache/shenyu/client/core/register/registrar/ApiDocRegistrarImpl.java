@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -38,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -132,14 +130,9 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
             return document;
         }
         final String path = getPath(api);
-        final Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
-                .put("tags", buildTags(api))
-                .put("operationId", path)
-                .put("parameters", OpenApiUtils.generateDocumentParameters(path, api.getApiMethod()))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path))
-                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(api.getApiMethod())))
-                .build();
-        return GsonUtils.getInstance().toJson(documentMap);
+        final String rpcType = getRpcType(api);
+        RpcTypeEnum rpcTypeEnum = RpcTypeEnum.acquireByName(rpcType);
+        return OpenApiUtils.buildDocumentJson(buildTags(api), path, api.getApiMethod(), rpcTypeEnum);
     }
     
     private String getRpcType(final ApiBean.ApiDefinition api) {

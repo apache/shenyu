@@ -37,9 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -103,24 +103,40 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
     }
 
     @Override
+    protected void handleClass(final Class<?> clazz,
+                               final ServiceFactoryBean bean,
+                               @NonNull final ShenyuSofaClient beanShenyuClient,
+                               final String superPath) {
+        List<String> namespaceIds = super.getNamespace();
+        Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+        for (String namespaceId : namespaceIds) {
+            for (Method method : methods) {
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method, namespaceId);
+                getPublisher().publishEvent(metaData);
+                getMetaDataMap().put(method, metaData);
+            }
+        }
+    }
+
+    @Override
     protected String buildApiPath(final Method method,
                                   final String superPath,
-                                  @NonNull final ShenyuSofaClient shenyuSofaClient) {
+                                  @Nullable final ShenyuSofaClient shenyuSofaClient) {
         final String contextPath = this.getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(contextPath, superPath, shenyuSofaClient.path());
+                : pathJoin(contextPath, superPath, Objects.requireNonNull(shenyuSofaClient).path());
     }
 
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean,
                                                    @NonNull final ShenyuSofaClient shenyuSofaClient,
-                                                   final String superPath,
+                                                   final String path,
                                                    final Class<?> clazz,
                                                    final Method method,
                                                    final String namespaceId) {
         String appName = this.getAppName();
         String contextPath = this.getContextPath();
-        String path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
         String serviceName = serviceBean.getInterfaceClass().getName();
         String desc = shenyuSofaClient.desc();
         String configRuleName = shenyuSofaClient.ruleName();
@@ -157,11 +173,18 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
     }
 
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        Map<String, ServiceFactoryBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceFactoryBean.class);
-        for (Map.Entry<String, ServiceFactoryBean> entry : serviceBean.entrySet()) {
-            handler(entry.getValue());
+    protected Class<?> getCorrectedClass(final ServiceFactoryBean bean) {
+        Object targetProxy;
+        try {
+            targetProxy = ((Service) Objects.requireNonNull(bean.getObject())).getTarget();
+        } catch (Exception e) {
+            LOG.error("failed to get sofa target class", e);
+            return bean.getClass();
         }
+        if (AopUtils.isAopProxy(targetProxy)) {
+            return AopUtils.getTargetClass(targetProxy);
+        }
+        return targetProxy.getClass();
     }
 
     @Override
@@ -177,42 +200,6 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
         String version = "v0.01";
         return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.SOFA, version);
-    }
-
-    private void handler(final ServiceFactoryBean serviceBean) {
-        Class<?> clazz;
-        Object targetProxy;
-        try {
-            targetProxy = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget();
-            clazz = targetProxy.getClass();
-        } catch (Exception e) {
-            LOG.error("failed to get sofa target class", e);
-            return;
-        }
-        if (AopUtils.isAopProxy(targetProxy)) {
-            clazz = AopUtils.getTargetClass(targetProxy);
-        }
-        final ShenyuSofaClient beanSofaClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSofaClient.class);
-        final String superPath = buildApiSuperPath(clazz, beanSofaClient);
-        List<String> namespaceIds = super.getNamespace();
-        if (superPath.contains("*") && Objects.nonNull(beanSofaClient)) {
-            Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
-            for (String namespaceId : namespaceIds) {
-                for (Method declaredMethod : declaredMethods) {
-                    getPublisher().publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, superPath, clazz, declaredMethod, namespaceId));
-                }
-            }
-            return;
-        }
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        for (String namespaceId : namespaceIds) {
-            for (Method method : methods) {
-                ShenyuSofaClient methodSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
-                if (Objects.nonNull(methodSofaClient)) {
-                    getPublisher().publishEvent(buildMetaDataDTO(serviceBean, methodSofaClient, superPath, clazz, method, namespaceId));
-                }
-            }
-        }
     }
 
     private String buildRpcExt(final ShenyuSofaClient shenyuSofaClient) {
