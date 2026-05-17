@@ -71,6 +71,7 @@ class AiPromptPluginTest {
         assertEquals(body, result);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyWithPrependAndAppend() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -94,6 +95,7 @@ class AiPromptPluginTest {
         assertEquals("assistant", messages.get(2).get("role"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyWithOnlyPrepend() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -111,6 +113,7 @@ class AiPromptPluginTest {
         assertEquals("hello", messages.get(1).get("content"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyPreservesAllOriginalMessages() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -139,6 +142,7 @@ class AiPromptPluginTest {
         assertEquals("footer", messages.get(5).get("content"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyNoPrependOrAppend() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -153,6 +157,7 @@ class AiPromptPluginTest {
         assertEquals("hello", messages.get(0).get("content"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyPrependWithoutRoleIgnored() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -168,6 +173,7 @@ class AiPromptPluginTest {
         assertEquals("hello", messages.get(0).get("content"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testDecorateBodyPreservesOtherFields() throws Exception {
         AiPromptConfig config = new AiPromptConfig();
@@ -185,7 +191,6 @@ class AiPromptPluginTest {
         assertEquals(2, messages.size());
     }
 
-    @SuppressWarnings("unchecked")
     private String invokeDecorateBody(final String body, final AiPromptConfig config) throws Exception {
         Method method = AiPromptPlugin.class.getDeclaredMethod("decorateBody", String.class, AiPromptConfig.class);
         method.setAccessible(true);
