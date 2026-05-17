@@ -135,7 +135,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param t   the t
      */
     protected <T> void addFailureUriDataRegister(final T t) {
-        if (t instanceof ApiDocRegisterDTO) {
+        if (t instanceof URIRegisterDTO) {
             URIRegisterDTO dto = (URIRegisterDTO) t;
             String address = String.join(":", dto.getHost(), String.valueOf(dto.getPort()), dto.getRpcType());
             addToFail(new Holder(t, address, Constants.URI));

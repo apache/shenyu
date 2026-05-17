@@ -86,11 +86,7 @@ public final class FailbackRegistryRepositoryTest {
         repository.persistURI(registerDTO);
         
         verify(repository, times(1)).doPersistURI(registerDTO);
-        /*
-         * The original code has a bug where it checks for ApiDocRegisterDTO instead of URIRegisterDTO
-         * So the failure won't be added to the map
-         */
-        assertEquals(0, getFailureMapSize());
+        assertEquals(1, getFailureMapSize());
     }
 
     @Test
