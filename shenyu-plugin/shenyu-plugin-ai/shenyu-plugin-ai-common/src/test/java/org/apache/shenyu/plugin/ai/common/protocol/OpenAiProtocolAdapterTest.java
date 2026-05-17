@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.common.protocol;
 
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
@@ -33,13 +34,13 @@ public final class OpenAiProtocolAdapterTest {
 
     @Test
     void testNullRequestBody() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ShenyuException.class,
                 () -> OpenAiProtocolAdapter.toChatCompletionRequest(null, false));
     }
 
     @Test
     void testEmptyRequestBody() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ShenyuException.class,
                 () -> OpenAiProtocolAdapter.toChatCompletionRequest("", false));
     }
 
@@ -87,21 +88,21 @@ public final class OpenAiProtocolAdapterTest {
     }
 
     @Test
-    void testMaxCompletionTokensConvertedToMaxTokens() {
+    void testMaxCompletionTokensPreservedAsIs() {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"max_completion_tokens\":100}";
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false);
         assertNotNull(req);
-        assertEquals(100, req.maxTokens());
+        assertEquals(100, req.maxCompletionTokens());
     }
 
     @Test
-    void testClientModelTakesPriority() {
+    void testFallbackModelOverridesClientModel() {
         final String body = "{\"model\":\"client-model\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}";
         final AiCommonConfig config = new AiCommonConfig();
-        config.setModel("admin-model");
+        config.setModel("fallback-model");
 
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false, config);
-        assertEquals("client-model", req.model());
+        assertEquals("fallback-model", req.model());
     }
 
     @Test
@@ -138,13 +139,13 @@ public final class OpenAiProtocolAdapterTest {
     }
 
     @Test
-    void testClientTemperatureTakesPriority() {
+    void testFallbackTemperatureOverridesClient() {
         final String body = "{\"model\":\"m\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"temperature\":0.5}";
         final AiCommonConfig config = new AiCommonConfig();
         config.setTemperature(0.9);
 
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false, config);
-        assertEquals(0.5, req.temperature(), 0.001);
+        assertEquals(0.9, req.temperature(), 0.001);
     }
 
     @Test
@@ -166,13 +167,13 @@ public final class OpenAiProtocolAdapterTest {
     }
 
     @Test
-    void testClientMaxTokensTakesPriority() {
+    void testFallbackMaxTokensOverridesClient() {
         final String body = "{\"model\":\"m\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"max_tokens\":200}";
         final AiCommonConfig config = new AiCommonConfig();
         config.setMaxTokens(500);
 
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false, config);
-        assertEquals(200, req.maxTokens());
+        assertEquals(500, req.maxTokens());
     }
 
     @Test
@@ -208,44 +209,44 @@ public final class OpenAiProtocolAdapterTest {
     }
 
     @Test
-    void testAllClientFieldsTakePriority() {
+    void testAllFallbackFieldsOverrideClient() {
         final String body = "{\"model\":\"client-model\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
                 + "\"temperature\":0.1,\"max_tokens\":50}";
         final AiCommonConfig config = new AiCommonConfig();
-        config.setModel("admin-model");
+        config.setModel("fallback-model");
         config.setTemperature(0.9);
         config.setMaxTokens(9999);
 
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false, config);
-        assertEquals("client-model", req.model());
-        assertEquals(0.1, req.temperature(), 0.001);
-        assertEquals(50, req.maxTokens());
+        assertEquals("fallback-model", req.model());
+        assertEquals(0.9, req.temperature(), 0.001);
+        assertEquals(9999, req.maxTokens());
     }
 
     @Test
-    void testPartialClientFieldsWithPartialFallback() {
+    void testPartialFallbackOverrideWithPartialClient() {
         final String body = "{\"model\":\"client-model\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"temperature\":0.1}";
         final AiCommonConfig config = new AiCommonConfig();
-        config.setModel("admin-model");
+        config.setModel("fallback-model");
         config.setTemperature(0.9);
         config.setMaxTokens(2048);
 
         final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false, config);
-        assertEquals("client-model", req.model());
-        assertEquals(0.1, req.temperature(), 0.001);
+        assertEquals("fallback-model", req.model());
+        assertEquals(0.9, req.temperature(), 0.001);
         assertEquals(2048, req.maxTokens());
     }
 
     @Test
     void testMalformedJsonThrows() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ShenyuException.class,
                 () -> OpenAiProtocolAdapter.toChatCompletionRequest("not valid json{{{", false));
     }
 
     @Test
     void testMaxCompletionTokensNonNumberThrows() {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"max_completion_tokens\":\"abc\"}";
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ShenyuException.class,
                 () -> OpenAiProtocolAdapter.toChatCompletionRequest(body, false));
     }
 
@@ -253,5 +254,27 @@ public final class OpenAiProtocolAdapterTest {
     void testResolveStreamMalformedJsonFallsBack() {
         assertFalse(OpenAiProtocolAdapter.resolveStream("not json{{{", false));
         assertTrue(OpenAiProtocolAdapter.resolveStream("not json{{{", true));
+    }
+
+    @Test
+    void testAnnotationsRoundTrip() throws Exception {
+        final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        final String body = "{\"messages\":["
+                + "{\"role\":\"user\",\"content\":\"hello\"},"
+                + "{\"role\":\"assistant\",\"content\":\"see link\","
+                + "\"annotations\":[{\"type\":\"url_citation\","
+                + "\"url_citation\":{\"url\":\"https://example.com\",\"title\":\"Example\",\"start_index\":0,\"end_index\":8}}]}"
+                + "]}";
+        final ChatCompletionRequest req = OpenAiProtocolAdapter.toChatCompletionRequest(body, false);
+        assertNotNull(req);
+
+        final String serialized = mapper.writeValueAsString(req);
+        final com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(serialized);
+        final com.fasterxml.jackson.databind.JsonNode assistantMsg = root.get("messages").get(1);
+        assertTrue(assistantMsg.has("annotations"));
+        final com.fasterxml.jackson.databind.JsonNode annotations = assistantMsg.get("annotations");
+        assertEquals(1, annotations.size());
+        assertEquals("url_citation", annotations.get(0).get("type").asText());
+        assertEquals("https://example.com", annotations.get(0).get("url_citation").get("url").asText());
     }
 }

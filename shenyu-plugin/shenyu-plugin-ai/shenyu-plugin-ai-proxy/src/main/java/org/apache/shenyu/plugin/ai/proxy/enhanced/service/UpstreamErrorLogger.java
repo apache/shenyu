@@ -55,7 +55,13 @@ public final class UpstreamErrorLogger {
         return body.substring(0, MAX_BODY_LOG_LENGTH) + "...(truncated, total " + body.length() + " chars)";
     }
 
-    private static WebClientResponseException findWebClientResponseException(final Throwable e) {
+    /**
+     * Find the {@link WebClientResponseException} in the exception chain.
+     *
+     * @param e the root exception
+     * @return the WebClientResponseException if found, null otherwise
+     */
+    public static WebClientResponseException findWebClientResponseException(final Throwable e) {
         Throwable current = e;
         while (Objects.nonNull(current)) {
             if (current instanceof WebClientResponseException ex) {

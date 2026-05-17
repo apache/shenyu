@@ -20,8 +20,10 @@ package org.apache.shenyu.plugin.ai.common.protocol;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 
 import java.util.Objects;
@@ -37,8 +39,23 @@ import java.util.Objects;
  */
 public final class OpenAiProtocolAdapter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OpenAiProtocolAdapter.class);
+
     private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
             new com.fasterxml.jackson.databind.ObjectMapper();
+
+    /**
+     * OpenAI API field name constants.
+     */
+    private static final String FIELD_MODEL = "model";
+
+    private static final String FIELD_TEMPERATURE = "temperature";
+
+    private static final String FIELD_STREAM = "stream";
+
+    private static final String FIELD_MAX_COMPLETION_TOKENS = "max_completion_tokens";
+
+    private static final String FIELD_MAX_TOKENS = "max_tokens";
 
     private OpenAiProtocolAdapter() {
     }
@@ -59,8 +76,8 @@ public final class OpenAiProtocolAdapter {
         if (Objects.isNull(root)) {
             return Boolean.TRUE.equals(fallbackStream);
         }
-        if (root.hasNonNull("stream")) {
-            return root.get("stream").asBoolean();
+        if (root.hasNonNull(FIELD_STREAM)) {
+            return root.get(FIELD_STREAM).asBoolean();
         }
         return Boolean.TRUE.equals(fallbackStream);
     }
@@ -73,11 +90,13 @@ public final class OpenAiProtocolAdapter {
      * when reconstructing ChatCompletionMessage from AssistantMessage.
      * This method avoids that loss by deserializing the raw JSON directly.
      *
-     * <p>Also converts max_completion_tokens to max_tokens for broader API compatibility.
+     * <p>For max_tokens and max_completion_tokens: client values are preserved as-is;
+ * only when the client omits both fields does the fallbackConfig value populate both,
+ * ensuring compatibility with providers that require either field.
      *
      * @param requestBody the raw JSON request body in OpenAI Chat Completions format
      * @param stream whether this is a streaming request (sets the stream field)
-     * @return a ChatCompletionRequest with all fields preserved from the original request
+     * @return a ChatCompletionRequest with modeled fields preserved from the original request
      */
     public static ChatCompletionRequest toChatCompletionRequest(final String requestBody, final boolean stream) {
         return toChatCompletionRequest(requestBody, stream, null);
@@ -85,54 +104,47 @@ public final class OpenAiProtocolAdapter {
 
     /**
      * Parse raw request body directly into ChatCompletionRequest, preserving modeled fields.
-     * For model, temperature, max_tokens: client request takes priority;
-     * if missing, falls back to the corresponding field in fallbackConfig.
+     * When fallbackConfig is provided, its non-null fields (model, temperature, maxTokens)
+     * override the client request values, matching the original ChatModel-based fallback behavior
+     * where the fallback ChatModel's config takes precedence.
      *
      * @param requestBody     the raw JSON request body in OpenAI Chat Completions format
      * @param stream          whether this is a streaming request
-     * @param fallbackConfig  the admin config used as fallback when client omits fields
-     * @return a ChatCompletionRequest with all fields preserved
+     * @param fallbackConfig  the fallback config whose non-null fields override client values
+     * @return a ChatCompletionRequest with modeled fields preserved
      */
     public static ChatCompletionRequest toChatCompletionRequest(final String requestBody,
             final boolean stream, final AiCommonConfig fallbackConfig) {
         if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
-            throw new IllegalArgumentException("Request body must not be empty");
+            throw new ShenyuException("Request body must not be empty");
         }
         final JsonNode root = parseStrict(requestBody);
         if (Objects.isNull(root) || !root.isObject()) {
-            throw new IllegalArgumentException("Invalid request body: expected a JSON object");
+            throw new ShenyuException("Invalid request body: expected a JSON object");
         }
         final ObjectNode mutableRoot = (ObjectNode) root;
 
-        if (root.hasNonNull("max_completion_tokens") && !root.hasNonNull("max_tokens")) {
-            final JsonNode tokenNode = root.get("max_completion_tokens");
-            if (!tokenNode.isNumber()) {
-                throw new IllegalArgumentException(
-                        "max_completion_tokens must be a number, got: " + tokenNode.getNodeType());
-            }
-            mutableRoot.put("max_tokens", tokenNode.asInt());
-            mutableRoot.remove("max_completion_tokens");
-        }
-
         if (Objects.nonNull(fallbackConfig)) {
-            if (!root.hasNonNull("model") && Objects.nonNull(fallbackConfig.getModel()) && !fallbackConfig.getModel().isEmpty()) {
-                mutableRoot.put("model", fallbackConfig.getModel());
+            if (Objects.nonNull(fallbackConfig.getModel()) && !fallbackConfig.getModel().isEmpty()) {
+                mutableRoot.put(FIELD_MODEL, fallbackConfig.getModel());
             }
-            if (!root.hasNonNull("temperature") && Objects.nonNull(fallbackConfig.getTemperature())) {
-                mutableRoot.put("temperature", fallbackConfig.getTemperature());
+            if (Objects.nonNull(fallbackConfig.getTemperature())) {
+                mutableRoot.put(FIELD_TEMPERATURE, fallbackConfig.getTemperature());
             }
-            if (!root.hasNonNull("max_tokens") && Objects.nonNull(fallbackConfig.getMaxTokens())) {
-                mutableRoot.put("max_tokens", fallbackConfig.getMaxTokens());
+            if (Objects.nonNull(fallbackConfig.getMaxTokens())) {
+                mutableRoot.put(FIELD_MAX_TOKENS, fallbackConfig.getMaxTokens());
+                mutableRoot.put(FIELD_MAX_COMPLETION_TOKENS, fallbackConfig.getMaxTokens());
             }
         }
 
-        mutableRoot.put("stream", stream);
+        mutableRoot.put(FIELD_STREAM, stream);
 
-        final ChatCompletionRequest result = JsonUtils.jsonToObject(mutableRoot.toString(), ChatCompletionRequest.class);
-        if (Objects.isNull(result)) {
-            throw new IllegalArgumentException("Failed to parse request body into ChatCompletionRequest");
+        try {
+            return MAPPER.treeToValue(mutableRoot, ChatCompletionRequest.class);
+        } catch (Exception e) {
+            LOG.error("[AiProxy] Failed to parse request body into ChatCompletionRequest", e);
+            throw new ShenyuException("Failed to parse request body into ChatCompletionRequest", e);
         }
-        return result;
     }
 
     private static JsonNode parseStrict(final String json) {

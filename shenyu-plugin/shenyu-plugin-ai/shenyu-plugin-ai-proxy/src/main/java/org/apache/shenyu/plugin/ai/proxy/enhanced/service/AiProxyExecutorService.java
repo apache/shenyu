@@ -69,8 +69,7 @@ public class AiProxyExecutorService {
                                     "Direct stream failed after 1 retry. Triggering fallback.",
                                     retrySignal.failure());
                         }))
-                .onErrorResume(NonTransientAiException.class,
-                        throwable -> handleDirectFallbackStream(throwable, fallbackCtxOpt, requestBody, stream));
+                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream));
     }
 
     /**
@@ -96,8 +95,7 @@ public class AiProxyExecutorService {
                             return new NonTransientAiException("Direct call retries exhausted. Triggering fallback.",
                                     retrySignal.failure());
                         }))
-                .onErrorResume(NonTransientAiException.class,
-                        throwable -> handleDirectFallbackCall(throwable, fallbackCtxOpt, requestBody));
+                .onErrorResume(e -> handleDirectFallbackCall(e, fallbackCtxOpt, requestBody));
     }
 
     private Flux<ChatCompletionChunk> handleDirectFallbackStream(final Throwable throwable,
@@ -140,23 +138,12 @@ public class AiProxyExecutorService {
         if (throwable instanceof NonTransientAiException) {
             return false;
         }
-        final WebClientResponseException webClientEx = findWebClientResponseException(throwable);
+        final WebClientResponseException webClientEx = UpstreamErrorLogger.findWebClientResponseException(throwable);
         if (Objects.nonNull(webClientEx)) {
             final int status = webClientEx.getStatusCode().value();
             return status == 429 || status >= 500;
         }
         return true;
-    }
-
-    private static WebClientResponseException findWebClientResponseException(final Throwable e) {
-        Throwable current = e;
-        while (Objects.nonNull(current)) {
-            if (current instanceof WebClientResponseException ex) {
-                return ex;
-            }
-            current = current.getCause();
-        }
-        return null;
     }
 
     /**

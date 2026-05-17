@@ -255,7 +255,7 @@ public class AiProxyPluginTest {
     }
 
     @Test
-    public void testCacheIsUsedForAdminFallbackClient() {
+    public void testAdminFallbackExecution() {
         final AiProxyHandle handle = new AiProxyHandle();
         final AiCommonConfig primaryConfig = new AiCommonConfig();
         primaryConfig.setProvider(AiModelProviderEnum.OPEN_AI.getName());
@@ -277,7 +277,7 @@ public class AiProxyPluginTest {
         when(configService.resolveAdminFallbackConfig(primaryConfig, handle)).thenReturn(Optional.of(fallbackConfig));
         when(executorService.executeDirectCall(any(OpenAiApi.class), any(Optional.class), any(ChatCompletionRequest.class), any(String.class))).thenReturn(Mono.just(responseEntity));
 
-        // Execute the test - focus on successful execution rather than cache verification
+        // Execute the test - verify admin fallback path is exercised
         StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
                 .verifyComplete();
 

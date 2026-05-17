@@ -70,4 +70,19 @@ class UpstreamErrorLoggerTest {
         Logger log = mock(Logger.class);
         assertDoesNotThrow(() -> UpstreamErrorLogger.logUpstreamError(log, null, "stream"));
     }
+
+    @Test
+    void testLogWithLongBodyIsTruncated() {
+        Logger log = mock(Logger.class);
+        final String longBody = "x".repeat(1024);
+        WebClientResponseException ex = WebClientResponseException.create(
+                500, "Internal Server Error", null, longBody.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+
+        UpstreamErrorLogger.logUpstreamError(log, ex, "stream");
+
+        final String expectedTruncated = longBody.substring(0, 512)
+                + "...(truncated, total " + longBody.length() + " chars)";
+        verify(log).error("[AiProxy] {} failed, status={}, upstreamBody={}",
+                "stream", HttpStatus.INTERNAL_SERVER_ERROR, expectedTruncated, ex);
+    }
 }

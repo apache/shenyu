@@ -236,6 +236,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     private int generateConfigCacheKey(final AiCommonConfig config) {
         return Objects.hash(
                 config.getBaseUrl(),
+                config.getApiKey(),
                 config.getModel(),
                 config.getTemperature(),
                 config.getMaxTokens()

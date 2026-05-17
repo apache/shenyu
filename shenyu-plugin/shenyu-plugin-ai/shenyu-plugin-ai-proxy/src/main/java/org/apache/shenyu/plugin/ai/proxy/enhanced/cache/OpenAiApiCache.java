@@ -85,7 +85,7 @@ public final class OpenAiApiCache {
                 try {
                     synchronized (openAiApiMap) {
                         if (openAiApiMap.size() > MAX_CACHE_SIZE) {
-                            evictOldestEntries();
+                            evictEntries();
                         }
                     }
                 } finally {
@@ -102,7 +102,7 @@ public final class OpenAiApiCache {
      * not guaranteed to be the oldest. Removes approximately 25% of entries to avoid
      * thundering herd problem.
      */
-    private void evictOldestEntries() {
+    private void evictEntries() {
         final int currentSize = openAiApiMap.size();
         if (currentSize <= MAX_CACHE_SIZE) {
             return;
@@ -145,5 +145,14 @@ public final class OpenAiApiCache {
     public void clearAll() {
         openAiApiMap.clear();
         LOG.info("[OpenAiApiCache] cleared all cached OpenAiApi instances");
+    }
+
+    /**
+     * Gets the current cache size (for testing / monitoring).
+     *
+     * @return the number of cached entries
+     */
+    public int size() {
+        return openAiApiMap.size();
     }
 }
