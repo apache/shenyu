@@ -899,7 +899,7 @@ public class OpenApiUtils {
                                                    final Class<?> clazz, final int depth,
                                                    final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
         if (isRepeated) {
-            return parseRepeatedProtobufFieldSchema(fieldName, fieldType, getMessageTypeMethod, field);
+            return parseRepeatedProtobufFieldSchema(fieldName, fieldType, getMessageTypeMethod, field, clazz, depth, typeVariableMap);
         }
         String fieldTypeName = fieldType.toString();
         Schema schema;
@@ -916,17 +916,19 @@ public class OpenApiUtils {
 
     private static Schema parseRepeatedProtobufFieldSchema(final String fieldName, final Object fieldType,
                                                            final java.lang.reflect.Method getMessageTypeMethod,
-                                                           final Object field) throws Exception {
+                                                           final Object field,
+                                                           final Class<?> clazz, final int depth,
+                                                           final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
         String fieldTypeName = fieldType.toString();
         Schema elementSchema;
         if ("MESSAGE".equals(fieldTypeName)) {
-            Object msgDescriptor = getMessageTypeMethod.invoke(field);
-            java.lang.reflect.Method getFullNameMethod = msgDescriptor.getClass().getMethod("getFullName");
-            String fullMsgName = (String) getFullNameMethod.invoke(msgDescriptor);
-            elementSchema = new Schema("object", null);
+            elementSchema = resolveProtobufMessageFieldSchema(getMessageTypeMethod, field, clazz, depth, typeVariableMap);
+        } else if ("ENUM".equals(fieldTypeName)) {
+            elementSchema = new Schema("string", null);
         } else {
             elementSchema = new Schema(mapProtobufTypeToOpenApi(fieldTypeName), null);
         }
+        elementSchema.setName("items");
         Schema schema = new Schema("array", null);
         schema.setName(fieldName);
         schema.setRefs(Collections.singletonList(elementSchema));
