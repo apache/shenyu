@@ -61,9 +61,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final String URI_CONDITION_TYPE = "uri";
 
-    private volatile ShenyuConfig.SelectorMatchCache selectorMatchConfig;
+    private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
 
-    private volatile ShenyuConfig.RuleMatchCache ruleMatchConfig;
+    private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
     /**
      * this is Template Method child has implements your own logic.
@@ -152,15 +152,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private void initCacheConfig() {
-        if (Objects.nonNull(selectorMatchConfig) && Objects.nonNull(ruleMatchConfig)) {
-            return;
-        }
-        synchronized (this) {
-            if (Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
-                ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
-                selectorMatchConfig = shenyuConfig.getSelectorMatchCache();
-                ruleMatchConfig = shenyuConfig.getRuleMatchCache();
-            }
+        if (Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
+            ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
+            selectorMatchConfig = shenyuConfig.getSelectorMatchCache();
+            ruleMatchConfig = shenyuConfig.getRuleMatchCache();
         }
     }
     
