@@ -1,3 +1,4 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.k8s.IngressControllerConfiguration
+org.apache.shenyu.springboot.starter.k8s.IngressControllerConfiguration,\
+org.apache.shenyu.springboot.starter.k8s.GatewayApiControllerConfiguration
