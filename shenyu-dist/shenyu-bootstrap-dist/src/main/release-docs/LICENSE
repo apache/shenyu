@@ -367,10 +367,6 @@ The text of each license is the standard Apache 2.0 license.
     lz4-java 1.8.0: https://github.com/jpountz/lz4-java, Apache 2.0
     metrics-core 3.0.1: https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core, Apache 2.0
     micrometer-core 1.13.1: https://github.com/micrometer-metrics/micrometer, Apache 2.0
-    motan-core 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-springsupport 1.2.1: https://github.com/weibocom/motan, Apache 2.0
     micrometer-observation 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-observation, Apache 2.0
     micrometer-jakarta9 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-jakarta9, Apache 2.0
     micrometer-commons 1.13.1: https://mvnrepository.com/artifact/io.micrometer/micrometer-commons, Apache 2.0

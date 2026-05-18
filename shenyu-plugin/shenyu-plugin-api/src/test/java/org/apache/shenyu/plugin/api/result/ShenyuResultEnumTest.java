@@ -15,50 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.plugin.api.result;
 
-/**
- * RegisterTypeEnum.
- */
-public enum RegisterTypeEnum {
+import java.util.Arrays;
 
-    /**
-     * Http rpc type enum.
-     */
-    HTTP("http"),
+import org.junit.jupiter.api.Test;
 
-    /**
-     * Dubbo rpc type enum.
-     */
-    DUBBO("dubbo"),
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-    /**
-     * Sofa rpc type enum.
-     */
-    SOFA("sofa"),
+class ShenyuResultEnumTest {
 
-    /**
-     * Tars rpc type enum.
-     */
-    TARS("tars"),
-
-    /**
-     * grpc.
-     */
-    GRPC("grpc");
-    
-    private final String name;
-
-    RegisterTypeEnum(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * getName.
-     *
-     * @return String
-     */
-    public String getName() {
-        return name;
+    @Test
+    void shouldNotContainRemovedRpcResultCode() {
+        assertFalse(Arrays.stream(ShenyuResultEnum.values())
+                .map(Enum::name)
+                .anyMatch("MOTAN_HAVE_BODY_PARAM"::equals));
     }
 }

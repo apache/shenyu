@@ -59,11 +59,6 @@ public enum RpcTypeEnum {
     SPRING_CLOUD("springCloud", true),
 
     /**
-     * motan.
-     */
-    MOTAN("motan", true),
-
-    /**
      * grpc.
      */
     GRPC("grpc", true),
@@ -136,7 +131,7 @@ public enum RpcTypeEnum {
      * @return operator support.
      */
     public static List<RpcTypeEnum> acquireSupportMetadatas() {
-        return Arrays.asList(RpcTypeEnum.HTTP, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS, RpcTypeEnum.MOTAN);
+        return Arrays.asList(RpcTypeEnum.HTTP, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
     }
 
     /**

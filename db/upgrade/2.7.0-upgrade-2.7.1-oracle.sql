@@ -702,3 +702,36 @@ ALTER TABLE discovery_upstream RENAME COLUMN "url" TO "upstream_url";
 ALTER TABLE discovery_upstream RENAME COLUMN "status" TO "upstream_status";
 
 ALTER TABLE discovery RENAME COLUMN "level" TO discovery_level;
+
+/* remove motan plugin */
+DELETE FROM api_rule_relation WHERE rule_id IN (
+    SELECT id FROM (
+        SELECT r.id
+        FROM rule r
+        INNER JOIN selector s ON r.selector_id = s.id
+        WHERE s.plugin_id = '17'
+    )
+);
+DELETE FROM rule_condition WHERE rule_id IN (
+    SELECT id FROM (
+        SELECT r.id
+        FROM rule r
+        INNER JOIN selector s ON r.selector_id = s.id
+        WHERE s.plugin_id = '17'
+    )
+);
+DELETE FROM rule WHERE selector_id IN (
+    SELECT id FROM (SELECT id FROM selector WHERE plugin_id = '17')
+);
+DELETE FROM selector_condition WHERE selector_id IN (
+    SELECT id FROM (SELECT id FROM selector WHERE plugin_id = '17')
+);
+DELETE FROM selector WHERE plugin_id = '17';
+DELETE FROM meta_data WHERE rpc_type = 'motan';
+DELETE FROM api WHERE rpc_type = 'motan';
+DELETE FROM permission WHERE resource_id IN ('1529403932781187079', '1529403932877656136', '1529403932877656137', '1529403932877656138', '1529403932877656139', '1529403932877656140', '1529403932877656141', '1529403932877656142', '1529403932877656143', '1529403932877656144');
+DELETE FROM resource WHERE id IN ('1529403932781187079', '1529403932877656136', '1529403932877656137', '1529403932877656138', '1529403932877656139', '1529403932877656140', '1529403932877656141', '1529403932877656142', '1529403932877656143', '1529403932877656144');
+DELETE FROM namespace_plugin_rel WHERE plugin_id = '17';
+DELETE FROM plugin_handle WHERE plugin_id = '17';
+DELETE FROM plugin WHERE id = '17';
+COMMENT ON COLUMN api.rpc_type IS 'http,dubbo,sofa,tars,websocket,springCloud,grpc';
