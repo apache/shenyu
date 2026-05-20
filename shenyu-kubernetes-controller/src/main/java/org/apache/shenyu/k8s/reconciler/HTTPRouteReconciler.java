@@ -236,8 +236,11 @@ public class HTTPRouteReconciler implements Reconciler {
     }
 
     /**
-     * Check if the HTTPRoute already has Accepted=True condition from the ShenYu controller
-     * in its status.parents, to avoid unnecessary status patches that trigger infinite reconcile loops.
+     * Check if the HTTPRoute already has both Accepted=True and ResolvedRefs=True conditions
+     * from the ShenYu controller in its status.parents, to avoid unnecessary status patches
+     * that trigger infinite reconcile loops.
+     * Both conditions must be present because updateHTTPRouteStatus() always sets both together;
+     * checking only Accepted=True would leave routes with a partial status never repaired.
      */
     private boolean isRouteStatusAlreadySet(final DynamicKubernetesObject httpRoute) {
         JsonObject raw = httpRoute.getRaw();
@@ -258,12 +261,22 @@ public class HTTPRouteReconciler implements Reconciler {
                 continue;
             }
             JsonArray conditions = parent.getAsJsonArray("conditions");
+            boolean hasAccepted = false;
+            boolean hasResolvedRefs = false;
             for (JsonElement condElement : conditions) {
                 JsonObject cond = condElement.getAsJsonObject();
-                if ("Accepted".equals(cond.has("type") ? cond.get("type").getAsString() : null)
-                        && "True".equals(cond.has("status") ? cond.get("status").getAsString() : null)) {
-                    return true;
+                String type = cond.has("type") ? cond.get("type").getAsString() : null;
+                String condStatus = cond.has("status") ? cond.get("status").getAsString() : null;
+                if ("True".equals(condStatus)) {
+                    if ("Accepted".equals(type)) {
+                        hasAccepted = true;
+                    } else if ("ResolvedRefs".equals(type)) {
+                        hasResolvedRefs = true;
+                    }
                 }
+            }
+            if (hasAccepted && hasResolvedRefs) {
+                return true;
             }
         }
         return false;

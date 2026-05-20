@@ -133,7 +133,7 @@ public class HttpRouteParser {
                         conditions.addAll(matchConditions);
 
                         String selectorId = cache.generateSelectorId();
-                        String selectorName = routeName + "-rule-" + ruleIndex;
+                        String selectorName = routeName + "-rule-" + ruleIndex + "-" + hostCondition.getParamValue();
                         SelectorData selectorData = buildSelectorData(selectorId, selectorName, conditions, upstreamList);
                         RuleData ruleData = buildRuleData(cache.generateRuleId(), selectorId, selectorName, conditions);
                         cache.addRouteSelector(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorId);
@@ -152,7 +152,7 @@ public class HttpRouteParser {
             } else {
                 for (ConditionData hostCondition : hostnameConditions) {
                     String selectorId = cache.generateSelectorId();
-                    String selectorName = routeName + "-rule-" + ruleIndex;
+                    String selectorName = routeName + "-rule-" + ruleIndex + "-" + hostCondition.getParamValue();
                     List<ConditionData> conditions = new ArrayList<>();
                     conditions.add(hostCondition);
                     SelectorData selectorData = buildSelectorData(selectorId, selectorName, conditions, upstreamList);

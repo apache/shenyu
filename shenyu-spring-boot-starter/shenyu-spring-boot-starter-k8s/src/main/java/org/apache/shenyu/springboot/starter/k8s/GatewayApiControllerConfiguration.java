@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -118,30 +119,48 @@ public class GatewayApiControllerConfiguration {
         return factory;
     }
 
+    /**
+     * Shared ExecutorService for all ControllerManager beans, with a destroy method to
+     * ensure graceful shutdown and prevent thread leaks on context close.
+     *
+     * @return daemon cached thread pool executor
+     */
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService controllerExecutorService() {
+        return Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r, "shenyu-k8s-controller");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
     @Bean("gatewayclass-controller-manager")
     public ControllerManager gatewayClassControllerManager(
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
-            @Qualifier("gatewayclass-controller") final Controller gatewayClassController) {
+            @Qualifier("gatewayclass-controller") final Controller gatewayClassController,
+            final ExecutorService controllerExecutorService) {
         ControllerManager controllerManager = new ControllerManager(gatewayClassFactory, gatewayClassController);
-        Executors.newSingleThreadExecutor().submit(controllerManager);
+        controllerExecutorService.submit(controllerManager);
         return controllerManager;
     }
 
     @Bean("gateway-controller-manager")
     public ControllerManager gatewayControllerManager(
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
-            @Qualifier("gateway-controller") final Controller gatewayController) {
+            @Qualifier("gateway-controller") final Controller gatewayController,
+            final ExecutorService controllerExecutorService) {
         ControllerManager controllerManager = new ControllerManager(gatewayFactory, gatewayController);
-        Executors.newSingleThreadExecutor().submit(controllerManager);
+        controllerExecutorService.submit(controllerManager);
         return controllerManager;
     }
 
     @Bean("httproute-controller-manager")
     public ControllerManager httpRouteControllerManager(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
-            @Qualifier("httproute-controller") final Controller httpRouteController) {
+            @Qualifier("httproute-controller") final Controller httpRouteController,
+            final ExecutorService controllerExecutorService) {
         ControllerManager controllerManager = new ControllerManager(httpRouteFactory, httpRouteController);
-        Executors.newSingleThreadExecutor().submit(controllerManager);
+        controllerExecutorService.submit(controllerManager);
         return controllerManager;
     }
 

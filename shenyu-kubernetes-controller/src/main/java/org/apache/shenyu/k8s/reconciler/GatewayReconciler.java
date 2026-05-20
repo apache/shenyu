@@ -104,9 +104,44 @@ public class GatewayReconciler implements Reconciler {
      * this Gateway and add them to the HTTPRoute controller's work queue for re-reconciliation.
      * This handles the case where an HTTPRoute was created before the Gateway existed.
      * Also handles cross-namespace references where HTTPRoute's parentRef specifies a different namespace.
+     *
+     * <p>Uses GatewayRouteCache as primary lookup for already-bound routes to avoid full-cluster scans
+     * in large deployments. Falls back to informer scanning only for routes not yet tracked in cache
+     * (e.g., when a Gateway is first created and no HTTPRoute has been successfully reconciled yet).
      */
     private void requeueAffectedHTTPRoutes(final String gatewayNamespace, final String gatewayName) {
-        // Search in the gateway's namespace (same-namespace reference)
+        GatewayRouteCache cache = GatewayRouteCache.getInstance();
+        List<String> cachedRoutes = cache.getRoutesByGateway(gatewayNamespace, gatewayName);
+
+        if (CollectionUtils.isNotEmpty(cachedRoutes)) {
+            // Fast path: routes already bound in cache, re-queue by parsed keys
+            for (String routeKey : cachedRoutes) {
+                String[] parts = routeKey.split("/", 2);
+                if (parts.length >= 2) {
+                    Request req = new Request(parts[0], parts[1]);
+                    httpRouteWorkQueue.add(req);
+                    LOG.info("Re-queued cached HTTPRoute {}/{} due to Gateway {}/{} reconciliation",
+                            parts[0], parts[1], gatewayNamespace, gatewayName);
+                }
+            }
+            // Also scan for cross-namespace routes that may not be in cache yet
+            for (DynamicKubernetesObject route : httpRouteLister.list()) {
+                String routeNamespace = Objects.requireNonNull(route.getMetadata()).getNamespace();
+                if (routeNamespace.equals(gatewayNamespace)) {
+                    continue;
+                }
+                if (isBoundToGateway(route, gatewayNamespace, gatewayName)) {
+                    Request req = new Request(route.getMetadata().getNamespace(), route.getMetadata().getName());
+                    httpRouteWorkQueue.add(req);
+                    LOG.info("Re-queued cross-namespace HTTPRoute {}/{} due to Gateway {}/{} reconciliation",
+                            route.getMetadata().getNamespace(), route.getMetadata().getName(),
+                            gatewayNamespace, gatewayName);
+                }
+            }
+            return;
+        }
+
+        // Cache miss: Gateway just created, no routes reconciled yet. Fall back to scanning.
         List<DynamicKubernetesObject> localRoutes = httpRouteLister.namespace(gatewayNamespace).list();
         for (DynamicKubernetesObject route : localRoutes) {
             if (isBoundToGateway(route, gatewayNamespace, gatewayName)) {
@@ -117,7 +152,6 @@ public class GatewayReconciler implements Reconciler {
                         gatewayNamespace, gatewayName);
             }
         }
-        // Also search all namespaces for cross-namespace references
         for (DynamicKubernetesObject route : httpRouteLister.list()) {
             String routeNamespace = Objects.requireNonNull(route.getMetadata()).getNamespace();
             if (routeNamespace.equals(gatewayNamespace)) {
@@ -230,8 +264,7 @@ public class GatewayReconciler implements Reconciler {
             condition.addProperty("message", "Gateway has been accepted by the ShenYu controller");
             condition.addProperty("lastTransitionTime", Instant.now().toString());
 
-            JsonArray conditions = new JsonArray();
-            conditions.add(condition);
+            JsonArray conditions = buildGatewayStatusConditions(gateway, condition);
 
             JsonObject statusObj = new JsonObject();
             statusObj.add("conditions", conditions);
@@ -266,6 +299,47 @@ public class GatewayReconciler implements Reconciler {
         } catch (Exception e) {
             LOG.warn("Failed to update Gateway status, will retry on next resync", e);
         }
+    }
+
+    /**
+     * Build the Gateway status conditions array for the patch body.
+     * Includes the accepted condition and preserves non-Accepted conditions
+     * already present in status. Ensures Programmed exists per Gateway API
+     * spec default (Unknown/Pending) if missing.
+     */
+    private JsonArray buildGatewayStatusConditions(final DynamicKubernetesObject gateway,
+                                                   final JsonObject acceptedCondition) {
+        JsonArray conditions = new JsonArray();
+        conditions.add(acceptedCondition);
+
+        boolean hasProgrammed = false;
+        JsonObject raw = gateway.getRaw();
+        if (raw.has("status") && !raw.get("status").isJsonNull()) {
+            JsonObject status = raw.getAsJsonObject("status");
+            if (status.has("conditions") && !status.get("conditions").isJsonNull()) {
+                JsonArray existingConditions = status.getAsJsonArray("conditions");
+                for (JsonElement el : existingConditions) {
+                    JsonObject existing = el.getAsJsonObject();
+                    String existingType = existing.has("type") ? existing.get("type").getAsString() : null;
+                    if ("Programmed".equals(existingType)) {
+                        hasProgrammed = true;
+                        conditions.add(existing);
+                    } else if (!"Accepted".equals(existingType)) {
+                        conditions.add(existing);
+                    }
+                }
+            }
+        }
+        if (!hasProgrammed) {
+            JsonObject programmedDefault = new JsonObject();
+            programmedDefault.addProperty("type", "Programmed");
+            programmedDefault.addProperty("status", "Unknown");
+            programmedDefault.addProperty("reason", "Pending");
+            programmedDefault.addProperty("message", "Waiting for controller");
+            programmedDefault.addProperty("lastTransitionTime", "1970-01-01T00:00:00Z");
+            conditions.add(programmedDefault);
+        }
+        return conditions;
     }
 
 }
