@@ -21,8 +21,11 @@ import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.client.core.utils.PortUtils;
+import org.javatuples.Sextet;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -44,10 +47,15 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -192,6 +200,57 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.close();
     }
 
+    @Test
+    public void testBuildApiDocSextetDefaultProducesConsumes() throws NoSuchMethodException {
+        SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+        Method method = ApiDocTestBean.class.getDeclaredMethod("getDefault");
+        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+        Assertions.assertArrayEquals(new String[]{"/get-default"}, result.getValue0());
+        Assertions.assertEquals("*/*", result.getValue1());
+        Assertions.assertEquals("*/*", result.getValue2());
+        Assertions.assertArrayEquals(new ApiHttpMethodEnum[]{ApiHttpMethodEnum.GET}, result.getValue3());
+        Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+        Assertions.assertEquals("v0.01", result.getValue5());
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testBuildApiDocSextetExplicitProducesConsumesAndMethod() throws NoSuchMethodException {
+        SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+        Method method = ApiDocTestBean.class.getDeclaredMethod("postExplicit", String.class);
+        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+        Assertions.assertArrayEquals(new String[]{"/post-explicit"}, result.getValue0());
+        Assertions.assertEquals("application/json", result.getValue1());
+        Assertions.assertEquals("application/json", result.getValue2());
+        Assertions.assertArrayEquals(new ApiHttpMethodEnum[]{ApiHttpMethodEnum.POST}, result.getValue3());
+        Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+        Assertions.assertEquals("v0.01", result.getValue5());
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testBuildApiDocSextetMultipleMethodsProducesConsumes() throws NoSuchMethodException {
+        SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+        Method method = ApiDocTestBean.class.getDeclaredMethod("multi", String.class);
+        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+        Assertions.assertArrayEquals(new String[]{"/multi"}, result.getValue0());
+        Assertions.assertEquals("application/json,application/xml", result.getValue1());
+        Assertions.assertEquals("application/json,application/xml", result.getValue2());
+        List<ApiHttpMethodEnum> methods = Arrays.asList(result.getValue3());
+        Assertions.assertTrue(methods.contains(ApiHttpMethodEnum.GET));
+        Assertions.assertTrue(methods.contains(ApiHttpMethodEnum.POST));
+        Assertions.assertEquals(2, methods.size());
+        Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+        Assertions.assertEquals("v0.01", result.getValue5());
+        registerUtilsMockedStatic.close();
+    }
+
     @RestController
     @RequestMapping("/order")
     @ShenyuSpringMvcClient(path = "/order")
@@ -235,6 +294,31 @@ public class SpringMvcClientEventListenerTest {
     static class SpringMvcClientTestBean4 {
         public String test(final String hello) {
             return hello;
+        }
+    }
+
+    @RestController
+    static class ApiDocTestBean {
+
+        @GetMapping(value = "/get-default")
+        public String getDefault() {
+            return "ok";
+        }
+
+        @RequestMapping(value = "/post-explicit",
+                method = RequestMethod.POST,
+                produces = "application/json",
+                consumes = "application/json")
+        public String postExplicit(@RequestBody final String input) {
+            return input;
+        }
+
+        @RequestMapping(value = "/multi",
+                method = {RequestMethod.GET, RequestMethod.POST},
+                produces = {"application/json", "application/xml"},
+                consumes = {"application/json", "application/xml"})
+        public String multi(@RequestBody final String input) {
+            return input;
         }
     }
 
