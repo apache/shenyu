@@ -46,8 +46,6 @@ public class PluginNameAdapter {
                 return PluginEnum.SOFA.getName();
             case WEB_SOCKET:
                 return PluginEnum.WEB_SOCKET.getName();
-            case MOTAN:
-                return PluginEnum.MOTAN.getName();
             case MCP:
                 return PluginEnum.MCP_SERVER.getName();
             case HTTP:
