@@ -44,6 +44,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -168,19 +169,53 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     }
     
     @Override
+    protected void handle(final String beanName, final Object bean) {
+        Class<?> clazz = getCorrectedClass(bean);
+        final ShenyuSpringMvcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
+        final List<String> superPaths = buildApiSuperPaths(clazz, beanShenyuClient);
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        for (String superPath : superPaths) {
+            if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
+                handleClass(clazz, bean, beanShenyuClient, superPath);
+                continue;
+            }
+            for (Method method : methods) {
+                handleMethod(bean, clazz, beanShenyuClient, method, superPath);
+            }
+        }
+    }
+
+    @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
-        final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
-        final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
-        final String rootPath = String.format("/%s/%s/", servletContextPath, servletPath);
-        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path()[0])) {
-            return formatPath(String.format("%s/%s", rootPath, beanShenyuClient.path()[0]));
+        List<String> paths = buildApiSuperPaths(clazz, beanShenyuClient);
+        return paths.isEmpty() ? formatPath(buildRootPath()) : paths.get(0);
+    }
+
+    protected List<String> buildApiSuperPaths(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
+        final String rootPath = buildRootPath();
+        if (Objects.nonNull(beanShenyuClient) && ArrayUtils.isNotEmpty(beanShenyuClient.path())) {
+            return Arrays.stream(beanShenyuClient.path())
+                    .filter(StringUtils::isNotBlank)
+                    .map(p -> formatPath(String.format("%s/%s", rootPath, p)))
+                    .collect(Collectors.toList());
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
-        // Only the first path is supported temporarily
-        if (Objects.nonNull(requestMapping) && ArrayUtils.isNotEmpty(requestMapping.path()) && StringUtils.isNotBlank(requestMapping.path()[0])) {
-            return formatPath(String.format("%s/%s", rootPath, requestMapping.path()[0]));
+        if (Objects.nonNull(requestMapping) && ArrayUtils.isNotEmpty(requestMapping.path())) {
+            List<String> paths = Arrays.stream(requestMapping.path())
+                    .filter(StringUtils::isNotBlank)
+                    .map(p -> formatPath(String.format("%s/%s", rootPath, p)))
+                    .collect(Collectors.toList());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
         }
-        return formatPath(rootPath);
+        return Collections.singletonList(formatPath(rootPath));
+    }
+
+    private String buildRootPath() {
+        final String servletPath = Optional.ofNullable(this.env.getProperty("spring.mvc.servlet.path")).orElse("");
+        final String servletContextPath = Optional.ofNullable(this.env.getProperty("server.servlet.context-path")).orElse("");
+        return String.format("/%s/%s/", servletContextPath, servletPath);
     }
 
     @Override
