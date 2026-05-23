@@ -24,23 +24,49 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
-public class SpringMvcMappingPathControllerTest extends AbstractTest {
+class SpringMvcMappingPathControllerTest extends AbstractTest {
+
+    private static final String MULTI_PATH_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
 
     @Test
-    public void testHello() throws IOException {
+    void testHello() throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/hello", java.lang.String.class);
         assertEquals("hello! I'm Shenyu-Gateway System. Welcome!", res);
     }
 
     @Test
-    public void testHi()throws IOException {
+    void testHi() throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/hi?name=tom", java.lang.String.class);
         assertEquals("hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
     }
 
     @Test
-    public void testPost()throws IOException {
+    void testPost() throws IOException {
         String res = HttpHelper.INSTANCE.postGateway("/http/post/hi?name=tom", java.lang.String.class);
         assertEquals("[post method result]:hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
+    }
+
+    @Test
+    void testMultiPathV1Greet() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v1/greet", java.lang.String.class);
+        assertEquals("hello from multipath! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV2Greet() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v2/greet", java.lang.String.class);
+        assertEquals("hello from multipath! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV1Echo() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v1/echo?name=shenyu", java.lang.String.class);
+        assertEquals("echo: shenyu! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV2Echo() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v2/echo?name=shenyu", java.lang.String.class);
+        assertEquals("echo: shenyu! " + MULTI_PATH_SUFFIX, res);
     }
 }
