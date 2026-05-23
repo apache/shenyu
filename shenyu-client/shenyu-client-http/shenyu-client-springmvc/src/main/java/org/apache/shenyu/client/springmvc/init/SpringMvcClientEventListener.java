@@ -194,10 +194,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected List<String> buildApiSuperPaths(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String rootPath = buildRootPath();
         if (Objects.nonNull(beanShenyuClient) && ArrayUtils.isNotEmpty(beanShenyuClient.path())) {
-            return Arrays.stream(beanShenyuClient.path())
+            List<String> paths = Arrays.stream(beanShenyuClient.path())
                     .filter(StringUtils::isNotBlank)
                     .map(p -> formatPath(String.format("%s/%s", rootPath, p)))
                     .collect(Collectors.toList());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
         }
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
         if (Objects.nonNull(requestMapping) && ArrayUtils.isNotEmpty(requestMapping.path())) {
@@ -247,8 +250,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
         String contextPath = getContextPath();
-        if (StringUtils.isNotBlank(methodShenyuClient.path()[0])) {
-            return pathJoin(contextPath, superPath, methodShenyuClient.path()[0]);
+        // Skip if any annotation path is already captured in superPath (class annotation used as method fallback)
+        final String annotationPath = methodShenyuClient.path()[0];
+        boolean alreadyInSuperPath = Arrays.stream(methodShenyuClient.path())
+                .filter(StringUtils::isNotBlank)
+                .anyMatch(p -> superPath.endsWith(formatPath(p)));
+        if (StringUtils.isNotBlank(annotationPath) && !alreadyInSuperPath) {
+            return pathJoin(contextPath, superPath, annotationPath);
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
