@@ -117,6 +117,10 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     protected abstract Mono<R> doRequest(ServerWebExchange exchange, String httpMethod,
                                          URI uri, Flux<DataBuffer> body);
 
+    protected boolean isRequestBodyRequired(final String httpMethod) {
+        return !"GET".equals(httpMethod) && !"HEAD".equals(httpMethod);
+    }
+
     protected void duplicateHeaders(final ServerWebExchange exchange, final HttpHeaders headers, final UniqueHeaderEnum uniqueHeaderEnum) {
         final String duplicateHeader = exchange.getAttribute(uniqueHeaderEnum.getName());
         if (StringUtils.isEmpty(duplicateHeader)) {
