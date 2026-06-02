@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
     
-    private static final List<URIRegisterDTO> URIS = Lists.newArrayList();
+    private static final List<URIRegisterDTO> URIS = new CopyOnWriteArrayList<>();
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
