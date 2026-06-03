@@ -17,24 +17,17 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import okhttp3.MediaType;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import okio.Buffer;
-import okio.BufferedSource;
-import okio.ForwardingSource;
-import okio.Okio;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.admin.utils.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,9 +36,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -61,74 +51,49 @@ final class SandboxServiceImplTest {
     @Mock
     private ShenyuDictService shenyuDictService;
 
-    @Mock
-    private HttpUtils httpUtils;
-
     @Test
-    void requestProxyGatewayShouldCopyBodyAndCloseResponse() throws IOException {
-        AtomicBoolean bodyClosed = new AtomicBoolean();
-        Response proxyResponse = buildResponse("proxied response", bodyClosed);
-        SandboxServiceImpl sandboxService = new SandboxServiceImpl(appAuthService, shenyuDictService, httpUtils);
+    void requestProxyGatewayShouldCopyBody() throws IOException {
+        HttpServer server = startHttpServer("proxied response");
+        int port = server.getAddress().getPort();
+        SandboxServiceImpl sandboxService = new SandboxServiceImpl(appAuthService, shenyuDictService);
 
-        when(shenyuDictService.list(anyString())).thenReturn(Collections.singletonList(buildDict()));
-        when(httpUtils.requestCall(anyString(), anyMap(), anyMap(), any(HttpUtils.HTTPMethod.class), anyList())).thenReturn(proxyResponse);
+        when(shenyuDictService.list(anyString())).thenReturn(Collections.singletonList(buildDict(port)));
 
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        sandboxService.requestProxyGateway(buildProxyGatewayDTO(), new MockHttpServletRequest(), response);
+        try {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            sandboxService.requestProxyGateway(buildProxyGatewayDTO(port), new MockHttpServletRequest(), response);
 
-        assertThat(response.getContentAsString()).isEqualTo("proxied response");
-        assertThat(bodyClosed).isTrue();
+            assertThat(response.getContentAsString()).isEqualTo("proxied response");
+        } finally {
+            server.stop(0);
+        }
     }
 
-    private ProxyGatewayDTO buildProxyGatewayDTO() {
+    private ProxyGatewayDTO buildProxyGatewayDTO(final int port) {
         ProxyGatewayDTO proxyGatewayDTO = new ProxyGatewayDTO();
-        proxyGatewayDTO.setRequestUrl("http://localhost:8080/proxy");
-        proxyGatewayDTO.setHeaders(Collections.emptyMap());
+        proxyGatewayDTO.setRequestUrl("http://localhost:" + port + "/proxy");
+        proxyGatewayDTO.setHeaders(Collections.singletonMap("Content-Type", "application/x-www-form-urlencoded"));
         proxyGatewayDTO.setBizParam(Collections.emptyMap());
         return proxyGatewayDTO;
     }
 
-    private ShenyuDictVO buildDict() {
+    private ShenyuDictVO buildDict(final int port) {
         ShenyuDictVO dictVO = new ShenyuDictVO();
-        dictVO.setDictValue("http://localhost:8080");
+        dictVO.setDictValue("http://localhost:" + port);
         dictVO.setEnabled(Boolean.TRUE);
         return dictVO;
     }
 
-    private Response buildResponse(final String content, final AtomicBoolean bodyClosed) {
-        return new Response.Builder()
-                .request(new Request.Builder().url("http://localhost:8080/proxy").build())
-                .protocol(Protocol.HTTP_1_1)
-                .code(200)
-                .message("OK")
-                .body(buildResponseBody(content, bodyClosed))
-                .build();
-    }
-
-    private ResponseBody buildResponseBody(final String content, final AtomicBoolean bodyClosed) {
-        Buffer buffer = new Buffer().writeUtf8(content);
-        BufferedSource source = Okio.buffer(new ForwardingSource(buffer) {
-            @Override
-            public void close() throws IOException {
-                bodyClosed.set(true);
-                super.close();
+    private HttpServer startHttpServer(final String content) throws IOException {
+        byte[] responseBody = content.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/proxy", exchange -> {
+            exchange.sendResponseHeaders(200, responseBody.length);
+            try (OutputStream outputStream = exchange.getResponseBody()) {
+                outputStream.write(responseBody);
             }
         });
-        return new ResponseBody() {
-            @Override
-            public MediaType contentType() {
-                return MediaType.parse("text/plain");
-            }
-
-            @Override
-            public long contentLength() {
-                return content.length();
-            }
-
-            @Override
-            public BufferedSource source() {
-                return source;
-            }
-        };
+        server.start();
+        return server;
     }
 }

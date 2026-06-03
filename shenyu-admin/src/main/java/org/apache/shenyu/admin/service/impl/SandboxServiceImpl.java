@@ -64,20 +64,15 @@ public class SandboxServiceImpl implements SandboxService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SandboxServiceImpl.class);
 
+    private static final HttpUtils HTTP_UTILS = new HttpUtils();
+
     private final AppAuthService appAuthService;
 
     private final ShenyuDictService shenyuDictService;
 
-    private final HttpUtils httpUtils;
-
     public SandboxServiceImpl(final AppAuthService appAuthService, final ShenyuDictService shenyuDictService) {
-        this(appAuthService, shenyuDictService, new HttpUtils());
-    }
-
-    SandboxServiceImpl(final AppAuthService appAuthService, final ShenyuDictService shenyuDictService, final HttpUtils httpUtils) {
         this.appAuthService = appAuthService;
         this.shenyuDictService = shenyuDictService;
-        this.httpUtils = httpUtils;
     }
 
     @Override
@@ -112,7 +107,7 @@ public class SandboxServiceImpl implements SandboxService {
         // Public request parameters.
         Map<String, Object> reqParams = this.buildReqBizParams(proxyGatewayDTO);
         List<HttpUtils.UploadFile> files = this.uploadFiles(request);
-        try (Response resp = httpUtils.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files)) {
+        try (Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files)) {
             ResponseBody body = resp.body();
 
             if (Objects.isNull(body)) {
