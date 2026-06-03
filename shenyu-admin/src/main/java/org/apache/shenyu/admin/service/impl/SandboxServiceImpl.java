@@ -64,15 +64,20 @@ public class SandboxServiceImpl implements SandboxService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SandboxServiceImpl.class);
 
-    private static final HttpUtils HTTP_UTILS = new HttpUtils();
-
     private final AppAuthService appAuthService;
 
     private final ShenyuDictService shenyuDictService;
 
+    private final HttpUtils httpUtils;
+
     public SandboxServiceImpl(final AppAuthService appAuthService, final ShenyuDictService shenyuDictService) {
+        this(appAuthService, shenyuDictService, new HttpUtils());
+    }
+
+    SandboxServiceImpl(final AppAuthService appAuthService, final ShenyuDictService shenyuDictService, final HttpUtils httpUtils) {
         this.appAuthService = appAuthService;
         this.shenyuDictService = shenyuDictService;
+        this.httpUtils = httpUtils;
     }
 
     @Override
@@ -107,19 +112,20 @@ public class SandboxServiceImpl implements SandboxService {
         // Public request parameters.
         Map<String, Object> reqParams = this.buildReqBizParams(proxyGatewayDTO);
         List<HttpUtils.UploadFile> files = this.uploadFiles(request);
-        Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
-        ResponseBody body = resp.body();
+        try (Response resp = httpUtils.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files)) {
+            ResponseBody body = resp.body();
 
-        if (Objects.isNull(body)) {
-            return;
-        }
-        if (StringUtils.isNotEmpty(appKey)) {
-            response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
-            response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
-        }
+            if (Objects.isNull(body)) {
+                return;
+            }
+            if (StringUtils.isNotEmpty(appKey)) {
+                response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
+                response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
+            }
 
-        IOUtils.copy(body.byteStream(), response.getOutputStream());
-        response.flushBuffer();
+            IOUtils.copy(body.byteStream(), response.getOutputStream());
+            response.flushBuffer();
+        }
     }
 
     private Set<String> getPermitHostPorts() {
