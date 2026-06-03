@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.plugin.wasm.base;
 
-import io.github.kawamuray.wasmtime.Extern;
-import io.github.kawamuray.wasmtime.Func;
-import io.github.kawamuray.wasmtime.Store;
-import io.github.kawamuray.wasmtime.WasmFunctions;
-import io.github.kawamuray.wasmtime.WasmValType;
+import com.dylibso.chicory.runtime.ExportFunction;
+import com.dylibso.chicory.runtime.Memory;
+import com.dylibso.chicory.runtime.Store;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -36,7 +34,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * /{@link #skipExcept}/{@link #skipExceptHttpLike}.
  *
  * @see org.apache.shenyu.plugin.base.AbstractShenyuPlugin
- * @see io.github.kawamuray.wasmtime.WasmValType
  * @see org.apache.shenyu.plugin.wasm.api.loader.WasmLoader
  */
 public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
@@ -64,20 +60,32 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
     private final WasmLoader wasmLoader;
     
     public AbstractShenyuWasmPlugin() {
-        this.wasmLoader = new WasmLoader(this.getClass(), this::initWasmCallJavaFunc);
+        // Pass null initializer so WasmLoader registers built-in get_args/put_result
+        // and calls its own initWasmCallJavaFunc (no-op by default).
+        // Subclasses that need custom host functions should use
+        // AbstractShenyuWasmPlugin(Consumer<Store>) constructor.
+        this.wasmLoader = new WasmLoader(this.getClass(), null);
     }
-    
-    protected Map<String, Func> initWasmCallJavaFunc(final Store<Void> store) {
-        return null;
+
+    /**
+     * Constructor accepting a custom initializer for advanced use cases where
+     * the default built-in host functions ({@code get_args}/{@code put_result})
+     * are not sufficient. When using this constructor, the initializer is
+     * responsible for registering all required host functions.
+     *
+     * @param initializer consumer to register host functions on the Chicory Store
+     */
+    public AbstractShenyuWasmPlugin(final java.util.function.Consumer<Store> initializer) {
+        this.wasmLoader = new WasmLoader(this.getClass(), initializer);
     }
     
     /**
-     * use this in wasmCallJavaFunc.
+     * Get the WASM module's linear memory for use in host functions.
      *
-     * @return the ByteBuffer
+     * @return the Memory instance
      */
-    public ByteBuffer getBuffer() {
-        return wasmLoader.getBuffer();
+    public Memory getMemory() {
+        return wasmLoader.getMemory();
     }
     
     @Override
@@ -112,14 +120,13 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
                           final ShenyuPluginChain chain,
                           final SelectorData selector,
                           final RuleData rule,
-                          final Extern doExecute) {
+                          final ExportFunction doExecute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getArgumentId(exchange, chain, selector, rule);
         ARGUMENTS.put(argumentId, new Argument(exchange, chain, selector, rule));
         // call WASI function
-        WasmFunctions.consumer(wasmLoader.getStore(), doExecute.func(), WasmValType.I64)
-                .accept(argumentId);
+        doExecute.apply(argumentId);
         ARGUMENTS.remove(argumentId);
         return argumentId;
     }

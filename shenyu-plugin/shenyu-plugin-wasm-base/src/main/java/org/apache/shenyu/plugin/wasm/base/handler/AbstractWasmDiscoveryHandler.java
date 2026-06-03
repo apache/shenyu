@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
-import io.github.kawamuray.wasmtime.WasmFunctions;
-import io.github.kawamuray.wasmtime.WasmValType;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
@@ -45,8 +43,7 @@ public abstract class AbstractWasmDiscoveryHandler extends WasmLoader implements
                     final Long argumentId = getArgumentId(discoverySyncData);
                     ARGUMENTS.put(argumentId, discoverySyncData);
                     // call WASI function
-                    WasmFunctions.consumer(super.getStore(), handlerDiscoveryUpstreamData.func(), WasmValType.I64)
-                            .accept(argumentId);
+                    handlerDiscoveryUpstreamData.apply(argumentId);
                     ARGUMENTS.remove(argumentId);
                     return argumentId;
                 }).orElseThrow(() -> new ShenyuWasmInitException(METHOD_NAME + " function not find in wasm file: " + getWasmName()));

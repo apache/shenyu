@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.wasm.api;
 
-import io.github.kawamuray.wasmtime.Extern;
-import io.github.kawamuray.wasmtime.WasmFunctions;
-import io.github.kawamuray.wasmtime.WasmValType;
+import com.dylibso.chicory.runtime.ExportFunction;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -41,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * /{@link #skipExcept}/{@link #skipExceptHttpLike}.
  *
  * @see org.apache.shenyu.plugin.api.ShenyuPlugin
- * @see io.github.kawamuray.wasmtime.WasmValType
  * @see WasmLoader
  */
 public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlugin {
@@ -78,15 +75,14 @@ public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlu
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, Long argumentId);
-    
-    private Long callWASI(final ServerWebExchange exchange, final ShenyuPluginChain chain, final Extern execute) {
+
+    private Long callWASI(final ServerWebExchange exchange, final ShenyuPluginChain chain, final ExportFunction execute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getArgumentId(exchange, chain);
         ARGUMENTS.put(argumentId, new Argument(exchange, chain));
         // call WASI function
-        WasmFunctions.consumer(super.getStore(), execute.func(), WasmValType.I64)
-                .accept(argumentId);
+        execute.apply(argumentId);
         ARGUMENTS.remove(argumentId);
         return argumentId;
     }

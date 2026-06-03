@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
-import io.github.kawamuray.wasmtime.Extern;
-import io.github.kawamuray.wasmtime.WasmFunctions;
-import io.github.kawamuray.wasmtime.WasmValType;
+import com.dylibso.chicory.runtime.ExportFunction;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -87,39 +85,36 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
         super.getWasmExtern(REMOVE_RULE_METHOD_NAME)
                 .ifPresent(handlerPlugin -> callWASI(ruleData, handlerPlugin));
     }
-    
-    private Long callWASI(final PluginData pluginData, final Extern execute) {
+
+    private Long callWASI(final PluginData pluginData, final ExportFunction execute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getPluginArgumentId(pluginData);
         PLUGIN_ARGUMENTS.put(argumentId, pluginData);
         // call WASI function
-        WasmFunctions.consumer(super.getStore(), execute.func(), WasmValType.I64)
-                .accept(argumentId);
+        execute.apply(argumentId);
         PLUGIN_ARGUMENTS.remove(argumentId);
         return argumentId;
     }
-    
-    private Long callWASI(final RuleData ruleData, final Extern execute) {
+
+    private Long callWASI(final RuleData ruleData, final ExportFunction execute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getRuleArgumentId(ruleData);
         RULE_ARGUMENTS.put(argumentId, ruleData);
         // call WASI function
-        WasmFunctions.consumer(super.getStore(), execute.func(), WasmValType.I64)
-                .accept(argumentId);
+        execute.apply(argumentId);
         RULE_ARGUMENTS.remove(argumentId);
         return argumentId;
     }
-    
-    private Long callWASI(final SelectorData selectorData, final Extern execute) {
+
+    private Long callWASI(final SelectorData selectorData, final ExportFunction execute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getSelectorArgumentId(selectorData);
         SELECTOR_ARGUMENTS.put(argumentId, selectorData);
         // call WASI function
-        WasmFunctions.consumer(super.getStore(), execute.func(), WasmValType.I64)
-                .accept(argumentId);
+        execute.apply(argumentId);
         SELECTOR_ARGUMENTS.remove(argumentId);
         return argumentId;
     }
