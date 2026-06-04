@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shenyu.apache.org/docs/" >
+  <a href="https://shenyu.apache.org/docs/">
     <img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN docs" />
   </a>
   <a href="https://shenyu.apache.org/zh/docs/">
