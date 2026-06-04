@@ -16,8 +16,9 @@
  */
 
 // Package wasmabi provides helper functions for communicating with the Java
-// ShenYu host via shared memory. TinyGo WASM plugins should use GetArgs and
-// PutResult instead of calling the raw host imports directly.
+// ShenYu host via shared memory. This package is for internal test use only,
+// providing GetArgs and PutResult as a convenient alternative to calling the
+// raw host imports directly in test wasm modules.
 package wasmabi
 
 import "unsafe"

@@ -114,6 +114,64 @@ public final class AbstractShenyuWasmPluginTest {
         verify(shenyuPluginChain).execute(exchange);
     }
 
+    /** Plugin not cached → should skip to next chain. */
+    @Test
+    public void executePluginNotCachedTest() {
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("unused");
+        StepVerifier.create(plugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
+    /** Plugin cached but no selector data → handleSelectorIfNull → skip. */
+    @Test
+    public void executeSelectorNotCachedTest() {
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("unused");
+        StepVerifier.create(plugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
+    /** Plugin + selector cached but no rules → handleRuleIfNull → skip. */
+    @Test
+    public void executeRuleNotCachedTest() {
+        List<ConditionData> condList = Collections.singletonList(conditionData);
+        selectorData.setMatchMode(0);
+        selectorData.setLogged(true);
+        selectorData.setConditionList(condList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("unused");
+        StepVerifier.create(plugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
+    /** FULL_FLOW selector with multiple rules → last rule is used. */
+    @Test
+    public void executeFullFlowMultiRuleTest() {
+        List<ConditionData> condList = Collections.singletonList(conditionData);
+        selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        selectorData.setMatchMode(0);
+        selectorData.setLogged(true);
+        selectorData.setConditionList(condList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+
+        RuleData rule1 = RuleData.builder()
+                .id("r1").pluginName("SHENYU").selectorId("1")
+                .enabled(true).loged(true).matchRestful(false).sort(1)
+                .conditionDataList(condList).matchMode(0).build();
+        RuleData rule2 = RuleData.builder()
+                .id("r2").pluginName("SHENYU").selectorId("1")
+                .enabled(true).loged(true).matchRestful(false).sort(2)
+                .conditionDataList(condList).matchMode(0).build();
+        BaseDataCache.getInstance().cacheRuleData(rule1);
+        BaseDataCache.getInstance().cacheRuleData(rule2);
+
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("go result");
+        StepVerifier.create(plugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
     @AfterEach
     public void clear() {
         MatchDataCache.getInstance().cleanSelectorData();

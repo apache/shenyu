@@ -39,7 +39,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -73,7 +72,7 @@ public class WasmLoader implements AutoCloseable {
      *
      * <p>Initialization order:
      * <ol>
-     *   <li>Register WASI preview1 stubs</li>
+     *   <li>Register full WASI preview1 functions via Chicory's built-in implementation</li>
      *   <li>If {@code initializer} is non-null, call it; otherwise register built-in host functions
      *       ({@code get_args}/{@code put_result}) and call {@link #initWasmCallJavaFunc(Store)}</li>
      * </ol>
@@ -96,9 +95,8 @@ public class WasmLoader implements AutoCloseable {
 
             this.store = new Store();
 
-            // Register WASI preview1 stubs. Both Go and Rust modules need these,
-            // but we implement our own no-op versions instead of using Chicory's
-            // WasiPreview1 to avoid WasiExitException from proc_exit(0).
+            // Register WASI preview1 functions via Chicory's built-in implementation,
+            // then override proc_exit with a no-op to avoid WasiExitException.
             registerWasiStubs(store);
 
             // Allow subclasses to register custom host functions (get_args/put_result).
@@ -158,72 +156,25 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private void registerWasiStubs(final Store store) {
-        // proc_exit(code: i32) -> ()
+        // Use Chicory's built-in full WASI preview1 implementation for comprehensive
+        // WASI function coverage, matching the previous wasmtime-java behavior.
+        // We inherit system stdout/stderr so that fd_write output (e.g. Go println,
+        // Rust eprintln!) is visible for debugging and logging purposes.
+        var options = com.dylibso.chicory.wasi.WasiOptions.builder()
+                .inheritSystem()
+                .build();
+        var wasi = com.dylibso.chicory.wasi.WasiPreview1.builder()
+                .withOptions(options)
+                .build();
+        store.addFunction(wasi.toHostFunctions());
+
+        // Override proc_exit with a no-op: valid WASI program exit (proc_exit(0))
+        // is normal termination and should not propagate as a Java exception in
+        // a hosted plugin runtime.
         store.addFunction(new HostFunction(
                 "wasi_snapshot_preview1", "proc_exit",
                 FunctionType.of(List.of(ValType.I32), List.of()),
                 (inst, args) -> new long[0]
-        ));
-        // random_get(buf: i32, buf_len: i32) -> errno: i32
-        store.addFunction(new HostFunction(
-                "wasi_snapshot_preview1", "random_get",
-                FunctionType.of(List.of(ValType.I32, ValType.I32), List.of(ValType.I32)),
-                (inst, args) -> {
-                    int buf = (int) args[0];
-                    int bufLen = (int) args[1];
-                    byte[] randomBytes = new byte[bufLen];
-                    ThreadLocalRandom.current().nextBytes(randomBytes);
-                    inst.memory().write(buf, randomBytes);
-                    return new long[]{0};
-                }
-        ));
-        // fd_write(fd: i32, iovs: i32, iovs_len: i32, nwritten: i32) -> errno: i32
-        store.addFunction(new HostFunction(
-                "wasi_snapshot_preview1", "fd_write",
-                FunctionType.of(List.of(ValType.I32, ValType.I32, ValType.I32, ValType.I32), List.of(ValType.I32)),
-                (inst, args) -> {
-                    int fd = (int) args[0];
-                    int iovs = (int) args[1];
-                    int iovsLen = (int) args[2];
-                    int nwrittenPtr = (int) args[3];
-                    long total = 0;
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < iovsLen; i++) {
-                        int off = iovs + i * 8;
-                        int bufOff = (int) inst.memory().readI32(off);
-                        int bufLen = (int) inst.memory().readI32(off + 4);
-                        if (bufLen > 0) {
-                            sb.append(new String(inst.memory().readBytes(bufOff, bufLen), java.nio.charset.StandardCharsets.UTF_8));
-                        }
-                        total += bufLen;
-                    }
-                    String output = sb.toString();
-                    if (fd == 1) {
-                        System.out.print(output);
-                    } else if (fd == 2) {
-                        System.err.print(output);
-                    }
-                    inst.memory().writeI32(nwrittenPtr, (int) total);
-                    return new long[]{0};
-                }
-        ));
-        // environ_get(environ: i32, environ_buf: i32) -> errno: i32
-        store.addFunction(new HostFunction(
-                "wasi_snapshot_preview1", "environ_get",
-                FunctionType.of(List.of(ValType.I32, ValType.I32), List.of(ValType.I32)),
-                (inst, args) -> new long[]{0}
-        ));
-        // environ_sizes_get(count: i32, buf_size: i32) -> errno: i32
-        store.addFunction(new HostFunction(
-                "wasi_snapshot_preview1", "environ_sizes_get",
-                FunctionType.of(List.of(ValType.I32, ValType.I32), List.of(ValType.I32)),
-                (inst, args) -> {
-                    int countPtr = (int) args[0];
-                    int sizePtr = (int) args[1];
-                    inst.memory().writeI32(countPtr, 0);
-                    inst.memory().writeI32(sizePtr, 0);
-                    return new long[]{0};
-                }
         ));
     }
 

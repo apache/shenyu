@@ -46,24 +46,105 @@ public final class AbstractWasmPluginDataHandlerTest {
 
     private PluginData pluginData;
 
+    private SelectorData selectorData;
+
+    private RuleData ruleData;
+
     @BeforeEach
     public void setUp() {
         this.pluginData = mock(PluginData.class);
         when(pluginData.getId()).thenReturn("SHENYU");
+        this.selectorData = mock(SelectorData.class);
+        when(selectorData.getId()).thenReturn("SELECTOR_1");
+        when(selectorData.getPluginName()).thenReturn("SHENYU");
+        this.ruleData = mock(RuleData.class);
+        when(ruleData.getId()).thenReturn("RULE_1");
+        when(ruleData.getSelectorId()).thenReturn("SELECTOR_1");
+        when(ruleData.getPluginName()).thenReturn("SHENYU");
     }
 
-    /** Go WASM test. */
+    /** Go WASM handlerPlugin test. */
     @Test
     public void goHandlerPluginTest() {
         final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
         goHandler.handlerPlugin(pluginData);
     }
 
-    /** Rust WASM test. */
+    /** Go WASM removePlugin test. */
+    @Test
+    public void goRemovePluginTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removePlugin(pluginData);
+    }
+
+    /** Go WASM handlerSelector test. */
+    @Test
+    public void goHandlerSelectorTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.handlerSelector(selectorData);
+    }
+
+    /** Go WASM removeSelector test. */
+    @Test
+    public void goRemoveSelectorTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removeSelector(selectorData);
+    }
+
+    /** Go WASM handlerRule test. */
+    @Test
+    public void goHandlerRuleTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.handlerRule(ruleData);
+    }
+
+    /** Go WASM removeRule test. */
+    @Test
+    public void goRemoveRuleTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removeRule(ruleData);
+    }
+
+    /** Rust WASM handlerPlugin test. */
     @Test
     public void rustHandlerPluginTest() {
         final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
         rustHandler.handlerPlugin(pluginData);
+    }
+
+    /** Rust WASM removePlugin test. */
+    @Test
+    public void rustRemovePluginTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removePlugin(pluginData);
+    }
+
+    /** Rust WASM handlerSelector test. */
+    @Test
+    public void rustHandlerSelectorTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.handlerSelector(selectorData);
+    }
+
+    /** Rust WASM removeSelector test. */
+    @Test
+    public void rustRemoveSelectorTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removeSelector(selectorData);
+    }
+
+    /** Rust WASM handlerRule test. */
+    @Test
+    public void rustHandlerRuleTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.handlerRule(ruleData);
+    }
+
+    /** Rust WASM removeRule test. */
+    @Test
+    public void rustRemoveRuleTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removeRule(ruleData);
     }
 
     abstract static class WasmTestHandler extends AbstractWasmPluginDataHandler {
