@@ -37,10 +37,6 @@
         </dependency>
         <dependency>
             <groupId>com.dylibso.chicory</groupId>
-            <artifactId>wasi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.dylibso.chicory</groupId>
             <artifactId>compiler</artifactId>
         </dependency>
         <dependency>

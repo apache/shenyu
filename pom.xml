@@ -811,7 +811,6 @@
                         <excldue>**/*.MD</excldue>
                         <!-- wasm build files -->
                         <exclude>**/Cargo.lock</exclude>
-                        <exclude>**/go.mod</exclude>
                         <exclude>**/go.sum</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>

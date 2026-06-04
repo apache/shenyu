@@ -130,7 +130,10 @@ public class WasmLoader implements AutoCloseable {
             } catch (LinkageError | RuntimeException compilerError) {
                 LOG.warn("Runtime compiler unavailable, falling back to interpreter for {}: {}",
                         wasmName, compilerError.getMessage());
-                this.instance = store.instantiate(wasmName, module);
+                this.instance = Instance.builder(module)
+                         .withImportValues(store.toImportValues())
+                         .withStart(false)
+                         .build();
             }
 
             // Call _initialize if present (required by TinyGo -target wasm-unknown).
@@ -159,7 +162,7 @@ public class WasmLoader implements AutoCloseable {
         store.addFunction(new HostFunction(
                 "wasi_snapshot_preview1", "proc_exit",
                 FunctionType.of(List.of(ValType.I32), List.of()),
-                (inst, args) -> null
+                (inst, args) -> new long[0]
         ));
         // random_get(buf: i32, buf_len: i32) -> errno: i32
         store.addFunction(new HostFunction(
@@ -316,7 +319,7 @@ public class WasmLoader implements AutoCloseable {
     public Optional<ExportFunction> getWasmExtern(final String funcName) {
         ExportFunction fn = instance.export(funcName);
         if (Objects.isNull(fn)) {
-            LOG.warn("WASM export function '{}' not found in {}", funcName, wasmName);
+            LOG.debug("WASM export function '{}' not found in {}", funcName, wasmName);
         }
         return Optional.ofNullable(fn);
     }

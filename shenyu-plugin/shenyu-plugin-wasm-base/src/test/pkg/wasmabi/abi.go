@@ -32,13 +32,26 @@ func putResultRaw(argId int64, addr int64, len int32) int32
 // The caller provides a pre-allocated buffer; the returned slice is a
 // sub-slice of buf containing the actual data that was written.
 func GetArgs(argId int64, buf []byte) []byte {
+	if len(buf) == 0 {
+		return buf
+	}
 	ptr := unsafe.Pointer(&buf[0])
-	n := getArgsRaw(argId, int64(uintptr(ptr)), int32(len(buf)))
+	n := int(getArgsRaw(argId, int64(uintptr(ptr)), int32(len(buf))))
+	if n <= 0 {
+		return buf[:0]
+	}
+	if n > len(buf) {
+		n = len(buf)
+	}
 	return buf[:n]
 }
 
 // PutResult writes serialized data back to the Java host via shared memory.
 func PutResult(argId int64, data []byte) {
+	if len(data) == 0 {
+		_ = putResultRaw(argId, 0, 0)
+		return
+	}
 	ptr := unsafe.Pointer(&data[0])
 	_ = putResultRaw(argId, int64(uintptr(ptr)), int32(len(data)))
 }
