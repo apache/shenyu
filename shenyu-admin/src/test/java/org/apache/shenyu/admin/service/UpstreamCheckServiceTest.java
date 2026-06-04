@@ -221,8 +221,9 @@ public final class UpstreamCheckServiceTest {
         final DivideUpstream divideUpstream2 = DivideUpstream.builder()
                 .upstreamHost("localhost2")
                 .build();
+        upstreamMap.remove(MOCK_SELECTOR_NAME_2);
         upstreamMap.put(MOCK_SELECTOR_NAME_2, new CopyOnWriteArrayList<>(Collections.singletonList(divideUpstream)));
-        upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
+        upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, new CopyOnWriteArrayList<>(Collections.singletonList(divideUpstream2)));
         assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
         assertEquals("localhost2", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
     }
