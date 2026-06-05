@@ -88,9 +88,13 @@ final class SandboxServiceImplTest {
         byte[] responseBody = content.getBytes(StandardCharsets.UTF_8);
         HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/proxy", exchange -> {
-            exchange.sendResponseHeaders(200, responseBody.length);
-            try (OutputStream outputStream = exchange.getResponseBody()) {
-                outputStream.write(responseBody);
+            try {
+                exchange.sendResponseHeaders(200, responseBody.length);
+                try (OutputStream outputStream = exchange.getResponseBody()) {
+                    outputStream.write(responseBody);
+                }
+            } finally {
+                exchange.close();
             }
         });
         server.start();
