@@ -26,6 +26,8 @@ import org.springframework.ai.openai.api.OpenAiApi.ChatCompletion;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -140,8 +142,8 @@ public class AiProxyExecutorService {
         }
         final WebClientResponseException webClientEx = UpstreamErrorLogger.findWebClientResponseException(throwable);
         if (Objects.nonNull(webClientEx)) {
-            final int status = webClientEx.getStatusCode().value();
-            return status == 429 || status >= 500;
+            final HttpStatusCode statusCode = webClientEx.getStatusCode();
+            return HttpStatus.TOO_MANY_REQUESTS.equals(statusCode) || statusCode.is5xxServerError();
         }
         return true;
     }
