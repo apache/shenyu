@@ -25,16 +25,23 @@ CURL_CONNECT_TIMEOUT=${CURL_CONNECT_TIMEOUT:-5}
 CURL_MAX_TIME=${CURL_MAX_TIME:-10}
 K8S_WAIT_TIMEOUT=${K8S_WAIT_TIMEOUT:-10m}
 
-echo "waiting for shenyu-ingress deployments to become available, timeout ${K8S_WAIT_TIMEOUT}"
-deployments=$(kubectl get deployment -n shenyu-ingress -o name)
-if [ -z "${deployments}" ]; then
-    echo "no deployments found in namespace shenyu-ingress"
-    exit 1
-fi
+wait_deployments() {
+    local namespace=$1
 
-for deployment in ${deployments}; do
-    kubectl wait --for=condition=Available "${deployment}" -n shenyu-ingress --timeout="${K8S_WAIT_TIMEOUT}"
-done
+    echo "waiting for ${namespace} deployments to become available, timeout ${K8S_WAIT_TIMEOUT}"
+    deployments=$(kubectl get deployment -n "${namespace}" -o name)
+    if [ -z "${deployments}" ]; then
+        echo "no deployments found in namespace ${namespace}"
+        exit 1
+    fi
+
+    for deployment in ${deployments}; do
+        kubectl wait --for=condition=Available "${deployment}" -n "${namespace}" --timeout="${K8S_WAIT_TIMEOUT}"
+    done
+}
+
+wait_deployments shenyu-ingress
+wait_deployments default
 
 failed=0
 while IFS= read -r service || [ -n "$service" ]; do
