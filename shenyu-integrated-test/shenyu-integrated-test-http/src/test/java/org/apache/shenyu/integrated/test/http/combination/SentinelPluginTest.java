@@ -27,7 +27,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
@@ -83,9 +82,9 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
-        ResultBean fallbackRet = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, ResultBean.class);
-        assertEquals(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getCode(), fallbackRet.getCode());
-        assertEquals(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getMsg(), fallbackRet.getMsg());
+        Map<String, Object> fallbackRet = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        assertEquals(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getCode(), ((Number) fallbackRet.get("code")).intValue());
+        assertEquals(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getMsg(), fallbackRet.get("message"));
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
