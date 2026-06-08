@@ -68,8 +68,10 @@ public final class GatewayRouteCache {
     public void bindRouteToGateway(final String gatewayNamespace, final String gatewayName,
                                    final String routeNamespace, final String routeName) {
         String gwKey = gatewayKey(gatewayNamespace, gatewayName);
-        GATEWAY_ROUTE_MAP.computeIfAbsent(gwKey, k -> new CopyOnWriteArrayList<>()).add(routeKey(routeNamespace, routeName));
-        ROUTE_GATEWAY_MAP.put(routeKey(routeNamespace, routeName), gwKey);
+        String rKey = routeKey(routeNamespace, routeName);
+        CopyOnWriteArrayList<String> routes = (CopyOnWriteArrayList<String>) GATEWAY_ROUTE_MAP.computeIfAbsent(gwKey, k -> new CopyOnWriteArrayList<>());
+        routes.addIfAbsent(rKey);
+        ROUTE_GATEWAY_MAP.put(rKey, gwKey);
     }
 
     public List<String> getRoutesByGateway(final String gatewayNamespace, final String gatewayName) {
@@ -95,7 +97,9 @@ public final class GatewayRouteCache {
         if (Objects.nonNull(gwKey)) {
             List<String> routes = GATEWAY_ROUTE_MAP.get(gwKey);
             if (Objects.nonNull(routes)) {
-                routes.remove(routeKey);
+                while (routes.remove(routeKey)) {
+                    // remove all occurrences
+                }
             }
         }
     }

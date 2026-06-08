@@ -26,8 +26,6 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: shenyu-gateway
-  annotations:
-    shenyu.apache.org/loadbalancer: p2c
 spec:
   gatewayClassName: shenyu
   listeners:

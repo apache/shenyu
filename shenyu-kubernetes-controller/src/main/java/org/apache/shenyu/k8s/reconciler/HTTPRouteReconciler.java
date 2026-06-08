@@ -229,7 +229,24 @@ public class HTTPRouteReconciler implements Reconciler {
             if (parentsStatus.size() == 0) {
                 return;
             }
-            sendStatusPatch(routeNamespace, routeName, parentsStatus);
+
+            // Merge-patch replaces arrays, so preserve status.parents entries owned by other controllers.
+            JsonArray mergedParentsStatus = new JsonArray();
+            JsonObject raw = httpRoute.getRaw();
+            if (raw.has("status") && !raw.get("status").isJsonNull()) {
+                JsonObject status = raw.getAsJsonObject("status");
+                if (status.has("parents") && !status.get("parents").isJsonNull()) {
+                    for (JsonElement parentEl : status.getAsJsonArray("parents")) {
+                        JsonObject parent = parentEl.getAsJsonObject();
+                        if (!parent.has("controllerName")
+                            || !GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(parent.get("controllerName").getAsString())) {
+                            mergedParentsStatus.add(parentEl);
+                        }
+                    }
+                }
+            }
+            parentsStatus.forEach(mergedParentsStatus::add);
+            sendStatusPatch(routeNamespace, routeName, mergedParentsStatus);
         } catch (Exception e) {
             LOG.warn("Failed to update HTTPRoute status, will retry on next resync", e);
         }
@@ -239,8 +256,8 @@ public class HTTPRouteReconciler implements Reconciler {
      * Check if the HTTPRoute already has both Accepted=True and ResolvedRefs=True conditions
      * from the ShenYu controller in its status.parents, to avoid unnecessary status patches
      * that trigger infinite reconcile loops.
-     * Both conditions must be present because updateHTTPRouteStatus() always sets both together;
-     * checking only Accepted=True would leave routes with a partial status never repaired.
+     * Returns true only when ALL ShenYu-managed parents have both conditions set;
+     * returns false if any ShenYu parent is missing either condition or has no conditions at all.
      */
     private boolean isRouteStatusAlreadySet(final DynamicKubernetesObject httpRoute) {
         JsonObject raw = httpRoute.getRaw();
@@ -258,7 +275,7 @@ public class HTTPRouteReconciler implements Reconciler {
                 continue;
             }
             if (!parent.has("conditions") || parent.get("conditions").isJsonNull()) {
-                continue;
+                return false;
             }
             JsonArray conditions = parent.getAsJsonArray("conditions");
             boolean hasAccepted = false;
@@ -275,11 +292,11 @@ public class HTTPRouteReconciler implements Reconciler {
                     }
                 }
             }
-            if (hasAccepted && hasResolvedRefs) {
-                return true;
+            if (!hasAccepted || !hasResolvedRefs) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private JsonArray buildParentsStatus(final JsonArray parentRefs, final String routeNamespace) {
