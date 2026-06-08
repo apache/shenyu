@@ -48,7 +48,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
 
-    private static final String TEST_SENTINEL_FALLBACK_PATH = "/http/test/request/accepted";
+    private static final String TEST_SENTINEL_FALLBACK_PATH = "fallback:/http/test/request/accepted";
 
     @BeforeEach
     public void setup() throws IOException {
