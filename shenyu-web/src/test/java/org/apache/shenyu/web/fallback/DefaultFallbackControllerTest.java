@@ -66,4 +66,11 @@ public final class DefaultFallbackControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    @Test
+    public void sentinelFallbackSupportsOriginalRequestMethod() throws Exception {
+        final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.post("/fallback/sentinel"))
+                .andReturn().getResponse();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
 }
