@@ -25,7 +25,6 @@ github:
     - grpc-proxy
     - dubbo-proxy
     - sofa-proxy
-    - motan-proxy
     - reactor-java
   enabled_merge_buttons:
     squash: true

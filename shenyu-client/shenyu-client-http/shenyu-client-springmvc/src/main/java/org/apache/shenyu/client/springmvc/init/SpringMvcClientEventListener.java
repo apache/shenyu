@@ -21,7 +21,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
@@ -67,8 +66,6 @@ import java.util.stream.Stream;
 public class SpringMvcClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringMvcClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringMvcClientEventListener.class);
-
-    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(3);
 
@@ -121,6 +118,9 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out
         if (Boolean.TRUE.equals(isFull)) {
+            if (!markRegistered()) {
+                return Collections.emptyMap();
+            }
             LOG.info("init spring mvc client success with isFull mode");
             List<String> namespaceIds = super.getNamespace();
             namespaceIds.forEach(namespaceId -> {
@@ -135,7 +135,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                         .namespaceId(namespaceId)
                         .build());
                 
-                publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+                getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
             });
             return Collections.emptyMap();
         }

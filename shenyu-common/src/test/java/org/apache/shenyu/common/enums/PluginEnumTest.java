@@ -92,7 +92,6 @@ public final class PluginEnumTest {
             "sofa, 310",
             "tars, 310",
             "grpc, 310",
-            "motan, 310",
             "cryptorResponse, 410",
             "mock, 1",
             "jwt, 30",

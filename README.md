@@ -78,7 +78,7 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, Motan, SOFA, TARS, WebSocket, MQTT
+* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, SOFA, TARS, WebSocket, MQTT
 * Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
 * API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
 * Observability: Tracing, metrics, logging plugin

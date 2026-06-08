@@ -150,7 +150,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (MapUtils.isEmpty(beans)) {
             return;
         }
-        if (!registered.compareAndSet(false, true)) {
+        if (!markRegistered()) {
             return;
         }
         if (isDiscoveryLocalMode) {
@@ -370,6 +370,15 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     public ShenyuClientRegisterEventPublisher getPublisher() {
         return publisher;
+    }
+
+    /**
+     * Mark the listener as registered once.
+     *
+     * @return true when this invocation acquires the registration gate
+     */
+    protected boolean markRegistered() {
+        return registered.compareAndSet(false, true);
     }
 
     /**

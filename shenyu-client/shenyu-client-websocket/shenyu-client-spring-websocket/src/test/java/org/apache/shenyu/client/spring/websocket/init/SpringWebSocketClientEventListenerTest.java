@@ -32,9 +32,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -49,7 +50,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,21 +87,7 @@ public class SpringWebSocketClientEventListenerTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        Properties properties = mock(Properties.class);
-        when(properties.getProperty("appName")).thenReturn("appName");
-        when(properties.getProperty("contextPath")).thenReturn("contextPath");
-        when(properties.getProperty(ShenyuClientConstants.PORT)).thenReturn("8080");
-        when(properties.getProperty(ShenyuClientConstants.HOST)).thenReturn("127.0.0.1");
-        when(properties.getProperty(ShenyuClientConstants.IP_PORT)).thenReturn("127.0.0.1:8080");
-        
-        ShenyuClientConfig clientConfig = mock(ShenyuClientConfig.class);
-        Map<String, ClientPropertiesConfig> client = new HashMap<>();
-        ClientPropertiesConfig clientPropertiesConfig = new ClientPropertiesConfig();
-        clientPropertiesConfig.setProps(properties);
-        client.put(RpcTypeEnum.WEB_SOCKET.getName(), clientPropertiesConfig);
-        when(clientConfig.getClient()).thenReturn(client);
-        eventListener = new SpringWebSocketClientEventListener(clientConfig, registerRepository);
+        eventListener = buildEventListener(false);
     }
 
     @Test
@@ -176,6 +165,39 @@ public class SpringWebSocketClientEventListenerTest {
         String port = eventListener.getPort();
         assertNotNull(port);
         assertEquals(port, "8080");
+    }
+
+    @Test
+    public void testOnApplicationEventFullModeShouldRegisterOnce() {
+        try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
+            ShenyuClientRegisterEventPublisher mockPublisher = mock(ShenyuClientRegisterEventPublisher.class);
+            publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(mockPublisher);
+            SpringWebSocketClientEventListener fullModeEventListener = buildEventListener(true);
+            ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
+            fullModeEventListener.onApplicationEvent(event);
+            fullModeEventListener.onApplicationEvent(event);
+            verify(mockPublisher, times(1)).start(any());
+            verify(mockPublisher, times(1)).publishEvent(any());
+        }
+    }
+
+    private SpringWebSocketClientEventListener buildEventListener(final boolean full) {
+        Properties properties = new Properties();
+        properties.setProperty("appName", "appName");
+        properties.setProperty("contextPath", "contextPath");
+        properties.setProperty(ShenyuClientConstants.PORT, "8080");
+        properties.setProperty(ShenyuClientConstants.HOST, "127.0.0.1");
+        properties.setProperty(ShenyuClientConstants.IP_PORT, "127.0.0.1:8080");
+        properties.setProperty(ShenyuClientConstants.IS_FULL, String.valueOf(full));
+        properties.setProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY, Boolean.TRUE.toString());
+
+        ShenyuClientConfig clientConfig = mock(ShenyuClientConfig.class);
+        Map<String, ClientPropertiesConfig> client = new HashMap<>();
+        ClientPropertiesConfig clientPropertiesConfig = new ClientPropertiesConfig();
+        clientPropertiesConfig.setProps(properties);
+        client.put(RpcTypeEnum.WEB_SOCKET.getName(), clientPropertiesConfig);
+        when(clientConfig.getClient()).thenReturn(client);
+        return new SpringWebSocketClientEventListener(clientConfig, registerRepository);
     }
 
     /**
