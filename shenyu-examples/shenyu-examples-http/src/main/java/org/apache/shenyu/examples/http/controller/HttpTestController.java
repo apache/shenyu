@@ -364,6 +364,17 @@ public class HttpTestController {
     }
 
     /**
+     * Return accepted code.
+     *
+     * @return response. result bean
+     */
+    @PostMapping("/request/accepted")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResultBean postAccepted() {
+        return accepted();
+    }
+
+    /**
      * Return bad request code.
      *
      * @return response. result bean
