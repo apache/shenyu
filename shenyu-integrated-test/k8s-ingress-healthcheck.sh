@@ -27,11 +27,15 @@ K8S_WAIT_TIMEOUT=${K8S_WAIT_TIMEOUT:-10m}
 
 wait_deployments() {
     local namespace=$1
+    local required=${2:-true}
 
     echo "waiting for ${namespace} deployments to become available, timeout ${K8S_WAIT_TIMEOUT}"
     deployments=$(kubectl get deployment -n "${namespace}" -o name)
     if [ -z "${deployments}" ]; then
         echo "no deployments found in namespace ${namespace}"
+        if [ "${required}" != "true" ]; then
+            return 0
+        fi
         exit 1
     fi
 
@@ -41,7 +45,7 @@ wait_deployments() {
 }
 
 wait_deployments shenyu-ingress
-wait_deployments default
+wait_deployments default false
 
 failed=0
 while IFS= read -r service || [ -n "$service" ]; do
