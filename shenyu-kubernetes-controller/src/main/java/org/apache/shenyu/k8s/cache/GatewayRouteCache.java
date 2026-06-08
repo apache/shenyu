@@ -97,9 +97,7 @@ public final class GatewayRouteCache {
         if (Objects.nonNull(gwKey)) {
             List<String> routes = GATEWAY_ROUTE_MAP.get(gwKey);
             if (Objects.nonNull(routes)) {
-                while (routes.remove(routeKey)) {
-                    // remove all occurrences
-                }
+                routes.removeIf(routeKey::equals);
             }
         }
     }
