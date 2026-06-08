@@ -107,19 +107,20 @@ public class SandboxServiceImpl implements SandboxService {
         // Public request parameters.
         Map<String, Object> reqParams = this.buildReqBizParams(proxyGatewayDTO);
         List<HttpUtils.UploadFile> files = this.uploadFiles(request);
-        Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
-        ResponseBody body = resp.body();
+        try (Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files)) {
+            ResponseBody body = resp.body();
 
-        if (Objects.isNull(body)) {
-            return;
-        }
-        if (StringUtils.isNotEmpty(appKey)) {
-            response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
-            response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
-        }
+            if (Objects.isNull(body)) {
+                return;
+            }
+            if (StringUtils.isNotEmpty(appKey)) {
+                response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
+                response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
+            }
 
-        IOUtils.copy(body.byteStream(), response.getOutputStream());
-        response.flushBuffer();
+            IOUtils.copy(body.byteStream(), response.getOutputStream());
+            response.flushBuffer();
+        }
     }
 
     private Set<String> getPermitHostPorts() {
