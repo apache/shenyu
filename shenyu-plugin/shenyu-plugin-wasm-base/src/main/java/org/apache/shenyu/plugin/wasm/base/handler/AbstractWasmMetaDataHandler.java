@@ -59,8 +59,11 @@ public abstract class AbstractWasmMetaDataHandler extends WasmLoader implements 
         final Long argumentId = getArgumentId(metaData);
         ARGUMENTS.put(argumentId, metaData);
         // call WASI function
-        execute.apply(argumentId);
-        ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
     

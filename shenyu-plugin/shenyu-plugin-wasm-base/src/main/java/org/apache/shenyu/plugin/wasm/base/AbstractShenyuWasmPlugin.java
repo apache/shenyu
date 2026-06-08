@@ -126,8 +126,11 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
         final Long argumentId = getArgumentId(exchange, chain, selector, rule);
         ARGUMENTS.put(argumentId, new Argument(exchange, chain, selector, rule));
         // call WASI function
-        doExecute.apply(argumentId);
-        ARGUMENTS.remove(argumentId);
+        try {
+            doExecute.apply(argumentId);
+        } finally {
+            ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
     

@@ -47,8 +47,9 @@ func removeMetaData(argId int64) {
 	handle(argId)
 }
 
+// NOTE: refresh takes NO arguments — Java calls ExportFunction.apply() with zero params.
+//
 //go:wasmexport refresh
-// NOTE: refresh takes NO arguments — Java calls WasmFunctions.consumer(...).accept() with zero params.
 func refresh() {
 	wasmabi.Eprintln("go side-> refresh")
 }

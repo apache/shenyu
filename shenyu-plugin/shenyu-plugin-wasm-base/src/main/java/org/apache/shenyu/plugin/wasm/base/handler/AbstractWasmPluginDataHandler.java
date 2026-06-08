@@ -92,8 +92,11 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
         final Long argumentId = getPluginArgumentId(pluginData);
         PLUGIN_ARGUMENTS.put(argumentId, pluginData);
         // call WASI function
-        execute.apply(argumentId);
-        PLUGIN_ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            PLUGIN_ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
 
@@ -103,8 +106,11 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
         final Long argumentId = getRuleArgumentId(ruleData);
         RULE_ARGUMENTS.put(argumentId, ruleData);
         // call WASI function
-        execute.apply(argumentId);
-        RULE_ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            RULE_ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
 
@@ -114,8 +120,11 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
         final Long argumentId = getSelectorArgumentId(selectorData);
         SELECTOR_ARGUMENTS.put(argumentId, selectorData);
         // call WASI function
-        execute.apply(argumentId);
-        SELECTOR_ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            SELECTOR_ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
     

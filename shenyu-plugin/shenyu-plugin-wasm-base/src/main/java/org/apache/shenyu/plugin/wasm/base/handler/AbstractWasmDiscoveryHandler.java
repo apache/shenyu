@@ -43,8 +43,11 @@ public abstract class AbstractWasmDiscoveryHandler extends WasmLoader implements
                     final Long argumentId = getArgumentId(discoverySyncData);
                     ARGUMENTS.put(argumentId, discoverySyncData);
                     // call WASI function
-                    handlerDiscoveryUpstreamData.apply(argumentId);
-                    ARGUMENTS.remove(argumentId);
+                    try {
+                        handlerDiscoveryUpstreamData.apply(argumentId);
+                    } finally {
+                        ARGUMENTS.remove(argumentId);
+                    }
                     return argumentId;
                 }).orElseThrow(() -> new ShenyuWasmInitException(METHOD_NAME + " function not find in wasm file: " + getWasmName()));
     }

@@ -27,15 +27,13 @@ import com.dylibso.chicory.wasm.Parser;
 import com.dylibso.chicory.wasm.WasmModule;
 import com.dylibso.chicory.wasm.types.FunctionType;
 import com.dylibso.chicory.wasm.types.ValType;
+import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmException;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -113,7 +111,10 @@ public class WasmLoader implements AutoCloseable {
             }
 
             // Reads the WebAssembly module as bytes.
-            byte[] wasmBytes = Files.readAllBytes(Paths.get(resource.toURI()));
+            final byte[] wasmBytes;
+            try (var in = resource.openStream()) {
+                wasmBytes = in.readAllBytes();
+            }
             WasmModule module = Parser.parse(wasmBytes);
 
             // Try runtime compiler (WASM → JVM bytecode) for better execution speed.
@@ -148,9 +149,7 @@ public class WasmLoader implements AutoCloseable {
             if (Objects.isNull(instance.memory())) {
                 throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
             }
-
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-        } catch (URISyntaxException | IOException e) {
+        } catch (IOException e) {
             throw new ShenyuWasmInitException(e);
         }
     }
@@ -158,10 +157,12 @@ public class WasmLoader implements AutoCloseable {
     private void registerWasiStubs(final Store store) {
         // Use Chicory's built-in full WASI preview1 implementation for comprehensive
         // WASI function coverage, matching the previous wasmtime-java behavior.
-        // We inherit system stdout/stderr so that fd_write output (e.g. Go println,
-        // Rust eprintln!) is visible for debugging and logging purposes.
+        // Only inherit stdout/stderr so WASM guest output (e.g. Go println,
+        // Rust eprintln!) is visible for debugging. Avoid inheriting the full
+        // system context (env/args/filesystem) for security hardening.
         var options = com.dylibso.chicory.wasi.WasiOptions.builder()
-                .inheritSystem()
+                .withStdout(System.out)
+                .withStderr(System.err)
                 .build();
         var wasi = com.dylibso.chicory.wasi.WasiPreview1.builder()
                 .withOptions(options)
@@ -174,7 +175,13 @@ public class WasmLoader implements AutoCloseable {
         store.addFunction(new HostFunction(
                 "wasi_snapshot_preview1", "proc_exit",
                 FunctionType.of(List.of(ValType.I32), List.of()),
-                (inst, args) -> new long[0]
+                (inst, args) -> {
+                    int exitCode = (int) args[0];
+                    if (exitCode != 0) {
+                        throw new ShenyuWasmException("WASI proc_exit(" + exitCode + ") from " + wasmName);
+                    }
+                    return new long[0];
+                }
         ));
     }
 

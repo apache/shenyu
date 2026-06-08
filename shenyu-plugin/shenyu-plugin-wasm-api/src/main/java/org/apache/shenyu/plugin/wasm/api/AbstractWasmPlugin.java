@@ -82,8 +82,11 @@ public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlu
         final Long argumentId = getArgumentId(exchange, chain);
         ARGUMENTS.put(argumentId, new Argument(exchange, chain));
         // call WASI function
-        execute.apply(argumentId);
-        ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
     
