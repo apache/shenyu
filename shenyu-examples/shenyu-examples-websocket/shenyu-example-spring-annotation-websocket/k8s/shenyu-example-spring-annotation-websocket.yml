@@ -37,8 +37,17 @@ spec:
       containers:
         - image: shenyu-example-spring-annotation-websocket
           name: shenyu-example-spring-annotation-websocket
+          startupProbe:
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 18
+            exec:
+              command:
+                - /bin/sh
+                - "-c"
+                - wget -q -O - http://localhost:8001/actuator/health | grep UP || exit 1
           livenessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
