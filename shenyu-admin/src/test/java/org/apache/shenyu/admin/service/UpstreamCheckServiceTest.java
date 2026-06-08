@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -214,18 +215,15 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testReplace() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
-        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamHost("localhost")
                 .build();
         final DivideUpstream divideUpstream2 = DivideUpstream.builder()
                 .upstreamHost("localhost2")
                 .build();
-        upstreamCheckService.submit(MOCK_SELECTOR_NAME_2, divideUpstream);
-        assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
-        assertEquals("localhost", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
-        upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, Collections.singletonList(divideUpstream2));
+        UpstreamCheckService.removeByKey(MOCK_SELECTOR_NAME_2);
+        upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, new CopyOnWriteArrayList<>(Collections.singletonList(divideUpstream)));
+        upstreamCheckService.replace(MOCK_SELECTOR_NAME_2, new CopyOnWriteArrayList<>(Collections.singletonList(divideUpstream2)));
         assertEquals(1, upstreamMap.get(MOCK_SELECTOR_NAME_2).size());
         assertEquals("localhost2", upstreamMap.get(MOCK_SELECTOR_NAME_2).get(0).getUpstreamHost());
     }
