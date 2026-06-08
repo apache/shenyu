@@ -32,6 +32,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +55,8 @@ import java.util.Set;
 public class EndpointsReconciler implements Reconciler {
 
     private static final Logger LOG = LoggerFactory.getLogger(EndpointsReconciler.class);
+
+    private static final Set<String> ENDPOINT_UPSTREAM_PLUGINS = new HashSet<>(Arrays.asList(PluginEnum.DIVIDE.getName(), PluginEnum.WEB_SOCKET.getName()));
 
     private final Lister<V1Ingress> ingressLister;
 
@@ -101,17 +105,31 @@ public class EndpointsReconciler implements Reconciler {
             return new Result(false);
         }
 
-        // 1. Obtain upstream according to endpoints
-        List<DivideUpstream> upstreamList = getUpstreamFromEndpoints(v1Endpoints);
+        updateSelectors(ingressList, PluginEnum.DIVIDE.getName(), getDivideUpstreamFromEndpoints(v1Endpoints));
+        updateSelectors(ingressList, PluginEnum.WEB_SOCKET.getName(), getWebSocketUpstreamFromEndpoints(v1Endpoints));
+        LOG.info("Update selector for endpoint {}", request);
 
-        // 2. Update the handler of the selector
-        List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(PluginEnum.DIVIDE.getName());
+        return new Result(false);
+    }
+
+    private void updateSelectors(final List<Pair<String, String>> ingressList, final String pluginName, final String handle) {
+        if (!ENDPOINT_UPSTREAM_PLUGINS.contains(pluginName)) {
+            return;
+        }
+        List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(pluginName);
+        if (CollectionUtils.isEmpty(totalSelectors)) {
+            return;
+        }
         Set<String> needUpdateSelectorId = new HashSet<>();
-        //TODO Adaptation of other plugins
         ingressList.forEach(item -> {
-            List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), PluginEnum.DIVIDE.getName());
-            needUpdateSelectorId.addAll(selectorIdList);
+            List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), pluginName);
+            if (CollectionUtils.isNotEmpty(selectorIdList)) {
+                needUpdateSelectorId.addAll(selectorIdList);
+            }
         });
+        if (needUpdateSelectorId.isEmpty()) {
+            return;
+        }
         totalSelectors.forEach(selectorData -> {
             if (needUpdateSelectorId.contains(selectorData.getId())) {
                 SelectorData newSelectorData = SelectorData.builder().id(selectorData.getId())
@@ -124,19 +142,45 @@ public class EndpointsReconciler implements Reconciler {
                         .enabled(selectorData.getEnabled())
                         .logged(selectorData.getLogged())
                         .continued(selectorData.getContinued())
-                        .handle(GsonUtils.getInstance().toJson(upstreamList))
+                        .handle(handle)
                         .conditionList(selectorData.getConditionList())
                         .matchRestful(selectorData.getMatchRestful()).build();
                 shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
             }
         });
-        LOG.info("Update selector for endpoint {}", request);
-
-        return new Result(false);
     }
 
-    private List<DivideUpstream> getUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
+    private String getDivideUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
         List<DivideUpstream> res = new ArrayList<>();
+        endpointAddresses(v1Endpoints).forEach(pair -> {
+            DivideUpstream upstream = new DivideUpstream();
+            upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
+            upstream.setWeight(100);
+            // TODO support config protocol in annotation
+            upstream.setProtocol("http://");
+            upstream.setWarmup(0);
+            upstream.setStatus(true);
+            upstream.setUpstreamHost("");
+            res.add(upstream);
+        });
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private String getWebSocketUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
+        List<WebSocketUpstream> res = new ArrayList<>();
+        endpointAddresses(v1Endpoints).forEach(pair -> res.add(WebSocketUpstream.builder()
+                .upstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight())
+                .weight(100)
+                .protocol("ws://")
+                .warmup(0)
+                .status(true)
+                .host("")
+                .build()));
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints) {
+        List<Pair<V1EndpointAddress, String>> res = new ArrayList<>();
         List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
         if (CollectionUtils.isNotEmpty(subsets)) {
             for (V1EndpointSubset subset : subsets) {
@@ -159,17 +203,8 @@ public class EndpointsReconciler implements Reconciler {
                     }
                 }
                 for (V1EndpointAddress address : addresses) {
-                    String ip = address.getIp();
-                    if (Objects.nonNull(ip)) {
-                        DivideUpstream upstream = new DivideUpstream();
-                        upstream.setUpstreamUrl(ip + ":" + port);
-                        upstream.setWeight(100);
-                        // TODO support config protocol in annotation
-                        upstream.setProtocol("http://");
-                        upstream.setWarmup(0);
-                        upstream.setStatus(true);
-                        upstream.setUpstreamHost("");
-                        res.add(upstream);
+                    if (Objects.nonNull(address.getIp()) && Objects.nonNull(port)) {
+                        res.add(Pair.of(address, port));
                     }
                 }
             }
