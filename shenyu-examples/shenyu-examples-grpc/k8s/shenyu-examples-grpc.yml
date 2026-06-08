@@ -55,7 +55,7 @@ spec:
               command:
                 - /bin/sh
                 - "-c"
-                - wget -q -O - http://localhost:55290/actuator/health | grep UP || exit 1
+                - wget -q -O - http://localhost:55290/grpc/actuator/health | grep UP || exit 1
           env:
             - name: shenyu.register.serverLists
               value: http://shenyu-admin:9095
