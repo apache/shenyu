@@ -1,0 +1,63 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 'Setup Java With Retry'
+description: 'Retries actions/setup-java to reduce transient GitHub release download failures.'
+inputs:
+  java-version:
+    description: 'Java version to install.'
+    required: true
+  distribution:
+    description: 'Java distribution to install.'
+    required: false
+    default: 'temurin'
+  cache:
+    description: 'Package manager cache to use.'
+    required: false
+    default: ''
+  cache-dependency-path:
+    description: 'Dependency file path for cache key generation.'
+    required: false
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Java attempt 1
+      id: setup-java-1
+      uses: actions/setup-java@v4
+      continue-on-error: true
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+    - name: Setup Java attempt 2
+      id: setup-java-2
+      if: steps.setup-java-1.outcome == 'failure'
+      uses: actions/setup-java@v4
+      continue-on-error: true
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+    - name: Setup Java attempt 3
+      if: steps.setup-java-1.outcome == 'failure' && steps.setup-java-2.outcome == 'failure'
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}

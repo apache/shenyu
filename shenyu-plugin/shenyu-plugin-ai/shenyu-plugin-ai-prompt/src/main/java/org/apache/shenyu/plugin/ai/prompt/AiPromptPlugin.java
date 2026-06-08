@@ -111,7 +111,7 @@ public class AiPromptPlugin extends AbstractShenyuPlugin {
             prependMap.put(Constants.ROLE, aiPromptConfig.getPreRole());
             decoratedMessages.add(prependMap);
         }
-        decoratedMessages.add(messages.get(0));
+        decoratedMessages.addAll(messages);
         // If append in aiPromptConfig is not empty, add append to the end of message body
         if (Objects.nonNull(aiPromptConfig.getAppend()) && Objects.nonNull(aiPromptConfig.getPostRole())) {
             // Assemble append content role
