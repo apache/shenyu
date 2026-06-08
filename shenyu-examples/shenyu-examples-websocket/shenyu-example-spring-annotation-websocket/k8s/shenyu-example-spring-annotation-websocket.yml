@@ -38,7 +38,7 @@ spec:
         - image: shenyu-example-spring-annotation-websocket
           name: shenyu-example-spring-annotation-websocket
           livenessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
