@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -67,12 +68,10 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Future<Map<String, Object>> first = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Future<Map<String, Object>> second = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Map<String, Object> firstResult = first.get();
-        Map<String, Object> secondResult = second.get();
-        Set<String> messages = toMessages(firstResult, secondResult);
-        assertThat(messages.contains("pass"), is(true));
+        Map<String, Object> allowedResult = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        assertThat(messageOf(allowedResult), is("pass"));
+
+        Set<String> messages = toMessages(submitConcurrentRequests(returnType));
         assertThat(messages.contains("You have been restricted, please try again later!"), is(true));
     }
 
@@ -84,39 +83,63 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Future<Map<String, Object>> first = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Future<Map<String, Object>> second = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Map<String, Object> firstResult = first.get();
-        Map<String, Object> secondResult = second.get();
-        Set<String> messages = toMessages(firstResult, secondResult);
-        Set<Integer> codes = toCodes(firstResult, secondResult);
-        assertThat(messages.contains("pass"), is(true));
+        Map<String, Object> allowedResult = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
+        assertThat(messageOf(allowedResult), is("pass"));
+
+        List<Map<String, Object>> limitedResults = submitConcurrentRequests(returnType);
+        Set<String> messages = toMessages(limitedResults);
+        Set<Integer> codes = toCodes(limitedResults);
         assertThat(codes.contains(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getCode()), is(true));
         assertThat(messages.contains(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getMsg()), is(true));
     }
 
-    private static Set<String> toMessages(final Map<String, Object>... results) {
+    private List<Map<String, Object>> submitConcurrentRequests(final Type returnType) throws ExecutionException, InterruptedException {
+        List<Future<Map<String, Object>>> futures = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            futures.add(this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType)));
+        }
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Future<Map<String, Object>> future : futures) {
+            results.add(future.get());
+        }
+        return results;
+    }
+
+    private static Set<String> toMessages(final List<Map<String, Object>> results) {
         Set<String> messages = new HashSet<>();
         for (Map<String, Object> result : results) {
-            assertNotNull(result);
-            Object msg = result.containsKey("msg") ? result.get("msg") : result.get("message");
-            if (msg instanceof String) {
-                messages.add((String) msg);
-            }
+            addMessage(messages, result);
         }
         return messages;
     }
 
-    private static Set<Integer> toCodes(final Map<String, Object>... results) {
+    private static Set<Integer> toCodes(final List<Map<String, Object>> results) {
         Set<Integer> codes = new HashSet<>();
         for (Map<String, Object> result : results) {
-            assertNotNull(result);
-            Object code = result.get("code");
-            if (code instanceof Number) {
-                codes.add(((Number) code).intValue());
-            }
+            addCode(codes, result);
         }
         return codes;
+    }
+
+    private static void addMessage(final Set<String> messages, final Map<String, Object> result) {
+        Object msg = messageOf(result);
+        if (msg instanceof String) {
+            messages.add((String) msg);
+        }
+    }
+
+    private static void addCode(final Set<Integer> codes, final Map<String, Object> result) {
+        assertNotNull(result);
+        Object code = result.get("code");
+        if (code instanceof Number) {
+            codes.add(((Number) code).intValue());
+        }
+    }
+
+    private static Object messageOf(final Map<String, Object> result) {
+        assertNotNull(result);
+        return result.containsKey("msg") ? result.get("msg") : result.get("message");
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
