@@ -123,10 +123,10 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             return;
         }
         if (MapUtils.isNotEmpty(shenyuReqHeader.getAddHeaders())) {
-            shenyuReqHeader.getAddHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
+            shenyuReqHeader.getAddHeaders().entrySet().forEach(s -> this.addHeader(s, headers));
         }
         if (MapUtils.isNotEmpty(shenyuReqHeader.getSetHeaders())) {
-            shenyuReqHeader.getSetHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
+            shenyuReqHeader.getSetHeaders().entrySet().forEach(s -> this.setHeader(s, headers));
         }
         if (MapUtils.isNotEmpty(shenyuReqHeader.getReplaceHeaderKeys())) {
             shenyuReqHeader.getReplaceHeaderKeys().entrySet().forEach(s -> this.replaceHeaderKey(s, headers));
@@ -145,15 +145,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
      */
     private MultiValueMap<String, HttpCookie> getCookies(final ServerHttpRequest request, final RequestHandle requestHandle) {
         RequestHandle.ShenyuCookie shenyuCookie = requestHandle.getCookie();
-        MultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>(request.getCookies());
+        MultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();
+        cookies.addAll(request.getCookies());
         if (Objects.isNull(shenyuCookie)) {
             return cookies;
         }
         if (MapUtils.isNotEmpty(shenyuCookie.getAddCookies())) {
-            shenyuCookie.getAddCookies().entrySet().forEach(s -> this.fillCookie(s, cookies));
+            shenyuCookie.getAddCookies().entrySet().forEach(s -> this.addCookie(s, cookies));
         }
         if (MapUtils.isNotEmpty(shenyuCookie.getSetCookies())) {
-            shenyuCookie.getSetCookies().entrySet().forEach(s -> this.fillCookie(s, cookies));
+            shenyuCookie.getSetCookies().entrySet().forEach(s -> this.setCookie(s, cookies));
         }
         if (MapUtils.isNotEmpty(shenyuCookie.getReplaceCookieKeys())) {
             shenyuCookie.getReplaceCookieKeys().entrySet().forEach(s -> this.replaceCookieKey(s, cookies));
@@ -173,15 +174,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
      */
     private MultiValueMap<String, String> getQueryParams(final ServerHttpRequest request, final RequestHandle requestHandle) {
         RequestHandle.ShenyuRequestParameter shenyuReqParameter = requestHandle.getParameter();
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.addAll(request.getQueryParams());
         if (Objects.isNull(shenyuReqParameter)) {
             return queryParams;
         }
         if (MapUtils.isNotEmpty(shenyuReqParameter.getAddParameters())) {
-            shenyuReqParameter.getAddParameters().entrySet().forEach(s -> this.fillParameter(s, queryParams));
+            shenyuReqParameter.getAddParameters().entrySet().forEach(s -> this.addParameter(s, queryParams));
         }
         if (MapUtils.isNotEmpty(shenyuReqParameter.getSetParameters())) {
-            shenyuReqParameter.getSetParameters().entrySet().forEach(s -> this.fillParameter(s, queryParams));
+            shenyuReqParameter.getSetParameters().entrySet().forEach(s -> this.setParameter(s, queryParams));
         }
         if (MapUtils.isNotEmpty(shenyuReqParameter.getReplaceParameterKeys())) {
             shenyuReqParameter.getReplaceParameterKeys().entrySet().forEach(s -> this.replaceParameterKey(s, queryParams));
@@ -200,7 +202,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         }
     }
 
-    private void fillParameter(final Map.Entry<String, String> shenyuParam, final MultiValueMap<String, String> queryParams) {
+    private void addParameter(final Map.Entry<String, String> shenyuParam, final MultiValueMap<String, String> queryParams) {
+        queryParams.add(shenyuParam.getKey(), shenyuParam.getValue());
+    }
+
+    private void setParameter(final Map.Entry<String, String> shenyuParam, final MultiValueMap<String, String> queryParams) {
         queryParams.set(shenyuParam.getKey(), shenyuParam.getValue());
     }
 
@@ -213,7 +219,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         }
     }
 
-    private void fillCookie(final Map.Entry<String, String> shenyuCookie, final MultiValueMap<String, HttpCookie> cookies) {
+    private void addCookie(final Map.Entry<String, String> shenyuCookie, final MultiValueMap<String, HttpCookie> cookies) {
+        cookies.add(shenyuCookie.getKey(), new HttpCookie(shenyuCookie.getKey(), shenyuCookie.getValue()));
+    }
+
+    private void setCookie(final Map.Entry<String, String> shenyuCookie, final MultiValueMap<String, HttpCookie> cookies) {
         cookies.set(shenyuCookie.getKey(), new HttpCookie(shenyuCookie.getKey(), shenyuCookie.getValue()));
     }
 
@@ -225,7 +235,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         }
     }
 
-    private void fillHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
+    private void addHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
+        headers.add(shenyuHeader.getKey(), shenyuHeader.getValue());
+    }
+
+    private void setHeader(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         headers.set(shenyuHeader.getKey(), shenyuHeader.getValue());
     }
 }
