@@ -139,6 +139,10 @@ shenyu:
 #          - domain: 'example.com'
 #            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
 #            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+      httpDecoder:
+        maxInitialLineLength: 4096
+        maxHeaderSize: 8192
+        maxChunkSize: 8192
 #  httpclient:
 #    strategy: netty # webClient
 #    connectTimeout: 45000
