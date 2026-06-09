@@ -51,7 +51,7 @@ services:
     volumes:
       - /tmp/shenyu-e2e/mysql/schema/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: [ "CMD", "mysql", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
+      test: [ "CMD", "mysql", "-h", "127.0.0.1", "-P", "3306", "-u", "root", "-pshenyue2e", "-e", "SELECT 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
