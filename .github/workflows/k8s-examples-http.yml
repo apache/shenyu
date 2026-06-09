@@ -60,13 +60,28 @@ jobs:
       - name: Install k8s
         if: steps.filter.outputs.k8s-examples == 'true'
         run: |
-          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+          install_k3s() {
+            curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.6+k3s2 K3S_KUBECONFIG_MODE=777 sh -
+          }
+
+          for attempt in 1 2 3; do
+            if install_k3s; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo "k3s install failed after $attempt attempts"
+              exit 1
+            fi
+            echo "k3s install failed on attempt $attempt"
+            sleep $((attempt * 15))
+          done
+
           cat /etc/rancher/k3s/k3s.yaml
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
       - name: Setup Java and Maven cache
         if: steps.filter.outputs.k8s-examples == 'true'
-        uses: actions/setup-java@v4
+        uses: ./actions/setup-java-with-retry
         with:
           java-version: 17
           distribution: "temurin"
