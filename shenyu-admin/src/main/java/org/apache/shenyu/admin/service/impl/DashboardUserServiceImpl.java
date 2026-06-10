@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.service.PasswordHashService;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -69,6 +70,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
+import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -108,6 +110,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final NamespaceUserService namespaceUserService;
 
+    private final PasswordHashService passwordHashService;
+
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                     final UserRoleMapper userRoleMapper,
                                     final RoleMapper roleMapper,
@@ -117,7 +121,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                                     final UserEventPublisher publisher,
                                     final DashboardProperties properties,
                                     final SecretProperties secretProperties,
-                                    final NamespaceUserService namespaceUserService) {
+                                    final NamespaceUserService namespaceUserService,
+                                    final PasswordHashService passwordHashService) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
@@ -128,6 +133,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         this.properties = properties;
         this.secretProperties = secretProperties;
         this.namespaceUserService = namespaceUserService;
+        this.passwordHashService = passwordHashService;
     }
 
     /**
@@ -365,7 +371,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserModifyPasswordDTO.getId());
         Assert.notNull(before, "current user is not found");
         Assert.isTrue(Boolean.TRUE.equals(before.getEnabled()), "current user is locked");
-        Assert.isTrue(Objects.equals(before.getPassword(), dashboardUserModifyPasswordDTO.getOldPassword()), "old password is error");
+        Assert.isTrue(matchesPassword(dashboardUserModifyPasswordDTO.getOldPassword(), before.getPassword()), "old password is error");
+
+        dashboardUserModifyPasswordDTO.setPassword(passwordHashService.encode(dashboardUserModifyPasswordDTO.getPassword()));
 
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
@@ -401,13 +409,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     RoleDO role = roleMapper.findByRoleName("default");
                     DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                             .userName(userName)
-                            .password(DigestUtils.sha512Hex(password))
+                            .password(passwordHashService.encode(password))
                             .role(1)
                             .roles(Lists.newArrayList(role.getId()))
                             .enabled(true)
                             .build();
                     createOrUpdate(dashboardUserDTO);
                     dashboardUserVO = DashboardUserTransfer.INSTANCE.transferDTO2VO(dashboardUserDTO);
+                } else {
+                    dashboardUserVO = upgradeLegacyPasswordIfNeeded(dashboardUserVO, password);
                 }
             }
             return dashboardUserVO;
@@ -420,7 +430,37 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
-        return findByQuery(userName, DigestUtils.sha512Hex(password));
+        DashboardUserVO dashboardUserVO = findByUserName(userName);
+        if (Objects.isNull(dashboardUserVO)) {
+            return null;
+        }
+        if (passwordHashService.matches(password, dashboardUserVO.getPassword())) {
+            return dashboardUserVO;
+        }
+        if (passwordHashService.matchesLegacySha512(password, dashboardUserVO.getPassword())) {
+            return upgradeLegacyPasswordIfNeeded(dashboardUserVO, password);
+        }
+        return null;
+    }
+
+    private DashboardUserVO upgradeLegacyPasswordIfNeeded(final DashboardUserVO dashboardUserVO, final String password) {
+        if (Objects.isNull(dashboardUserVO) || !passwordHashService.matchesLegacySha512(password, dashboardUserVO.getPassword())) {
+            return dashboardUserVO;
+        }
+        String encodedPassword = passwordHashService.encode(password);
+        DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                .id(dashboardUserVO.getId())
+                .password(encodedPassword)
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        dashboardUserMapper.updateSelective(dashboardUserDO);
+        dashboardUserVO.setPassword(encodedPassword);
+        return dashboardUserVO;
+    }
+
+    private boolean matchesPassword(final String rawPassword, final String storedPasswordHash) {
+        return passwordHashService.matches(rawPassword, storedPasswordHash)
+                || passwordHashService.matchesLegacySha512(rawPassword, storedPasswordHash);
     }
 
     /**

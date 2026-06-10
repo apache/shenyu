@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -107,6 +108,9 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private NamespaceUserService namespaceUserService;
+
+    @Mock
+    private PasswordHashService passwordHashService;
 
     @Test
     public void testCreateOrUpdate() {
@@ -205,25 +209,25 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
 
-        when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
+        when(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).thenReturn(dashboardUserDO);
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
-        given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
-
         // test loginByLdap
         LdapProperties ldapProperties = new LdapProperties();
         ldapProperties.setBaseDn("test");
         ReflectionTestUtils.setField(dashboardUserService, "ldapProperties", ldapProperties);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
+        given(passwordHashService.matches(TEST_PASSWORD, TEST_PASSWORD)).willReturn(true);
         LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
-        assertEquals(DigestUtils.sha512Hex(TEST_PASSWORD), loginDashboardUserVO.getPassword());
+        assertEquals(TEST_PASSWORD, loginDashboardUserVO.getPassword());
 
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        given(passwordHashService.matches(TEST_PASSWORD, TEST_PASSWORD)).willReturn(true);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
-        verify(dashboardUserMapper).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper, times(2)).selectByUserName(eq(TEST_USER_NAME));
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
-        verify(dashboardUserMapper, times(2)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper, times(3)).selectByUserName(eq(TEST_USER_NAME));
 
         // test loginByDatabase AES password
         SecretProperties secretPropertiesTmp = new SecretProperties();
@@ -231,20 +235,58 @@ public final class DashboardUserServiceTest {
         secretPropertiesTmp.setIv(TEST_AES_IV);
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretPropertiesTmp);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        given(passwordHashService.matches(TEST_PASSWORD, TEST_PASSWORD)).willReturn(true);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt(TEST_AES_KEY, TEST_AES_IV, TEST_PASSWORD), null));
-        verify(dashboardUserMapper, times(3)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper, times(4)).selectByUserName(eq(TEST_USER_NAME));
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, AesUtils.cbcEncrypt(TEST_AES_KEY, TEST_AES_IV, TEST_PASSWORD), null));
-        verify(dashboardUserMapper, times(4)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper, times(5)).selectByUserName(eq(TEST_USER_NAME));
 
         // test loginByDatabase plain password fallback when secret endpoint does not provide key material
+        given(passwordHashService.matches(TEST_PASSWORD, TEST_PASSWORD)).willReturn(true);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
-        verify(dashboardUserMapper, times(5)).findByQuery(eq(TEST_USER_NAME), anyString());
+        verify(dashboardUserMapper, times(6)).selectByUserName(eq(TEST_USER_NAME));
 
+    }
+
+    @Test
+    public void testLoginMigratesLegacySha512Password() {
+        ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
+        ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        DashboardUserDO legacyUser = createDashboardUserDO();
+        legacyUser.setPassword(DigestUtils.sha512Hex(TEST_PASSWORD));
+        when(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).thenReturn(legacyUser);
+        given(passwordHashService.matches(TEST_PASSWORD, legacyUser.getPassword())).willReturn(false);
+        given(passwordHashService.matchesLegacySha512(TEST_PASSWORD, legacyUser.getPassword())).willReturn(true);
+        given(passwordHashService.encode(TEST_PASSWORD)).willReturn("bcrypt-encoded");
+
+        LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null);
+        assertEquals("bcrypt-encoded", loginDashboardUserVO.getPassword());
+        verify(dashboardUserMapper).updateSelective(argThat(user ->
+                TEST_ID.equals(user.getId())
+                        && "bcrypt-encoded".equals(user.getPassword())
+                        && user.getDateUpdated() != null));
+    }
+
+    @Test
+    public void testModifyPasswordAcceptsLegacySha512OldPassword() {
+        DashboardUserDO legacyUser = createDashboardUserDO();
+        legacyUser.setPassword(DigestUtils.sha512Hex("oldPassword"));
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(legacyUser);
+        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+        given(passwordHashService.matches("oldPassword", legacyUser.getPassword())).willReturn(false);
+        given(passwordHashService.matchesLegacySha512("oldPassword", legacyUser.getPassword())).willReturn(true);
+        given(passwordHashService.encode("newPassword")).willReturn("bcrypt-new-password");
+
+        assertEquals(1, dashboardUserService.modifyPassword(
+                new org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO(TEST_ID, TEST_USER_NAME, "newPassword", "oldPassword")));
+        verify(dashboardUserMapper).updateSelective(argThat(user ->
+                TEST_ID.equals(user.getId()) && "bcrypt-new-password".equals(user.getPassword())));
     }
 
     private DashboardUserDO createDashboardUserDO() {
         return DashboardUserDO.builder()
                 .id(TEST_ID).userName(TEST_USER_NAME).password(TEST_PASSWORD)
+                .enabled(true)
                 .dateCreated(new Timestamp(System.currentTimeMillis()))
                 .dateUpdated(new Timestamp(System.currentTimeMillis()))
                 .build();

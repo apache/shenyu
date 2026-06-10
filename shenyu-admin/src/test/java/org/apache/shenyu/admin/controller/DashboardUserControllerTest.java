@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.service.PasswordHashService;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -49,9 +50,11 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -73,6 +76,9 @@ public final class DashboardUserControllerTest {
 
     @Mock
     private DashboardUserService dashboardUserService;
+
+    @Mock
+    private PasswordHashService passwordHashService;
 
     private final DashboardUserVO dashboardUserVO = new DashboardUserVO("id",
             "userName",
@@ -136,6 +142,7 @@ public final class DashboardUserControllerTest {
     @Test
     public void createDashboardUser() throws Exception {
         final String url = "/dashboardUser";
+        given(passwordHashService.encode("Admin@123")).willReturn("$2b$12$encoded-create");
         given(dashboardUserService.createOrUpdate(any())).willReturn(1);
         mockMvc.perform(post(url, dashboardUserDTO)
                 .content(GsonUtils.getInstance().toJson(dashboardUserDTO))
@@ -144,11 +151,13 @@ public final class DashboardUserControllerTest {
                 .andDo(print())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
+        verify(dashboardUserService).createOrUpdate(argThat(dto -> "$2b$12$encoded-create".equals(dto.getPassword())));
     }
 
     @Test
     public void updateDashboardUser() throws Exception {
         final String url = "/dashboardUser/2";
+        given(passwordHashService.encode("Admin@123")).willReturn("$2b$12$encoded-update");
         given(dashboardUserService.createOrUpdate(any())).willReturn(1);
         mockMvc.perform(put(url, dashboardUserDTO)
                 .content(GsonUtils.getInstance().toJson(dashboardUserDTO))
@@ -157,6 +166,7 @@ public final class DashboardUserControllerTest {
                 .andDo(print())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
+        verify(dashboardUserService).createOrUpdate(argThat(dto -> "$2b$12$encoded-update".equals(dto.getPassword())));
     }
 
     @Test
