@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.mcp.server.request;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;
 
+import java.util.Objects;
+
 /**
  * Helper class for parsing and handling requestConfig.
  */
@@ -51,7 +53,15 @@ public class RequestConfigHelper {
      * @return the argument position json object
      */
     public JsonObject getArgsPosition() {
-        return configJson.has("argsPosition") ? configJson.getAsJsonObject("argsPosition") : new JsonObject();
+        if (configJson.has("argsPosition")) {
+            return configJson.getAsJsonObject("argsPosition");
+        }
+        // Backward compatibility for configs generated with nested argsPosition.
+        JsonObject requestTemplate = getRequestTemplate();
+        if (Objects.nonNull(requestTemplate) && requestTemplate.has("argsPosition")) {
+            return requestTemplate.getAsJsonObject("argsPosition");
+        }
+        return new JsonObject();
     }
 
     /**

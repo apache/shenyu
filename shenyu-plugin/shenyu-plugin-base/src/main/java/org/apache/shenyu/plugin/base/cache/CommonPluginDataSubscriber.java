@@ -25,14 +25,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
-import org.apache.shenyu.common.enums.TrieEventEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.event.TrieEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,8 +149,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         LOG.debug("start refresh all selector data");
         BaseDataCache.getInstance().cleanSelectorData();
         MatchDataCache.getInstance().cleanSelectorData();
-        ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
-        selectorTrie.clear();
     }
     
     @Override
@@ -183,8 +176,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         LOG.debug("start refresh all rule data");
         BaseDataCache.getInstance().cleanRuleData();
         MatchDataCache.getInstance().cleanRuleDataData();
-        ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
-        ruleTrie.clear();
     }
     
     @Override
@@ -252,7 +243,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
                 MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
             }
-            updateSelectorTrieCache(selectorData);
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().cacheRuleData(ruleData);
@@ -262,7 +252,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
                 MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
             }
-            updateRuleTrieCache(ruleData);
         }
     }
 
@@ -305,10 +294,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
                 MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
             }
-            // remove selector trie cache
-            if (selectorMatchConfig.getTrie().getEnabled()) {
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.SELECTOR, selectorData));
-            }
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
@@ -318,41 +303,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
                 MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
             }
-            if (ruleMatchCacheConfig.getTrie().getEnabled()) {
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.RULE, ruleData));
-            }
         }
     }
-    
-    private void updateSelectorTrieCache(final SelectorData selectorData) {
-        if (!selectorMatchConfig.getTrie().getEnabled()) {
-            return;
-        }
-        if (Boolean.TRUE.equals(selectorData.getEnabled())) {
-            if (CollectionUtils.isEmpty(selectorData.getBeforeConditionList())) {
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.INSERT, TrieCacheTypeEnum.SELECTOR, selectorData));
-            } else {
-                // if selector data has before condition, update trie
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.UPDATE, TrieCacheTypeEnum.SELECTOR, selectorData));
-            }
-        } else {
-            eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.SELECTOR, selectorData));
-        }
-    }
-    
-    private void updateRuleTrieCache(final RuleData ruleData) {
-        if (!ruleMatchCacheConfig.getTrie().getEnabled()) {
-            return;
-        }
-        if (Boolean.TRUE.equals(ruleData.getEnabled())) {
-            if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.INSERT, TrieCacheTypeEnum.RULE, ruleData));
-            } else {
-                // if rule data has before condition, update trie
-                eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.UPDATE, TrieCacheTypeEnum.RULE, ruleData));
-            }
-        } else {
-            eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.RULE, ruleData));
-        }
-    }
+
 }

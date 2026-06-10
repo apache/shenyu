@@ -46,6 +46,7 @@ public final class GrpcUpstream extends CommonUpstream {
         setStatus(statusValue);
         setTimestamp(builder.timestamp);
         setNamespaceId(builder.namespaceId);
+        setHealthCheckEnabled(builder.healthCheckEnabled);
     }
 
     /**
@@ -164,6 +165,11 @@ public final class GrpcUpstream extends CommonUpstream {
         private String namespaceId;
 
         /**
+         * health check enabled.
+         */
+        private boolean healthCheckEnabled = true;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -253,6 +259,17 @@ public final class GrpcUpstream extends CommonUpstream {
          */
         public Builder namespaceId(final String namespaceId) {
             this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
+         * build healthCheckEnabled.
+         *
+         * @param healthCheckEnabled healthCheckEnabled
+         * @return this
+         */
+        public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
+            this.healthCheckEnabled = healthCheckEnabled;
             return this;
         }
     }

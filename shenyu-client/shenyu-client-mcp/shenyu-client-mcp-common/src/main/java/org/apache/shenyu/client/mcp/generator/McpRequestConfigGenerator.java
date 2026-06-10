@@ -60,11 +60,10 @@ public class McpRequestConfigGenerator {
         requestTemplate.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
 
         // argsPosition
+        JsonObject argsPosition = new JsonObject();
         JsonObject methodTypeJson = method.getAsJsonObject(methodType);
         JsonArray parameters = methodTypeJson.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
         if (Objects.nonNull(parameters)) {
-            JsonObject argsPosition = new JsonObject();
-
             for (JsonElement parameter : parameters) {
                 JsonObject paramObj = parameter.getAsJsonObject();
 
@@ -77,8 +76,11 @@ public class McpRequestConfigGenerator {
                     argsPosition.addProperty(name, inValue);
                 }
             }
-            requestTemplate.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition);
         }
+        // Keep root-level argsPosition as canonical format used by gateway parser.
+        root.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition.deepCopy());
+        // Keep requestTemplate-level argsPosition for backward compatibility.
+        requestTemplate.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition);
 
         // argsToJsonBody
         requestTemplate.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.getBodyToJson());

@@ -50,3 +50,6 @@ Thumbs.db
 
 # Private individual user cursor rules
 .cursor/rules/_*.mdc
+
+# local worktrees
+.worktrees/

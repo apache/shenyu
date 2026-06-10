@@ -246,9 +246,13 @@ public class CommonUpstreamUtils {
         return Optional.ofNullable(upstreamList)
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(upstream -> new CommonUpstream(upstream.getProtocol(),
-                        upstream.getUpstreamHost(), upstream.getUpstreamUrl(),
-                        upstream.isStatus(), upstream.getTimestamp()))
+                .map(upstream -> {
+                    CommonUpstream commonUpstream = new CommonUpstream(upstream.getProtocol(),
+                            upstream.getUpstreamHost(), upstream.getUpstreamUrl(),
+                            upstream.isStatus(), upstream.getTimestamp());
+                    commonUpstream.setHealthCheckEnabled(upstream.isHealthCheckEnabled());
+                    return commonUpstream;
+                })
                 .collect(Collectors.toList());
     }
 

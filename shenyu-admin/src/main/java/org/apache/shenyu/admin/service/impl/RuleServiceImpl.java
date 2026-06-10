@@ -112,12 +112,22 @@ public class RuleServiceImpl implements RuleService {
         }
     }
 
+
     @Override
     public PageInfo<RuleVO> searchByPage(final PageCondition<RuleQueryCondition> pageCondition) {
         RuleQueryCondition condition = pageCondition.getCondition();
         doConditionPreProcessing(condition);
-        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         condition.init();
+
+        if (CollectionUtils.isEmpty(condition.getSelectors())) {
+            // Populate selectors from the namespace only when condition selectors are null or empty.
+            List<String> namespaceSelectors = Optional.ofNullable(selectorMapper.selectAllByNamespaceId(condition.getNamespaceId()))
+                    .map(list -> list.stream().map(SelectorDO::getId).collect(Collectors.toList()))
+                    .orElse(Collections.emptyList());
+            condition.setSelectors(namespaceSelectors);
+        }
+
+        PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         final Page<RuleDO> doList = CastUtils.cast(ruleMapper.selectByCondition(condition));
         PageInfo<RuleVO> doPageInfo = doList.toPageInfo(RuleVO::buildRuleVO);
         for (RuleVO rule : doPageInfo.getList()) {
@@ -253,12 +263,12 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleVO> listAllData() {
         return this.buildRuleVOList(ruleMapper.selectAll());
     }
-    
+
     @Override
     public List<RuleVO> listAllDataByNamespaceId(final String namespaceId) {
         return this.buildRuleVOList(ruleMapper.selectAllByNamespaceId(namespaceId));
     }
-    
+
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
         return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));
@@ -322,7 +332,7 @@ public class RuleServiceImpl implements RuleService {
         }
         return ConfigImportResult.success(successCount);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<RuleDTO> ruleList, final ConfigsImportContext context) {
@@ -334,7 +344,7 @@ public class RuleServiceImpl implements RuleService {
                 .selectAllByNamespaceId(namespace)
                 .stream()
                 .collect(Collectors.groupingBy(RuleDO::getSelectorId));
-        
+
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (RuleDTO ruleDTO : ruleList) {
@@ -353,7 +363,7 @@ public class RuleServiceImpl implements RuleService {
                     .stream()
                     .map(RuleDO::getRuleName)
                     .collect(Collectors.toSet());
-            
+
             if (existRuleNameSet.contains(ruleName)) {
                 errorMsgBuilder
                         .append(ruleName)
@@ -367,10 +377,10 @@ public class RuleServiceImpl implements RuleService {
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             Optional.ofNullable(ruleDTO.getRuleConditions())
-                            .orElse(Collections.emptyList()).forEach(c -> {
-                                c.setRuleId(ruleId);
-                                c.setId(null);
-                            });
+                    .orElse(Collections.emptyList()).forEach(c -> {
+                        c.setRuleId(ruleId);
+                        c.setId(null);
+                    });
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
                 successCount++;

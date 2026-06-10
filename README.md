@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="https://shenyu.apache.org/docs/index" >
+  <a href="https://shenyu.apache.org/docs/">
     <img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN docs" />
   </a>
-  <a href="https://shenyu.apache.org/zh/docs/index">
+  <a href="https://shenyu.apache.org/zh/docs/">
     <img src="https://img.shields.io/badge/文档-简体中文-blue.svg" alt="简体中文文档" />
   </a>
 </p>
@@ -78,7 +78,7 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, Motan, SOFA, TARS, WebSocket, MQTT
+* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, SOFA, TARS, WebSocket, MQTT
 * Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
 * API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
 * Observability: Tracing, metrics, logging plugin

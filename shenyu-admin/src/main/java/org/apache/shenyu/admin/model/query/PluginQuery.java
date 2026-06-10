@@ -35,6 +35,11 @@ public class PluginQuery implements Serializable {
     private String name;
 
     /**
+     * plugin role.
+     */
+    private String role;
+
+    /**
      * plugin enabled.
      */
     private Integer enabled;
@@ -50,6 +55,13 @@ public class PluginQuery implements Serializable {
     public PluginQuery(final String name, final Integer enabled, final PageParameter pageParameter) {
         this.name = name;
         this.enabled = enabled;
+        this.pageParameter = pageParameter;
+    }
+
+    public PluginQuery(final String name, final Integer enabled, final String role, final PageParameter pageParameter) {
+        this.name = name;
+        this.enabled = enabled;
+        this.role = role;
         this.pageParameter = pageParameter;
     }
 
@@ -87,6 +99,24 @@ public class PluginQuery implements Serializable {
      */
     public void setEnabled(final Integer enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * Gets the value of role.
+     *
+     * @return the value of role
+     */
+    public String getRole() {
+        return role;
+    }
+
+    /**
+     * Sets the role.
+     *
+     * @param role role
+     */
+    public void setRole(final String role) {
+        this.role = role;
     }
 
     /**

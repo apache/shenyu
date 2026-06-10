@@ -60,6 +60,11 @@ public class CommonUpstream {
     private boolean gray;
 
     /**
+     * health check enabled.
+     */
+    private boolean healthCheckEnabled = true;
+
+    /**
      * Instantiates a new Common upstream.
      */
     public CommonUpstream() {
@@ -210,6 +215,24 @@ public class CommonUpstream {
     }
 
     /**
+     * get healthCheckEnabled.
+     *
+     * @return healthCheckEnabled
+     */
+    public boolean isHealthCheckEnabled() {
+        return healthCheckEnabled;
+    }
+
+    /**
+     * set healthCheckEnabled.
+     *
+     * @param healthCheckEnabled healthCheckEnabled
+     */
+    public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
+        this.healthCheckEnabled = healthCheckEnabled;
+    }
+
+    /**
      * set namespaceId.
      *
      * @param namespaceId namespaceId
@@ -231,12 +254,13 @@ public class CommonUpstream {
                 && Objects.equals(protocol, that.protocol)
                 && Objects.equals(gray, that.gray)
                 && Objects.equals(upstreamUrl, that.upstreamUrl)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(healthCheckEnabled, that.healthCheckEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray);
+        return Objects.hash(upstreamHost, protocol, upstreamUrl, namespaceId, gray, healthCheckEnabled);
     }
 
     @Override
@@ -259,6 +283,8 @@ public class CommonUpstream {
                 + namespaceId
                 + ", gray="
                 + gray
+                + ", healthCheckEnabled="
+                + healthCheckEnabled
                 + '}';
     }
 }

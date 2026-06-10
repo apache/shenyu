@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -175,6 +176,21 @@ public class SpringMvcClientEventListenerTest {
         init();
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
         Assert.assertThrows(ShenyuException.class, () -> springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent));
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testOnApplicationEventFullModeShouldRegisterOnce() {
+        try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
+            ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
+            publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+            SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
+            ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
+            springMvcClientEventListener.onApplicationEvent(event);
+            springMvcClientEventListener.onApplicationEvent(event);
+            verify(publisher, times(1)).start(any());
+            verify(publisher, times(2)).publishEvent(any());
+        }
         registerUtilsMockedStatic.close();
     }
 

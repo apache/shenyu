@@ -87,6 +87,22 @@ class McpServerPluginDataHandlerTest {
     }
 
     @Test
+    void testHandlerSelectorWithoutUriCondition() {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.HEADER.getName());
+        condition.setParamValue("x-session-id");
+
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-no-uri");
+        selectorData.setConditionList(Arrays.asList(condition));
+
+        dataHandler.handlerSelector(selectorData);
+
+        verify(shenyuMcpServerManager, never()).getOrCreateMcpServerTransport(anyString(), anyString());
+        verify(shenyuMcpServerManager, never()).getOrCreateStreamableHttpTransport(anyString());
+    }
+
+    @Test
     void testHandlerSelectorWithValidData() {
         ConditionData condition = new ConditionData();
         condition.setParamType(ParamTypeEnum.URI.getName());
@@ -102,7 +118,7 @@ class McpServerPluginDataHandlerTest {
         
         dataHandler.handlerSelector(selectorData);
         
-        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport(eq("/mcp/test/**"), eq("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport(eq("/mcp/test"), eq("/message"));
     }
 
     @Test
@@ -138,7 +154,7 @@ class McpServerPluginDataHandlerTest {
         
         dataHandler.removeSelector(selectorData);
         
-        verify(shenyuMcpServerManager).removeMcpServer(eq("/mcp/test/**"));
+        verify(shenyuMcpServerManager).removeMcpServer(eq("/mcp/test"));
     }
 
     @Test
@@ -167,6 +183,24 @@ class McpServerPluginDataHandlerTest {
         
         dataHandler.handlerRule(ruleData);
         
+        verify(shenyuMcpServerManager, never()).addTool(anyString(), anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void testHandlerRuleWithBlankServerPath() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("rule-blank-path");
+        ruleData.setSelectorId("selector-blank-path");
+        ruleData.setName("testTool");
+        ruleData.setHandle("{\"name\":\"testTool\",\"description\":\"A test tool\",\"requestConfig\":\"{\\\"url\\\":\\\"/test\\\",\\\"method\\\":\\\"GET\\\"}\",\"parameters\":[]}");
+
+        org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer server =
+                new org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer();
+        server.setPath("");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector-blank-path", server);
+
+        dataHandler.handlerRule(ruleData);
+
         verify(shenyuMcpServerManager, never()).addTool(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 

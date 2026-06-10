@@ -184,7 +184,7 @@ public class TagServiceImpl implements TagService {
             return;
         }
         List<String> subTagIds = relationMap.get(id);
-        subTagIds.stream().forEach(tagId -> {
+        subTagIds.forEach(tagId -> {
             TagDO tagDO = allData.get(tagId);
             tagDO.setExt(buildExtParamByParentTag(allData.get(id)));
             tagMapper.updateByPrimaryKey(tagDO);

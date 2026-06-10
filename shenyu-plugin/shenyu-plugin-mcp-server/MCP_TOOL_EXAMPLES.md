@@ -2,6 +2,27 @@
 
 本文档基于 **shenyu-examples-http** 项目中的真实接口，提供了 Shenyu MCP Server Plugin 的各种工具配置示例，涵盖不同的 HTTP 请求方法、参数类型和配置方式。
 
+## SDK 版本兼容性
+
+本插件基于以下 SDK 版本开发和测试：
+
+| 依赖 | 版本 |
+|------|------|
+| MCP SDK (io.modelcontextprotocol.sdk:mcp-bom) | 0.17.0 |
+| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.2 |
+| Spring Boot | 3.3.1 |
+
+### 支持的协议
+
+- **SSE (Server-Sent Events)**: `/sse` 端点，支持长连接会话
+- **Streamable HTTP**: 统一端点，支持 GET (SSE 流) 和 POST (消息) 请求
+
+### 已知限制
+
+1. **Session 管理**: 使用反射机制访问 SDK 内部字段获取 Session ID，SDK 版本升级可能影响兼容性
+2. **工具调用超时**: 默认 60 秒，可通过 `requestTemplate.timeout` 配置
+3. **CORS 支持**: 通过 `shenyu.cross.allowedHeaders` 配置允许的请求头
+
 ## 1. 简单 GET 请求示例
 
 ### 1.1 无参数 GET 请求

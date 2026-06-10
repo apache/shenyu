@@ -231,7 +231,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         try {
             validateSwaggerUrl(swaggerUrl);
             try (Response response = httpUtils.requestForResponse(swaggerUrl, 
-                    Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
+                    Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET, false)) {
                 return response.code() == 200;
             }
         } catch (Exception e) {
@@ -247,7 +247,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     
     private String fetchSwaggerDoc(final String swaggerUrl) throws IOException {
         try (Response response = httpUtils.requestForResponse(swaggerUrl,
-                Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
+                Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET, false)) {
             
             if (response.code() != 200) {
                 throw new RuntimeException("Failed to get Swagger document, HTTP status code: " + response.code());

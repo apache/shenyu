@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 /**
@@ -54,6 +56,7 @@ public class RegistryVO implements Serializable {
     /**
      * password.
      */
+    @JsonIgnore
     private String password;
 
     /**
@@ -161,6 +164,7 @@ public class RegistryVO implements Serializable {
      *
      * @return the value of password
      */
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

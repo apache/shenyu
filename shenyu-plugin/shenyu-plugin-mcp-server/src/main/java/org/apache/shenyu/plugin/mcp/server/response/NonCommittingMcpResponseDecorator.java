@@ -102,6 +102,16 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
                 .doOnError(error -> handleProcessingError("writeAndFlushWith", error));
     }
 
+    @Override
+    public Mono<Void> setComplete() {
+        LOG.debug("Completing response for session: {}", sessionId);
+        if (!responseFuture.isDone()) {
+            responseFuture.complete(processResponse(""));
+        }
+        // Non-committing: do not write to the underlying response.
+        return Mono.empty();
+    }
+
     /**
      * Processes the collected response data buffers and completes the response future.
      *

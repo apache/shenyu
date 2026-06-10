@@ -37,6 +37,7 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -101,6 +102,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult createRule(@Valid @RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
@@ -114,6 +116,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
                                         @Existed(provider = RuleMapper.class,
                                                 message = "rule is not existed") final String id,
@@ -130,6 +133,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
+    @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         if (!ruleService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
@@ -144,6 +148,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:plugin:delete")
     public ShenyuAdminResult deleteRules(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
         Integer deleteCount = ruleService.deleteByIdsAndNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);

@@ -94,7 +94,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         TagDO.TagExt tagExt = tagVO.getTagExt();
         long newRefreshTime = System.currentTimeMillis();
         String url = getSwaggerRequestUrl(instance);
-        try (Response response = HTTP_UTILS.requestForResponse(url, Collections.EMPTY_MAP, Collections.EMPTY_MAP, HttpUtils.HTTPMethod.GET)) {
+        try (Response response = HTTP_UTILS.requestForResponse(url, Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
             if (response.code() == HttpStatus.SC_NOT_FOUND) {
                 LOG.warn("add api document not found. clusterName={} url={}", instance.getClusterName(), url);
                 return;

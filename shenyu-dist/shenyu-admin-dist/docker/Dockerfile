@@ -25,17 +25,23 @@ RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
 FROM amazoncorretto:17.0.11-alpine3.19
 
-RUN apk --no-cache add wget curl
+RUN apk --no-cache add wget curl && \
+    addgroup -S shenyu && \
+    adduser -S shenyu -G shenyu && \
+    mkdir -p /home/shenyu && \
+    chown -R shenyu:shenyu /home/shenyu
 
 ENV LOCAL_PATH /opt/shenyu-admin
 ENV ADMIN_JVM ""
 
-COPY --from=prepare ${LOCAL_PATH} ${LOCAL_PATH}
-COPY docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
-COPY docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
+COPY --chown=shenyu:shenyu --from=prepare ${LOCAL_PATH} ${LOCAL_PATH}
+COPY --chown=shenyu:shenyu docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
+COPY --chown=shenyu:shenyu docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
 RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
 
 WORKDIR /opt/shenyu-admin
+
+USER shenyu
 
 EXPOSE 9095
 

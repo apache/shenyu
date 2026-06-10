@@ -58,6 +58,7 @@ public class DivideUpstream extends CommonUpstream {
         setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
         setNamespaceId(builder.namespaceId);
+        setHealthCheckEnabled(builder.healthCheckEnabled);
     }
 
     /**
@@ -201,6 +202,11 @@ public class DivideUpstream extends CommonUpstream {
         private String namespaceId;
 
         /**
+         * healthCheckEnabled.
+         */
+        private boolean healthCheckEnabled = true;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -301,6 +307,17 @@ public class DivideUpstream extends CommonUpstream {
          */
         public Builder namespaceId(final String namespaceId) {
             this.namespaceId = namespaceId;
+            return this;
+        }
+
+        /**
+         * build healthCheckEnabled.
+         *
+         * @param healthCheckEnabled healthCheckEnabled
+         * @return this
+         */
+        public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
+            this.healthCheckEnabled = healthCheckEnabled;
             return this;
         }
     }

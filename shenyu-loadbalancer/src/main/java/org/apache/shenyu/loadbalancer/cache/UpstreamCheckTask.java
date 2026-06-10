@@ -190,6 +190,13 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream) {
+        if (!upstream.isHealthCheckEnabled()) {
+            if (!upstream.isHealthy()) {
+                upstream.setHealthy(true);
+                upstream.setLastHealthTimestamp(System.currentTimeMillis());
+            }
+            return new UpstreamWithSelectorId(selectorId, upstream);
+        }
         boolean pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
         if (pass) {
             if (upstream.isHealthy()) {
@@ -258,7 +265,7 @@ public final class UpstreamCheckTask implements Runnable {
     public void triggerAddOne(final String selectorId, final Upstream upstream) {
         putToMap(healthyUpstream, selectorId, upstream);
     }
-    
+
     /**
      * Remove a specific upstream via selectorId.
      *
@@ -270,7 +277,14 @@ public final class UpstreamCheckTask implements Runnable {
         removeFromMap(unhealthyUpstream, selectorId, upstream);
     }
 
-    private void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
+    /**
+     * Put upstream to specified map (for preserving health status).
+     *
+     * @param map the map to put upstream
+     * @param selectorId the selector id
+     * @param upstream the upstream
+     */
+    public void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
             List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> Lists.newArrayList());
             if (!list.contains(upstream)) {
@@ -279,7 +293,14 @@ public final class UpstreamCheckTask implements Runnable {
         }
     }
 
-    private void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
+    /**
+     * Remove upstream from specified map.
+     *
+     * @param map the map to remove upstream from
+     * @param selectorId the selector id
+     * @param upstream the upstream
+     */
+    public void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
             List<Upstream> list = map.get(selectorId);
             if (CollectionUtils.isNotEmpty(list)) {

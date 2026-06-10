@@ -193,7 +193,6 @@
             </if>
         </where>
     </select>
-
     <select id="getPluginNameBySelectorId" resultType="java.lang.String">
         select p.name
         from plugin p

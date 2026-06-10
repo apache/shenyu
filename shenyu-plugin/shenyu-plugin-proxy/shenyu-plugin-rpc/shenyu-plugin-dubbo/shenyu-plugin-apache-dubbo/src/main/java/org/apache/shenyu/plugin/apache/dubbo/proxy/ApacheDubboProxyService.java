@@ -181,6 +181,7 @@ public class ApacheDubboProxyService {
                     .weight(u.getWeight())
                     .status(u.isStatus())
                     .timestamp(Optional.of(u.getTimestamp()).orElse(System.currentTimeMillis()))
+                    .healthCheckEnabled(u.isHealthCheckEnabled())
                     .build();
         }).collect(Collectors.toList());
     }

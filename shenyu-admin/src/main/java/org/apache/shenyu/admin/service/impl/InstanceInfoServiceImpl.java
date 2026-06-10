@@ -57,7 +57,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceQuery.setNamespaceId(instanceInfoVO.getNamespaceId());
         InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
         if (Objects.isNull(infoDO)) {
-            LOG.info("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceQuery));
+            LOG.debug("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceQuery));
             InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoVO);
             try {
                 instanceInfoMapper.insert(instanceInfoDO);
@@ -66,7 +66,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
             }
             return;
         }
-        LOG.info("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
+        LOG.debug("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
         infoDO.setInstanceIp(instanceInfoVO.getInstanceIp());
         infoDO.setInstanceType(instanceInfoVO.getInstanceType());
         infoDO.setInstanceInfo(instanceInfoVO.getInstanceInfo());

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.mcp.server;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.McpServerPlugin;
@@ -27,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.codec.ServerCodecConfigurer;
+
+import java.util.Objects;
 
 /**
  * The type Mock plugin configuration.
@@ -55,9 +58,15 @@ public class McpServerPluginConfiguration {
 //        return RouterFunctions.route(RequestPredicates.all(), shenyuMcpServerManager::dispatch);
 //    }
     
+    /**
+     * Shenyu mcp server manager.
+     *
+     * @param shenyuConfig the shenyu config
+     * @return the shenyu mcp server manager
+     */
     @Bean
-    public ShenyuMcpServerManager shenyuMcpServerManager() {
-        return new ShenyuMcpServerManager();
+    public ShenyuMcpServerManager shenyuMcpServerManager(final ShenyuConfig shenyuConfig) {
+        return new ShenyuMcpServerManager(resolveCorsAllowedHeaders(shenyuConfig));
     }
 
     /**
@@ -77,11 +86,18 @@ public class McpServerPluginConfiguration {
      *
      * @param shenyuMcpServerManager the shenyu mcp server manager
      * @param configurer the server codec configurer
+     * @param shenyuConfig the shenyu config
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin mcpServerPlugin(final ShenyuMcpServerManager shenyuMcpServerManager,
-                                        final ServerCodecConfigurer configurer) {
-        return new McpServerPlugin(shenyuMcpServerManager, configurer.getReaders());
+                                        final ServerCodecConfigurer configurer,
+                                        final ShenyuConfig shenyuConfig) {
+        return new McpServerPlugin(shenyuMcpServerManager, configurer.getReaders(), resolveCorsAllowedHeaders(shenyuConfig));
+    }
+
+    private String resolveCorsAllowedHeaders(final ShenyuConfig shenyuConfig) {
+        return Objects.nonNull(shenyuConfig) && Objects.nonNull(shenyuConfig.getCross())
+                ? shenyuConfig.getCross().getAllowedHeaders() : null;
     }
 }

@@ -39,8 +39,11 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -148,10 +151,15 @@ class ShenyuToolCallbackTest {
                 .thenReturn(mcpSyncServerExchange);
         mcpSessionHelperMock.when(() -> McpSessionHelper.getSessionId(any()))
                 .thenReturn("");
-        
-        assertThrows(RuntimeException.class, () -> {
+
+        final RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             shenyuToolCallback.call("{}", toolContext);
         });
+
+        assertEquals("Tool execution failed: Session ID is empty – it should have been set earlier by handleMessageEndpoint",
+                exception.getMessage());
+        assertInstanceOf(IllegalStateException.class, exception.getCause());
+        assertFalse(exception.getMessage().contains("SDK compatibility"));
     }
 
     @Test
@@ -173,6 +181,49 @@ class ShenyuToolCallbackTest {
         assertThrows(RuntimeException.class, () -> {
             shenyuToolCallback.call("{}", toolContext);
         });
+    }
+
+    @Test
+    void testCallWithSdkCompatibilitySessionErrorAddsVersionContext() {
+        when(toolDefinition.name()).thenReturn("testTool");
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+
+        final ToolContext toolContext = new ToolContext(new HashMap<>());
+        mcpSessionHelperMock.when(() -> McpSessionHelper.getMcpSyncServerExchange(any()))
+                .thenReturn(mcpSyncServerExchange);
+        mcpSessionHelperMock.when(() -> McpSessionHelper.getSessionId(any()))
+                .thenThrow(new IllegalStateException("SDK COMPATIBILITY ERROR: reflection access failed"));
+        mcpSessionHelperMock.when(McpSessionHelper::getSupportedSdkVersion)
+                .thenReturn("0.17.0");
+
+        final RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            shenyuToolCallback.call("{}", toolContext);
+        });
+
+        assertTrue(exception.getMessage().contains("Tool execution failed: Failed to extract session ID from MCP exchange."));
+        assertInstanceOf(IllegalStateException.class, exception.getCause());
+        assertTrue(exception.getCause().getMessage().contains("Tested SDK version: 0.17.0."));
+        assertTrue(exception.getCause().getMessage().contains("Original error: SDK COMPATIBILITY ERROR: reflection access failed"));
+    }
+
+    @Test
+    void testCallWithMissingSessionStateDoesNotWrapAsCompatibilityError() {
+        when(toolDefinition.name()).thenReturn("testTool");
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+
+        final ToolContext toolContext = new ToolContext(new HashMap<>());
+        mcpSessionHelperMock.when(() -> McpSessionHelper.getMcpSyncServerExchange(any()))
+                .thenReturn(mcpSyncServerExchange);
+        mcpSessionHelperMock.when(() -> McpSessionHelper.getSessionId(any()))
+                .thenThrow(new IllegalArgumentException("Session is required in McpAsyncServerExchange"));
+
+        final RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            shenyuToolCallback.call("{}", toolContext);
+        });
+
+        assertEquals("Tool execution failed: Session is required in McpAsyncServerExchange", exception.getMessage());
+        assertInstanceOf(IllegalArgumentException.class, exception.getCause());
+        assertFalse(exception.getMessage().contains("SDK compatibility"));
     }
 
     @Test
