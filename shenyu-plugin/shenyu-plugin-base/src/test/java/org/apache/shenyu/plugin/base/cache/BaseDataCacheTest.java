@@ -36,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 @SuppressWarnings("unchecked")
 public final class BaseDataCacheTest {
-
+    
     private final String pluginMapStr = "PLUGIN_MAP";
-
+    
     private final String selectorMapStr = "SELECTOR_MAP";
-
+    
     private final String ruleMapStr = "RULE_MAP";
-
+    
     private final String mockName1 = "MOCK_NAME_1";
     
     private final String mockName2 = "MOCK_NAME_2";
@@ -54,13 +54,13 @@ public final class BaseDataCacheTest {
     private final String mockSelectorId1 = "MOCK_SELECTOR_ID_1";
     
     private final String mockSelectorId2 = "MOCK_SELECTOR_ID_2";
-
+    
     @Test
     public void testGetInstance() {
         BaseDataCache baseDataCache = BaseDataCache.getInstance();
         assertNotNull(baseDataCache);
     }
-
+    
     @Test
     public void testCachePluginData() throws NoSuchFieldException, IllegalAccessException {
         PluginData pluginData = PluginData.builder().name(mockName1).build();
@@ -71,7 +71,7 @@ public final class BaseDataCacheTest {
         assertNotNull(pluginMap.get(mockName1));
         assertEquals(pluginData, pluginMap.get(mockName1));
     }
-
+    
     @Test
     public void testRemovePluginData() throws NoSuchFieldException, IllegalAccessException {
         PluginData pluginData = PluginData.builder().name(mockName1).build();
@@ -82,7 +82,7 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().removePluginData(pluginData);
         assertNull(pluginMap.get(mockName1));
     }
-
+    
     @Test
     public void testCleanPluginData() throws NoSuchFieldException, IllegalAccessException {
         PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
@@ -97,7 +97,7 @@ public final class BaseDataCacheTest {
         assertNull(pluginMap.get(mockName1));
         assertNull(pluginMap.get(mockName2));
     }
-
+    
     @Test
     public void testCleanPluginDataSelf() throws NoSuchFieldException, IllegalAccessException {
         PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
@@ -112,7 +112,7 @@ public final class BaseDataCacheTest {
         assertNotNull(pluginMap.get(mockName1));
         assertNull(pluginMap.get(mockName2));
     }
-
+    
     @Test
     public void testObtainPluginData() throws NoSuchFieldException, IllegalAccessException {
         PluginData pluginData = PluginData.builder().name(mockName1).build();
@@ -121,7 +121,7 @@ public final class BaseDataCacheTest {
         assertNotNull(pluginMap.get(mockName1));
         assertEquals(pluginData, BaseDataCache.getInstance().obtainPluginData(mockName1));
     }
-
+    
     @Test
     public void testCacheSelectData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
@@ -133,7 +133,7 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().cacheSelectData(secondCachedSelectorData);
         assertEquals(Lists.newArrayList(firstCachedSelectorData, secondCachedSelectorData), selectorMap.get(mockPluginName1));
     }
-
+    
     @Test
     public void testRemoveSelectData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
@@ -143,7 +143,7 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().removeSelectData(selectorData);
         assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
     }
-
+    
     @Test
     public void testCleanSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
@@ -156,7 +156,7 @@ public final class BaseDataCacheTest {
         assertNull(selectorMap.get(mockPluginName1));
         assertNull(selectorMap.get(mockPluginName2));
     }
-
+    
     @Test
     public void testCleanSelectorDataSelf() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
@@ -170,7 +170,7 @@ public final class BaseDataCacheTest {
         assertNotNull(selectorMap.get(mockPluginName1));
         assertNull(selectorMap.get(mockPluginName2));
     }
-
+    
     @Test
     public void testObtainSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
@@ -180,7 +180,7 @@ public final class BaseDataCacheTest {
         List<SelectorData> selectorDataList = BaseDataCache.getInstance().obtainSelectorData(mockPluginName1);
         assertEquals(Lists.newArrayList(selectorData), selectorDataList);
     }
-
+    
     @Test
     public void testCacheRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).sort(1).build();
@@ -192,7 +192,7 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().cacheRuleData(secondCachedRuleData);
         assertEquals(Lists.newArrayList(firstCachedRuleData, secondCachedRuleData), ruleMap.get(mockSelectorId1));
     }
-
+    
     @Test
     public void testRemoveRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
@@ -202,7 +202,7 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().removeRuleData(ruleData);
         assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
     }
-
+    
     @Test
     public void testCleanRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
@@ -215,7 +215,7 @@ public final class BaseDataCacheTest {
         assertNull(ruleMap.get(mockSelectorId1));
         assertNull(ruleMap.get(mockSelectorId2));
     }
-
+    
     @Test
     public void testCleanRuleDataSelf() throws NoSuchFieldException, IllegalAccessException {
         RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
@@ -229,7 +229,7 @@ public final class BaseDataCacheTest {
         assertNotNull(ruleMap.get(mockSelectorId1));
         assertNull(ruleMap.get(mockSelectorId2));
     }
-
+    
     @Test
     public void testObtainRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
@@ -239,7 +239,7 @@ public final class BaseDataCacheTest {
         List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(mockSelectorId1);
         assertEquals(Lists.newArrayList(ruleData), ruleDataList);
     }
-
+    
     @SuppressWarnings("rawtypes")
     private ConcurrentHashMap getFieldByName(final String name) throws NoSuchFieldException, IllegalAccessException {
         BaseDataCache baseDataCache = BaseDataCache.getInstance();
