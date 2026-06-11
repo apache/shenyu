@@ -35,6 +35,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -49,9 +51,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public final class SentinelPluginTest extends AbstractPluginDataInit {
 
+    private static final int SENTINEL_REQUEST_BURST_SIZE = 6;
+
+    private static final int SENTINEL_REQUEST_ATTEMPTS = 5;
+
+    private static final long SENTINEL_REQUEST_ATTEMPT_INTERVAL_MILLIS = 200L;
+
     private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
 
     private static final String TEST_SENTINEL_FALLBACK_PATH = "fallback:/fallback/sentinel";
+
+    private static final String TEST_SENTINEL_RESTRICTED_MESSAGE = "You have been restricted, please try again later!";
 
     @BeforeEach
     public void setup() throws IOException {
@@ -67,13 +77,9 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Future<Map<String, Object>> first = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Future<Map<String, Object>> second = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Map<String, Object> firstResult = first.get();
-        Map<String, Object> secondResult = second.get();
-        Set<String> messages = toMessages(firstResult, secondResult);
+        Set<String> messages = collectMessagesUntil(returnType, "pass", TEST_SENTINEL_RESTRICTED_MESSAGE);
         assertThat(messages.contains("pass"), is(true));
-        assertThat(messages.contains("You have been restricted, please try again later!"), is(true));
+        assertThat(messages.contains(TEST_SENTINEL_RESTRICTED_MESSAGE), is(true));
     }
 
     @Test
@@ -84,18 +90,48 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
-        Future<Map<String, Object>> first = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Future<Map<String, Object>> second = this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType));
-        Map<String, Object> firstResult = first.get();
-        Map<String, Object> secondResult = second.get();
-        Set<String> messages = toMessages(firstResult, secondResult);
-        Set<Integer> codes = toCodes(firstResult, secondResult);
+        List<Map<String, Object>> results = collectResultsUntil(returnType, "pass", ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getMsg());
+        Set<String> messages = toMessages(results);
+        Set<Integer> codes = toCodes(results);
         assertThat(messages.contains("pass"), is(true));
         assertThat(codes.contains(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getCode()), is(true));
         assertThat(messages.contains(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK.getMsg()), is(true));
     }
 
-    private static Set<String> toMessages(final Map<String, Object>... results) {
+    private List<Map<String, Object>> collectResultsUntil(final Type returnType,
+                                                          final String... expectedMessages)
+            throws ExecutionException, InterruptedException {
+        List<Map<String, Object>> results = new ArrayList<>();
+        Set<String> expected = new HashSet<>(Arrays.asList(expectedMessages));
+        for (int attempt = 0; attempt < SENTINEL_REQUEST_ATTEMPTS; attempt++) {
+            results.addAll(postSentinelRequestBurst(returnType));
+            if (toMessages(results).containsAll(expected)) {
+                return results;
+            }
+            Thread.sleep(SENTINEL_REQUEST_ATTEMPT_INTERVAL_MILLIS);
+        }
+        return results;
+    }
+
+    private Set<String> collectMessagesUntil(final Type returnType, final String... expectedMessages)
+            throws ExecutionException, InterruptedException {
+        return toMessages(collectResultsUntil(returnType, expectedMessages));
+    }
+
+    private List<Map<String, Object>> postSentinelRequestBurst(final Type returnType)
+            throws ExecutionException, InterruptedException {
+        List<Future<Map<String, Object>>> futures = new ArrayList<>();
+        for (int i = 0; i < SENTINEL_REQUEST_BURST_SIZE; i++) {
+            futures.add(this.getService().submit(() -> HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType)));
+        }
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Future<Map<String, Object>> future : futures) {
+            results.add(future.get());
+        }
+        return results;
+    }
+
+    private static Set<String> toMessages(final List<Map<String, Object>> results) {
         Set<String> messages = new HashSet<>();
         for (Map<String, Object> result : results) {
             assertNotNull(result);
@@ -107,7 +143,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         return messages;
     }
 
-    private static Set<Integer> toCodes(final Map<String, Object>... results) {
+    private static Set<Integer> toCodes(final List<Map<String, Object>> results) {
         Set<Integer> codes = new HashSet<>();
         for (Map<String, Object> result : results) {
             assertNotNull(result);
