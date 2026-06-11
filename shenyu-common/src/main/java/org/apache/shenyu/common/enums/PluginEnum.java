@@ -35,17 +35,17 @@ public enum PluginEnum {
     /**
      * Tcp plugin enum.
      */
-    TCP(0, 0, "tcp"),
+    TCP(320, 0, "tcp"),
     
     /**
      * Mqtt plugin enum.
      */
-    MQTT(0, 0, "mqtt"),
+    MQTT(125, 0, "mqtt"),
 
     /**
      * the mock plugin enum.
      */
-    MOCK(8, 0, "mock"),
+    MOCK(1, 0, "mock"),
     
     /**
      * the cache plugin enum.
@@ -93,6 +93,11 @@ public enum PluginEnum {
     AI_REQUEST_TRANSFORMER(65, 0, "aiRequestTransformer"),
 
     /**
+     * AI Response Transformer plugin enum.
+     */
+    AI_RESPONSE_TRANSFORMER(66, 0, "aiResponseTransformer"),
+
+    /**
      * Param mapping plugin enum.
      */
     PARAM_MAPPING(70, 0, "paramMapping"),
@@ -138,9 +143,9 @@ public enum PluginEnum {
     SENTINEL(140, 0, "sentinel"),
     
     /**
-     * Resilence4J plugin enum.
+     * Resilience4J plugin enum.
      */
-    RESILIENCE4J(150, 0, "resilience4j"),
+    RESILIENCE4J(310, 0, "resilience4j"),
     
     /**
      * Logging console plugin enum.
@@ -258,11 +263,6 @@ public enum PluginEnum {
     GRPC(310, 0, "grpc"),
     
     /**
-     * Motan plugin enum.
-     */
-    MOTAN(310, 0, "motan"),
-
-    /**
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
@@ -275,7 +275,7 @@ public enum PluginEnum {
     /**
      * Key-auth plugin enum.
      */
-    KEY_AUTH(430, 0, "keyAuth"),
+    KEY_AUTH(150, 0, "keyAuth"),
 
     /**
      * Ai-proxy plugin enum.
@@ -286,11 +286,16 @@ public enum PluginEnum {
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Mcp-server plugin enum.
+     */
+    MCP_SERVER(180, 0, "mcpServer"),
     
     /**
      * Basic-auth plugin enum.
      */
-    BASIC_AUTH(35, 0, "basicAuth");
+    BASIC_AUTH(150, 0, "basicAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.

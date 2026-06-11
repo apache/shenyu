@@ -65,4 +65,3 @@ logging:
     org.apache.shenyu.test.bonuspoint: info
     org.apache.shenyu.test.lottery: debug
     org.apache.shenyu.test: debug
-

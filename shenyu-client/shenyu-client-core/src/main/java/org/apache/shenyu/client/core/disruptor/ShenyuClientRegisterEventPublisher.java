@@ -19,6 +19,7 @@ package org.apache.shenyu.client.core.disruptor;
 
 import org.apache.shenyu.client.core.disruptor.executor.RegisterClientConsumerExecutor.RegisterClientExecutorFactory;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientApiDocExecutorSubscriber;
+import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientMcpExecutorSubscriber;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientMetadataExecutorSubscriber;
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientURIExecutorSubscriber;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
@@ -54,6 +55,7 @@ public class ShenyuClientRegisterEventPublisher {
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
+        factory.addSubscribers(new ShenyuClientMcpExecutorSubscriber(shenyuClientRegisterRepository));
         providerManage = new DisruptorProviderManage<>(factory);
         providerManage.startup();
     }

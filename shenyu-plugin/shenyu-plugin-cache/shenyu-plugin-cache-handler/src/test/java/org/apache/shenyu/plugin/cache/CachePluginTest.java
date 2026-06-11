@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.cache;
 
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
@@ -83,7 +84,7 @@ public class CachePluginTest {
         MockClientHttpResponse clientResponse = new MockClientHttpResponse(HttpStatus.OK);
         clientResponse.setBody("body");
         final CacheRuleHandle cacheRuleHandle = new CacheRuleHandle();
-        CachePlugin.CacheHttpResponse cacheHttpResponse = new CachePlugin.CacheHttpResponse(exchange, cacheRuleHandle);
+        CachePlugin.CacheHttpResponse cacheHttpResponse = new CachePlugin.CacheHttpResponse(exchange, cacheRuleHandle, "");
         cacheHttpResponse.getHeaders().add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         final Mono<Void> mono = cacheHttpResponse.writeWith(clientResponse.getBody());
         StepVerifier.create(mono).expectSubscription().verifyComplete();
@@ -97,11 +98,12 @@ public class CachePluginTest {
         final RuleData ruleData = new RuleData();
         CachePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), new CacheRuleHandle());
         Mockito.when(shenyuPluginChain.execute(any())).thenReturn(Mono.empty());
-        final Mono<Void> result = cachePlugin.doExecute(exchange, shenyuPluginChain, null, ruleData);
+        SelectorData selectorData = mock(SelectorData.class);
+        final Mono<Void> result = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
         final MemoryCache memoryCache = new MemoryCache();
         Singleton.INST.single(ICache.class, memoryCache);
-        final Mono<Void> result2 = cachePlugin.doExecute(exchange, shenyuPluginChain, null, ruleData);
+        final Mono<Void> result2 = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result2).expectSubscription().verifyComplete();
 
         memoryCache.cacheData(CacheUtils.dataKey(exchange), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8),
@@ -109,7 +111,7 @@ public class CachePluginTest {
 
         memoryCache.cacheData(CacheUtils.contentTypeKey(exchange), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8),
                 60L).subscribeOn(Schedulers.boundedElastic()).subscribe();
-        final Mono<Void> result3 = cachePlugin.doExecute(exchange, shenyuPluginChain, null, ruleData);
+        final Mono<Void> result3 = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result3).expectSubscription().verifyComplete();
     }
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 package org.apache.shenyu.plugin.ai.transformer.request.handler;
 
 import org.apache.shenyu.common.dto.PluginData;

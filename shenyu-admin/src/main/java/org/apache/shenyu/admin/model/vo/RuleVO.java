@@ -380,7 +380,7 @@ public class RuleVO implements Serializable {
      */
     public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
         return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(),
+                ruleDO.getRuleName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSortCode(), ruleDO.getHandle(),
                 ruleDO.getMatchRestful(), ruleConditions,
                 DateUtils.localDateTimeToString(ruleDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(ruleDO.getDateUpdated().toLocalDateTime()));

@@ -23,6 +23,7 @@ import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.path.InstancePathConstants;
@@ -151,6 +152,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
         })) {
             final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
             RegisterConfig config = new RegisterConfig();
+            config.setServerLists("http://localhost:2379");
             repository.init(config);
             repository.persistInstance(data);
             repository.selectInstances(InstancePathConstants.buildInstanceParentPath());

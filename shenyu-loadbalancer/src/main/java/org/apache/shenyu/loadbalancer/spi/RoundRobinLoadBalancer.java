@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.common.utils.MapUtils;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
@@ -41,7 +42,7 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
-    public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    public Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         String key = upstreamList.get(0).getUrl();
         ConcurrentMap<String, WeightedRoundRobin> map = MapUtils.computeIfAbsent(methodWeightMap, key, k -> new ConcurrentHashMap<>(16));
         int totalWeight = 0;

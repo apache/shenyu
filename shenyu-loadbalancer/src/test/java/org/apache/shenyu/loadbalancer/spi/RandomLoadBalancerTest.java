@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +38,7 @@ public class RandomLoadBalancerTest {
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList()), "");
+                .collect(Collectors.toList()), new LoadBalanceData());
         assertNotNull(upstreamOrdered);
     }
 
@@ -48,7 +49,7 @@ public class RandomLoadBalancerTest {
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList()), "");
+                .collect(Collectors.toList()), new LoadBalanceData());
         assertNotNull(upstreamOrdered);
     }
 
@@ -62,7 +63,7 @@ public class RandomLoadBalancerTest {
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList()), "");
+                .collect(Collectors.toList()), new LoadBalanceData());
         assertNotNull(upstreamOrdered);
     }
 
@@ -73,7 +74,7 @@ public class RandomLoadBalancerTest {
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList()), "");
+                .collect(Collectors.toList()), new LoadBalanceData());
         assertNotNull(upstreamDisordered);
     }
 
@@ -84,7 +85,7 @@ public class RandomLoadBalancerTest {
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList()), "");
+                .collect(Collectors.toList()), new LoadBalanceData());
         assertNotNull(upstreamReversed);
     }
 }

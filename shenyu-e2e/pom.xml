@@ -42,7 +42,7 @@
     <properties>
         <java.version>17</java.version>
         <junit.version>5.8.2</junit.version>
-        <assertj.version>3.22.0</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <hamcrest.version>1.3</hamcrest.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <lombok.version>1.18.24</lombok.version>
@@ -58,7 +58,7 @@
         <guava.version>32.0.0-jre</guava.version>
         <commons-collection.verion>4.4</commons-collection.verion>
         <websocket.version>1.5.1</websocket.version>
-        <kafka-clients.version>3.7.1</kafka-clients.version>
+        <kafka-clients.version>3.9.1</kafka-clients.version>
     </properties>
 
     <modules>

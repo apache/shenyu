@@ -60,7 +60,7 @@ public class ProxySelectorController {
      * @param namespaceId namespaceId
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     public ShenyuAdminResult queryProxySelector(final String name, @NotNull final Integer currentPage,
                                                 @NotNull final Integer pageSize,
                                                 @Existed(message = "namespace is not existed",

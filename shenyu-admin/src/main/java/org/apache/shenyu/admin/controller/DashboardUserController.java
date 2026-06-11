@@ -78,7 +78,7 @@ public class DashboardUserController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     @RequiresPermissions("system:manager:list")
     public ShenyuAdminResult queryDashboardUsers(final String userName,
                                                  @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
@@ -114,7 +114,7 @@ public class DashboardUserController {
      * @param dashboardUserDTO dashboard user.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:manager:add")
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO)

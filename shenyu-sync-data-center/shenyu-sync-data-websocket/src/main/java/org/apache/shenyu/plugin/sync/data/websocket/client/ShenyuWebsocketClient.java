@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -29,12 +30,14 @@ import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -71,7 +74,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private volatile boolean isConnectedToMaster;
     
     private final String namespaceId;
-    
+
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -82,17 +85,28 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
-    public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                  final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
-                                 final String namespaceId
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
+                                 final Integer port
     ) {
         super(serverUri);
         this.namespaceId = namespaceId;
-        this.addHeader("namespaceId", namespaceId);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
+        this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
+        this.websocketDataHandler = new WebsocketDataHandler(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
@@ -108,18 +122,29 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param proxySelectorDataSubscribers proxySelectorDataSubscribers,
      * @param discoveryUpstreamDataSubscribers discoveryUpstreamDataSubscribers,
      */
-    public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final Map<String, String> headers,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers,
                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                  final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
-                                 final String namespaceId) {
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
+                                 final Integer port) {
         super(serverUri, headers);
         this.namespaceId = namespaceId;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
+        this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
+        this.websocketDataHandler = new WebsocketDataHandler(
+                pluginDataSubscriber,
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                aiProxyApiKeyDataSubscribers
+        );
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
@@ -216,6 +241,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBlocking();
             } else {
                 this.sendPing();
+                send(getInstanceInfo());
 //                send(DataEventTypeEnum.RUNNING_MODE.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
@@ -223,7 +249,16 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
     }
-    
+
+    private String getInstanceInfo() {
+        // Combine instance and host information
+        Map<String, Object> combinedInfo = Map.of(
+                InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, SystemInfoUtils.getSystemInfo()
+        );
+
+        return GsonUtils.getInstance().toJson(combinedInfo);
+    }
+
     /**
      * handle admin message.
      *

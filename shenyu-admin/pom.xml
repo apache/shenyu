@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-admin</artifactId>
@@ -124,7 +124,7 @@
             <artifactId>shiro-spring</artifactId>
             <classifier>jakarta</classifier>
             <version>${shiro.version}</version>
-            <!-- 排除仍使用了jakarta.servlet的依赖 -->
+            <!-- Exclude the dependency of jakarta.servlet that is still used -->
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.shiro</groupId>
@@ -338,12 +338,24 @@
             <version>${k8s-client.version}</version>
             <scope>compile</scope>
         </dependency>
+
         <!-- shenyu-admin-listener end-->
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-client-mcp-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger.parser.v3</groupId>
+            <artifactId>swagger-parser</artifactId>
         </dependency>
     </dependencies>
 

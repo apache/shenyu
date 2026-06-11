@@ -19,12 +19,11 @@ package org.apache.shenyu.web.fallback;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * The default fallback for hystrix plugin and resilience4j plugin.
+ * The default fallback for fault tolerance plugins.
  */
 @RestController
 @RequestMapping("/fallback")
@@ -35,7 +34,7 @@ public class DefaultFallbackController {
      *
      * @return the shenyu result
      */
-    @GetMapping("/hystrix")
+    @RequestMapping("/hystrix")
     public Object hystrixPluginFallback() {
         return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
@@ -45,7 +44,7 @@ public class DefaultFallbackController {
      *
      * @return the shenyu result
      */
-    @GetMapping("/resilience4j")
+    @RequestMapping("/resilience4j")
     public Object resilience4jFallBack() {
         return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
     }
@@ -55,7 +54,7 @@ public class DefaultFallbackController {
      *
      * @return the object
      */
-    @GetMapping("/sentinel")
+    @RequestMapping("/sentinel")
     public Object sentinelFallBack() {
         return ShenyuResultWrap.error(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK, null);
     }

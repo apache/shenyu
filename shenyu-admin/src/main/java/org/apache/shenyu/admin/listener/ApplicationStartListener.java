@@ -18,10 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import jakarta.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
-import org.apache.shenyu.admin.utils.ShenyuDomain;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
@@ -45,15 +42,6 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     public void onApplicationEvent(final WebServerInitializedEvent event) {
         int port = event.getWebServer().getPort();
         final String host = IpUtils.getHost();
-        String domain = System.getProperty(Constants.HTTP_PATH);
-        if (StringUtils.isBlank(domain)) {
-            domain = System.getenv(Constants.HTTP_PATH);
-        }
-        if (StringUtils.isBlank(domain)) {
-            ShenyuDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)) + contextPath);
-        } else {
-            ShenyuDomain.getInstance().setHttpPath(domain);
-        }
         
         shenyuRunningModeService.start(host, port, contextPath);
     }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * The type kubernetes instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class KubernetesInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private KubernetesClient kubernetesClient;

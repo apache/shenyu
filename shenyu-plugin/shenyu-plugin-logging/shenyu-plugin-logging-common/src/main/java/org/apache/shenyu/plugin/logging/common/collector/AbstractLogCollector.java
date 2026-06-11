@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.common.collector;
 
+import com.google.common.collect.Maps;
 import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
@@ -32,8 +33,10 @@ import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -57,6 +60,10 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private BlockingQueue<L> bufferQueue;
 
+    private final Map<String, BlockingQueue<L>> bufferQueueS = Maps.newConcurrentMap();
+
+    private final Map<String, Long> lastPushTimeS = Maps.newConcurrentMap();
+
     private long lastPushTime;
 
     private final AtomicBoolean started = new AtomicBoolean(true);
@@ -78,11 +85,19 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     @Override
     public void collect(final L log) {
-        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient())) {
+        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
             return;
         }
-        if (bufferQueue.size() < bufferSize) {
-            bufferQueue.add(log);
+        if (getMultiClient()) {
+            String selectorId = log.getSelectorId();
+            BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
+            if (bufferQueue.size() < bufferSize) {
+                bufferQueue.add(log);
+            }
+        } else {
+            if (bufferQueue.size() < bufferSize) {
+                bufferQueue.add(log);
+            }
         }
     }
 
@@ -100,24 +115,69 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             int diffTimeMSForPush = 100;
             try {
                 List<L> logs = new ArrayList<>();
-                int size = bufferQueue.size();
-                long time = System.currentTimeMillis();
-                long timeDiffMs = time - lastPushTime;
                 int batchSize = 100;
-                if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
-                    bufferQueue.drainTo(logs, batchSize);
-                    AbstractLogConsumeClient<?, L> logCollectClient = getLogConsumeClient();
-                    if (Objects.nonNull(logCollectClient)) {
-                        logCollectClient.consume(logs);
-                    }
-                    lastPushTime = time;
+                if (getMultiClient()) {
+                    bufferQueueS.forEach((selectorId, bufferQueue) -> {
+                        List<L> logsS = new ArrayList<>();
+                        Long lastPushTime = lastPushTimeS.get(selectorId);
+                        try {
+                            processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logsS, lastPushTime, selectorId);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 } else {
-                    ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
+                    processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logs, lastPushTime);
                 }
             } catch (Throwable t) {
                 LOG.error("DefaultLogCollector collect log error", t);
                 ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
             }
+        }
+    }
+
+    private BlockingQueue<L> initQueue(final String selectorId) {
+        bufferSize = getLogCollectConfig().getBufferQueueSize();
+        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+        lastPushTimeS.put(selectorId, System.currentTimeMillis());
+        return bufferQueue;
+    }
+
+    private void processBufferQueue(final BlockingQueue<L> bufferQueue, final int batchSize,
+                                    final int diffTimeMSForPush, final List<L> logs,
+                                    final Long lastPushTime, final String selectorId) throws Exception {
+        int size = bufferQueue.size();
+        long time = System.currentTimeMillis();
+        long timeDiffMs = time - lastPushTime;
+
+        if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
+            bufferQueue.drainTo(logs, batchSize);
+            AbstractLogConsumeClient<?, L> logCollectClient = getLogConsumeClient(selectorId);
+            if (Objects.nonNull(logCollectClient)) {
+                logCollectClient.consume(logs);
+            }
+            lastPushTimeS.put(selectorId, time);
+        } else {
+            ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
+        }
+    }
+
+    private void processBufferQueue(final BlockingQueue<L> bufferQueue, final int batchSize,
+                                    final int diffTimeMSForPush, final List<L> logs,
+                                    final Long lastPushTime) throws Exception {
+        int size = bufferQueue.size();
+        long time = System.currentTimeMillis();
+        long timeDiffMs = time - lastPushTime;
+
+        if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
+            bufferQueue.drainTo(logs, batchSize);
+            AbstractLogConsumeClient<?, L> logCollectClient = getLogConsumeClient();
+            if (Objects.nonNull(logCollectClient)) {
+                logCollectClient.consume(logs);
+            }
+            this.lastPushTime = time;
+        } else {
+            ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
         }
     }
 
@@ -157,6 +217,24 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
      * @return log consume client
      */
     protected abstract T getLogConsumeClient();
+
+    /**
+     * get log consume client by selectorId.
+     *
+     * @return log consume client
+     */
+    protected T getLogConsumeClient(final String path) {
+        return getLogConsumeClient();
+    }
+
+    /**
+     * getMultiClient.
+     *
+     * @return multiClient
+     */
+    protected boolean getMultiClient() {
+        return false;
+    }
 
     /**
      * get log collect config.

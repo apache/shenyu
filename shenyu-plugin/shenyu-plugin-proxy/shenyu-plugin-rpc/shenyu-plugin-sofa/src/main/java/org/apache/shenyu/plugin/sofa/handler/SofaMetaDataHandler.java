@@ -41,6 +41,8 @@ public class SofaMetaDataHandler implements MetaDataHandler {
             ApplicationConfigCache.getInstance().initRef(metaData);
         } else {
             if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+                // remove old upstream reference
+                ApplicationConfigCache.getInstance().invalidateWithMetadataPath(metaData.getPath());
                 // update
                 ApplicationConfigCache.getInstance().build(metaData);
             }
@@ -50,7 +52,7 @@ public class SofaMetaDataHandler implements MetaDataHandler {
     
     @Override
     public void remove(final MetaData metaData) {
-        ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+        ApplicationConfigCache.getInstance().invalidateWithMetadataPath(metaData.getPath());
         META_DATA.remove(metaData.getPath());
     }
     

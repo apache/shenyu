@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.CacheUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -31,6 +32,7 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.ICacheBuilder;
+import org.apache.shenyu.plugin.cache.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -87,6 +89,11 @@ public class CachePluginDataHandler implements PluginDataHandler {
     
     @Override
     public void handlerSelector(final SelectorData selectorData) {
+        CacheUpstream nCacheUpstream = GsonUtils.getInstance().fromJson(selectorData.getHandle(), CacheUpstream.class);
+        CacheUpstream oCacheUpstream = ApplicationConfigCache.getInstance().getUpstream(selectorData.getId());
+        if (Objects.nonNull(oCacheUpstream) && !Objects.equals(nCacheUpstream, oCacheUpstream)) {
+            ApplicationConfigCache.getInstance().invalidateCache(selectorData.getId());
+        }
         if (!selectorData.getContinued()) {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), CacheRuleHandle.newInstance());
         }
@@ -94,6 +101,7 @@ public class CachePluginDataHandler implements PluginDataHandler {
     
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        ApplicationConfigCache.getInstance().invalidateCache(selectorData.getId());
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
     
@@ -120,6 +128,7 @@ public class CachePluginDataHandler implements PluginDataHandler {
      */
     private void closeCacheIfNeed() {
         ICache lastCache = CacheUtils.getCache();
+        ApplicationConfigCache.getInstance().invalidateAll();
         if (Objects.nonNull(lastCache)) {
             // close last cache.
             LOG.info("close the last cache {}", lastCache);

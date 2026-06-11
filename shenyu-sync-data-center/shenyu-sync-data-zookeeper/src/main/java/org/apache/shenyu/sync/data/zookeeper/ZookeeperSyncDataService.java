@@ -19,11 +19,10 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -83,12 +82,11 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
 
     private void watcherData0(final String registerPath) {
         String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
-        zkClient.addCache(registerPath, (curatorFramework, treeCacheEvent) -> {
-            ChildData childData = treeCacheEvent.getData();
-            if (Objects.isNull(childData)) {
+        zkClient.addCuratorCache(registerPath, (type, oldData, data) -> {
+            if (Objects.isNull(data) || Objects.isNull(data.getData())) {
                 return;
             }
-            String path = childData.getPath();
+            String path = data.getPath();
             if (Strings.isNullOrEmpty(path)) {
                 return;
             }
@@ -100,8 +98,19 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
                 return;
             }
 
-            EventType eventType = treeCacheEvent.getType().equals(TreeCacheEvent.Type.NODE_REMOVED) ? EventType.DELETE : EventType.PUT;
-            final String updateData = Objects.nonNull(childData.getData()) ? new String(childData.getData(), StandardCharsets.UTF_8) : null;
+            EventType eventType = EventType.PUT;
+            switch (type) {
+                case NODE_DELETED:
+                    eventType = EventType.DELETE;
+                    break;
+                case NODE_CREATED:
+                case NODE_CHANGED:
+                    eventType = EventType.PUT;
+                    break;
+                default:
+                    break;
+            }
+            final String updateData = new String(data.getData(), StandardCharsets.UTF_8);
             this.event(configNamespace, path, updateData, registerPath, eventType);
         });
     }

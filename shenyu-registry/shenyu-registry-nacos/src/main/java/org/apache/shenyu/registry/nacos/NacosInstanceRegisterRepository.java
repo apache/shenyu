@@ -25,6 +25,8 @@ import com.alibaba.nacos.api.naming.listener.EventListener;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.google.gson.JsonObject;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +54,7 @@ import java.util.stream.Collectors;
 /**
  * The type Nacos instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NacosInstanceRegisterRepository.class);
@@ -132,7 +135,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
                     try {
                         List<Instance> previousInstances = instanceListMap.get(key);
                         List<Instance> currentInstances = namingService.selectInstances(key, groupName, true);
-                        compareInstances(previousInstances, currentInstances, listener);
+                        compareInstances(new HashSet<>(previousInstances), new HashSet<>(currentInstances), listener);
                         instanceListMap.put(key, currentInstances);
                     } catch (NacosException e) {
                         throw new ShenyuException(e);
@@ -163,7 +166,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         }
     }
 
-    private void compareInstances(final List<Instance> previousInstances, final List<Instance> currentInstances, final ChangedEventListener listener) {
+    private void compareInstances(final Set<Instance> previousInstances, final Set<Instance> currentInstances, final ChangedEventListener listener) {
         Set<Instance> addedInstances = currentInstances.stream()
                 .filter(item -> !previousInstances.contains(item))
                 .collect(Collectors.toSet());
@@ -184,9 +187,14 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         }
 
         Set<Instance> updatedInstances = currentInstances.stream()
-                .filter(currentInstance -> previousInstances.stream()
-                        .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId()) && !currentInstance.equals(previousInstance)))
-                .collect(Collectors.toSet());
+            .filter(
+                currentInstance -> Objects.nonNull(currentInstance.getInstanceId())
+                    && previousInstances.stream().anyMatch(
+                        previousInstance -> StringUtils.isNotBlank(previousInstance.getInstanceId())
+                        && currentInstance.getInstanceId().equals(previousInstance.getInstanceId())
+                        && !currentInstance.equals(previousInstance)))
+            .collect(Collectors.toSet());
+
         if (!updatedInstances.isEmpty()) {
             for (Instance instance: updatedInstances) {
                 listener.onEvent(instance.getServiceName(), buildUpstreamJsonFromInstance(instance), ChangedEventListener.Event.UPDATED);

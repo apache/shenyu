@@ -27,7 +27,7 @@ export HOST_IP=$(hostname -I | awk '{print $1}')
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
+SYNC_ARRAY=("websocket" "http" "zookeeper")
 #SYNC_ARRAY=("websocket" "nacos")
 #MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 
@@ -41,7 +41,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
   docker compose -f "${PRGDIR}"/shenyu-kafka-compose.yml up -d --quiet-pull
   sleep 30s
-  # 创建kafka topic
+  # create kafka topic
   echo "create kafka topic shenyu-access-logging"
   docker exec shenyu-kafka kafka-topics --create --topic shenyu-access-logging --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
 

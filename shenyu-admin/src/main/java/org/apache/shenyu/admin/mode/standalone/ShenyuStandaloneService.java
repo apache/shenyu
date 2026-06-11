@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mode.standalone;
 
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 
@@ -26,17 +27,24 @@ public class ShenyuStandaloneService implements ShenyuRunningModeService {
     private final UpstreamCheckService upstreamCheckService;
     
     private final LoadServiceDocEntry loadServiceDocEntry;
+
+    private final InstanceCheckService instanceCheckService;
     
     public ShenyuStandaloneService(final UpstreamCheckService upstreamCheckService,
-                                   final LoadServiceDocEntry loadServiceDocEntry) {
+                                   final LoadServiceDocEntry loadServiceDocEntry,
+                                   final InstanceCheckService instanceCheckService) {
         this.upstreamCheckService = upstreamCheckService;
         this.loadServiceDocEntry = loadServiceDocEntry;
+        this.instanceCheckService = instanceCheckService;
     }
     
     @Override
     public void start(final String host, final int port, final String contextPath) {
         // start upstream check task
         upstreamCheckService.setup();
+
+        instanceCheckService.setup();
+
         // load api
         loadServiceDocEntry.loadApiDocument();
     }
@@ -44,5 +52,6 @@ public class ShenyuStandaloneService implements ShenyuRunningModeService {
     @Override
     public void shutdown() {
         upstreamCheckService.close();
+        instanceCheckService.close();
     }
 }

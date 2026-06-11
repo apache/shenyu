@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.listener.etcd;
 
 import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 
 /**
  * EtcdDataDataChangedListener.

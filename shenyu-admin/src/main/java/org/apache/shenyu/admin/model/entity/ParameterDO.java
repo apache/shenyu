@@ -54,7 +54,7 @@ public final class ParameterDO extends BaseDO {
     /**
      * whether to require (0 not required, 1 required).
      */
-    private Boolean required;
+    private Boolean isRequired;
 
     /**
      * extended fields.
@@ -157,16 +157,16 @@ public final class ParameterDO extends BaseDO {
      * @return required
      */
     public Boolean getRequired() {
-        return required;
+        return isRequired;
     }
 
     /**
      * set required.
      *
-     * @param required whether of require
+     * @param isRequired whether of require
      */
-    public void setRequired(final Boolean required) {
-        this.required = required;
+    public void setRequired(final Boolean isRequired) {
+        this.isRequired = isRequired;
     }
 
     /**
@@ -204,13 +204,13 @@ public final class ParameterDO extends BaseDO {
                 && Objects.equals(type, parameterDO.type)
                 && Objects.equals(name, parameterDO.name)
                 && Objects.equals(paramDesc, parameterDO.paramDesc)
-                && Objects.equals(required, parameterDO.required)
+                && Objects.equals(isRequired, parameterDO.isRequired)
                 && Objects.equals(ext, parameterDO.ext);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), apiId, modelId, type, name, paramDesc, required, ext);
+        return Objects.hash(super.hashCode(), apiId, modelId, type, name, paramDesc, isRequired, ext);
     }
 
     /**

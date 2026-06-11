@@ -419,25 +419,25 @@ public class ProxySelectorAddDTO implements Serializable {
         /**
          * id.
          */
-        @NotBlank(message = "discovery upstream id不能为空")
+        @NotBlank(message = "discovery upstream id can't be null")
         private String id;
 
         /**
          * protocol.
          */
-        @NotBlank(message = "protocol不能为空")
+        @NotBlank(message = "protocol can't be null")
         private String protocol;
 
         /**
          * url.
          */
-        @NotBlank(message = "url不能为空")
+        @NotBlank(message = "url can't be null")
         private String url;
 
         /**
          * status.
          */
-        @NotNull(message = "status不能为空")
+        @NotNull(message = "status can't be null")
         private Integer status;
 
         /**

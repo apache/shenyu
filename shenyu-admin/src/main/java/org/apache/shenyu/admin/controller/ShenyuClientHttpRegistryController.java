@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -107,6 +108,22 @@ public class ShenyuClientHttpRegistryController {
             discoveryConfigRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
         publisher.publish(discoveryConfigRegisterDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    /**
+     * registerMcpTools.
+     *
+     * @param mcpToolsRegisterDTO mcpToolsRegisterDTO
+     * @return String
+     */
+    @PostMapping("/register-mcp")
+    @ResponseBody
+    public String registerMcpTools(@RequestBody final McpToolsRegisterDTO mcpToolsRegisterDTO) {
+        if (Objects.isNull(mcpToolsRegisterDTO.getNamespaceId())) {
+            mcpToolsRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        }
+        publisher.publish(mcpToolsRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 

@@ -62,10 +62,10 @@ public class UpstreamTest {
                 .weight(1)
                 .status(true)
                 .build();
-        Assertions.assertEquals(upstream2.buildDomain(), "https://url");
+        Assertions.assertEquals("https://url", upstream2.buildDomain());
         Assertions.assertNotEquals(upstream, upstream2);
-        Assertions.assertNotEquals(upstream, null);
-        Assertions.assertNotEquals(upstream, "");
+        Assertions.assertNotEquals(null, upstream);
+        Assertions.assertNotEquals("", upstream);
         Assertions.assertEquals(upstream, upstream);
         Upstream upstream3 = Upstream.builder()
                 .protocol("https://")
@@ -73,7 +73,15 @@ public class UpstreamTest {
                 .weight(1)
                 .status(true)
                 .build();
+        Upstream upstream4 = Upstream.builder()
+                .protocol("https://")
+                .url("url")
+                .weight(2)
+                .status(true)
+                .build();
         Assertions.assertEquals(upstream2, upstream3);
+        Assertions.assertEquals(upstream2, upstream4);
+        Assertions.assertEquals(upstream2.hashCode(), upstream4.hashCode());
         Assertions.assertNotNull(upstream2.toString());
         Assertions.assertTrue(upstream2.hashCode() >= 0);
     }

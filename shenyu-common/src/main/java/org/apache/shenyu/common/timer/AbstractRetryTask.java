@@ -105,13 +105,13 @@ public abstract class AbstractRetryTask extends TimerTask {
             return;
         }
         if (!retryLimit && tickCount > retryCount) {
-            logger.warn("Final failed to execute task, key:{},retried:{},task over.", key, tickCount);
+            logger.warn("Final failed to execute task, key:{}, retried:{}, task over.", key, tickCount);
             return;
         }
         try {
             this.doRetry(key, taskEntity.getTimerTask());
         } catch (Throwable ex) {
-            logger.warn("Failed to execute task:{},retried：{} ,total retries:{},cause:{}", key, tickCount, retryCount, ex.getMessage());
+            logger.warn("Failed to execute task:{}, retried:{}, total retries:{}, cause:{}", key, tickCount, retryCount, ex.getMessage());
             this.again(taskEntity);
         }
     }

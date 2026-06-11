@@ -201,9 +201,11 @@ public class ExpressionGeneratorTest {
     
     @Test
     public void testSafe() {
-        final String command = "T(java.lang.Runtime).getRuntime().exec(\"ls\")";
+        final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        final String nativeCmd = isWindows ? "cmd /c dir" : "ls";
+        final String command = "T(java.lang.Runtime).getRuntime().exec(\"" + nativeCmd + "\")";
 
-        assertDoesNotThrow(() -> assertNotNull(Runtime.getRuntime().exec("ls")));
+        assertDoesNotThrow(() -> assertNotNull(Runtime.getRuntime().exec(nativeCmd)));
 
         final StandardExpressionGenerator standardExpressionGenerator = new StandardExpressionGenerator();
         final String generate = standardExpressionGenerator.generate("standardSPELExpression|" + command, mockRequest);

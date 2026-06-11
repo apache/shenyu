@@ -96,7 +96,8 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
-        return appAuthMapper.selectByCondition(condition);
+        final List<AppAuthDO> appAuthDOS = appAuthMapper.selectByCondition(condition);
+        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToVO).toList();
     }
 
     @Override
@@ -500,7 +501,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         List<AppAuthData> authDataList = appAuthDOList.stream().map(appAuthDO -> {
             String id = appAuthDO.getId();
-            appAuthDO.setEnabled(enabled);
+            appAuthDO.setOpen(enabled);
             return this.buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
         }).collect(Collectors.toList());
 

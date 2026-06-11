@@ -17,10 +17,15 @@
 
 package org.apache.shenyu.plugin.logging.kafka.collector;
 
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.kafka.cache.KafkaClientCache;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
+import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +43,7 @@ public class KafkaLogCollectorTest {
     public void setUp() {
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
+        shenyuRequestLog.setSelectorId("1332017966661636096");
     }
 
     @Test
@@ -57,5 +63,26 @@ public class KafkaLogCollectorTest {
     public void testGetLogConsumeClient() {
         LogConsumeClient logConsumeClient = new KafkaLogCollector().getLogConsumeClient();
         Assertions.assertEquals(KafkaLogCollectClient.class, logConsumeClient.getClass());
+    }
+
+    @Test
+    public void testGetLogConsumeClient2() {
+        KafkaClientCache cache = KafkaClientCache.getInstance();
+        SelectorData selectorData = SelectorData.builder().id("1332017966661636096")
+                .handle("{\n"
+                        + "  \"bootstrapServer\": \"127.0.0.1:5672\",\n"
+                        + "  \"producerGroup\": \"testGroup\",\n"
+                        + "  \"compressAlg\": \"gzip\",\n"
+                        + "  \"securityProtocol\": \"PLAINTEXT\",\n"
+                        + "  \"saslMechanism\": \"PLAIN\",\n"
+                        + "  \"userName\": \"guest\",\n"
+                        + "  \"passWord\": \"guest\"\n"
+                        + "}")
+                .build();
+        KafkaLogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance()
+                .fromJson(selectorData.getHandle(), KafkaLogCollectConfig.LogApiConfig.class);
+        cache.initKafkaClient("1332017966661636096", logApiConfig);
+        KafkaLogCollectClient logConsumeClient = new KafkaLogCollector().getLogConsumeClient("1332017966661636096");
+        Assert.assertEquals(KafkaLogCollectClient.class, logConsumeClient.getClass());
     }
 }

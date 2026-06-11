@@ -46,9 +46,9 @@ public class FieldDO extends BaseDO {
     private String fieldDesc;
 
     /**
-     * the required whether to require (0 not required, 1 required).
+     * the is_required whether to require (0 not is_required, 1 is_required).
      */
-    private Boolean required;
+    private Boolean isRequired;
 
     /**
      * the ext.
@@ -130,19 +130,19 @@ public class FieldDO extends BaseDO {
     /**
      * getRequired.
      *
-     * @return required
+     * @return isRequired
      */
     public Boolean getRequired() {
-        return required;
+        return isRequired;
     }
 
     /**
-     * set required.
+     * set is_required.
      *
-     * @param required required
+     * @param isRequired is_required
      */
-    public void setRequired(final Boolean required) {
-        this.required = required;
+    public void setRequired(final Boolean isRequired) {
+        this.isRequired = isRequired;
     }
 
     /**
@@ -179,13 +179,13 @@ public class FieldDO extends BaseDO {
                 && Objects.equals(selfModelId, fieldDO.selfModelId)
                 && Objects.equals(name, fieldDO.name)
                 && Objects.equals(fieldDesc, fieldDO.fieldDesc)
-                && Objects.equals(required, fieldDO.required)
+                && Objects.equals(isRequired, fieldDO.isRequired)
                 && Objects.equals(ext, fieldDO.ext);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, required, ext);
+        return Objects.hash(super.hashCode(), modelId, selfModelId, name, fieldDesc, isRequired, ext);
     }
 
     /**
@@ -209,7 +209,7 @@ public class FieldDO extends BaseDO {
 
         private String fieldDesc;
 
-        private Boolean required;
+        private Boolean isRequired;
 
         private String ext;
 
@@ -277,13 +277,13 @@ public class FieldDO extends BaseDO {
         }
 
         /**
-         * required.
+         * is_required.
          *
-         * @param required required
+         * @param isRequired is_required
          * @return FieldDOBuilder
          */
-        public FieldDOBuilder required(final Boolean required) {
-            this.required = required;
+        public FieldDOBuilder required(final Boolean isRequired) {
+            this.isRequired = isRequired;
             return this;
         }
 
@@ -332,7 +332,7 @@ public class FieldDO extends BaseDO {
             fieldDO.setSelfModelId(this.selfModelId);
             fieldDO.setName(this.name);
             fieldDO.setFieldDesc(this.fieldDesc);
-            fieldDO.setRequired(this.required);
+            fieldDO.setRequired(this.isRequired);
             fieldDO.setExt(this.ext);
             fieldDO.setDateCreated(this.dateCreated);
             fieldDO.setDateUpdated(this.dateUpdated);

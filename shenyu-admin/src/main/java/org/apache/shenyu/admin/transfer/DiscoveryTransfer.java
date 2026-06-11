@@ -78,7 +78,14 @@ public enum DiscoveryTransfer {
     public CommonUpstream mapToCommonUpstream(DiscoveryUpstreamData discoveryUpstreamData) {
         return Optional.ofNullable(discoveryUpstreamData).map(data -> {
             String url = data.getUrl();
-            return new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false, data.getDateCreated().getTime());
+            CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false,
+                    data.getDateCreated().getTime());
+            Properties properties = Optional.ofNullable(data.getProps())
+                    .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                    .orElse(new Properties());
+            commonUpstream
+                    .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+            return commonUpstream;
         }).orElse(null);
     }
 
@@ -94,15 +101,14 @@ public enum DiscoveryTransfer {
             vo.setId(data.getId());
             vo.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             vo.setProtocol(data.getProtocol());
-            vo.setUrl(data.getUrl());
-            vo.setStatus(data.getStatus());
+            vo.setUrl(data.getUpstreamUrl());
+            vo.setStatus(data.getUpstreamStatus());
             vo.setWeight(data.getWeight());
             vo.setProps(data.getProps());
             vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
             return vo;
         }).orElse(null);
     }
-
 
     public DiscoveryRelVO mapToVo(DiscoveryRelDO discoveryRelDO) {
         return Optional.ofNullable(discoveryRelDO).map(data -> {
@@ -115,7 +121,6 @@ public enum DiscoveryTransfer {
             return discoveryRelVO;
         }).orElse(null);
     }
-
 
     public DiscoveryRelDO mapToDO(DiscoveryRelDTO discoveryRelDTO) {
         return Optional.ofNullable(discoveryRelDTO).map(data -> {
@@ -133,10 +138,10 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryDO).map(data -> {
             DiscoveryVO discoveryVO = new DiscoveryVO();
             discoveryVO.setId(data.getId());
-            discoveryVO.setName(data.getName());
+            discoveryVO.setDiscoveryName(data.getDiscoveryName());
             discoveryVO.setNamespaceId(data.getNamespaceId());
-            discoveryVO.setType(data.getType());
-            discoveryVO.setLevel(data.getLevel());
+            discoveryVO.setDiscoveryType(data.getDiscoveryType());
+            discoveryVO.setLevel(data.getDiscoveryLevel());
             discoveryVO.setServerList(data.getServerList());
             discoveryVO.setPluginName(data.getPluginName());
             discoveryVO.setProps(data.getProps());
@@ -148,9 +153,9 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryDO).map(data -> {
             DiscoveryDTO discoveryDTO = new DiscoveryDTO();
             discoveryDTO.setId(data.getId());
-            discoveryDTO.setName(data.getName());
-            discoveryDTO.setType(data.getType());
-            discoveryDTO.setLevel(data.getLevel());
+            discoveryDTO.setName(data.getDiscoveryName());
+            discoveryDTO.setType(data.getDiscoveryType());
+            discoveryDTO.setLevel(data.getDiscoveryLevel());
             discoveryDTO.setServerList(data.getServerList());
             discoveryDTO.setPluginName(data.getPluginName());
             discoveryDTO.setProps(data.getProps());
@@ -181,8 +186,8 @@ public enum DiscoveryTransfer {
             DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
             discoveryUpstreamData.setId(data.getId());
             discoveryUpstreamData.setProtocol(data.getProtocol());
-            discoveryUpstreamData.setUrl(data.getUrl());
-            discoveryUpstreamData.setStatus(data.getStatus());
+            discoveryUpstreamData.setUrl(data.getUpstreamUrl());
+            discoveryUpstreamData.setStatus(data.getUpstreamStatus());
             discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamData.setWeight(data.getWeight());
             discoveryUpstreamData.setProps(data.getProps());
@@ -324,8 +329,8 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
             DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
             discoveryUpstreamDTO.setProps(data.getProps());
-            discoveryUpstreamDTO.setStatus(data.getStatus());
-            discoveryUpstreamDTO.setUrl(data.getUrl());
+            discoveryUpstreamDTO.setStatus(data.getUpstreamStatus());
+            discoveryUpstreamDTO.setUrl(data.getUpstreamUrl());
             discoveryUpstreamDTO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamDTO.setProtocol(data.getProtocol());
             discoveryUpstreamDTO.setId(data.getId());
@@ -335,13 +340,38 @@ public enum DiscoveryTransfer {
             return discoveryUpstreamDTO;
         }).orElse(null);
     }
-    
+
     /**
      * mapToDiscoveryUpstreamData.
+     *
      * @param commonUpstream commonUpstream
      * @return DiscoveryUpstreamData
      */
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
-        return mapToData(CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(commonUpstream.getUpstreamUrl().split(":")[0], Integer.valueOf(commonUpstream.getUpstreamUrl().split(":")[1]), commonUpstream.getProtocol(),commonUpstream.getNamespaceId()));
+        String upstreamUrl = commonUpstream.getUpstreamUrl();
+        String[] parts = Optional.ofNullable(upstreamUrl)
+                .map(url -> url.split(":", 2))
+                .orElseThrow(() -> new IllegalArgumentException("Upstream URL must not be null"));
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("Invalid upstream URL, expected 'host:port' format but was: " + upstreamUrl);
+        }
+        String host = parts[0];
+        int port;
+        try {
+            port = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Invalid port in upstream URL: " + upstreamUrl, ex);
+        }
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
+                host,
+                port,
+                commonUpstream.getProtocol(),
+                commonUpstream.getNamespaceId());
+        Properties properties = Optional.ofNullable(discoveryUpstreamDTO.getProps())
+                .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                .orElse(new Properties());
+        properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
+        discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
+        return mapToData(discoveryUpstreamDTO);
     }
 }

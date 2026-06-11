@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper">
+
+        <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
+                <id property="id" column="id"/>
+                <result property="proxyApiKey" column="proxy_api_key"/>
+                <result property="description" column="description"/>
+                <result property="enabled" column="enabled"/>
+                <result property="namespaceId" column="namespace_id"/>
+                <result property="selectorId" column="selector_id"/>
+                <result property="dateCreated" column="date_created"/>
+                <result property="dateUpdated" column="date_updated"/>
+        </resultMap>
+
+        <sql id="Base_Column_List">
+        id,
+        proxy_api_key,
+        description,
+        enabled,
+        namespace_id,
+        selector_id,
+        date_created,
+        date_updated
+        </sql>
+
+        <!-- exists checks -->
+        <select id="existed" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping WHERE id = #{id}
+        </select>
+
+        <select id="proxyApiKeyExisted" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping
+        WHERE selector_id = #{selectorId} AND proxy_api_key = #{proxyApiKey}
+        </select>
+
+        <!-- basic selects -->
+        <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+ FROM proxy_api_key_mapping WHERE id = #{id}
+        </select>
+
+        <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM proxy_api_key_mapping
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+</select>
+
+<select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+ FROM proxy_api_key_mapping
+</select>
+
+<select id="selectAllByNamespaceId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+ FROM proxy_api_key_mapping WHERE namespace_id = #{namespaceId}
+</select>
+
+<!-- query with pagination -->
+<select id="selectByQuery" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM proxy_api_key_mapping
+<where>
+        <if test="proxyApiKey != null and proxyApiKey != ''">
+                AND proxy_api_key = #{proxyApiKey}
+        </if>
+        <if test="enabled != null">
+                AND enabled = #{enabled}
+        </if>
+        <if test="namespaceId != null and namespaceId != ''">
+                AND namespace_id = #{namespaceId}
+        </if>
+        <if test="selectorId != null and selectorId != ''">
+                AND selector_id = #{selectorId}
+        </if>
+</where>
+        ORDER BY date_updated DESC
+</select>
+
+<select id="countByQuery" resultType="int">
+        SELECT COUNT(1)
+        FROM proxy_api_key_mapping
+<where>
+        <if test="proxyApiKey != null and proxyApiKey != ''">
+                AND proxy_api_key = #{proxyApiKey}
+        </if>
+        <if test="enabled != null">
+                AND enabled = #{enabled}
+        </if>
+        <if test="namespaceId != null and namespaceId != ''">
+                AND namespace_id = #{namespaceId}
+        </if>
+        <if test="selectorId != null and selectorId != ''">
+                AND selector_id = #{selectorId}
+        </if>
+</where>
+</select>
+
+<select id="selectBySelectorId" resultMap="BaseResultMap">
+        select
+<include refid="Base_Column_List"/>
+        from proxy_api_key_mapping
+        where selector_id = #{selectorId}
+</select>
+
+<!-- inserts -->
+<insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
+        INSERT INTO proxy_api_key_mapping (
+            id, proxy_api_key, description, enabled, namespace_id, selector_id, date_created, date_updated
+        ) VALUES (
+            #{id}, #{proxyApiKey}, #{description}, #{enabled}, #{namespaceId}, #{selectorId}, NOW(3), NOW(3)
+        )
+</insert>
+
+<insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
+        INSERT INTO proxy_api_key_mapping
+<trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="id != null">id,</if>
+        <if test="proxyApiKey != null">proxy_api_key,</if>
+        <if test="description != null">description,</if>
+        <if test="enabled != null">enabled,</if>
+        <if test="namespaceId != null">namespace_id,</if>
+        <if test="selectorId != null">selector_id,</if>
+            date_created,
+            date_updated
+</trim>
+<trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+        <if test="id != null">#{id},</if>
+        <if test="proxyApiKey != null">#{proxyApiKey},</if>
+        <if test="description != null">#{description},</if>
+        <if test="enabled != null">#{enabled},</if>
+        <if test="namespaceId != null">#{namespaceId},</if>
+        <if test="selectorId != null">#{selectorId},</if>
+            NOW(3),
+            NOW(3)
+</trim>
+</insert>
+
+<!-- updates -->
+<update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
+        UPDATE proxy_api_key_mapping
+        SET
+            proxy_api_key = #{proxyApiKey},
+            description = #{description},
+            enabled = #{enabled},
+            namespace_id = #{namespaceId},
+            selector_id = #{selectorId},
+            date_updated = NOW(3)
+        WHERE id = #{id}
+</update>
+
+<update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.ProxyApiKeyDO">
+        UPDATE proxy_api_key_mapping
+<set>
+        <if test="proxyApiKey != null">proxy_api_key = #{proxyApiKey},</if>
+        <if test="description != null">description = #{description},</if>
+        <if test="enabled != null">enabled = #{enabled},</if>
+        <if test="namespaceId != null">namespace_id = #{namespaceId},</if>
+        <if test="selectorId != null">selector_id = #{selectorId},</if>
+            date_updated = NOW(3)
+</set>
+        WHERE id = #{id}
+</update>
+
+<update id="updateEnableBatch">
+        UPDATE proxy_api_key_mapping
+        SET enabled = #{enabled}, date_updated = NOW(3)
+        WHERE id IN
+<foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+</foreach>
+</update>
+
+<!-- deletes -->
+<delete id="delete">
+        DELETE FROM proxy_api_key_mapping WHERE id = #{id}
+</delete>
+
+<delete id="deleteByIds">
+        DELETE FROM proxy_api_key_mapping WHERE id IN
+<foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+</foreach>
+</delete>
+
+<!-- select list to VO (same columns as DO, VO shaping in service) -->
+<select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.ProxyApiKeyVO">
+        SELECT id, proxy_api_key, description, enabled, namespace_id, date_updated
+        FROM proxy_api_key_mapping
+<where>
+        <if test="condition.proxyApiKey != null and condition.proxyApiKey != ''">
+                AND proxy_api_key = #{condition.proxyApiKey}
+        </if>
+        <if test="condition.enabled != null">
+                AND enabled = #{condition.enabled}
+        </if>
+        <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId}
+        </if>
+        <if test="condition.selectorId != null and condition.selectorId != ''">
+                AND selector_id = #{condition.selectorId}
+        </if>
+</where>
+        ORDER BY date_updated DESC
+</select>
+
+</mapper> 

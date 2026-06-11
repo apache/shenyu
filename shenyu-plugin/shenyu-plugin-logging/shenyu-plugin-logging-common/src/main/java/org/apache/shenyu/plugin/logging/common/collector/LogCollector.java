@@ -45,4 +45,5 @@ public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable 
      * @param log access log
      */
     void collect(L log);
+
 }

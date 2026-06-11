@@ -21,7 +21,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -195,7 +194,7 @@ public interface AppAuthMapper extends ExistProvider {
      * @param condition condition.
      * @return list
      */
-    List<AppAuthVO> selectByCondition(@Param("condition") AppAuthQuery condition);
+    List<AppAuthDO> selectByCondition(@Param("condition") AppAuthQuery condition);
 
 
     /**

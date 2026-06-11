@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-ai</artifactId>
@@ -29,9 +29,11 @@
 
     <modules>
         <module>shenyu-plugin-ai-common</module>
-        <module>shenyu-plugin-ai-proxy</module>
         <module>shenyu-plugin-ai-prompt</module>
         <module>shenyu-plugin-ai-token-limiter</module>
         <module>shenyu-plugin-ai-request-transformer</module>
+        <module>shenyu-plugin-ai-proxy</module>
+        <module>shenyu-plugin-ai-response-transformer</module>
     </modules>
+
 </project>

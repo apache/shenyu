@@ -22,6 +22,8 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import static org.apache.shenyu.common.constant.DefaultPathConstants.handlePathData;
+
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;

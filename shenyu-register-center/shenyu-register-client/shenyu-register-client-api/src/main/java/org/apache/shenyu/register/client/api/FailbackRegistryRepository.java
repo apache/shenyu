@@ -22,6 +22,7 @@ import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -96,6 +97,16 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         }
     }
 
+    @Override
+    public void persistMcpTools(final McpToolsRegisterDTO registerDTO) {
+        try {
+            this.doPersistMcpTools(registerDTO);
+        } catch (Exception ex) {
+            logger.warn("Failed to persistMcpTools {}, cause:{}", registerDTO, ex.getMessage());
+            this.addFailureMcpDocRegister(registerDTO);
+        }
+    }
+
     /**
      * doPersistApiDoc.
      *
@@ -124,7 +135,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param t   the t
      */
     protected <T> void addFailureUriDataRegister(final T t) {
-        if (t instanceof ApiDocRegisterDTO) {
+        if (t instanceof URIRegisterDTO) {
             URIRegisterDTO dto = (URIRegisterDTO) t;
             String address = String.join(":", dto.getHost(), String.valueOf(dto.getPort()), dto.getRpcType());
             addToFail(new Holder(t, address, Constants.URI));
@@ -142,6 +153,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             ApiDocRegisterDTO dto = (ApiDocRegisterDTO) t;
             String address = String.join(":", dto.getContextPath(), dto.getApiPath(), dto.getHttpMethod().toString(), dto.getRpcType());
             addToFail(new Holder(t, address, Constants.API_DOC_TYPE));
+        }
+    }
+
+    /**
+     * Add failure mcp data register.
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     */
+    protected <T> void addFailureMcpDocRegister(final T t) {
+        if (t instanceof McpToolsRegisterDTO) {
+            McpToolsRegisterDTO dto = (McpToolsRegisterDTO) t;
+            MetaDataRegisterDTO metaDataRegisterDTO = dto.getMetaDataRegisterDTO();
+            String address = metaDataRegisterDTO.getRpcType() + "://"
+                    + metaDataRegisterDTO.getHost() + ":" + metaDataRegisterDTO.getPort() + metaDataRegisterDTO.getPath();
+            addToFail(new Holder(dto, address, Constants.MCP_TOOLS_TYPE));
         }
     }
 
@@ -186,6 +213,9 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             case Constants.API_DOC_TYPE:
                 this.doPersistApiDoc((ApiDocRegisterDTO) holder.getObj());
                 break;
+            case Constants.MCP_TOOLS_TYPE:
+                this.doPersistMcpTools((McpToolsRegisterDTO) holder.getObj());
+                break;
             default:
                 break;
         }
@@ -204,6 +234,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param registerDTO the register dto
      */
     protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
+
+    /**
+     * Do persist interface.
+     *
+     * @param registerDTO registerDTO the register dto
+     */
+    protected abstract void doPersistMcpTools(McpToolsRegisterDTO registerDTO);
 
     private static class Holder {
 

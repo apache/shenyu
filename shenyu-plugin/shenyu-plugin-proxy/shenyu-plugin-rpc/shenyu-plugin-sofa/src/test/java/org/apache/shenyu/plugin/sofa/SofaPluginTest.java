@@ -45,6 +45,8 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +76,7 @@ public final class SofaPluginTest {
         metaData.setMethodName("findAll");
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
         SofaProxyService sofaProxyService = mock(SofaProxyService.class);
-        when(sofaProxyService.genericInvoker(null, metaData, exchange)).thenReturn(Mono.empty());
+        when(sofaProxyService.genericInvoker(eq(null), eq(metaData), any(), eq(exchange))).thenReturn(Mono.empty());
         sofaPlugin = new SofaPlugin(sofaProxyService);
     }
 

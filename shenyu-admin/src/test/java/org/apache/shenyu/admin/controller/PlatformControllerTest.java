@@ -52,6 +52,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 public final class PlatformControllerTest {
 
+    private static final String TEST_LOGIN_USER_NAME = "admin";
+
+    private static final String TEST_LOGIN_PASSWORD = "123456";
+
+    private static final String TEST_USER_ID = "1";
+
+    private static final String TEST_STORED_PASSWORD = "2095132720951327";
+
     private MockMvc mockMvc;
 
     @InjectMocks
@@ -69,8 +77,8 @@ public final class PlatformControllerTest {
     /**
      * dashboardUser mock data.
      */
-    private final DashboardUserVO dashboardUserVO = new DashboardUserVO("1", "admin", "2095132720951327",
-            1, true, "1", DateUtils.localDateTimeToString(LocalDateTime.now()),
+    private final DashboardUserVO dashboardUserVO = new DashboardUserVO(TEST_USER_ID, TEST_LOGIN_USER_NAME, TEST_STORED_PASSWORD,
+            1, true, TEST_USER_ID, DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     /**
@@ -86,10 +94,10 @@ public final class PlatformControllerTest {
      */
     @Test
     public void testLoginDashboardUser() throws Exception {
-        final String loginUri = "/platform/login?userName=admin&password=123456";
+        final String loginUri = "/platform/login?userName=" + TEST_LOGIN_USER_NAME + "&password=" + TEST_LOGIN_PASSWORD;
 
         LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
-        given(this.dashboardUserService.login(eq("admin"), eq("123456"), isNull())).willReturn(loginDashboardUserVO);
+        given(this.dashboardUserService.login(eq(TEST_LOGIN_USER_NAME), eq(TEST_LOGIN_PASSWORD), isNull())).willReturn(loginDashboardUserVO);
         this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))

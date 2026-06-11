@@ -57,7 +57,7 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((RuleDO) s).getName())
+                .map(s -> ((RuleDO) s).getRuleName())
                 .collect(Collectors.joining(","));
         final String namespaceId = ((Collection<?>) getSource())
                 .stream()

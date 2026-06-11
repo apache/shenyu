@@ -23,9 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.infra.zookeeper.autoconfig.ZookeeperProperties;
+import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,8 +47,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "shenyu.sync.zookeeper.url=localhost:2181",
-                "shenyu.sync.zookeeper.sessionTimeout=30000",
-                "shenyu.sync.zookeeper.connectionTimeout=500"
+                "shenyu.sync.zookeeper.session-timeout-milliseconds=30000",
+                "shenyu.sync.zookeeper.connection-timeout-milliseconds=500"
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ZookeeperClient.class, ShenyuConfig.class})
@@ -73,8 +74,8 @@ public final class ZookeeperSyncDataConfigurationTest {
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {
-        assertThat(zookeeperConfig.getUrl(), is("localhost:2181"));
-        assertThat(zookeeperConfig.getSessionTimeout(), is(30000));
-        assertThat(zookeeperConfig.getConnectionTimeout(), is(500));
+        assertThat(zookeeperConfig.getZookeeper().getUrl(), is("localhost:2181"));
+        assertThat(zookeeperConfig.getZookeeper().getSessionTimeoutMilliseconds(), is(30000));
+        assertThat(zookeeperConfig.getZookeeper().getConnectionTimeoutMilliseconds(), is(500));
     }
 }

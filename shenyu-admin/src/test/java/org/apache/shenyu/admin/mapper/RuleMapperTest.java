@@ -88,7 +88,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         int insert = ruleMapper.insert(ruleDO);
         assertThat(insert, equalTo(1));
 
-        RuleDO findByName = ruleMapper.findByName(ruleDO.getName());
+        RuleDO findByName = ruleMapper.findByName(ruleDO.getRuleName());
         assertThat(ruleDO, equalTo(findByName));
 
         int delete = ruleMapper.delete(ruleDO.getId());
@@ -195,14 +195,14 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         String id = UUIDUtils.getInstance().generateShortUuid();
         return RuleDO.builder()
                 .id(id)
-                .name("test-name-" + new Random().nextInt())
+                .ruleName("test-name-" + new Random().nextInt())
                 .enabled(true)
                 .handle("test-handle")
                 .loged(true)
                 .matchMode(1)
                 .selectorId("test-selector-1")
                 .matchRestful(false)
-                .sort(1)
+                .sortCode(1)
                 .dateCreated(now)
                 .dateUpdated(now)
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)

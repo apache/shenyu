@@ -19,13 +19,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-integrated-test</artifactId>
-    <version>2.7.0.2-SNAPSHOT</version>
+    <version>2.7.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.0.2-SNAPSHOT</version>
+        <version>2.7.1-SNAPSHOT</version>
     </parent>
 
     <modules>
@@ -35,7 +35,6 @@
         <module>shenyu-integrated-test-common</module>
         <module>shenyu-integrated-test-apache-dubbo</module>
         <module>shenyu-integrated-test-grpc</module>
-        <module>shenyu-integrated-test-motan</module>
         <module>shenyu-integrated-test-sofa</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-rewrite</module>
@@ -44,7 +43,6 @@
         <module>shenyu-integrated-test-sdk-http</module>
         <module>shenyu-integrated-test-upload-plugin</module>
         <module>shenyu-integrated-test-k8s-ingress-http</module>
-        <module>shenyu-integrated-test-k8s-ingress-motan</module>
         <module>shenyu-integrated-test-k8s-ingress-apache-dubbo</module>
         <module>shenyu-integrated-test-k8s-ingress-websocket</module>
         <module>shenyu-integrated-test-k8s-ingress-grpc</module>

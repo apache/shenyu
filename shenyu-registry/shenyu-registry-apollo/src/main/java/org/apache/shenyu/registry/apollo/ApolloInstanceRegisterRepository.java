@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 /**
  * The type apollo instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final String APOLLO_CLUSTER = "apollo.cluster";

@@ -30,9 +30,6 @@ public class ChatClientCache {
 
     private static final Map<String, ChatClient> CHAT_CLIENT_MAP = new HashMap<>();
 
-    public ChatClientCache() {
-    }
-
     /**
      * Init.
      *
@@ -78,13 +75,13 @@ public class ChatClientCache {
      * The type Application config cache instance.
      */
     static final class ApplicationConfigCacheInstance {
+
         /**
          * The Instance.
          */
         static final ChatClientCache INSTANCE = new ChatClientCache();
 
         private ApplicationConfigCacheInstance() {
-
         }
     }
 }

@@ -17,6 +17,23 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
+
 import java.net.URI;
 import java.time.Duration;
 import java.util.Collections;
@@ -27,22 +44,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.enums.RetryEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
-import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 
 /**
@@ -119,8 +120,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 // no need to retry anymore
                 return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
             }
-            final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-            final Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalance, ip);
+            final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
             if (Objects.isNull(upstream)) {
                 // no need to retry anymore
                 return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));

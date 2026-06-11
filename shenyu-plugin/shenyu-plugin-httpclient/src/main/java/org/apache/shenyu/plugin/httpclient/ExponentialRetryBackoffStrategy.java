@@ -58,14 +58,14 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
     private RetryBackoffSpec initDefaultBackoff(final int retryTimes) {
         return Retry.backoff(retryTimes, Duration.ofMillis(500))
                 .maxBackoff(Duration.ofSeconds(5))
-                // 只对瞬时错误进行重试
+                // Retry only for instantaneous errors
                 .transientErrors(true)
-                // 添加 50% 的随机抖动到每次重试的延迟时间
+                // Add 50% random jitter to the delay time of each retry
                 .jitter(0.5d)
                 .filter(t -> t instanceof IllegalStateException)
-                // 当达到最大重试次数后抛出一个指定的异常
+                // When the maximum number of retrys is reached, a specified exception is thrown
                 .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
-                    throw new IllegalStateException("重试超限");
+                    throw new IllegalStateException("Retry limit exceeded");
                 });
     }
 }

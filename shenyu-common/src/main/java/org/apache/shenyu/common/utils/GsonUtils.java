@@ -49,12 +49,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -507,26 +506,27 @@ public class GsonUtils {
     }
     
     private static class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
-        
-        private final DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
+
+        private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         @Override
         public Timestamp deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
             if (!(json instanceof JsonPrimitive)) {
                 throw new JsonParseException("The date should be a string value");
             }
             try {
-                Date date = format.parse(json.getAsString());
-                return new Timestamp(date.getTime());
-            } catch (ParseException e) {
+                LocalDateTime dateTime = FORMATTER.parse(json.getAsString(), LocalDateTime::from);
+                return Timestamp.valueOf(dateTime);
+            } catch (Exception e) {
                 throw new JsonParseException(e);
             }
         }
-        
+
         @Override
         public JsonElement serialize(final Timestamp src, final Type typeOfSrc, final JsonSerializationContext context) {
-            String dfString = format.format(new Date(src.getTime()));
-            return new JsonPrimitive(dfString);
+            LocalDateTime ldt = LocalDateTime.ofInstant(src.toInstant(), ZoneId.systemDefault());
+            String formatted = FORMATTER.format(ldt);
+            return new JsonPrimitive(formatted);
         }
     }
 }

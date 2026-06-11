@@ -31,7 +31,8 @@ public class PluginNameAdapterTest {
     public void testRpcTypeAdapter() {
         Arrays.stream(RpcTypeEnum.values())
                 .filter(rpcTypeEnum -> !RpcTypeEnum.HTTP.getName().equals(rpcTypeEnum.getName())
-                        && !RpcTypeEnum.AI.getName().equals(rpcTypeEnum.getName()))
+                        && !RpcTypeEnum.AI.getName().equals(rpcTypeEnum.getName())
+                        && !RpcTypeEnum.MCP.getName().equals(rpcTypeEnum.getName()))
                 .forEach(rpcTypeEnum -> assertEquals(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName()),
                         PluginEnum.getPluginEnumByName(rpcTypeEnum.getName()).getName()));
 

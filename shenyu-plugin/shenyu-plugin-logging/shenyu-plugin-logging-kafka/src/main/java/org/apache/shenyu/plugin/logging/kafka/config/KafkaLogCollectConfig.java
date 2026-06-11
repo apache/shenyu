@@ -248,5 +248,168 @@ public class KafkaLogCollectConfig {
      * api log config.
      */
     public static class LogApiConfig extends GenericApiConfig {
+
+        private String bootstrapServer;
+
+        private String producerGroup;
+
+        private String compressAlg;
+
+        private String securityProtocol;
+
+        private String saslMechanism;
+
+        private String userName;
+
+        private String passWord;
+
+        /**
+         * get kafka securityProtocol.
+         *
+         * @return securityProtocol
+         */
+        public String getSecurityProtocol() {
+            return securityProtocol;
+        }
+
+        /**
+         * set kafka securityProtocol.
+         *
+         * @param securityProtocol securityProtocol
+         */
+        public void setSecurityProtocol(final String securityProtocol) {
+            this.securityProtocol = securityProtocol;
+        }
+
+        /**
+         * get Kafka saslMechanism.
+         *
+         * @return saslMechanism
+         */
+        public String getSaslMechanism() {
+            return saslMechanism;
+        }
+
+        /**
+         *set kafka saslMechanism.
+         *
+         * @param saslMechanism saslMechanism
+         */
+        public void setSaslMechanism(final String saslMechanism) {
+            this.saslMechanism = saslMechanism;
+        }
+
+        /**
+         * get kafka userName.
+         *
+         * @return userName
+         */
+        public String getUserName() {
+            return userName;
+        }
+
+        /**
+         * set kafka userName.
+         *
+         * @param userName userName
+         */
+        public void setUserName(final String userName) {
+            this.userName = userName;
+        }
+
+        /**
+         * get kafka passWord.
+         *
+         * @return passWord
+         */
+        public String getPassWord() {
+            return passWord;
+        }
+
+        /**
+         * set kafka pwd.
+         *
+         * @param passWord passWord
+         */
+        public void setPassWord(final String passWord) {
+            this.passWord = passWord;
+        }
+
+        /**
+         * whether compress.
+         *
+         * @return compress or not
+         */
+        public String getCompressAlg() {
+            return compressAlg;
+        }
+
+        /**
+         * set compress.
+         *
+         * @param compressAlg compress alg.
+         */
+        public void setCompressAlg(final String compressAlg) {
+            this.compressAlg = compressAlg;
+        }
+
+        /**
+         * get kafka nameserver address.
+         *
+         * @return kafka nameserver address
+         */
+        public String getBootstrapServer() {
+            return bootstrapServer;
+        }
+
+        /**
+         * set kafka nameserver address.
+         *
+         * @param bootstrapServer kafka nameserver address
+         */
+        public void setBootstrapServer(final String bootstrapServer) {
+            this.bootstrapServer = bootstrapServer;
+        }
+
+        /**
+         * get producer group.
+         *
+         * @return producer group
+         */
+        public String getProducerGroup() {
+            return producerGroup;
+        }
+
+        /**
+         * set producer group.
+         *
+         * @param producerGroup producer group
+         */
+        public void setProducerGroup(final String producerGroup) {
+            this.producerGroup = producerGroup;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (Objects.isNull(o) || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            LogApiConfig that = (LogApiConfig) o;
+            return Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getBootstrapServer(), that.getBootstrapServer())
+                    && Objects.equals(getProducerGroup(), that.getProducerGroup())
+                    && Objects.equals(getSampleRate(), that.getSampleRate());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getTopic(), compressAlg, bootstrapServer, producerGroup);
+        }
     }
 }

@@ -18,7 +18,7 @@ version: '3.9'
 
 services:
   shenyu-zookeeper-cluster:
-    image: zookeeper:3.5
+    image: zookeeper:3.9
     container_name: shenyu-zookeeper-cluster
     ports:
       - "12181:2181"  # Client

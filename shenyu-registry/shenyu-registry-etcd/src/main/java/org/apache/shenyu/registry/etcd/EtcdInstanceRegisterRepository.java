@@ -19,11 +19,13 @@ package org.apache.shenyu.registry.etcd;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import io.etcd.jetcd.Client;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.etcd.client.EtcdClient;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -48,7 +50,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * The type Etcd instance register repository.
  */
-@Join
+@Join(isSingleton = false)
 public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdInstanceRegisterRepository.class);
@@ -64,7 +66,14 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        client = new EtcdClient(config.getServerLists(), ttl, timeout);
+        client = EtcdClient.builder()
+                .client(
+                        Client.builder()
+                                .endpoints(config.getServerLists().split(","))
+                                .build()
+                ).ttl(ttl)
+                .timeout(timeout)
+                .build();
     }
 
     @Override

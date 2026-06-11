@@ -65,8 +65,8 @@ public class RedisRateLimiter {
                     longs.addAll(l);
                     return longs;
                 }).map(results -> {
-                    boolean allowed = results.get(0) == 1L;
-                    Long tokensLeft = results.get(1);
+                    boolean allowed = ((Number) results.get(0)).longValue() == 1L;
+                    long tokensLeft = ((Number) results.get(1)).longValue();
                     return new RateLimiterResponse(allowed, tokensLeft, keys);
                 })
                 .doOnError(throwable -> {

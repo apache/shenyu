@@ -112,14 +112,14 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
-                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(indexName)).build());
+                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(actualIndex)).build());
             } catch (Exception e) {
                 LogUtils.error(LOG, "add logs error: ", e);
             }
         });
         // Bulk storage
         try {
-            client.bulk(e -> e.index(indexName).operations(bulkOperations));
+            client.bulk(e -> e.index(actualIndex).operations(bulkOperations));
         } catch (Exception e) {
             LogUtils.error(LOG, "elasticsearch store logs error: ", e);
         }

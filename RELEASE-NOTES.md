@@ -241,9 +241,9 @@
 16. Upgrade Dubbo version to 3.2.5 and refactor some methods
 17. Refactor AbstractShenyuSdkClient getOrDefault method
 18. Refactor http client properties
-19. Refactor webcliet plugin implement
+19. Refactor webclient plugin implement
 20. Upgrade com.google.guava:guava to 32.0.0-jre
-21. support k8s as e2e test case enviroment
+21. support k8s as e2e test case environment
 22. Refactor @Restapi as rest api request mapping
 23. String concatenation recommended using StringBuilder
 24. Set the netty allocator to unpooled

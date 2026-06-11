@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +39,7 @@ class HashLoadBalancerTest {
         upstreamList.add(Upstream.builder().url("http://2.2.2.2/api").build());
         upstreamList.add(Upstream.builder().url("http://3.3.3.3/api").build());
 
-        final Upstream upstream = hashLoadBalancer.doSelect(upstreamList, "127.0.0.1");
+        Upstream upstream = hashLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         assertEquals(upstreamList.get(2).getUrl(), upstream.getUrl());
     }
 

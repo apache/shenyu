@@ -18,10 +18,10 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
 import org.apache.shenyu.client.core.shutdown.ShutdownHookManager;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +47,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
     
-    private static final List<URIRegisterDTO> URIS = Lists.newArrayList();
+    private static final List<URIRegisterDTO> URIS = new CopyOnWriteArrayList<>();
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
@@ -63,13 +64,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
         executor = new ScheduledThreadPoolExecutor(1, requestFactory);
         
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                URIS.forEach(this::sendHeartbeat);
-            } catch (Exception e) {
-                LOG.error("send heartbeat error", e);
-            }
-        }, 30, 30, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> URIS.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
     }
     
     @Override
@@ -122,6 +117,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
     
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
+        uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
         shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
     }
 }

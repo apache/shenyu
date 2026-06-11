@@ -47,3 +47,9 @@ Thumbs.db
 *.lock
 
 .factorypath
+
+# Private individual user cursor rules
+.cursor/rules/_*.mdc
+
+# local worktrees
+.worktrees/

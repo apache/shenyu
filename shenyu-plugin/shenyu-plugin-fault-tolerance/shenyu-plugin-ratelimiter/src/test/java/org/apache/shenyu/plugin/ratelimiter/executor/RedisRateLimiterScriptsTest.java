@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.ratelimiter.executor;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
+import org.apache.shenyu.infra.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;

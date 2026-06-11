@@ -20,7 +20,6 @@ package org.apache.shenyu.common.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,6 +41,8 @@ public class ShenyuConfig {
     private ExcludePath exclude = new ExcludePath();
     
     private Health health = new Health();
+    
+    private Mcp mcp = new Mcp();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -107,6 +108,24 @@ public class ShenyuConfig {
      */
     public void setHealth(final Health health) {
         this.health = health;
+    }
+    
+    /**
+     * Gets mcp.
+     *
+     * @return the mcp
+     */
+    public Mcp getMcp() {
+        return mcp;
+    }
+    
+    /**
+     * Sets mcp.
+     *
+     * @param mcp the mcp
+     */
+    public void setMcp(final Mcp mcp) {
+        this.mcp = mcp;
     }
     
     /**
@@ -594,11 +613,6 @@ public class ShenyuConfig {
         private MatchCacheConfig cache = new MatchCacheConfig();
         
         /**
-         * the trie cache, L2 cache.
-         */
-        private ShenyuTrieConfig trie = new ShenyuTrieConfig();
-        
-/**
          * get selector cache config.
          *
          * @return {@linkplain MatchCacheConfig}
@@ -614,24 +628,6 @@ public class ShenyuConfig {
          */
         public void setCache(final MatchCacheConfig cache) {
             this.cache = cache;
-        }
-        
-        /**
-         * get rule cache Config.
-         *
-         * @return rule cache config
-         */
-        public ShenyuTrieConfig getTrie() {
-            return trie;
-        }
-        
-        /**
-         * set rule cache config.
-         *
-         * @param trie rule cache
-         */
-        public void setTrie(final ShenyuTrieConfig trie) {
-            this.trie = trie;
         }
     }
     
@@ -643,11 +639,6 @@ public class ShenyuConfig {
         private MatchCacheConfig cache = new MatchCacheConfig();
         
         /**
-         * the trie cache, L2 cache.
-         */
-        private ShenyuTrieConfig trie = new ShenyuTrieConfig();
-        
-        /**
          * get selector cache config.
          *
          * @return {@linkplain MatchCacheConfig}
@@ -663,24 +654,6 @@ public class ShenyuConfig {
          */
         public void setCache(final MatchCacheConfig cache) {
             this.cache = cache;
-        }
-        
-        /**
-         * get rule cache Config.
-         *
-         * @return rule cache config
-         */
-        public ShenyuTrieConfig getTrie() {
-            return trie;
-        }
-        
-        /**
-         * set rule cache config.
-         *
-         * @param trie rule cache
-         */
-        public void setTrie(final ShenyuTrieConfig trie) {
-            this.trie = trie;
         }
     }
     
@@ -885,6 +858,62 @@ public class ShenyuConfig {
          */
         public List<String> getPaths() {
             return paths;
+        }
+    }
+    
+    /**
+     * The type mcp.
+     */
+    public static class Mcp {
+        
+        /**
+         * mcp server.
+         */
+        private McpServer server = new McpServer();
+        
+        /**
+         * Gets server.
+         *
+         * @return the server
+         */
+        public McpServer getServer() {
+            return server;
+        }
+        
+        /**
+         * Sets server.
+         *
+         * @param server the server
+         */
+        public void setServer(final McpServer server) {
+            this.server = server;
+        }
+        
+    }
+    
+    /**
+     * The type McpServer.
+     */
+    public static class McpServer {
+        
+        private Boolean enabled = Boolean.TRUE;
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
         }
     }
     
@@ -1915,70 +1944,7 @@ public class ShenyuConfig {
         }
     }
 
-    /**
-     * shenyu trie config.
-     */
-    public static class ShenyuTrieConfig {
-        
-        private Boolean enabled = Boolean.FALSE;
-        
-        private Long cacheSize = 512L;
 
-        /**
-         * match mode.
-         * @see TrieMatchModeEnum
-         */
-        private String matchMode = TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode();
-    
-        /**
-         * get match enabled.
-         * @return Boolean
-         */
-        public Boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * set match enabled.
-         * @param enabled enabled
-         */
-        public void setEnabled(final Boolean enabled) {
-            this.enabled = enabled;
-        }
-    
-        /**
-         * get cache size.
-         * @return cache size
-         */
-        public Long getCacheSize() {
-            return cacheSize;
-        }
-
-        /**
-         * set cache size.
-         * @param cacheSize cache size
-         */
-        public void setCacheSize(final Long cacheSize) {
-            this.cacheSize = cacheSize;
-        }
-    
-        /**
-         * get match mode.
-         * @return match mode
-         */
-        public String getMatchMode() {
-            return matchMode;
-        }
-
-        /**
-         * set match mode.
-         * @param matchMode match mode
-         */
-        public void setMatchMode(final String matchMode) {
-            this.matchMode = matchMode;
-        }
-    }
-    
     public static class SpringCloudCacheConfig {
         private Boolean enabled = Boolean.FALSE;
         

@@ -137,7 +137,7 @@ public class ShenyuClientRegisterGrpcServiceImpl extends AbstractShenyuClientReg
                 GrpcUpstream grpcUpstream = CommonUpstreamUtils.buildDefaultGrpcUpstream(offlineUrl.getHost(), offlineUrl.getPort(), offlineUrl.getNamespaceId());
                 removeDiscoveryUpstream(selectorDO.getId(), grpcUpstream.getUpstreamUrl());
             }
-            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getName(), pluginName, selectorDO.getNamespaceId());
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("grpc offline discoverySyncData:{}", GsonUtils.getInstance().toJson(discoverySyncData));
             }

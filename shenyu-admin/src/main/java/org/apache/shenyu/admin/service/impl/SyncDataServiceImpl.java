@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.apache.shenyu.admin.service.AiProxyApiKeyService;
+import org.apache.shenyu.common.enums.PluginEnum;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SyncDataService}.
@@ -84,6 +86,8 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final DiscoveryUpstreamService discoveryUpstreamService;
 
+    private final AiProxyApiKeyService aiProxyApiKeyService;
+
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
                                final NamespacePluginService namespacePluginService,
@@ -92,7 +96,8 @@ public class SyncDataServiceImpl implements SyncDataService {
                                final ApplicationEventPublisher eventPublisher,
                                final MetaDataService metaDataService,
                                final DiscoveryUpstreamService discoveryUpstreamService,
-                               final DiscoveryService discoveryService) {
+                               final DiscoveryService discoveryService,
+                               final AiProxyApiKeyService aiProxyApiKeyService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
         this.namespacePluginService = namespacePluginService;
@@ -102,6 +107,7 @@ public class SyncDataServiceImpl implements SyncDataService {
         this.metaDataService = metaDataService;
         this.discoveryUpstreamService = discoveryUpstreamService;
         this.discoveryService = discoveryService;
+        this.aiProxyApiKeyService = aiProxyApiKeyService;
     }
 
     @Override
@@ -131,6 +137,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         metaDataService.syncData();
         discoveryService.syncData();
+        aiProxyApiKeyService.syncData();
         return true;
     }
 
@@ -150,6 +157,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         metaDataService.syncDataByNamespaceId(namespaceId);
         discoveryService.syncDataByNamespaceId(namespaceId);
+        aiProxyApiKeyService.syncDataByNamespaceId(namespaceId);
         return true;
     }
 
@@ -176,6 +184,11 @@ public class SyncDataServiceImpl implements SyncDataService {
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+        }
+        // if aiProxy plugin synced, also sync its proxy apikey mapping for this namespace
+        if (PluginEnum.AI_PROXY.getName().equalsIgnoreCase(namespacePluginVO.getName())) {
+            LOG.info("[AiProxySync] syncPluginData trigger apikey refresh, namespaceId={}", namespacePluginVO.getNamespaceId());
+            aiProxyApiKeyService.syncDataByNamespaceId(namespacePluginVO.getNamespaceId());
         }
         return true;
     }
@@ -204,6 +217,10 @@ public class SyncDataServiceImpl implements SyncDataService {
             List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
             
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
+        }
+        if (PluginEnum.AI_PROXY.getName().equalsIgnoreCase(namespacePluginVO.getName())) {
+            LOG.info("[AiProxySync] syncPluginData(ns,plugin) trigger apikey refresh, namespaceId={}", namespaceId);
+            aiProxyApiKeyService.syncDataByNamespaceId(namespaceId);
         }
         return true;
     }

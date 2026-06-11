@@ -21,7 +21,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
@@ -61,8 +60,6 @@ import java.util.Properties;
  * The type Shenyu websocket client event listener.
  */
 public class SpringWebSocketClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringWebSocketClient> {
-    
-    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final String[] pathAttributeNames = new String[] {"path", "value"};
 
@@ -105,9 +102,12 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull)) {
+            if (!markRegistered()) {
+                return Collections.emptyMap();
+            }
             LOG.info("init spring websocket client success with isFull mode");
             List<String> namespaceIds = super.getNamespace();
-            namespaceIds.forEach(namespaceId -> publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId)));
+            namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId)));
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);

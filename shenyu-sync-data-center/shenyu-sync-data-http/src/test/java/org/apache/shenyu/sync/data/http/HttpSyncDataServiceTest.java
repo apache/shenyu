@@ -31,6 +31,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -137,7 +138,9 @@ public final class HttpSyncDataServiceTest {
         AccessTokenManager accessTokenManager = new AccessTokenManager(okHttpClient, httpConfig);
         this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, new OkHttpClient(),
                 Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber),
-                Collections.singletonList(discoveryUpstreamDataSubscriber), accessTokenManager, shenyuConfig);
+                Collections.singletonList(discoveryUpstreamDataSubscriber),
+                Collections.<AiProxyApiKeyDataSubscriber>emptyList(),
+                accessTokenManager, shenyuConfig);
     }
 
     @AfterEach

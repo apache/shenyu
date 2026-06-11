@@ -84,14 +84,11 @@ public final class PluginServiceTest {
     private PluginEventPublisher modelDataEventPublisher;
 
     @Mock
-    private PluginHandleService pluginHandleService;
-
-    @Mock
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, pluginHandleService, namespacePluginRelMapper);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, namespacePluginRelMapper);
     }
 
     @Test

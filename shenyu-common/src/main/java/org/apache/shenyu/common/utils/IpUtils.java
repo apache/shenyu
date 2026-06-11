@@ -18,6 +18,8 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.net.Inet4Address;
@@ -27,6 +29,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.net.SocketException;
 import java.net.NetworkInterface;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +43,8 @@ import java.util.Comparator;
  * The type Ip utils.
  */
 public final class IpUtils {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(IpUtils.class);
 
     /**
      * ip pattern.
@@ -50,6 +55,11 @@ public final class IpUtils {
      * net card pattern.
      */
     private static final Pattern NET_CARD_PATTERN = Pattern.compile("(\\d+)$");
+
+    /**
+     * Docker network interface name prefixes to filter out.
+     */
+    private static final List<String> DOCKER_NETWORK_PREFIXES = Arrays.asList("docker", "br-", "veth");
 
     /**
      * System env docker host ip.
@@ -105,76 +115,173 @@ public final class IpUtils {
      * @return the host
      */
     public static String getHost(final String filterHost) {
-        String hostIp = null;
-        String pattern = filterHost;
-        // filter matching ip
-        if ("*".equals(filterHost) || "".equals(filterHost)) {
-            pattern = null;
-        } else if (Objects.nonNull(filterHost) && !filterHost.contains("*") && !isCompleteHost(filterHost)) {
-            pattern = filterHost + "*";
-        }
+        String pattern = normalizeFilterPattern(filterHost);
 
         // if the progress works under docker environment
         // return the host ip about this docker located from environment value
+        String dockerHostIp = getDockerHostIp();
+        if (Objects.nonNull(dockerHostIp)) {
+            return dockerHostIp;
+        }
+
+        return findHostFromNetworkInterfaces(pattern);
+    }
+
+    /**
+     * Normalize filter pattern.
+     *
+     * @param filterHost host filterHost str
+     * @return normalized pattern
+     */
+    private static String normalizeFilterPattern(final String filterHost) {
+        if ("*".equals(filterHost) || (Objects.nonNull(filterHost) && filterHost.length() == 0)) {
+            return null;
+        }
+        if (Objects.nonNull(filterHost) && !filterHost.contains("*") && !isCompleteHost(filterHost)) {
+            return filterHost + "*";
+        }
+        return filterHost;
+    }
+
+    /**
+     * Get Docker host IP from environment variables.
+     *
+     * @return Docker host IP if found, null otherwise
+     */
+    private static String getDockerHostIp() {
         String dockerHostIp = System.getenv(SYSTEM_ENV_DOCKER_HOST_IP);
         if (Objects.nonNull(dockerHostIp) && StringUtils.isNoneBlank(dockerHostIp)) {
             return dockerHostIp;
         }
+        dockerHostIp = System.getenv(SYSTEM_ENV_DOCKER_HOST_IP.toUpperCase(Locale.ROOT));
+        if (Objects.nonNull(dockerHostIp) && StringUtils.isNoneBlank(dockerHostIp)) {
+            return dockerHostIp;
+        }
+        return null;
+    }
 
-        // Traversal Network interface to scan all network interface
+    /**
+     * Find host IP from network interfaces.
+     *
+     * @param pattern IP pattern to match
+     * @return host IP address
+     */
+    private static String findHostFromNetworkInterfaces(final String pattern) {
         List<NetCard> ipv4Result = new ArrayList<>();
         List<NetCard> ipv6Result = new ArrayList<>();
-        NetCard netCard;
         try {
-            Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces();
-            while (enumeration.hasMoreElements()) {
-                final NetworkInterface networkInterface = enumeration.nextElement();
-                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress inetAddress = addresses.nextElement();
-                    if (Objects.nonNull(inetAddress) && !inetAddress.isLoopbackAddress()) {
-                        if (inetAddress instanceof Inet4Address && isCompleteHost(inetAddress.getHostAddress())) {
-                            netCard = new NetCard(inetAddress.getHostAddress(),
-                                    getName(networkInterface.getName()),
-                                    getNamePostfix(networkInterface.getName()),
-                                    Integer.parseInt(inetAddress.getHostAddress().split("\\.")[3]));
-                            ipv4Result.add(netCard);
-                        } else {
-                            netCard = new NetCard(inetAddress.getHostAddress(),
-                                    getName(networkInterface.getName()),
-                                    getNamePostfix(networkInterface.getName()));
-                            ipv6Result.add(netCard);
-                        }
-                    }
-                }
-            }
+            scanNetworkInterfaces(ipv4Result, ipv6Result);
+            sortNetCards(ipv4Result, ipv6Result);
+            return selectHostIp(ipv4Result, ipv6Result, pattern);
+        } catch (SocketException ignore) {
+            return LOCALHOST;
+        }
+    }
 
-            // sort ip
-            Comparator<NetCard> byNamePostfix = Comparator.comparing(NetCard::getNamePostfix);
-            Comparator<NetCard> byIpv4Postfix = (card1, card2) -> card2.getIpv4Postfix() - card1.getIpv4Postfix();
-            ipv4Result.sort(BY_NAME.thenComparing(byNamePostfix).thenComparing(byIpv4Postfix));
-            ipv6Result.sort(BY_NAME.thenComparing(byNamePostfix));
-            // prefer ipv4
-            if (!ipv4Result.isEmpty()) {
-                if (Objects.nonNull(pattern)) {
-                    for (NetCard card : ipv4Result) {
-                        if (ipMatch(card.getIp(), pattern)) {
-                            hostIp = card.getIp();
-                            break;
-                        }
-                    }
-                } else {
-                    hostIp = ipv4Result.get(0).getIp();
+    /**
+     * Scan network interfaces and collect IP addresses.
+     *
+     * @param ipv4Result IPv4 result list
+     * @param ipv6Result IPv6 result list
+     * @throws SocketException if network interface access fails
+     */
+    private static void scanNetworkInterfaces(final List<NetCard> ipv4Result, final List<NetCard> ipv6Result) 
+            throws SocketException {
+        Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces();
+        while (enumeration.hasMoreElements()) {
+            final NetworkInterface networkInterface = enumeration.nextElement();
+            // Skip Docker network interfaces (e.g., docker0, br-xxx, vethxxx)
+            if (isDockerNetworkInterface(networkInterface.getName())) {
+                continue;
+            }
+            Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+            while (addresses.hasMoreElements()) {
+                InetAddress inetAddress = addresses.nextElement();
+                if (Objects.nonNull(inetAddress) && !inetAddress.isLoopbackAddress()) {
+                    addNetCard(inetAddress, networkInterface.getName(), ipv4Result, ipv6Result);
                 }
-            } else if (!ipv6Result.isEmpty()) {
-                hostIp = ipv6Result.get(0).getIp();
             }
-            // If failed to find,fall back to localhost
-            if (Objects.isNull(hostIp)) {
+        }
+    }
+
+    /**
+     * Add network card to appropriate result list.
+     *
+     * @param inetAddress inet address
+     * @param interfaceName network interface name
+     * @param ipv4Result IPv4 result list
+     * @param ipv6Result IPv6 result list
+     */
+    private static void addNetCard(final InetAddress inetAddress, final String interfaceName,
+                                    final List<NetCard> ipv4Result, final List<NetCard> ipv6Result) {
+        String hostAddress = inetAddress.getHostAddress();
+        if (inetAddress instanceof Inet4Address && isCompleteHost(hostAddress)) {
+            int ipv4Postfix = 0;
+            try {
+                String[] segments = hostAddress.split("\\.");
+                ipv4Postfix = Integer.parseInt(segments[3]);
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                // Log the error if desired, or leave as default 0
+            }
+            NetCard netCard = new NetCard(hostAddress,
+                    getName(interfaceName),
+                    getNamePostfix(interfaceName),
+                    ipv4Postfix);
+            ipv4Result.add(netCard);
+        } else {
+            NetCard netCard = new NetCard(hostAddress,
+                    getName(interfaceName),
+                    getNamePostfix(interfaceName));
+            ipv6Result.add(netCard);
+        }
+    }
+
+    /**
+     * Sort network cards by priority.
+     *
+     * @param ipv4Result IPv4 result list
+     * @param ipv6Result IPv6 result list
+     */
+    private static void sortNetCards(final List<NetCard> ipv4Result, final List<NetCard> ipv6Result) {
+        Comparator<NetCard> byNamePostfix = Comparator.comparing(NetCard::getNamePostfix);
+        Comparator<NetCard> byIpv4Postfix = (card1, card2) -> card2.getIpv4Postfix() - card1.getIpv4Postfix();
+        ipv4Result.sort(BY_NAME.thenComparing(byNamePostfix).thenComparing(byIpv4Postfix));
+        ipv6Result.sort(BY_NAME.thenComparing(byNamePostfix));
+    }
+
+    /**
+     * Select host IP from sorted network cards.
+     *
+     * @param ipv4Result IPv4 result list
+     * @param ipv6Result IPv6 result list
+     * @param pattern IP pattern to match
+     * @return selected host IP
+     */
+    private static String selectHostIp(final List<NetCard> ipv4Result, final List<NetCard> ipv6Result,
+                                        final String pattern) {
+        String hostIp = null;
+        // prefer ipv4
+        if (!ipv4Result.isEmpty()) {
+            if (Objects.nonNull(pattern)) {
+                for (NetCard card : ipv4Result) {
+                    if (ipMatch(card.getIp(), pattern)) {
+                        hostIp = card.getIp();
+                        break;
+                    }
+                }
+            } else {
+                hostIp = ipv4Result.get(0).getIp();
+            }
+        } else if (!ipv6Result.isEmpty()) {
+            hostIp = ipv6Result.get(0).getIp();
+        }
+        // If failed to find, fall back to localhost
+        if (Objects.isNull(hostIp)) {
+            try {
                 hostIp = InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException ignore) {
+                hostIp = LOCALHOST;
             }
-        } catch (SocketException | UnknownHostException ignore) {
-            hostIp = LOCALHOST;
         }
         return hostIp;
     }
@@ -224,6 +331,25 @@ public final class IpUtils {
     }
 
     /**
+     * Check if the network interface is a Docker-related interface.
+     *
+     * @param name network interface name
+     * @return true if it's a Docker network interface
+     */
+    private static boolean isDockerNetworkInterface(final String name) {
+        if (Objects.isNull(name)) {
+            return false;
+        }
+        String lowerName = name.toLowerCase(Locale.ROOT);
+        for (String prefix : DOCKER_NETWORK_PREFIXES) {
+            if (lowerName.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * To obtain a prefix.
      *
      * @param name network interface name
@@ -244,9 +370,23 @@ public final class IpUtils {
      * @return the name postfix
      */
     private static Integer getNamePostfix(final String name) {
+        LOG.debug("getNamePostfix name: {}", name);
         Matcher matcher = NET_CARD_PATTERN.matcher(name);
         if (matcher.find()) {
-            return Integer.parseInt(matcher.group());
+            String numberStr = matcher.group();
+            LOG.debug("getNamePostfix matcher.group(): {}", numberStr);
+            // Limit the number length to avoid parsing very large numbers (e.g., Docker network interface names)
+            // Common network interface suffixes are usually 1-4 digits (e.g., eth0, enp3s0)
+            if (numberStr.length() > 4) {
+                LOG.debug("getNamePostfix: number too long, ignoring: {}", numberStr);
+                return -1;
+            }
+            try {
+                return Integer.parseInt(numberStr);
+            } catch (NumberFormatException e) {
+                LOG.warn("getNamePostfix: failed to parse number '{}' from interface name '{}'", numberStr, name, e);
+                return -1;
+            }
         }
         return -1;
     }

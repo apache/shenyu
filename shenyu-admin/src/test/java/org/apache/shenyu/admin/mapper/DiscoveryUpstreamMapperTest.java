@@ -93,10 +93,10 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
         discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
         discoveryUpstreamDO.setDiscoveryHandlerId("1");
-        discoveryUpstreamDO.setStatus(1);
+        discoveryUpstreamDO.setUpstreamStatus(1);
         discoveryUpstreamDO.setWeight(1);
         discoveryUpstreamDO.setProps("test");
-        discoveryUpstreamDO.setUrl("test");
+        discoveryUpstreamDO.setUpstreamUrl("test");
         discoveryUpstreamDO.setProtocol("test");
         discoveryUpstreamDO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));

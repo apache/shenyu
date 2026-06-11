@@ -43,11 +43,6 @@ public enum RegisterTypeEnum {
     TARS("tars"),
 
     /**
-     * Motan rpc type enum.
-     */
-    MOTAN("motan"),
-
-    /**
      * grpc.
      */
     GRPC("grpc");

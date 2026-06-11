@@ -43,8 +43,9 @@ public class WebSocketPluginCases implements ShenYuScenarioProvider {
      * @return ShenYuScenarioSpec
      */
     public ShenYuScenarioSpec testWebSocket() {
+
         return ShenYuScenarioSpec.builder()
-                .name("single-websocket test]")
+                .name("single-websocket test")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
                         .checker(exists("/ws-native/myWebSocket?token=Jack", "Hello ShenYu", "apache shenyu server send to Jack message : -> Hello ShenYu"))
                         .build())

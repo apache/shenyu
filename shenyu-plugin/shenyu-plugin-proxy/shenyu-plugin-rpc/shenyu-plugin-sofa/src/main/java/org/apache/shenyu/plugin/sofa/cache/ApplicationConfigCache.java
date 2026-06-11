@@ -26,6 +26,7 @@ import com.alipay.sofa.rpc.context.AsyncRuntime;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -33,8 +34,10 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.SofaUpstream;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.slf4j.Logger;
@@ -44,14 +47,20 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * The type Application config cache.
@@ -59,6 +68,8 @@ import java.util.concurrent.TimeUnit;
 public final class ApplicationConfigCache {
     
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
+
+    private static final Map<String, SofaUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
     
     private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-sofa", true);
     
@@ -118,11 +129,12 @@ public final class ApplicationConfigCache {
         }
         if (Objects.isNull(registryConfig)) {
             registryConfig = new RegistryConfig();
-            registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
             registryConfig.setId(shenyuProxy);
             registryConfig.setRegister(false);
-            registryConfig.setAddress(sofaRegisterConfig.getRegister());
+
         }
+        registryConfig.setProtocol(sofaRegisterConfig.getProtocol());
+        registryConfig.setAddress(sofaRegisterConfig.getRegister());
         if (StringUtils.isNotBlank(sofaRegisterConfig.getThreadpool())) {
             initThreadPool(sofaRegisterConfig);
             Optional.ofNullable(threadPool).ifPresent(this::setAsyncRuntimeThreadPool);
@@ -186,7 +198,52 @@ public final class ApplicationConfigCache {
         return build(metaData);
         
     }
-    
+
+    /**
+     * Init ref reference config use sofaUpstream.
+     *
+     * @param selectorId    the selectorId
+     * @param metaData      the meta data
+     * @param sofaUpstream  the sofaUpstream
+     * @return the reference config
+     */
+    public ConsumerConfig<GenericService> initRef(final String selectorId, final MetaData metaData, final SofaUpstream sofaUpstream) {
+        try {
+            String cacheKey = generateUpstreamCacheKey(selectorId, metaData.getPath(), sofaUpstream);
+            ConsumerConfig<GenericService> referenceConfig = cache.get(cacheKey);
+            if (StringUtils.isNoneBlank(referenceConfig.getInterfaceId())) {
+                return referenceConfig;
+            }
+        } catch (ExecutionException e) {
+            LOG.error("init sofa ref ex:{}", e.getMessage());
+        }
+        return build(metaData, selectorId, sofaUpstream);
+
+    }
+
+    /**
+     * generate sofa upstream reference cache key.
+     *
+     * @param selectorId    selectorId
+     * @param metaDataPath    metaDataPath
+     * @param sofaUpstream  sofaUpstream
+     * @return the reference config cache key
+     */
+    public String generateUpstreamCacheKey(final String selectorId, final String metaDataPath, final SofaUpstream sofaUpstream) {
+        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
+        stringJoiner.add(selectorId);
+        stringJoiner.add(metaDataPath);
+        if (StringUtils.isNotBlank(sofaUpstream.getProtocol())) {
+            stringJoiner.add(sofaUpstream.getProtocol());
+        }
+        // use registry hash to short reference cache key
+        String registryHash = DigestUtils.md5Hex(sofaUpstream.getRegister());
+        stringJoiner.add(registryHash);
+        return stringJoiner.toString();
+    }
+
+
+
     /**
      * Build reference config.
      *
@@ -197,6 +254,54 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
             return new ConsumerConfig<>();
         }
+        ConsumerConfig<GenericService> reference = buildReference(metaData);
+        try {
+            Object obj = reference.refer();
+            if (Objects.nonNull(obj)) {
+                LOG.info("init sofa reference success there meteData is :{}", metaData);
+                cache.put(metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            LOG.error("init sofa reference exception", e);
+        }
+        return reference;
+    }
+
+    /**
+     * build with dynamic namespace and selectorData's SofaUpstream、ruleData's custom param.
+     *
+     * @param metaData      metaData
+     * @param selectorId    selectorId
+     * @param sofaUpstream  sofaUpstream
+     * @return the reference config
+     */
+    @SuppressWarnings("deprecation")
+    public ConsumerConfig<GenericService> build(final MetaData metaData, final String selectorId, final SofaUpstream sofaUpstream) {
+        if (Objects.isNull(sofaUpstream)) {
+            return this.build(metaData);
+        }
+
+        ConsumerConfig<GenericService> reference = buildReference(metaData, sofaUpstream);
+        try {
+            Object obj = reference.refer();
+            if (Objects.nonNull(obj)) {
+                LOG.info("buildN init apache sofa reference success there meteData is :{}", metaData);
+                String cacheKey = this.generateUpstreamCacheKey(selectorId, metaData.getPath(), sofaUpstream);
+                cache.put(cacheKey, reference);
+            }
+        } catch (Exception e) {
+            LOG.error("buildN init sofa reference exception", e);
+        }
+        return reference;
+    }
+
+    /**
+     * buildReference param.
+     *
+     * @param metaData metaData
+     * @return the reference config
+     */
+    private ConsumerConfig<GenericService> buildReference(final MetaData metaData) {
         ConsumerConfig<GenericService> reference = new ConsumerConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
@@ -215,18 +320,52 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(sofaParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(sofaParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        try {
-            Object obj = reference.refer();
-            if (Objects.nonNull(obj)) {
-                LOG.info("init sofa reference success there meteData is :{}", metaData);
-                cache.put(metaData.getPath(), reference);
+        return reference;
+    }
+
+    /**
+     * buildReference param with sofaUpstream.
+     *
+     * @param metaData      metaData
+     * @param sofaUpstream  sofaUpstream
+     * @return the reference config
+     */
+    private ConsumerConfig<GenericService> buildReference(final MetaData metaData, final SofaUpstream sofaUpstream) {
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ConsumerConfig<>();
+        }
+        ConsumerConfig<GenericService> reference = new ConsumerConfig<>();
+        reference.setGeneric(true);
+        reference.setApplication(applicationConfig);
+
+        if (Objects.nonNull(sofaUpstream)) {
+            RegistryConfig registryConfigTemp = new RegistryConfig();
+            registryConfigTemp.setProtocol(sofaUpstream.getProtocol());
+            registryConfigTemp.setId(Constants.SOFA_DEFAULT_APPLICATION_NAME);
+            registryConfigTemp.setRegister(false);
+            registryConfigTemp.setAddress(sofaUpstream.getRegister());
+            reference.setRegistry(registryConfigTemp);
+        } else {
+            reference.setRegistry(registryConfig);
+        }
+
+        reference.setInterfaceId(metaData.getServiceName());
+        reference.setProtocol(RpcConstants.PROTOCOL_TYPE_BOLT);
+        reference.setInvokeType(RpcConstants.INVOKER_TYPE_CALLBACK);
+        reference.setRepeatedReferLimit(-1);
+        String rpcExt = metaData.getRpcExt();
+        SofaParamExtInfo sofaParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, SofaParamExtInfo.class);
+        if (Objects.nonNull(sofaParamExtInfo)) {
+            if (StringUtils.isNoneBlank(sofaParamExtInfo.getLoadbalance())) {
+                final String loadBalance = sofaParamExtInfo.getLoadbalance();
+                reference.setLoadBalancer(buildLoadBalanceName(loadBalance));
             }
-        } catch (Exception e) {
-            LOG.error("init sofa reference exception", e);
+            Optional.ofNullable(sofaParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
+            Optional.ofNullable(sofaParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
         return reference;
     }
-    
+
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
             return "consistentHash";
@@ -250,6 +389,27 @@ public final class ApplicationConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
+
+    /**
+     * Get Upstream.
+     *
+     * @param path path
+     * @return the upstream
+     */
+    public SofaUpstream getUpstream(final String path) {
+        return UPSTREAM_CACHE_MAP.get(path);
+    }
+
+    /**
+     * Put Upstream.
+     *
+     * @param path path
+     * @param sofaUpstream sofaUpstream
+     * @return the upstreamList
+     */
+    public SofaUpstream putUpstream(final String path, final SofaUpstream sofaUpstream) {
+        return UPSTREAM_CACHE_MAP.put(path, sofaUpstream);
+    }
     
     /**
      * Invalidate.
@@ -265,6 +425,45 @@ public final class ApplicationConfigCache {
      */
     public void invalidateAll() {
         cache.invalidateAll();
+        UPSTREAM_CACHE_MAP.clear();
+    }
+
+    /**
+     * Invalidate when sofa metadata update.
+     *
+     * @param metadataPath the metadataPath
+     */
+    public void invalidateWithMetadataPath(final String metadataPath) {
+        ConcurrentMap<String, ConsumerConfig<GenericService>> map = cache.asMap();
+        if (map.isEmpty()) {
+            return;
+        }
+        Set<String> allKeys = map.keySet();
+        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataPath)).collect(Collectors.toSet());
+        if (needInvalidateKeys.isEmpty()) {
+            return;
+        }
+        needInvalidateKeys.forEach(cache::invalidate);
+        needInvalidateKeys.forEach(UPSTREAM_CACHE_MAP::remove);
+    }
+
+    /**
+     * Invalidate when sofa selector update.
+     *
+     * @param selectorId the selectorId
+     */
+    public void invalidateWithSelectorId(final String selectorId) {
+        ConcurrentMap<String, ConsumerConfig<GenericService>> map = cache.asMap();
+        if (map.isEmpty()) {
+            return;
+        }
+        Set<String> allKeys = map.keySet();
+        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
+        if (needInvalidateKeys.isEmpty()) {
+            return;
+        }
+        needInvalidateKeys.forEach(cache::invalidate);
+        needInvalidateKeys.forEach(UPSTREAM_CACHE_MAP::remove);
     }
     
     /**

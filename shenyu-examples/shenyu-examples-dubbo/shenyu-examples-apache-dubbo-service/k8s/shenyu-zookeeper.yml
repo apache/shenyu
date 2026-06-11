@@ -43,7 +43,7 @@ spec:
         all: shenyu-examples-dubbo
     spec:
       containers:
-        - image: zookeeper:3.5
+        - image: zookeeper:3.9
           name: shenyu-zk
           resources: {}
           ports:

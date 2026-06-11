@@ -47,7 +47,7 @@ public class AiRequestTransformerPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin aiProxyPlugin(final ServerCodecConfigurer configurer, final List<AiModelFactory> aiModelFactoryList) {
+    public ShenyuPlugin aiRequestTransformerPlugin(final ServerCodecConfigurer configurer, final List<AiModelFactory> aiModelFactoryList) {
         return new AiRequestTransformerPlugin(configurer.getReaders(), aiModelFactoryRegistry(aiModelFactoryList));
     }
 
@@ -58,7 +58,7 @@ public class AiRequestTransformerPluginConfiguration {
      * @return the shenyu plugin handler
      */
     @Bean
-    public AiRequestTransformerPluginHandler aiProxyPluginHandler(final List<AiModelFactory> aiModelFactoryList) {
+    public AiRequestTransformerPluginHandler aiRequestTransformerPluginHandler(final List<AiModelFactory> aiModelFactoryList) {
         return new AiRequestTransformerPluginHandler(aiModelFactoryRegistry(aiModelFactoryList));
     }
 

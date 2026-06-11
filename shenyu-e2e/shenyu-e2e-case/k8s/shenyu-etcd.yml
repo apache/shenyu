@@ -32,8 +32,9 @@ spec:
         app: shenyu-etcd
     spec:
       containers:
-        - image: bitnami/etcd:3.5
+        - image: rancher/hardened-etcd:v3.5.21-k3s1-build20250910
           name: shenyu-etcd
+          command: ["etcd"]
           resources: { }
           env:
             - name: ALLOW_NONE_AUTHENTICATION

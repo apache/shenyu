@@ -22,9 +22,9 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="type" jdbcType="VARCHAR" property="type"/>
-        <result column="level" jdbcType="VARCHAR" property="level"/>
+        <result column="discovery_name" jdbcType="VARCHAR" property="discoveryName"/>
+        <result column="discovery_type" jdbcType="VARCHAR" property="discoveryType"/>
+        <result column="discovery_level" jdbcType="VARCHAR" property="discoveryLevel"/>
         <result column="server_list" jdbcType="VARCHAR" property="serverList"/>
         <result column="plugin_name" jdbcType="VARCHAR" property="pluginName"/>
         <result column="props" jdbcType="LONGVARCHAR" property="props"/>
@@ -35,9 +35,9 @@
         id,
         date_created,
         date_updated,
-        name,
-        type,
-        level,
+        discovery_name,
+        discovery_type,
+        discovery_level,
         server_list,
         plugin_name,
         props,
@@ -61,15 +61,15 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
-        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND discovery_level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
     <select id="selectByPluginNameAndLevelAndNamespaceIdAndType" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
-        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-        AND type = #{discoveryType, jdbcType=VARCHAR}
+        WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND discovery_level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        AND discovery_type = #{discoveryType, jdbcType=VARCHAR}
     </select>
 
     <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
@@ -100,9 +100,9 @@
         d.id,
         d.date_created,
         d.date_updated,
-        d.name,
-        d.type,
-        d.level,
+        d.discovery_name,
+        d.discovery_type,
+        d.discovery_level,
         d.server_list,
         d.plugin_name,
         d.props,
@@ -120,9 +120,9 @@
         (id,
         date_created,
         date_updated,
-        name,
-        type,
-        level,
+        discovery_name,
+        discovery_type,
+        discovery_level,
         server_list,
         plugin_name,
         props,
@@ -131,9 +131,9 @@
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
-        #{name, jdbcType=VARCHAR},
-        #{type, jdbcType=VARCHAR},
-        #{level, jdbcType=VARCHAR},
+        #{discoveryName, jdbcType=VARCHAR},
+        #{discoveryType, jdbcType=VARCHAR},
+        #{discoveryLevel, jdbcType=VARCHAR},
         #{serverList, jdbcType=VARCHAR},
         #{pluginName, jdbcType=VARCHAR},
         #{props, jdbcType=LONGVARCHAR},
@@ -150,14 +150,14 @@
             <if test="dateUpdated != null">
                 date_updated,
             </if>
-            <if test="name != null">
-                name,
+            <if test="discoveryName != null">
+                discovery_name,
             </if>
-            <if test="type != null">
-                type,
+            <if test="discoveryType != null">
+                discovery_type,
             </if>
-            <if test="level != null">
-                level,
+            <if test="discoveryLevel != null">
+                discovery_level,
             </if>
             <if test="serverList != null">
                 server_list,
@@ -180,14 +180,14 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                #{name, jdbcType=VARCHAR},
+            <if test="discoveryName != null">
+                #{discoveryName, jdbcType=VARCHAR},
             </if>
-            <if test="type != null">
-                #{type, jdbcType=VARCHAR},
+            <if test="discoveryType != null">
+                #{discoveryType, jdbcType=VARCHAR},
             </if>
-            <if test="level != null">
-                #{level, jdbcType=VARCHAR},
+            <if test="discoveryLevel != null">
+                #{discoveryLevel, jdbcType=VARCHAR},
             </if>
             <if test="serverList != null">
                 #{serverList, jdbcType=VARCHAR},
@@ -208,9 +208,9 @@
         UPDATE discovery
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
-        name = #{name, jdbcType=VARCHAR},
-        type = #{type, jdbcType=VARCHAR},
-        level = #{level, jdbcType=VARCHAR},
+        discovery_name = #{discoveryName, jdbcType=VARCHAR},
+        discovery_type = #{discoveryType, jdbcType=VARCHAR},
+        discovery_level = #{discoveryLevel, jdbcType=VARCHAR},
         server_list = #{serverList, jdbcType=VARCHAR},
         plugin_name = #{pluginName, jdbcType=VARCHAR},
         props = #{props, jdbcType=LONGVARCHAR}
@@ -226,14 +226,14 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="name != null">
-                name = #{name, jdbcType=VARCHAR},
+            <if test="discoveryName != null">
+                discovery_name = #{discoveryName, jdbcType=VARCHAR},
             </if>
-            <if test="type != null">
-                type = #{type, jdbcType=VARCHAR},
+            <if test="discoveryType != null">
+                discovery_type = #{discoveryType, jdbcType=VARCHAR},
             </if>
-            <if test="level != null">
-                level = #{level, jdbcType=VARCHAR},
+            <if test="discoveryLevel != null">
+                discovery_level = #{discoveryLevel, jdbcType=VARCHAR},
             </if>
             <if test="serverList != null">
                 server_list = #{serverList, jdbcType=VARCHAR},

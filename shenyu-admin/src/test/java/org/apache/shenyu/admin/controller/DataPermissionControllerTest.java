@@ -26,20 +26,27 @@ import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -174,5 +181,32 @@ public class DataPermissionControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
+    }
+
+    @Test
+    public void shouldRequireConfigureDataPermissionForAllEndpoints() throws NoSuchMethodException {
+        assertPermissions(DataPermissionController.class.getMethod("listPageSelectorDataPermissions",
+                Integer.class, Integer.class, String.class, String.class, String.class, String.class),
+                "system:manager:configureDataPermission");
+        assertPermissions(DataPermissionController.class.getMethod("listPageRuleDataPermissions",
+                Integer.class, Integer.class, String.class, String.class, String.class),
+                "system:manager:configureDataPermission");
+        assertPermissions(DataPermissionController.class.getMethod("saveSelector", DataPermissionDTO.class),
+                "system:manager:configureDataPermission");
+        assertPermissions(DataPermissionController.class.getMethod("deleteSelector", DataPermissionDTO.class),
+                "system:manager:configureDataPermission");
+        assertPermissions(DataPermissionController.class.getMethod("saveRule", DataPermissionDTO.class),
+                "system:manager:configureDataPermission");
+        assertPermissions(DataPermissionController.class.getMethod("deleteRule", DataPermissionDTO.class),
+                "system:manager:configureDataPermission");
+    }
+
+    private void assertPermissions(final Method method, final String... expectedPermissions) {
+        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
+        if (Objects.isNull(permissions)) {
+            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
+        }
+        assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
+        assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
     }
 }

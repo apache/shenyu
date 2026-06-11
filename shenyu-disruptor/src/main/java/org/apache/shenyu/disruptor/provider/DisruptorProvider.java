@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 /**
  * DisruptorProvider.
@@ -41,6 +42,8 @@ public class DisruptorProvider<T> {
     private final Disruptor<DataEvent<T>> disruptor;
     
     private final boolean isOrderly;
+    
+    private final ExecutorService executor;
     
     private final EventTranslatorOneArg<DataEvent<T>, T> translatorOneArg = (event, sequence, t) -> event.setData(t);
     
@@ -62,11 +65,13 @@ public class DisruptorProvider<T> {
      * @param ringBuffer the ring buffer
      * @param disruptor  the disruptor
      * @param isOrderly  the orderly Whether to execute sequentially.
+     * @param executor   the executor service to be managed
      */
-    public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor, final boolean isOrderly) {
+    public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor, final boolean isOrderly, final ExecutorService executor) {
         this.ringBuffer = ringBuffer;
         this.disruptor = disruptor;
         this.isOrderly = isOrderly;
+        this.executor = executor;
     }
 
     /**
@@ -109,6 +114,9 @@ public class DisruptorProvider<T> {
     public void shutdown() {
         if (Objects.nonNull(disruptor)) {
             disruptor.shutdown();
+        }
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
         }
     }
 }

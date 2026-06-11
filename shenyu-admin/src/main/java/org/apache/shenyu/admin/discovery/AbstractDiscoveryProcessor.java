@@ -90,7 +90,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             LOG.info("shenyu DiscoveryProcessor {} discovery has been init", discoveryDO.getId());
             return;
         }
-        String type = discoveryDO.getType();
+        String type = discoveryDO.getDiscoveryType();
         String props = discoveryDO.getProps();
         Properties properties = GsonUtils.getGson().fromJson(props, Properties.class);
         RegisterConfig discoveryConfig = new RegisterConfig();
@@ -117,7 +117,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         }
         if (discoveryServiceCache.values().stream().noneMatch(p -> p.equals(shenyuDiscoveryService))) {
             shenyuDiscoveryService.close();
-            LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getName());
+            LOG.info("shenyu discovery shutdown [{}] discovery", discoveryDO.getDiscoveryName());
         }
     }
 
@@ -184,10 +184,10 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
             }).collect(Collectors.toList());
             Set<String> urlList = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
             List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDTO.getId());
-            Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUrl).collect(Collectors.toSet());
+            Set<String> dbUrlList = discoveryUpstreamDOS.stream().map(DiscoveryUpstreamDO::getUpstreamUrl).collect(Collectors.toSet());
             List<String> deleteIds = new ArrayList<>();
             for (DiscoveryUpstreamDO discoveryUpstreamDO : discoveryUpstreamDOS) {
-                if (!urlList.contains(discoveryUpstreamDO.getUrl())) {
+                if (!urlList.contains(discoveryUpstreamDO.getUpstreamUrl())) {
                     deleteIds.add(discoveryUpstreamDO.getId());
                 }
             }

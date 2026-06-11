@@ -46,7 +46,7 @@ public final class SelectorDO extends BaseDO {
     /**
      * selector name.
      */
-    private String name;
+    private String selectorName;
 
     /**
      * match mode.
@@ -56,12 +56,12 @@ public final class SelectorDO extends BaseDO {
     /**
      * selector type.
      */
-    private Integer type;
+    private Integer selectorType;
 
     /**
-     * sort type.
+     * sort code.
      */
-    private Integer sort;
+    private Integer sortCode;
 
     /**
      * whether enabled.
@@ -97,10 +97,10 @@ public final class SelectorDO extends BaseDO {
     }
 
     public SelectorDO(final String pluginId,
-                      final String name,
+                      final String selectorName,
                       final Integer matchMode,
-                      final Integer type,
-                      final Integer sort,
+                      final Integer selectorType,
+                      final Integer sortCode,
                       final Boolean enabled,
                       final Boolean loged,
                       final Boolean continued,
@@ -108,10 +108,10 @@ public final class SelectorDO extends BaseDO {
                       final Boolean matchRestful,
                       final String namespaceId) {
         this.pluginId = pluginId;
-        this.name = name;
+        this.selectorName = selectorName;
         this.matchMode = matchMode;
-        this.type = type;
-        this.sort = sort;
+        this.selectorType = selectorType;
+        this.sortCode = sortCode;
         this.enabled = enabled;
         this.loged = loged;
         this.continued = continued;
@@ -140,21 +140,21 @@ public final class SelectorDO extends BaseDO {
     }
 
     /**
-     * Gets the value of name.
+     * Gets the value of selectorName.
      *
-     * @return the value of name
+     * @return the value of selectorName
      */
-    public String getName() {
-        return name;
+    public String getSelectorName() {
+        return selectorName;
     }
 
     /**
-     * Sets the name.
+     * Sets the selectorName.
      *
-     * @param name name
+     * @param selectorName selectorName
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setSelectorName(final String selectorName) {
+        this.selectorName = selectorName;
     }
 
     /**
@@ -176,39 +176,39 @@ public final class SelectorDO extends BaseDO {
     }
 
     /**
-     * Gets the value of type.
+     * Gets the value of selectorType.
      *
-     * @return the value of type
+     * @return the value of selectorType
      */
-    public Integer getType() {
-        return type;
+    public Integer getSelectorType() {
+        return selectorType;
     }
 
     /**
-     * Sets the type.
+     * Sets the selectorType.
      *
-     * @param type type
+     * @param selectorType selectorType
      */
-    public void setType(final Integer type) {
-        this.type = type;
+    public void setSelectorType(final Integer selectorType) {
+        this.selectorType = selectorType;
     }
 
     /**
-     * Gets the value of sort.
+     * Gets the value of sortCode.
      *
-     * @return the value of sort
+     * @return the value of sortCode
      */
-    public Integer getSort() {
-        return sort;
+    public Integer getSortCode() {
+        return sortCode;
     }
 
     /**
-     * Sets the sort.
+     * Sets the sortCode.
      *
-     * @param sort sort
+     * @param sortCode sortCode
      */
-    public void setSort(final Integer sort) {
-        this.sort = sort;
+    public void setSortCode(final Integer sortCode) {
+        this.sortCode = sortCode;
     }
 
     /**
@@ -341,10 +341,10 @@ public final class SelectorDO extends BaseDO {
         }
         SelectorDO that = (SelectorDO) o;
         return Objects.equals(pluginId, that.pluginId)
-                && Objects.equals(name, that.name)
+                && Objects.equals(selectorName, that.selectorName)
                 && Objects.equals(matchMode, that.matchMode)
-                && Objects.equals(type, that.type)
-                && Objects.equals(sort, that.sort)
+                && Objects.equals(selectorType, that.selectorType)
+                && Objects.equals(sortCode, that.sortCode)
                 && Objects.equals(enabled, that.enabled)
                 && Objects.equals(loged, that.loged)
                 && Objects.equals(continued, that.continued)
@@ -355,7 +355,7 @@ public final class SelectorDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful, namespaceId);
+        return Objects.hash(super.hashCode(), pluginId, selectorName, matchMode, selectorType, sortCode, enabled, loged, continued, handle, matchRestful, namespaceId);
     }
 
     /**
@@ -368,15 +368,15 @@ public final class SelectorDO extends BaseDO {
         return Optional.ofNullable(selectorDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             SelectorDO selectorDO = SelectorDO.builder()
-                    .type(item.getType())
-                    .sort(item.getSort())
+                    .selectorType(item.getType())
+                    .sortCode(item.getSort())
                     .enabled(item.getEnabled())
                     .loged(item.getLoged())
                     .continued(item.getContinued())
                     .dateUpdated(currentTime)
                     .handle(item.getHandle())
                     .pluginId(item.getPluginId())
-                    .name(item.getName())
+                    .selectorName(item.getName())
                     .matchRestful(item.getMatchRestful())
                     .namespaceId(item.getNamespaceId())
                     .build();
@@ -410,10 +410,10 @@ public final class SelectorDO extends BaseDO {
                 .id(selectorDO.getId())
                 .pluginId(selectorDO.getPluginId())
                 .pluginName(pluginName)
-                .name(selectorDO.getName())
+                .name(selectorDO.getSelectorName())
                 .matchMode(selectorDO.getMatchMode())
-                .type(selectorDO.getType())
-                .sort(selectorDO.getSort())
+                .type(selectorDO.getSelectorType())
+                .sort(selectorDO.getSortCode())
                 .enabled(selectorDO.getEnabled())
                 .logged(selectorDO.getLoged())
                 .continued(selectorDO.getContinued())
@@ -447,13 +447,13 @@ public final class SelectorDO extends BaseDO {
 
         private String pluginId;
 
-        private String name;
+        private String selectorName;
 
         private Integer matchMode;
 
-        private Integer type;
+        private Integer selectorType;
 
-        private Integer sort;
+        private Integer sortCode;
 
         private Boolean enabled;
 
@@ -515,13 +515,13 @@ public final class SelectorDO extends BaseDO {
         }
 
         /**
-         * name.
+         * selectorName.
          *
-         * @param name the name.
+         * @param selectorName the selectorName.
          * @return SelectorDOBuilder.
          */
-        public SelectorDOBuilder name(final String name) {
-            this.name = name;
+        public SelectorDOBuilder selectorName(final String selectorName) {
+            this.selectorName = selectorName;
             return this;
         }
 
@@ -539,22 +539,22 @@ public final class SelectorDO extends BaseDO {
         /**
          * type.
          *
-         * @param type the type.
+         * @param selectorType the type.
          * @return SelectorDOBuilder.
          */
-        public SelectorDOBuilder type(final Integer type) {
-            this.type = type;
+        public SelectorDOBuilder selectorType(final Integer selectorType) {
+            this.selectorType = selectorType;
             return this;
         }
 
         /**
-         * sort.
+         * sortCode.
          *
-         * @param sort the sort.
+         * @param sortCode the sortCode.
          * @return SelectorDOBuilder.
          */
-        public SelectorDOBuilder sort(final Integer sort) {
-            this.sort = sort;
+        public SelectorDOBuilder sortCode(final Integer sortCode) {
+            this.sortCode = sortCode;
             return this;
         }
 
@@ -635,10 +635,10 @@ public final class SelectorDO extends BaseDO {
             selectorDO.setDateCreated(dateCreated);
             selectorDO.setDateUpdated(dateUpdated);
             selectorDO.setPluginId(pluginId);
-            selectorDO.setName(name);
+            selectorDO.setSelectorName(selectorName);
             selectorDO.setMatchMode(matchMode);
-            selectorDO.setType(type);
-            selectorDO.setSort(sort);
+            selectorDO.setSelectorType(selectorType);
+            selectorDO.setSortCode(sortCode);
             selectorDO.setEnabled(enabled);
             selectorDO.setLoged(loged);
             selectorDO.setContinued(continued);

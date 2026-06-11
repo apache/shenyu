@@ -30,7 +30,6 @@ jobs:
           - shenyu-integrated-test-grpc
           - shenyu-integrated-test-http
           - shenyu-integrated-test-https
-          - shenyu-integrated-test-motan
           - shenyu-integrated-test-spring-cloud
           - shenyu-integrated-test-sofa
           - shenyu-integrated-test-websocket
@@ -55,49 +54,122 @@ jobs:
           done
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
-#      - uses: dorny/paths-filter@v2
-#        id: filter
-#        with:
-#          filters: '.github/filters.yml'
-#          list-files: json
-      - name: Restore ShenYu Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
-        uses: actions/cache/restore@v3
+      - uses: ./actions/paths-filter
+        id: filter
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - uses: actions/setup-java@v4
-#        if: steps.filter.outputs.changed == 'true'
+          filters: |
+            integration:
+              - 'shenyu-integrated-test/**'
+              - 'shenyu-*/**'
+              - 'pom.xml'
+              - '**/pom.xml'
+              - 'shenyu-examples/**'
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!resources/static/**'
+              - '!.asf.yaml'
+              - '!.gitignore'
+              - '!.licenserc.yaml'
+              - '!LICENSE'
+              - '!NOTICE'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE'
+      - uses: ./actions/setup-java-with-retry
+        if: steps.filter.outputs.integration == 'true'
         with:
           java-version: 17
-          distribution: 'temurin'
+          distribution: "temurin"
+          cache: "maven"
+          cache-dependency-path: |
+            **/pom.xml
+      - name: Install mvnd
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.2
+          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+      - name: Pre-pull docker base images
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          pull_with_retry() {
+            local image="$1"
+            for attempt in 1 2 3; do
+              if docker pull "$image"; then
+                return 0
+              fi
+              echo "docker pull $image failed on attempt $attempt"
+              sleep $((attempt * 10))
+            done
+            docker pull "$image"
+          }
+
+          pull_with_retry alpine:latest
+          pull_with_retry amazoncorretto:17.0.11-alpine3.19
+          pull_with_retry centos:7
+          pull_with_retry eclipse-temurin:17-centos7
       - name: Build with Maven
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build"
+            mvnd -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          else
+            echo "Falling back to maven wrapper"
+            ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          fi
       - name: Build examples
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build examples"
+            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          else
+            echo "Falling back to maven wrapper for examples"
+            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          fi
       - name: Build integrated tests
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build integrated tests"
+            mvnd -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+          else
+            echo "Falling back to maven wrapper for integrated tests"
+            ./mvnw -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+          fi
       - name: Start docker compose
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.integration == 'true'
         run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.integration == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Disk space info
         run: |
           df --human-readable
       - name: Run test
         id: test
-#        if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        if: steps.filter.outputs.integration == 'true'
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for running tests"
+            mvnd -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+          else
+            echo "Falling back to maven wrapper for tests"
+            ./mvnw -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+          fi
         continue-on-error: true
       - name: Check test result
-#        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.integration == 'true'
         run: |
           docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
           if [[ ${{steps.test.outcome}} == "failure" ]]; then

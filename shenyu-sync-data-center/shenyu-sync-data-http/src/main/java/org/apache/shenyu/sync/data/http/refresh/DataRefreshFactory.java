@@ -25,9 +25,11 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,8 @@ public final class DataRefreshFactory {
                               final List<MetaDataSubscriber> metaDataSubscribers,
                               final List<AuthDataSubscriber> authDataSubscribers,
                               final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
-                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers
+                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                              final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers
                               ) {
         ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataRefresh(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataRefresh(pluginDataSubscriber));
@@ -57,6 +60,7 @@ public final class DataRefreshFactory {
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataRefresh(metaDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorRefresh(proxySelectorDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataRefresh(discoveryUpstreamDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.AI_PROXY_API_KEY, new AiProxyApiKeyDataRefresh(aiProxyApiKeyDataSubscribers));
     }
 
     /**
@@ -79,6 +83,8 @@ public final class DataRefreshFactory {
      * @return the config data
      */
     public ConfigData<?> cacheConfigData(final ConfigGroupEnum group) {
-        return ENUM_MAP.get(group).cacheConfigData();
+        DataRefresh dataRefresh = ENUM_MAP.get(group);
+        // In case new ConfigGroupEnum is added but not registered here yet, avoid NPE to keep HTTP sync alive
+        return Objects.isNull(dataRefresh) ? null : dataRefresh.cacheConfigData();
     }
 }

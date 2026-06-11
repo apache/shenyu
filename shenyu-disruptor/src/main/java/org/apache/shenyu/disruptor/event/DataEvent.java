@@ -17,27 +17,11 @@
 
 package org.apache.shenyu.disruptor.event;
 
+import org.apache.shenyu.disruptor.common.Data;
+
 /**
  * DataEvent.
  * disruptor data carrier .
  */
-public class DataEvent<T> {
-
-    private T data;
-
-    /**
-     * get data.
-     * @return data
-     */
-    public T getData() {
-        return data;
-    }
-
-    /**
-     * set data.
-     * @param data data
-     */
-    public void setData(final T data) {
-        this.data = data;
-    }
+public class DataEvent<T> extends Data<T> {
 }

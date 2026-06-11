@@ -59,9 +59,10 @@ public class FormDataOperator implements Operator {
     private static final Logger LOG = LoggerFactory.getLogger(FormDataOperator.class);
 
     @Override
-    public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingRuleHandle paramMappingRuleHandle) {
+    public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain,
+            final ParamMappingRuleHandle paramMappingRuleHandle) {
         return exchange.getFormData()
-                .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
+                .switchIfEmpty(Mono.just(new LinkedMultiValueMap<>()))
                 .flatMap(multiValueMap -> {
                     if (Objects.isNull(multiValueMap) || multiValueMap.isEmpty()) {
                         return shenyuPluginChain.execute(exchange);
@@ -81,23 +82,29 @@ public class FormDataOperator implements Operator {
                     String content = String.join("&", list);
                     byte[] bodyBytes = content.getBytes(charset);
                     int contentLength = bodyBytes.length;
-                    final BodyInserter<LinkedMultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(modifyMap);
+                    final BodyInserter<LinkedMultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters
+                            .fromValue(modifyMap);
                     httpHeaders.putAll(headers);
                     httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
                     httpHeaders.setContentLength(contentLength);
-                    CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange, httpHeaders);
+                    CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange,
+                            httpHeaders);
                     return bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext())
-                            .then(Mono.defer(() -> shenyuPluginChain.execute(exchange.mutate()
-                                    .request(new ModifyServerHttpRequestDecorator(httpHeaders, exchange.getRequest(), cachedBodyOutputMessage))
-                                    .build())
-                            )).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(cachedBodyOutputMessage, throwable));
+                            .then(Mono.<Void>defer(() -> shenyuPluginChain.execute(exchange.mutate()
+                                    .request(new ModifyServerHttpRequestDecorator(httpHeaders, exchange.getRequest(),
+                                            cachedBodyOutputMessage))
+                                    .build())))
+                            .onErrorResume(
+                                    (Function<Throwable, Mono<Void>>) throwable -> release(cachedBodyOutputMessage,
+                                            throwable));
                 });
     }
 
     @Override
     public void operation(final DocumentContext context, final ParamMappingRuleHandle paramMappingRuleHandle) {
         if (!CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
-            paramMappingRuleHandle.getAddParameterKeys().forEach(info -> context.put(info.getPath(), info.getKey(), Collections.singletonList(info.getValue())));
+            paramMappingRuleHandle.getAddParameterKeys().forEach(
+                    info -> context.put(info.getPath(), info.getKey(), Collections.singletonList(info.getValue())));
         }
     }
 
@@ -112,7 +119,7 @@ public class FormDataOperator implements Operator {
         }));
         return paramList;
     }
-    
+
     /**
      * To linked multiValue map.
      *
@@ -123,7 +130,7 @@ public class FormDataOperator implements Operator {
         return GsonUtils.getGson().fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
         }.getType());
     }
-    
+
     static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {
 
         private final HttpHeaders headers;
@@ -131,8 +138,8 @@ public class FormDataOperator implements Operator {
         private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
         ModifyServerHttpRequestDecorator(final HttpHeaders headers,
-                                         final ServerHttpRequest delegate,
-                                         final CachedBodyOutputMessage cachedBodyOutputMessage) {
+                final ServerHttpRequest delegate,
+                final CachedBodyOutputMessage cachedBodyOutputMessage) {
             super(delegate);
             this.headers = headers;
             this.cachedBodyOutputMessage = cachedBodyOutputMessage;

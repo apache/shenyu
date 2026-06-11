@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
@@ -28,11 +29,15 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The type Load balance test.
  */
 public final class RoundRobinLoadBalanceTest {
+
+    private static final int SELECTION_ITERATIONS = 30;
 
     /**
      * Round robin load balance test.
@@ -50,7 +55,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, new LoadBalanceData());
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -70,7 +75,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, new LoadBalanceData());
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -90,7 +95,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(upstreamList, new LoadBalanceData());
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -115,7 +120,28 @@ public final class RoundRobinLoadBalanceTest {
                         .collect(Collectors.toList());
 
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
-        roundRobinLoadBalancer.select(upstreamList, "");
-        roundRobinLoadBalancer.select(upstreamList2, "");
+        
+        // Test with weighted upstream list
+        Upstream result1 = roundRobinLoadBalancer.select(upstreamList, new LoadBalanceData());
+        assertNotNull(result1, "Selected upstream should not be null");
+        assertTrue(upstreamList.contains(result1), "Selected upstream should be from the provided list");
+        
+        // Test with equal weight upstream list
+        Upstream result2 = roundRobinLoadBalancer.select(upstreamList2, new LoadBalanceData());
+        assertNotNull(result2, "Selected upstream should not be null");
+        assertTrue(upstreamList2.contains(result2), "Selected upstream should be from the provided list");
+        
+        // Test multiple selections to verify round-robin behavior
+        Map<String, Integer> countMap = new HashMap<>();
+        IntStream.range(0, SELECTION_ITERATIONS).forEach(i -> {
+            Upstream result = roundRobinLoadBalancer.select(upstreamList2, new LoadBalanceData());
+            int count = countMap.getOrDefault(result.getUrl(), 0);
+            countMap.put(result.getUrl(), ++count);
+        });
+        
+        // With equal weights, distribution should be roughly equal
+        assertEquals(3, countMap.size(), "All three upstreams should be selected");
+        countMap.values().forEach(count -> 
+            assertTrue(count >= 8 && count <= 12, "Distribution should be roughly equal for equal weights"));
     }
 }

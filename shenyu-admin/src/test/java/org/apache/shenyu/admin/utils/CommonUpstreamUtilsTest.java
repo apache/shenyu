@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
-import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
-import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -133,4 +136,222 @@ public final class CommonUpstreamUtilsTest {
         Assert.assertEquals(HOST + ":" + PORT, url);
     }
 
+    @Test
+    public void testBuildDefaultDivideUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDefaultDivideUpstream(HOST, null, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+        Assert.assertEquals("localhost", result.getUpstreamHost());
+        Assert.assertEquals("http://", result.getProtocol());
+    }
+
+    @Test
+    public void testBuildDefaultDivideUpstreamWithBlankHost() {
+        // Test case: blank host - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDefaultDivideUpstream("", PORT, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultDivideUpstreamWithNullHostAndPort() {
+        // Test case: null host and port
+        DivideUpstream result = CommonUpstreamUtils.buildDefaultDivideUpstream(null, null, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultDiscoveryUpstreamDTO() {
+        // Test case: normal case
+        String protocol = "http";
+        DiscoveryUpstreamDTO result = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(HOST, PORT, protocol, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(HOST + ":" + PORT, result.getUrl());
+        Assert.assertEquals(protocol, result.getProtocol());
+        Assert.assertEquals(0, result.getStatus());
+        Assert.assertEquals(Long.valueOf(50), Long.valueOf(result.getWeight()));
+        Assert.assertEquals(SYS_DEFAULT_NAMESPACE_ID, result.getNamespaceId());
+        Assert.assertNotNull(result.getProps());
+    }
+
+    @Test
+    public void testBuildDefaultDiscoveryUpstreamDTOWithGrpcProtocol() {
+        // Test case: grpc protocol
+        String protocol = "grpc";
+        DiscoveryUpstreamDTO result = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(HOST, PORT, protocol, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(protocol, result.getProtocol());
+    }
+
+    @Test
+    public void testBuildDivideUpstreamWithDeletedEvent() {
+        // Test case: DELETED event - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDivideUpstream("http://", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.DELETED);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDivideUpstreamWithOfflineEvent() {
+        // Test case: OFFLINE event - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDivideUpstream("http://", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.OFFLINE);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDivideUpstreamWithIgnoredEvent() {
+        // Test case: IGNORED event - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDivideUpstream("http://", HOST, PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.IGNORED);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDivideUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDivideUpstream("http://", HOST, null, SYS_DEFAULT_NAMESPACE_ID, EventType.REGISTER);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDivideUpstreamWithBlankHost() {
+        // Test case: blank host - should mark status as false
+        DivideUpstream result = CommonUpstreamUtils.buildDivideUpstream("http://", "", PORT, SYS_DEFAULT_NAMESPACE_ID, EventType.REGISTER);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildWebSocketUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        WebSocketUpstream result = CommonUpstreamUtils.buildWebSocketUpstream("ws://", HOST, null, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+        Assert.assertEquals("localhost", result.getHost());
+    }
+
+    @Test
+    public void testBuildWebSocketUpstreamWithBlankHost() {
+        // Test case: blank host - should mark status as false
+        WebSocketUpstream result = CommonUpstreamUtils.buildWebSocketUpstream("ws://", "", PORT, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultDubboUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        DubboUpstream result = CommonUpstreamUtils.buildDefaultDubboUpstream(HOST, null);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+        Assert.assertEquals("dubbo://", result.getProtocol());
+    }
+
+    @Test
+    public void testBuildDefaultDubboUpstreamWithBlankHost() {
+        // Test case: blank host - should mark status as false
+        DubboUpstream result = CommonUpstreamUtils.buildDefaultDubboUpstream("", PORT);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultGrpcUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        GrpcUpstream result = CommonUpstreamUtils.buildDefaultGrpcUpstream(HOST, null, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultGrpcUpstreamWithBlankHost() {
+        // Test case: blank host - should mark status as false
+        GrpcUpstream result = CommonUpstreamUtils.buildDefaultGrpcUpstream("", PORT, SYS_DEFAULT_NAMESPACE_ID);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultTarsUpstream() {
+        // Test case: valid data
+        TarsUpstream result = CommonUpstreamUtils.buildDefaultTarsUpstream(HOST, PORT);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(HOST + ":" + PORT, result.getUpstreamUrl());
+        Assert.assertEquals(Long.valueOf(50), Long.valueOf(result.getWeight()));
+        Assert.assertEquals(Long.valueOf(Constants.WARMUP_TIME), Long.valueOf(result.getWarmup()));
+        Assert.assertTrue(result.isStatus());
+    }
+
+    @Test
+    public void testBuildDefaultTarsUpstreamWithNullPort() {
+        // Test case: null port - should mark status as false
+        TarsUpstream result = CommonUpstreamUtils.buildDefaultTarsUpstream(HOST, null);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isStatus());
+    }
+
+    @Test
+    public void testBuildAliveTarsUpstream() {
+        // Test case: normal case
+        String upstreamUrl = HOST + ":" + PORT;
+        TarsUpstream result = CommonUpstreamUtils.buildAliveTarsUpstream(upstreamUrl);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(upstreamUrl, result.getUpstreamUrl());
+        Assert.assertEquals(Long.valueOf(50), Long.valueOf(result.getWeight()));
+    }
+
+    @Test
+    public void testConvertCommonUpstreamListWithHealthCheck() {
+        // Test case: list with health check enabled
+        WebSocketUpstream upstream = WebSocketUpstream.builder()
+                .protocol("ws://")
+                .host("localhost")
+                .upstreamUrl("ws://localhost:8080")
+                .status(true)
+                .timestamp(System.currentTimeMillis())
+                .build();
+        upstream.setHealthCheckEnabled(true);
+
+        List<WebSocketUpstream> upstreamList = new ArrayList<>();
+        upstreamList.add(upstream);
+
+        List<CommonUpstream> result = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(1, result.size());
+        Assert.assertTrue(result.get(0).isHealthCheckEnabled());
+    }
+
+    @Test
+    public void testBuildDefaultAliveDivideUpstream() {
+        // Test case: normal case
+        DivideUpstream result = CommonUpstreamUtils.buildDefaultAliveDivideUpstream(HOST);
+        Assert.assertNotNull(result);
+        Assert.assertEquals("localhost", result.getUpstreamHost());
+        Assert.assertEquals("http://", result.getProtocol());
+        Assert.assertEquals(HOST, result.getUpstreamUrl());
+        Assert.assertEquals(Long.valueOf(50), Long.valueOf(result.getWeight()));
+    }
+
+    @Test
+    public void testBuildUrlWithZeroPort() {
+        // Test case: zero port
+        String url = CommonUpstreamUtils.buildUrl(HOST, 0);
+        Assert.assertEquals(HOST + ":0", url);
+    }
+
+    @Test
+    public void testBuildDefaultDivideUpstreamTimestamp() {
+        // Test case: verify timestamp is set
+        long beforeTime = System.currentTimeMillis();
+        DivideUpstream result = CommonUpstreamUtils.buildDefaultDivideUpstream(HOST, PORT, SYS_DEFAULT_NAMESPACE_ID);
+        long afterTime = System.currentTimeMillis();
+
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.getTimestamp() >= beforeTime);
+        Assert.assertTrue(result.getTimestamp() <= afterTime);
+    }
 }

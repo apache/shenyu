@@ -120,7 +120,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
                     int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
-                    LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUrl(), effect);
+                    LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
                 });
                 break;
             case DELETED:

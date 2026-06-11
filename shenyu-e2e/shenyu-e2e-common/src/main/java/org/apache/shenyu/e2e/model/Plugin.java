@@ -50,7 +50,6 @@ public enum Plugin {
     CONTEXT_PATH("contextPath", 14),
     GRPC("grpc", 15),
     REDIRECT("redirect", 16),
-    MOTAN("motan", 17),
     LOGGING_CONSOLE("loggingConsole", 18),
     JWT("jwt", 19),
     REQUEST("request", 20),

@@ -64,7 +64,7 @@ public class PluginHandleController {
      * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("")
+    @GetMapping
     @RequiresPermissions("system:pluginHandler:list")
     public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field,
                                                 @RequestParam @NotNull final Integer currentPage,
@@ -106,7 +106,7 @@ public class PluginHandleController {
      * @param pluginHandleDTO {@link PluginHandleDTO}
      * @return {@link ShenyuAdminResult}
      */
-    @PostMapping("")
+    @PostMapping
     @RequiresPermissions("system:pluginHandler:add")
     public ShenyuAdminResult createPluginHandle(@Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);

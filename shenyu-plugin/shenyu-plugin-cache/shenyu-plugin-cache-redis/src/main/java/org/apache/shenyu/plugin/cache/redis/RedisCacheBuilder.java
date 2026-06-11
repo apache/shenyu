@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.cache.redis;
 
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.infra.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.ICacheBuilder;
 import org.apache.shenyu.spi.Join;

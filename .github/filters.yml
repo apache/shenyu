@@ -1,21 +1,160 @@
-changed:
-  - "!**/{\
-    *.md,*.txt,\
-    resources/static/**,\
-    .asf.yaml,.gitignore,.licenserc.yaml,\
-    LICENSE,NOTICE,\
-    Makefile,\
-    shenyu-e2e/**, \
-    .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
-    }"
-pom:
-  - "**/pom.xml"
+# Path filters for GitHub Actions workflows
+# Each filter defines conditions for when certain workflows should run
+
+# Core source code changes that should trigger main CI
+code:
+  - 'shenyu-*/**/*.java'
+  - 'shenyu-*/**/*.xml'
+  - 'shenyu-*/**/*.yml'
+  - 'shenyu-*/**/*.yaml'
+  - 'shenyu-*/**/*.properties'
+  - 'shenyu-*/**/*.sh'
+  - 'shenyu-*/**/Dockerfile'
+  - 'shenyu-*/**/docker-compose.yml'
+  - 'shenyu-*/**/pom.xml'
+  - 'pom.xml'
+  - 'mvnw'
+  - 'mvnw.cmd'
+  - '.mvn/**'
+
+# Documentation changes that can skip heavy builds
+docs:
+  - '**/*.md'
+  - '**/*.txt'
+  - 'docs/**'
+  - '**/*.rst'
+  - '**/*.adoc'
+
+# Configuration changes
+config:
+  - '.github/**'
+  - '**/*.yaml'
+  - '**/*.yml'
+  - '**/*.properties'
+  - '**/*.conf'
+  - '**/*.config'
+
+# Frontend/UI changes
+frontend:
+  - '**/resources/static/**'
+  - '**/resources/templates/**'
+  - '**/*.html'
+  - '**/*.css'
+  - '**/*.js'
+  - '**/*.ts'
+  - '**/*.vue'
+  - '**/package.json'
+  - '**/package-lock.json'
+  - '**/yarn.lock'
+
+# Test changes
+tests:
+  - '**/test/**'
+  - '**/src/test/**'
+  - '**/*Test.java'
+  - '**/*Tests.java'
+  - '**/testng.xml'
+  - '**/junit-platform.properties'
+
+# Build and CI configuration
+build:
+  - 'pom.xml'
+  - '**/pom.xml'
+  - '.github/workflows/**'
+  - 'mvnw'
+  - 'mvnw.cmd'
+  - '.mvn/**'
+  - 'Makefile'
+  - '**/*.gradle'
+  - 'build.gradle'
+  - 'settings.gradle'
+
+# Docker and deployment files
+docker:
+  - '**/Dockerfile'
+  - '**/docker-compose.yml'
+  - '**/docker-compose.yaml'
+  - '**/k8s/**'
+  - '**/kubernetes/**'
+  - '**/helm/**'
+  - '**/*.dockerfile'
+
+# E2E test related changes
 e2e:
-  - "!**/{\
-    *.md,*.txt,\
-    resources/static/**,\
-    .asf.yaml,.gitignore,.licenserc.yaml,\
-    LICENSE,NOTICE,\
-    Makefile,\
-    .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
-    }"
+  - 'shenyu-e2e/**'
+  - '**/e2e/**'
+  - '**/end-to-end/**'
+  - '**/*E2E*.java'
+  - '**/*E2ETest*.java'
+
+# Integration test changes
+integration:
+  - 'shenyu-integrated-test/**'
+  - '**/integrated-test/**'
+  - '**/*Integration*.java'
+  - '**/*IntegrationTest*.java'
+  - '**/integration/**'
+
+# Maven POM changes
+pom:
+  - '**/pom.xml'
+  - 'pom.xml'
+
+# License and legal files (can skip most builds)
+legal:
+  - 'LICENSE'
+  - 'NOTICE'
+  - 'DISCLAIMER'
+  - '**/*.license'
+  - '.licenserc.yaml'
+  - '.asf.yaml'
+
+# Git and repository configuration
+git:
+  - '.gitignore'
+  - '.gitattributes'
+  - '.gitmodules'
+
+# Files that should not trigger builds (exclusions)
+skip-build:
+  - '**/*.md'
+  - '**/*.txt'
+  - '**/*.png'
+  - '**/*.jpg'
+  - '**/*.jpeg'
+  - '**/*.gif'
+  - '**/*.svg'
+  - '**/*.ico'
+  - '**/*.pdf'
+  - '**/*.doc'
+  - '**/*.docx'
+  - 'LICENSE'
+  - 'NOTICE'
+  - 'DISCLAIMER'
+  - '.asf.yaml'
+  - '.gitignore'
+  - '.licenserc.yaml'
+  - '.github/ISSUE_TEMPLATE/**'
+  - '.github/PULL_REQUEST_TEMPLATE'
+  - 'resources/static/**'
+
+# Main filter for general code changes (used by most workflows)
+changed:
+  - 'shenyu-*/**'
+  - 'pom.xml'
+  - 'mvnw'
+  - 'mvnw.cmd'
+  - '.mvn/**'
+  - '.github/workflows/**'
+  - '!**/*.md'
+  - '!**/*.txt'
+  - '!resources/static/**'
+  - '!.asf.yaml'
+  - '!.gitignore'
+  - '!.licenserc.yaml'
+  - '!LICENSE'
+  - '!NOTICE'
+  - '!DISCLAIMER'
+  - '!shenyu-e2e/**'
+  - '!.github/ISSUE_TEMPLATE/**'
+  - '!.github/PULL_REQUEST_TEMPLATE'

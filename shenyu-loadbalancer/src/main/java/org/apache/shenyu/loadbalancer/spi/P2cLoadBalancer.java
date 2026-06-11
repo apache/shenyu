@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
@@ -45,16 +46,9 @@ public class P2cLoadBalancer extends AbstractLoadBalancer {
     private static final int PICK_TIMES = 3;
 
     private final Random random = new Random();
-
-    /**
-     * pick of 2 choices to select upstream.
-     *
-     * @param upstreamList the upstream list
-     * @param ip           the ip
-     * @return selected upstream
-     */
+    
     @Override
-    protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long start = System.currentTimeMillis();
         Upstream[] upstreams = pickTwoUpstreams(upstreamList);
         Upstream picked;

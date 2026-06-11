@@ -111,4 +111,81 @@ public class DefaultJwtConvertStrategyTest {
         assertTrue(newExchange.getRequest().getHeaders().get("web").contains("shenyu"));
     }
 
+    /**
+     * Test to verify the fix for the duplicate header bug.
+     * After the fix, when jwtVal contains ".", only one header should be added with the parsed nested value.
+     */
+    @Test
+    public void testNestedJwtValueHandling() {
+        // Setup JWT body with nested structure
+        Map<String, Object> nestedJwtBody = ImmutableMap.of(
+                "user", ImmutableMap.of("name", "john", "role", "admin"),
+                "simple", "simpleValue"
+        );
+
+        // Test case 1: JWT value with dot notation (should work correctly after fix)
+        String handleJsonWithDot = "{\"converter\":[{\"jwtVal\":\"user.name\",\"headerVal\":\"username\"}]}";
+        DefaultJwtRuleHandle ruleHandleWithDot = defaultJwtConvertStrategy.parseHandleJson(handleJsonWithDot);
+        
+        ServerWebExchange exchangeWithDot = defaultJwtConvertStrategy
+                .convert(ruleHandleWithDot, exchange, nestedJwtBody);
+        
+        // Check the headers - after fix, should only have one header value
+        var headersWithDot = exchangeWithDot.getRequest().getHeaders().get("username");
+        
+        // After fix: should only have one header value with the correct parsed value
+        assertEquals(1, headersWithDot.size(), "After fix: Header should only be added once");
+        assertEquals("john", headersWithDot.get(0), "Header value should be parsed correctly from nested structure");
+
+        // Test case 2: JWT value without dot notation (should continue to work correctly)
+        String handleJsonWithoutDot = "{\"converter\":[{\"jwtVal\":\"simple\",\"headerVal\":\"simpleheader\"}]}";
+        DefaultJwtRuleHandle ruleHandleWithoutDot = defaultJwtConvertStrategy.parseHandleJson(handleJsonWithoutDot);
+        
+        ServerWebExchange exchangeWithoutDot = defaultJwtConvertStrategy
+                .convert(ruleHandleWithoutDot, exchange, nestedJwtBody);
+        
+        var headersWithoutDot = exchangeWithoutDot.getRequest().getHeaders().get("simpleheader");
+        
+        // This should continue to work correctly - only one header value
+        assertEquals(1, headersWithoutDot.size(), "Simple values should only add one header");
+        assertEquals("simpleValue", headersWithoutDot.get(0), "Header value should be correct");
+    }
+
+    /**
+     * Test multiple converters with mixed dot notation and simple values.
+     */
+    @Test
+    public void testMultipleConvertersWithMixedNotation() {
+        Map<String, Object> complexJwtBody = ImmutableMap.of(
+                "user", ImmutableMap.of("name", "alice", "profile", ImmutableMap.of("email", "alice@example.com")),
+                "role", "user",
+                "permissions", ImmutableMap.of("read", true, "write", false)
+        );
+
+        String handleJson = "{\"converter\":["
+                + "{\"jwtVal\":\"user.name\",\"headerVal\":\"X-User-Name\"},"
+                + "{\"jwtVal\":\"role\",\"headerVal\":\"X-User-Role\"},"
+                + "{\"jwtVal\":\"user.profile.email\",\"headerVal\":\"X-User-Email\"},"
+                + "{\"jwtVal\":\"permissions.read\",\"headerVal\":\"X-Can-Read\"}"
+                + "]}";
+
+        DefaultJwtRuleHandle ruleHandle = defaultJwtConvertStrategy.parseHandleJson(handleJson);
+        ServerWebExchange newExchange = defaultJwtConvertStrategy.convert(ruleHandle, exchange, complexJwtBody);
+
+        // Verify all headers are added correctly
+        var headers = newExchange.getRequest().getHeaders();
+        
+        assertEquals(1, headers.get("X-User-Name").size());
+        assertEquals("alice", headers.get("X-User-Name").get(0));
+        
+        assertEquals(1, headers.get("X-User-Role").size());
+        assertEquals("user", headers.get("X-User-Role").get(0));
+        
+        assertEquals(1, headers.get("X-User-Email").size());
+        assertEquals("alice@example.com", headers.get("X-User-Email").get(0));
+        
+        assertEquals(1, headers.get("X-Can-Read").size());
+        assertEquals("true", headers.get("X-Can-Read").get(0));
+    }
+
 }

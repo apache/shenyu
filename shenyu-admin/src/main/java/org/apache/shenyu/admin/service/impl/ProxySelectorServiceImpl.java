@@ -177,9 +177,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             if (Objects.nonNull(discoveryHandlerDO)) {
                 ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
                 DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-                DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+                DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
-                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getLevel())) {
+                if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryMapper.delete(discoveryDO.getId());
                 }
@@ -260,7 +260,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
                         .discoveryHandlerId(discoveryHandlerId)
-                        .namespaceId(discoveryUpstream.getNamespaceId())
+                        .namespaceId(proxySelectorAddDTO.getNamespaceId())
                         .protocol(discoveryUpstream.getProtocol())
                         .url(discoveryUpstream.getUrl())
                         .status(discoveryUpstream.getStatus())
@@ -281,12 +281,12 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     private static DiscoveryDO buildDiscovery(final ProxySelectorAddDTO proxySelectorAddDTO, final Timestamp currentTime, final String discoveryId) {
         return DiscoveryDO.builder()
                 .id(discoveryId)
-                .name(proxySelectorAddDTO.getName())
-                .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
+                .discoveryName(proxySelectorAddDTO.getName())
+                .discoveryType(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
                 .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
                 .pluginName(proxySelectorAddDTO.getPluginName())
                 .namespaceId(proxySelectorAddDTO.getNamespaceId())
-                .level(DiscoveryLevel.SELECTOR.getCode())
+                .discoveryLevel(DiscoveryLevel.SELECTOR.getCode())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .props(proxySelectorAddDTO.getDiscovery().getProps())
@@ -387,7 +387,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         });
         List<DiscoveryUpstreamDTO> fetchAll = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId()).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
         LOG.info("insert discovery upstreams, count is: {}", proxySelectorAddDTO.getDiscoveryUpstreams().size());
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -400,16 +400,16 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         if (Objects.nonNull(proxySelectorDO)) {
-            discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerDTO, DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
+            discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType()).fetchAll(discoveryHandlerDTO, DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
         }
         SelectorDO selectorDO = selectorMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         if (Objects.nonNull(selectorDO)) {
             ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
             proxySelectorDTO.setPluginName(discoveryDO.getPluginName());
-            proxySelectorDTO.setName(selectorDO.getName());
+            proxySelectorDTO.setName(selectorDO.getSelectorName());
             proxySelectorDTO.setId(selectorDO.getId());
             proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
-            discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerDTO, proxySelectorDTO);
+            discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType()).fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         }
     }
 

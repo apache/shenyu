@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,8 +48,8 @@ public class P2cLoadBalancerTest {
     public void testResponseTimeBalancerSameLag() {
         buildUpstreamList();
         final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
-        Upstream upstream = p2cLoadBalancer.doSelect(upstreamList, "localhost");
-        Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, "localhost");
+        Upstream upstream = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
+        Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")
                 || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
     }
@@ -58,8 +59,8 @@ public class P2cLoadBalancerTest {
         buildUpstreamList();
         final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
         upstreamList.get(0).setLag(1);
-        Upstream upstream = p2cLoadBalancer.doSelect(upstreamList, "localhost");
-        Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, "localhost");
+        Upstream upstream = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
+        Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"));
     }
 }

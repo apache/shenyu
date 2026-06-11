@@ -17,7 +17,7 @@ version: "3.9"
 services:
   shenyu-zk:
     container_name: shenyu-zk
-    image: zookeeper:3.5
+    image: zookeeper:3.9
     restart: always
     networks:
       - shenyu
@@ -105,32 +105,6 @@ services:
     ports:
       - "55290:55290"
       - "8080:8080"
-    networks:
-      - shenyu
-    depends_on:
-      shenyu-integrated-test-combination:
-        condition: service_healthy
-
-  shenyu-examples-motan:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-motan
-    image: shenyu-examples-motan:latest
-    restart: always
-    environment:
-      - motan.registry.protocol=zookeeper
-      - motan.registry.address=shenyu-zk:2181
-      - shenyu.register.serverLists=http://shenyu-admin:9095
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep UP || exit 1" ]
-      timeout: 2s
-      retries: 3
-      start_period: 5s
-    ports:
-      - "8081:8081"
-      - "8002:8002"
     networks:
       - shenyu
     depends_on:

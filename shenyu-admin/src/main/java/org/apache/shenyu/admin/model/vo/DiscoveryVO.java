@@ -37,14 +37,14 @@ public class DiscoveryVO implements Serializable {
     /**
      * name.
      */
-    @NotNull(message = "name not null")
-    private String name;
+    @NotNull(message = "discovery name not null")
+    private String discoveryName;
 
     /**
      * discovery type.
      */
-    @NotNull(message = "type not null")
-    private String type;
+    @NotNull(message = "discovery type not null")
+    private String discoveryType;
 
     /**
      * handler.
@@ -110,8 +110,8 @@ public class DiscoveryVO implements Serializable {
      *
      * @return name
      */
-    public String getName() {
-        return name;
+    public String getDiscoveryName() {
+        return discoveryType;
     }
 
     /**
@@ -119,8 +119,8 @@ public class DiscoveryVO implements Serializable {
      *
      * @param name name
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setDiscoveryName(final String name) {
+        this.discoveryType = name;
     }
 
     /**
@@ -128,8 +128,8 @@ public class DiscoveryVO implements Serializable {
      *
      * @return type
      */
-    public String getType() {
-        return type;
+    public String getDiscoveryType() {
+        return discoveryType;
     }
 
     /**
@@ -137,8 +137,8 @@ public class DiscoveryVO implements Serializable {
      *
      * @param type type
      */
-    public void setType(final String type) {
-        this.type = type;
+    public void setDiscoveryType(final String type) {
+        this.discoveryType = type;
     }
 
     /**
@@ -273,9 +273,12 @@ public class DiscoveryVO implements Serializable {
         }
 
         DiscoveryVO that = (DiscoveryVO) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(level, that.level) && Objects.equals(serverList, that.serverList)
-                && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props)
+        return Objects.equals(id, that.id) && Objects.equals(discoveryName, that.discoveryName)
+                && Objects.equals(discoveryType, that.discoveryType)
+                && Objects.equals(level, that.level)
+                && Objects.equals(serverList, that.serverList)
+                && Objects.equals(pluginName, that.pluginName)
+                && Objects.equals(props, that.props)
                 && Objects.equals(discoveryHandler, that.discoveryHandler)
                 && Objects.equals(discoveryRel, that.discoveryRel)
                 && Objects.equals(namespaceId, that.namespaceId);
@@ -283,6 +286,6 @@ public class DiscoveryVO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, level, serverList, pluginName, props, discoveryHandler, discoveryRel, namespaceId);
+        return Objects.hash(id, discoveryName, discoveryType, level, serverList, pluginName, props, discoveryHandler, discoveryRel, namespaceId);
     }
 }
