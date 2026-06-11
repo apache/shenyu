@@ -27,18 +27,18 @@ import java.util.List;
  * The type Selector data handler.
  */
 public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
-
+    
     private final PluginDataSubscriber pluginDataSubscriber;
-
+    
     public SelectorDataHandler(final PluginDataSubscriber pluginDataSubscriber) {
         this.pluginDataSubscriber = pluginDataSubscriber;
     }
-
+    
     @Override
     public List<SelectorData> convert(final String json) {
         return GsonUtils.getInstance().fromList(json, SelectorData.class);
     }
-
+    
     @Override
     protected void doRefresh(final List<SelectorData> dataList) {
         // Subscribe new data first to avoid cache miss during refresh
@@ -46,12 +46,12 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
         // Remove stale selectors that are not present in the new data list
         pluginDataSubscriber.refreshSelectorDataSelf(dataList);
     }
-
+    
     @Override
     protected void doUpdate(final List<SelectorData> dataList) {
         dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
     }
-
+    
     @Override
     protected void doDelete(final List<SelectorData> dataList) {
         dataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
