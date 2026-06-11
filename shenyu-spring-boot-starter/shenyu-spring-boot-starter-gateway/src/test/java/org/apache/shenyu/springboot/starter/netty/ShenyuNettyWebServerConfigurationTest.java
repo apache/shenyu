@@ -97,4 +97,39 @@ public class ShenyuNettyWebServerConfigurationTest {
                 assertThat(properties.getSocketChannel().getSingleEventExecutorPerGroup(), is(false));
             });
     }
+
+    @Test
+    public void testHttpDecoderProperties() {
+        applicationContextRunner
+            .withPropertyValues(
+                "shenyu.netty.http.web-server-factory-enabled=false",
+                "shenyu.netty.http.httpDecoder.maxInitialLineLength=8192",
+                "shenyu.netty.http.httpDecoder.maxHeaderSize=16384",
+                "shenyu.netty.http.httpDecoder.maxChunkSize=16384"
+            )
+            .run(context -> {
+                NettyHttpProperties properties = context.getBean("nettyTcpProperties", NettyHttpProperties.class);
+                assertNotNull(properties);
+                assertNotNull(properties.getHttpDecoder());
+                assertThat(properties.getHttpDecoder().getMaxInitialLineLength(), is(8192));
+                assertThat(properties.getHttpDecoder().getMaxHeaderSize(), is(16384));
+                assertThat(properties.getHttpDecoder().getMaxChunkSize(), is(16384));
+            });
+    }
+
+    @Test
+    public void testHttpDecoderDefaultProperties() {
+        applicationContextRunner
+            .withPropertyValues(
+                "shenyu.netty.http.web-server-factory-enabled=false"
+            )
+            .run(context -> {
+                NettyHttpProperties properties = context.getBean("nettyTcpProperties", NettyHttpProperties.class);
+                assertNotNull(properties);
+                assertNotNull(properties.getHttpDecoder());
+                assertThat(properties.getHttpDecoder().getMaxInitialLineLength(), is(4096));
+                assertThat(properties.getHttpDecoder().getMaxHeaderSize(), is(8192));
+                assertThat(properties.getHttpDecoder().getMaxChunkSize(), is(8192));
+            });
+    }
 }
