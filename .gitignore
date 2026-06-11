@@ -53,3 +53,4 @@ Thumbs.db
 
 # local worktrees
 .worktrees/
+.gitnexus
