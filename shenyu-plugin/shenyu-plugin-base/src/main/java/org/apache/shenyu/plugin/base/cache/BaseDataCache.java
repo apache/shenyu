@@ -24,10 +24,12 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * The type Base data cache.
@@ -103,7 +105,11 @@ public final class BaseDataCache {
      * @param pluginDataList the plugin data list
      */
     public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
-        pluginDataList.forEach(this::removePluginData);
+        // Collect the names of all plugins in the new data list
+        Set<String> newPluginNames = new HashSet<>();
+        pluginDataList.forEach(plugin -> newPluginNames.add(plugin.getName()));
+        // Remove plugins from cache that are not present in the new data list
+        PLUGIN_MAP.entrySet().removeIf(entry -> !newPluginNames.contains(entry.getKey()));
     }
     
     /**
@@ -161,7 +167,11 @@ public final class BaseDataCache {
      * @param selectorDataList the selector data list
      */
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
-        selectorDataList.forEach(this::removeSelectData);
+        // Collect the plugin names of all selectors in the new data list
+        Set<String> newPluginNames = new HashSet<>();
+        selectorDataList.forEach(selector -> newPluginNames.add(selector.getPluginName()));
+        // Remove selectors from cache that are not present in the new data list
+        SELECTOR_MAP.entrySet().removeIf(entry -> !newPluginNames.contains(entry.getKey()));
     }
     
     /**
@@ -219,7 +229,11 @@ public final class BaseDataCache {
      * @param ruleDataList the rule data list
      */
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
-        ruleDataList.forEach(this::removeRuleData);
+        // Collect the selector ids of all rules in the new data list
+        Set<String> newSelectorIds = new HashSet<>();
+        ruleDataList.forEach(rule -> newSelectorIds.add(rule.getSelectorId()));
+        // Remove rules from cache that are not present in the new data list
+        RULE_MAP.entrySet().removeIf(entry -> !newSelectorIds.contains(entry.getKey()));
     }
     
     /**

@@ -41,8 +41,10 @@ public class PluginDataHandler extends AbstractDataHandler<PluginData> {
 
     @Override
     protected void doRefresh(final List<PluginData> dataList) {
-        pluginDataSubscriber.refreshPluginDataSelf(dataList);
+        // Subscribe new data first to avoid cache miss during refresh
         dataList.forEach(pluginDataSubscriber::onSubscribe);
+        // Remove stale plugins that are not present in the new data list
+        pluginDataSubscriber.refreshPluginDataSelf(dataList);
     }
 
     @Override

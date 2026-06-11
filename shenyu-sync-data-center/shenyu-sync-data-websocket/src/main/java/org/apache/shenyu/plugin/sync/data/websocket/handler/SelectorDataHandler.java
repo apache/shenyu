@@ -41,8 +41,10 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
 
     @Override
     protected void doRefresh(final List<SelectorData> dataList) {
-        pluginDataSubscriber.refreshSelectorDataSelf(dataList);
+        // Subscribe new data first to avoid cache miss during refresh
         dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
+        // Remove stale selectors that are not present in the new data list
+        pluginDataSubscriber.refreshSelectorDataSelf(dataList);
     }
 
     @Override

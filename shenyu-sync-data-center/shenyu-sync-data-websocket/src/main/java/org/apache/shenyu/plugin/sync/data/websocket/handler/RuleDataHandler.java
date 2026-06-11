@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import java.util.List;
+
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -40,8 +41,10 @@ public class RuleDataHandler extends AbstractDataHandler<RuleData> {
 
     @Override
     protected void doRefresh(final List<RuleData> dataList) {
-        pluginDataSubscriber.refreshRuleDataSelf(dataList);
+        // Subscribe new data first to avoid cache miss during refresh
         dataList.forEach(pluginDataSubscriber::onRuleSubscribe);
+        // Remove stale rules that are not present in the new data list
+        pluginDataSubscriber.refreshRuleDataSelf(dataList);
     }
 
     @Override
