@@ -27,18 +27,18 @@ import java.util.List;
  * The type Plugin data handler.
  */
 public class PluginDataHandler extends AbstractDataHandler<PluginData> {
-
+    
     private final PluginDataSubscriber pluginDataSubscriber;
-
+    
     public PluginDataHandler(final PluginDataSubscriber pluginDataSubscriber) {
         this.pluginDataSubscriber = pluginDataSubscriber;
     }
-
+    
     @Override
     public List<PluginData> convert(final String json) {
         return GsonUtils.getInstance().fromList(json, PluginData.class);
     }
-
+    
     @Override
     protected void doRefresh(final List<PluginData> dataList) {
         // Subscribe new data first to avoid cache miss during refresh
@@ -46,15 +46,15 @@ public class PluginDataHandler extends AbstractDataHandler<PluginData> {
         // Remove stale plugins that are not present in the new data list
         pluginDataSubscriber.refreshPluginDataSelf(dataList);
     }
-
+    
     @Override
     protected void doUpdate(final List<PluginData> dataList) {
         dataList.forEach(pluginDataSubscriber::onSubscribe);
     }
-
+    
     @Override
     protected void doDelete(final List<PluginData> dataList) {
         dataList.forEach(pluginDataSubscriber::unSubscribe);
     }
-
+    
 }
