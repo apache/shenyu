@@ -35,24 +35,24 @@ import java.util.Set;
  * The type Base data cache.
  */
 public final class BaseDataCache {
-
+    
     private static final BaseDataCache INSTANCE = new BaseDataCache();
-
+    
     /**
      * pluginName -> PluginData.
      */
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
-
+    
     /**
      * pluginName -> SelectorData.
      */
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
-
+    
     /**
      * selectorId -> RuleData.
      */
     private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
-
+    
     private BaseDataCache() {
     }
     
@@ -273,7 +273,7 @@ public final class BaseDataCache {
         return RULE_MAP;
     }
     
-
+    
     /**
      *  cache rule data.
      *
@@ -293,7 +293,7 @@ public final class BaseDataCache {
             }
         }
     }
-
+    
     /**
      * cache selector data.
      *
