@@ -48,12 +48,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -167,6 +169,22 @@ public final class DashboardUserControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
         verify(dashboardUserService).createOrUpdate(argThat(dto -> "$2b$12$encoded-update".equals(dto.getPassword())));
+    }
+
+    @Test
+    public void updateDashboardUserWithBlankPassword() throws Exception {
+        final String url = "/dashboardUser/2";
+        dashboardUserDTO.setPassword(null);
+        given(dashboardUserService.createOrUpdate(any())).willReturn(1);
+        mockMvc.perform(put(url, dashboardUserDTO)
+                .content(GsonUtils.getInstance().toJson(dashboardUserDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.data", is(1)));
+        verify(passwordHashService, never()).encode(any());
+        verify(dashboardUserService).createOrUpdate(argThat(dto -> Objects.isNull(dto.getPassword())));
     }
 
     @Test

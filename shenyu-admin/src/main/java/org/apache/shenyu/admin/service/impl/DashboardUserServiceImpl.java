@@ -53,7 +53,6 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
@@ -87,6 +86,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
 
     private static final int AES_BLOCK_SIZE = 16;
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -153,6 +156,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         Assert.notBlack(dashboardUserDTO.getPassword(), "password is not null");
         Assert.notEmpty(dashboardUserDTO.getRoles(), "role is not empty");
         Assert.isNull(dashboardUserMapper.selectByUserName(dashboardUserDTO.getUserName()), "the user is existed");
+        dashboardUserDTO.setPassword(encodePasswordIfNecessary(dashboardUserDTO.getPassword()));
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         // create new user
         final int insertCount = dashboardUserMapper.insertSelective(dashboardUserDO);
@@ -167,8 +171,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     @Override
     public int update(final DashboardUserDTO dashboardUserDTO) {
-        // 【mandatory】This function can only be used by the admin user
+        // mandatory: This function can only be used by the admin user
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
+            dashboardUserDTO.setPassword(encodePasswordIfNecessary(dashboardUserDTO.getPassword()));
+        }
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (Objects.equals(dashboardUserDO.getUserName(), SessionUtil.visitorName())) {
             Assert.isTrue(Boolean.TRUE.equals(dashboardUserDO.getEnabled()), "You cannot disable yourself");
@@ -253,8 +260,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param userName user name
      * @param password user password
      * @return {@linkplain DashboardUserVO}
+     * @deprecated use {@link #findByUserName(String)} and {@link PasswordHashService} for authentication.
      */
     @Override
+    @Deprecated
     public DashboardUserVO findByQuery(final String userName, final String password) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
     }
@@ -344,7 +353,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     private Optional<String> tryDecryptPassword(final String password) {
-        Security.addProvider(new BouncyCastleProvider());
         byte[] secretKeyBytes = secretProperties.getKey().getBytes(StandardCharsets.UTF_8);
         byte[] ivBytes = secretProperties.getIv().getBytes(StandardCharsets.UTF_8);
         try {
@@ -441,6 +449,13 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             return upgradeLegacyPasswordIfNeeded(dashboardUserVO, password);
         }
         return null;
+    }
+
+    private String encodePasswordIfNecessary(final String password) {
+        if (passwordHashService.isBcryptHash(password)) {
+            return password;
+        }
+        return passwordHashService.encode(password);
     }
 
     private DashboardUserVO upgradeLegacyPasswordIfNeeded(final DashboardUserVO dashboardUserVO, final String password) {

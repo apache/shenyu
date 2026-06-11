@@ -25,9 +25,7 @@ import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
-import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
-import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
@@ -52,16 +50,18 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -115,15 +115,18 @@ public final class DashboardUserServiceTest {
     @Test
     public void testCreateOrUpdate() {
         SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
-        DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
+        final DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                 .userName(TEST_USER_NAME).password(TEST_PASSWORD).roles(Collections.singletonList("1"))
                 .build();
+        given(passwordHashService.isBcryptHash(TEST_PASSWORD)).willReturn(false);
+        given(passwordHashService.encode(TEST_PASSWORD)).willReturn("bcrypt-password");
         given(dashboardUserMapper.insertSelective(any(DashboardUserDO.class))).willReturn(1);
         given(namespaceUserService.create(any(), any())).willReturn(new NamespaceUserRelVO());
         assertEquals(1, dashboardUserService.createOrUpdate(dashboardUserDTO));
         verify(dashboardUserMapper).insertSelective(any(DashboardUserDO.class));
 
         dashboardUserDTO.setId(TEST_ID);
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(createDashboardUserDO());
         given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(2);
         assertEquals(2, dashboardUserService.createOrUpdate(dashboardUserDTO));
         verify(dashboardUserMapper).updateSelective(any(DashboardUserDO.class));
@@ -245,7 +248,6 @@ public final class DashboardUserServiceTest {
         given(passwordHashService.matches(TEST_PASSWORD, TEST_PASSWORD)).willReturn(true);
         assertLoginSuccessful(dashboardUserDO, dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null));
         verify(dashboardUserMapper, times(6)).selectByUserName(eq(TEST_USER_NAME));
-
     }
 
     @Test
@@ -264,7 +266,21 @@ public final class DashboardUserServiceTest {
         verify(dashboardUserMapper).updateSelective(argThat(user ->
                 TEST_ID.equals(user.getId())
                         && "bcrypt-encoded".equals(user.getPassword())
-                        && user.getDateUpdated() != null));
+                        && Objects.nonNull(user.getDateUpdated())));
+    }
+
+    @Test
+    public void testLoginDoesNotMigrateBcryptPassword() {
+        ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
+        ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
+        DashboardUserDO bcryptUser = createDashboardUserDO();
+        bcryptUser.setPassword("$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG");
+        when(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).thenReturn(bcryptUser);
+        given(passwordHashService.matches(TEST_PASSWORD, bcryptUser.getPassword())).willReturn(true);
+
+        LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null);
+        assertEquals(bcryptUser.getPassword(), loginDashboardUserVO.getPassword());
+        verify(dashboardUserMapper, never()).updateSelective(any(DashboardUserDO.class));
     }
 
     @Test

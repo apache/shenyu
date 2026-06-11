@@ -36,6 +36,13 @@ public class PasswordHashService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    /**
+     * Encode a raw dashboard user password for storage.
+     * Returns the input unchanged if it is blank.
+     *
+     * @param requestPassword raw password
+     * @return bcrypt encoded password
+     */
     public String encode(final String requestPassword) {
         if (StringUtils.isBlank(requestPassword)) {
             return requestPassword;
@@ -43,6 +50,13 @@ public class PasswordHashService {
         return passwordEncoder.encode(requestPassword);
     }
 
+    /**
+     * Verify a raw password against a bcrypt hash.
+     *
+     * @param requestPassword raw password
+     * @param storedPasswordHash stored password hash
+     * @return true when the password matches
+     */
     public boolean matches(final String requestPassword, final String storedPasswordHash) {
         if (!isBcryptHash(storedPasswordHash)) {
             return false;
@@ -50,15 +64,34 @@ public class PasswordHashService {
         return passwordEncoder.matches(requestPassword, storedPasswordHash);
     }
 
+    /**
+     * Determine whether a stored password uses bcrypt format.
+     *
+     * @param storedPasswordHash stored password hash
+     * @return true when the stored password is bcrypt
+     */
     public boolean isBcryptHash(final String storedPasswordHash) {
         return StringUtils.isNotBlank(storedPasswordHash) && BCRYPT_PATTERN.matcher(storedPasswordHash).matches();
     }
 
+    /**
+     * Verify a raw password against the legacy SHA-512 hex format.
+     *
+     * @param requestPassword raw password
+     * @param storedPasswordHash stored password hash
+     * @return true when the password matches the legacy hash
+     */
     public boolean matchesLegacySha512(final String requestPassword, final String storedPasswordHash) {
         return isLegacySha512Hash(storedPasswordHash)
                 && StringUtils.equals(DigestUtils.sha512Hex(requestPassword), storedPasswordHash);
     }
 
+    /**
+     * Determine whether a stored password uses the legacy SHA-512 hex format.
+     *
+     * @param storedPasswordHash stored password hash
+     * @return true when the stored password is a legacy SHA-512 hex hash
+     */
     public boolean isLegacySha512Hash(final String storedPasswordHash) {
         return StringUtils.isNotBlank(storedPasswordHash) && LEGACY_SHA512_PATTERN.matcher(storedPasswordHash).matches();
     }
