@@ -27,18 +27,18 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
  * The type rule data handler.
  */
 public class RuleDataHandler extends AbstractDataHandler<RuleData> {
-
+    
     private final PluginDataSubscriber pluginDataSubscriber;
-
+    
     public RuleDataHandler(final PluginDataSubscriber pluginDataSubscriber) {
         this.pluginDataSubscriber = pluginDataSubscriber;
     }
-
+    
     @Override
     public List<RuleData> convert(final String json) {
         return GsonUtils.getInstance().fromList(json, RuleData.class);
     }
-
+    
     @Override
     protected void doRefresh(final List<RuleData> dataList) {
         // Subscribe new data first to avoid cache miss during refresh
@@ -46,12 +46,12 @@ public class RuleDataHandler extends AbstractDataHandler<RuleData> {
         // Remove stale rules that are not present in the new data list
         pluginDataSubscriber.refreshRuleDataSelf(dataList);
     }
-
+    
     @Override
     protected void doUpdate(final List<RuleData> dataList) {
         dataList.forEach(pluginDataSubscriber::onRuleSubscribe);
     }
-
+    
     @Override
     protected void doDelete(final List<RuleData> dataList) {
         dataList.forEach(pluginDataSubscriber::unRuleSubscribe);
