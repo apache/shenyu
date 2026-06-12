@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
@@ -40,7 +41,6 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -243,12 +243,14 @@ public class ApiServiceImpl implements ApiService {
                 tagVOs = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             ApiVO apiVO = ApiVO.buildApiVO(item, tagVOs);
-            if (apiVO.getApiSource().equals(ApiSourceEnum.SWAGGER.getValue())) {
+            if (StringUtils.isNotBlank(apiVO.getDocument())) {
                 DocItem docItem = JsonUtils.jsonToObject(apiVO.getDocument(), DocItem.class);
-                apiVO.setRequestHeaders(docItem.getRequestHeaders());
-                apiVO.setRequestParameters(docItem.getRequestParameters());
-                apiVO.setResponseParameters(docItem.getResponseParameters());
-                apiVO.setBizCustomCodeList(docItem.getBizCodeList());
+                if (Objects.nonNull(docItem)) {
+                    apiVO.setRequestHeaders(docItem.getRequestHeaders());
+                    apiVO.setRequestParameters(docItem.getRequestParameters());
+                    apiVO.setResponseParameters(docItem.getResponseParameters());
+                    apiVO.setBizCustomCodeList(docItem.getBizCodeList());
+                }
             }
             return apiVO;
 
