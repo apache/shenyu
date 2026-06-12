@@ -156,6 +156,16 @@ public class ShenyuNettyWebServerConfiguration {
             return sniProcessor.apply(httpServer)
                     .runOn(LoopResources.create("shenyu-netty", nettyHttpProperties.getSelectCount(), nettyHttpProperties.getWorkerCount(), true))
                     .accessLog(nettyHttpProperties.getAccessLog())
+                    // configure http request decoder
+                    .httpRequestDecoder(spec -> {
+                        NettyHttpProperties.HttpDecoderProperties decoder = nettyHttpProperties.getHttpDecoder();
+                        if (Objects.nonNull(decoder)) {
+                            spec.maxInitialLineLength(decoder.getMaxInitialLineLength());
+                            spec.maxHeaderSize(decoder.getMaxHeaderSize());
+                            spec.maxChunkSize(decoder.getMaxChunkSize());
+                        }
+                        return spec;
+                    })
                     // server socket channel parameters
                     .option(ChannelOption.SO_BACKLOG, nettyHttpProperties.getServerSocketChannel().getSoBacklog())
                     .option(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getServerSocketChannel().isSoReuseAddr())
