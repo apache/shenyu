@@ -103,6 +103,8 @@
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
         <!-- maven plugin version end -->
 
         <!-- dependency version start -->
@@ -735,7 +737,7 @@
                     <configLocation>/script/shenyu_checkstyle.xml</configLocation>
                     <headerLocation>/script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <excludes>**/transfer/**/*</excludes>
+                    <excludes>**/transfer/**/*,**/generated*/**/*</excludes>
                 </configuration>
                 <executions>
                     <execution>
