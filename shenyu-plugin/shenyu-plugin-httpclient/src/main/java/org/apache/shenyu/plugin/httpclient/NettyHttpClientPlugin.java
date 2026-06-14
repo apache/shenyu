@@ -76,7 +76,16 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                 headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
             }
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
-                .send((req, nettyOutbound) -> nettyOutbound.send(body.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
+                .send((req, nettyOutbound) -> {
+                    // Do not send a request body for GET/HEAD. Otherwise Reactor Netty may add
+                    // Transfer-Encoding: chunked and cause compatibility issues with some upstream servers.
+                    if (isRequestBodyRequired(httpMethod)) {
+                        return nettyOutbound.send(body.map(dataBuffer ->
+                                ((NettyDataBuffer) dataBuffer).getNativeBuffer()));
+                    } else {
+                        return nettyOutbound;
+                    }
+                })
                 .responseConnection((res, connection) -> {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("NettyHttpClient response: status={}", res.status().code());
@@ -110,7 +119,6 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     return Mono.just(res);
                 }));
     }
-
 
     @Override
     public int getOrder() {
