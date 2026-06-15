@@ -3,7 +3,6 @@ target/
 *.class
 *.jar
 *.war
-*.zip
 *.tar
 *.tar.gz
 .flattened-pom.xml
