@@ -631,31 +631,6 @@ The text of each license is the standard Apache 2.0 license.
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
 
     jna-platform 5.16.0: https://github.com/java-native-access/jna, Apache 2.0
-    lz4-java 1.10.1: https://github.com/yawkat/lz4-java, Apache 2.0
-    itu 1.14.0: https://github.com/ethlo/itu, Apache 2.0
-    jsonschema-generator 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    jsonschema-module-jackson 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    jsonschema-module-swagger-2 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    re2j 1.8: https://github.com/google/re2j, Go License
-    json-schema-validator 2.0.0: https://github.com/networknt/json-schema-validator, Apache License Version 2.0
-    motan-core 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-springsupport 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    swagger-annotations-jakarta 2.2.38: https://github.com/swagger-api/swagger-core, Apache License 2.0
-    dubbo-dependencies-zookeeper 3.2.14: https://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
-    kafka-clients 3.9.2: https://kafka.apache.org, The Apache License, Version 2.0
-    log4j-1.2-api 2.23.1: https://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
-    zookeeper 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
-    zookeeper-jute 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
-    spring-ai-client-chat 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-commons 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-deepseek 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-mcp 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-model 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-openai 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-retry 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
-    spring-ai-template-st 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -772,12 +747,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
-    mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
 
 ========================================================================
 MPL licenses
@@ -805,7 +774,6 @@ Bouncy Castle licenses
     bcutil-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
     bcpkix-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
     bcprov-ext-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-ext-jdk18on, Bouncy Castle
-    bcprov-jdk18on 1.84: https://github.com/bcgit/bc-java, Bouncy Castle
 
 ========================================================================
 EDL License

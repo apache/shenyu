@@ -50,7 +50,7 @@ public class SandboxController {
      * @throws IOException throw io exception
      */
     @PostMapping(path = "/proxyGateway")
-    @RequiresPermissions("system:authen:list")
+    @RequiresPermissions("system:authen:modify")
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
                             final HttpServletRequest request,
                             final HttpServletResponse response) throws IOException {

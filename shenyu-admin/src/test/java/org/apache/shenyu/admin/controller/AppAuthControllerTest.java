@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.UpdateSkDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -36,6 +37,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -186,9 +188,15 @@ public final class AppAuthControllerTest {
 
     @Test
     public void testUpdateSk() throws Exception {
+        final UpdateSkDTO updateSkDTO = new UpdateSkDTO();
+        updateSkDTO.setAppKey("testAppKey");
+        updateSkDTO.setAppSecret("updateAppSecret");
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        when(SpringBeanUtils.getInstance().getBean(AppKeyProvider.class)).thenReturn(mock(AppKeyProvider.class));
+        when(SpringBeanUtils.getInstance().getBean(AppKeyProvider.class).existed("testAppKey")).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateSk")
-                .param("appKey", "testAppKey")
-                .param("appSecret", "updateAppSecret"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(updateSkDTO)))
                 .andExpect(status().isOk())
                 .andReturn();
     }

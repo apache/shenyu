@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
+import org.apache.shenyu.admin.model.dto.UpdateSkDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
@@ -33,7 +34,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.PageService;
-import org.apache.shenyu.admin.service.provider.AppKeyProvider;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -78,17 +78,13 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     /**
      * Update sk of App auth.
      *
-     * @param appKey    the app key
-     * @param appSecret the app secret
+     * @param updateSkDTO the update sk dto
      * @return the shenyu result
      */
     @PostMapping("/updateSk")
     @RequiresPermissions("system:authen:edit")
-    public ShenyuAdminResult updateSk(@RequestParam("appKey")
-                                      @Existed(message = "app key not existed",
-                                              provider = AppKeyProvider.class) final String appKey,
-                                      @RequestParam("appSecret") final String appSecret) {
-        return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
+    public ShenyuAdminResult updateSk(@Valid @RequestBody final UpdateSkDTO updateSkDTO) {
+        return appAuthService.updateAppSecretByAppKey(updateSkDTO.getAppKey(), updateSkDTO.getAppSecret());
     }
 
     /**
