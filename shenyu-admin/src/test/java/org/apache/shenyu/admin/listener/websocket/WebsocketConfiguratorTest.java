@@ -25,18 +25,22 @@ import jakarta.websocket.server.ServerEndpointConfig;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.tomcat.websocket.server.Constants.BINARY_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
 import static org.apache.tomcat.websocket.server.Constants.TEXT_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,11 +68,13 @@ public class WebsocketConfiguratorTest {
 
     @Test
     void testModifyHandshake() {
+        websocketSyncProperties.setToken("websocket-sync-token");
         ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
         Map<String, Object> userProperties = new HashMap<>();
         when(sec.getUserProperties()).thenReturn(userProperties);
 
         HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
         HttpSession httpSession = mock(HttpSession.class);
         when(request.getHttpSession()).thenReturn(httpSession);
         when(httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME)).thenReturn("192.168.1.1");
@@ -85,11 +91,13 @@ public class WebsocketConfiguratorTest {
 
     @Test
     void testModifyHandshakePutsAllAttributes() {
+        websocketSyncProperties.setToken("websocket-sync-token");
         ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
         Map<String, Object> userProperties = new HashMap<>();
         when(sec.getUserProperties()).thenReturn(userProperties);
 
         HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
         HttpSession httpSession = mock(HttpSession.class);
         when(request.getHttpSession()).thenReturn(httpSession);
 
@@ -102,6 +110,39 @@ public class WebsocketConfiguratorTest {
         assertTrue(userProperties.containsKey(WebsocketListener.CLIENT_IP_NAME));
         assertTrue(userProperties.containsKey(Constants.CLIENT_PORT_NAME));
         assertTrue(userProperties.containsKey(Constants.SHENYU_NAMESPACE_ID));
+    }
+
+    @Test
+    void testModifyHandshakeRejectsMissingToken() {
+        websocketSyncProperties.setToken("websocket-sync-token");
+        ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.emptyMap());
+        HandshakeResponse response = mock(HandshakeResponse.class);
+
+        assertThrows(ShenyuException.class, () -> websocketConfigurator.modifyHandshake(sec, request, response));
+    }
+
+    @Test
+    void testModifyHandshakeRejectsInvalidToken() {
+        websocketSyncProperties.setToken("websocket-sync-token");
+        ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("invalid-token")));
+        HandshakeResponse response = mock(HandshakeResponse.class);
+
+        assertThrows(ShenyuException.class, () -> websocketConfigurator.modifyHandshake(sec, request, response));
+    }
+
+    @Test
+    void testModifyHandshakeRejectsBlankConfiguredToken() {
+        websocketSyncProperties.setToken("");
+        ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
+        HandshakeResponse response = mock(HandshakeResponse.class);
+
+        assertThrows(ShenyuException.class, () -> websocketConfigurator.modifyHandshake(sec, request, response));
     }
 
     @Test
