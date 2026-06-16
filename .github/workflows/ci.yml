@@ -139,12 +139,6 @@ jobs:
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
         if: steps.filter.outputs.code == 'true'
-      - name: Save ShenYu Maven Repos
-        if: steps.filter.outputs.code == 'true' && steps.restore-maven-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
   check-license-header:
     name: check-license-header
