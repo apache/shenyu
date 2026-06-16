@@ -82,7 +82,8 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
      * @param appSecret the app secret
      * @return the shenyu result
      */
-    @GetMapping("/updateSk")
+    @PostMapping("/updateSk")
+    @RequiresPermissions("system:authen:edit")
     public ShenyuAdminResult updateSk(@RequestParam("appKey")
                                       @Existed(message = "app key not existed",
                                               provider = AppKeyProvider.class) final String appKey,

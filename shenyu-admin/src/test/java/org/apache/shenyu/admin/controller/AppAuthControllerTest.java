@@ -186,7 +186,7 @@ public final class AppAuthControllerTest {
 
     @Test
     public void testUpdateSk() throws Exception {
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/updateSk")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateSk")
                 .param("appKey", "testAppKey")
                 .param("appSecret", "updateAppSecret"))
                 .andExpect(status().isOk())
