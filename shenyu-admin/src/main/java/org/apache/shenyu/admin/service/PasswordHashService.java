@@ -34,7 +34,9 @@ public class PasswordHashService {
 
     private static final Pattern LEGACY_SHA512_PATTERN = Pattern.compile("^[A-Fa-f0-9]{128}$");
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private static final int BCRYPT_STRENGTH = 12;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
 
     /**
      * Encode a raw dashboard user password for storage.
