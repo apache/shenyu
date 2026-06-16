@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.core.client;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -213,7 +212,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             String apiPath = pathJoin(contextPath, superPath, value);
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
-                String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method);
+                String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method, sextet.getValue4());
                 String extJson = buildExtJson(method);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
@@ -258,15 +257,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return ext;
     }
 
-    private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
-        Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
-                .put("tags", tags)
-                .put("operationId", path)
-                .put("parameters", OpenApiUtils.generateDocumentParameters(path, method))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path))
-                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(method)))
-                .build();
-        return GsonUtils.getInstance().toJson(documentMap);
+    private String buildDocumentJson(final List<String> tags, final String path, final Method method, final RpcTypeEnum rpcTypeEnum) {
+        return OpenApiUtils.buildDocumentJson(tags, path, method, rpcTypeEnum);
     }
 
     protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, T> beans);
