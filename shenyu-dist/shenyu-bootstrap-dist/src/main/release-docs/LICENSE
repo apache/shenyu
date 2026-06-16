@@ -268,6 +268,11 @@ The text of each license is the standard Apache 2.0 license.
     curator-framework 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-recipes 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-x-discovery 4.3.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
+    chicory-runtime 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
+    chicory-wasi 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
+    chicory-compiler 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
+    chicory-log 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
+    chicory-wasm 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
 	dubbo 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.18.0: https://github.com/google/error-prone, Apache 2.0
     fury-core 0.4.1: https://mvnrepository.com/artifact/org.apache.fury/fury-core, Apache 2.0
@@ -357,7 +362,7 @@ The text of each license is the standard Apache 2.0 license.
     kafka-clients 3.7.1: https://github.com/apache/kafka, Apache 2.0
     kafka-clients 3.9.1: https://github.com/apache/kafka, Apache 2.0
     lettuce-core 6.3.2.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
-    wasmtime-java 0.19.0: https://github.com/kawamuray/wasmtime-java, Apache 2.0
+
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.23.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j 1.2-api-2.23.1:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
@@ -624,10 +629,7 @@ The text of each license is the standard Apache 2.0 license.
     amqp-client 5.21.0: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
-    wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
-    wasi-common 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
-    wasmtime 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
-    wasmtime-wasi 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+
     jna-platform 5.16.0: https://github.com/java-native-access/jna, Apache 2.0
 
 ========================================================================
@@ -737,7 +739,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 2.0.13: https://www.slf4j.org, MIT
-    jni-rs 0.21.1: https://github.com/jni-rs/jni-rs, MIT
+
     jul-to-slf4j 2.0.13: http://www.slf4j.org, MIT
     mockito 3.5.15: https://github.com/mockito/mockito MIT
     slf4j-api 2.0.13: https://www.slf4j.org, MIT
