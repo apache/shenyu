@@ -501,8 +501,8 @@ The text of each license is the standard Apache 2.0 license.
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
     json-schema-core 1.2.14: https://mvnrepository.com/artifact/com.github.java-json-tools/json-schema-core, Apache 2.0
     uri-template 0.10: https://github.com/java-json-tools/uri-template, Apache 2.0
-    zookeeper 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
-    zookeeper-jute 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
+    zookeeper 3.9.5: http://zookeeper.apache.org, Apache 2.0
+    zookeeper-jute 3.9.5: http://zookeeper.apache.org, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -578,7 +578,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://checkerframework.org/, MIT
     jopt-simple 5.0.4: https://github.com/jopt-simple/jopt-simple, MIT
-    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
     oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================

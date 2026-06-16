@@ -268,11 +268,6 @@ The text of each license is the standard Apache 2.0 license.
     curator-framework 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-recipes 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-x-discovery 4.3.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
-    chicory-runtime 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
-    chicory-wasi 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
-    chicory-compiler 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
-    chicory-log 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
-    chicory-wasm 1.7.3: https://github.com/dylibso/chicory, Apache 2.0
 	dubbo 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.18.0: https://github.com/google/error-prone, Apache 2.0
     fury-core 0.4.1: https://mvnrepository.com/artifact/org.apache.fury/fury-core, Apache 2.0
@@ -362,7 +357,7 @@ The text of each license is the standard Apache 2.0 license.
     kafka-clients 3.7.1: https://github.com/apache/kafka, Apache 2.0
     kafka-clients 3.9.1: https://github.com/apache/kafka, Apache 2.0
     lettuce-core 6.3.2.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
-
+    wasmtime-java 0.19.0: https://github.com/kawamuray/wasmtime-java, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.23.1: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
     log4j 1.2-api-2.23.1:  https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api, Apache 2.0
@@ -629,25 +624,27 @@ The text of each license is the standard Apache 2.0 license.
     amqp-client 5.21.0: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
-
+    wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasi-common 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasmtime 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
+    wasmtime-wasi 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
     jna-platform 5.16.0: https://github.com/java-native-access/jna, Apache 2.0
-    lz4-java 1.10.1: https://github.com/yawkat/lz4-java, Apache 2.0
+    lz4-java 1.10.1: https://github.com/lz4/lz4-java, Apache 2.0
     itu 1.14.0: https://github.com/ethlo/itu, Apache 2.0
-    jsonschema-generator 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    jsonschema-module-jackson 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    jsonschema-module-swagger-2 4.38.0: https://github.com/victools/jsonschema-generator, The Apache License, Version 2.0
-    re2j 1.8: https://github.com/google/re2j, Go License
-    json-schema-validator 2.0.0: https://github.com/networknt/json-schema-validator, Apache License Version 2.0
-    motan-core 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-springsupport 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, The Apache License, Version 2.0
-    swagger-annotations-jakarta 2.2.38: https://github.com/swagger-api/swagger-core, Apache License 2.0
-    dubbo-dependencies-zookeeper 3.2.14: https://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
-    kafka-clients 3.9.2: https://kafka.apache.org, The Apache License, Version 2.0
-    log4j-1.2-api 2.23.1: https://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
-    zookeeper 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
-    zookeeper-jute 3.9.5: https://gitbox.apache.org/repos/asf/zookeeper, Apache 2.0
+    jsonschema-generator 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
+    jsonschema-module-jackson 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
+    jsonschema-module-swagger-2 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
+    json-schema-validator 2.0.0: https://github.com/networknt/json-schema-validator, Apache 2.0
+    motan-core 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-springsupport 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, Apache 2.0
+    swagger-annotations-jakarta 2.2.38: https://github.com/swagger-api/swagger-core, Apache 2.0
+    dubbo-dependencies-zookeeper 3.2.14: https://github.com/apache/dubbo, Apache 2.0
+    kafka-clients 3.9.2: https://kafka.apache.org, Apache 2.0
+    log4j-1.2-api 2.23.1: https://logging.apache.org/log4j/2.x/, Apache 2.0
+    zookeeper 3.9.5: http://zookeeper.apache.org, Apache 2.0
+    zookeeper-jute 3.9.5: http://zookeeper.apache.org, Apache 2.0
     spring-ai-client-chat 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-commons 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-deepseek 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
@@ -692,6 +689,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     asm-tree 9.2: https://asm.ow2.io/, BSD 3-Clause
     polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
     re2j 1.6: https://github.com/google/re2j, BSD 3-Clause
+    re2j 1.8: http://github.com/google/re2j, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
@@ -764,14 +762,13 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
     jcl-over-slf4j 2.0.13: https://www.slf4j.org, MIT
-
+    jni-rs 0.21.1: https://github.com/jni-rs/jni-rs, MIT
     jul-to-slf4j 2.0.13: http://www.slf4j.org, MIT
     mockito 3.5.15: https://github.com/mockito/mockito MIT
     slf4j-api 2.0.13: https://www.slf4j.org, MIT
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
-    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
     oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
     mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
     mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
