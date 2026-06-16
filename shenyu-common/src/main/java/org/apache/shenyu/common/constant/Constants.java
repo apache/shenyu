@@ -714,6 +714,11 @@ public interface Constants {
     String X_ACCESS_TOKEN = "X-Access-Token";
 
     /**
+     * X-Shenyu-Sync-Token.
+     */
+    String SHENYU_WEBSOCKET_SYNC_TOKEN = "X-Shenyu-Sync-Token";
+
+    /**
      * X-API-KEY; AI proxy key header.
      */
     String X_API_KEY = "X-API-KEY";

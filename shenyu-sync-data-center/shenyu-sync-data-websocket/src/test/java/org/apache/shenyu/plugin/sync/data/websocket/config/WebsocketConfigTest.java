@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
@@ -36,6 +37,8 @@ public class WebsocketConfigTest {
 
     private static final String ALLOW_ORIGIN = "ws://localhost:9095";
 
+    private static final String TOKEN = "websocket-sync-token";
+
     private WebsocketConfig websocketConfig;
 
     @BeforeEach
@@ -43,12 +46,14 @@ public class WebsocketConfigTest {
         websocketConfig = new WebsocketConfig();
         websocketConfig.setUrls(URLS);
         websocketConfig.setAllowOrigin(ALLOW_ORIGIN);
+        websocketConfig.setToken(TOKEN);
     }
 
     @Test
     public void testGetterSetter() {
         assertEquals(URLS, websocketConfig.getUrls());
         assertEquals(ALLOW_ORIGIN, websocketConfig.getAllowOrigin());
+        assertEquals(TOKEN, websocketConfig.getToken());
     }
 
     @Test
@@ -56,6 +61,7 @@ public class WebsocketConfigTest {
         WebsocketConfig that = new WebsocketConfig();
         that.setUrls(URLS);
         that.setAllowOrigin(ALLOW_ORIGIN);
+        that.setToken(TOKEN);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
@@ -64,13 +70,14 @@ public class WebsocketConfigTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(), websocketConfig.getToken()), websocketConfig.hashCode());
     }
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s}";
+        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s, token='******}";
         String expected = String.format(toString, URLS, ALLOW_ORIGIN);
         assertEquals(expected, websocketConfig.toString());
+        assertFalse(websocketConfig.toString().contains(TOKEN));
     }
 }
