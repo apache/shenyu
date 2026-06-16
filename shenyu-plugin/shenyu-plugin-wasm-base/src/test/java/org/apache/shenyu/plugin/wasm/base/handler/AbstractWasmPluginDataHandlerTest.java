@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
+import com.dylibso.chicory.runtime.Memory;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +28,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,128 +43,176 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class AbstractWasmPluginDataHandlerTest {
-    
-    private RuleData ruleData;
-    
+
     private PluginData pluginData;
-    
+
     private SelectorData selectorData;
-    
-    private SimpleTestHandler testWasmPluginDataHandler;
-    
-    private PluginDataHandler pluginDataHandler;
-    
+
+    private RuleData ruleData;
+
     @BeforeEach
     public void setUp() {
-        this.ruleData = mock(RuleData.class);
         this.pluginData = mock(PluginData.class);
-        this.selectorData = mock(SelectorData.class);
-        // Use a simple test handler instead of WebAssembly-dependent handler
-        this.testWasmPluginDataHandler = new SimpleTestHandler();
-        this.pluginDataHandler = () -> "SHENYU";
-        when(ruleData.getId()).thenReturn("SHENYU");
         when(pluginData.getId()).thenReturn("SHENYU");
-        when(selectorData.getId()).thenReturn("SHENYU");
+        this.selectorData = mock(SelectorData.class);
+        when(selectorData.getId()).thenReturn("SELECTOR_1");
+        when(selectorData.getPluginName()).thenReturn("SHENYU");
+        this.ruleData = mock(RuleData.class);
+        when(ruleData.getId()).thenReturn("RULE_1");
+        when(ruleData.getSelectorId()).thenReturn("SELECTOR_1");
+        when(ruleData.getPluginName()).thenReturn("SHENYU");
     }
-    
-    /**
-     * The handler plugin test.
-     */
+
+    /** Go WASM handlerPlugin test. */
     @Test
-    public void handlerPluginTest() {
-        pluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
+    public void goHandlerPluginTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.handlerPlugin(pluginData);
     }
-    
-    /**
-     * The remove plugin test.
-     */
+
+    /** Go WASM removePlugin test. */
     @Test
-    public void removePluginTest() {
-        pluginDataHandler.removePlugin(pluginData);
-        testWasmPluginDataHandler.handlerPlugin(pluginData);
-        testWasmPluginDataHandler.removePlugin(pluginData);
+    public void goRemovePluginTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removePlugin(pluginData);
     }
-    
-    /**
-     * The handler selector test.
-     */
+
+    /** Go WASM handlerSelector test. */
     @Test
-    public void handlerSelectorTest() {
-        pluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
+    public void goHandlerSelectorTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.handlerSelector(selectorData);
     }
-    
-    /**
-     * The remove selector test.
-     */
+
+    /** Go WASM removeSelector test. */
     @Test
-    public void removeSelectorTest() {
-        pluginDataHandler.removeSelector(selectorData);
-        testWasmPluginDataHandler.handlerSelector(selectorData);
-        testWasmPluginDataHandler.removeSelector(selectorData);
+    public void goRemoveSelectorTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removeSelector(selectorData);
     }
-    
-    /**
-     * The handler rule test.
-     */
+
+    /** Go WASM handlerRule test. */
     @Test
-    public void handlerRuleTest() {
-        pluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
+    public void goHandlerRuleTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.handlerRule(ruleData);
     }
-    
-    /**
-     * The remove rule test.
-     */
+
+    /** Go WASM removeRule test. */
     @Test
-    public void removeRuleTest() {
-        pluginDataHandler.removeRule(ruleData);
-        testWasmPluginDataHandler.handlerRule(ruleData);
-        testWasmPluginDataHandler.removeRule(ruleData);
+    public void goRemoveRuleTest() {
+        final TestGoWasmPluginDataHandler goHandler = new TestGoWasmPluginDataHandler("go result");
+        goHandler.removeRule(ruleData);
     }
-    
-    /**
-     * The plugin named test.
-     */
+
+    /** Rust WASM handlerPlugin test. */
     @Test
-    public void pluginNamedTest() {
-        assertEquals("SHENYU", pluginDataHandler.pluginNamed());
-        assertEquals("SHENYU_TEST", testWasmPluginDataHandler.pluginNamed());
+    public void rustHandlerPluginTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.handlerPlugin(pluginData);
     }
-    
-    /**
-     * Simple test handler for testing without WebAssembly dependencies.
-     */
-    static class SimpleTestHandler {
-        
-        public void handlerPlugin(final PluginData pluginData) {
-            // Simple test implementation - just store for verification
-            // This would normally be logged or stored for verification
+
+    /** Rust WASM removePlugin test. */
+    @Test
+    public void rustRemovePluginTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removePlugin(pluginData);
+    }
+
+    /** Rust WASM handlerSelector test. */
+    @Test
+    public void rustHandlerSelectorTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.handlerSelector(selectorData);
+    }
+
+    /** Rust WASM removeSelector test. */
+    @Test
+    public void rustRemoveSelectorTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removeSelector(selectorData);
+    }
+
+    /** Rust WASM handlerRule test. */
+    @Test
+    public void rustHandlerRuleTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.handlerRule(ruleData);
+    }
+
+    /** Rust WASM removeRule test. */
+    @Test
+    public void rustRemoveRuleTest() {
+        final TestWasmPluginDataHandler rustHandler = new TestWasmPluginDataHandler("rust result");
+        rustHandler.removeRule(ruleData);
+    }
+
+    abstract static class WasmTestHandler extends AbstractWasmPluginDataHandler {
+
+        private static final java.util.concurrent.atomic.AtomicLong ID =
+                new java.util.concurrent.atomic.AtomicLong();
+
+        private final Map<Long, String> results = new ConcurrentHashMap<>();
+
+        private final String expectedResult;
+
+        WasmTestHandler(final String expectedResult) {
+            this.expectedResult = expectedResult;
         }
-        
-        public void removePlugin(final PluginData pluginData) {
-            // Simple test implementation - just store for verification
+
+        @Override
+        protected long onGetArgs(final long argId, final long addr, final int len) {
+            String config = "hello from java " + argId;
+            assertTrue(config.startsWith("hello from java "));
+            Memory memory = super.getMemory();
+            byte[] data = config.getBytes(StandardCharsets.UTF_8);
+            int writeLen = Math.min(len, data.length);
+            memory.write((int) addr, data, 0, writeLen);
+            return writeLen;
         }
-        
-        public void handlerSelector(final SelectorData selectorData) {
-            // Simple test implementation - just store for verification
+
+        @Override
+        protected long onPutResult(final long argId, final long addr, final int len) {
+            Memory memory = super.getMemory();
+            byte[] bytes = memory.readBytes((int) addr, len);
+            String result = new String(bytes, StandardCharsets.UTF_8);
+            assertEquals(expectedResult, result);
+            results.put(argId, result);
+            return 0;
         }
-        
-        public void removeSelector(final SelectorData selectorData) {
-            // Simple test implementation - just store for verification
+
+        @Override
+        protected Long getPluginArgumentId(final PluginData pluginData) {
+            return ID.incrementAndGet();
         }
-        
-        public void handlerRule(final RuleData ruleData) {
-            // Simple test implementation - just store for verification
+
+        @Override
+        protected Long getRuleArgumentId(final RuleData ruleData) {
+            return ID.incrementAndGet();
         }
-        
-        public void removeRule(final RuleData ruleData) {
-            // Simple test implementation - just store for verification
+
+        @Override
+        protected Long getSelectorArgumentId(final SelectorData selectorData) {
+            return ID.incrementAndGet();
         }
-        
+
+        @Override
         public String pluginNamed() {
             return "SHENYU_TEST";
+        }
+    }
+
+    /** Loads $TestGoWasmPluginDataHandler.wasm. */
+    static class TestGoWasmPluginDataHandler extends WasmTestHandler {
+        TestGoWasmPluginDataHandler(final String expected) {
+            super(expected);
+        }
+    }
+
+    /** Loads $TestWasmPluginDataHandler.wasm. */
+    static class TestWasmPluginDataHandler extends WasmTestHandler {
+        TestWasmPluginDataHandler(final String expected) {
+            super(expected);
         }
     }
 }
