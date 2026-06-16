@@ -75,7 +75,7 @@ public class WebsocketConfigTest {
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s, allowOrigin='%s, token='******}";
+        String toString = "WebsocketConfig{urls='%s', allowOrigin='%s', token='******'}";
         String expected = String.format(toString, URLS, ALLOW_ORIGIN);
         assertEquals(expected, websocketConfig.toString());
         assertFalse(websocketConfig.toString().contains(TOKEN));

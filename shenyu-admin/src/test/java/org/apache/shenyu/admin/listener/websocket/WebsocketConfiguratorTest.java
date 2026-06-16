@@ -74,7 +74,7 @@ public class WebsocketConfiguratorTest {
         when(sec.getUserProperties()).thenReturn(userProperties);
 
         HandshakeRequest request = mock(HandshakeRequest.class);
-        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of("websocket-sync-token")));
         HttpSession httpSession = mock(HttpSession.class);
         when(request.getHttpSession()).thenReturn(httpSession);
         when(httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME)).thenReturn("192.168.1.1");
@@ -97,7 +97,7 @@ public class WebsocketConfiguratorTest {
         when(sec.getUserProperties()).thenReturn(userProperties);
 
         HandshakeRequest request = mock(HandshakeRequest.class);
-        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of("websocket-sync-token")));
         HttpSession httpSession = mock(HttpSession.class);
         when(request.getHttpSession()).thenReturn(httpSession);
 
@@ -107,6 +107,26 @@ public class WebsocketConfiguratorTest {
         verify(httpSession).getAttribute(WebsocketListener.CLIENT_IP_NAME);
         verify(httpSession).getAttribute(Constants.CLIENT_PORT_NAME);
         verify(httpSession).getAttribute(Constants.SHENYU_NAMESPACE_ID);
+        assertTrue(userProperties.containsKey(WebsocketListener.CLIENT_IP_NAME));
+        assertTrue(userProperties.containsKey(Constants.CLIENT_PORT_NAME));
+        assertTrue(userProperties.containsKey(Constants.SHENYU_NAMESPACE_ID));
+    }
+
+    @Test
+    void testModifyHandshakeUsesSpringBeanWhenConfiguratorIsNotAutowired() {
+        websocketSyncProperties.setToken("websocket-sync-token");
+        ReflectionTestUtils.setField(websocketConfigurator, "websocketSyncProperties", null);
+        ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+        Map<String, Object> userProperties = new HashMap<>();
+        when(sec.getUserProperties()).thenReturn(userProperties);
+
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of("websocket-sync-token")));
+        when(request.getHttpSession()).thenReturn(mock(HttpSession.class));
+
+        HandshakeResponse response = mock(HandshakeResponse.class);
+        websocketConfigurator.modifyHandshake(sec, request, response);
+
         assertTrue(userProperties.containsKey(WebsocketListener.CLIENT_IP_NAME));
         assertTrue(userProperties.containsKey(Constants.CLIENT_PORT_NAME));
         assertTrue(userProperties.containsKey(Constants.SHENYU_NAMESPACE_ID));
@@ -128,7 +148,7 @@ public class WebsocketConfiguratorTest {
         websocketSyncProperties.setToken("websocket-sync-token");
         ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
         HandshakeRequest request = mock(HandshakeRequest.class);
-        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("invalid-token")));
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of("invalid-token")));
         HandshakeResponse response = mock(HandshakeResponse.class);
 
         assertThrows(ShenyuException.class, () -> websocketConfigurator.modifyHandshake(sec, request, response));
@@ -139,7 +159,7 @@ public class WebsocketConfiguratorTest {
         websocketSyncProperties.setToken("");
         ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
         HandshakeRequest request = mock(HandshakeRequest.class);
-        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, List.of("websocket-sync-token")));
+        when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of("websocket-sync-token")));
         HandshakeResponse response = mock(HandshakeResponse.class);
 
         assertThrows(ShenyuException.class, () -> websocketConfigurator.modifyHandshake(sec, request, response));

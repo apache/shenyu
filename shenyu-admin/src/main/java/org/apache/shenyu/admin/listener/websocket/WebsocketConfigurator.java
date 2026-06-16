@@ -70,7 +70,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
 
     @Override
     public boolean checkOrigin(final String originHeaderValue) {
-        final WebsocketSyncProperties bean = SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class);
+        final WebsocketSyncProperties bean = getWebsocketSyncProperties();
         if (StringUtils.isNotEmpty(bean.getAllowOrigins())) {
             String[] split = StringUtils.split(bean.getAllowOrigins(), ";");
             for (String configAllow : split) {
@@ -86,7 +86,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
 
     @Override
     public void onStartup(final ServletContext servletContext) {
-        int messageMaxSize = websocketSyncProperties.getMessageMaxSize();
+        int messageMaxSize = getWebsocketSyncProperties().getMessageMaxSize();
         if (messageMaxSize > 0) {
             servletContext.setInitParameter(TEXT_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM,
                     String.valueOf(messageMaxSize));
@@ -96,14 +96,19 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
     }
 
     private void checkSyncToken(final HandshakeRequest request) {
-        String configuredToken = websocketSyncProperties.getToken();
+        String configuredToken = getWebsocketSyncProperties().getToken();
         if (StringUtils.isBlank(configuredToken)) {
             throw new ShenyuException("websocket sync token is not configured");
         }
-        String requestToken = getHeader(request.getHeaders(), Constants.SHENYU_WEBSOCKET_SYNC_TOKEN);
+        String requestToken = getHeader(request.getHeaders(), Constants.X_SHENYU_SYNC_TOKEN);
         if (StringUtils.isBlank(requestToken) || !isSameToken(configuredToken, requestToken)) {
             throw new ShenyuException("websocket sync token is invalid");
         }
+    }
+
+    private WebsocketSyncProperties getWebsocketSyncProperties() {
+        return Optional.ofNullable(websocketSyncProperties)
+                .orElseGet(() -> SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class));
     }
 
     private boolean isSameToken(final String configuredToken, final String requestToken) {

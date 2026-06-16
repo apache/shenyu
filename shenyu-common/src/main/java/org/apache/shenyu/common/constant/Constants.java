@@ -716,7 +716,7 @@ public interface Constants {
     /**
      * X-Shenyu-Sync-Token.
      */
-    String SHENYU_WEBSOCKET_SYNC_TOKEN = "X-Shenyu-Sync-Token";
+    String X_SHENYU_SYNC_TOKEN = "X-Shenyu-Sync-Token";
 
     /**
      * X-API-KEY; AI proxy key header.

@@ -184,7 +184,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             headers.put(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
         }
         if (StringUtils.isNotBlank(websocketConfig.getToken())) {
-            headers.put(Constants.SHENYU_WEBSOCKET_SYNC_TOKEN, websocketConfig.getToken());
+            headers.put(Constants.X_SHENYU_SYNC_TOKEN, websocketConfig.getToken());
         }
         return new ShenyuWebsocketClient(
                 URI.create(url),

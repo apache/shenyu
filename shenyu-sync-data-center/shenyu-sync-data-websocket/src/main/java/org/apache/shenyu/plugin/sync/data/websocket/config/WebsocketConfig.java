@@ -112,9 +112,11 @@ public class WebsocketConfig {
         return "WebsocketConfig{"
                 + "urls='"
                 + urls
+                + '\''
                 + ", allowOrigin='"
                 + allowOrigin
-                + ", token='******"
+                + '\''
+                + ", token='******'"
                 + '}';
     }
 }
