@@ -32,8 +32,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.github.kawamuray.wasmtime</groupId>
-            <artifactId>wasmtime-java</artifactId>
+            <groupId>com.dylibso.chicory</groupId>
+            <artifactId>runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dylibso.chicory</groupId>
+            <artifactId>compiler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dylibso.chicory</groupId>
+            <artifactId>wasi</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
