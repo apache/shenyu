@@ -266,6 +266,12 @@ shenyu:
     props:
       username: admin
       password: 123456
+  http-record:
+    enabled: true
+    serverLists: http://localhost:9095
+    props:
+      username: admin
+      password: 123456
   exclude:
     enabled: false
     paths:

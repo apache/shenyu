@@ -225,6 +225,9 @@ shenyu:
       apiServer: "https://127.0.0.1:6443"
       token: "token"
       caCertPath: "/etc/kubernetes/pki/ca.crt"
+  http-record:
+    storage-type: "local"
+    storage-path: "/tmp/shenyu-records"
 
 springdoc:
   api-docs:
