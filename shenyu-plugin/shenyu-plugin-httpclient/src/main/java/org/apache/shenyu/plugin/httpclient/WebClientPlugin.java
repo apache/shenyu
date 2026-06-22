@@ -61,7 +61,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         ServerHttpRequest request = exchange.getRequest();
         final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
         this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
-        final WebClient.ResponseSpec responseSpec = webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
+        HttpMethod method = HttpMethod.valueOf(httpMethod);
+        WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri)
                 .headers(headers -> {
                     headers.addAll(exchange.getRequest().getHeaders());
                     headers.remove(HttpHeaders.HOST);
@@ -69,15 +70,20 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     if (preserveHost) {
                         headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
                     }
-                })
-                .body((outputMessage, context) -> {
-                    MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-                    if (MediaTypeUtils.isByteType(mediaType)) {
-                        return outputMessage.writeWith(body);
-                    }
-                    // fix chinese garbled code
-                    return outputMessage.writeWith(DataBufferUtils.join(body));
-                })
+                });
+        WebClient.RequestHeadersSpec<?> requestHeadersSpec = requestBodySpec;
+        // Do not attach a request body for GET/HEAD to avoid unexpected transfer encoding.
+        if (isRequestBodyRequired(httpMethod)) {
+            requestHeadersSpec = requestBodySpec.body((outputMessage, context) -> {
+                MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
+                if (MediaTypeUtils.isByteType(mediaType)) {
+                    return outputMessage.writeWith(body);
+                }
+                // fix chinese garbled code
+                return outputMessage.writeWith(DataBufferUtils.join(body));
+            });
+        }
+        final WebClient.ResponseSpec responseSpec = requestHeadersSpec
                 .retrieve()
                 // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
                 .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
