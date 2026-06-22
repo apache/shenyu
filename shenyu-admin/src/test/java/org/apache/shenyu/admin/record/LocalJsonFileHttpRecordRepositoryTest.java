@@ -279,6 +279,45 @@ class LocalJsonFileHttpRecordRepositoryTest {
     }
 
     @Test
+    void testLoadRecordsWithInvalidTaskIdPathTraversal() {
+        List<ShenyuHttpRequestRecordDTO.Record> loaded = repository.loadRecords("../../etc/passwd");
+        assertTrue(loaded.isEmpty());
+    }
+
+    @Test
+    void testLoadRecordsWithInvalidTaskIdNull() {
+        List<ShenyuHttpRequestRecordDTO.Record> loaded = repository.loadRecords(null);
+        assertTrue(loaded.isEmpty());
+    }
+
+    @Test
+    void testLoadRecordsWithInvalidTaskIdBlank() {
+        List<ShenyuHttpRequestRecordDTO.Record> loaded = repository.loadRecords("");
+        assertTrue(loaded.isEmpty());
+        loaded = repository.loadRecords("   ");
+        assertTrue(loaded.isEmpty());
+    }
+
+    @Test
+    void testLoadRecordsWithInvalidTaskIdSpecialChars() {
+        assertTrue(repository.loadRecords("task/1").isEmpty());
+        assertTrue(repository.loadRecords("task\\1").isEmpty());
+        assertTrue(repository.loadRecords("task.1").isEmpty());
+        assertTrue(repository.loadRecords("task id").isEmpty());
+        assertTrue(repository.loadRecords("task!@#").isEmpty());
+    }
+
+    @Test
+    void testLoadRecordsWithValidTaskIdCharacters() throws IOException {
+        ShenyuHttpRequestRecordDTO.Record record = buildRecord("task-1_abc", "trace-1", "GET", "/a", null, null, null);
+        repository.save(buildDTO(Collections.singletonList(record)));
+
+        List<ShenyuHttpRequestRecordDTO.Record> loaded = repository.loadRecords("task-1_abc");
+        assertEquals(1, loaded.size());
+        assertEquals("task-1_abc", loaded.get(0).getTaskId());
+    }
+
+    @Test
     void testLoadRecordsWithMultipleRecords() {
         ShenyuHttpRequestRecordDTO.Record r1 = buildRecord("task-1", "trace-1", "GET", "/a", null, null, null);
         ShenyuHttpRequestRecordDTO.Record r2 = buildRecord("task-1", "trace-2", "POST", "/b", "q=1", null, null);

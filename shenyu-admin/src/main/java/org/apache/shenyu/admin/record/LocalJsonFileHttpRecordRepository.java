@@ -108,7 +108,15 @@ public class LocalJsonFileHttpRecordRepository implements HttpRecordRepository {
 
     @Override
     public List<ShenyuHttpRequestRecordDTO.Record> loadRecords(final String taskId) {
-        Path filePath = Paths.get(properties.getStoragePath(), taskId + ".jsonl");
+        if (StringUtils.isBlank(taskId) || !taskId.matches("^[a-zA-Z0-9_-]+$")) {
+            LOG.warn("Invalid taskId: {}", taskId);
+            return new ArrayList<>();
+        }
+        Path filePath = Paths.get(properties.getStoragePath(), taskId + ".jsonl").normalize();
+        if (!filePath.startsWith(Paths.get(properties.getStoragePath()).normalize())) {
+            LOG.warn("Path traversal detected: {}", taskId);
+            return new ArrayList<>();
+        }
         List<ShenyuHttpRequestRecordDTO.Record> records = new ArrayList<>();
         if (!Files.exists(filePath)) {
             LOG.warn("Record file not found: {}", filePath);
