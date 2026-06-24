@@ -206,9 +206,13 @@ public class LocalPluginController {
                 Properties properties = new Properties();
                 properties.setProperty("warmup", String.valueOf(up.getWarmup()));
                 properties.setProperty("upstreamHost", String.valueOf(up.getUpstreamHost()));
+                properties.setProperty("gray", String.valueOf(up.isGray()));
                 properties.setProperty("healthCheckEnabled", String.valueOf(up.isHealthCheckEnabled()));
-                upstreamData.setDateUpdated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
                 upstreamData.setProps(GsonUtils.getInstance().toJson(properties));
+                if (Objects.nonNull(up.getMetadata()) && !up.getMetadata().isEmpty()) {
+                    upstreamData.setMetadata(GsonUtils.getInstance().toJson(up.getMetadata()));
+                }
+                upstreamData.setDateUpdated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
                 upstreamData.setDateCreated(Optional.of(up.getTimestamp()).map(Timestamp::new).orElse(new Timestamp(System.currentTimeMillis())));
                 return upstreamData;
             }).collect(Collectors.toList());

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
@@ -37,6 +38,8 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -64,6 +67,7 @@ public enum DiscoveryTransfer {
             .status(data.getStatus())
             .weight(data.getWeight())
             .props(data.getProps())
+            .metadata(data.getMetadata())
             .url(data.getUrl())
             .dateUpdated(data.getDateUpdated())
             .dateCreated(data.getDateCreated()).build()).orElse(null);
@@ -85,6 +89,15 @@ public enum DiscoveryTransfer {
                     .orElse(new Properties());
             commonUpstream
                     .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+            Map<String, String> metadataMap;
+            try {
+                metadataMap = StringUtils.isBlank(data.getMetadata())
+                        ? Collections.emptyMap()
+                        : GsonUtils.getInstance().toObjectMap(data.getMetadata(), String.class);
+            } catch (Exception ex) {
+                metadataMap = Collections.emptyMap();
+            }
+            commonUpstream.setMetadata(metadataMap);
             return commonUpstream;
         }).orElse(null);
     }
@@ -105,6 +118,7 @@ public enum DiscoveryTransfer {
             vo.setStatus(data.getUpstreamStatus());
             vo.setWeight(data.getWeight());
             vo.setProps(data.getProps());
+            vo.setMetadata(data.getMetadata());
             vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
             return vo;
         }).orElse(null);
@@ -191,6 +205,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamData.setWeight(data.getWeight());
             discoveryUpstreamData.setProps(data.getProps());
+            discoveryUpstreamData.setMetadata(data.getMetadata());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             return discoveryUpstreamData;
@@ -213,6 +228,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
             discoveryUpstreamData.setWeight(data.getWeight());
             discoveryUpstreamData.setProps(data.getProps());
+            discoveryUpstreamData.setMetadata(data.getMetadata());
             discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
@@ -329,6 +345,7 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
             DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
             discoveryUpstreamDTO.setProps(data.getProps());
+            discoveryUpstreamDTO.setMetadata(data.getMetadata());
             discoveryUpstreamDTO.setStatus(data.getUpstreamStatus());
             discoveryUpstreamDTO.setUrl(data.getUpstreamUrl());
             discoveryUpstreamDTO.setDiscoveryHandlerId(data.getDiscoveryHandlerId());
@@ -372,6 +389,9 @@ public enum DiscoveryTransfer {
                 .orElse(new Properties());
         properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
         discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
+        if (commonUpstream.getMetadata() != null && !commonUpstream.getMetadata().isEmpty()) {
+            discoveryUpstreamDTO.setMetadata(GsonUtils.getInstance().toJson(commonUpstream.getMetadata()));
+        }
         return mapToData(discoveryUpstreamDTO);
     }
 }

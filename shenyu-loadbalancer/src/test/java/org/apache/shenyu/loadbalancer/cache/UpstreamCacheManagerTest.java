@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -356,6 +357,43 @@ public class UpstreamCacheManagerTest {
         List<Upstream> finalResult = upstreamCacheManager.findUpstreamListBySelectorId(testSelectorId);
         Assertions.assertNotNull(finalResult);
         Assertions.assertFalse(finalResult.isEmpty());
+
+        upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
+    @Test
+    @Order(12)
+    public void testSubmitSyncsGrayAndMetadataForExistingUpstream() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String testSelectorId = "GRAY_METADATA_SYNC_TEST";
+
+        List<Upstream> initialList = new ArrayList<>(1);
+        initialList.add(Upstream.builder()
+                .protocol("http://")
+                .url("gray-sync-upstream:8080")
+                .status(true)
+                .healthCheckEnabled(false)
+                .gray(false)
+                .metadata(Map.of("version", "v1"))
+                .build());
+        upstreamCacheManager.submit(testSelectorId, initialList);
+
+        List<Upstream> updateList = new ArrayList<>(1);
+        updateList.add(Upstream.builder()
+                .protocol("http://")
+                .url("gray-sync-upstream:8080")
+                .status(true)
+                .healthCheckEnabled(false)
+                .gray(true)
+                .metadata(Map.of("version", "v2"))
+                .build());
+        upstreamCacheManager.submit(testSelectorId, updateList);
+
+        List<Upstream> result = upstreamCacheManager.findUpstreamListBySelectorId(testSelectorId);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertTrue(result.get(0).isGray());
+        Assertions.assertEquals("v2", result.get(0).getMetadata().get("version"));
 
         upstreamCacheManager.removeByKey(testSelectorId);
     }

@@ -29,6 +29,7 @@
         <result column="upstream_status" jdbcType="INTEGER" property="upstreamStatus"/>
         <result column="weight" jdbcType="INTEGER" property="weight"/>
         <result column="props" jdbcType="VARCHAR" property="props"/>
+        <result column="metadata" jdbcType="VARCHAR" property="metadata"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -41,7 +42,8 @@
         upstream_url,
         upstream_status,
         weight,
-        props
+        props,
+        metadata
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
@@ -60,6 +62,7 @@
         upstream_status,
         weight,
         props,
+        metadata,
         date_created,
         date_updated)
         VALUES (
@@ -71,6 +74,7 @@
         #{upstreamStatus,jdbcType=INTEGER},
         #{weight,jdbcType=INTEGER},
         #{props,jdbcType=VARCHAR},
+        #{metadata,jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
@@ -84,6 +88,7 @@
         upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
+        metadata=#{metadata,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
@@ -109,6 +114,9 @@
         <if test="props != null">
             props=#{props,jdbcType=VARCHAR},
         </if>
+        <if test="metadata != null">
+            metadata=#{metadata,jdbcType=VARCHAR},
+        </if>
         <if test="dateUpdated != null">
             date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
         </if>
@@ -122,6 +130,7 @@
         upstream_status=#{upstreamStatus,jdbcType=INTEGER},
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
+        metadata=#{metadata,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
         WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
     </update>
@@ -180,7 +189,8 @@
         du.upstream_url,
         du.upstream_status,
         du.weight,
-        du.props
+        du.props,
+        du.metadata
         FROM discovery_upstream du
         INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
     </sql>
@@ -207,6 +217,7 @@
         upstream_status,
         weight,
         props,
+        metadata,
         date_created,
         date_updated)
         VALUES
@@ -219,6 +230,7 @@
             #{item.upstreamStatus,jdbcType=INTEGER},
             #{item.weight,jdbcType=INTEGER},
             #{item.props,jdbcType=VARCHAR},
+            #{item.metadata,jdbcType=VARCHAR},
             #{item.dateCreated, jdbcType=TIMESTAMP},
             #{item.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>

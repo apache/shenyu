@@ -73,6 +73,11 @@ public class DiscoveryUpstreamData {
     private String props;
 
     /**
+     * metadata.
+     */
+    private String metadata;
+
+    /**
      * namespaceId.
      */
     private String namespaceId;
@@ -187,6 +192,24 @@ public class DiscoveryUpstreamData {
     }
 
     /**
+     * getMetadata.
+     *
+     * @return metadata
+     */
+    public String getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * setMetadata.
+     *
+     * @param metadata metadata
+     */
+    public void setMetadata(final String metadata) {
+        this.metadata = metadata;
+    }
+
+    /**
      * Gets the value of id.
      *
      * @return the value of id
@@ -271,12 +294,13 @@ public class DiscoveryUpstreamData {
                 && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
                 && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
                 && Objects.equals(url, that.url) && Objects.equals(props, that.props)
+                && Objects.equals(metadata, that.metadata)
                 && Objects.equals(namespaceId, that.namespaceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props, namespaceId);
+        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props, metadata, namespaceId);
     }
 
     /**
@@ -307,6 +331,8 @@ public class DiscoveryUpstreamData {
         private int weight;
 
         private String props;
+
+        private String metadata;
 
         private String namespaceId;
 
@@ -422,6 +448,17 @@ public class DiscoveryUpstreamData {
         }
 
         /**
+         * build metadata.
+         *
+         * @param metadata metadata
+         * @return this
+         */
+        public Builder metadata(final String metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        /**
          * build namespaceId.
          *
          * @param namespaceId namespaceId
@@ -448,6 +485,7 @@ public class DiscoveryUpstreamData {
             discoveryUpstreamData.setStatus(status);
             discoveryUpstreamData.setWeight(weight);
             discoveryUpstreamData.setProps(props);
+            discoveryUpstreamData.setMetadata(metadata);
             discoveryUpstreamData.setNamespaceId(namespaceId);
             return discoveryUpstreamData;
         }

@@ -83,6 +83,11 @@ public class DiscoveryUpstreamDTO implements Serializable {
     private String props;
 
     /**
+     * metadata.
+     */
+    private String metadata;
+
+    /**
      * created time.
      */
     private Timestamp dateCreated;
@@ -229,6 +234,24 @@ public class DiscoveryUpstreamDTO implements Serializable {
     public void setProps(final String props) {
 
         this.props = props;
+    }
+
+    /**
+     * getMetadata.
+     *
+     * @return metadata
+     */
+    public String getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * setMetadata.
+     *
+     * @param metadata metadata
+     */
+    public void setMetadata(final String metadata) {
+        this.metadata = metadata;
     }
 
     /**

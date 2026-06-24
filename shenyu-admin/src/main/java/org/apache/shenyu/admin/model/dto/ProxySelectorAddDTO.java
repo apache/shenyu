@@ -451,6 +451,11 @@ public class ProxySelectorAddDTO implements Serializable {
         private String props;
 
         /**
+         * metadata.
+         */
+        private String metadata;
+
+        /**
          * startupTime.
          */
         private String startupTime;
@@ -571,6 +576,24 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         public void setProps(final String props) {
             this.props = props;
+        }
+
+        /**
+         * get metadata.
+         *
+         * @return metadata
+         */
+        public String getMetadata() {
+            return metadata;
+        }
+
+        /**
+         * set metadata.
+         *
+         * @param metadata metadata
+         */
+        public void setMetadata(final String metadata) {
+            this.metadata = metadata;
         }
 
         /**

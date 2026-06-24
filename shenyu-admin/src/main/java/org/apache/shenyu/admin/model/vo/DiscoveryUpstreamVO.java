@@ -55,6 +55,11 @@ public class DiscoveryUpstreamVO {
     private String props;
 
     /**
+     * metadata.
+     */
+    private String metadata;
+
+    /**
      * dateCreated.
      */
     private String startupTime;
@@ -183,6 +188,24 @@ public class DiscoveryUpstreamVO {
      */
     public void setProps(final String props) {
         this.props = props;
+    }
+
+    /**
+     * getMetadata.
+     *
+     * @return metadata
+     */
+    public String getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * setMetadata.
+     *
+     * @param metadata metadata
+     */
+    public void setMetadata(final String metadata) {
+        this.metadata = metadata;
     }
 
     /**
