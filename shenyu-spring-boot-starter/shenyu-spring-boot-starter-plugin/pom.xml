@@ -78,5 +78,6 @@
         <module>shenyu-spring-boot-starter-plugin-ai-request-transformer</module>
         <module>shenyu-spring-boot-starter-plugin-ai-response-transformer</module>
         <module>shenyu-spring-boot-starter-plugin-mcp-server</module>
+        <module>shenyu-spring-boot-starter-plugin-http-record</module>
     </modules>
 </project>
