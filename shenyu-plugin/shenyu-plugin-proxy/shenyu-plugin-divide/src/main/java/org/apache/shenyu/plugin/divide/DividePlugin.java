@@ -103,13 +103,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        // set the http url
+        String domain = upstream.buildDomain();
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            upstream.setUrl(specifyDomains.get(0));
+            domain = buildDomain(upstream, specifyDomains.get(0));
         }
         // set domain
-        String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
@@ -156,6 +155,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
     
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    private String buildDomain(final Upstream upstream, final String url) {
+        String protocol = upstream.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
+        }
+        return protocol + StringUtils.trim(url);
     }
 
     private void responseTrigger(final Upstream upstream) {

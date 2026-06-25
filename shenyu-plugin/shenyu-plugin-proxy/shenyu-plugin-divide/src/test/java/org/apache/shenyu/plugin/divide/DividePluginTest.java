@@ -178,6 +178,24 @@ public final class DividePluginTest {
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 
+    @Test
+    public void doExecuteWithSpecifyDomainShouldNotMutateCachedUpstream() {
+        ServerWebExchange specifyDomainExchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header(Constants.SPECIFY_DOMAIN, "mock-specified")
+                .build());
+        ShenyuContext context = mock(ShenyuContext.class);
+        specifyDomainExchange.getAttributes().put(Constants.CONTEXT, context);
+        when(chain.execute(specifyDomainExchange)).thenReturn(Mono.empty());
+
+        Mono<Void> result = dividePlugin.doExecute(specifyDomainExchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+
+        List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorData.getId());
+        assertEquals("http://mock-specified", specifyDomainExchange.getAttribute(Constants.HTTP_DOMAIN));
+        assertEquals("mock-3", upstreams.get(0).getUrl());
+    }
+
     /**
      * Skip.
      */
