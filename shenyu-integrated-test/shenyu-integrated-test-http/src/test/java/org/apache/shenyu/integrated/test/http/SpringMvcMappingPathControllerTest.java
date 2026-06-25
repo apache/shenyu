@@ -17,30 +17,75 @@
 
 package org.apache.shenyu.integrated.test.http;
 
-import org.junit.jupiter.api.Test;
-import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-public class SpringMvcMappingPathControllerTest extends AbstractTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class SpringMvcMappingPathControllerTest extends AbstractTest {
+
+    private static final String MULTI_PATH_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
+
+    @BeforeAll
+    static void waitForMultiPathRoutes() throws InterruptedException {
+        // Multi-path routes are registered asynchronously; poll until available
+        for (int i = 0; i < 30; i++) {
+            try {
+                String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v1/greet", String.class);
+                if (("hello from multipath! " + MULTI_PATH_SUFFIX).equals(res)) {
+                    return;
+                }
+            } catch (IOException e) {
+                // route not ready yet, keep waiting
+            }
+            Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+        }
+    }
 
     @Test
-    public void testHello() throws IOException {
-        String res = HttpHelper.INSTANCE.postGateway("/http/hello", java.lang.String.class);
+    void testHello() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/hello", String.class);
         assertEquals("hello! I'm Shenyu-Gateway System. Welcome!", res);
     }
 
     @Test
-    public void testHi()throws IOException {
-        String res = HttpHelper.INSTANCE.postGateway("/http/hi?name=tom", java.lang.String.class);
+    void testHi() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/hi?name=tom", String.class);
         assertEquals("hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
     }
 
     @Test
-    public void testPost()throws IOException {
-        String res = HttpHelper.INSTANCE.postGateway("/http/post/hi?name=tom", java.lang.String.class);
+    void testPost() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/post/hi?name=tom", String.class);
         assertEquals("[post method result]:hi! tom! I'm Shenyu-Gateway System. Welcome!", res);
+    }
+
+    @Test
+    void testMultiPathV1Greet() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v1/greet", String.class);
+        assertEquals("hello from multipath! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV2Greet() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v2/greet", String.class);
+        assertEquals("hello from multipath! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV1Echo() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v1/echo?name=shenyu", String.class);
+        assertEquals("echo: shenyu! " + MULTI_PATH_SUFFIX, res);
+    }
+
+    @Test
+    void testMultiPathV2Echo() throws IOException {
+        String res = HttpHelper.INSTANCE.postGateway("/http/multipath/v2/echo?name=shenyu", String.class);
+        assertEquals("echo: shenyu! " + MULTI_PATH_SUFFIX, res);
     }
 }
