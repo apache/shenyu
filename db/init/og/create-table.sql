@@ -2523,6 +2523,7 @@ CREATE TABLE "public"."discovery_upstream"
     "protocol"    varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "upstream_url"         varchar(128) COLLATE "pg_catalog"."default",
     "upstream_status"      int4  NOT NULL,
+    "manual_status"      varchar(32) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'NONE',
     "weight"      int4  NOT NULL,
     "props"        text COLLATE "pg_catalog"."default",
     "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2535,6 +2536,7 @@ COMMENT ON COLUMN "public"."discovery_upstream"."namespace_id" IS 'namespace id'
 COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
 COMMENT ON COLUMN "public"."discovery_upstream"."upstream_url" IS 'ip:port';
 COMMENT ON COLUMN "public"."discovery_upstream"."upstream_status" IS 'type (0, healthy, 1 unhealthy)';
+COMMENT ON COLUMN "public"."discovery_upstream"."manual_status" IS 'manual status (NONE, FORCE_OFFLINE)';
 COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
 COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the other field (json)';
 COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';

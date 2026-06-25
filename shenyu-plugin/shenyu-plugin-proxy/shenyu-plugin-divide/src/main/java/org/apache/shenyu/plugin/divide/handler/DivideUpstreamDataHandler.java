@@ -76,6 +76,7 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
                     .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
                     .gray(Boolean.parseBoolean(properties.getProperty("gray", "false")))
                     .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
+                    .manualStatus(u.getManualStatus())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
