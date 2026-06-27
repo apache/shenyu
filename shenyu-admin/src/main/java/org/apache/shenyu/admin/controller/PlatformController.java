@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.model.dto.LoginDashboardUserDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
@@ -25,8 +26,10 @@ import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import jakarta.validation.Valid;
 import java.util.Optional;
 
 /**
@@ -50,14 +53,13 @@ public class PlatformController {
     /**
      * login dashboard user.
      *
-     * @param userName user name
-     * @param password user password
-     * @param clientId client id
+     * @param loginDashboardUserDTO {@linkplain LoginDashboardUserDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/login")
-    public ShenyuAdminResult loginDashboardUser(final String userName, final String password, @RequestParam(required = false) final String clientId) {
-        LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password, clientId);
+    @PostMapping("/login")
+    public ShenyuAdminResult loginDashboardUser(@RequestBody @Valid final LoginDashboardUserDTO loginDashboardUserDTO) {
+        LoginDashboardUserVO loginVO = dashboardUserService.login(
+                loginDashboardUserDTO.getUserName(), loginDashboardUserDTO.getPassword(), loginDashboardUserDTO.getClientId());
         return Optional.ofNullable(loginVO)
                 .map(loginStatus -> {
                     if (Boolean.TRUE.equals(loginStatus.getEnabled())) {

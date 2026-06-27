@@ -32,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -94,11 +95,14 @@ public final class PlatformControllerTest {
      */
     @Test
     public void testLoginDashboardUser() throws Exception {
-        final String loginUri = "/platform/login?userName=" + TEST_LOGIN_USER_NAME + "&password=" + TEST_LOGIN_PASSWORD;
+        final String loginUri = "/platform/login";
+        final String loginRequestBody = String.format("{\"userName\":\"%s\",\"password\":\"%s\"}", TEST_LOGIN_USER_NAME, TEST_LOGIN_PASSWORD);
 
         LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         given(this.dashboardUserService.login(eq(TEST_LOGIN_USER_NAME), eq(TEST_LOGIN_PASSWORD), isNull())).willReturn(loginDashboardUserVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
+        this.mockMvc.perform(MockMvcRequestBuilders.post(loginUri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginRequestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS)))
