@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
-import io.github.kawamuray.wasmtime.Extern;
-import io.github.kawamuray.wasmtime.WasmFunctions;
-import io.github.kawamuray.wasmtime.WasmValType;
+import com.dylibso.chicory.runtime.ExportFunction;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
@@ -54,16 +52,18 @@ public abstract class AbstractWasmMetaDataHandler extends WasmLoader implements 
                 .map(remove -> callWASI(metaData, remove))
                 .orElseThrow(() -> new ShenyuWasmInitException(REMOVE_METHOD_NAME + " function not find in wasm file: " + getWasmName()));
     }
-    
-    private Long callWASI(final MetaData metaData, final Extern execute) {
+
+    private Long callWASI(final MetaData metaData, final ExportFunction execute) {
         // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
         // then we can get the argument by Long
         final Long argumentId = getArgumentId(metaData);
         ARGUMENTS.put(argumentId, metaData);
         // call WASI function
-        WasmFunctions.consumer(super.getStore(), execute.func(), WasmValType.I64)
-                .accept(argumentId);
-        ARGUMENTS.remove(argumentId);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            ARGUMENTS.remove(argumentId);
+        }
         return argumentId;
     }
     
@@ -72,6 +72,6 @@ public abstract class AbstractWasmMetaDataHandler extends WasmLoader implements 
     @Override
     public void refresh() {
         super.getWasmExtern(REFRESH_METHOD_NAME)
-                .ifPresent(refresh -> WasmFunctions.consumer(super.getStore(), refresh.func()).accept());
+                .ifPresent(refresh -> refresh.apply());
     }
 }
