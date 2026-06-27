@@ -311,7 +311,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                         userDO.setClientId(clientId);
                         dashboardUserMapper.updateSelective(userDO);
                     }
-                    return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
+                    return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), jwtProperties.getSecretKey(),
                             clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);

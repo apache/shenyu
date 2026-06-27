@@ -306,5 +306,7 @@ public final class AdminConstants {
     public static final long FIVE_SECONDS_MILLIS_TIME = 5 * 1000L;
 
     public static final long TEN_SECONDS_MILLIS_TIME = 10 * 1000L;
+
+    public static final String JWT_DEFAULT_SECRET_KEY = "defaultSecretKey";
 }
 
