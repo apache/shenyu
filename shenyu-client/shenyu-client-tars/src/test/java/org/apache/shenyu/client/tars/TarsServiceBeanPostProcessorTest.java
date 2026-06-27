@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.tars;
 
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
@@ -38,6 +39,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.env.Environment;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -68,6 +70,9 @@ public final class TarsServiceBeanPostProcessorTest {
     @Mock
     private ApplicationContext applicationContext;
 
+    @Mock
+    private Environment env;
+
     private ContextRefreshedEvent contextRefreshedEvent;
 
     @BeforeEach
@@ -77,6 +82,8 @@ public final class TarsServiceBeanPostProcessorTest {
         results.put("tarsDemoService2", tarsDemoService2);
         results.put("tarsDemoService3", tarsDemoService3);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
+        when(applicationContext.getEnvironment()).thenReturn(env);
+        when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
         
         ShenyuClientConfig shenyuClientConfig = mock(ShenyuClientConfig.class);

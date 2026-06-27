@@ -184,7 +184,7 @@
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
-        <wasmtime-java.version>0.19.0</wasmtime-java.version>
+        <chicory.version>1.7.3</chicory.version>
         <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.1.2</spring-ai.version>
@@ -569,9 +569,19 @@
             </dependency>
 
             <dependency>
-                <groupId>io.github.kawamuray.wasmtime</groupId>
-                <artifactId>wasmtime-java</artifactId>
-                <version>${wasmtime-java.version}</version>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>runtime</artifactId>
+                <version>${chicory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>wasi</artifactId>
+                <version>${chicory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>compiler</artifactId>
+                <version>${chicory.version}</version>
             </dependency>
 
             <dependency>
@@ -808,6 +818,9 @@
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>
+                        <!-- wasm build files -->
+                        <exclude>**/Cargo.lock</exclude>
+                        <exclude>**/go.sum</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
