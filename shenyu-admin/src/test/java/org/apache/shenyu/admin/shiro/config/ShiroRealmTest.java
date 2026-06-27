@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
+import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
@@ -54,8 +55,8 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShiroRealmTest {
     
-    private static final String PASSWORD = "123456";
-    
+    private static final String SECRETKEY = "123456";
+
     @InjectMocks
     private ShiroRealm shiroRealm;
     
@@ -64,6 +65,9 @@ public final class ShiroRealmTest {
     
     @Mock
     private DashboardUserService dashboardUserService;
+
+    @Mock
+    private JwtProperties jwtProperties;
 
     @Test
     public void testSupports() {
@@ -115,7 +119,7 @@ public final class ShiroRealmTest {
 
         AuthenticationException exception3 = assertThrows(AuthenticationException.class, () -> {
             when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-            when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+            when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
@@ -124,7 +128,7 @@ public final class ShiroRealmTest {
         assertNotNull(exception3);
 
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-        when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+        when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
         when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                 + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                 + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
