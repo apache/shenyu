@@ -114,6 +114,7 @@ shenyu:
     object-class: person
     login-field: cn
   jwt:
+    secret-key: "defaultSecretKey"
     expired-seconds: 86400000
   cluster:
     enabled: false
