@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -84,6 +85,9 @@ public final class ConfigsServiceTest {
     public void setUp() {
         configsService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService, pluginHandleService, selectorService, ruleService,
                 metaDataService, shenyuDictService, proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());
+        ReflectionTestUtils.setField(configsService, "maxEntrySize", 100L * 1024 * 1024);
+        ReflectionTestUtils.setField(configsService, "maxTotalSize", 200L * 1024 * 1024);
+        ReflectionTestUtils.setField(configsService, "maxEntryCount", 1000);
     }
 
     @Test
