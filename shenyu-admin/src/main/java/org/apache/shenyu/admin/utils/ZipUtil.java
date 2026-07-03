@@ -38,9 +38,15 @@ public final class ZipUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZipUtil.class);
 
-    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024; // 100 MB per entry
+    /**
+     * 100 MB per entry.
+     */
+    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024;
 
-    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024; // 200 MB total
+    /**
+     * 200 MB total.
+     */
+    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024;
 
     private static final int MAX_ENTRY_COUNT = 1000;
 
