@@ -46,6 +46,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public final class ConfigsServiceTest {
 
+    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024;
+
+    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024;
+
+    private static final int MAX_ENTRY_COUNT = 1000;
+
     private ConfigsServiceImpl configsService;
 
     @Mock
@@ -85,9 +91,9 @@ public final class ConfigsServiceTest {
     public void setUp() {
         configsService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService, pluginHandleService, selectorService, ruleService,
                 metaDataService, shenyuDictService, proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());
-        ReflectionTestUtils.setField(configsService, "maxEntrySize", 100L * 1024 * 1024);
-        ReflectionTestUtils.setField(configsService, "maxTotalSize", 200L * 1024 * 1024);
-        ReflectionTestUtils.setField(configsService, "maxEntryCount", 1000);
+        ReflectionTestUtils.setField(configsService, "maxEntrySize", MAX_ENTRY_SIZE);
+        ReflectionTestUtils.setField(configsService, "maxTotalSize", MAX_TOTAL_SIZE);
+        ReflectionTestUtils.setField(configsService, "maxEntryCount", MAX_ENTRY_COUNT);
     }
 
     @Test
