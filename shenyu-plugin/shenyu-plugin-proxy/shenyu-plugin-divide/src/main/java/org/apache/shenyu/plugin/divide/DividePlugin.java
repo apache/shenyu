@@ -61,7 +61,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
     private Long beginTime;
-    
+
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
@@ -97,16 +97,28 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        Upstream upstream;
+        if (CollectionUtils.isNotEmpty(specifyDomains)) {
+            String requested = specifyDomains.get(0);
+            upstream = upstreamList.stream()
+                    .filter(u -> u.getUrl().equals(requested))
+                    .findFirst()
+                    .map(u -> Upstream.builder()
+                            .url(u.getUrl())
+                            .protocol(u.getProtocol())
+                            .weight(u.getWeight())
+                            .warmup(u.getWarmup())
+                            .status(u.isStatus())
+                            .build())
+                    .orElseGet(() -> LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange));
+        } else {
+            upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        }
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
-        }
-        // set the http url
-        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
-        if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            upstream.setUrl(specifyDomains.get(0));
         }
         // set domain
         String domain = upstream.buildDomain();
@@ -153,7 +165,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
-    
+
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
@@ -185,5 +197,5 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
     }
-    
+
 }
