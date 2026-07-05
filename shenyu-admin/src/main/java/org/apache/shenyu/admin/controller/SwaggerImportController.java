@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.service.SwaggerImportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,22 +54,21 @@ public class SwaggerImportController {
      * @return the result of swagger import
      */
     @PostMapping("/import")
-    public ResponseEntity<ShenyuAdminResult> importSwagger(@Valid @RequestBody final SwaggerImportRequest request) {
+    public ShenyuAdminResult importSwagger(@Valid @RequestBody final SwaggerImportRequest request) {
         LOG.info("Received Swagger import request: {}", request);
 
         try {
             String result = swaggerImportService.importSwagger(request);
-            return ResponseEntity.ok(ShenyuAdminResult.success(result));
+            return ShenyuAdminResult.success(result);
 
         } catch (IllegalArgumentException e) {
             // Oversized Swagger bodies and other invalid import inputs are client request errors.
             LOG.error("Failed to import swagger document", e);
-            return ResponseEntity.badRequest()
-                    .body(ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage()));
+            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
         } catch (Exception e) {
             LOG.error("Failed to import swagger document", e);
 
-            return ResponseEntity.ok(ShenyuAdminResult.error("Import failed: " + e.getMessage()));
+            return ShenyuAdminResult.error("Import failed: " + e.getMessage());
         }
     }
 
@@ -81,19 +79,18 @@ public class SwaggerImportController {
      * @return the result of config import
      */
     @PostMapping("import/mcp")
-    public ResponseEntity<ShenyuAdminResult> importMcpConfig(@Valid @RequestBody final SwaggerImportRequest request) {
+    public ShenyuAdminResult importMcpConfig(@Valid @RequestBody final SwaggerImportRequest request) {
         LOG.info("Received import Mcp config request: {}", request);
         try {
             String result = swaggerImportService.importMcpConfig(request);
-            return ResponseEntity.ok(ShenyuAdminResult.success(result));
+            return ShenyuAdminResult.success(result);
         } catch (IllegalArgumentException e) {
             // Oversized Swagger bodies and other invalid import inputs are client request errors.
             LOG.error("Failed to import mcp server config", e);
-            return ResponseEntity.badRequest()
-                    .body(ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage()));
+            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
         } catch (Exception e) {
             LOG.error("Failed to import mcp server config", e);
-            return ResponseEntity.ok(ShenyuAdminResult.error("Import failed" + e.getMessage()));
+            return ShenyuAdminResult.error("Import failed" + e.getMessage());
         }
     }
 

@@ -62,7 +62,7 @@ public class SwaggerImportControllerTest {
     }
 
     @Test
-    public void importSwaggerShouldReturnBadRequestWhenBodyExceedsLimit() throws Exception {
+    public void importSwaggerShouldReturnBadRequestCodeWhenBodyExceedsLimit() throws Exception {
         when(swaggerImportService.importSwagger(any(SwaggerImportRequest.class)))
                 .thenThrow(new IllegalArgumentException(
                         "Swagger document response body exceeds maximum size of 10 bytes"));
@@ -70,12 +70,12 @@ public class SwaggerImportControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/swagger/import")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(IMPORT_REQUEST))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())));
     }
 
     @Test
-    public void importMcpConfigShouldReturnBadRequestWhenBodyExceedsLimit() throws Exception {
+    public void importMcpConfigShouldReturnBadRequestCodeWhenBodyExceedsLimit() throws Exception {
         when(swaggerImportService.importMcpConfig(any(SwaggerImportRequest.class)))
                 .thenThrow(new IllegalArgumentException(
                         "Swagger document response body exceeds maximum size of 10 bytes"));
@@ -83,7 +83,7 @@ public class SwaggerImportControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/swagger/import/mcp")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(IMPORT_REQUEST))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())));
     }
 }
