@@ -193,6 +193,8 @@ shenyu:
       - /v3/api-docs/**
       - /csrf
       - /alert/report
+  swagger:
+    max-body-size: 10485760
   dashboard:
     core:
       onlySuperAdminPermission:
