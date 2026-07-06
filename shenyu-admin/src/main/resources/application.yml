@@ -194,6 +194,8 @@ shenyu:
       - /v3/api-docs/**
       - /csrf
       - /alert/report
+  swagger:
+    max-body-size: 10485760
   dashboard:
     core:
       onlySuperAdminPermission:
@@ -226,6 +228,11 @@ shenyu:
       apiServer: "https://127.0.0.1:6443"
       token: "token"
       caCertPath: "/etc/kubernetes/pki/ca.crt"
+  config:
+    import:
+      max-entry-size: 104857600
+      max-total-size: 209715200
+      max-entry-count: 1000
 
 springdoc:
   api-docs:
@@ -245,3 +252,4 @@ logging:
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
 #    org.apache.shenyu.admin.utils.HttpUtils: debug
+
