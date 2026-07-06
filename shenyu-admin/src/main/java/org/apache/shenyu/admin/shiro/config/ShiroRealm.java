@@ -102,7 +102,9 @@ public class ShiroRealm extends AuthorizingRealm {
         if (Objects.isNull(dashboardUserVO)) {
             throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
         }
-
+        if (!Boolean.TRUE.equals(dashboardUserVO.getEnabled())) {
+            throw new AuthenticationException(String.format("user(%s) is disabled.", userName));
+        }
         String clientIdFromToken = JwtUtils.getClientId(token);
         if (StringUtils.isNotEmpty(clientIdFromToken)
                 && StringUtils.isNotEmpty(dashboardUserVO.getClientId())

@@ -115,7 +115,7 @@ public final class ShiroRealmTest {
 
         AuthenticationException exception3 = assertThrows(AuthenticationException.class, () -> {
             when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
-            when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+            when(dashboardUserVO.getEnabled()).thenReturn(false);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                     + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
@@ -123,7 +123,19 @@ public final class ShiroRealmTest {
         });
         assertNotNull(exception3);
 
+        AuthenticationException exception4 = assertThrows(AuthenticationException.class, () -> {
+            when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+            when(dashboardUserVO.getEnabled()).thenReturn(true);
+            when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+            when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+            shiroRealm.doGetAuthenticationInfo(token);
+        });
+        assertNotNull(exception4);
+
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+        when(dashboardUserVO.getEnabled()).thenReturn(true);
         when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
         when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                 + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
