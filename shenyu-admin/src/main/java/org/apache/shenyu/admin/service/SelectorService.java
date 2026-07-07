@@ -27,7 +27,9 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.validation.validator.UriConditionValidator;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
@@ -71,6 +73,11 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
                 Assert.notBlack(selectorConditionDTO.getParamType(), "if type is custom, paramType is not empty");
                 Assert.notBlack(selectorConditionDTO.getParamName(), "if type is custom, paramName is not empty");
             });
+            selectorDTO.getSelectorConditions().stream()
+                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .forEach(conditionData -> {
+                        UriConditionValidator.validate(conditionData.getOperator(), conditionData.getParamValue());
+                    });
         }
         return StringUtils.isEmpty(selectorDTO.getId()) ? create(selectorDTO) : update(selectorDTO);
     }

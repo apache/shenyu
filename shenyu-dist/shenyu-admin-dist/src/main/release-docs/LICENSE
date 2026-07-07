@@ -529,6 +529,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
     xstream 1.4.19: https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream, BSD
     encoder 1.2.3: https://github.com/OWASP/owasp-java-encoder, BSD 3-Clause
+    re2j 1.8: https://github.com/google/re2j, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
