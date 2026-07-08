@@ -26,6 +26,7 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
@@ -42,12 +43,17 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,9 +71,17 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     
     private static final Logger LOG = LoggerFactory.getLogger(SwaggerImportServiceImpl.class);
 
+    private static final int READ_BUFFER_SIZE = 8192;
+
+    private static final long DEFAULT_MAX_SWAGGER_BODY_SIZE = 10L * 1024 * 1024;
+
     private final DocManager docManager;
     
     private final HttpUtils httpUtils;
+
+    // Default is 10 MB and can be overridden by shenyu.swagger.max-body-size.
+    @Value("${shenyu.swagger.max-body-size:10485760}")
+    private long maxSwaggerBodySize = DEFAULT_MAX_SWAGGER_BODY_SIZE;
 
     @Resource
     private ShenyuClientRegisterMcpServiceImpl shenyuClientRegisterMcpService;
@@ -102,6 +116,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             
             return "Import successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
             
+        } catch (IllegalArgumentException e) {
+            // Keep bad user input unwrapped so the controller can return HTTP 400.
+            LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
+            throw e;
         } catch (Exception e) {
             LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
             throw new RuntimeException("Import failed: " + e.getMessage(), e);
@@ -124,6 +142,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             });
 
             return "Import mcp server config successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
+        } catch (IllegalArgumentException e) {
+            // Keep bad user input unwrapped so the controller can return HTTP 400.
+            LOG.error("Failed to import mcp config: {}", request.getProjectName(), e);
+            throw e;
         } catch (IOException e) {
             LOG.error("Failed to import mcp config: {}", request.getProjectName(), e);
             throw new RuntimeException("Import mcp server config failed: " + e.getMessage(), e);
@@ -252,9 +274,48 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             if (response.code() != 200) {
                 throw new RuntimeException("Failed to get Swagger document, HTTP status code: " + response.code());
             }
-            
-            return response.body().string();
+
+            return readLimitedResponseBody(response.body(), maxSwaggerBodySize);
         }
+    }
+
+
+    private String readLimitedResponseBody(final ResponseBody responseBody, final long maxBodySize) throws IOException {
+        if (Objects.isNull(responseBody)) {
+            throw new IllegalArgumentException("Swagger document response body is empty");
+        }
+        if (maxBodySize < 0) {
+            throw new IllegalArgumentException("Max Swagger response body size must not be negative");
+        }
+
+        long contentLength = responseBody.contentLength();
+        // Reject early when the server declares a body larger than the configured limit.
+        if (contentLength > maxBodySize) {
+            throw new IllegalArgumentException(String.format(
+                    "Swagger document response body exceeds maximum size of %d bytes", maxBodySize));
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[READ_BUFFER_SIZE];
+        long totalBytes = 0;
+        try (InputStream inputStream = responseBody.byteStream()) {
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                totalBytes += bytesRead;
+                // Content-Length can be missing or wrong, so enforce the limit while streaming.
+                if (totalBytes > maxBodySize) {
+                    throw new IllegalArgumentException(String.format(
+                            "Swagger document response body exceeds maximum size of %d bytes", maxBodySize));
+                }
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
+
+        // Preserve the server-declared charset; default to UTF-8 when it is absent.
+        Charset charset = Objects.isNull(responseBody.contentType())
+                ? StandardCharsets.UTF_8
+                : responseBody.contentType().charset(StandardCharsets.UTF_8);
+        return outputStream.toString(charset.name());
     }
     
     private void validateSwaggerContent(final String swaggerJson) {

@@ -55,5 +55,9 @@
             <artifactId>jackson-module-kotlin</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.re2j</groupId>
+            <artifactId>re2j</artifactId>
+        </dependency>
     </dependencies>
 </project>
