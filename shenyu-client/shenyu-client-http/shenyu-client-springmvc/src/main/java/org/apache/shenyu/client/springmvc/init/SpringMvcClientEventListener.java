@@ -191,6 +191,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         return paths.isEmpty() ? formatPath(buildRootPath()) : paths.get(0);
     }
 
+    @Override
     protected List<String> buildApiSuperPaths(final Class<?> clazz, @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
         final String rootPath = buildRootPath();
         if (Objects.nonNull(beanShenyuClient) && ArrayUtils.isNotEmpty(beanShenyuClient.path())) {
@@ -251,8 +252,9 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
         String contextPath = getContextPath();
         // Skip if any annotation path is already captured in superPath (class annotation used as method fallback)
-        final String annotationPath = methodShenyuClient.path()[0];
-        boolean alreadyInSuperPath = Arrays.stream(methodShenyuClient.path())
+        final String[] annotationPaths = methodShenyuClient.path();
+        final String annotationPath = ArrayUtils.isNotEmpty(annotationPaths) ? annotationPaths[0] : "";
+        boolean alreadyInSuperPath = Arrays.stream(annotationPaths)
                 .filter(StringUtils::isNotBlank)
                 .anyMatch(p -> superPath.endsWith(formatPath(p)));
         if (StringUtils.isNotBlank(annotationPath) && !alreadyInSuperPath) {

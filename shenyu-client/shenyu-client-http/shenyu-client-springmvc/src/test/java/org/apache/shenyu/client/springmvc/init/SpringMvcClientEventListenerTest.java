@@ -219,6 +219,18 @@ public class SpringMvcClientEventListenerTest {
     }
 
     @Test
+    public void testBuildApiSuperPathsMultiPath() {
+        SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+        List<String> paths = listener.buildApiSuperPaths(
+                SpringMvcMultiPathTestBean.class,
+                AnnotatedElementUtils.findMergedAnnotation(SpringMvcMultiPathTestBean.class, ShenyuSpringMvcClient.class));
+        Assertions.assertEquals(2, paths.size());
+        Assertions.assertTrue(paths.stream().anyMatch(p -> p.endsWith("/multi-a")));
+        Assertions.assertTrue(paths.stream().anyMatch(p -> p.endsWith("/multi-b")));
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
     public void testBuildApiDocSextetDefaultProducesConsumes() throws NoSuchMethodException {
         SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
         Method method = ApiDocTestBean.class.getDeclaredMethod("getDefault");
@@ -312,6 +324,14 @@ public class SpringMvcClientEventListenerTest {
     static class SpringMvcClientTestBean4 {
         public String test(final String hello) {
             return hello;
+        }
+    }
+
+    @RestController
+    @ShenyuSpringMvcClient(path = {"/multi-a", "/multi-b"})
+    static class SpringMvcMultiPathTestBean {
+        public String test() {
+            return "ok";
         }
     }
 

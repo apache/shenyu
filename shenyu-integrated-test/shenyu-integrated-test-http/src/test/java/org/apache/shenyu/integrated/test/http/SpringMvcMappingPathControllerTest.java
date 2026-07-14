@@ -45,6 +45,7 @@ class SpringMvcMappingPathControllerTest extends AbstractTest {
             }
             Thread.sleep(TimeUnit.SECONDS.toMillis(2));
         }
+        throw new AssertionError("Multi-path routes not ready after 60s: /http/multipath/v1/greet");
     }
 
     @Test
