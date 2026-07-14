@@ -233,14 +233,18 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                                 final Method method, final String superPath) {
         final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
         ShenyuSpringMvcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
-        methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
+        final boolean hasMethodAnnotation = Objects.nonNull(methodShenyuClient);
+        methodShenyuClient = hasMethodAnnotation ? methodShenyuClient : beanShenyuClient;
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
             List<String> namespaceIds = super.getNamespace();
             for (String namespaceId : namespaceIds) {
+                final String apiPath = hasMethodAnnotation
+                        ? buildApiPath(method, superPath, methodShenyuClient)
+                        : buildApiPathFromRequestMapping(method, superPath);
                 final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                        buildApiPath(method, superPath, methodShenyuClient), clazz, method, namespaceId);
+                        apiPath, clazz, method, namespaceId);
                 getPublisher().publishEvent(metaData);
                 getMetaDataMap().put(method, metaData);
             }
@@ -251,15 +255,20 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
         String contextPath = getContextPath();
-        // Skip if any annotation path is already captured in superPath (class annotation used as method fallback)
         final String[] annotationPaths = methodShenyuClient.path();
         final String annotationPath = ArrayUtils.isNotEmpty(annotationPaths) ? annotationPaths[0] : "";
-        boolean alreadyInSuperPath = Arrays.stream(annotationPaths)
-                .filter(StringUtils::isNotBlank)
-                .anyMatch(p -> superPath.endsWith(formatPath(p)));
-        if (StringUtils.isNotBlank(annotationPath) && !alreadyInSuperPath) {
+        if (StringUtils.isNotBlank(annotationPath)) {
             return pathJoin(contextPath, superPath, annotationPath);
         }
+        final String path = getPathByMethod(method);
+        if (StringUtils.isNotBlank(path)) {
+            return pathJoin(contextPath, superPath, path);
+        }
+        return pathJoin(contextPath, superPath);
+    }
+
+    String buildApiPathFromRequestMapping(final Method method, final String superPath) {
+        String contextPath = getContextPath();
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
             return pathJoin(contextPath, superPath, path);
