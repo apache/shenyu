@@ -103,6 +103,8 @@ public class SpringMvcClientEventListenerTest {
         results.put("springMvcClientTestBean3", springMvcClientTestBean3);
         results.put("springMvcClientTestBean4", springMvcClientTestBean4);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
+        when(applicationContext.getEnvironment()).thenReturn(env);
+        when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
         ShenyuClientConfig shenyuClientConfig = mock(ShenyuClientConfig.class);
         Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new SpringMvcClientEventListener(shenyuClientConfig, mock(ShenyuClientRegisterRepository.class), env));
@@ -207,12 +209,12 @@ public class SpringMvcClientEventListenerTest {
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
 
         Assertions.assertEquals("/order", springMvcClientEventListener.buildApiSuperPath(
-            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
+                SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
 
         when(env.getProperty("spring.mvc.servlet.path")).thenReturn("/servlet-path");
         when(env.getProperty("server.servlet.context-path")).thenReturn("/servlet-context-path");
         Assertions.assertEquals("/servlet-context-path/servlet-path/order", springMvcClientEventListener.buildApiSuperPath(
-            SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
+                SpringMvcClientTestBean.class, AnnotatedElementUtils.findMergedAnnotation(SpringMvcClientTestBean.class, ShenyuSpringMvcClient.class)), "super-path");
         registerUtilsMockedStatic.close();
     }
 
