@@ -37,6 +37,6 @@ public class AppKeyProvider implements ExistProvider {
     
     @Override
     public Boolean existed(final Serializable key) {
-        return appAuthMapper.existed(key);
+        return appAuthMapper.appKeyExisted(key);
     }
 }
