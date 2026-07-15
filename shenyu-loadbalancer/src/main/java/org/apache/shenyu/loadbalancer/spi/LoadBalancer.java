@@ -33,8 +33,15 @@ public interface LoadBalancer {
      * this is select one for upstream list.
      *
      * @param upstreamList upstream list
-     * @param data data
+     * @param data         data
      * @return upstream
      */
     Upstream select(List<Upstream> upstreamList, LoadBalanceData data);
+
+    default void onSuccess(Upstream upstream, LoadBalanceData data) {
+    }
+
+    default void onError(Upstream upstream, LoadBalanceData data) {
+    }
+
 }

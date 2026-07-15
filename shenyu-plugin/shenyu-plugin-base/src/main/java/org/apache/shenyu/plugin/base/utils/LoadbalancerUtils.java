@@ -65,8 +65,8 @@ public final class LoadbalancerUtils {
     public static Upstream getForNoExchange(final List<Upstream> upstreamList, final String algorithm) {
         return LoadBalancerFactory.selector(upstreamList, algorithm, new LoadBalanceData());
     }
-    
-    private static LoadBalanceData buildLoadBalanceData(final ServerWebExchange exchange) {
+
+    public static LoadBalanceData buildLoadBalanceData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         String ip = Objects.requireNonNull(request.getRemoteAddress()).getAddress().getHostAddress();
         String httpMethod = request.getMethod().name();

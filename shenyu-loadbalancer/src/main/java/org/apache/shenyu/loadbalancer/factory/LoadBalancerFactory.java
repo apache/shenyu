@@ -44,4 +44,9 @@ public final class LoadBalancerFactory {
         LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
         return loadBalance.select(upstreamList, data);
     }
+
+    public static LoadBalancer getInstance(final String algorithm) {
+        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
+        return loadBalance;
+    }
 }
