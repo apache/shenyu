@@ -25,6 +25,7 @@ services:
     volumes:
       - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
       - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
+      - ./shenyu-bootstrap/ext-lib/:/opt/shenyu-bootstrap/ext-lib
     depends_on:
       - shenyu-admin
     environment:
@@ -39,6 +40,7 @@ services:
     volumes:
       - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
       - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
+      - ./shenyu-admin/ext-lib/:/opt/shenyu-admin/ext-lib
     ports:
       - "9095:9095"
     healthcheck:

@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
+import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
@@ -64,6 +65,35 @@ final class SandboxServiceImplTest {
             sandboxService.requestProxyGateway(buildProxyGatewayDTO(port), new MockHttpServletRequest(), response);
 
             assertThat(response.getContentAsString()).isEqualTo("proxied response");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void requestProxyGatewayShouldNotExposeAppSecretInBeforeSignHeader() throws IOException {
+        HttpServer server = startHttpServer("proxied response");
+        int port = server.getAddress().getPort();
+        SandboxServiceImpl sandboxService = new SandboxServiceImpl(appAuthService, shenyuDictService);
+
+        when(shenyuDictService.list(anyString())).thenReturn(Collections.singletonList(buildDict(port)));
+
+        String testAppKey = "testAppKey";
+        String testAppSecret = "testSecret123";
+        AppAuthDO appAuthDO = new AppAuthDO(testAppKey, testAppSecret, true, true, null, null, null, null);
+        when(appAuthService.findByAppKey(testAppKey)).thenReturn(appAuthDO);
+
+        try {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            ProxyGatewayDTO dto = buildProxyGatewayDTO(port);
+            dto.setAppKey(testAppKey);
+            sandboxService.requestProxyGateway(dto, new MockHttpServletRequest(), response);
+
+            String beforesign = response.getHeader("sandbox-beforesign");
+            assertThat(beforesign).doesNotContain(testAppSecret);
+
+            String sign = response.getHeader("sandbox-sign");
+            assertThat(sign).isNotNull();
         } finally {
             server.stop(0);
         }
