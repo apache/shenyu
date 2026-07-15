@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,5 +86,18 @@ public class ShortestResponseLoadBalancerTest {
         Assertions.assertTrue(select1 < select2);
         Assertions.assertEquals(loop, select1 + select2);
 
+    }
+
+    @Test
+    public void testOnSuccess() {
+        Upstream upstream = Upstream.builder().url("upstream-1").build();
+        LoadBalanceData data = new LoadBalanceData();
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(Constants.REQUEST_BEGIN_TIME, System.currentTimeMillis() - 100);
+        data.setAttributes(attributes);
+        ShortestResponseLoadBalancer lb = new ShortestResponseLoadBalancer();
+        lb.onSuccess(upstream, data);
+        Assertions.assertTrue(upstream.getSucceededElapsed().get() >= 100);
+        Assertions.assertEquals(1, upstream.getSucceeded().get());
     }
 }

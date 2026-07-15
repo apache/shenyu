@@ -22,6 +22,8 @@ import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
+import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * The type loadBalance utils test.
@@ -91,5 +95,13 @@ public final class LoadBalancerFactoryTest {
             countMap.put(result.getUrl(), ++count);
         });
         assertEquals(12, countMap.get("upstream-10").intValue());
+    }
+
+    @Test
+    public void testGetInstance() {
+        LoadBalancer lb = LoadBalancerFactory.getInstance(LoadBalanceEnum.RANDOM.getName());
+        assertNotNull(lb);
+        LoadBalancer lb2 = LoadBalancerFactory.getInstance(LoadBalanceEnum.RANDOM.getName());
+        assertSame(lb, lb2);
     }
 }

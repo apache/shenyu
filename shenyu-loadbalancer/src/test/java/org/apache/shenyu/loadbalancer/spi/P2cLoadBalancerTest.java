@@ -63,4 +63,24 @@ public class P2cLoadBalancerTest {
         Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"));
     }
+
+    @Test
+    public void testOnSuccess() {
+        buildUpstreamList();
+        final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
+        Upstream upstream = upstreamList.get(0);
+        long beforeInflight = upstream.getInflight().get();
+        p2cLoadBalancer.onSuccess(upstream, new LoadBalanceData());
+        Assertions.assertEquals(beforeInflight - 1, upstream.getInflight().get());
+    }
+
+    @Test
+    public void testOnError() {
+        buildUpstreamList();
+        final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
+        Upstream upstream = upstreamList.get(0);
+        long beforeInflight = upstream.getInflight().get();
+        p2cLoadBalancer.onError(upstream, new LoadBalanceData());
+        Assertions.assertEquals(beforeInflight - 1, upstream.getInflight().get());
+    }
 }
