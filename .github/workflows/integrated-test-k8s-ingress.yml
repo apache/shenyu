@@ -21,6 +21,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
@@ -30,7 +34,6 @@ jobs:
           - shenyu-integrated-test-k8s-ingress-apache-dubbo
           - shenyu-integrated-test-k8s-ingress-websocket
           - shenyu-integrated-test-k8s-ingress-grpc
-    #          - shenyu-integrated-test-k8s-ingress-sofa
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu'
     steps:
