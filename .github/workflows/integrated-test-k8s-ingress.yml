@@ -26,21 +26,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        case:
-          - shenyu-integrated-test-k8s-ingress-http
-          - shenyu-integrated-test-k8s-ingress-apache-dubbo
-          - shenyu-integrated-test-k8s-ingress-websocket
-          - shenyu-integrated-test-k8s-ingress-grpc
-    runs-on: ubuntu-latest
+  changes:
     if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    outputs:
+      k8s_ingress: ${{ steps.filter.outputs['k8s-ingress'] }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -62,8 +54,23 @@ jobs:
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
 
+  build:
+    needs: changes
+    strategy:
+      matrix:
+        case:
+          - shenyu-integrated-test-k8s-ingress-http
+          - shenyu-integrated-test-k8s-ingress-apache-dubbo
+          - shenyu-integrated-test-k8s-ingress-websocket
+          - shenyu-integrated-test-k8s-ingress-grpc
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.k8s_ingress == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
       - name: Clean Space
-        if: steps.filter.outputs.k8s-ingress == 'true'
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
@@ -71,7 +78,6 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - uses: ./actions/setup-java-with-retry
-        if: steps.filter.outputs.k8s-ingress == 'true'
         with:
           java-version: 17
           distribution: "temurin"
@@ -85,14 +91,12 @@ jobs:
           go-version: 1.17.x
 
       - name: Install k8s
-        if: steps.filter.outputs.k8s-ingress == 'true'
         run: |
           go install sigs.k8s.io/kind@v0.14.0
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/${{ matrix.case }}/deploy/kind-config.yaml
 
       - name: Install mvnd
-        if: steps.filter.outputs.k8s-ingress == 'true'
         shell: bash
         run: |
           MVND_VERSION=1.0.2
@@ -104,7 +108,6 @@ jobs:
           echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
       - name: Build with Maven
-        if: steps.filter.outputs.k8s-ingress == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -116,7 +119,6 @@ jobs:
           fi
 
       - name: Build integrated tests
-        if: steps.filter.outputs.k8s-ingress == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -128,7 +130,6 @@ jobs:
           fi
 
       - name: Build examples
-        if: steps.filter.outputs.k8s-ingress == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -140,19 +141,16 @@ jobs:
           fi
 
       - name: Build k8s Cluster
-        if: steps.filter.outputs.k8s-ingress == 'true'
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/build_k8s_cluster.sh
 
       - name: Wait for k8s Cluster Start up
         id: healthcheck
-        if: steps.filter.outputs.k8s-ingress == 'true'
         timeout-minutes: 25
         run: |
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
 
       - name: Run test
         id: test
-        if: steps.filter.outputs.k8s-ingress == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -165,7 +163,7 @@ jobs:
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck
-        if: always() && steps.filter.outputs.k8s-ingress == 'true'
+        if: always()
         run: |
           echo "----------kubectl get all -o wide----------"
           kubectl get all -o wide || true

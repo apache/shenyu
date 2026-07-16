@@ -26,31 +26,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        java: [17]
-        os: [ubuntu-latest, windows-latest]
-        include:
-          - java: 17
-            os: ubuntu-latest
-#          - java: 18
-#            os: ubuntu-latest
-          - java: 19
-            os: ubuntu-latest
-          - java: 20
-            os: ubuntu-latest
-          - java: 21
-            os: ubuntu-latest
-    runs-on: ${{ matrix.os }}
-    if: (github.repository == 'apache/shenyu')
+  changes:
+    if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      code_files: ${{ steps.filter.outputs.code_files }}
     steps:
-      - name: Support longpaths
-        if: ${{ matrix.os == 'windows-latest'}}
-        run: git config --system core.longpaths true
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -80,12 +63,37 @@ jobs:
               - 'mvnw.cmd'
               - '.mvn/**'
               - '.github/workflows/**'
+
+  build:
+    needs: changes
+    strategy:
+      matrix:
+        java: [17]
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - java: 17
+            os: ubuntu-latest
+#          - java: 18
+#            os: ubuntu-latest
+          - java: 19
+            os: ubuntu-latest
+          - java: 20
+            os: ubuntu-latest
+          - java: 21
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.code == 'true'
+    steps:
+      - name: Support longpaths
+        if: ${{ matrix.os == 'windows-latest'}}
+        run: git config --system core.longpaths true
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Debug - Show matched files
-        if: steps.filter.outputs.code == 'true'
         run: |
-          echo "Matched files: ${{ steps.filter.outputs.code_files }}"
+          echo "Matched files: ${{ needs.changes.outputs.code_files }}"
       - name: Restore ShenYu Maven Repos
-        if: steps.filter.outputs.code == 'true'
         id: restore-maven-cache
         uses: actions/cache/restore@v3
         with:
@@ -94,12 +102,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - uses: ./actions/setup-java-with-retry
-        if: steps.filter.outputs.code == 'true'
         with:
           java-version: ${{ matrix.java }}
           distribution: "temurin"
       - name: Install mvnd
-        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           MVND_VERSION=1.0.2
@@ -120,12 +126,10 @@ jobs:
           fi
 
       - name: Verify mvnd installation
-        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: mvnd --version || echo "mvnd version check failed, will use maven wrapper as fallback"
 
       - name: Build with Maven
-        if: steps.filter.outputs.code == 'true'
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
@@ -142,7 +146,6 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
-        if: steps.filter.outputs.code == 'true'
 
   check-license-header:
     name: check-license-header
@@ -162,9 +165,11 @@ jobs:
     name: build
     if: (github.repository == 'apache/shenyu') && always()
     needs:
+      - changes
       - build
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
-          [[ "${{ needs.build.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.changes.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.changes.outputs.code }}" != "true" || "${{ needs.build.result }}" == "success" ]] || exit -1
