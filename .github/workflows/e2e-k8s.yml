@@ -34,15 +34,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
       - uses: ./actions/paths-filter
         id: filter
         with:
