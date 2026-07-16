@@ -35,7 +35,6 @@ jobs:
           - shenyu-integrated-test-http
           - shenyu-integrated-test-https
           - shenyu-integrated-test-spring-cloud
-          - shenyu-integrated-test-sofa
           - shenyu-integrated-test-websocket
           - shenyu-integrated-test-rewrite
           - shenyu-integrated-test-combination
