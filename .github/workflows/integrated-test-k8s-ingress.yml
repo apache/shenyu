@@ -38,6 +38,7 @@ jobs:
         with:
           filters: |
             k8s-ingress:
+              - '.github/workflows/integrated-test-k8s-ingress.yml'
               - 'shenyu-integrated-test-k8s-ingress*/**'
               - 'shenyu-*/**'
               - 'pom.xml'

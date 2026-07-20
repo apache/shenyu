@@ -38,6 +38,7 @@ jobs:
         with:
           filters: |
             integration:
+              - '.github/workflows/integrated-test.yml'
               - 'shenyu-integrated-test/**'
               - 'shenyu-*/**'
               - 'pom.xml'
