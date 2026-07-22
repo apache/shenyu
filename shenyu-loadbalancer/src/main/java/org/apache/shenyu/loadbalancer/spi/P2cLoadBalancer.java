@@ -46,7 +46,40 @@ public class P2cLoadBalancer extends AbstractLoadBalancer {
     private static final int PICK_TIMES = 3;
 
     private final Random random = new Random();
-    
+
+    @Override
+    public void onSuccess(final Upstream upstream, final LoadBalanceData data) {
+        responseTrigger(upstream);
+    }
+
+    @Override
+    public void onError(final Upstream upstream, final LoadBalanceData data) {
+        responseTrigger(upstream);
+    }
+
+    private void responseTrigger(final Upstream upstream) {
+        long now = System.currentTimeMillis();
+        upstream.getInflight().decrementAndGet();
+        long stamp = upstream.getResponseStamp();
+        upstream.setResponseStamp(now);
+        long td = now - stamp;
+        if (td < 0) {
+            td = 0;
+        }
+        double w = Math.exp((double) -td / (double) 600);
+
+        long lag = now - upstream.getLastPicked();
+        if (lag < 0) {
+            lag = 0;
+        }
+        long oldLag = upstream.getLag();
+        if (oldLag == 0) {
+            w = 0;
+        }
+        lag = (int) ((double) oldLag * w + (double) lag * (1.0 - w));
+        upstream.setLag(lag);
+    }
+
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long start = System.currentTimeMillis();

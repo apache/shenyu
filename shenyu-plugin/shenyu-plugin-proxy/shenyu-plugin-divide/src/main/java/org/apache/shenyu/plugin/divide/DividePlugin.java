@@ -28,7 +28,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -55,12 +58,6 @@ import java.util.Objects;
 public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePlugin.class);
-
-    private static final String P2C = "p2c";
-
-    private static final String SHORTEST_RESPONSE = "shortestResponse";
-
-    private Long beginTime;
 
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
@@ -130,15 +127,11 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
-            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
-            )).doOnError(throwable -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
-            beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
-            ));
-        }
-        return chain.execute(exchange);
+        exchange.getAttributes().put(Constants.REQUEST_BEGIN_TIME, System.currentTimeMillis());
+        LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(ruleHandle.getLoadBalance());
+        LoadBalanceData loadBalanceData = LoadbalancerUtils.buildLoadBalanceData(exchange);
+        return chain.execute(exchange).doOnSuccess(e -> loadBalancer.onSuccess(upstream, loadBalanceData))
+                .doOnError(t -> loadBalancer.onError(upstream, loadBalanceData));
     }
 
     @Override
@@ -168,34 +161,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-    }
-
-    private void responseTrigger(final Upstream upstream) {
-        long now = System.currentTimeMillis();
-        upstream.getInflight().decrementAndGet();
-        upstream.setResponseStamp(now);
-        long stamp = upstream.getResponseStamp();
-        long td = now - stamp;
-        if (td < 0) {
-            td = 0;
-        }
-        double w = Math.exp((double) -td / (double) 600);
-
-        long lag = now - upstream.getLastPicked();
-        if (lag < 0) {
-            lag = 0;
-        }
-        long oldLag = upstream.getLag();
-        if (oldLag == 0) {
-            w = 0;
-        }
-        lag = (int) ((double) oldLag * w + (double) lag * (1.0 - w));
-        upstream.setLag(lag);
-    }
-
-    private void successResponseTrigger(final Upstream upstream) {
-        upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
-        upstream.getSucceeded().incrementAndGet();
     }
 
 }

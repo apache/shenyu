@@ -1069,6 +1069,11 @@ public interface Constants {
     String GB = "GB";
 
     /**
+     * The request begin time.
+     */
+    String REQUEST_BEGIN_TIME = "requestBeginTime";
+
+    /**
      * String q.
      */
     default void findConstants() {
