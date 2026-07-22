@@ -2425,6 +2425,7 @@ CREATE TABLE `discovery_upstream`
     `protocol`     varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  COMMENT 'for http, https, tcp, ws',
     `upstream_url`          varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ip:port',
     `upstream_status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `manual_status`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NONE' COMMENT 'manual status (NONE, FORCE_OFFLINE)',
     `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
     `props`      text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',

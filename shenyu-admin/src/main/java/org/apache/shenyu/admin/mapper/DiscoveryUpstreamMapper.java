@@ -170,4 +170,15 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      */
     int updateStatusByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("upstreamUrl") String upstreamUrl, @Param("upstreamStatus") int upstreamStatus);
 
+    /**
+     * update manual status by url.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     * @param upstreamUrl upstreamUrl
+     * @param manualStatus manualStatus
+     * @return effect
+     */
+    int updateManualStatusByUrl(@Param("discoveryHandlerId") String discoveryHandlerId, @Param("upstreamUrl") String upstreamUrl,
+                                @Param("manualStatus") String manualStatus);
+
 }

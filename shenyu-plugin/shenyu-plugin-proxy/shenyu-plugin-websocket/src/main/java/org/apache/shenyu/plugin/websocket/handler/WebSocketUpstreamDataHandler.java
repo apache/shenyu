@@ -68,6 +68,7 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
                     .weight(u.getWeight())
                     .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
                     .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
+                    .manualStatus(u.getManualStatus())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
