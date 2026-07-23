@@ -102,6 +102,8 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-mysql:9095/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
           ports:
             - containerPort: 9195
           livenessProbe:
