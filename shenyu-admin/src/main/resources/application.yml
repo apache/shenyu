@@ -183,6 +183,8 @@ shenyu:
       - /index**
       - /platform/login
       - /platform/secretInfo
+      # /websocket is unauthenticated by design for Admin-Gateway data synchronization.
+      # Keep the Admin port on trusted networks and enforce network-level access controls.
       - /websocket
       - /error
       - /actuator/health

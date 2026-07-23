@@ -653,6 +653,8 @@ The text of each license is the standard Apache 2.0 license.
     spring-ai-openai 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-retry 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-template-st 1.1.2: https://github.com/spring-projects/spring-ai, Apache 2.0
+    fastjson 1.2.76: https://github.com/alibaba/fastjson, Apache 2
+    error_prone_annotations 2.5.1: http://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -689,7 +691,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     asm-tree 9.2: https://asm.ow2.io/, BSD 3-Clause
     polaris-all 1.13.0: https://github.com/polarismesh/polaris-java, BSD 3-Clause
     re2j 1.6: https://github.com/google/re2j, BSD 3-Clause
-    re2j 1.8: http://github.com/google/re2j, BSD 3-Clause
+    re2j 1.8: https://github.com/google/re2j, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
@@ -775,6 +777,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
     mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
     mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
 MPL licenses
@@ -826,3 +829,13 @@ The following components are provided under the XPP License. See project link fo
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     mxparser 1.2.2: https://github.com/x-stream/mxparser, XPP
+
+
+========================================================================
+LGPL licenses
+========================================================================
+
+The following components are provided under a LGPL license. See project link for details.
+
+    jna 5.18.1: https://mvnrepository.com/artifact/net.java.dev.jna/jna, LGPL-2.1-or-later
+    jna-platform 5.18.1: https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform, LGPL-2.1-or-later
