@@ -53,7 +53,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-grpc</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
