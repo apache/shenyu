@@ -43,9 +43,11 @@ public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest
         WebsocketSyncProperties websocketSyncProperties = getContext().getBean(WebsocketSyncProperties.class);
         websocketSyncProperties.setMessageMaxSize(0);
         websocketSyncProperties.setAllowOrigins("allowOrigins");
+        websocketSyncProperties.setToken("token");
         assertThat(websocketSyncProperties.isEnabled(), comparesEqualTo(false));
         Assertions.assertEquals(websocketSyncProperties.getMessageMaxSize(), 0);
         Assertions.assertEquals(websocketSyncProperties.getAllowOrigins(), "allowOrigins");
+        Assertions.assertEquals(websocketSyncProperties.getToken(), "token");
     }
 
     @Configuration
