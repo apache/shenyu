@@ -922,6 +922,18 @@ INSERT INTO `permission` VALUES ('1697146861569542757', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO `permission` VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO `permission` VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+
+INSERT INTO `permission` VALUES ('2060675900525121540', '1346358560427216896', '2060959853814128640', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
+INSERT INTO `permission` VALUES ('2060675900525121541', '1346358560427216896', '2060553097071169537', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO `permission` VALUES ('2060675900525121542', '1346358560427216896', '2060553097071169538', '2023-08-31 07:14:26', '2023-08-31 07:14:26');
+INSERT INTO `permission` VALUES ('2060675900525121543', '1346358560427216896', '2060553097071169539', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
+INSERT INTO `permission` VALUES ('2060675900525121544', '1346358560427216896', '2060553097071169541', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121545', '1346358560427216896', '2060553097071169542', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121546', '1346358560427216896', '2060553097071169543', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121547', '1346358560427216896', '2060553097071169544', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121548', '1346358560427216896', '2060553097071169545', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121549', '1346358560427216896', '2060553097071169546', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('2060675900525121560', '1346358560427216896', '2060553097071169550', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -987,6 +999,8 @@ INSERT INTO `plugin` VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-1
 INSERT INTO `plugin` VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO `plugin` VALUES ('61', 'mcpServer', null, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO `plugin` VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+INSERT INTO `plugin` VALUES ('67', 'httpRecord', null, 'HttpProcess', 200, 1, '2023-12-20 18:02:53', '2026-05-24 17:19:17.859', NULL);
+
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
@@ -2010,6 +2024,18 @@ INSERT INTO `resource` VALUES ('1844026099075565006', '1844026099075565000', 'SH
 INSERT INTO `resource` VALUES ('1844026099075565007', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026099075565008', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026099075565009', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformer:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+
+INSERT INTO `resource` VALUES ('2060959853814128640', '1346775491550474240', 'httpRecord', 'httpRecord', '/plug/httpRecord', 'httpRecord', 1, 0, 'key', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169537', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169538', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169539', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169541', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169542', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169543', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169544', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169545', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecordRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169546', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecord:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('2060553097071169550', '2060959853814128640', 'SHENYU.BUTTON.PLUGIN.LIST', '', '', '', 2, 0, '', 1, 0, 'plugin:httpRecord:list', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------
@@ -2564,6 +2590,7 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882832189','649330b6-c2d7-4edc-be8e-8a54df9eb385','61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822300','649330b6-c2d7-4edc-be8e-8a54df9eb385','66', NULL, 66, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822191','649330b6-c2d7-4edc-be8e-8a54df9eb385','67', NULL, 199,1, '2022-05-25 18:02:53.000', '2026-05-25 09:27:25.639');
 
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840479', '1357956838021890048', 'SHENYU.MENU.SYSTEM.MANAGMENT.NAMESPACEPLUGIN', 'namespacePlugin', '/config/namespacePlugin', 'namespacePlugin', 1, 2, 'build', 0, 0, '', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1792749362445840480', '1792749362445840479', 'SHENYU.BUTTON.SYSTEM.LIST', '', '', '', 2, 0, '', 1, 0, 'system:namespacePlugin:list', 1, '2024-06-25 18:02:53.000', '2024-06-25 18:02:53.000');
@@ -2671,6 +2698,11 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507356', '66', 'baseUrl', 'bas
 INSERT INTO `plugin_handle` VALUES ('1722804548510507357', '66', 'apiKey', 'apiKey', 2, 2, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507358', '66', 'model', 'model', 2, 2, 3, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507359', '66', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
+INSERT INTO `plugin_handle` VALUES ('2067162479970447360', '67', 'startTime', 'startTime', 1, 2, 0, '{"required":"1","defaultValue":"1780287614000","placeholder":"startTime","rule":""}', '2026-06-17 16:28:35.904', '2026-06-17 16:29:13.623');
+INSERT INTO `plugin_handle` VALUES ('2067162479970447361', '67', 'endTime', 'endTime', 1, 2, 0, '{"required":"1","defaultValue":"1780287814000","placeholder":"endTime","rule":""}', '2026-06-17 16:28:35.904', '2026-06-17 16:29:13.623');
+INSERT INTO `plugin_handle` VALUES ('2068305908214779904', '67', 'maxBodySize', 'maxBodySize', 1, 3, 0, '{"required":"0","defaultValue":"524288","rule":""}', '2026-06-20 20:12:10.442', '2026-06-20 20:12:10.442');
+INSERT INTO `plugin_handle` VALUES ('2068306022568284160', '67', 'batchSize', 'batchSize', 1, 3, 1, '{"required":"0","defaultValue":"100","rule":""}', '2026-06-20 20:12:37.705', '2026-06-20 20:14:03.068');
+INSERT INTO `plugin_handle` VALUES ('2068306133750894592', '67', 'batchIntervalMs', 'batchIntervalMs', 1, 3, 0, '{"required":"0","defaultValue":"5000","rule":""}', '2026-06-20 20:13:04.213', '2026-06-20 20:13:39.534');
 
 DROP TABLE IF EXISTS `registry_config`;
 CREATE TABLE `registry_config`  (

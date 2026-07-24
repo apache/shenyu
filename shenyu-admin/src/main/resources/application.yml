@@ -230,11 +230,17 @@ shenyu:
       apiServer: "https://127.0.0.1:6443"
       token: "token"
       caCertPath: "/etc/kubernetes/pki/ca.crt"
+
+  http-record:
+    storage-type: "local"
+    storage-path: "/tmp/shenyu-records"
+
   config:
     import:
       max-entry-size: 104857600
       max-total-size: 209715200
       max-entry-count: 1000
+
 
 springdoc:
   api-docs:
