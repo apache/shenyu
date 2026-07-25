@@ -73,17 +73,13 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
     }
     
     private String buildAlertHtmlTemplate(final AlarmContent alert) {
-        // Introduce thymeleaf context parameters to render pages
         Context context = new Context();
         context.setVariable("nameTitle", "ShenYu Alarm");
         context.setVariable("nameTriggerTime", "Alarm Time");
         context.setVariable("nameContent", "Alarm Content");
-        context.setVariable("content", alert.getContent());
+        context.setVariable("content", Objects.isNull(alert) ? "" : alert.getContent());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date alertTime = alert.getDateCreated();
-        if (Objects.isNull(alert)) {
-            alertTime = new Date();
-        }
+        Date alertTime = Objects.isNull(alert) || Objects.isNull(alert.getDateCreated()) ? new Date() : alert.getDateCreated();
         String alarmTime = simpleDateFormat.format(alertTime);
         context.setVariable("lastTriggerTime", alarmTime);
         return templateEngine.process("mailAlarm", context);

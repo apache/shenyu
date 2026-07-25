@@ -94,6 +94,12 @@
             <artifactId>oshi-core</artifactId>
             <version>6.10.0</version>
         </dependency>
-    
+
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 </project>
