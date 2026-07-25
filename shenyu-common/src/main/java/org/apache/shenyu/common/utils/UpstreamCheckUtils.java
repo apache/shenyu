@@ -18,12 +18,12 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
 
 /**
  * The type Uri utils.
@@ -62,16 +62,23 @@ public class UpstreamCheckUtils {
         if (StringUtils.isBlank(url)) {
             return false;
         }
-        String[] hostPort;
+        final String host;
+        final int port;
         if (url.startsWith(HTTP) || url.startsWith(HTTPS)) {
-            final String[] http = StringUtils.split(url, "\\/\\/");
-            hostPort = StringUtils.split(http[1], Constants.COLONS);
+            try {
+                URI uri = new URI(url);
+                host = uri.getHost();
+                port = uri.getPort() == -1 ? url.startsWith(HTTPS) ? 443 : 80 : uri.getPort();
+            } catch (Exception e) {
+                LOG.error("Invalid URL: {}", url, e);
+                return false;
+            }
         } else {
-            hostPort = StringUtils.split(url, Constants.COLONS);
+            String[] parts = IpUtils.parseHostPort(url);
+            host = parts[0];
+            port = Integer.parseInt(parts[1]);
         }
-        final boolean isHttps = url.startsWith(HTTPS);
-        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1].trim()) : isHttps ? 443 : 80;
-        return isHostConnector(hostPort[0].trim(), port, timeout);
+        return isHostConnector(host.trim(), port, timeout);
     }
 
     private static boolean isHostConnector(final String host, final int port, final int timeout) {

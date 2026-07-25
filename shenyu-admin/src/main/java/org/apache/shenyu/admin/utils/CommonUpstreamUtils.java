@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
@@ -264,6 +265,19 @@ public class CommonUpstreamUtils {
      * @return the string
      */
     public static String buildUrl(final String host, final Integer port) {
-        return Optional.of(String.join(":", host, String.valueOf(port))).orElse(null);
+        if (Objects.nonNull(host) && host.contains(":")) {
+            return String.format("[%s]:%d", host, port);
+        }
+        return String.join(":", host, String.valueOf(port));
+    }
+
+    /**
+     * Parse host and port from a host:port string, supporting IPv6 bracket notation.
+     *
+     * @param upstreamUrl the upstreamUrl in "host:port" or "[ipv6]:port" format
+     * @return string array with [host, port], port defaults to "80" if not present
+     */
+    public static String[] parseHostPort(final String upstreamUrl) {
+        return IpUtils.parseHostPort(upstreamUrl);
     }
 }

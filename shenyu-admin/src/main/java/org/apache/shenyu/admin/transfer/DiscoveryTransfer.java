@@ -78,8 +78,8 @@ public enum DiscoveryTransfer {
     public CommonUpstream mapToCommonUpstream(DiscoveryUpstreamData discoveryUpstreamData) {
         return Optional.ofNullable(discoveryUpstreamData).map(data -> {
             String url = data.getUrl();
-            CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(), url.split(":")[0], url, false,
-                    data.getDateCreated().getTime());
+            CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(),
+                    CommonUpstreamUtils.parseHostPort(url)[0], url, false, data.getDateCreated().getTime());
             Properties properties = Optional.ofNullable(data.getProps())
                     .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
                     .orElse(new Properties());
@@ -349,19 +349,12 @@ public enum DiscoveryTransfer {
      */
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
         String upstreamUrl = commonUpstream.getUpstreamUrl();
-        String[] parts = Optional.ofNullable(upstreamUrl)
-                .map(url -> url.split(":", 2))
-                .orElseThrow(() -> new IllegalArgumentException("Upstream URL must not be null"));
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("Invalid upstream URL, expected 'host:port' format but was: " + upstreamUrl);
+        if (upstreamUrl == null) {
+            throw new IllegalArgumentException("Upstream URL must not be null");
         }
+        String[] parts = CommonUpstreamUtils.parseHostPort(upstreamUrl);
         String host = parts[0];
-        int port;
-        try {
-            port = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Invalid port in upstream URL: " + upstreamUrl, ex);
-        }
+        int port = Integer.parseInt(parts[1]);
         DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
                 host,
                 port,

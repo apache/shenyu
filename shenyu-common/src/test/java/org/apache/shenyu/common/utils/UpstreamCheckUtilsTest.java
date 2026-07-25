@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,6 +42,21 @@ public final class UpstreamCheckUtilsTest {
     @Test
     public void testBlank() {
         assertFalse(UpstreamCheckUtils.checkUrl(""));
+    }
+
+    @Test
+    public void testIpv6BareHostPortDoesNotThrowException() {
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]:8080"));
+    }
+
+    @Test
+    public void testIpv6UrlDoesNotThrowException() {
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("http://[2001:db8::1]:8080"));
+    }
+
+    @Test
+    public void testIpv6BareHostPortWithoutPortDoesNotThrowException() {
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]"));
     }
 
     @Test

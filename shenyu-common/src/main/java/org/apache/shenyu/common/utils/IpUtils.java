@@ -417,6 +417,27 @@ public final class IpUtils {
     }
 
     /**
+     * Parse host and port from a host:port string, supporting IPv6 bracket notation.
+     *
+     * @param upstreamUrl the upstreamUrl in "host:port" or "[ipv6]:port" format
+     * @return string array with [host, port], port defaults to "80" if not present
+     */
+    public static String[] parseHostPort(final String upstreamUrl) {
+        if (upstreamUrl.startsWith("[")) {
+            int closingBracket = upstreamUrl.lastIndexOf(']');
+            String host = upstreamUrl.substring(1, closingBracket);
+            String port = closingBracket < upstreamUrl.length() - 1 && upstreamUrl.charAt(closingBracket + 1) == ':'
+                    ? upstreamUrl.substring(closingBracket + 2) : "80";
+            return new String[]{host, port};
+        }
+        int lastColon = upstreamUrl.lastIndexOf(':');
+        if (lastColon == -1) {
+            return new String[]{upstreamUrl, "80"};
+        }
+        return new String[]{upstreamUrl.substring(0, lastColon), upstreamUrl.substring(lastColon + 1)};
+    }
+
+    /**
      * replace Zookeeper Url.
      * @param zookeeperUrl String zookeeper address
      * @param replacement ip form zookeeper address

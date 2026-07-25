@@ -354,4 +354,64 @@ public final class CommonUpstreamUtilsTest {
         Assert.assertTrue(result.getTimestamp() >= beforeTime);
         Assert.assertTrue(result.getTimestamp() <= afterTime);
     }
+
+    @Test
+    public void testParseHostPortIpv4WithPort() {
+        String[] result = CommonUpstreamUtils.parseHostPort("192.168.1.1:8080");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("192.168.1.1", result[0]);
+        Assert.assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortIpv4WithoutPort() {
+        String[] result = CommonUpstreamUtils.parseHostPort("192.168.1.1");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("192.168.1.1", result[0]);
+        Assert.assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortIpv6WithPort() {
+        String[] result = CommonUpstreamUtils.parseHostPort("[2001:db8::1]:8080");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("2001:db8::1", result[0]);
+        Assert.assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortIpv6WithoutPort() {
+        String[] result = CommonUpstreamUtils.parseHostPort("[2001:db8::1]");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("2001:db8::1", result[0]);
+        Assert.assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortIpv6Loopback() {
+        String[] result = CommonUpstreamUtils.parseHostPort("[::1]:9090");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("::1", result[0]);
+        Assert.assertEquals("9090", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortHostname() {
+        String[] result = CommonUpstreamUtils.parseHostPort("localhost:8080");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("localhost", result[0]);
+        Assert.assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testBuildUrlIpv6() {
+        String url = CommonUpstreamUtils.buildUrl("2001:db8::1", 8080);
+        Assert.assertEquals("[2001:db8::1]:8080", url);
+    }
+
+    @Test
+    public void testBuildUrlIpv4() {
+        String url = CommonUpstreamUtils.buildUrl("192.168.1.1", 8080);
+        Assert.assertEquals("192.168.1.1:8080", url);
+    }
 }
