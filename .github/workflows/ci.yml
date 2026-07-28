@@ -130,10 +130,10 @@ jobs:
             ./mvnw.cmd -B clean test -Prelease
           elif mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean test -Prelease
+            mvnd -B clean test -Prelease -DskipRemoteResources=true
           else
             echo "Falling back to maven wrapper"
-            ./mvnw -B clean test -Prelease
+            ./mvnw -B clean test -Prelease -DskipRemoteResources=true
           fi
       - uses: codecov/codecov-action@v1
         with:
