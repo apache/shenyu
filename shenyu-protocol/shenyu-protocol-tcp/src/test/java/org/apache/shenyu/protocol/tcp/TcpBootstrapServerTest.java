@@ -32,10 +32,15 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,8 +49,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Test Case For {@link TcpBootstrapServer}.
+ */
 @ExtendWith(MockitoExtension.class)
-class TcpBootstrapServerTest {
+public class TcpBootstrapServerTest {
 
     @Mock
     private EventBus eventBus;
@@ -72,6 +80,41 @@ class TcpBootstrapServerTest {
         server = new TcpBootstrapServer(eventBus);
         setField("bridge", bridge);
         setField("connectionContext", connectionContext);
+    }
+
+    @Test
+    public void testGetIpWithIpv4() throws Exception {
+        SocketAddress address = new InetSocketAddress("192.168.1.1", 8080);
+        String ip = invokeGetIp(address);
+        assertEquals("192.168.1.1", ip);
+    }
+
+    @Test
+    public void testGetIpWithIpv6() throws Exception {
+        SocketAddress address = new InetSocketAddress("2001:db8::1", 12345);
+        String ip = invokeGetIp(address);
+        assertTrue(ip.contains("2001:db8"));
+    }
+
+    @Test
+    public void testGetIpWithNull() {
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeGetIp(null));
+        assertTrue(ex.getCause() instanceof NullPointerException);
+    }
+
+    @Test
+    public void testGetIpWithUnsupportedAddressType() {
+        SocketAddress customAddress = new SocketAddress() {
+            private static final long serialVersionUID = 1L;
+        };
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeGetIp(customAddress));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    private String invokeGetIp(final SocketAddress socketAddress) throws Exception {
+        Method method = TcpBootstrapServer.class.getDeclaredMethod("getIp", SocketAddress.class);
+        method.setAccessible(true);
+        return (String) method.invoke(server, socketAddress);
     }
 
     @Test
