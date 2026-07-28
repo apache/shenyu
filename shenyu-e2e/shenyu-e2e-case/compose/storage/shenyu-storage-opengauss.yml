@@ -62,6 +62,7 @@ services:
       - shenyu.sync.websocket.enabled=true
       - shenyu.sync.websocket.messageMaxSize=10240
       - shenyu.sync.websocket.allowOrigins=ws://localhost:9095;ws://localhost:9195;
+      - shenyu.sync.websocket.token=shenyu-sync-token
     volumes:
       - /tmp/shenyu-e2e/opengauss/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
@@ -85,6 +86,7 @@ services:
     environment:
       - TZ=Asia/Beijing
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.sync.websocket.allowOrigin=ws://localhost:9195
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O - http://shenyu-bootstrap:9195/actuator/health | grep UP || exit 1" ]
