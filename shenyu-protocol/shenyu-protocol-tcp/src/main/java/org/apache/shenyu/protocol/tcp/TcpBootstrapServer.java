@@ -87,8 +87,16 @@ public class TcpBootstrapServer implements BootstrapServer {
         SocketAddress socketAddress = serverConn.channel().remoteAddress();
         ActivityConnectionObserver connectionObserver = new ActivityConnectionObserver("TcpClient");
         eventBus.register(connectionObserver);
+        serverConn.onDispose(() -> eventBus.unregister(connectionObserver));
         Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress), connectionObserver);
-        client.subscribe(clientConn -> bridge.bridge(serverConn, clientConn));
+        client.subscribe(
+            clientConn -> bridge.bridge(serverConn, clientConn),
+            error -> {
+                LOG.error("Failed to establish client connection for {}", serverConn, error);
+                eventBus.unregister(connectionObserver);
+                serverConn.dispose();
+            }
+        );
     }
 
     private String getIp(final SocketAddress socketAddress) {
