@@ -53,8 +53,8 @@ services:
       - "31095:9095"
     environment:
       - TZ=Asia/Beijing
-      - SPRING_PROFILES_ACTIVE=mysql
-      - shenyu.database.dialect=mysql
+      - SPRING_PROFILES_ACTIVE=og
+      - shenyu.database.dialect=opengauss
       - shenyu.database.init_enable=true
       - spring.datasource.username=gaussdb
       - spring.datasource.password=ShenYuE2E@123
