@@ -207,6 +207,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private MetaDataRegisterDTO buildMetaDataRegisterDTO(final OpenAPI openapi, final String selectorName,
                                                          final ShenyuMcpTool shenyuMcpTool, final String contentPath,
                                                          final String namespaceId) {
+        if (Objects.isNull(openapi.getServers()) || openapi.getServers().isEmpty()) {
+            throw new IllegalArgumentException("OpenAPI document is missing the top-level 'servers' field, which is required for MCP import. "
+                + "Please add a servers section, e.g.: servers: [{ url: 'http://localhost:8080' }]");
+        }
         String urlString = openapi.getServers().get(0).getUrl();
         URL url;
         try {
@@ -218,10 +222,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         String host = url.getHost();
         int port = url.getPort();
         Operation operation = shenyuMcpTool.getOperation();
-        String parameterTypes = operation.getParameters()
-                .stream()
-                .map(Parameter::getIn)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Objects.isNull(operation.getParameters())
+                ? ""
+                : operation.getParameters()
+                        .stream()
+                        .map(Parameter::getIn)
+                        .collect(Collectors.joining(","));
 
         return MetaDataRegisterDTO.builder()
                 .appName(openapi.getInfo().getTitle())
