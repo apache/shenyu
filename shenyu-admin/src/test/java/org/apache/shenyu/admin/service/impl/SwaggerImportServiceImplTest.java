@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -29,6 +33,8 @@ import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.utils.HttpUtils;
+import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -38,10 +44,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -124,6 +132,49 @@ public class SwaggerImportServiceImplTest {
                 "readLimitedResponseBody", responseBody, 10L);
 
         assertEquals(body, result);
+    }
+
+    @Test
+    public void buildMetaDataRegisterDTOShouldThrowWhenServersIsNull() {
+        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        OpenAPI openapi = new OpenAPI()
+                .info(new Info().title("test"));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
+                        openapi, "test", new ShenyuMcpTool(), "/ping", "ns1"));
+    }
+
+    @Test
+    public void buildMetaDataRegisterDTOShouldThrowWhenServersIsEmpty() {
+        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        OpenAPI openapi = new OpenAPI()
+                .info(new Info().title("test"))
+                .servers(Collections.emptyList());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
+                        openapi, "test", new ShenyuMcpTool(), "/ping", "ns1"));
+    }
+
+    @Test
+    public void buildMetaDataRegisterDTOShouldHandleNullParameters() {
+        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        OpenAPI openapi = new OpenAPI()
+                .info(new Info().title("test"))
+                .servers(List.of(new Server().url("http://localhost:8080")));
+        Operation operation = new Operation()
+                .operationId("ping")
+                .parameters(null);
+        ShenyuMcpTool tool = new ShenyuMcpTool();
+        tool.setOperation(operation);
+        tool.setToolName("ping");
+
+        MetaDataRegisterDTO result = ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
+                openapi, "test", tool, "/ping", "ns1");
+
+        assertNotNull(result);
+        assertEquals("", result.getParameterTypes());
     }
 
     private SwaggerImportRequest request() {
