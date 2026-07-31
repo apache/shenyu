@@ -29,6 +29,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -130,6 +133,31 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
+    }
+
+    /**
+     * The status change of an existing upstream should be written back into the selector handle.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusChanged() {
+        shenyuClientRegisterDivideService = spy(shenyuClientRegisterDivideService);
+
+        final String returnStr = "[{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:10,weight:50,status:true,timestamp:1637826588267,\"gray\":false},"
+                + "{protocol:'http://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:true,timestamp:1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName())
+                .host(LOCALHOST).port(8090).eventType(EventType.DELETED).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
+
+        List<DivideUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
+        assertEquals(2, resultList.size());
+        assertFalse(resultList.get(0).isStatus());
+        assertTrue(resultList.get(1).isStatus());
     }
 
     @Test

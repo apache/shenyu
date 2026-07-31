@@ -27,6 +27,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,6 +42,8 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -132,6 +135,31 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         assertEquals(resultList.size(), 1);
     }
     
+    /**
+     * The status change of an existing upstream should be written back into the selector handle.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusChanged() {
+        shenyuClientRegisterTarsService = spy(shenyuClientRegisterTarsService);
+
+        final String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:true,timestamp:1637826588267,\"gray\":false},"
+                + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:true,timestamp:1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName())
+                .host("localhost").port(8090).eventType(EventType.DELETED).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+
+        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        assertEquals(2, resultList.size());
+        assertFalse(resultList.get(0).isStatus());
+        assertTrue(resultList.get(1).isStatus());
+    }
+
     @Test
     public void testBuildTarsUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();

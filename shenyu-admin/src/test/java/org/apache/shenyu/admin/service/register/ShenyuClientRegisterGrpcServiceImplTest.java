@@ -21,12 +21,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,6 +43,8 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -130,6 +134,31 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         assertEquals(resultList.size(), 1);
     }
     
+    /**
+     * The status change of an existing upstream should be written back into the selector handle.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusChanged() {
+        shenyuClientRegisterGrpcService = spy(shenyuClientRegisterGrpcService);
+
+        final String returnStr = "[{upstreamUrl='localhost:8090',weight=1,status=true,timestamp=1637826588267,\"gray\":false},"
+                + "{upstreamUrl='localhost:8091',weight=2,status=true,timestamp=1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName())
+                .host("localhost").port(8090).eventType(EventType.DELETED).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+
+        List<GrpcUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
+        assertEquals(2, resultList.size());
+        assertFalse(resultList.get(0).isStatus());
+        assertTrue(resultList.get(1).isStatus());
+    }
+
     @Test
     public void testBuildGrpcUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
