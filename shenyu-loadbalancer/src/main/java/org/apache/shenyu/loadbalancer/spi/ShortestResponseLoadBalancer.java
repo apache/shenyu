@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
@@ -81,12 +80,5 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
             }
         }
         return upstreamList.get(shortestIndexes[ThreadLocalRandom.current().nextInt(shortestCount)]);
-    }
-
-    @Override
-    public void onSuccess(final Upstream upstream, final LoadBalanceData data) {
-        long beginTime = (long) data.getAttributes().get(Constants.REQUEST_BEGIN_TIME);
-        upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
-        upstream.getSucceeded().incrementAndGet();
     }
 }
