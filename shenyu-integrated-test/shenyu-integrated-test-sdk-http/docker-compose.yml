@@ -37,6 +37,7 @@ services:
       - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.database.init_script=sql-script/h2/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
@@ -103,6 +104,7 @@ services:
           memory: 2048M
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.register.registerType=zookeeper
       - shenyu.register.serverLists=shenyu-zk:2181
     depends_on:
