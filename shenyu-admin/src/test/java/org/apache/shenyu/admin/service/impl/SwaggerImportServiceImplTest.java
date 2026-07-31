@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.servers.Server;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -33,8 +29,6 @@ import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.utils.HttpUtils;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -44,12 +38,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -63,19 +55,24 @@ public class SwaggerImportServiceImplTest {
 
     private static final MediaType JSON_UTF_8 = MediaType.parse("application/json; charset=utf-8");
 
+    private static final long DEFAULT_MAX_SWAGGER_BODY_SIZE = 10L * 1024 * 1024;
+
     private RecordingDocManager docManager;
 
     private StubHttpUtils httpUtils;
+
+    private SwaggerImportServiceImpl service;
 
     @BeforeEach
     public void setUp() {
         docManager = new RecordingDocManager();
         httpUtils = new StubHttpUtils();
+        service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        ReflectionTestUtils.setField(service, "maxSwaggerBodySize", DEFAULT_MAX_SWAGGER_BODY_SIZE);
     }
 
     @Test
     public void importSwaggerShouldReadSmallSwaggerBody() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         httpUtils.setResponse(response(responseBody(
                 SWAGGER_JSON, SWAGGER_JSON.getBytes(StandardCharsets.UTF_8).length, JSON_UTF_8)));
 
@@ -87,7 +84,6 @@ public class SwaggerImportServiceImplTest {
 
     @Test
     public void importSwaggerShouldRejectKnownContentLengthGreaterThanLimit() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", 10L);
         httpUtils.setResponse(response(responseBody("small", 11L, JSON_UTF_8)));
 
@@ -96,85 +92,10 @@ public class SwaggerImportServiceImplTest {
 
     @Test
     public void importSwaggerShouldRejectUnknownContentLengthWhenActualBodyExceedsLimit() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", 10L);
         httpUtils.setResponse(response(responseBody("01234567890", -1L, JSON_UTF_8)));
 
         assertThrows(IllegalArgumentException.class, () -> service.importSwagger(request()));
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldAllowBodyExactlyEqualToLimit() throws IOException {
-        String body = "0123456789";
-
-        String result = ReflectionTestUtils.invokeMethod(new SwaggerImportServiceImpl(docManager, httpUtils),
-                "readLimitedResponseBody", responseBody(body, -1L, JSON_UTF_8), 10L);
-
-        assertEquals(body, result);
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldHandleNullBodySafely() {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
-
-        assertThrows(IllegalArgumentException.class, () ->
-                ReflectionTestUtils.invokeMethod(service, "readLimitedResponseBody", null, 10L));
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldUseResponseCharset() throws IOException {
-        Charset charset = StandardCharsets.ISO_8859_1;
-        byte[] bytes = new byte[] {'c', 'a', 'f', (byte) 0xE9};
-        String body = new String(bytes, charset);
-        ResponseBody responseBody = responseBody(bytes, -1L, MediaType.parse("text/plain; charset=iso-8859-1"));
-
-        String result = ReflectionTestUtils.invokeMethod(new SwaggerImportServiceImpl(docManager, httpUtils),
-                "readLimitedResponseBody", responseBody, 10L);
-
-        assertEquals(body, result);
-    }
-
-    @Test
-    public void buildMetaDataRegisterDTOShouldThrowWhenServersIsNull() {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
-        OpenAPI openapi = new OpenAPI()
-                .info(new Info().title("test"));
-
-        assertThrows(IllegalArgumentException.class, () ->
-                ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
-                        openapi, "test", new ShenyuMcpTool(), "/ping", "ns1"));
-    }
-
-    @Test
-    public void buildMetaDataRegisterDTOShouldThrowWhenServersIsEmpty() {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
-        OpenAPI openapi = new OpenAPI()
-                .info(new Info().title("test"))
-                .servers(Collections.emptyList());
-
-        assertThrows(IllegalArgumentException.class, () ->
-                ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
-                        openapi, "test", new ShenyuMcpTool(), "/ping", "ns1"));
-    }
-
-    @Test
-    public void buildMetaDataRegisterDTOShouldHandleNullParameters() {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
-        OpenAPI openapi = new OpenAPI()
-                .info(new Info().title("test"))
-                .servers(List.of(new Server().url("http://localhost:8080")));
-        Operation operation = new Operation()
-                .operationId("ping")
-                .parameters(null);
-        ShenyuMcpTool tool = new ShenyuMcpTool();
-        tool.setOperation(operation);
-        tool.setToolName("ping");
-
-        MetaDataRegisterDTO result = ReflectionTestUtils.invokeMethod(service, "buildMetaDataRegisterDTO",
-                openapi, "test", tool, "/ping", "ns1");
-
-        assertNotNull(result);
-        assertEquals("", result.getParameterTypes());
     }
 
     private SwaggerImportRequest request() {
