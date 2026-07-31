@@ -425,16 +425,23 @@ public final class IpUtils {
     public static String[] parseHostPort(final String upstreamUrl) {
         if (upstreamUrl.startsWith("[")) {
             int closingBracket = upstreamUrl.lastIndexOf(']');
+            if (closingBracket < 0) {
+                throw new IllegalArgumentException("Invalid upstream URL, missing ']': " + upstreamUrl);
+            }
             String host = upstreamUrl.substring(1, closingBracket);
-            String port = closingBracket < upstreamUrl.length() - 1 && upstreamUrl.charAt(closingBracket + 1) == ':'
-                    ? upstreamUrl.substring(closingBracket + 2) : "80";
+            String port = "80";
+            if (closingBracket < upstreamUrl.length() - 1 && upstreamUrl.charAt(closingBracket + 1) == ':') {
+                String portPart = upstreamUrl.substring(closingBracket + 2);
+                port = portPart.isEmpty() ? "80" : portPart;
+            }
             return new String[]{host, port};
         }
         int lastColon = upstreamUrl.lastIndexOf(':');
         if (lastColon == -1) {
             return new String[]{upstreamUrl, "80"};
         }
-        return new String[]{upstreamUrl.substring(0, lastColon), upstreamUrl.substring(lastColon + 1)};
+        String port = upstreamUrl.substring(lastColon + 1);
+        return new String[]{upstreamUrl.substring(0, lastColon), port.isEmpty() ? "80" : port};
     }
 
     /**

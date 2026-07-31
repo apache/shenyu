@@ -266,6 +266,9 @@ public class CommonUpstreamUtils {
      */
     public static String buildUrl(final String host, final Integer port) {
         if (Objects.nonNull(host) && host.contains(":")) {
+            if (host.startsWith("[") && host.endsWith("]")) {
+                return String.format("%s:%d", host, port);
+            }
             return String.format("[%s]:%d", host, port);
         }
         return String.join(":", host, String.valueOf(port));

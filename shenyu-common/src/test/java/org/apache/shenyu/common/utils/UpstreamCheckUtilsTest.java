@@ -46,17 +46,17 @@ public final class UpstreamCheckUtilsTest {
 
     @Test
     public void testIpv6BareHostPortDoesNotThrowException() {
-        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]:8080"));
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]:8080", 1));
     }
 
     @Test
     public void testIpv6UrlDoesNotThrowException() {
-        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("http://[2001:db8::1]:8080"));
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("http://[2001:db8::1]:8080", 1));
     }
 
     @Test
     public void testIpv6BareHostPortWithoutPortDoesNotThrowException() {
-        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]"));
+        assertDoesNotThrow(() -> UpstreamCheckUtils.checkUrl("[2001:db8::1]", 1));
     }
 
     @Test

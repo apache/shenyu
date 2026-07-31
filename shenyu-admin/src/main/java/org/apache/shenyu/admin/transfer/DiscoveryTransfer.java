@@ -354,7 +354,12 @@ public enum DiscoveryTransfer {
         }
         String[] parts = CommonUpstreamUtils.parseHostPort(upstreamUrl);
         String host = parts[0];
-        int port = Integer.parseInt(parts[1]);
+        int port;
+        try {
+            port = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid port in upstream URL: " + upstreamUrl, e);
+        }
         DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
                 host,
                 port,

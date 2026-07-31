@@ -74,9 +74,14 @@ public class UpstreamCheckUtils {
                 return false;
             }
         } else {
-            String[] parts = IpUtils.parseHostPort(url);
-            host = parts[0];
-            port = Integer.parseInt(parts[1]);
+            try {
+                String[] parts = IpUtils.parseHostPort(url);
+                host = parts[0];
+                port = Integer.parseInt(parts[1]);
+            } catch (Exception e) {
+                LOG.error("Invalid URL: {}", url, e);
+                return false;
+            }
         }
         return isHostConnector(host.trim(), port, timeout);
     }

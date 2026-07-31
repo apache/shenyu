@@ -403,6 +403,27 @@ public final class CommonUpstreamUtilsTest {
         Assert.assertEquals("8080", result[1]);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testParseHostPortMissingClosingBracket() {
+        CommonUpstreamUtils.parseHostPort("[2001:db8::1");
+    }
+
+    @Test
+    public void testParseHostPortEmptyPortIpv4() {
+        String[] result = CommonUpstreamUtils.parseHostPort("192.168.1.1:");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("192.168.1.1", result[0]);
+        Assert.assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortEmptyPortIpv6() {
+        String[] result = CommonUpstreamUtils.parseHostPort("[::1]:");
+        Assert.assertNotNull(result);
+        Assert.assertEquals("::1", result[0]);
+        Assert.assertEquals("80", result[1]);
+    }
+
     @Test
     public void testBuildUrlIpv6() {
         String url = CommonUpstreamUtils.buildUrl("2001:db8::1", 8080);
