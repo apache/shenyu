@@ -64,6 +64,8 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -78,6 +80,24 @@ import java.util.Objects;
 public class ConfigsServiceImpl implements ConfigsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfigsServiceImpl.class);
+
+    /**
+     * The max entry size for unzip.
+     */
+    @Value("${shenyu.config.import.max-entry-size:104857600}")
+    private long maxEntrySize;
+
+    /**
+     * The max total size for unzip.
+     */
+    @Value("${shenyu.config.import.max-total-size:209715200}")
+    private long maxTotalSize;
+
+    /**
+     * The max entry count for unzip.
+     */
+    @Value("${shenyu.config.import.max-entry-count:1000}")
+    private int maxEntryCount;
 
     /**
      * The AppAuth service.
@@ -342,7 +362,12 @@ public class ConfigsServiceImpl implements ConfigsService {
 
     @Override
     public ShenyuAdminResult configsImport(final byte[] source) {
-        ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(source);
+        ZipUtil.UnZipResult unZipResult;
+        try {
+            unZipResult = ZipUtil.unzip(source, maxEntrySize, maxTotalSize, maxEntryCount);
+        } catch (IllegalArgumentException e) {
+            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
+        }
         List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
         if (CollectionUtils.isEmpty(zipItemList)) {
             LOG.info("import file is empty");
@@ -387,7 +412,12 @@ public class ConfigsServiceImpl implements ConfigsService {
     
     @Override
     public ShenyuAdminResult configsImport(final String namespace, final byte[] source) {
-        ZipUtil.UnZipResult unZipResult = ZipUtil.unzip(source);
+        ZipUtil.UnZipResult unZipResult;
+        try {
+            unZipResult = ZipUtil.unzip(source, maxEntrySize, maxTotalSize, maxEntryCount);
+        } catch (IllegalArgumentException e) {
+            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
+        }
         List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
         if (CollectionUtils.isEmpty(zipItemList)) {
             LOG.info("import file is empty");

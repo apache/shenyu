@@ -97,6 +97,8 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-h2:9095/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
           ports:
             - containerPort: 9195
           imagePullPolicy: IfNotPresent

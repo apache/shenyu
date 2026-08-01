@@ -46,6 +46,8 @@ spec:
               value: "true"
             - name: shenyu.sync.websocket.allowOrigins
               value: ws://localhost:9095;ws://localhost:9195;
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
@@ -119,6 +121,8 @@ spec:
               value: "true"
             - name: shenyu.sync.websocket.allowOrigins
               value: ws://localhost:9096;ws://localhost:9195;
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
@@ -185,6 +189,8 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-master:9095/websocket,ws://shenyu-admin-slave:9096/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
           ports:
             - containerPort: 9195
           livenessProbe:

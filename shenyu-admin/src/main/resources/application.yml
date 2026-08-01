@@ -70,6 +70,7 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #    apollo:
 #      meta: http://localhost:8080
@@ -182,6 +183,8 @@ shenyu:
       - /index**
       - /platform/login
       - /platform/secretInfo
+      # /websocket is unauthenticated by design for Admin-Gateway data synchronization.
+      # Keep the Admin port on trusted networks and enforce network-level access controls.
       - /websocket
       - /error
       - /actuator/health
@@ -227,6 +230,11 @@ shenyu:
       apiServer: "https://127.0.0.1:6443"
       token: "token"
       caCertPath: "/etc/kubernetes/pki/ca.crt"
+  config:
+    import:
+      max-entry-size: 104857600
+      max-total-size: 209715200
+      max-entry-count: 1000
 
 springdoc:
   api-docs:
@@ -246,3 +254,4 @@ logging:
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
 #    org.apache.shenyu.admin.utils.HttpUtils: debug
+
