@@ -305,7 +305,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
-                    .getOrDefault(discoveryHandlerId, Lists.newArrayList())
+                    .getOrDefault(discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId), Lists.newArrayList())
                     .stream()
                     .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
