@@ -81,16 +81,16 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         RetryStrategy<R> strategy;
-        //Is it better to go with the configuration file here?
         String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC)).orElse(HttpRetryBackoffSpecEnum.getDefault());
-        switch (retryStrategyType) {
-            case "exponential":
+        HttpRetryBackoffSpecEnum spec = HttpRetryBackoffSpecEnum.acquireByName(retryStrategyType);
+        switch (spec) {
+            case EXPONENTIAL_BACKOFF:
                 strategy = new ExponentialRetryBackoffStrategy<>(this);
                 break;
-            case "fixed":
+            case FIXED_BACKOFF:
                 strategy = new FixedRetryStrategy<>(this);
                 break;
-            case "custom":
+            case CUSTOM_BACKOFF:
                 strategy = new CustomRetryStrategy<>(this);
                 break;
             default:

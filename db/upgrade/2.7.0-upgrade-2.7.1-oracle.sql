@@ -735,3 +735,15 @@ DELETE FROM namespace_plugin_rel WHERE plugin_id = '17';
 DELETE FROM plugin_handle WHERE plugin_id = '17';
 DELETE FROM plugin WHERE id = '17';
 COMMENT ON COLUMN api.rpc_type IS 'http,dubbo,sofa,tars,websocket,springCloud,grpc';
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613199979560', '5', 'retryBackOffSpec', 'retryBackOffSpec', 3, 2, 0, '{"required":"0","defaultValue":"default","placeholder":"retryBackOffSpec","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into shenyu_dict (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "DESC", SORT, ENABLED)
+values ('1529402613195784250', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'default', 'default', 'default', 0, 1);
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into shenyu_dict (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "DESC", SORT, ENABLED)
+values ('1529402613195784251', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'fixed', 'fixed', 'fixed', 1, 1);
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into shenyu_dict (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "DESC", SORT, ENABLED)
+values ('1529402613195784252', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'exponential', 'exponential', 'exponential', 2, 1);
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into shenyu_dict (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "DESC", SORT, ENABLED)
+values ('1529402613195784253', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'custom', 'custom', 'custom', 3, 1);

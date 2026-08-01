@@ -46,6 +46,6 @@ public class CustomRetryStrategy<R> implements RetryStrategy<R> {
      * @return Response Mono object after retry processing
      */
     public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
-        return null;
+        return Mono.error(new UnsupportedOperationException("Please implement CustomRetryStrategy via SPI"));
     }
 }
