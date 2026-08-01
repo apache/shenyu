@@ -115,7 +115,10 @@ shenyu:
     object-class: person
     login-field: cn
   jwt:
-    secret-key: "defaultSecretKey"
+    # secret-key must be explicitly configured, especially in multi-instance Admin clusters.
+    # Each instance must share the same secretKey to avoid token verification failures (random 401s).
+    # Please replace this with your own secure key in production.
+    # secret-key: "your-secret-key-here"
     expired-seconds: 86400000
   cluster:
     enabled: false

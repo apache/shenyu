@@ -18,14 +18,12 @@
 package org.apache.shenyu.admin.config.properties;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.security.SecureRandom;
-import java.util.Base64;
 
 /**
  * Jwt Properties.
@@ -38,16 +36,19 @@ public class JwtProperties {
 
     private Long expiredSeconds = AdminConstants.THE_ONE_DAY_MILLIS_TIME;
 
-    private String secretKey = AdminConstants.JWT_DEFAULT_SECRET_KEY;
+    private String secretKey;
 
     @PostConstruct
     private void init() {
-        if (AdminConstants.JWT_DEFAULT_SECRET_KEY.equals(this.secretKey)) {
-            LOG.warn("jwt secretKey is using the default value, which is not secure. Please configure 'shenyu.jwt.secretKey' in your configuration.");
-            byte[] key = new byte[32];
-            new SecureRandom().nextBytes(key);
-            this.secretKey = Base64.getEncoder().encodeToString(key);
+        if (StringUtils.isBlank(secretKey) || AdminConstants.JWT_DEFAULT_SECRET_KEY.equals(this.secretKey)) {
+            throw new IllegalStateException("shenyu.jwt.secretKey is not configured. "
+                    + "In a multi-instance Admin cluster, each instance would generate a different key, "
+                    + "causing token verification failures. "
+                    + "Please explicitly configure 'shenyu.jwt.secretKey' in your configuration.");
         }
+        LOG.warn("JWT signing key is now decoupled from user password hash. "
+                + "Existing sessions from previous versions will be invalidated and users will need to re-login. "
+                + "If rolling back, all tokens issued by this version will also become invalid.");
     }
 
     /**
