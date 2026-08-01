@@ -77,7 +77,7 @@ public final class WebClientPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
-        webClientPlugin = new WebClientPlugin(webClient);
+        webClientPlugin = new WebClientPlugin(webClient, Constants.BYTES_PER_MB);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class WebClientPluginTest {
         ServerWebExchange exchangeNoPathTest = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
         exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
+        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest, Constants.BYTES_PER_MB);
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
@@ -100,19 +100,19 @@ public final class WebClientPluginTest {
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
         exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchangePostTest.getAttributes().put(Constants.HTTP_URI, URI.create("/test123?param=1"));
-        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
+        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest, Constants.BYTES_PER_MB);
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainOkTest = mock(ShenyuPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
-        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
+        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest, Constants.BYTES_PER_MB);
         Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainErrorTest = mock(ShenyuPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
-        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
+        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest, Constants.BYTES_PER_MB);
         Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
         StepVerifier.create(monoErrorTest).expectSubscription().verifyError();
     }

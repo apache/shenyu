@@ -54,8 +54,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
      * Instantiates a new Netty http client plugin.
      *
      * @param httpClient the http client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
      */
-    public NettyHttpClientPlugin(final HttpClient httpClient) {
+    public NettyHttpClientPlugin(final HttpClient httpClient, final int maxInMemorySize) {
+        super(maxInMemorySize);
         this.httpClient = httpClient;
     }
 

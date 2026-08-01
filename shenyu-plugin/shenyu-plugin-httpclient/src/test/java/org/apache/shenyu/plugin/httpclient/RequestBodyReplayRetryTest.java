@@ -27,13 +27,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -53,8 +59,10 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -161,12 +169,92 @@ public class RequestBodyReplayRetryTest {
                 "Subsequent calls should return the same cached Flux instance");
     }
 
+    @Test
+    void testBodyReplayedOnFailoverRetry() {
+        RecordingPlugin plugin = new RecordingPlugin(1);
+        ServerWebExchange exchange = createExchangeWithSingleUseBody("{\"name\":\"hello\"}");
+        // switch to failover strategy: DefaultRetryStrategy.resend picks a new upstream
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-1");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "roundRobin");
+
+        Upstream standby = Upstream.builder().url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId(anyString())).thenReturn(Collections.singletonList(standby));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
+             MockedStatic<LoadbalancerUtils> lbMock = org.mockito.Mockito.mockStatic(LoadbalancerUtils.class);
+             MockedStatic<RequestUrlUtils> urlMock = org.mockito.Mockito.mockStatic(RequestUrlUtils.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            lbMock.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any())).thenReturn(standby);
+            urlMock.when(() -> RequestUrlUtils.buildRequestUri(any(), anyString())).thenReturn(URI.create("http://localhost:8081/test"));
+
+            StepVerifier.create(plugin.execute(exchange, chain))
+                    .expectComplete()
+                    .verify(Duration.ofSeconds(10));
+        }
+
+        assertEquals(2, plugin.getCapturedBodies().size(), "Should have 2 attempts (1 fail + 1 failover success)");
+        assertEquals("{\"name\":\"hello\"}", plugin.getCapturedBodies().get(0), "First attempt should receive full body");
+        assertEquals("{\"name\":\"hello\"}", plugin.getCapturedBodies().get(1), "Failover attempt should receive replayed body");
+        assertNotNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
+                "Body should be cached so failover resend can replay it");
+    }
+
+    @Test
+    void testOversizeBodyDisablesRetryAndStreamsOnce() {
+        // failFirstN=1 → first attempt fails; retry disabled so it stays failed after 1 attempt
+        RecordingPlugin plugin = new RecordingPlugin(1, 4);
+        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
+
+        StepVerifier.create(plugin.execute(exchange, chain))
+                .expectError()
+                .verify(Duration.ofSeconds(10));
+
+        assertEquals(1, plugin.getCapturedBodies().size(), "Oversize body must not be retried");
+        assertEquals("test-body", plugin.getCapturedBodies().get(0),
+                "The single attempt should receive the full body via streaming");
+        assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
+                "Oversize body must not be cached on the heap");
+    }
+
+    @Test
+    void testChunkedBodyDisablesRetryAndStreamsOnce() {
+        // failFirstN=1 → first attempt fails; retry disabled so it stays failed after 1 attempt
+        RecordingPlugin plugin = new RecordingPlugin(1, Constants.BYTES_PER_MB);
+        ServerWebExchange exchange = createChunkedExchangeWithSingleUseBody("test-body");
+
+        StepVerifier.create(plugin.execute(exchange, chain))
+                .expectError()
+                .verify(Duration.ofSeconds(10));
+
+        assertEquals(1, plugin.getCapturedBodies().size(), "Chunked body must not be retried");
+        assertEquals("test-body", plugin.getCapturedBodies().get(0),
+                "The single attempt should receive the full body via streaming");
+        assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
+                "Chunked body must not be cached on the heap");
+    }
+
     private ServerWebExchange createExchangeWithSingleUseBody(final String body) {
+        return createExchangeWithSingleUseBody(body, true);
+    }
+
+    /**
+     * Builds a single-use-body exchange.
+     *
+     * @param body the request body
+     * @param withContentLength whether to set Content-Length (false simulates chunked/unknown-size)
+     */
+    private ServerWebExchange createExchangeWithSingleUseBody(final String body, final boolean withContentLength) {
         final AtomicBoolean consumed = new AtomicBoolean(false);
-        final MockServerHttpRequest mockRequest = MockServerHttpRequest
+        final byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+        MockServerHttpRequest.BodyBuilder builder = MockServerHttpRequest
                 .post("/test")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(body);
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        if (withContentLength) {
+            builder.header(HttpHeaders.CONTENT_LENGTH, String.valueOf(bodyBytes.length));
+        }
+        final MockServerHttpRequest mockRequest = builder.body(body);
         ServerWebExchange exchange = MockServerWebExchange.from(mockRequest);
         ServerHttpRequest singleUseRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
             @Override
@@ -185,6 +273,10 @@ public class RequestBodyReplayRetryTest {
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 30000L);
         exchange.getAttributes().put(Constants.HTTP_RETRY, 3);
         return exchange;
+    }
+
+    private ServerWebExchange createChunkedExchangeWithSingleUseBody(final String body) {
+        return createExchangeWithSingleUseBody(body, false);
     }
 
     private String readBody(final Flux<DataBuffer> body) {
@@ -212,6 +304,11 @@ public class RequestBodyReplayRetryTest {
         private final int failFirstN;
 
         RecordingPlugin(final int failFirstN) {
+            this(failFirstN, Constants.BYTES_PER_MB);
+        }
+
+        RecordingPlugin(final int failFirstN, final int maxInMemorySize) {
+            super(maxInMemorySize);
             this.failFirstN = failFirstN;
         }
 

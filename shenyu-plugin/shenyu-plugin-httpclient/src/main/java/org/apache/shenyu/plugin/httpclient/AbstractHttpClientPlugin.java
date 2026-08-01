@@ -61,6 +61,12 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractHttpClientPlugin.class);
 
+    private final int maxInMemorySize;
+
+    protected AbstractHttpClientPlugin(final int maxInMemorySize) {
+        this.maxInMemorySize = maxInMemorySize;
+    }
+
     @Override
     public final Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -72,12 +78,20 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         final Duration duration = Duration.ofMillis(timeout);
-        final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        final int configuredRetryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
-        LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
         final String httpMethod = Objects.nonNull(exchange.getRequest().getMethod())
                 ? exchange.getRequest().getMethod().name() : "UNKNOWN";
-        final Flux<DataBuffer> requestBody = (retryTimes > 0 && isRequestBodyRequired(httpMethod))
+        final boolean bodyReplayEnabled = configuredRetryTimes > 0 && isRequestBodyRequired(httpMethod)
+                && isCacheable(exchange);
+        final int retryTimes = bodyReplayEnabled ? configuredRetryTimes : 0;
+        if (configuredRetryTimes > 0 && retryTimes == 0) {
+            LOG.warn("Retry disabled for {} {} because the request body is unknown-size or exceeds "
+                    + "maxInMemorySize ({} bytes); request will not be retried.",
+                    httpMethod, uri, maxInMemorySize);
+        }
+        LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
+        final Flux<DataBuffer> requestBody = bodyReplayEnabled
                 ? getCachedRequestBody(exchange)
                 : exchange.getRequest().getBody();
         final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
@@ -105,6 +119,17 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                 .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+    }
+
+    /**
+     * Whether the request body is small enough (and size known) to be safely cached for replay.
+     *
+     * @param exchange the server web exchange
+     * @return true if the body may be cached without exceeding {@code maxInMemorySize}
+     */
+    protected boolean isCacheable(final ServerWebExchange exchange) {
+        final long contentLength = exchange.getRequest().getHeaders().getContentLength();
+        return contentLength >= 0 && contentLength <= maxInMemorySize;
     }
 
     /**
