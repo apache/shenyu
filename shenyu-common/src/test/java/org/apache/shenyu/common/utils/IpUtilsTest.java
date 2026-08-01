@@ -28,6 +28,7 @@ import java.net.SocketException;
 import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
@@ -122,5 +123,96 @@ public final class IpUtilsTest {
         networkInterfaceMockedStatic.when((MockedStatic.Verification) NetworkInterface.getNetworkInterfaces())
                 .thenThrow(SocketException.class);
         assertEquals("127.0.0.1", IpUtils.getHost());
+    }
+
+    @Test
+    public void testParseHostPortWithValidIPv4() {
+        String[] result = IpUtils.parseHostPort("192.168.1.1");
+        assertEquals("192.168.1.1", result[0]);
+        assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithValidIPv4AndPort() {
+        String[] result = IpUtils.parseHostPort("192.168.1.1:8080");
+        assertEquals("192.168.1.1", result[0]);
+        assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithHostname() {
+        String[] result = IpUtils.parseHostPort("example.com");
+        assertEquals("example.com", result[0]);
+        assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithHostnameAndPort() {
+        String[] result = IpUtils.parseHostPort("example.com:8080");
+        assertEquals("example.com", result[0]);
+        assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithValidIPv6() {
+        String[] result = IpUtils.parseHostPort("[2001:db8::1]");
+        assertEquals("2001:db8::1", result[0]);
+        assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithValidIPv6AndPort() {
+        String[] result = IpUtils.parseHostPort("[2001:db8::1]:8080");
+        assertEquals("2001:db8::1", result[0]);
+        assertEquals("8080", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithIPv6Loopback() {
+        String[] result = IpUtils.parseHostPort("[::1]");
+        assertEquals("::1", result[0]);
+        assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithIPv6LoopbackAndPort() {
+        String[] result = IpUtils.parseHostPort("[::1]:9090");
+        assertEquals("::1", result[0]);
+        assertEquals("9090", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithInvalidIPv4Octet() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("192.111.111.555"));
+    }
+
+    @Test
+    public void testParseHostPortWithInvalidIPv4OctetAndPort() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("192.111.111.555:8080"));
+    }
+
+    @Test
+    public void testParseHostPortWithTrailingJunkAfterIPv6Bracket() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[2001:db8::1]junk"));
+    }
+
+    @Test
+    public void testParseHostPortWithMissingIPv6Bracket() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[2001:db8::1"));
+    }
+
+    @Test
+    public void testParseHostPortWithHostnameInIPv6Brackets() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[localhost]:8080"));
+    }
+
+    @Test
+    public void testParseHostPortWithEmptyIPv6Brackets() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[]"));
+    }
+
+    @Test
+    public void testParseHostPortWithIPv4InIPv6Brackets() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[192.168.1.1]:8080"));
     }
 }

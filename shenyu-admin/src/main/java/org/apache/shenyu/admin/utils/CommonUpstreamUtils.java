@@ -18,7 +18,9 @@
 package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -282,5 +284,46 @@ public class CommonUpstreamUtils {
      */
     public static String[] parseHostPort(final String upstreamUrl) {
         return IpUtils.parseHostPort(upstreamUrl);
+    }
+
+    /**
+     * Normalize upstream URL to canonical form for consistent storage and query.
+     * IPv6 addresses are always wrapped in brackets: {@code [::1]:8080}.
+     * IPv4/hostname format: {@code 192.168.1.1:8080}.
+     * Default port 80 is always appended if absent.
+     *
+     * @param url raw upstream URL
+     * @return canonical URL string
+     */
+    public static String normalizeUrl(final String url) {
+        String[] parts = parseHostPort(url);
+        return buildUrl(parts[0], Integer.parseInt(parts[1]));
+    }
+
+    /**
+     * Match an existing upstream record by host and port, for backward compatibility
+     * with old records stored in non-normalized URL format.
+     *
+     * @param mapper              the discovery upstream mapper
+     * @param discoveryHandlerId  the discovery handler id
+     * @param normalizedUrl       the URL in canonical format
+     * @return matching DiscoveryUpstreamDO or null if not found
+     */
+    public static DiscoveryUpstreamDO matchByHostAndPort(final DiscoveryUpstreamMapper mapper,
+                                                          final String discoveryHandlerId,
+                                                          final String normalizedUrl) {
+        String[] newParts = parseHostPort(normalizedUrl);
+        List<DiscoveryUpstreamDO> existingList = mapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        for (DiscoveryUpstreamDO existing : existingList) {
+            try {
+                String[] existingParts = parseHostPort(existing.getUpstreamUrl());
+                if (newParts[0].equals(existingParts[0]) && newParts[1].equals(existingParts[1])) {
+                    return existing;
+                }
+            } catch (Exception e) {
+                // skip old records with unparseable URLs
+            }
+        }
+        return null;
     }
 }

@@ -41,6 +41,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -122,12 +123,22 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
+        String normalizedUrl = CommonUpstreamUtils.normalizeUrl(discoveryUpstreamDO.getUpstreamUrl());
+        discoveryUpstreamDO.setUpstreamUrl(normalizedUrl);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {
-            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
+            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(
+                    discoveryUpstreamDO.getDiscoveryHandlerId(), normalizedUrl);
+            if (Objects.isNull(existingRecord)) {
+                existingRecord = CommonUpstreamUtils.matchByHostAndPort(discoveryUpstreamMapper,
+                        discoveryUpstreamDO.getDiscoveryHandlerId(), normalizedUrl);
+            }
             if (Objects.isNull(existingRecord)) {
                 discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            } else if (!normalizedUrl.equals(existingRecord.getUpstreamUrl())) {
+                existingRecord.setUpstreamUrl(normalizedUrl);
+                discoveryUpstreamMapper.updateSelective(existingRecord);
             }
         }
     }
@@ -237,7 +248,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void deleteBySelectorIdAndUrl(final String selectorId, final String url) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), url);
+            discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), CommonUpstreamUtils.normalizeUrl(url));
         }
     }
 
@@ -246,7 +257,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void changeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
+            discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), CommonUpstreamUtils.normalizeUrl(url), enabled ? 0 : 1);
         }
     }
 

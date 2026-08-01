@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,6 +51,8 @@ public final class IpUtils {
      * ip pattern.
      */
     private static final Pattern IP_PATTERN = Pattern.compile("^((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)($|(?!\\.$)\\.)){4}$");
+
+    private static final Pattern DIGITS_AND_DOTS = Pattern.compile("^[\\d.]+$");
 
     /**
      * net card pattern.
@@ -429,8 +432,12 @@ public final class IpUtils {
                 throw new IllegalArgumentException("Invalid upstream URL, missing ']': " + upstreamUrl);
             }
             String host = upstreamUrl.substring(1, closingBracket);
+            validateIPv6Address(host);
             String port = "80";
-            if (closingBracket < upstreamUrl.length() - 1 && upstreamUrl.charAt(closingBracket + 1) == ':') {
+            if (closingBracket < upstreamUrl.length() - 1) {
+                if (upstreamUrl.charAt(closingBracket + 1) != ':') {
+                    throw new IllegalArgumentException("Invalid upstream URL, unexpected content after ']': " + upstreamUrl);
+                }
                 String portPart = upstreamUrl.substring(closingBracket + 2);
                 port = portPart.isEmpty() ? "80" : portPart;
             }
@@ -438,10 +445,36 @@ public final class IpUtils {
         }
         int lastColon = upstreamUrl.lastIndexOf(':');
         if (lastColon == -1) {
+            validateHostIfLooksLikeIP(upstreamUrl);
             return new String[]{upstreamUrl, "80"};
         }
+        String host = upstreamUrl.substring(0, lastColon);
         String port = upstreamUrl.substring(lastColon + 1);
-        return new String[]{upstreamUrl.substring(0, lastColon), port.isEmpty() ? "80" : port};
+        validateHostIfLooksLikeIP(host);
+        return new String[]{host, port.isEmpty() ? "80" : port};
+    }
+
+    private static void validateIPv6Address(final String host) {
+        // Quick pre-check: IPv6 addresses must contain colons, to avoid DNS lookups
+        if (host.indexOf(':') < 0) {
+            throw new IllegalArgumentException("Invalid IPv6 address (no colons): " + host);
+        }
+        try {
+            InetAddress addr = InetAddress.getByName(host);
+            if (!(addr instanceof Inet6Address)) {
+                throw new IllegalArgumentException("Invalid IPv6 address: " + host);
+            }
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Invalid IPv6 address: " + host, e);
+        }
+    }
+
+    private static void validateHostIfLooksLikeIP(final String host) {
+        if (Objects.nonNull(host) && host.indexOf('.') >= 0 && DIGITS_AND_DOTS.matcher(host).matches()) {
+            if (!isCompleteHost(host)) {
+                throw new IllegalArgumentException("Invalid IPv4 address: " + host);
+            }
+        }
     }
 
     /**
