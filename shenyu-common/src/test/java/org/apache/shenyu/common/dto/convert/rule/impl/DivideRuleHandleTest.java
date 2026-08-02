@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ public class DivideRuleHandleTest {
         
         handle.setLoadBalance(LoadBalanceEnum.HASH.getName());
         handle.setRetryStrategy(RetryEnum.FAILOVER.getName());
+        handle.setRetryBackOffSpec(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName());
         handle.setRetry(1);
         handle.setTimeout(1000L);
         handle.setHeaderMaxSize(100L);
@@ -44,6 +46,7 @@ public class DivideRuleHandleTest {
         
         assertThat(handle.getLoadBalance(), is(LoadBalanceEnum.HASH.getName()));
         assertThat(handle.getRetryStrategy(), is(RetryEnum.FAILOVER.getName()));
+        assertThat(handle.getRetryBackOffSpec(), is(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName()));
         assertThat(handle.getRetry(), is(1));
         assertThat(handle.getTimeout(), is(1000L));
         assertThat(handle.getHeaderMaxSize(), is(100L));

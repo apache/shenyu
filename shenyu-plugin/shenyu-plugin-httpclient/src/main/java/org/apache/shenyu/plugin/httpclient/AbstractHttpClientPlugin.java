@@ -90,9 +90,6 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             case FIXED_BACKOFF:
                 strategy = new FixedRetryStrategy<>(this);
                 break;
-            case CUSTOM_BACKOFF:
-                strategy = new CustomRetryStrategy<>(this);
-                break;
             default:
                 strategy = new DefaultRetryStrategy<>(this);
         }
