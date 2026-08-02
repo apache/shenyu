@@ -91,6 +91,8 @@ public final class DividePluginTest {
 
     private DiscoverySyncData discoverySyncData;
 
+    private DivideUpstreamDataHandler divideUpstreamDataHandler;
+
     private ServerWebExchange exchange;
 
     private ServerWebExchange postExchange;
@@ -167,6 +169,7 @@ public final class DividePluginTest {
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
+        loadBalancerFactoryMockedStatic.close();
     }
 
     /**
@@ -186,6 +189,8 @@ public final class DividePluginTest {
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         assertEquals(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
@@ -197,6 +202,8 @@ public final class DividePluginTest {
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         assertEquals(HttpRetryBackoffSpecEnum.getDefault(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
@@ -282,7 +289,7 @@ public final class DividePluginTest {
         when(discoverySyncData.getUpstreamDataList()).thenReturn(divideUpstreamList);
         when(discoverySyncData.getSelectorId()).thenReturn("mock");
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
-        DivideUpstreamDataHandler divideUpstreamDataHandler = new DivideUpstreamDataHandler();
+        divideUpstreamDataHandler = new DivideUpstreamDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
         dividePluginDataHandler.handlerSelector(selectorData);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
