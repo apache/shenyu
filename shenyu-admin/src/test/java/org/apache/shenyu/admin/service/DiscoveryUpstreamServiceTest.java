@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -170,6 +171,30 @@ public final class DiscoveryUpstreamServiceTest {
         assertNotNull(configImportResult1);
         Assertions.assertEquals(0, configImportResult1.getSuccessCount());
 
+    }
+
+    @Test
+    public void testImportDataWithNamespaceAndContext() {
+        String namespace = "ns1";
+        String oldHandlerId = "old_handler_id";
+        String newHandlerId = "new_handler_id";
+
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getDiscoveryHandlerIdMapping().put(oldHandlerId, newHandlerId);
+
+        List<DiscoveryUpstreamDO> existingList = Collections.singletonList(buildDiscoveryUpstreamDO("", newHandlerId, "url1"));
+        when(discoveryUpstreamMapper.selectByNamespaceId(namespace)).thenReturn(existingList);
+        given(this.discoveryUpstreamMapper.insert(any())).willReturn(1);
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", oldHandlerId, "url2"));
+        ConfigImportResult successResult = this.discoveryUpstreamService.importData(namespace, upstreamDTOList, context);
+        assertNotNull(successResult);
+        Assertions.assertEquals(1, successResult.getSuccessCount());
+
+        final List<DiscoveryUpstreamDTO> duplicateDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", oldHandlerId, "url1"));
+        ConfigImportResult duplicateResult = this.discoveryUpstreamService.importData(namespace, duplicateDTOList, context);
+        assertNotNull(duplicateResult);
+        Assertions.assertEquals(0, duplicateResult.getSuccessCount());
     }
 
     @Test

@@ -290,6 +290,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<DiscoveryUpstreamDTO> discoveryUpstreamList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
@@ -317,7 +318,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             }
             discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
-            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.get(discoveryUpstreamDTO.getDiscoveryHandlerId()));
+            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.getOrDefault(discoveryUpstreamDTO.getDiscoveryHandlerId(), discoveryUpstreamDTO.getDiscoveryHandlerId()));
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             successCount++;
