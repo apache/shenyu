@@ -17,34 +17,14 @@
 
 package org.apache.shenyu.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Objects;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for AlarmContent.
  */
 public class AlarmContentTest {
-
-    @Test
-    public void testTitleHasNotBlankAnnotation() throws NoSuchFieldException {
-        Field titleField = AlarmContent.class.getDeclaredField("title");
-        NotBlank annotation = titleField.getAnnotation(NotBlank.class);
-        assertNotNull(annotation, "title field should have @NotBlank annotation");
-    }
-
-    @Test
-    public void testContentHasNotBlankAnnotation() throws NoSuchFieldException {
-        Field contentField = AlarmContent.class.getDeclaredField("content");
-        NotBlank annotation = contentField.getAnnotation(NotBlank.class);
-        assertNotNull(annotation, "content field should have @NotBlank annotation");
-    }
 
     @Test
     public void testBuilderAndGetterSetter() {
@@ -65,14 +45,5 @@ public class AlarmContentTest {
         assertTrue("new title".equals(alarmContent.getTitle()));
         assertTrue("new content".equals(alarmContent.getContent()));
         assertTrue(alarmContent.getLevel() == 2);
-    }
-
-    @Test
-    public void testNonNullFieldsNotAnnotated() {
-        Field[] fields = AlarmContent.class.getDeclaredFields();
-        long notBlankCount = Arrays.stream(fields)
-                .filter(f -> Objects.nonNull(f.getAnnotation(NotBlank.class)))
-                .count();
-        assertTrue(notBlankCount == 2, "Only title and content should have @NotBlank");
     }
 }

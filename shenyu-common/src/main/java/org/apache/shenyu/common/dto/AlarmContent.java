@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.Map;
 
@@ -34,7 +33,6 @@ public final class AlarmContent {
     /**
      * alert title.
      */
-    @NotBlank
     private String title;
     
     /**
@@ -53,7 +51,6 @@ public final class AlarmContent {
     /**
      * The actual content of the alarm notification.
      */
-    @NotBlank
     private String content;
 
     /**
