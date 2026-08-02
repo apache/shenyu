@@ -426,6 +426,9 @@ public final class IpUtils {
      * @return string array with [host, port], port defaults to "80" if not present
      */
     public static String[] parseHostPort(final String upstreamUrl) {
+        if (StringUtils.isBlank(upstreamUrl)) {
+            throw new IllegalArgumentException("Invalid upstream URL, null or blank");
+        }
         if (upstreamUrl.startsWith("[")) {
             int closingBracket = upstreamUrl.lastIndexOf(']');
             if (closingBracket < 0) {

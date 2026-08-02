@@ -296,6 +296,9 @@ public class CommonUpstreamUtils {
      * @return canonical URL string
      */
     public static String normalizeUrl(final String url) {
+        if (StringUtils.isBlank(url)) {
+            throw new IllegalArgumentException("Invalid upstream URL, null or blank");
+        }
         String[] parts = parseHostPort(url);
         return buildUrl(parts[0], Integer.parseInt(parts[1]));
     }
