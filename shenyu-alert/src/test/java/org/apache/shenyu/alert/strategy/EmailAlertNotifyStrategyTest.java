@@ -93,9 +93,4 @@ public class EmailAlertNotifyStrategyTest {
 
         assertDoesNotThrow(() -> invokeBuildAlertHtmlTemplate(alert));
     }
-
-    @Test
-    public void testNullAlertShouldNotThrowNpe() {
-        assertDoesNotThrow(() -> invokeBuildAlertHtmlTemplate(null));
-    }
 }

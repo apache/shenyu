@@ -77,9 +77,9 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
         context.setVariable("nameTitle", "ShenYu Alarm");
         context.setVariable("nameTriggerTime", "Alarm Time");
         context.setVariable("nameContent", "Alarm Content");
-        context.setVariable("content", Objects.isNull(alert) ? "" : alert.getContent());
+        context.setVariable("content", alert.getContent());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date alertTime = Objects.isNull(alert) || Objects.isNull(alert.getDateCreated()) ? new Date() : alert.getDateCreated();
+        Date alertTime = Objects.isNull(alert.getDateCreated()) ? new Date() : alert.getDateCreated();
         String alarmTime = simpleDateFormat.format(alertTime);
         context.setVariable("lastTriggerTime", alarmTime);
         return templateEngine.process("mailAlarm", context);
