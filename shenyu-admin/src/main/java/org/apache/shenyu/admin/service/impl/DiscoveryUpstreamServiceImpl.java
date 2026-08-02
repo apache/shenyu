@@ -248,7 +248,15 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void deleteBySelectorIdAndUrl(final String selectorId, final String url) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), CommonUpstreamUtils.normalizeUrl(url));
+            String normalizedUrl = CommonUpstreamUtils.normalizeUrl(url);
+            int effect = discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), normalizedUrl);
+            if (effect == 0) {
+                DiscoveryUpstreamDO oldRecord = CommonUpstreamUtils.matchByHostAndPort(
+                        discoveryUpstreamMapper, discoveryHandlerDO.getId(), normalizedUrl);
+                if (Objects.nonNull(oldRecord)) {
+                    discoveryUpstreamMapper.deleteByIds(Collections.singletonList(oldRecord.getId()));
+                }
+            }
         }
     }
 
@@ -257,7 +265,17 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void changeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), CommonUpstreamUtils.normalizeUrl(url), enabled ? 0 : 1);
+            String normalizedUrl = CommonUpstreamUtils.normalizeUrl(url);
+            int status = enabled ? 0 : 1;
+            int effect = discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), normalizedUrl, status);
+            if (effect == 0) {
+                DiscoveryUpstreamDO oldRecord = CommonUpstreamUtils.matchByHostAndPort(
+                        discoveryUpstreamMapper, discoveryHandlerDO.getId(), normalizedUrl);
+                if (Objects.nonNull(oldRecord)) {
+                    oldRecord.setUpstreamStatus(status);
+                    discoveryUpstreamMapper.updateSelective(oldRecord);
+                }
+            }
         }
     }
 

@@ -435,4 +435,97 @@ public final class CommonUpstreamUtilsTest {
         String url = CommonUpstreamUtils.buildUrl("192.168.1.1", 8080);
         Assert.assertEquals("192.168.1.1:8080", url);
     }
+
+    // ---------- normalizeUrl round-trip tests ----------
+
+    @Test
+    public void testNormalizeUrlHostnameWithoutPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("example.com");
+        Assert.assertEquals("example.com:80", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("example.com", parts[0]);
+        Assert.assertEquals("80", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlHostnameWithPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("example.com:8080");
+        Assert.assertEquals("example.com:8080", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("example.com", parts[0]);
+        Assert.assertEquals("8080", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv4WithoutPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("192.168.1.1");
+        Assert.assertEquals("192.168.1.1:80", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("192.168.1.1", parts[0]);
+        Assert.assertEquals("80", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv4WithPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("192.168.1.1:8080");
+        Assert.assertEquals("192.168.1.1:8080", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("192.168.1.1", parts[0]);
+        Assert.assertEquals("8080", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv6WithoutPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("[2001:db8::1]");
+        Assert.assertEquals("[2001:db8::1]:80", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("2001:db8::1", parts[0]);
+        Assert.assertEquals("80", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv6WithPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("[2001:db8::1]:8080");
+        Assert.assertEquals("[2001:db8::1]:8080", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("2001:db8::1", parts[0]);
+        Assert.assertEquals("8080", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv6LoopbackRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("[::1]");
+        Assert.assertEquals("[::1]:80", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("::1", parts[0]);
+        Assert.assertEquals("80", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv6WithZoneIdAndPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("[fe80::1%lo0]:8080");
+        Assert.assertEquals("[fe80::1%lo0]:8080", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("fe80::1%lo0", parts[0]);
+        Assert.assertEquals("8080", parts[1]);
+    }
+
+    @Test
+    public void testNormalizeUrlIpv6WithZoneIdWithoutPortRoundTrip() {
+        String normalized = CommonUpstreamUtils.normalizeUrl("[fe80::1%lo0]");
+        Assert.assertEquals("[fe80::1%lo0]:80", normalized);
+        String[] parts = CommonUpstreamUtils.parseHostPort(normalized);
+        Assert.assertEquals("fe80::1%lo0", parts[0]);
+        Assert.assertEquals("80", parts[1]);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNormalizeUrlWithNonNumericPortThrows() {
+        CommonUpstreamUtils.normalizeUrl("example.com:abc");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNormalizeUrlWithPortOutOfRangeThrows() {
+        CommonUpstreamUtils.normalizeUrl("example.com:99999");
+    }
 }

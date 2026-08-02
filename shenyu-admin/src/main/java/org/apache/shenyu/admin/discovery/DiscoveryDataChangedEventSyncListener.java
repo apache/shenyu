@@ -167,6 +167,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
             } catch (Exception e) {
                 LOG.error("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream failed: {}", discoveryUpstreamDO.getUpstreamUrl(), e);
+                throw e;
             }
         });
     }
@@ -191,6 +192,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 LOG.info("[DiscoveryDataChangedEventSyncListener] DELETE Upstream {}, effect = {}", normalizedUrl, effect);
             } catch (Exception e) {
                 LOG.error("[DiscoveryDataChangedEventSyncListener] DELETE Upstream failed: {}", up.getUrl(), e);
+                throw e;
             }
         });
     }

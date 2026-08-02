@@ -441,6 +441,7 @@ public final class IpUtils {
                 String portPart = upstreamUrl.substring(closingBracket + 2);
                 port = portPart.isEmpty() ? "80" : portPart;
             }
+            validateNumericPort(port, upstreamUrl);
             return new String[]{host, port};
         }
         int lastColon = upstreamUrl.lastIndexOf(':');
@@ -450,8 +451,10 @@ public final class IpUtils {
         }
         String host = upstreamUrl.substring(0, lastColon);
         String port = upstreamUrl.substring(lastColon + 1);
+        port = port.isEmpty() ? "80" : port;
         validateHostIfLooksLikeIP(host);
-        return new String[]{host, port.isEmpty() ? "80" : port};
+        validateNumericPort(port, upstreamUrl);
+        return new String[]{host, port};
     }
 
     private static void validateIPv6Address(final String host) {
@@ -466,6 +469,17 @@ public final class IpUtils {
             }
         } catch (UnknownHostException e) {
             throw new IllegalArgumentException("Invalid IPv6 address: " + host, e);
+        }
+    }
+
+    private static void validateNumericPort(final String port, final String upstreamUrl) {
+        try {
+            int portNum = Integer.parseInt(port);
+            if (portNum < 1 || portNum > 65535) {
+                throw new IllegalArgumentException("Invalid upstream URL, port out of range (1-65535): " + upstreamUrl);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid upstream URL, non-numeric port: " + upstreamUrl, e);
         }
     }
 

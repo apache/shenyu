@@ -36,6 +36,8 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Properties;
@@ -48,6 +50,8 @@ public enum DiscoveryTransfer {
      * The constant INSTANCE.
      */
     INSTANCE;
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryTransfer.class);
 
     /**
      * mapToDo.
@@ -78,14 +82,19 @@ public enum DiscoveryTransfer {
     public CommonUpstream mapToCommonUpstream(DiscoveryUpstreamData discoveryUpstreamData) {
         return Optional.ofNullable(discoveryUpstreamData).map(data -> {
             String url = data.getUrl();
-            CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(),
-                    CommonUpstreamUtils.parseHostPort(url)[0], url, false, data.getDateCreated().getTime());
-            Properties properties = Optional.ofNullable(data.getProps())
-                    .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
-                    .orElse(new Properties());
-            commonUpstream
-                    .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
-            return commonUpstream;
+            try {
+                CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(),
+                        CommonUpstreamUtils.parseHostPort(url)[0], url, false, data.getDateCreated().getTime());
+                Properties properties = Optional.ofNullable(data.getProps())
+                        .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                        .orElse(new Properties());
+                commonUpstream
+                        .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+                return commonUpstream;
+            } catch (IllegalArgumentException e) {
+                LOG.warn("Skip malformed upstream URL: {}", url, e);
+                return null;
+            }
         }).orElse(null);
     }
 
@@ -350,26 +359,26 @@ public enum DiscoveryTransfer {
     public DiscoveryUpstreamData mapToDiscoveryUpstreamData(CommonUpstream commonUpstream) {
         String upstreamUrl = commonUpstream.getUpstreamUrl();
         if (upstreamUrl == null) {
-            throw new IllegalArgumentException("Upstream URL must not be null");
+            return null;
         }
-        String[] parts = CommonUpstreamUtils.parseHostPort(upstreamUrl);
-        String host = parts[0];
-        int port;
         try {
-            port = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid port in upstream URL: " + upstreamUrl, e);
+            String[] parts = CommonUpstreamUtils.parseHostPort(upstreamUrl);
+            String host = parts[0];
+            int port = Integer.parseInt(parts[1]);
+            DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
+                    host,
+                    port,
+                    commonUpstream.getProtocol(),
+                    commonUpstream.getNamespaceId());
+            Properties properties = Optional.ofNullable(discoveryUpstreamDTO.getProps())
+                    .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
+                    .orElse(new Properties());
+            properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
+            discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
+            return mapToData(discoveryUpstreamDTO);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Skip malformed upstream URL in mapToDiscoveryUpstreamData: {}", upstreamUrl, e);
+            return null;
         }
-        DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(
-                host,
-                port,
-                commonUpstream.getProtocol(),
-                commonUpstream.getNamespaceId());
-        Properties properties = Optional.ofNullable(discoveryUpstreamDTO.getProps())
-                .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
-                .orElse(new Properties());
-        properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
-        discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
-        return mapToData(discoveryUpstreamDTO);
     }
 }
