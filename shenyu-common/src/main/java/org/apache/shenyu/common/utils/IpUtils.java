@@ -466,7 +466,11 @@ public final class IpUtils {
             throw new IllegalArgumentException("Invalid IPv6 address (no colons): " + host);
         }
         try {
-            InetAddress addr = InetAddress.getByName(host);
+            // Strip zone ID (e.g., %lo0, %eth0) before validation — zone IDs are
+            // platform-specific interface names and cause UnknownHostException on
+            // mismatched platforms.
+            String hostWithoutZone = host.contains("%") ? host.substring(0, host.indexOf('%')) : host;
+            InetAddress addr = InetAddress.getByName(hostWithoutZone);
             if (!(addr instanceof Inet6Address)) {
                 throw new IllegalArgumentException("Invalid IPv6 address: " + host);
             }

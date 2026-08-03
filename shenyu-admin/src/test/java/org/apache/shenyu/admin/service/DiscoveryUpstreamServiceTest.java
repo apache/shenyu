@@ -197,6 +197,7 @@ public final class DiscoveryUpstreamServiceTest {
 
     private void testNativeUpdate() {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("123");
+        discoveryUpstreamDTO.setUrl("192.168.1.1:8080");
         discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
     }
 

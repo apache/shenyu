@@ -215,4 +215,28 @@ public final class IpUtilsTest {
     public void testParseHostPortWithIPv4InIPv6Brackets() {
         assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[192.168.1.1]:8080"));
     }
+
+    @Test
+    public void testParseHostPortWithNonNumericPortInIPv6() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("[::1]:abc"));
+    }
+
+    @Test
+    public void testParseHostPortWithNonNumericPortInHostname() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("example.com:abc"));
+    }
+
+    @Test
+    public void testParseHostPortWithEmptyPortInIPv6() {
+        String[] result = IpUtils.parseHostPort("[::1]:");
+        assertEquals("::1", result[0]);
+        assertEquals("80", result[1]);
+    }
+
+    @Test
+    public void testParseHostPortWithEmptyPortInHostname() {
+        String[] result = IpUtils.parseHostPort("example.com:");
+        assertEquals("example.com", result[0]);
+        assertEquals("80", result[1]);
+    }
 }
