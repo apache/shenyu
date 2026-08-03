@@ -115,10 +115,22 @@ public final class WafPluginTest {
     public void testWafPluginReject() {
         ruleData.setId("waf");
         ruleData.setSelectorId("waf");
-        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"0\"}", WafHandle.class);
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"403\"}", WafHandle.class);
         WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
+        assertEquals(403, exchange.getResponse().getRawStatusCode());
+    }
+
+    @Test
+    public void testWafPluginRejectWithCustomStatusCode() {
+        ruleData.setId("waf");
+        ruleData.setSelectorId("waf");
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"404\"}", WafHandle.class);
+        WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        assertEquals(404, exchange.getResponse().getRawStatusCode());
     }
 
     @Test
