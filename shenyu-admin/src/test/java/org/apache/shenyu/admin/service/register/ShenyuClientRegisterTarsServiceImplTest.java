@@ -160,6 +160,32 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         assertTrue(resultList.get(1).isStatus());
     }
 
+    /**
+     * An offline upstream coming back online should be written back into the selector handle as well,
+     * and only the re-registered one should be touched.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusRecovered() {
+        shenyuClientRegisterTarsService = spy(shenyuClientRegisterTarsService);
+
+        final String returnStr = "[{upstreamUrl:'localhost:8090',weight:1,warmup:10,status:false,timestamp:1637826588267,\"gray\":false},"
+                + "{upstreamUrl:'localhost:8091',weight:2,warmup:10,status:false,timestamp:1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.TARS.getName())
+                .host("localhost").port(8090).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
+
+        List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
+        assertEquals(2, resultList.size());
+        assertTrue(resultList.get(0).isStatus());
+        assertFalse(resultList.get(1).isStatus());
+    }
+
     @Test
     public void testBuildTarsUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();

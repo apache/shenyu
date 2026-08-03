@@ -164,6 +164,33 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
         assertTrue(resultList.get(1).isStatus());
     }
 
+    /**
+     * An offline upstream coming back online should be written back into the selector handle as well,
+     * and only the re-registered one should be touched.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusRecovered() {
+        shenyuClientRegisterDubboService = spy(shenyuClientRegisterDubboService);
+
+        final String returnStr = "[{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:10,weight:50,status:false,timestamp:1637826588267,\"gray\":false},"
+                + "{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:false,timestamp:1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1")
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .host(LOCALHOST).port(8090).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterDubboService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterDubboService.buildHandle(list, selectorDO);
+
+        List<DubboUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, DubboUpstream.class);
+        assertEquals(2, resultList.size());
+        assertTrue(resultList.get(0).isStatus());
+        assertFalse(resultList.get(1).isStatus());
+    }
+
     @Test
     public void testBuildDivideUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();

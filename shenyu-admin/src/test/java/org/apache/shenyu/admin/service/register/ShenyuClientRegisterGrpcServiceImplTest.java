@@ -159,6 +159,32 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         assertTrue(resultList.get(1).isStatus());
     }
 
+    /**
+     * An offline upstream coming back online should be written back into the selector handle as well,
+     * and only the re-registered one should be touched.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusRecovered() {
+        shenyuClientRegisterGrpcService = spy(shenyuClientRegisterGrpcService);
+
+        final String returnStr = "[{upstreamUrl='localhost:8090',weight=1,status=false,timestamp=1637826588267,\"gray\":false},"
+                + "{upstreamUrl='localhost:8091',weight=2,status=false,timestamp=1637826588267,\"gray\":false}]";
+
+        List<URIRegisterDTO> list = new ArrayList<>();
+        list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName())
+                .host("localhost").port(8090).build());
+        SelectorDO selectorDO = mock(SelectorDO.class);
+        when(selectorDO.getHandle()).thenReturn(returnStr);
+        doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
+        String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
+
+        List<GrpcUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
+        assertEquals(2, resultList.size());
+        assertTrue(resultList.get(0).isStatus());
+        assertFalse(resultList.get(1).isStatus());
+    }
+
     @Test
     public void testBuildGrpcUpstreamList() {
         List<URIRegisterDTO> list = new ArrayList<>();
