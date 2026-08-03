@@ -36,6 +36,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -61,6 +62,9 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     private static final long PULL_MIN_INTERVAL_TIME = 30 * 1000;
 
     private static final long DOC_LOCK_EXPIRED_TIME = 60 * 1000;
+
+    @Value("${shenyu.swagger.max-body-size:10485760}")
+    private long maxSwaggerBodySize;
 
     private final Interner<Object> interner = Interners.newWeakInterner();
 
@@ -102,7 +106,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
             if (response.code() != HttpStatus.SC_OK) {
                 throw new IOException(response.toString());
             }
-            final String body = response.body().string();
+            final String body = HttpUtils.readLimitedResponseBody(response.body(), maxSwaggerBodySize);
             docManager.addDocInfo(
                 instance,
                 body,

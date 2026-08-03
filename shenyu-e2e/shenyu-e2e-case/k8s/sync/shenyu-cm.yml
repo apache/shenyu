@@ -89,6 +89,7 @@ data:
         object-class: person
         login-field: cn
       jwt:
+        secret-key: shenyu-e2e-jwt-secret-key-2024
         expired-seconds: 86400000
       shiro:
         white-list:
@@ -480,6 +481,7 @@ data:
           enabled: true
           messageMaxSize: 10240
           allowOrigins: ws://localhost:9095;ws://localhost:9195;
+          token: shenyu-sync-token
 
   application-admin-sync-http.yml: |
     shenyu:
@@ -521,6 +523,7 @@ data:
       sync:
         websocket:
           urls: ws://shenyu-admin:9095/websocket
+          token: shenyu-sync-token
           allowOrigin: ws://localhost:9195
 
   application-bootstrap-sync-http.yml: |
