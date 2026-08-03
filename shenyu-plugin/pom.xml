@@ -51,6 +51,7 @@
         <module>shenyu-plugin-fault-tolerance</module>
         <module>shenyu-plugin-ai</module>
         <module>shenyu-plugin-mcp-server</module>
+        <module>shenyu-plugin-record</module>
     </modules>
 
     <dependencies>

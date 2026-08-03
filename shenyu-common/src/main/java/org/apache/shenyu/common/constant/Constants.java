@@ -1073,6 +1073,32 @@ public interface Constants {
      */
     String GB = "GB";
 
+
+    /**
+     * The path that upload record to admin.
+     */
+    String RECORD_UPLOAD_PATH = "/record/upload-record";
+
+    /**
+     * X-Record-CRC32.
+     */
+    String X_RECORD_CRC32 = "X-Record-CRC32";
+
+    /**
+     * X-Record-Storage-Path.
+     */
+    String X_RECORD_STORAGE_PATH = "X-Record-Storage-Path";
+
+    /**
+     * X-Record-Task-Id.
+     */
+    String X_RECORD_TASK_ID = "X-Record-Task-Id";
+
+    /**
+     * X-Shenyu-Replay.
+     */
+    String X_SHENYU_REPLAY = "X-Shenyu-Replay";
+
     /**
      * String q.
      */
