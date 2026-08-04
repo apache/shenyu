@@ -36,6 +36,20 @@ import java.util.Objects;
  * the spi interface or the rule handler. Subclasses only declare the cipher
  * transformation and the secret-key algorithm name; everything else (key parsing,
  * provider registration, base64 and utf-8 wiring) lives here.
+ *
+ * <p><b>Security note on IV reuse:</b> CBC mode requires a unique (key, IV) pair
+ * per message. Because the IV is fixed in the rule configuration (one
+ * {@code base64(secret):base64(iv)} pair per rule), reusing it across messages
+ * leaks first-block plaintext equality and opens chosen-plaintext attack paths.
+ * Operators MUST ensure a unique IV per deployment or rule. The
+ * {@code base64(iv)} portion of the key should be regenerated when rotating
+ * rules or deploying across environments. A future enhancement could add a
+ * random-IV-per-message variant that prepends the IV to the ciphertext.
+ *
+ * <p>Note: the key format here ({@code base64(secret):base64(iv)}) differs from
+ * {@link org.apache.shenyu.common.utils.AesUtils} which accepts a raw UTF-8
+ * string for both secret and iv. Operators using both should not interchange
+ * secrets between the two without re-encoding.
  */
 abstract class AbstractCbcCryptorStrategy implements CryptorStrategy {
 
