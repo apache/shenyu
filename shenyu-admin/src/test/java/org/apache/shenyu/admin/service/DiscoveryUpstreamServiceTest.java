@@ -198,6 +198,28 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testImportDataWithNamespaceUnmappedHandlerId() {
+        String namespace = "ns1";
+        String unmappedHandlerId = "unmapped_handler_id";
+
+        ConfigsImportContext context = new ConfigsImportContext();
+
+        List<DiscoveryUpstreamDO> existingList = Collections.singletonList(buildDiscoveryUpstreamDO("", unmappedHandlerId, "url1"));
+        when(discoveryUpstreamMapper.selectByNamespaceId(namespace)).thenReturn(existingList);
+        given(this.discoveryUpstreamMapper.insert(any())).willReturn(1);
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", unmappedHandlerId, "url2"));
+        ConfigImportResult successResult = this.discoveryUpstreamService.importData(namespace, upstreamDTOList, context);
+        assertNotNull(successResult);
+        Assertions.assertEquals(1, successResult.getSuccessCount());
+
+        final List<DiscoveryUpstreamDTO> duplicateDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", unmappedHandlerId, "url1"));
+        ConfigImportResult duplicateResult = this.discoveryUpstreamService.importData(namespace, duplicateDTOList, context);
+        assertNotNull(duplicateResult);
+        Assertions.assertEquals(0, duplicateResult.getSuccessCount());
+    }
+
+    @Test
     public void testUpdateBatch() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
