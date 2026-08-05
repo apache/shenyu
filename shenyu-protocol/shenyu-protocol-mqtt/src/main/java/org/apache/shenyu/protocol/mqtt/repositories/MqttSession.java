@@ -17,8 +17,15 @@
 
 package org.apache.shenyu.protocol.mqtt.repositories;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * MQTT session state stored for a client.
@@ -29,7 +36,7 @@ public class MqttSession {
 
     private final boolean cleanSession;
 
-    private final Set<String> topics = new CopyOnWriteArraySet<>();
+    private final Map<String, MqttQoS> topics = new ConcurrentHashMap<>();
 
     /**
      * MqttSession constructor.
@@ -58,12 +65,13 @@ public class MqttSession {
     }
 
     /**
-     * add topic.
+     * add topic with its QoS, replacing any existing subscription for the same topic.
      * @param topic topic
+     * @param qos qos
      * @return true if the topic was newly added
      */
-    public boolean addTopic(final String topic) {
-        return topics.add(topic);
+    public boolean addTopic(final String topic, final MqttQoS qos) {
+        return Objects.isNull(topics.put(topic, qos));
     }
 
     /**
@@ -72,7 +80,7 @@ public class MqttSession {
      * @return true if the topic was removed
      */
     public boolean removeTopic(final String topic) {
-        return topics.remove(topic);
+        return Objects.nonNull(topics.remove(topic));
     }
 
     /**
@@ -80,6 +88,16 @@ public class MqttSession {
      * @return topics
      */
     public Set<String> getTopics() {
-        return topics;
+        return topics.keySet();
+    }
+
+    /**
+     * get topic subscriptions with their QoS for session resume.
+     * @return topic subscriptions
+     */
+    public List<MqttTopicSubscription> getTopicSubscriptions() {
+        return topics.entrySet().stream()
+                .map(entry -> new MqttTopicSubscription(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 }

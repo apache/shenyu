@@ -23,6 +23,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
@@ -35,13 +37,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,8 +74,10 @@ public class ConnectSessionPresentTest {
         connect = new Connect();
         ctx = mock(ChannelHandlerContext.class);
         channel = mock(Channel.class);
+        ChannelFuture channelFuture = mock(ChannelFuture.class);
         when(ctx.channel()).thenReturn(channel);
-        when(ctx.writeAndFlush(any())).thenReturn(mock(ChannelFuture.class));
+        when(ctx.writeAndFlush(any())).thenReturn(channelFuture);
+        when(ctx.close()).thenReturn(channelFuture);
     }
 
     @Test
@@ -104,7 +113,7 @@ public class ConnectSessionPresentTest {
     public void resumeSessionShouldReRegisterSubscriptionsToNewChannel() {
         String clientId = "client-resume";
         MqttSession storedSession = new MqttSession(clientId, false);
-        storedSession.addTopic("test/topic");
+        storedSession.addTopic("test/topic", MqttQoS.AT_LEAST_ONCE);
         Singleton.INST.get(SessionRepository.class).add(clientId, storedSession);
 
         MqttConnAckMessage ack = connectWithCleanSession(clientId, false);
@@ -112,10 +121,35 @@ public class ConnectSessionPresentTest {
 
         MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
         assertTrue(session.getTopics().contains("test/topic"));
+        List<MqttTopicSubscription> subscriptions = session.getTopicSubscriptions();
+        assertEquals(1, subscriptions.size());
+        assertEquals("test/topic", subscriptions.get(0).topicName());
+        assertEquals(MqttQoS.AT_LEAST_ONCE, subscriptions.get(0).qualityOfService());
 
         SubscribeRepository subscribeRepository = Singleton.INST.get(SubscribeRepository.class);
         Awaitility.await().atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertTrue(subscribeRepository.get("test/topic").contains(channel)));
+    }
+
+    @Test
+    public void unsupportedProtocolVersionShouldNotAuthenticateOrStoreSession() {
+        MqttConnectMessage msg = MqttMessageBuilders.connect()
+                .clientId("client-mqtt-5")
+                .cleanSession(false)
+                .protocolVersion(MqttVersion.MQTT_3_1_1)
+                .username("shenyu")
+                .password("shenyu".getBytes(StandardCharsets.UTF_8))
+                .build();
+
+        connect.connect(ctx, msg);
+
+        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(ctx).writeAndFlush(captor.capture());
+        MqttConnAckMessage ack = (MqttConnAckMessage) captor.getValue();
+        assertEquals(CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION, ack.variableHeader().connectReturnCode());
+        verify(ctx, never()).channel();
+        verify(ctx).close();
+        assertNull(Singleton.INST.get(SessionRepository.class).get("client-mqtt-5"));
     }
 
     private MqttConnAckMessage connectWithCleanSession(final String clientId, final boolean cleanSession) {

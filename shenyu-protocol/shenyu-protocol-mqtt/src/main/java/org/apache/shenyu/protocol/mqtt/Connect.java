@@ -32,8 +32,6 @@ import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
 
 import static io.netty.channel.ChannelFutureListener.CLOSE_ON_FAILURE;
@@ -61,6 +59,7 @@ public class Connect extends MessageType {
         if (!allowedProtocolVersion(msg)) {
             LOG.info("MQTT protocol version is not supported. clientId: {}", clientId);
             close(ctx, CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
+            return;
         }
 
         String userName = msg.payload().userName();
@@ -90,9 +89,9 @@ public class Connect extends MessageType {
             sessionRepository.add(clientId, session);
         }
         if (sessionPresent && !session.getTopics().isEmpty()) {
-            // Resume the stored subscriptions for the new channel.
+            // Resume the stored subscriptions (with their QoS) for the new channel.
             Singleton.INST.get(SubscribeRepository.class)
-                    .add(new ArrayList<>(session.getTopics()), Collections.singletonList(ctx.channel()));
+                    .add(ctx.channel(), session.getTopicSubscriptions());
         }
 
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()

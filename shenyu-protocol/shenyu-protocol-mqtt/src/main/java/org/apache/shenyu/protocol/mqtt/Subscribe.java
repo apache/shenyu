@@ -76,7 +76,7 @@ public class Subscribe extends MessageType {
         String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
         MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
         if (Objects.nonNull(session)) {
-            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName()));
+            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
         }
 
         for (String ackTopic : ackTopics) {

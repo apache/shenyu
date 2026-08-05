@@ -48,9 +48,9 @@ public class Disconnect extends MessageType {
             if (Objects.nonNull(session) && session.isCleanSession()) {
                 // A clean-session disconnect discards all stored session state.
                 Singleton.INST.get(SessionRepository.class).remove(clientId);
-                Singleton.INST.get(SubscribeRepository.class).removeChannel(ctx.channel());
             }
         }
+        Singleton.INST.get(SubscribeRepository.class).removeChannel(ctx.channel());
         cleanChannel(ctx.channel());
         ctx.close();
     }

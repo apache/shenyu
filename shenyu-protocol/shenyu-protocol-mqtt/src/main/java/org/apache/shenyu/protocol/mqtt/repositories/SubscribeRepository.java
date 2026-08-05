@@ -41,11 +41,8 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
 
     @Override
     public void add(final List<String> topics, final List<Channel> channels) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(s -> {
-            List<Channel> list = get(s);
-            list.addAll(channels);
-            TOPIC_CHANNEL_FACTORY.put(s, list);
-        }));
+        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(s ->
+                TOPIC_CHANNEL_FACTORY.computeIfAbsent(s, key -> new CopyOnWriteArrayList<>()).addAll(channels)));
     }
 
     /**
@@ -54,11 +51,8 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream().forEach(s -> {
-            List<Channel> channels = get(s.topicName());
-            channels.add(channel);
-            TOPIC_CHANNEL_FACTORY.put(s.topicName(), channels);
-        }));
+        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream().forEach(s ->
+                TOPIC_CHANNEL_FACTORY.computeIfAbsent(s.topicName(), key -> new CopyOnWriteArrayList<>()).add(channel)));
     }
 
     @Override
