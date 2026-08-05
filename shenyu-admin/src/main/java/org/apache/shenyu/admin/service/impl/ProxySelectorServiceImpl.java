@@ -368,28 +368,30 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         discoveryDO.setProps(discovery.getProps());
         discoveryMapper.updateSelective(discoveryDO);
         // update discovery upstream list
-        int result = discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
-        LOG.info("delete discovery upstreams, count is: {}", result);
-        proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
-            DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                    .id(UUIDUtils.getInstance().generateShortUuid())
-                    .discoveryHandlerId(discoveryHandlerId)
-                    .namespaceId(discoveryDO.getNamespaceId())
-                    .protocol(discoveryUpstream.getProtocol())
-                    .url(discoveryUpstream.getUrl())
-                    .status(discoveryUpstream.getStatus())
-                    .weight(discoveryUpstream.getWeight())
-                    .props(discoveryUpstream.getProps())
-                    .dateCreated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
-                    .dateUpdated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
-                    .build();
-            discoveryUpstreamMapper.insert(discoveryUpstreamDO);
-        });
+        if (!CollectionUtils.isEmpty(proxySelectorAddDTO.getDiscoveryUpstreams())) {
+            int result = discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
+            LOG.info("delete discovery upstreams, count is: {}", result);
+            proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryHandlerId(discoveryHandlerId)
+                        .namespaceId(discoveryDO.getNamespaceId())
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(discoveryUpstream.getProps())
+                        .dateCreated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
+                        .dateUpdated(Optional.ofNullable(discoveryUpstream.getStartupTime()).map(t -> new Timestamp(Long.parseLong(t))).orElse(currentTime))
+                        .build();
+                discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            });
+            LOG.info("insert discovery upstreams, count is: {}", proxySelectorAddDTO.getDiscoveryUpstreams().size());
+        }
         List<DiscoveryUpstreamDTO> fetchAll = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId()).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
-        LOG.info("insert discovery upstreams, count is: {}", proxySelectorAddDTO.getDiscoveryUpstreams().size());
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 
