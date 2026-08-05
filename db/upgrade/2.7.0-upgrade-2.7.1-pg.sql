@@ -384,4 +384,3 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613199979560', '5', 'retryB
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784250', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'default', 'default', 'default', 0, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784251', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'fixed', 'fixed', 'fixed', 1, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784252', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'exponential', 'exponential', 'exponential', 2, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
-INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784253', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'custom', 'custom', 'custom', 3, 0, '2026-07-31 18:02:53', '2026-07-31 18:02:53');

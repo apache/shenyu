@@ -2283,7 +2283,6 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784240', 'retryStrategy', 'RETRY
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784250', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'default', 'default', 'default', 0, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784251', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'fixed', 'fixed', 'fixed', 1, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784252', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'exponential', 'exponential', 'exponential', 2, 1, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
-INSERT INTO `shenyu_dict` VALUES ('1529402613195784253', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'custom', 'custom', 'custom', 3, 0, '2026-07-31 18:02:53', '2026-07-31 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784241', 'table', 'INIT_FLAG', 'status', 'true', 'table(resource,permission) init status', 0, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:58');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784242', 'compressAlg', 'COMPRESS_ALG', 'none', 'none', '', 0, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784243', 'compressAlg', 'COMPRESS_ALG', 'LZ4', 'LZ4', '', 1, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
