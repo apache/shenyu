@@ -72,6 +72,7 @@ public class TagServiceImpl implements TagService {
         String ext = "";
         if (!tagDTO.getParentTagId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
+            Assert.notNull(tagDO, "parent tag is not found");
             ext = buildExtParamByParentTag(tagDO);
         } else {
             ext = GsonUtils.getInstance().toJson(Optional.ofNullable(tagExt).orElse(new TagDO.TagExt()));

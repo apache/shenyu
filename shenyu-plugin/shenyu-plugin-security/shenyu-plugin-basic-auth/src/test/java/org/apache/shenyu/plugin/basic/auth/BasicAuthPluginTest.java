@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -39,6 +40,7 @@ import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -132,4 +134,23 @@ public final class BasicAuthPluginTest {
                 .header(HttpHeaders.AUTHORIZATION, "test:test123")
                 .build());
     }
+
+    @Test
+    public void testDoExecuteWithoutAuthorization() {
+        ruleData.setHandle("{\"authorization\":\"test:test123\"}");
+        basicAuthPluginDataHandler.handlerRule(ruleData);
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+
+        // 不带 Authorization 头、不带 URI userInfo
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+
+        // 修复前：这行直接抛 NullPointerException
+        Mono<Void> mono = basicAuthPlugin.doExecute(exchange, chain, selectorData, ruleData);
+
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        verify(chain, never()).execute(any());
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        Assertions.assertTrue(response.getBodyAsString().block().contains("Illegal authorization"));
+    }
+
 }

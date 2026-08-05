@@ -86,6 +86,7 @@ services:
       # Increase timeouts to prevent rapid reconnection attempts
       - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=30000
       - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=10000
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
