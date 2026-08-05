@@ -145,6 +145,55 @@ public final class HttpRouteParserTest {
     }
 
     /**
+     * Test that exact hostnames use EQ and wildcard hostnames use MATCH with an anchored
+     * single-label-subdomain regex. Wildcards with EQ would never match because the data
+     * plane's EQ judge compares the request host literally.
+     */
+    @Test
+    public void testParseWithWildcardHostname() {
+        Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister);
+
+        DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/**", "PathPrefix", new String[]{"*.example.com"});
+        ShenyuMemoryConfig config = parser.parse(httpRoute);
+
+        List<ConditionData> domainConditions = config.getRouteConfigList().stream()
+                .flatMap(rc -> rc.getSelectorData().getConditionList().stream())
+                .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType()))
+                .toList();
+        Assertions.assertEquals(1, domainConditions.size());
+
+        ConditionData wildcardCondition = domainConditions.get(0);
+        Assertions.assertEquals(OperatorEnum.MATCH.getAlias(), wildcardCondition.getOperator());
+        // Anchored regex matching a single DNS label before .example.com
+        Assertions.assertEquals("^[^.]+\\.example\\.com$", wildcardCondition.getParamValue());
+    }
+
+    /**
+     * Exact hostnames must still use EQ (regression guard for the wildcard change).
+     */
+    @Test
+    public void testParseWithExactHostnameUsesEq() {
+        Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister);
+
+        DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/**", "PathPrefix", new String[]{"example.com"});
+        ShenyuMemoryConfig config = parser.parse(httpRoute);
+
+        ConditionData domainCondition = config.getRouteConfigList().stream()
+                .flatMap(rc -> rc.getSelectorData().getConditionList().stream())
+                .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType()))
+                .findFirst().orElse(null);
+        Assertions.assertNotNull(domainCondition);
+        Assertions.assertEquals(OperatorEnum.EQ.getAlias(), domainCondition.getOperator());
+        Assertions.assertEquals("example.com", domainCondition.getParamValue());
+    }
+
+    /**
      * Test parse with header match.
      */
     @Test
@@ -249,6 +298,56 @@ public final class HttpRouteParserTest {
         // Should create selector with multiple upstreams
         List<SelectorData> selectors = extractSelectors(config);
         Assertions.assertEquals(1, selectors.size());
+    }
+
+    /**
+     * Deterministic ID: parsing the same HTTPRoute twice must yield identical selector/rule IDs.
+     * This is the core guarantee that makes reconcile idempotent under informer resync —
+     * without it every resync would delete and recreate selectors, briefly leaving routes
+     * unmatched on the data plane.
+     */
+    @Test
+    public void testSelectorAndRuleIdsAreStableAcrossParses() {
+        Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister);
+
+        DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/**", "PathPrefix", new String[]{"example.com", "api.example.com"});
+
+        ShenyuMemoryConfig first = parser.parse(httpRoute);
+        List<String> firstSelectorIds = first.getRouteConfigList().stream()
+                .map(rc -> rc.getSelectorData().getId()).toList();
+        List<String> firstRuleIds = first.getRouteConfigList().stream()
+                .flatMap(rc -> rc.getRuleDataList().stream()).map(r -> r.getId()).toList();
+
+        ShenyuMemoryConfig second = parser.parse(httpRoute);
+        List<String> secondSelectorIds = second.getRouteConfigList().stream()
+                .map(rc -> rc.getSelectorData().getId()).toList();
+        List<String> secondRuleIds = second.getRouteConfigList().stream()
+                .flatMap(rc -> rc.getRuleDataList().stream()).map(r -> r.getId()).toList();
+
+        Assertions.assertEquals(firstSelectorIds, secondSelectorIds, "selector IDs must be deterministic");
+        Assertions.assertEquals(firstRuleIds, secondRuleIds, "rule IDs must be deterministic");
+    }
+
+    /**
+     * Different HTTPRoute specs must yield different IDs so that distinct routes do not collide.
+     */
+    @Test
+    public void testIdsDifferForDifferentRoutes() {
+        Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister);
+
+        DynamicKubernetesObject routeA = buildHTTPRoute(NAMESPACE, "route-a",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT, "/**", "PathPrefix", null, null);
+        DynamicKubernetesObject routeB = buildHTTPRoute(NAMESPACE, "route-b",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT, "/**", "PathPrefix", null, null);
+
+        String idA = parser.parse(routeA).getRouteConfigList().get(0).getSelectorData().getId();
+        String idB = parser.parse(routeB).getRouteConfigList().get(0).getSelectorData().getId();
+
+        Assertions.assertNotEquals(idA, idB, "different routes must get different selector IDs");
     }
 
     private Lister<V1Endpoints> mockEndpointsLister() {

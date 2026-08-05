@@ -43,8 +43,12 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class HTTPRouteReconciler implements Reconciler {
 
@@ -54,6 +58,8 @@ public class HTTPRouteReconciler implements Reconciler {
 
     private final Lister<DynamicKubernetesObject> gatewayLister;
 
+    private final Lister<DynamicKubernetesObject> gatewayClassLister;
+
     private final HttpRouteParser httpRouteParser;
 
     private final ShenyuCacheRepository shenyuCacheRepository;
@@ -62,11 +68,13 @@ public class HTTPRouteReconciler implements Reconciler {
 
     public HTTPRouteReconciler(final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
+                               final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
                                final HttpRouteParser httpRouteParser,
                                final ShenyuCacheRepository shenyuCacheRepository,
                                final ApiClient apiClient) {
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
+        this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
         this.httpRouteParser = httpRouteParser;
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.apiClient = apiClient;
@@ -90,9 +98,24 @@ public class HTTPRouteReconciler implements Reconciler {
                 return new Result(false);
             }
 
-            deleteConfig(namespace, routeName);
+            // Capture the selector IDs currently owned by this route BEFORE parsing.
+            // The parser replaces the route→selectors index with deterministic IDs derived
+            // from the (possibly changed) spec. We diff old vs new to delete only the stale
+            // selectors, so an unchanged spec produces zero data-plane churn on resync.
+            GatewayRouteCache cache = GatewayRouteCache.getInstance();
+            List<String> oldSelectorIds = new ArrayList<>(
+                    Optional.ofNullable(cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()))
+                            .orElse(Collections.emptyList()));
 
             ShenyuMemoryConfig config = httpRouteParser.parse(httpRoute);
+
+            Set<String> newSelectorIds = config.getRouteConfigList().stream()
+                    .map(rc -> rc.getSelectorData().getId())
+                    .collect(Collectors.toSet());
+
+            // Delete only selectors that are no longer present after reparse.
+            deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
+
             applyConfig(config);
 
             bindToGateway(httpRoute);
@@ -126,7 +149,7 @@ public class HTTPRouteReconciler implements Reconciler {
                 continue;
             }
             DynamicKubernetesObject gateway = gatewayLister.namespace(parentNamespace).get(parentName);
-            if (Objects.nonNull(gateway) && GatewayReconciler.isShenyuGateway(gateway)) {
+            if (Objects.nonNull(gateway) && GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
                 // If sectionName is specified, verify the Gateway has a matching listener
                 if (Objects.nonNull(sectionName) && !hasMatchingListener(gateway, sectionName)) {
                     LOG.info("HTTPRoute references sectionName '{}' but Gateway {}/{} has no matching listener", sectionName, parentNamespace, parentName);
@@ -156,21 +179,49 @@ public class HTTPRouteReconciler implements Reconciler {
         return false;
     }
 
+    /**
+     * Full cleanup when an HTTPRoute is deleted: remove all its selectors/rules from the
+     * data plane and drop the route→gateway binding.
+     */
     private void deleteConfig(final String namespace, final String routeName) {
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
         List<String> selectorIds = cache.removeRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName());
-        if (CollectionUtils.isNotEmpty(selectorIds)) {
-            for (String selectorId : selectorIds) {
-                List<RuleData> rules = shenyuCacheRepository.findRuleDataList(selectorId);
-                if (CollectionUtils.isNotEmpty(rules)) {
-                    for (RuleData rule : new ArrayList<>(rules)) {
-                        shenyuCacheRepository.deleteRuleData(PluginEnum.DIVIDE.getName(), selectorId, rule.getId());
-                    }
-                }
-                shenyuCacheRepository.deleteSelectorData(PluginEnum.DIVIDE.getName(), selectorId);
+        removeSelectors(selectorIds);
+        cache.removeRouteGatewayBinding(namespace, routeName);
+    }
+
+    /**
+     * Remove only selectors that existed before reparse but are absent from the new spec.
+     * Selectors retained by the new spec are left untouched and refreshed by applyConfig.
+     */
+    private void deleteStaleSelectors(final String namespace, final String routeName,
+                                      final List<String> oldSelectorIds, final Set<String> newSelectorIds) {
+        List<String> stale = new ArrayList<>();
+        for (String id : oldSelectorIds) {
+            if (!newSelectorIds.contains(id)) {
+                stale.add(id);
             }
         }
-        cache.removeRouteGatewayBinding(namespace, routeName);
+        if (stale.isEmpty()) {
+            return;
+        }
+        LOG.info("Deleting {} stale selector(s) for HTTPRoute {}/{}", stale.size(), namespace, routeName);
+        removeSelectors(stale);
+    }
+
+    private void removeSelectors(final List<String> selectorIds) {
+        if (CollectionUtils.isEmpty(selectorIds)) {
+            return;
+        }
+        for (String selectorId : selectorIds) {
+            List<RuleData> rules = shenyuCacheRepository.findRuleDataList(selectorId);
+            if (CollectionUtils.isNotEmpty(rules)) {
+                for (RuleData rule : new ArrayList<>(rules)) {
+                    shenyuCacheRepository.deleteRuleData(PluginEnum.DIVIDE.getName(), selectorId, rule.getId());
+                }
+            }
+            shenyuCacheRepository.deleteSelectorData(PluginEnum.DIVIDE.getName(), selectorId);
+        }
     }
 
     private void applyConfig(final ShenyuMemoryConfig config) {
@@ -200,7 +251,14 @@ public class HTTPRouteReconciler implements Reconciler {
             JsonObject parentRef = element.getAsJsonObject();
             String parentName = parentRef.has("name") ? parentRef.get("name").getAsString() : null;
             String parentNamespace = parentRef.has("namespace") ? parentRef.get("namespace").getAsString() : routeNamespace;
-            if (Objects.nonNull(parentName)) {
+            if (Objects.isNull(parentName)) {
+                continue;
+            }
+            // Only bind to ShenYu-managed Gateways. Binding to a non-ShenYu parent would
+            // later let that parent's deletion cascade-delete selectors for a route still
+            // served by a ShenYu Gateway of the same name.
+            DynamicKubernetesObject gateway = gatewayLister.namespace(parentNamespace).get(parentName);
+            if (Objects.nonNull(gateway) && GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
                 GatewayRouteCache.getInstance().bindRouteToGateway(parentNamespace, parentName, routeNamespace, routeName);
             }
         }
@@ -310,7 +368,7 @@ public class HTTPRouteReconciler implements Reconciler {
                 continue;
             }
             DynamicKubernetesObject gateway = gatewayLister.namespace(parentNamespace).get(parentName);
-            if (Objects.isNull(gateway) || !GatewayReconciler.isShenyuGateway(gateway)) {
+            if (Objects.isNull(gateway) || !GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
                 continue;
             }
             parentsStatus.add(buildParentStatus(parentNamespace, parentName));

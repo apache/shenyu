@@ -103,8 +103,9 @@ public final class HTTPRouteReconcilerTest {
         when(call.execute()).thenReturn(response);
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -141,8 +142,9 @@ public final class HTTPRouteReconcilerTest {
         ApiClient apiClient = mock(ApiClient.class);
         OkHttpClient httpClient = mock(OkHttpClient.class);
         when(apiClient.getHttpClient()).thenReturn(httpClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -172,12 +174,70 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         ApiClient apiClient = mock(ApiClient.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
         // No exception should be thrown; deleteConfig handles empty cache gracefully
+    }
+
+    /**
+     * Idempotent reconcile: re-reconciling an unchanged HTTPRoute must NOT delete any selector,
+     * because the deterministic IDs are stable across parses. This guards against the data-plane
+     * churn window that occurred when every resync deleted and recreated selectors.
+     */
+    @Test
+    public void testReconcileIsIdempotentOnResync() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
+                .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
+                .build();
+        when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister);
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getBasePath()).thenReturn("http://localhost:8080");
+        OkHttpClient httpClient = mock(OkHttpClient.class);
+        when(apiClient.getHttpClient()).thenReturn(httpClient);
+        okhttp3.Call call = mock(okhttp3.Call.class);
+        when(httpClient.newCall(any(okhttp3.Request.class))).thenReturn(call);
+        Response response = new Response.Builder()
+                .request(new okhttp3.Request.Builder().url("http://localhost").build())
+                .protocol(Protocol.HTTP_1_1).code(200).message("OK")
+                .body(ResponseBody.create("", MediaType.parse("application/json"))).build();
+        when(call.execute()).thenReturn(response);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+
+        // First reconcile creates the selector
+        httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+
+        // Second reconcile (simulating resync with unchanged spec) must not delete anything
+        httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+
+        // The key assertion: no deleteSelectorData call on the data plane, since IDs are stable
+        verify(shenyuCacheRepository, never()).deleteSelectorData(any(), any());
+        verify(shenyuCacheRepository, never()).deleteRuleData(any(), any(), any());
     }
 
     private DynamicKubernetesObject buildGateway(final String namespace, final String name,
@@ -195,6 +255,38 @@ public final class HTTPRouteReconcilerTest {
         raw.add("metadata", metadata);
         raw.add("spec", spec);
         return new DynamicKubernetesObject(raw);
+    }
+
+    private DynamicKubernetesObject buildGatewayClass(final String name, final String controllerName) {
+        // GatewayClass is cluster-scoped, no namespace
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("name", name);
+
+        JsonObject spec = new JsonObject();
+        spec.addProperty("controllerName", controllerName);
+
+        JsonObject raw = new JsonObject();
+        raw.addProperty("apiVersion", "gateway.networking.k8s.io/v1");
+        raw.addProperty("kind", "GatewayClass");
+        raw.add("metadata", metadata);
+        raw.add("spec", spec);
+        return new DynamicKubernetesObject(raw);
+    }
+
+    /**
+     * Build a mocked gatewayClass informer backed by an Indexer. Lister.get(name) for a
+     * cluster-scoped resource resolves to Indexer.getByKey(name), so gateway classes are
+     * stubbed via getByKey. "shenyu" is ShenYu-owned; "other-class" is non-ShenYu.
+     */
+    private SharedIndexInformer<DynamicKubernetesObject> mockGatewayClassInformer() {
+        SharedIndexInformer<DynamicKubernetesObject> informer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);
+        DynamicKubernetesObject shenyuClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
+        when(indexer.getByKey("shenyu")).thenReturn(shenyuClass);
+        DynamicKubernetesObject otherClass = buildGatewayClass("other-class", "example.com/other-controller");
+        when(indexer.getByKey("other-class")).thenReturn(otherClass);
+        when(informer.getIndexer()).thenReturn(indexer);
+        return informer;
     }
 
     private DynamicKubernetesObject buildHTTPRoute(final String routeNamespace, final String routeName,

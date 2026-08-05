@@ -44,13 +44,27 @@ import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class HttpRouteParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpRouteParser.class);
+
+    /**
+     * Prefix for all Gateway API generated selector/rule IDs, isolating them from the
+     * numeric ID space used by the Ingress reconciler and avoiding any collision.
+     */
+    private static final String ID_PREFIX = "gwapi-";
+
+    /**
+     * Placeholder used when an HTTPRoute rule has no hostname, so that the deterministic
+     * ID derivation still has a stable component for the hostname slot.
+     */
+    private static final String NO_HOSTNAME_PLACEHOLDER = "_";
 
     private final Lister<V1Endpoints> endpointsLister;
 
@@ -79,15 +93,24 @@ public class HttpRouteParser {
         List<IngressConfiguration> routeConfigList = new ArrayList<>();
 
         for (int ruleIndex = 0; ruleIndex < rules.size(); ruleIndex++) {
-            processRule(rules.get(ruleIndex).getAsJsonObject(), hostnames, namespace, routeName, ruleIndex, cache, routeConfigList);
+            processRule(rules.get(ruleIndex).getAsJsonObject(), hostnames, namespace, routeName, ruleIndex,
+                    routeConfigList);
         }
+
+        // Replace the route→selectors index atomically with the freshly parsed IDs.
+        // Deterministic IDs make this an idempotent replacement on resync.
+        List<String> selectorIds = new ArrayList<>();
+        for (IngressConfiguration rc : routeConfigList) {
+            selectorIds.add(rc.getSelectorData().getId());
+        }
+        cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorIds);
 
         res.setRouteConfigList(routeConfigList);
         return res;
     }
 
     private void processRule(final JsonObject rule, final JsonArray hostnames, final String namespace,
-                             final String routeName, final int ruleIndex, final GatewayRouteCache cache,
+                             final String routeName, final int ruleIndex,
                              final List<IngressConfiguration> routeConfigList) {
         JsonArray backendRefs = rule.getAsJsonArray("backendRefs");
         if (Objects.isNull(backendRefs) || backendRefs.isEmpty()) {
@@ -102,28 +125,24 @@ public class HttpRouteParser {
         List<ConditionData> hostnameConditions = new ArrayList<>();
         if (Objects.nonNull(hostnames) && !hostnames.isEmpty()) {
             for (JsonElement hostname : hostnames) {
-                ConditionData hostCondition = new ConditionData();
-                hostCondition.setParamType(ParamTypeEnum.DOMAIN.getName());
-                hostCondition.setOperator(OperatorEnum.EQ.getAlias());
-                hostCondition.setParamValue(hostname.getAsString());
-                hostnameConditions.add(hostCondition);
+                hostnameConditions.add(buildHostnameCondition(hostname.getAsString()));
             }
         }
 
         JsonArray matches = rule.getAsJsonArray("matches");
         if (Objects.nonNull(matches) && !matches.isEmpty()) {
-            for (JsonElement matchElement : matches) {
-                JsonObject match = matchElement.getAsJsonObject();
+            for (int matchIndex = 0; matchIndex < matches.size(); matchIndex++) {
+                JsonObject match = matches.get(matchIndex).getAsJsonObject();
                 List<ConditionData> matchConditions = new ArrayList<>();
                 appendMatchConditions(matchConditions, match);
 
                 if (hostnameConditions.isEmpty()) {
                     // No hostname: one selector+rule for this match
-                    String selectorId = cache.generateSelectorId();
+                    String selectorId = deterministicSelectorId(namespace, routeName, ruleIndex, null, matchIndex);
+                    String ruleId = deterministicRuleId(selectorId, matchIndex);
                     String selectorName = routeName + "-rule-" + ruleIndex;
                     SelectorData selectorData = buildSelectorData(selectorId, selectorName, matchConditions, upstreamList);
-                    RuleData ruleData = buildRuleData(cache.generateRuleId(), selectorId, selectorName, matchConditions);
-                    cache.addRouteSelector(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorId);
+                    RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, matchConditions);
                     routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
                 } else {
                     // One selector+rule per hostname to keep AND semantics correct
@@ -132,36 +151,99 @@ public class HttpRouteParser {
                         conditions.add(hostCondition);
                         conditions.addAll(matchConditions);
 
-                        String selectorId = cache.generateSelectorId();
+                        String selectorId = deterministicSelectorId(namespace, routeName, ruleIndex,
+                                hostCondition.getParamValue(), matchIndex);
+                        String ruleId = deterministicRuleId(selectorId, matchIndex);
                         String selectorName = routeName + "-rule-" + ruleIndex + "-" + hostCondition.getParamValue();
                         SelectorData selectorData = buildSelectorData(selectorId, selectorName, conditions, upstreamList);
-                        RuleData ruleData = buildRuleData(cache.generateRuleId(), selectorId, selectorName, conditions);
-                        cache.addRouteSelector(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorId);
+                        RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
                         routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
                     }
                 }
             }
         } else {
+            // No matches: a single selector+rule derived from the rule index only.
+            // matchIndex 0 is reused as the derivation component so IDs stay stable.
             if (hostnameConditions.isEmpty()) {
-                String selectorId = cache.generateSelectorId();
+                String selectorId = deterministicSelectorId(namespace, routeName, ruleIndex, null, 0);
+                String ruleId = deterministicRuleId(selectorId, 0);
                 String selectorName = routeName + "-rule-" + ruleIndex;
                 SelectorData selectorData = buildSelectorData(selectorId, selectorName, new ArrayList<>(), upstreamList);
-                RuleData ruleData = buildRuleData(cache.generateRuleId(), selectorId, selectorName, new ArrayList<>());
-                cache.addRouteSelector(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorId);
+                RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, new ArrayList<>());
                 routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
             } else {
                 for (ConditionData hostCondition : hostnameConditions) {
-                    String selectorId = cache.generateSelectorId();
+                    String selectorId = deterministicSelectorId(namespace, routeName, ruleIndex,
+                            hostCondition.getParamValue(), 0);
+                    String ruleId = deterministicRuleId(selectorId, 0);
                     String selectorName = routeName + "-rule-" + ruleIndex + "-" + hostCondition.getParamValue();
                     List<ConditionData> conditions = new ArrayList<>();
                     conditions.add(hostCondition);
                     SelectorData selectorData = buildSelectorData(selectorId, selectorName, conditions, upstreamList);
-                    RuleData ruleData = buildRuleData(cache.generateRuleId(), selectorId, selectorName, conditions);
-                    cache.addRouteSelector(namespace, routeName, PluginEnum.DIVIDE.getName(), selectorId);
+                    RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
                     routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
                 }
             }
         }
+    }
+
+    /**
+     * Derive a deterministic selector ID from the route coordinates so the same HTTPRoute
+     * spec always yields the same ID. This makes reconcile idempotent: on informer resync
+     * the reconciler re-parses and upserts selectors with unchanged IDs, avoiding the
+     * delete-then-create churn that briefly left routes unmatched on the data plane.
+     *
+     * @param namespace  route namespace
+     * @param routeName  route name
+     * @param ruleIndex  index of the rule within the route
+     * @param hostname   hostname the selector is scoped to, or null when the route has no hostnames
+     * @param matchIndex index of the match within the rule (0 when the rule has no matches)
+     * @return stable prefixed UUID, e.g. "gwapi-550e8400-e29b-..."
+     */
+    private String deterministicSelectorId(final String namespace, final String routeName, final int ruleIndex,
+                                           final String hostname, final int matchIndex) {
+        String hostComponent = Objects.isNull(hostname) ? NO_HOSTNAME_PLACEHOLDER : hostname;
+        String key = namespace + "/" + routeName + "/r" + ruleIndex + "/h" + hostComponent + "/m" + matchIndex;
+        return ID_PREFIX + UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Derive a deterministic rule ID from its parent selector ID and match index.
+     * Stays well under the varchar(128) limit for any plausible selector ID.
+     */
+    private String deterministicRuleId(final String selectorId, final int matchIndex) {
+        return selectorId + "/rule-m" + matchIndex;
+    }
+
+    /**
+     * Build a domain match condition for an HTTPRoute hostname.
+     *
+     * <p>Per Gateway API semantics:
+     * <ul>
+     *   <li>Exact hostname (e.g. {@code example.com}) → EQ match.</li>
+     *   <li>Wildcard hostname (e.g. {@code *.example.com}) → matches a single DNS label
+     *       subdomain (e.g. {@code api.example.com} but not {@code a.b.example.com}).
+     *       Translated to an anchored regex used with the MATCH operator, since the data
+     *       plane's EQ judge does exact string equality and the MATCH judge for DOMAIN
+     *       falls back to {@code contains} (both wrong for wildcards).</li>
+     * </ul>
+     *
+     * @param hostname the HTTPRoute hostname entry
+     * @return a condition data matching the hostname semantics
+     */
+    private ConditionData buildHostnameCondition(final String hostname) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.DOMAIN.getName());
+        if (hostname.startsWith("*.")) {
+            // *.example.com → ^[^.]+\.example\.com$ (single-label subdomain)
+            String suffix = hostname.substring(2).replace(".", "\\.");
+            condition.setOperator(OperatorEnum.MATCH.getAlias());
+            condition.setParamValue("^[^.]+\\." + suffix + "$");
+        } else {
+            condition.setOperator(OperatorEnum.EQ.getAlias());
+            condition.setParamValue(hostname);
+        }
+        return condition;
     }
 
     private SelectorData buildSelectorData(final String selectorId, final String selectorName,

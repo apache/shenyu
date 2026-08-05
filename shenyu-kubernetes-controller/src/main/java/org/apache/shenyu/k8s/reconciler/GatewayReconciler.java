@@ -49,6 +49,8 @@ public class GatewayReconciler implements Reconciler {
 
     private final Lister<DynamicKubernetesObject> gatewayLister;
 
+    private final Lister<DynamicKubernetesObject> gatewayClassLister;
+
     private final Lister<DynamicKubernetesObject> httpRouteLister;
 
     private final ShenyuCacheRepository shenyuCacheRepository;
@@ -58,11 +60,13 @@ public class GatewayReconciler implements Reconciler {
     private final ApiClient apiClient;
 
     public GatewayReconciler(final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
+                             final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
                              final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                              final ShenyuCacheRepository shenyuCacheRepository,
                              final RateLimitingQueue<Request> httpRouteWorkQueue,
                              final ApiClient apiClient) {
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
+        this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.httpRouteWorkQueue = httpRouteWorkQueue;
@@ -77,6 +81,12 @@ public class GatewayReconciler implements Reconciler {
 
             if (Objects.isNull(gateway)) {
                 LOG.info("Gateway {} deleted, cleaning associated routes", request);
+                // Safe to cascade-delete unconditionally: deleteAssociatedRoutes only acts on
+                // gateway→route bindings recorded in GatewayRouteCache, and those bindings are
+                // only created (in HTTPRouteReconciler.bindToGateway) for ShenYu-managed
+                // Gateways. A non-ShenYu Gateway of the same name never enters the cache, so
+                // deleting it is a no-op here and cannot wipe selectors for a route still
+                // served by a ShenYu Gateway.
                 deleteAssociatedRoutes(request.getNamespace(), request.getName());
                 return new Result(false);
             }
@@ -86,10 +96,17 @@ public class GatewayReconciler implements Reconciler {
                 return new Result(false);
             }
 
+            // Only requeue HTTPRoutes when the Gateway transitions to Accepted (first time or
+            // after losing it). On plain resyncs the Gateway is already Accepted and routes have
+            // already been reconciled, so a full-cluster scan would be wasted work.
+            boolean wasAccepted = GatewayApiConstants.isConditionTrue(gateway, "Accepted");
             updateGatewayAcceptedStatus(gateway);
-
-            // Re-queue HTTPRoutes that reference this Gateway but haven't been applied yet
-            requeueAffectedHTTPRoutes(request.getNamespace(), request.getName());
+            if (!wasAccepted) {
+                // Re-queue HTTPRoutes that reference this Gateway but haven't been applied yet.
+                // Triggered on first acceptance (or after the Accepted condition was missing),
+                // covering HTTPRoutes created before the Gateway was accepted.
+                requeueAffectedHTTPRoutes(request.getNamespace(), request.getName());
+            }
 
             LOG.info("Gateway {} reconciled successfully", request);
             return new Result(false);
@@ -227,21 +244,18 @@ public class GatewayReconciler implements Reconciler {
     }
 
     /**
-     * Check if the given Gateway object is managed by ShenYu.
+     * Check if the given Gateway object is managed by ShenYu. A Gateway is ShenYu-managed
+     * when its {@code spec.gatewayClassName} references a GatewayClass whose
+     * {@code spec.controllerName} equals {@link GatewayApiConstants#SHENYU_CONTROLLER_NAME}.
+     *
+     * <p>This resolves the GatewayClass instead of matching the class name against a literal
+     * so that Gateways referencing a ShenYu-owned GatewayClass under any name are accepted.
      *
      * @param gateway the Gateway dynamic object
-     * @return true if the Gateway's gatewayClassName matches ShenYu
+     * @return true if the Gateway's class is owned by ShenYu
      */
-    public static boolean isShenyuGateway(final DynamicKubernetesObject gateway) {
-        JsonObject spec = gateway.getRaw().getAsJsonObject("spec");
-        if (Objects.isNull(spec)) {
-            return false;
-        }
-        if (!spec.has("gatewayClassName") || spec.get("gatewayClassName").isJsonNull()) {
-            return false;
-        }
-        String gatewayClassName = spec.get("gatewayClassName").getAsString();
-        return GatewayApiConstants.SHENYU_GATEWAY_CLASS_NAME.equals(gatewayClassName);
+    public boolean isShenyuGateway(final DynamicKubernetesObject gateway) {
+        return GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister);
     }
 
     /**

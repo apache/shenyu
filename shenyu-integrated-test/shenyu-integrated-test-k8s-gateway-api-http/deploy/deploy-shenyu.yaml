@@ -52,6 +52,15 @@ spec:
         env:
           - name: KUBECONFIG
             value: '/root/.kube/config'
+          # Inject Pod identity for leader election (LeaseLock holder identity + namespace)
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
         imagePullPolicy: IfNotPresent
       serviceAccountName: shenyu-gateway-api-controller
 ---
@@ -99,6 +108,18 @@ rules:
   - get
   - list
   - watch
+  - update
+  - patch
+# Required for leader election via coordination.k8s.io/leases
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
   - update
   - patch
 ---

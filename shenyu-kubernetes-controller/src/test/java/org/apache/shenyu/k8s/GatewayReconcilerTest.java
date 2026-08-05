@@ -92,8 +92,9 @@ public final class GatewayReconcilerTest {
                 .body(ResponseBody.create("{}", MediaType.parse("application/json"))).build();
         when(call.execute()).thenReturn(successResponse);
 
-        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -120,8 +121,9 @@ public final class GatewayReconcilerTest {
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
 
-        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "other-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -156,8 +158,9 @@ public final class GatewayReconcilerTest {
 
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
-        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -183,8 +186,9 @@ public final class GatewayReconcilerTest {
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
 
-        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "empty-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -226,8 +230,9 @@ public final class GatewayReconcilerTest {
         OkHttpClient httpClient = mock(OkHttpClient.class);
         when(apiClient.getHttpClient()).thenReturn(httpClient);
 
-        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -249,6 +254,38 @@ public final class GatewayReconcilerTest {
         raw.add("metadata", metadata);
         raw.add("spec", spec);
         return new DynamicKubernetesObject(raw);
+    }
+
+    private DynamicKubernetesObject buildGatewayClass(final String name, final String controllerName) {
+        // GatewayClass is cluster-scoped, no namespace
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("name", name);
+
+        JsonObject spec = new JsonObject();
+        spec.addProperty("controllerName", controllerName);
+
+        JsonObject raw = new JsonObject();
+        raw.addProperty("apiVersion", "gateway.networking.k8s.io/v1");
+        raw.addProperty("kind", "GatewayClass");
+        raw.add("metadata", metadata);
+        raw.add("spec", spec);
+        return new DynamicKubernetesObject(raw);
+    }
+
+    /**
+     * Build a mocked gatewayClass informer backed by an Indexer. Lister.get(name) for a
+     * cluster-scoped resource resolves to Indexer.getByKey(name), so gateway classes are
+     * stubbed via getByKey. "shenyu" is ShenYu-owned; "other-class" is non-ShenYu.
+     */
+    private SharedIndexInformer<DynamicKubernetesObject> mockGatewayClassInformer() {
+        SharedIndexInformer<DynamicKubernetesObject> informer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);
+        DynamicKubernetesObject shenyuClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
+        when(indexer.getByKey("shenyu")).thenReturn(shenyuClass);
+        DynamicKubernetesObject otherClass = buildGatewayClass("other-class", "example.com/other-controller");
+        when(indexer.getByKey("other-class")).thenReturn(otherClass);
+        when(informer.getIndexer()).thenReturn(indexer);
+        return informer;
     }
 
     private DynamicKubernetesObject buildHTTPRoute(final String routeNamespace, final String routeName,

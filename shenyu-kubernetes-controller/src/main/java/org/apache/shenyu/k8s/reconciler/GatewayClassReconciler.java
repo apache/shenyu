@@ -19,6 +19,7 @@ package org.apache.shenyu.k8s.reconciler;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
@@ -105,12 +106,37 @@ public class GatewayClassReconciler implements Reconciler {
      * @return true if the GatewayClass's controllerName matches ShenYu's controller name
      */
     public static boolean isShenyuGatewayClass(final DynamicKubernetesObject gatewayClass) {
+        if (Objects.isNull(gatewayClass)) {
+            return false;
+        }
         JsonObject spec = gatewayClass.getRaw().getAsJsonObject("spec");
         if (Objects.isNull(spec) || !spec.has("controllerName") || spec.get("controllerName").isJsonNull()) {
             return false;
         }
         String controllerName = spec.get("controllerName").getAsString();
         return GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(controllerName);
+    }
+
+    /**
+     * Check if a Gateway is ShenYu-managed by resolving its GatewayClass and checking the
+     * class's {@code spec.controllerName}. Shared by Gateway and HTTPRoute reconcilers so
+     * both apply the same ownership rule regardless of the GatewayClass name.
+     *
+     * @param gateway             the Gateway dynamic object
+     * @param gatewayClassLister  lister for GatewayClass (cluster-scoped)
+     * @return true if the Gateway's class is owned by ShenYu
+     */
+    public static boolean isShenyuGateway(final DynamicKubernetesObject gateway,
+                                          final Lister<DynamicKubernetesObject> gatewayClassLister) {
+        if (Objects.isNull(gateway)) {
+            return false;
+        }
+        JsonObject spec = gateway.getRaw().getAsJsonObject("spec");
+        if (Objects.isNull(spec) || !spec.has("gatewayClassName") || spec.get("gatewayClassName").isJsonNull()) {
+            return false;
+        }
+        String gatewayClassName = spec.get("gatewayClassName").getAsString();
+        return isShenyuGatewayClass(gatewayClassLister.get(gatewayClassName));
     }
 
     /**
@@ -154,8 +180,9 @@ public class GatewayClassReconciler implements Reconciler {
             condition.addProperty("message", "GatewayClass has been accepted by the ShenYu controller");
             condition.addProperty("lastTransitionTime", Instant.now().toString());
 
-            JsonArray conditions = new JsonArray();
-            conditions.add(condition);
+            // merge-patch replaces arrays wholesale, so preserve non-Accepted conditions
+            // (e.g. SupportedVersion set by other controllers) already present in status.
+            JsonArray conditions = buildGatewayClassStatusConditions(gatewayClass, condition);
 
             JsonObject statusObj = new JsonObject();
             statusObj.add("conditions", conditions);
@@ -189,6 +216,34 @@ public class GatewayClassReconciler implements Reconciler {
         } catch (Exception e) {
             LOG.warn("Failed to update GatewayClass status, will retry on next resync", e);
         }
+    }
+
+    /**
+     * Build the GatewayClass status conditions array for the patch body. Includes the Accepted
+     * condition and preserves any non-Accepted conditions already present in status so that
+     * merge-patch (which replaces arrays wholesale) does not clobber conditions owned by
+     * other controllers.
+     */
+    private JsonArray buildGatewayClassStatusConditions(final DynamicKubernetesObject gatewayClass,
+                                                        final JsonObject acceptedCondition) {
+        JsonArray conditions = new JsonArray();
+        conditions.add(acceptedCondition);
+
+        JsonObject raw = gatewayClass.getRaw();
+        if (raw.has("status") && !raw.get("status").isJsonNull()) {
+            JsonObject status = raw.getAsJsonObject("status");
+            if (status.has("conditions") && !status.get("conditions").isJsonNull()) {
+                for (JsonElement el : status.getAsJsonArray("conditions")) {
+                    JsonObject existing = el.getAsJsonObject();
+                    String existingType = existing.has("type") ? existing.get("type").getAsString() : null;
+                    // Drop any stale Accepted entry from other controllers; keep everything else.
+                    if (!"Accepted".equals(existingType)) {
+                        conditions.add(existing);
+                    }
+                }
+            }
+        }
+        return conditions;
     }
 
 }

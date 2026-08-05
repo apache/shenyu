@@ -20,9 +20,14 @@ package org.apache.shenyu.springboot.starter.k8s;
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.ControllerManager;
 import io.kubernetes.client.extended.controller.DefaultController;
+import io.kubernetes.client.extended.controller.LeaderElectingController;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
 import io.kubernetes.client.extended.controller.reconciler.Request;
+import io.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
+import io.kubernetes.client.extended.leaderelection.LeaderElector;
+import io.kubernetes.client.extended.leaderelection.Lock;
+import io.kubernetes.client.extended.leaderelection.resourcelock.LeaseLock;
 import io.kubernetes.client.extended.workqueue.RateLimitingQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -45,18 +50,44 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "gateway-api")
 public class GatewayApiControllerConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GatewayApiControllerConfiguration.class);
+
+    /**
+     * Lock name shared by all ShenYu Gateway API controller replicas for leader election.
+     * All three controllers (gatewayclass/gateway/httproute) contend on the same Lease so
+     * only one replica reconciles at a time.
+     */
+    private static final String LEADER_ELECTION_LOCK_NAME = "shenyu-k8s-gateway-api";
+
+    /**
+     * Default namespace for the leader-election Lease when POD_NAMESPACE is not injected
+     * (e.g. running outside a Pod in dev). Production deployments must inject POD_NAMESPACE
+     * via the Kubernetes Downward API.
+     */
+    private static final String DEFAULT_LEADER_ELECTION_NAMESPACE = "default";
+
+    /**
+     * Default identity used in the Lease when POD_NAME is not injected. Each replica must
+     * have a distinct identity for leader election to work correctly.
+     */
+    private static final String DEFAULT_LEADER_ELECTION_IDENTITY = "shenyu-0";
 
     /**
      * GatewayClass SharedInformerFactory - only registers GatewayClass informer.
@@ -138,8 +169,14 @@ public class GatewayApiControllerConfiguration {
     public ControllerManager gatewayClassControllerManager(
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             @Qualifier("gatewayclass-controller") final Controller gatewayClassController,
-            final ExecutorService controllerExecutorService) {
-        ControllerManager controllerManager = new ControllerManager(gatewayClassFactory, gatewayClassController);
+            final ApiClient apiClient,
+            final ExecutorService controllerExecutorService,
+            @Value("${shenyu.k8s.leader-election.enabled:true}") final boolean leaderElectionEnabled,
+            @Value("${POD_NAMESPACE:default}") final String podNamespace,
+            @Value("${POD_NAME:shenyu-0}") final String podName) {
+        Controller controller = maybeWrapLeaderElection(apiClient, gatewayClassController,
+                leaderElectionEnabled, podNamespace, podName);
+        ControllerManager controllerManager = new ControllerManager(gatewayClassFactory, controller);
         controllerExecutorService.submit(controllerManager);
         return controllerManager;
     }
@@ -148,8 +185,14 @@ public class GatewayApiControllerConfiguration {
     public ControllerManager gatewayControllerManager(
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
             @Qualifier("gateway-controller") final Controller gatewayController,
-            final ExecutorService controllerExecutorService) {
-        ControllerManager controllerManager = new ControllerManager(gatewayFactory, gatewayController);
+            final ApiClient apiClient,
+            final ExecutorService controllerExecutorService,
+            @Value("${shenyu.k8s.leader-election.enabled:true}") final boolean leaderElectionEnabled,
+            @Value("${POD_NAMESPACE:default}") final String podNamespace,
+            @Value("${POD_NAME:shenyu-0}") final String podName) {
+        Controller controller = maybeWrapLeaderElection(apiClient, gatewayController,
+                leaderElectionEnabled, podNamespace, podName);
+        ControllerManager controllerManager = new ControllerManager(gatewayFactory, controller);
         controllerExecutorService.submit(controllerManager);
         return controllerManager;
     }
@@ -158,10 +201,55 @@ public class GatewayApiControllerConfiguration {
     public ControllerManager httpRouteControllerManager(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController,
-            final ExecutorService controllerExecutorService) {
-        ControllerManager controllerManager = new ControllerManager(httpRouteFactory, httpRouteController);
+            final ApiClient apiClient,
+            final ExecutorService controllerExecutorService,
+            @Value("${shenyu.k8s.leader-election.enabled:true}") final boolean leaderElectionEnabled,
+            @Value("${POD_NAMESPACE:default}") final String podNamespace,
+            @Value("${POD_NAME:shenyu-0}") final String podName) {
+        Controller controller = maybeWrapLeaderElection(apiClient, httpRouteController,
+                leaderElectionEnabled, podNamespace, podName);
+        ControllerManager controllerManager = new ControllerManager(httpRouteFactory, controller);
         controllerExecutorService.submit(controllerManager);
         return controllerManager;
+    }
+
+    /**
+     * Optionally wrap a controller with leader election via a Kubernetes Lease. When enabled
+     * (default), only the replica holding the Lease runs the controller; the others block
+     * waiting to acquire it. This prevents multi-replica deployments from double-reconciling
+     * and racing on status patches.
+     *
+     * <p>Disable via {@code shenyu.k8s.leader-election.enabled=false} for single-replica or
+     * dev setups where the RBAC for {@code coordination.k8s.io/leases} is not available.
+     *
+     * @param apiClient            the Kubernetes API client
+     * @param delegate             the controller to guard with leader election
+     * @param leaderElectionEnabled whether to enable leader election
+     * @param podNamespace         namespace of the Lease (injected via Downward API in prod)
+     * @param podName              holder identity written into the Lease (injected via Downward API)
+     * @return the original controller, or a leader-electing wrapper
+     */
+    private Controller maybeWrapLeaderElection(final ApiClient apiClient, final Controller delegate,
+                                               final boolean leaderElectionEnabled,
+                                               final String podNamespace, final String podName) {
+        if (!leaderElectionEnabled) {
+            LOG.info("Leader election disabled for [{}], running as standalone controller", delegate);
+            return delegate;
+        }
+        String namespace = (Objects.isNull(podNamespace) || podNamespace.isEmpty()) ? DEFAULT_LEADER_ELECTION_NAMESPACE : podNamespace;
+        String identity = (Objects.isNull(podName) || podName.isEmpty()) ? DEFAULT_LEADER_ELECTION_IDENTITY : podName;
+        Lock lock = new LeaseLock(namespace, LEADER_ELECTION_LOCK_NAME, identity, apiClient);
+        // leaseDuration: how long before a lease expires
+        // renewDeadline: how long the leader tries to renew before giving up
+        // retryPeriod: interval between renew attempts
+        LeaderElectionConfig config = new LeaderElectionConfig(
+                lock,
+                Duration.ofSeconds(15),
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(2));
+        LOG.info("Leader election enabled for [{}] via Lease {}/{} (identity={})",
+                delegate, namespace, LEADER_ELECTION_LOCK_NAME, identity);
+        return new LeaderElectingController(new LeaderElector(config), delegate);
     }
 
     @Bean("gatewayclass-controller")
@@ -217,22 +305,27 @@ public class GatewayApiControllerConfiguration {
     @Bean
     public GatewayReconciler gatewayReconciler(
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
+            @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController,
             final ShenyuCacheRepository shenyuCacheRepository,
             final ApiClient apiClient) {
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer =
                 gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
+                gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         RateLimitingQueue<Request> httpRouteWorkQueue = ((DefaultController) httpRouteController).getWorkQueue();
-        return new GatewayReconciler(gatewayInformer, httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+        return new GatewayReconciler(gatewayInformer, gatewayClassInformer, httpRouteInformer,
+                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
     }
 
     @Bean
     public HTTPRouteReconciler httpRouteReconciler(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
+            @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             final HttpRouteParser httpRouteParser,
             final ShenyuCacheRepository shenyuCacheRepository,
             final ApiClient apiClient) {
@@ -240,7 +333,10 @@ public class GatewayApiControllerConfiguration {
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer =
                 gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
-        return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
+                gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer,
+                httpRouteParser, shenyuCacheRepository, apiClient);
     }
 
     @Bean
