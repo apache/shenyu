@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,8 +31,12 @@ import java.util.List;
 import java.util.Map;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.Buffer;
+import okio.BufferedSource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -418,6 +423,107 @@ public class HttpUtilsTest {
         } finally {
             server.stop(0);
         }
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldReadWithinLimit() throws IOException {
+        String body = "hello";
+        ResponseBody responseBody = responseBody(body.getBytes(StandardCharsets.UTF_8),
+                body.getBytes(StandardCharsets.UTF_8).length,
+                MediaType.parse("application/json; charset=utf-8"));
+
+        String result = HttpUtils.readLimitedResponseBody(responseBody, 1024);
+
+        Assert.assertEquals(body, result);
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldAllowBodyExactlyEqualToLimit() throws IOException {
+        String body = "0123456789";
+
+        String result = HttpUtils.readLimitedResponseBody(
+                responseBody(body.getBytes(StandardCharsets.UTF_8), -1L,
+                        MediaType.parse("text/plain")), 10L);
+
+        Assert.assertEquals(body, result);
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldRejectContentLengthGreaterThanLimit() {
+        ResponseBody responseBody = responseBody("small".getBytes(StandardCharsets.UTF_8), 11L,
+                MediaType.parse("application/json"));
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> HttpUtils.readLimitedResponseBody(responseBody, 10L));
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldRejectActualBodyExceedingLimit() {
+        ResponseBody responseBody = responseBody("01234567890".getBytes(StandardCharsets.UTF_8), -1L,
+                MediaType.parse("application/json"));
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> HttpUtils.readLimitedResponseBody(responseBody, 10L));
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldThrowOnNullBody() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> HttpUtils.readLimitedResponseBody(null, 1024));
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldThrowOnNegativeMaxSize() {
+        ResponseBody responseBody = responseBody("test".getBytes(StandardCharsets.UTF_8), 4L,
+                MediaType.parse("text/plain"));
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> HttpUtils.readLimitedResponseBody(responseBody, -1));
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldUseResponseCharset() throws IOException {
+        Charset charset = StandardCharsets.ISO_8859_1;
+        byte[] bytes = new byte[] {'c', 'a', 'f', (byte) 0xE9};
+        String expected = new String(bytes, charset);
+        ResponseBody responseBody = responseBody(bytes, -1L,
+                MediaType.parse("text/plain; charset=iso-8859-1"));
+
+        String result = HttpUtils.readLimitedResponseBody(responseBody, 100);
+
+        Assert.assertEquals(expected, result);
+    }
+
+    @Test
+    public void readLimitedResponseBodyShouldDefaultToUtf8WhenCharsetMissing() throws IOException {
+        String body = "hello";
+        ResponseBody responseBody = responseBody(body.getBytes(StandardCharsets.UTF_8),
+                body.getBytes(StandardCharsets.UTF_8).length,
+                MediaType.parse("application/json"));
+
+        String result = HttpUtils.readLimitedResponseBody(responseBody, 1024);
+
+        Assert.assertEquals(body, result);
+    }
+
+    private static ResponseBody responseBody(final byte[] bytes, final long contentLength,
+                                             final MediaType mediaType) {
+        return new ResponseBody() {
+            @Override
+            public MediaType contentType() {
+                return mediaType;
+            }
+
+            @Override
+            public long contentLength() {
+                return contentLength;
+            }
+
+            @Override
+            public BufferedSource source() {
+                return new Buffer().write(bytes);
+            }
+        };
     }
 
     @Test

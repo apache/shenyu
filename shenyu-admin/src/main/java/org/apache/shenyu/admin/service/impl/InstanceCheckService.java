@@ -123,7 +123,7 @@ public class InstanceCheckService {
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
             instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
-            instanceInfoVO.setInstanceState(1);
+            instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
             instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());

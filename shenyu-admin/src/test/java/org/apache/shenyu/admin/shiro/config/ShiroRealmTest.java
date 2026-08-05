@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
+import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
@@ -34,10 +35,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-    
+
 import java.util.HashSet;
 import java.util.Set;
-    
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -53,17 +54,20 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShiroRealmTest {
-    
-    private static final String PASSWORD = "123456";
-    
+
+    private static final String SECRETKEY = "123456";
+
     @InjectMocks
     private ShiroRealm shiroRealm;
-    
+
     @Mock
     private PermissionService permissionService;
-    
+
     @Mock
     private DashboardUserService dashboardUserService;
+
+    @Mock
+    private JwtProperties jwtProperties;
 
     @Test
     public void testSupports() {
@@ -98,8 +102,8 @@ public final class ShiroRealmTest {
 
         AuthenticationException exception1 = assertThrows(AuthenticationException.class, () -> {
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
-                    + ".cThIIoDvwdueQB468K5xDc5633seEFoqwxjF_xSJyQQ");
+                    + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
+                    + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
             shiroRealm.doGetAuthenticationInfo(token);
         });
         assertNotNull(exception1);
@@ -108,7 +112,7 @@ public final class ShiroRealmTest {
             when(dashboardUserService.findByUserName(any())).thenReturn(null);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
-                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+                    + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
             shiroRealm.doGetAuthenticationInfo(token);
         });
         assertNotNull(exception2);
@@ -118,7 +122,7 @@ public final class ShiroRealmTest {
             when(dashboardUserVO.getEnabled()).thenReturn(false);
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
-                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+                    + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
             shiroRealm.doGetAuthenticationInfo(token);
         });
         assertNotNull(exception3);
@@ -126,17 +130,17 @@ public final class ShiroRealmTest {
         AuthenticationException exception4 = assertThrows(AuthenticationException.class, () -> {
             when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
             when(dashboardUserVO.getEnabled()).thenReturn(true);
-            when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+            when(jwtProperties.getSecretKey()).thenReturn("wrongKey");
             when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                     + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
-                    + ".vZiLpzbncmNC5KL1idgfapCOTsRC0h_5XnqxaGfcLlM");
+                    + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
             shiroRealm.doGetAuthenticationInfo(token);
         });
         assertNotNull(exception4);
 
         when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
         when(dashboardUserVO.getEnabled()).thenReturn(true);
-        when(dashboardUserVO.getPassword()).thenReturn(PASSWORD);
+        when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
         when(token.getCredentials()).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
                 + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwidXNlck5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0"
                 + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
