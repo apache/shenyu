@@ -173,8 +173,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private void responseTrigger(final Upstream upstream) {
         long now = System.currentTimeMillis();
         upstream.getInflight().decrementAndGet();
-        upstream.setResponseStamp(now);
         long stamp = upstream.getResponseStamp();
+        upstream.setResponseStamp(now);
         long td = now - stamp;
         if (td < 0) {
             td = 0;
