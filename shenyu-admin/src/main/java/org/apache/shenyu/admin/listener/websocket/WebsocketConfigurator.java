@@ -26,12 +26,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.tomcat.websocket.server.Constants.BINARY_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
 import static org.apache.tomcat.websocket.server.Constants.TEXT_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
@@ -52,6 +60,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
 
     @Override
     public void modifyHandshake(final ServerEndpointConfig sec, final HandshakeRequest request, final HandshakeResponse response) {
+        checkSyncToken(request);
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
         sec.getUserProperties().put(Constants.CLIENT_PORT_NAME, httpSession.getAttribute(Constants.CLIENT_PORT_NAME));
@@ -61,7 +70,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
 
     @Override
     public boolean checkOrigin(final String originHeaderValue) {
-        final WebsocketSyncProperties bean = SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class);
+        final WebsocketSyncProperties bean = getWebsocketSyncProperties();
         if (StringUtils.isNotEmpty(bean.getAllowOrigins())) {
             String[] split = StringUtils.split(bean.getAllowOrigins(), ";");
             for (String configAllow : split) {
@@ -77,12 +86,47 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
 
     @Override
     public void onStartup(final ServletContext servletContext) {
-        int messageMaxSize = websocketSyncProperties.getMessageMaxSize();
+        int messageMaxSize = getWebsocketSyncProperties().getMessageMaxSize();
         if (messageMaxSize > 0) {
             servletContext.setInitParameter(TEXT_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM,
                     String.valueOf(messageMaxSize));
             servletContext.setInitParameter(BINARY_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM,
                     String.valueOf(messageMaxSize));
         }
+    }
+
+    private void checkSyncToken(final HandshakeRequest request) {
+        String configuredToken = getWebsocketSyncProperties().getToken();
+        if (StringUtils.isBlank(configuredToken)) {
+            throw new ShenyuException("websocket sync token is not configured");
+        }
+        String requestToken = getHeader(request.getHeaders(), Constants.X_SHENYU_SYNC_TOKEN);
+        if (StringUtils.isBlank(requestToken) || !isSameToken(configuredToken, requestToken)) {
+            throw new ShenyuException("websocket sync token is invalid");
+        }
+    }
+
+    private WebsocketSyncProperties getWebsocketSyncProperties() {
+        return Optional.ofNullable(websocketSyncProperties)
+                .orElseGet(() -> SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class));
+    }
+
+    private boolean isSameToken(final String configuredToken, final String requestToken) {
+        return MessageDigest.isEqual(
+                configuredToken.getBytes(StandardCharsets.UTF_8),
+                requestToken.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String getHeader(final Map<String, List<String>> headers, final String name) {
+        return Optional.ofNullable(headers)
+                .orElse(Collections.emptyMap())
+                .entrySet()
+                .stream()
+                .filter(entry -> StringUtils.equalsIgnoreCase(entry.getKey(), name))
+                .map(Map.Entry::getValue)
+                .filter(values -> !values.isEmpty())
+                .map(values -> values.get(0))
+                .findFirst()
+                .orElse(null);
     }
 }

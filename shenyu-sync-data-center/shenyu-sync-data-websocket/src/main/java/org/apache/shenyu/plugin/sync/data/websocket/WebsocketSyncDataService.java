@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.Timer;
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -119,34 +120,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         LOG.info("start init connecting...");
         List<String> urls = websocketConfig.getUrls();
         for (String url : urls) {
-            if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-                Map<String, String> headers =
-                        ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                clients.add(
-                        new ShenyuWebsocketClient(
-                                URI.create(url),
-                        headers,
-                        Objects.requireNonNull(pluginDataSubscriber),
-                        metaDataSubscribers,
-                        authDataSubscribers,
-                        proxySelectorDataSubscribers,
-                        discoveryUpstreamDataSubscribers,
-                                this.aiProxyApiKeyDataSubscribers,
-                        namespaceId,
-                        serverProperties.getPort()));
-            } else {
-                clients.add(
-                        new ShenyuWebsocketClient(
-                                URI.create(url),
-                        Objects.requireNonNull(pluginDataSubscriber),
-                        metaDataSubscribers,
-                        authDataSubscribers,
-                        proxySelectorDataSubscribers,
-                        discoveryUpstreamDataSubscribers,
-                                this.aiProxyApiKeyDataSubscribers,
-                        namespaceId,
-                        serverProperties.getPort()));
-            }
+            clients.add(createClient(url));
         }
         LOG.info("start check task...");
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
@@ -164,32 +138,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         if (CollectionUtils.isEmpty(clients)) {
             List<String> urls = websocketConfig.getUrls();
             for (String url : urls) {
-                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
-                    Map<String, String> headers =
-                            ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
-                    clients.add(
-                            new ShenyuWebsocketClient(
-                                    URI.create(url),
-                                    headers,
-                                    Objects.requireNonNull(pluginDataSubscriber),
-                                    metaDataSubscribers,
-                                    authDataSubscribers,
-                                    proxySelectorDataSubscribers,
-                                    discoveryUpstreamDataSubscribers,
-                                    this.aiProxyApiKeyDataSubscribers,
-                                    namespaceId, serverProperties.getPort()));
-                } else {
-                    clients.add(
-                            new ShenyuWebsocketClient(
-                                    URI.create(url),
-                                    Objects.requireNonNull(pluginDataSubscriber),
-                                    metaDataSubscribers,
-                                    authDataSubscribers,
-                                    proxySelectorDataSubscribers,
-                                    discoveryUpstreamDataSubscribers,
-                                    this.aiProxyApiKeyDataSubscribers,
-                                    namespaceId, serverProperties.getPort()));
-                }
+                clients.add(createClient(url));
             }
         }
         Iterator<ShenyuWebsocketClient> iterator = clients.iterator();
@@ -227,6 +176,27 @@ public class WebsocketSyncDataService implements SyncDataService {
             timerTask.cancel();
         }
         timer.shutdown();
+    }
+
+    private ShenyuWebsocketClient createClient(final String url) {
+        Map<String, String> headers = new HashMap<>();
+        if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+            headers.put(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+        }
+        if (StringUtils.isNotBlank(websocketConfig.getToken())) {
+            headers.put(Constants.X_SHENYU_SYNC_TOKEN, websocketConfig.getToken());
+        }
+        return new ShenyuWebsocketClient(
+                URI.create(url),
+                headers,
+                Objects.requireNonNull(pluginDataSubscriber),
+                metaDataSubscribers,
+                authDataSubscribers,
+                proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers,
+                this.aiProxyApiKeyDataSubscribers,
+                namespaceId,
+                serverProperties.getPort());
     }
     
     /**

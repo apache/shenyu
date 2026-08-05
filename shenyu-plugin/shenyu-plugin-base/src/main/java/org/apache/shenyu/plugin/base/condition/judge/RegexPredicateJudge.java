@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.base.condition.judge;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.spi.Join;
 
-import java.util.regex.Pattern;
+import com.google.re2j.Pattern;
 
 /**
  * Regex predicate judge.
