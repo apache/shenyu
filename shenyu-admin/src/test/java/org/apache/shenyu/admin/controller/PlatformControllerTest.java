@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,13 +33,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.LocalDateTime;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -86,7 +90,12 @@ public final class PlatformControllerTest {
      */
     @BeforeEach
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(platformController).build();
+        // wire up a validator so @Valid on the POST body is actually enforced,
+        // and the controller advice so MethodArgumentNotValidException is handled.
+        this.mockMvc = MockMvcBuilders.standaloneSetup(platformController)
+                .setValidator(new LocalValidatorFactoryBean())
+                .setControllerAdvice(new ExceptionHandlers(null))
+                .build();
     }
 
     /**
@@ -94,15 +103,34 @@ public final class PlatformControllerTest {
      */
     @Test
     public void testLoginDashboardUser() throws Exception {
-        final String loginUri = "/platform/login?userName=" + TEST_LOGIN_USER_NAME + "&password=" + TEST_LOGIN_PASSWORD;
+        final String loginUri = "/platform/login";
+        final String loginRequestBody = String.format("{\"userName\":\"%s\",\"password\":\"%s\"}", TEST_LOGIN_USER_NAME, TEST_LOGIN_PASSWORD);
 
         LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         given(this.dashboardUserService.login(eq(TEST_LOGIN_USER_NAME), eq(TEST_LOGIN_PASSWORD), isNull())).willReturn(loginDashboardUserVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
+        this.mockMvc.perform(MockMvcRequestBuilders.post(loginUri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginRequestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(loginDashboardUserVO.getId())))
+                .andReturn();
+    }
+
+    /**
+     * test method loginDashboardUser rejects an invalid POST body (@Valid fail-closed).
+     */
+    @Test
+    public void testLoginDashboardUserWithInvalidBody() throws Exception {
+        final String loginUri = "/platform/login";
+
+        // blank userName/password must be rejected without hitting the service
+        this.mockMvc.perform(MockMvcRequestBuilders.post(loginUri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code", not(CommonErrorCode.SUCCESSFUL)))
                 .andReturn();
     }
 
