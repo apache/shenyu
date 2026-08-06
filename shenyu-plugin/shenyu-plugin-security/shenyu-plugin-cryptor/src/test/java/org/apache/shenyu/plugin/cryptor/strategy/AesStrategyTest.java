@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.cryptor.strategy;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -24,18 +25,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AesStrategyTest {
 
     private static final String SECRET = "0123456789abcdef";
 
-    private static final String IV = "abcdef9876543210";
-
     private final CryptorStrategy strategy = new AesStrategy();
 
-    private final String key = base64(SECRET) + ":" + base64(IV);
+    private final String key = base64(SECRET);
 
     private static String base64(final String raw) {
         return Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
@@ -45,12 +46,30 @@ public class AesStrategyTest {
     @ValueSource(strings = {"shenyu", "hello world!", "{\"name\":\"tom\",\"age\":18}", "中文加密报文"})
     void shouldRecoverPlaintextWhenRoundTrip(final String plaintext) throws Exception {
         String ciphertext = strategy.encrypt(key, plaintext);
-        byte[] cipherBytes = Base64.getMimeDecoder().decode(ciphertext);
+        byte[] cipherBytes = Base64.getDecoder().decode(ciphertext);
         assertThat(strategy.decrypt(key, cipherBytes), is(plaintext));
     }
 
+    @Test
+    void shouldEmitDifferentCiphertextForRepeatedEncrypts() throws Exception {
+        // GCM draws a fresh nonce per message, so identical plaintexts must not
+        // produce identical ciphertexts — the core property that defeats IV reuse.
+        String first = strategy.encrypt(key, "same-message");
+        String second = strategy.encrypt(key, "same-message");
+        assertThat(first, is(not(equalTo(second))));
+    }
+
+    @Test
+    void shouldFailAuthenticationWhenCiphertextIsTampered() throws Exception {
+        // GCM's tag makes the ciphertext non-malleable: flipping a bit must be
+        // detected on decrypt rather than silently producing corrupted plaintext.
+        byte[] cipherBytes = Base64.getDecoder().decode(strategy.encrypt(key, "secret"));
+        cipherBytes[cipherBytes.length - 1] ^= 0x01;
+        assertThrows(Exception.class, () -> strategy.decrypt(key, cipherBytes));
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"noSeparator", "onlySecret:", ":onlyIv", ""})
+    @ValueSource(strings = {"", "base64(secret):base64(iv)"})
     void shouldThrowWhenKeyFormatIsInvalid(final String invalidKey) {
         assertThrows(Exception.class, () -> strategy.encrypt(invalidKey, "data"));
     }

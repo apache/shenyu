@@ -22,14 +22,14 @@ import org.apache.shenyu.spi.Join;
 /**
  * sm4 cryptor (Chinese national standard).
  *
- * <p>Key convention: {@code base64(secret):base64(iv)}. SM4 uses a 128-bit key
- * and a 128-bit iv. Fixed transformation: SM4/CBC/PKCS7Padding, provided by
- * BouncyCastle.
+ * <p>Key convention: {@code base64(secret)}. SM4 uses a 128-bit key.
+ * Fixed transformation: SM4/GCM/NoPadding, provided by BouncyCastle
+ * (authenticated encryption with a random 96-bit nonce per message).
  */
 @Join
-public class Sm4Strategy extends AbstractCbcCryptorStrategy {
+public class Sm4Strategy extends AbstractAeadCryptorStrategy {
 
-    private static final String TRANSFORMATION = "SM4/CBC/PKCS7Padding";
+    private static final String TRANSFORMATION = "SM4/GCM/NoPadding";
 
     private static final String ALGORITHM = "SM4";
 

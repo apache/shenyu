@@ -37,10 +37,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class CryptorStrategyFactorySpiTest {
 
     private static final String SECRET = "0123456789abcdef";
-    private static final String IV = "abcdef9876543210";
 
     private static String key() {
-        return base64(SECRET) + ":" + base64(IV);
+        return base64(SECRET);
     }
 
     private static String base64(final String raw) {
@@ -54,7 +53,7 @@ class CryptorStrategyFactorySpiTest {
 
         String plaintext = "spi-round-trip";
         String ciphertext = strategy.encrypt(key(), plaintext);
-        byte[] cipherBytes = Base64.getMimeDecoder().decode(ciphertext);
+        byte[] cipherBytes = Base64.getDecoder().decode(ciphertext);
         assertThat(strategy.decrypt(key(), cipherBytes), is(plaintext));
     }
 
@@ -65,8 +64,16 @@ class CryptorStrategyFactorySpiTest {
 
         String plaintext = "spi-round-trip";
         String ciphertext = strategy.encrypt(key(), plaintext);
-        byte[] cipherBytes = Base64.getMimeDecoder().decode(ciphertext);
+        byte[] cipherBytes = Base64.getDecoder().decode(ciphertext);
         assertThat(strategy.decrypt(key(), cipherBytes), is(plaintext));
+    }
+
+    @Test
+    void rsaPkcs1StrategyShouldBeLoadableViaSpi() {
+        // The rsa-pkcs1 (PKCS#1 v1.5) variant must be registered in the SPI file;
+        // if the entry or @Join is dropped this fails.
+        CryptorStrategy strategy = CryptorStrategyFactory.newInstance("rsa-pkcs1");
+        assertThat("SPI must resolve 'rsa-pkcs1' to a non-null strategy", strategy, notNullValue());
     }
 
     // --- Negative tests: invalid key content (not just format) ---
@@ -74,25 +81,25 @@ class CryptorStrategyFactorySpiTest {
     @Test
     void shouldThrowWhenAesSecretHasWrongByteLength() {
         // AES requires 16/24/32-byte keys; 15 bytes is invalid
-        String tooShort = base64("123456789012345");  // 15 bytes
-        String validIv = base64(IV);
+        // 15 bytes
+        String tooShort = base64("123456789012345");
         CryptorStrategy strategy = CryptorStrategyFactory.newInstance("aes");
-        assertThrows(Exception.class, () -> strategy.encrypt(tooShort + ":" + validIv, "data"));
+        assertThrows(Exception.class, () -> strategy.encrypt(tooShort, "data"));
     }
 
     @Test
     void shouldThrowWhenSm4KeyHasWrongByteLength() {
-        // SM4 requires 16-byte keys; 17 bytes is invalid
-        String tooLong = base64("123456789012345678");  // 18 bytes
-        String validIv = base64(IV);
+        // SM4 requires 16-byte keys; 18 bytes is invalid
+        // 18 bytes
+        String tooLong = base64("123456789012345678");
         CryptorStrategy strategy = CryptorStrategyFactory.newInstance("sm4");
-        assertThrows(Exception.class, () -> strategy.encrypt(tooLong + ":" + validIv, "data"));
+        assertThrows(Exception.class, () -> strategy.encrypt(tooLong, "data"));
     }
 
     @Test
     void shouldThrowWhenKeyContainsNonBase64Content() {
-        // Valid format (has separator) but non-base64 content
-        String invalidKey = "not!!!base64:not!!!base64";
+        // Valid-looking but non-base64 content (no separator, so it reaches the decoder)
+        String invalidKey = "not!!!base64";
         CryptorStrategy strategy = CryptorStrategyFactory.newInstance("aes");
         assertThrows(Exception.class, () -> strategy.encrypt(invalidKey, "data"));
     }

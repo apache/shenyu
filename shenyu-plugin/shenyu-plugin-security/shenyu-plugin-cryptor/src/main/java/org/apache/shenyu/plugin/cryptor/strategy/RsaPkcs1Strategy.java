@@ -19,27 +19,30 @@ package org.apache.shenyu.plugin.cryptor.strategy;
 
 import org.apache.shenyu.spi.Join;
 
+import java.security.spec.AlgorithmParameterSpec;
+
 /**
- * aes cryptor.
+ * rsa cryptor using legacy PKCS#1 v1.5 padding ({@code RSA/ECB/PKCS1Padding}).
  *
- * <p>Key convention: {@code base64(secret)}. The secret length picks
- * AES-128/192/256. Fixed transformation: AES/GCM/NoPadding (authenticated
- * encryption with a random 96-bit nonce per message).
+ * <p>Provided purely for backward compatibility and for interoperating with
+ * peers that only speak PKCS#1 v1.5. PKCS#1 v1.5 is not semantically secure and
+ * is vulnerable to Bleichenbacher padding-oracle attacks; new deployments should
+ * prefer the default {@link RsaStrategy} (OAEP, SPI name {@code rsa}). Register a
+ * rule with the SPI name {@code rsa-pkcs1} only when a PKCS#1 v1.5 peer leaves no
+ * other choice.
  */
 @Join
-public class AesStrategy extends AbstractAeadCryptorStrategy {
+public class RsaPkcs1Strategy extends AbstractRsaStrategy {
 
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-
-    private static final String ALGORITHM = "AES";
+    private static final String TRANSFORMATION = "RSA/ECB/PKCS1Padding";
 
     @Override
-    protected String getTransformation() {
+    protected String transformation() {
         return TRANSFORMATION;
     }
 
     @Override
-    protected String getAlgorithm() {
-        return ALGORITHM;
+    protected AlgorithmParameterSpec params() {
+        return null;
     }
 }
