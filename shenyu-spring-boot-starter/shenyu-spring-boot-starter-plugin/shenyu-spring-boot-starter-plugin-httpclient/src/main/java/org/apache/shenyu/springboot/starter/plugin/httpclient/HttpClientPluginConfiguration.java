@@ -110,7 +110,7 @@ public class HttpClientPluginConfiguration {
                             .build())
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
-            return new WebClientPlugin(webClient);
+            return new WebClientPlugin(webClient, properties.getMaxInMemorySize() * Constants.BYTES_PER_MB);
         }
     }
 
@@ -125,11 +125,13 @@ public class HttpClientPluginConfiguration {
          * Netty http client plugin.
          *
          * @param httpClient the http client
+         * @param properties the http client properties
          * @return the shenyu plugin
          */
         @Bean
-        public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
-            return new NettyHttpClientPlugin(httpClient.getIfAvailable());
+        public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient,
+                                                  final HttpClientProperties properties) {
+            return new NettyHttpClientPlugin(httpClient.getIfAvailable(), properties.getMaxInMemorySize() * Constants.BYTES_PER_MB);
         }
     }
 }

@@ -47,8 +47,10 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
      */
-    public WebClientPlugin(final WebClient webClient) {
+    public WebClientPlugin(final WebClient webClient, final int maxInMemorySize) {
+        super(maxInMemorySize);
         this.webClient = webClient;
     }
     
