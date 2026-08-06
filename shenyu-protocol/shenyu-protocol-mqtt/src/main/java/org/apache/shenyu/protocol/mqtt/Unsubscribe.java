@@ -25,9 +25,13 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 import static io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader.from;
 
@@ -44,6 +48,11 @@ public class Unsubscribe extends MessageType {
         List<String> topics = msg.payload().topics();
         Channel channel = ctx.channel();
         Singleton.INST.get(SubscribeRepository.class).remove(topics, channel);
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
+        MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+        if (Objects.nonNull(session)) {
+            topics.forEach(session::removeTopic);
+        }
         int packetId = msg.variableHeader().messageId();
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttUnsubAckMessage mqttUnsubAckMessage = new MqttUnsubAckMessage(mqttFixedHeader, from(packetId));
