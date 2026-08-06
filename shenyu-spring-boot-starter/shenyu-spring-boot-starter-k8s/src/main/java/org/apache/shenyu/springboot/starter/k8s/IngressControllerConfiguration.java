@@ -66,6 +66,7 @@ import java.util.concurrent.Executors;
  * The type shenyu ingress controller configuration.
  */
 @Configuration
+@ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "ingress", matchIfMissing = true)
 public class IngressControllerConfiguration {
 
     /**
@@ -264,7 +265,7 @@ public class IngressControllerConfiguration {
             V1Secret secret = coreV1Api.readNamespacedSecret(defaultName, defaultNamespace, "true");
 
             Map<String, byte[]> secretData = secret.getData();
-            if (MapUtils.isEmpty(secretData)) {
+            if (MapUtils.isNotEmpty(secretData)) {
                 InputStream crtStream = new ByteArrayInputStream(secretData.get("tls.crt"));
                 InputStream keyStream = new ByteArrayInputStream(secretData.get("tls.key"));
                 return TcpSslContextSpec.forServer(crtStream, keyStream);
