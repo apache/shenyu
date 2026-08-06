@@ -47,6 +47,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -57,6 +59,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -338,5 +341,22 @@ public class AiProxyPluginTest {
         verify(configService).resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY);
         verify(configService).resolveAdminFallbackConfig(primaryConfig, handle);
         verify(executorService).execute(any(), any(), any());
+    }
+
+    @Test
+    public void testRequestBodyExceedsMaxSize() {
+        final AiProxyHandle handle = new AiProxyHandle();
+        aiProxyPluginHandler.getSelectorCachedHandle()
+                .cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+
+        try (MockedStatic<DataBufferUtils> dataBufferUtilsMock = mockStatic(DataBufferUtils.class)) {
+            dataBufferUtilsMock.when(() -> DataBufferUtils.join(any(), anyInt()))
+                    .thenReturn(Mono.error(new DataBufferLimitException("Request body exceeds limit")));
+
+            StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
+                    .verifyComplete();
+
+            assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
+        }
     }
 }
