@@ -26,7 +26,7 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
+
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
@@ -47,13 +47,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,17 +67,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     
     private static final Logger LOG = LoggerFactory.getLogger(SwaggerImportServiceImpl.class);
 
-    private static final int READ_BUFFER_SIZE = 8192;
-
-    private static final long DEFAULT_MAX_SWAGGER_BODY_SIZE = 10L * 1024 * 1024;
-
     private final DocManager docManager;
-    
+
     private final HttpUtils httpUtils;
 
-    // Default is 10 MB and can be overridden by shenyu.swagger.max-body-size.
     @Value("${shenyu.swagger.max-body-size:10485760}")
-    private long maxSwaggerBodySize = DEFAULT_MAX_SWAGGER_BODY_SIZE;
+    private long maxSwaggerBodySize;
 
     @Resource
     private ShenyuClientRegisterMcpServiceImpl shenyuClientRegisterMcpService;
@@ -216,6 +207,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private MetaDataRegisterDTO buildMetaDataRegisterDTO(final OpenAPI openapi, final String selectorName,
                                                          final ShenyuMcpTool shenyuMcpTool, final String contentPath,
                                                          final String namespaceId) {
+        if (Objects.isNull(openapi.getServers()) || openapi.getServers().isEmpty()) {
+            throw new IllegalArgumentException("OpenAPI document is missing the top-level 'servers' field, which is required for MCP import. "
+                + "Please add a servers section, e.g.: servers: [{ url: 'http://localhost:8080' }]");
+        }
         String urlString = openapi.getServers().get(0).getUrl();
         URL url;
         try {
@@ -227,10 +222,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         String host = url.getHost();
         int port = url.getPort();
         Operation operation = shenyuMcpTool.getOperation();
-        String parameterTypes = operation.getParameters()
-                .stream()
-                .map(Parameter::getIn)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Objects.isNull(operation.getParameters())
+                ? ""
+                : operation.getParameters()
+                        .stream()
+                        .map(Parameter::getIn)
+                        .collect(Collectors.joining(","));
 
         return MetaDataRegisterDTO.builder()
                 .appName(openapi.getInfo().getTitle())
@@ -275,49 +272,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                 throw new RuntimeException("Failed to get Swagger document, HTTP status code: " + response.code());
             }
 
-            return readLimitedResponseBody(response.body(), maxSwaggerBodySize);
+            return HttpUtils.readLimitedResponseBody(response.body(), maxSwaggerBodySize);
         }
     }
 
 
-    private String readLimitedResponseBody(final ResponseBody responseBody, final long maxBodySize) throws IOException {
-        if (Objects.isNull(responseBody)) {
-            throw new IllegalArgumentException("Swagger document response body is empty");
-        }
-        if (maxBodySize < 0) {
-            throw new IllegalArgumentException("Max Swagger response body size must not be negative");
-        }
 
-        long contentLength = responseBody.contentLength();
-        // Reject early when the server declares a body larger than the configured limit.
-        if (contentLength > maxBodySize) {
-            throw new IllegalArgumentException(String.format(
-                    "Swagger document response body exceeds maximum size of %d bytes", maxBodySize));
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] buffer = new byte[READ_BUFFER_SIZE];
-        long totalBytes = 0;
-        try (InputStream inputStream = responseBody.byteStream()) {
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                totalBytes += bytesRead;
-                // Content-Length can be missing or wrong, so enforce the limit while streaming.
-                if (totalBytes > maxBodySize) {
-                    throw new IllegalArgumentException(String.format(
-                            "Swagger document response body exceeds maximum size of %d bytes", maxBodySize));
-                }
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        }
-
-        // Preserve the server-declared charset; default to UTF-8 when it is absent.
-        Charset charset = Objects.isNull(responseBody.contentType())
-                ? StandardCharsets.UTF_8
-                : responseBody.contentType().charset(StandardCharsets.UTF_8);
-        return outputStream.toString(charset.name());
-    }
-    
     private void validateSwaggerContent(final String swaggerJson) {
         try {
             JsonObject docRoot = GsonUtils.getInstance().fromJson(swaggerJson, JsonObject.class);

@@ -17,13 +17,21 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.client.core.utils.PortUtils;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
+import org.javatuples.Sextet;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -33,6 +41,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,18 +51,27 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -210,6 +228,220 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.close();
     }
 
+    @Test
+    public void testBuildApiSuperPathsMultiPath() {
+        SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+        List<String> paths = listener.buildApiSuperPaths(
+                SpringMvcMultiPathTestBean.class,
+                AnnotatedElementUtils.findMergedAnnotation(SpringMvcMultiPathTestBean.class, ShenyuSpringMvcClient.class));
+        Assertions.assertEquals(2, paths.size());
+        Assertions.assertTrue(paths.stream().anyMatch(p -> p.endsWith("/multi-a")));
+        Assertions.assertTrue(paths.stream().anyMatch(p -> p.endsWith("/multi-b")));
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testBuildApiPathMethodAnnotationTakesPrecedence() throws Exception {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = SpringMvcClientTestBean.class.getDeclaredMethod("hello", String.class);
+            ShenyuSpringMvcClient methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+            // Method has path="/hello", so it should be used regardless of superPath
+            String apiPath = listener.buildApiPath(method, "/order", methodAnnotation);
+            Assertions.assertEquals("/mvc/order/hello", apiPath);
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiPathEmptyMethodAnnotationFallsThroughToRequestMapping() throws Exception {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = SpringMvcClientTestBean.class.getDeclaredMethod("hello2", String.class);
+            ShenyuSpringMvcClient methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+            // Method has path="" (empty), so it should fall through to @GetMapping("/hello2")
+            String apiPath = listener.buildApiPath(method, "/order", methodAnnotation);
+            Assertions.assertEquals("/mvc/order/hello2", apiPath);
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiPathSuffixOverlapDoesNotCauseFalseMatch() throws Exception {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            // @ShenyuSpringMvcClient(path = "/order") on method, superPath = "/prefix/order"
+            // The old endsWith heuristic would falsely skip the annotation path here
+            Method method = SpringMvcSuffixOverlapTestBean.class.getDeclaredMethod("greet");
+            ShenyuSpringMvcClient methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+            String apiPath = listener.buildApiPath(method, "/prefix/order", methodAnnotation);
+            Assertions.assertEquals("/mvc/prefix/order/order", apiPath);
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiPathClassLevelFallbackUsesRequestMapping() throws Exception {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = SpringMvcClientTestBean.class.getDeclaredMethod("hello3", String.class);
+            // Method has no @ShenyuSpringMvcClient → class-level annotation path="/order" should be skipped
+            // @GetMapping("") → should just return superPath
+            String apiPath = listener.buildApiPathFromRequestMapping(method, "/order");
+            Assertions.assertEquals("/mvc/order", apiPath);
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiPathMultiPathMethodAnnotation() throws Exception {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = SpringMvcMultiPathApiDocTestBean.class.getDeclaredMethod("greet");
+            ShenyuSpringMvcClient methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+            // Method has path="/greet" with class multi-path {"/multi-a", "/multi-b"}
+            // superPath="/multi-a" should NOT suppress "/greet" (different path)
+            String apiPath = listener.buildApiPath(method, "/multi-a", methodAnnotation);
+            Assertions.assertEquals("/mvc/multi-a/greet", apiPath);
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testMultiPathControllerPublishesCorrectMetaDataAndApiDoc() {
+        try {
+            SpringMvcMultiPathApiDocTestBean multiPathBean = new SpringMvcMultiPathApiDocTestBean();
+
+            Map<String, Object> controllerBeans = new LinkedHashMap<>();
+            controllerBeans.put("multiPathApiDocBean", multiPathBean);
+            when(applicationContext.getBeansWithAnnotation(eq(Controller.class))).thenReturn(controllerBeans);
+
+            Map<String, Object> apiModuleBeans = new LinkedHashMap<>();
+            apiModuleBeans.put("multiPathApiDocBean", multiPathBean);
+            when(applicationContext.getBeansWithAnnotation(eq(ApiModule.class))).thenReturn(apiModuleBeans);
+
+            when(applicationContext.getEnvironment()).thenReturn(env);
+            when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
+            when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
+
+            try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMock = mockStatic(ShenyuClientRegisterEventPublisher.class);
+                 MockedStatic<PortUtils> portUtilsMock = mockStatic(PortUtils.class)) {
+
+                ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
+                publisherMock.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+                portUtilsMock.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+
+                SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+                ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
+                listener.onApplicationEvent(event);
+
+                ArgumentCaptor<DataTypeParent> captor = ArgumentCaptor.forClass(DataTypeParent.class);
+                verify(publisher, atLeastOnce()).publishEvent(captor.capture());
+
+                List<DataTypeParent> events = captor.getAllValues();
+
+                // Verify MetaDataRegisterDTO: 2 paths × 1 method = 2 entries
+                List<MetaDataRegisterDTO> metaDatas = events.stream()
+                        .filter(e -> e instanceof MetaDataRegisterDTO)
+                        .map(e -> (MetaDataRegisterDTO) e)
+                        .collect(Collectors.toList());
+                Assertions.assertEquals(2, metaDatas.size(),
+                        "Expected 2 metadata entries for 2 class-level paths × 1 method");
+                List<String> metaPaths = metaDatas.stream()
+                        .map(MetaDataRegisterDTO::getPath)
+                        .sorted()
+                        .collect(Collectors.toList());
+                Assertions.assertTrue(metaPaths.get(0).endsWith("/multi-a/greet"),
+                        "Expected path ending with /multi-a/greet but got: " + metaPaths.get(0));
+                Assertions.assertTrue(metaPaths.get(1).endsWith("/multi-b/greet"),
+                        "Expected path ending with /multi-b/greet but got: " + metaPaths.get(1));
+
+                // Verify ApiDocRegisterDTO: 2 paths × 1 path-value × 1 HTTP method = 2 entries
+                List<ApiDocRegisterDTO> apiDocs = events.stream()
+                        .filter(e -> e instanceof ApiDocRegisterDTO)
+                        .map(e -> (ApiDocRegisterDTO) e)
+                        .collect(Collectors.toList());
+                Assertions.assertEquals(2, apiDocs.size(),
+                        "Expected 2 API doc entries for 2 class-level paths × 1 method");
+                List<String> apiPaths = apiDocs.stream()
+                        .map(ApiDocRegisterDTO::getApiPath)
+                        .sorted()
+                        .collect(Collectors.toList());
+                Assertions.assertTrue(apiPaths.get(0).endsWith("/multi-a/greet"),
+                        "Expected apiPath ending with /multi-a/greet but got: " + apiPaths.get(0));
+                Assertions.assertTrue(apiPaths.get(1).endsWith("/multi-b/greet"),
+                        "Expected apiPath ending with /multi-b/greet but got: " + apiPaths.get(1));
+            }
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiDocSextetDefaultProducesConsumes() throws NoSuchMethodException {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = ApiDocTestBean.class.getDeclaredMethod("getDefault");
+            Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                    listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+            Assertions.assertArrayEquals(new String[]{"/get-default"}, result.getValue0());
+            Assertions.assertEquals("*/*", result.getValue1());
+            Assertions.assertEquals("*/*", result.getValue2());
+            Assertions.assertArrayEquals(new ApiHttpMethodEnum[]{ApiHttpMethodEnum.GET}, result.getValue3());
+            Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+            Assertions.assertEquals("v0.01", result.getValue5());
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiDocSextetExplicitProducesConsumesAndMethod() throws NoSuchMethodException {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = ApiDocTestBean.class.getDeclaredMethod("postExplicit", String.class);
+            Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                    listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+            Assertions.assertArrayEquals(new String[]{"/post-explicit"}, result.getValue0());
+            Assertions.assertEquals("application/json", result.getValue1());
+            Assertions.assertEquals("application/json", result.getValue2());
+            Assertions.assertArrayEquals(new ApiHttpMethodEnum[]{ApiHttpMethodEnum.POST}, result.getValue3());
+            Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+            Assertions.assertEquals("v0.01", result.getValue5());
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
+    public void testBuildApiDocSextetMultipleMethodsProducesConsumes() throws NoSuchMethodException {
+        try {
+            SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+            Method method = ApiDocTestBean.class.getDeclaredMethod("multi", String.class);
+            Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> result =
+                    listener.buildApiDocSextet(method, null, Collections.emptyMap());
+
+            Assertions.assertArrayEquals(new String[]{"/multi"}, result.getValue0());
+            Assertions.assertEquals("application/json,application/xml", result.getValue1());
+            Assertions.assertEquals("application/json,application/xml", result.getValue2());
+            List<ApiHttpMethodEnum> methods = Arrays.asList(result.getValue3());
+            Assertions.assertTrue(methods.contains(ApiHttpMethodEnum.GET));
+            Assertions.assertTrue(methods.contains(ApiHttpMethodEnum.POST));
+            Assertions.assertEquals(2, methods.size());
+            Assertions.assertEquals(RpcTypeEnum.HTTP, result.getValue4());
+            Assertions.assertEquals("v0.01", result.getValue5());
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
     @RestController
     @RequestMapping("/order")
     @ShenyuSpringMvcClient(path = "/order")
@@ -253,6 +485,64 @@ public class SpringMvcClientEventListenerTest {
     static class SpringMvcClientTestBean4 {
         public String test(final String hello) {
             return hello;
+        }
+    }
+
+    @RestController
+    @ShenyuSpringMvcClient(path = {"/multi-a", "/multi-b"})
+    static class SpringMvcMultiPathTestBean {
+        public String test() {
+            return "ok";
+        }
+    }
+
+    @RestController
+    @RequestMapping({"/multi-a", "/multi-b"})
+    @ShenyuSpringMvcClient(path = {"/multi-a", "/multi-b"})
+    @ApiModule(value = "multiPathApiDoc")
+    static class SpringMvcMultiPathApiDocTestBean {
+
+        @GetMapping("/greet")
+        @ShenyuSpringMvcClient(path = "/greet")
+        @ApiDoc(desc = "greet")
+        public String greet() {
+            return "hello from multipath";
+        }
+    }
+
+    @RestController
+    @ShenyuSpringMvcClient(path = "/prefix/order")
+    static class SpringMvcSuffixOverlapTestBean {
+
+        @GetMapping("/test")
+        @ShenyuSpringMvcClient(path = "/order")
+        public String greet() {
+            return "ok";
+        }
+    }
+
+    @RestController
+    static class ApiDocTestBean {
+
+        @GetMapping(value = "/get-default")
+        public String getDefault() {
+            return "ok";
+        }
+
+        @RequestMapping(value = "/post-explicit",
+                method = RequestMethod.POST,
+                produces = "application/json",
+                consumes = "application/json")
+        public String postExplicit(@RequestBody final String input) {
+            return input;
+        }
+
+        @RequestMapping(value = "/multi",
+                method = {RequestMethod.GET, RequestMethod.POST},
+                produces = {"application/json", "application/xml"},
+                consumes = {"application/json", "application/xml"})
+        public String multi(@RequestBody final String input) {
+            return input;
         }
     }
 

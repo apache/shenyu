@@ -223,6 +223,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
+      token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
