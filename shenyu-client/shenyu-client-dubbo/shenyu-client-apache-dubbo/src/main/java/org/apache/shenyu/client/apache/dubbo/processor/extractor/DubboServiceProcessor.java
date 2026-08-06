@@ -17,23 +17,16 @@
 
 package org.apache.shenyu.client.apache.dubbo.processor.extractor;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
 import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
-import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
-import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExtBuilders;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 
 import java.util.List;
-import java.util.Optional;
-
-import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 
 /**
  * DubboServiceProcessor.
@@ -70,7 +63,7 @@ public class DubboServiceProcessor implements ApiAnnotationProcessor<DubboServic
     private String getRpcExt(final ApiBean apiBean) {
         final Object beanInstance = apiBean.getBeanInstance();
         if (beanInstance instanceof ServiceBean) {
-            return getRpcExt((ServiceBean<?>) beanInstance);
+            return DubboRpcExtBuilders.buildRpcExt((ServiceBean<?>) beanInstance);
         }
         return "{}";
     }
@@ -78,23 +71,8 @@ public class DubboServiceProcessor implements ApiAnnotationProcessor<DubboServic
     private String getRpcExt(final ApiBean.ApiDefinition definition) {
         final Object beanInstance = definition.getApiBean().getBeanInstance();
         if (beanInstance instanceof ServiceBean) {
-            return getRpcExt((ServiceBean<?>) beanInstance);
+            return DubboRpcExtBuilders.buildRpcExt((ServiceBean<?>) beanInstance);
         }
         return "{}";
-    }
-    
-    private static String getRpcExt(final ServiceBean<?> serviceBean) {
-        DubboRpcExt build = DubboRpcExt.builder()
-                .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")
-                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
-                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
-                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
-                .retries(Optional.ofNullable(serviceBean.getRetries()).orElse(CommonConstants.DEFAULT_RETRIES))
-                .timeout(Optional.ofNullable(serviceBean.getTimeout()).orElse(DEFAULT_CONNECT_TIMEOUT))
-                .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
-                .url("")
-                .build();
-        return GsonUtils.getInstance().toJson(build);
     }
 }
