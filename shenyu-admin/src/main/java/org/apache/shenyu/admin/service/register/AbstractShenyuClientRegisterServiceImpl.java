@@ -361,6 +361,24 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     }
 
     /**
+     * Sync the changed status back to the exist list, so that the status change
+     * can be persisted into the selector handle.
+     *
+     * <p>The upstream {@code equals} methods only compare the identity fields, so an upstream whose
+     * status just changed is still regarded as an existing one and keeps its old status in the exist list.
+     *
+     * @param existList      the upstream list parsed from the selector handle
+     * @param diffStatusList the upstream list whose status has changed
+     * @param <T>            the upstream type
+     */
+    protected <T extends CommonUpstream> void syncUpstreamStatus(final List<T> existList, final List<T> diffStatusList) {
+        for (T changed : diffStatusList) {
+            existList.stream().filter(exist -> exist.equals(changed))
+                    .forEach(exist -> exist.setStatus(changed.isStatus()));
+        }
+    }
+
+    /**
      * Build context path default rule dto rule dto.
      *
      * @param selectorId  the selector id
