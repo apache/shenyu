@@ -19,8 +19,10 @@ package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 public class AccessTokenManager {
 
     public static final Logger LOG = LoggerFactory.getLogger(AccessTokenManager.class);
+
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
 
     /**
      * the access token.
@@ -113,11 +116,12 @@ public class AccessTokenManager {
             password = AesUtils.cbcEncrypt(httpConfig.getAesSecretKey(), httpConfig.getAesSecretIv(), httpConfig.getPassword());
         }
 
-        String encodedUsername = URLEncoder.encode(httpConfig.getUsername(), StandardCharsets.UTF_8);
-        String encodedPassword = URLEncoder.encode(password, StandardCharsets.UTF_8);
-        String param = Constants.LOGIN_NAME + "=" + encodedUsername + "&" + Constants.PASS_WORD + "=" + encodedPassword;
-        String url = String.join("?", server + Constants.LOGIN_PATH, param);
-        Request request = new Request.Builder().url(url).build();
+        Map<String, String> loginBody = new HashMap<>(2);
+        loginBody.put(Constants.LOGIN_NAME, httpConfig.getUsername());
+        loginBody.put(Constants.PASS_WORD, password);
+        RequestBody requestBody = RequestBody.create(GsonUtils.getInstance().toJson(loginBody), JSON_MEDIA_TYPE);
+        String url = server + Constants.LOGIN_PATH;
+        Request request = new Request.Builder().url(url).post(requestBody).build();
 
         try (Response response = this.okHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
