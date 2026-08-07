@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -44,6 +45,10 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -74,6 +79,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public DiscoveryUpstreamServiceImpl(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                         final DiscoveryHandlerMapper discoveryHandlerMapper,
                                         final ProxySelectorMapper proxySelectorMapper,
@@ -81,7 +88,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                                         final DiscoveryRelMapper discoveryRelMapper,
                                         final SelectorMapper selectorMapper,
                                         final PluginMapper pluginMapper,
-                                        final DiscoveryProcessorHolder discoveryProcessorHolder) {
+                                        final DiscoveryProcessorHolder discoveryProcessorHolder,
+                                        final ApplicationEventPublisher eventPublisher) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
@@ -90,6 +98,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         this.selectorMapper = selectorMapper;
         this.proxySelectorMapper = proxySelectorMapper;
         this.pluginMapper = pluginMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -123,6 +132,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
+            if (!StringUtils.hasLength(discoveryUpstreamDTO.getManualStatus())) {
+                discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDTO.getId())).stream()
+                        .findFirst()
+                        .ifPresent(existing -> discoveryUpstreamDO.setManualStatus(existing.getManualStatus()));
+            }
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
         } else {
             DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
@@ -217,6 +231,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      */
     private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
+        if (!StringUtils.hasLength(discoveryUpstreamDTO.getManualStatus())) {
+            discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDTO.getId())).stream()
+                    .findFirst()
+                    .ifPresent(existing -> discoveryUpstreamDO.setManualStatus(existing.getManualStatus()));
+        }
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -246,8 +265,25 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public void changeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
+            if (Boolean.TRUE.equals(enabled)) {
+                DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerDO.getId(), url);
+                if (Objects.nonNull(existingRecord) && UpstreamManualStatusEnum.isForceOffline(existingRecord.getManualStatus())) {
+                    return;
+                }
+            }
             discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeManualStatusBySelectorIdAndUrl(final String selectorId, final String url, final UpstreamManualStatusEnum manualStatus) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
+        discoveryUpstreamMapper.updateManualStatusByUrl(discoveryHandlerDO.getId(), url, manualStatus.name());
+        publishDiscoverySyncEvent(selectorId, discoveryHandlerDO.getId());
     }
 
     @Override
@@ -349,6 +385,26 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         List<DiscoveryUpstreamDTO> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
+    }
+
+    private void publishDiscoverySyncEvent(final String selectorId, final String discoveryHandlerId) {
+        DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+        if (Objects.isNull(discoveryRelDO) || Objects.isNull(selectorDO)) {
+            return;
+        }
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId(selectorId);
+        discoverySyncData.setSelectorName(selectorDO.getSelectorName());
+        discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
+        discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
+        discoverySyncData.setDiscoveryHandlerId(discoveryHandlerId);
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData)
+                .collect(Collectors.toList());
+        discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM,
+                DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
     }
 
 }

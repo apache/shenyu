@@ -74,6 +74,7 @@ public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHa
                     .weight(u.getWeight())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
+                    .manualStatus(u.getManualStatus())
                     .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
                     .build();
         }).collect(Collectors.toList());

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -74,6 +75,8 @@ public class DivideUpstreamDataHandlerTest {
 
     @AfterEach
     public void tearDown() {
+        UpstreamCacheManager.getInstance().removeByKey("handler");
+        UpstreamCacheManager.getInstance().removeByKey("manual-status-handler");
         mockCheckUtils.close();
     }
 
@@ -96,5 +99,22 @@ public class DivideUpstreamDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         assertEquals(divideUpstreamDataHandler.pluginName(), PluginEnum.DIVIDE.getName());
+    }
+
+    @Test
+    public void handlerDiscoveryUpstreamDataShouldCarryManualStatus() {
+        DiscoveryUpstreamData upstreamData = DiscoveryUpstreamData.builder()
+                .url("manual-status-upstream")
+                .manualStatus(UpstreamManualStatusEnum.FORCE_OFFLINE.name())
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        DiscoverySyncData syncData = new DiscoverySyncData();
+        syncData.setSelectorId("manual-status-handler");
+        syncData.setUpstreamDataList(List.of(upstreamData));
+
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(syncData);
+
+        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("manual-status-handler");
+        assertEquals(UpstreamManualStatusEnum.FORCE_OFFLINE.name(), result.get(0).getManualStatus());
     }
 }

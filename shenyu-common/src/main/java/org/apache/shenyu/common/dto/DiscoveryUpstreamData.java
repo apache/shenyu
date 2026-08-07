@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -76,6 +77,11 @@ public class DiscoveryUpstreamData {
      * namespaceId.
      */
     private String namespaceId;
+
+    /**
+     * manualStatus.
+     */
+    private String manualStatus = UpstreamManualStatusEnum.NONE.name();
 
 
     /**
@@ -258,6 +264,24 @@ public class DiscoveryUpstreamData {
         this.namespaceId = namespaceId;
     }
 
+    /**
+     * get manualStatus.
+     *
+     * @return manualStatus
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * set manualStatus.
+     *
+     * @param manualStatus manualStatus
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -271,12 +295,13 @@ public class DiscoveryUpstreamData {
                 && Objects.equals(dateCreated, that.dateCreated) && Objects.equals(dateUpdated, that.dateUpdated)
                 && Objects.equals(discoveryHandlerId, that.discoveryHandlerId) && Objects.equals(protocol, that.protocol)
                 && Objects.equals(url, that.url) && Objects.equals(props, that.props)
-                && Objects.equals(namespaceId, that.namespaceId);
+                && Objects.equals(namespaceId, that.namespaceId)
+                && Objects.equals(manualStatus, that.manualStatus);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props, namespaceId);
+        return Objects.hash(id, dateCreated, dateUpdated, discoveryHandlerId, protocol, url, status, weight, props, namespaceId, manualStatus);
     }
 
     /**
@@ -309,6 +334,8 @@ public class DiscoveryUpstreamData {
         private String props;
 
         private String namespaceId;
+
+        private String manualStatus = UpstreamManualStatusEnum.NONE.name();
 
         private Builder() {
         }
@@ -433,6 +460,17 @@ public class DiscoveryUpstreamData {
         }
 
         /**
+         * build manualStatus.
+         *
+         * @param manualStatus manualStatus
+         * @return this
+         */
+        public Builder manualStatus(final String manualStatus) {
+            this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+            return this;
+        }
+
+        /**
          * build new Object.
          *
          * @return DiscoveryUpstreamData
@@ -449,6 +487,7 @@ public class DiscoveryUpstreamData {
             discoveryUpstreamData.setWeight(weight);
             discoveryUpstreamData.setProps(props);
             discoveryUpstreamData.setNamespaceId(namespaceId);
+            discoveryUpstreamData.setManualStatus(manualStatus);
             return discoveryUpstreamData;
         }
     }

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
 
@@ -65,6 +66,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
      * namespaceId.
      */
     private String namespaceId;
+
+    /**
+     * manualStatus.
+     */
+    private String manualStatus = UpstreamManualStatusEnum.NONE.name();
 
     /**
      * DiscoveryUpstreamDO.
@@ -243,6 +249,24 @@ public class DiscoveryUpstreamDO extends BaseDO {
     }
 
     /**
+     * get manualStatus.
+     *
+     * @return manualStatus
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * set manualStatus.
+     *
+     * @param manualStatus manualStatus
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+    }
+
+    /**
      * buildDiscoveryUpstreamDO.
      *
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
@@ -259,6 +283,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
                     .weight(item.getWeight())
                     .props(item.getProps())
                     .url(item.getUrl())
+                    .manualStatus(item.getManualStatus())
                     .namespaceId(item.getNamespaceId())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime).build();
@@ -326,6 +351,11 @@ public class DiscoveryUpstreamDO extends BaseDO {
          * namespaceId.
          */
         private String namespaceId;
+
+        /**
+         * manualStatus.
+         */
+        private String manualStatus = UpstreamManualStatusEnum.NONE.name();
 
         /**
          * id.
@@ -447,6 +477,17 @@ public class DiscoveryUpstreamDO extends BaseDO {
         }
 
         /**
+         * build manualStatus.
+         *
+         * @param manualStatus manualStatus
+         * @return this
+         */
+        public DiscoveryUpstreamBuilder manualStatus(final String manualStatus) {
+            this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+            return this;
+        }
+
+        /**
          * build.
          *
          * @return DiscoveryUpstreamDO
@@ -462,6 +503,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
             discoveryUpstreamDO.setWeight(this.weight);
             discoveryUpstreamDO.setProps(this.props);
             discoveryUpstreamDO.setNamespaceId(this.namespaceId);
+            discoveryUpstreamDO.setManualStatus(this.manualStatus);
             discoveryUpstreamDO.setDateCreated(this.dateCreated);
             discoveryUpstreamDO.setDateUpdated(this.dateUpdated);
             return discoveryUpstreamDO;

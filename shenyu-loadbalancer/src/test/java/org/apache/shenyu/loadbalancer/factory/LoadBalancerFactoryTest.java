@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.factory;
 
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * The type loadBalance utils test.
@@ -91,5 +93,29 @@ public final class LoadBalancerFactoryTest {
             countMap.put(result.getUrl(), ++count);
         });
         assertEquals(12, countMap.get("upstream-10").intValue());
+    }
+
+    @Test
+    public void selectorShouldIgnoreForceOfflineUpstream() {
+        List<Upstream> upstreamList = List.of(
+                Upstream.builder().url("upstream-offline").weight(100).manualStatus(UpstreamManualStatusEnum.FORCE_OFFLINE.name()).build(),
+                Upstream.builder().url("upstream-online").weight(1).manualStatus(UpstreamManualStatusEnum.NONE.name()).build()
+        );
+
+        Upstream result = LoadBalancerFactory.selector(upstreamList, LoadBalanceEnum.ROUND_ROBIN.getName(), new LoadBalanceData());
+
+        assertEquals("upstream-online", result.getUrl());
+    }
+
+    @Test
+    public void selectorShouldReturnNullWhenAllUpstreamsAreForceOffline() {
+        List<Upstream> upstreamList = List.of(
+                Upstream.builder().url("upstream-offline-1").manualStatus(UpstreamManualStatusEnum.FORCE_OFFLINE.name()).build(),
+                Upstream.builder().url("upstream-offline-2").manualStatus(UpstreamManualStatusEnum.FORCE_OFFLINE.name()).build()
+        );
+
+        Upstream result = LoadBalancerFactory.selector(upstreamList, LoadBalanceEnum.ROUND_ROBIN.getName(), new LoadBalanceData());
+
+        assertNull(result);
     }
 }

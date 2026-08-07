@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
+
 import java.util.Objects;
 
 /**
@@ -63,6 +65,11 @@ public class CommonUpstream {
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
+
+    /**
+     * manualStatus.
+     */
+    private String manualStatus = UpstreamManualStatusEnum.NONE.name();
 
     /**
      * Instantiates a new Common upstream.
@@ -212,6 +219,33 @@ public class CommonUpstream {
      */
     public void setGray(final boolean gray) {
         this.gray = gray;
+    }
+
+    /**
+     * get manualStatus.
+     *
+     * @return manualStatus
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * set manualStatus.
+     *
+     * @param manualStatus manualStatus
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+    }
+
+    /**
+     * whether manual offline.
+     *
+     * @return true if manual offline
+     */
+    public boolean isManualOffline() {
+        return UpstreamManualStatusEnum.isForceOffline(manualStatus);
     }
 
     /**

@@ -1272,6 +1272,7 @@ CREATE TABLE IF NOT EXISTS `discovery_upstream`
     `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
     `upstream_url`          varchar(64)   NOT NULL COMMENT 'ip:port',
     `upstream_status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `manual_status`      varchar(32) NOT NULL DEFAULT 'NONE' COMMENT 'manual status (NONE, FORCE_OFFLINE)',
     `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
     `props`      text  COMMENT 'the other field (json)',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
