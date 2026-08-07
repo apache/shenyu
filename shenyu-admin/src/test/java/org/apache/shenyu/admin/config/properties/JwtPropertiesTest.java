@@ -19,16 +19,37 @@ package org.apache.shenyu.admin.config.properties;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
-/**
- * Test cases for {@link JwtProperties}.
- */
 public class JwtPropertiesTest {
-    
+
     @Test
     public void jwtPropertiesTest() {
         final JwtProperties jwtProperties = new JwtProperties();
         jwtProperties.setExpiredSeconds(0L);
         Assertions.assertEquals(jwtProperties.getExpiredSeconds(), 0L);
+    }
+
+    @Test
+    public void testInitThrowsWhenSecretKeyIsBlank() {
+        final JwtProperties jwtProperties = new JwtProperties();
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> ReflectionTestUtils.invokeMethod(jwtProperties, "init"));
+    }
+
+    @Test
+    public void testInitThrowsWhenSecretKeyIsDefault() {
+        final JwtProperties jwtProperties = new JwtProperties();
+        jwtProperties.setSecretKey("defaultSecretKey");
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> ReflectionTestUtils.invokeMethod(jwtProperties, "init"));
+    }
+
+    @Test
+    public void testInitDoesNotThrowWhenSecretKeyIsConfigured() {
+        final JwtProperties jwtProperties = new JwtProperties();
+        jwtProperties.setSecretKey("mySecretKey");
+        Assertions.assertDoesNotThrow(
+                () -> ReflectionTestUtils.invokeMethod(jwtProperties, "init"));
     }
 }
