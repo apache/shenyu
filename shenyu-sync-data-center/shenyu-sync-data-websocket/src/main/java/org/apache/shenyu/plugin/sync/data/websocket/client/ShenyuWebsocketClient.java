@@ -43,11 +43,18 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The type shenyu websocket client.
@@ -58,22 +65,35 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-    
+
+    private static final ExecutorService RECONNECT_EXECUTOR = Executors.newCachedThreadPool(
+            ShenyuThreadFactory.create("websocket-reconnect", true));
+
+    private static final long MIN_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(1);
+
+    private static final long MAX_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(60);
+
     private volatile boolean alreadySync = Boolean.FALSE;
-    
+
     private final WebsocketDataHandler websocketDataHandler;
-    
+
     private final Timer timer;
-    
+
     private TimerTask timerTask;
-    
+
     private String runningMode;
-    
+
     private String masterUrl;
-    
+
     private volatile boolean isConnectedToMaster;
-    
+
     private final String namespaceId;
+
+    private final AtomicBoolean reconnecting = new AtomicBoolean(false);
+
+    private volatile long lastReconnectAttemptTime;
+
+    private final AtomicInteger reconnectBackoff = new AtomicInteger(0);
 
     /**
      * Instantiates a new shenyu websocket client.
@@ -238,16 +258,49 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void healthCheck() {
         try {
             if (!this.isOpen()) {
-                this.reconnectBlocking();
+                if (this.reconnecting.compareAndSet(false, true)) {
+                    RECONNECT_EXECUTOR.submit(this::doReconnect);
+                }
             } else {
+                this.reconnectBackoff.set(0);
                 this.sendPing();
                 send(getInstanceInfo());
-//                send(DataEventTypeEnum.RUNNING_MODE.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
+    }
+
+    private void doReconnect() {
+        try {
+            long backoff = calculateBackoff();
+            long since = System.currentTimeMillis() - lastReconnectAttemptTime;
+            long waitMs = backoff - since;
+            if (waitMs > 0) {
+                Thread.sleep(waitMs);
+            }
+            lastReconnectAttemptTime = System.currentTimeMillis();
+            this.reconnectBlocking();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            reconnectBackoff.set(Math.min(reconnectBackoff.get() + 1, 10));
+            LOG.error("websocket reconnect server[{}] error", this.getURI(), e);
+        } finally {
+            this.reconnecting.set(false);
+        }
+    }
+
+    private long calculateBackoff() {
+        int failures = reconnectBackoff.get();
+        if (failures <= 0) {
+            return 0;
+        }
+        long base = Math.min(
+                MIN_RECONNECT_BACKOFF_MS * (1L << Math.min(failures - 1, 10)),
+                MAX_RECONNECT_BACKOFF_MS);
+        return base + (long) (base * 0.5 * ThreadLocalRandom.current().nextDouble());
     }
 
     private String getInstanceInfo() {
