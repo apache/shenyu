@@ -22,8 +22,10 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type least activity load balance test.
@@ -55,5 +57,26 @@ public class LeastActiveLoadBalanceTest {
         Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
         Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")
                 || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
+    }
+
+    @Test
+    public void testRemoveStaleCountMapEntries() throws Exception {
+        buildUpstreamList();
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        Assertions.assertEquals(2, getCountMap(leastActiveLoadBalance).size());
+        onlyOneList.remove(1);
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        Map<String, Long> countMap = getCountMap(leastActiveLoadBalance);
+        Assertions.assertEquals(1, countMap.size());
+        Assertions.assertTrue(countMap.containsKey("https://baidu.com"));
+        Assertions.assertFalse(countMap.containsKey("https://pro.jd.com"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Long> getCountMap(final LeastActiveLoadBalance loadBalance) throws Exception {
+        Field field = LeastActiveLoadBalance.class.getDeclaredField("countMap");
+        field.setAccessible(true);
+        return (Map<String, Long>) field.get(loadBalance);
     }
 }

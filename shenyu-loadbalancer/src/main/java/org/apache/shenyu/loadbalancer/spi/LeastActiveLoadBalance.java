@@ -45,6 +45,8 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
                 .filter(key -> !countMap.containsKey(key))
                 .forEach(domain -> countMap.put(domain, Long.MIN_VALUE));
 
+        countMap.keySet().retainAll(domainMap.keySet());
+
         final String domain = countMap.entrySet().stream()
                 // Ensure that the filtered domain is included in the domainMap.
                 .filter(entry -> domainMap.containsKey(entry.getKey()))
