@@ -66,17 +66,82 @@ public class LeastActiveLoadBalanceTest {
         leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
         Assertions.assertEquals(2, getCountMap(leastActiveLoadBalance).size());
         onlyOneList.remove(1);
+        // The periodic cleanup is time-driven, simulate the elapsed time so that the entry of the
+        // removed upstream becomes stale and is evicted by the next cleanup.
+        long old = System.currentTimeMillis() - 60_001;
+        setLastUpdate(leastActiveLoadBalance, "https://pro.jd.com", old);
+        setLastRecycle(leastActiveLoadBalance, old);
         leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Map<String, Long> countMap = getCountMap(leastActiveLoadBalance);
+        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
         Assertions.assertEquals(1, countMap.size());
         Assertions.assertTrue(countMap.containsKey("https://baidu.com"));
         Assertions.assertFalse(countMap.containsKey("https://pro.jd.com"));
     }
 
+    @Test
+    public void testCountMapNotAffectOtherSelector() throws Exception {
+        buildUpstreamList();
+        final List<Upstream> anotherList = new ArrayList<>();
+        anotherList.add(Upstream.builder().url("jd.com").protocol("https://").build());
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        leastActiveLoadBalance.doSelect(anotherList, new LoadBalanceData());
+        Assertions.assertEquals(3, getCountMap(leastActiveLoadBalance).size());
+        // Selector 1 removes pro.jd.com, and the cleanup must not evict the live entry jd.com
+        // which only belongs to selector 2.
+        onlyOneList.remove(1);
+        long old = System.currentTimeMillis() - 60_001;
+        setLastUpdate(leastActiveLoadBalance, "https://pro.jd.com", old);
+        setLastRecycle(leastActiveLoadBalance, old);
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
+        Assertions.assertEquals(2, countMap.size());
+        Assertions.assertTrue(countMap.containsKey("https://baidu.com"));
+        Assertions.assertTrue(countMap.containsKey("https://jd.com"));
+        Assertions.assertFalse(countMap.containsKey("https://pro.jd.com"));
+    }
+
+    @Test
+    public void testCountMapNotAffectOtherSelectorWhenFirstRemoved() throws Exception {
+        buildUpstreamList();
+        final List<Upstream> anotherList = new ArrayList<>();
+        anotherList.add(Upstream.builder().url("jd.com").protocol("https://").build());
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        leastActiveLoadBalance.doSelect(anotherList, new LoadBalanceData());
+        Assertions.assertEquals(3, getCountMap(leastActiveLoadBalance).size());
+        // Symmetric case: selector 1 removes the first upstream baidu.com. The cleanup must evict
+        // baidu.com but keep pro.jd.com (still served by selector 1) and jd.com (served by selector 2).
+        onlyOneList.remove(0);
+        long old = System.currentTimeMillis() - 60_001;
+        setLastUpdate(leastActiveLoadBalance, "https://baidu.com", old);
+        setLastRecycle(leastActiveLoadBalance, old);
+        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
+        Assertions.assertEquals(2, countMap.size());
+        Assertions.assertTrue(countMap.containsKey("https://pro.jd.com"));
+        Assertions.assertTrue(countMap.containsKey("https://jd.com"));
+        Assertions.assertFalse(countMap.containsKey("https://baidu.com"));
+    }
+
     @SuppressWarnings("unchecked")
-    private Map<String, Long> getCountMap(final LeastActiveLoadBalance loadBalance) throws Exception {
+    private Map<String, LeastActiveLoadBalance.ActiveCount> getCountMap(final LeastActiveLoadBalance loadBalance) throws Exception {
         Field field = LeastActiveLoadBalance.class.getDeclaredField("countMap");
         field.setAccessible(true);
-        return (Map<String, Long>) field.get(loadBalance);
+        return (Map<String, LeastActiveLoadBalance.ActiveCount>) field.get(loadBalance);
+    }
+
+    private void setLastUpdate(final LeastActiveLoadBalance loadBalance, final String domain, final long lastUpdate) throws Exception {
+        LeastActiveLoadBalance.ActiveCount activeCount = getCountMap(loadBalance).get(domain);
+        Assertions.assertNotNull(activeCount);
+        Field field = LeastActiveLoadBalance.ActiveCount.class.getDeclaredField("lastUpdate");
+        field.setAccessible(true);
+        field.set(activeCount, lastUpdate);
+    }
+
+    private void setLastRecycle(final LeastActiveLoadBalance loadBalance, final long lastRecycle) throws Exception {
+        Field field = LeastActiveLoadBalance.class.getDeclaredField("lastRecycle");
+        field.setAccessible(true);
+        field.set(loadBalance, lastRecycle);
     }
 }

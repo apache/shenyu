@@ -24,8 +24,11 @@ import org.apache.shenyu.spi.Join;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -34,28 +37,93 @@ import java.util.stream.Collectors;
 @Join
 public class LeastActiveLoadBalance extends AbstractLoadBalancer {
 
-    private final Map<String, Long> countMap = new ConcurrentHashMap<>();
+    private final int recyclePeriod = 60000;
+
+    private final ConcurrentMap<String, ActiveCount> countMap = new ConcurrentHashMap<>(16);
+
+    private final AtomicBoolean updateLock = new AtomicBoolean();
+
+    private volatile long lastRecycle;
 
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        long now = System.currentTimeMillis();
         Map<String, Upstream> domainMap = upstreamList.stream()
                 .collect(Collectors.toConcurrentMap(Upstream::buildDomain, upstream -> upstream));
 
-        domainMap.keySet().stream()
-                .filter(key -> !countMap.containsKey(key))
-                .forEach(domain -> countMap.put(domain, Long.MIN_VALUE));
-
-        countMap.keySet().retainAll(domainMap.keySet());
+        domainMap.keySet().forEach(domain -> {
+            ActiveCount activeCount = countMap.computeIfAbsent(domain, key -> new ActiveCount(now));
+            activeCount.setLastUpdate(now);
+        });
 
         final String domain = countMap.entrySet().stream()
                 // Ensure that the filtered domain is included in the domainMap.
                 .filter(entry -> domainMap.containsKey(entry.getKey()))
-                .min(Comparator.comparingLong(Map.Entry::getValue))
+                .min(Comparator.comparingLong(entry -> entry.getValue().getCount()))
                 .map(Map.Entry::getKey)
                 .orElse(upstreamList.get(0).buildDomain());
 
-        countMap.computeIfPresent(domain, (key, activated) -> Optional.of(activated).orElse(Long.MIN_VALUE) + 1);
+        ActiveCount activeCount = countMap.get(domain);
+        if (Objects.nonNull(activeCount)) {
+            activeCount.increase();
+        }
+
+        if (!updateLock.get() && now - lastRecycle > recyclePeriod && updateLock.compareAndSet(false, true)) {
+            try {
+                countMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
+                lastRecycle = now;
+            } finally {
+                updateLock.set(false);
+            }
+        }
         return domainMap.get(domain);
     }
-    
+
+    /**
+     * The type Active count.
+     */
+    protected static class ActiveCount {
+
+        private final AtomicLong count = new AtomicLong(Long.MIN_VALUE);
+
+        private volatile long lastUpdate;
+
+        ActiveCount(final long lastUpdate) {
+            this.lastUpdate = lastUpdate;
+        }
+
+        /**
+         * Increase count.
+         */
+        void increase() {
+            count.addAndGet(1);
+        }
+
+        /**
+         * Get count.
+         *
+         * @return the count
+         */
+        long getCount() {
+            return count.get();
+        }
+
+        /**
+         * Gets last update.
+         *
+         * @return the last update
+         */
+        long getLastUpdate() {
+            return lastUpdate;
+        }
+
+        /**
+         * Sets last update.
+         *
+         * @param lastUpdate the last update
+         */
+        void setLastUpdate(final long lastUpdate) {
+            this.lastUpdate = lastUpdate;
+        }
+    }
 }
