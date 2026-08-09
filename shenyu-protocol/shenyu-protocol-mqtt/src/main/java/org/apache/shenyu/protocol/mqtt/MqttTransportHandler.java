@@ -22,6 +22,10 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
+import java.util.Objects;
 
 /**
  * mqtt transport handler.
@@ -36,6 +40,16 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         } else {
             ctx.close();
         }
+    }
+
+    @Override
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+        WillRepository.WillEntry will = Singleton.INST.get(WillRepository.class).get(ctx.channel());
+        if (Objects.nonNull(will)) {
+            Publish.publishWill(will);
+            Singleton.INST.get(WillRepository.class).remove(ctx.channel());
+        }
+        super.channelInactive(ctx);
     }
 
     @Override

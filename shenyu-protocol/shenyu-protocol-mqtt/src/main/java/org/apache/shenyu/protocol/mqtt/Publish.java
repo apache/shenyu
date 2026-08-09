@@ -32,6 +32,8 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -120,6 +122,25 @@ public class Publish extends MessageType {
                 MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
                 MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
+    }
+
+    /**
+     * Publish a Last Will message to all subscribers of the will topic.
+     *
+     * @param will the will entry containing topic, message, qos, and retain flag
+     */
+    static void publishWill(final WillRepository.WillEntry will) {
+        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(will.getTopic());
+        MqttQoS willQos = MqttQoS.valueOf(will.getQos());
+        channels.parallelStream().forEach(channel -> {
+            if (channel.isActive()) {
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, willQos, will.isRetain(), 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), 0);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
+                        Unpooled.wrappedBuffer(will.getMessage()));
                 channel.writeAndFlush(mqttPublishMessage);
             }
         });
