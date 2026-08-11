@@ -141,7 +141,7 @@ public final class RegisterUtils {
         Map<String, Object> loginMap = new HashMap<>(2);
         loginMap.put(Constants.LOGIN_NAME, username);
         loginMap.put(Constants.PASS_WORD, password);
-        String result = OkHttpTools.getInstance().get(url, loginMap);
+        String result = OkHttpTools.getInstance().post(url, GsonUtils.getInstance().toJson(loginMap));
         Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
         if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
             return Optional.empty();
