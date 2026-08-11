@@ -454,6 +454,9 @@ public final class IpUtils {
         }
         String host = upstreamUrl.substring(0, lastColon);
         String port = upstreamUrl.substring(lastColon + 1);
+        if (host.indexOf(':') >= 0) {
+            throw new IllegalArgumentException("IPv6 addresses must be bracketed, e.g. [::1]:8080: " + upstreamUrl);
+        }
         port = port.isEmpty() ? "80" : port;
         validateHostIfLooksLikeIP(host);
         validateNumericPort(port, upstreamUrl);

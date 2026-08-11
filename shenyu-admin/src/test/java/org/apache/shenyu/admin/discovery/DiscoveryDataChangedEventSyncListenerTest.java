@@ -132,12 +132,12 @@ public class DiscoveryDataChangedEventSyncListenerTest {
     @Test
     public void testUpdatedFallbackMatchMigratesOldUrl() {
         setUpCommonMocks();
-        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("::1:9090"));
+        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("192.168.1.1"));
         when(discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(any(DiscoveryUpstreamDO.class))).thenReturn(0);
 
         DiscoveryUpstreamDO oldRecord = new DiscoveryUpstreamDO();
         oldRecord.setId("old-id");
-        oldRecord.setUpstreamUrl("::1:9090");
+        oldRecord.setUpstreamUrl("192.168.1.1");
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("discoveryHandlerId"))
                 .thenReturn(Collections.singletonList(oldRecord));
 
@@ -146,7 +146,7 @@ public class DiscoveryDataChangedEventSyncListenerTest {
 
         ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
         verify(discoveryUpstreamMapper).updateSelective(captor.capture());
-        assertEquals("[::1]:9090", captor.getValue().getUpstreamUrl());
+        assertEquals("192.168.1.1:80", captor.getValue().getUpstreamUrl());
     }
 
     @Test

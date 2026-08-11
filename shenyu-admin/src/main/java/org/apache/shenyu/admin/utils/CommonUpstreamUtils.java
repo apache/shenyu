@@ -315,8 +315,24 @@ public class CommonUpstreamUtils {
     public static DiscoveryUpstreamDO matchByHostAndPort(final DiscoveryUpstreamMapper mapper,
                                                           final String discoveryHandlerId,
                                                           final String normalizedUrl) {
-        String[] newParts = parseHostPort(normalizedUrl);
         List<DiscoveryUpstreamDO> existingList = mapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        return matchByHostAndPort(existingList, normalizedUrl);
+    }
+
+    /**
+     * Match an existing upstream record by host and port from an in-memory list.
+     * Use this overload in batch loops to avoid repeated DB queries.
+     *
+     * @param existingList  the list of existing upstreams for a handler
+     * @param normalizedUrl the URL in canonical format
+     * @return matching DiscoveryUpstreamDO or null if not found
+     */
+    public static DiscoveryUpstreamDO matchByHostAndPort(final List<DiscoveryUpstreamDO> existingList,
+                                                          final String normalizedUrl) {
+        if (Objects.isNull(existingList) || existingList.isEmpty()) {
+            return null;
+        }
+        String[] newParts = parseHostPort(normalizedUrl);
         for (DiscoveryUpstreamDO existing : existingList) {
             try {
                 String[] existingParts = parseHostPort(existing.getUpstreamUrl());

@@ -239,4 +239,14 @@ public final class IpUtilsTest {
         assertEquals("example.com", result[0]);
         assertEquals("80", result[1]);
     }
+
+    @Test
+    public void testParseHostPortWithNonBracketedIPv6NoPort() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("::1"));
+    }
+
+    @Test
+    public void testParseHostPortWithNonBracketedIPv6AndPort() {
+        assertThrows(IllegalArgumentException.class, () -> IpUtils.parseHostPort("2001:db8::1:8080"));
+    }
 }
