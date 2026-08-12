@@ -32,11 +32,11 @@ Current watcher caching is scoped by discovery id. Since discovery records are n
 
 This is expected for correctness, but it can duplicate registry polling work. Cross-namespace watcher sharing would require a broader cache key such as registry type, server list, and listener node, plus fan-out to each namespace-specific `DiscoverySyncData`.
 
-## Incremental update caveat
+## Incremental updates
 
-Eureka incremental events currently build upstream JSON without `namespaceId`. `DiscoveryDataChangedEventSyncListener` maps a blank upstream namespace to the system default namespace before filtering by the current selector namespace. As a result, an incremental Eureka upstream event for a non-default namespace can be filtered out even though the initial full refresh inserted the same upstream with the correct namespace.
+Eureka incremental events build upstream JSON without `namespaceId`. `DiscoveryDataChangedEventSyncListener` fills a blank upstream namespace from the current discovery sync context before filtering by the current selector namespace. This keeps incremental refresh behavior consistent with the full refresh path for non-default namespaces.
 
-The minimum behavior-preserving fix is to fill a blank upstream namespace from the current discovery sync context instead of the system default namespace:
+The behavior-preserving rule is:
 
 ```java
 if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())) {
