@@ -19,9 +19,11 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +91,23 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      */
     public List<Channel> get(final String topic) {
         return TOPIC_CHANNEL_FACTORY.getOrDefault(topic, new CopyOnWriteArrayList<>());
+    }
+
+    /**
+     * Get channels whose subscription filter matches the published topic.
+     * Supports MQTT wildcards: + (single-level) and # (multi-level).
+     *
+     * @param topic the published topic name
+     * @return channels subscribed to matching topic filters
+     */
+    public List<Channel> getChannelsByTopic(final String topic) {
+        List<Channel> result = new ArrayList<>();
+        for (Map.Entry<String, List<Channel>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
+            if (TopicMatcher.matches(entry.getKey(), topic)) {
+                result.addAll(entry.getValue());
+            }
+        }
+        return result;
     }
 
 }

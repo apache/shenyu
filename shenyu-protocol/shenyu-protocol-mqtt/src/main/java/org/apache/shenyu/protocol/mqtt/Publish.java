@@ -113,7 +113,7 @@ public class Publish extends MessageType {
     }
 
     private void send(final String topic, final ByteBuf payload, final int packetId) {
-        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(topic);
+        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(topic);
         //// todo thread pool
         channels.parallelStream().forEach(channel -> {
             if (channel.isActive()) {
