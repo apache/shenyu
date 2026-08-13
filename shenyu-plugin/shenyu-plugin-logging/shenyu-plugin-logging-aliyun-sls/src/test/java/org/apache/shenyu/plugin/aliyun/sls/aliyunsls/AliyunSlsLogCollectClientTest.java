@@ -27,8 +27,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * test cases for AliyunSlsLogCollectClient.
@@ -68,6 +71,18 @@ public class AliyunSlsLogCollectClientTest {
         accessId.setAccessible(true);
         Assertions.assertEquals(accessId.get(aliyunSlsLogCollectClient), "shenyu-test");
         aliyunSlsLogCollectClient.close();
+    }
+
+    @Test
+    public void testCreateThreadPoolExecutorKeepAliveTime() throws ReflectiveOperationException {
+        Method method = AliyunSlsLogCollectClient.class.getDeclaredMethod("createThreadPoolExecutor", AliyunLogCollectConfig.AliyunSlsLogConfig.class);
+        method.setAccessible(true);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) method.invoke(null, aliyunSlsLogConfig);
+        try {
+            Assertions.assertEquals(60000L, executor.getKeepAliveTime(TimeUnit.MILLISECONDS));
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test

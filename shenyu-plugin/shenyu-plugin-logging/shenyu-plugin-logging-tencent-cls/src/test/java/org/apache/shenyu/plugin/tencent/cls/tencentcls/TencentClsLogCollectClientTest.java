@@ -27,9 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * test cases for TencentClsLogCollectClient.
@@ -68,6 +71,18 @@ public class TencentClsLogCollectClientTest {
         field.setAccessible(true);
         Assertions.assertEquals(field.get(tencentClsLogCollectClient), "shenyu-topic-test");
         tencentClsLogCollectClient.close();
+    }
+
+    @Test
+    public void testCreateThreadPoolExecutorKeepAliveTime() throws ReflectiveOperationException {
+        Method method = TencentClsLogCollectClient.class.getDeclaredMethod("createThreadPoolExecutor", int.class);
+        method.setAccessible(true);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) method.invoke(null, 1);
+        try {
+            Assertions.assertEquals(60000L, executor.getKeepAliveTime(TimeUnit.MILLISECONDS));
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test

@@ -160,7 +160,7 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
             LOG.warn("send thread count number too large!");
             threadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000000L, TimeUnit.MICROSECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-tencent-cls", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
