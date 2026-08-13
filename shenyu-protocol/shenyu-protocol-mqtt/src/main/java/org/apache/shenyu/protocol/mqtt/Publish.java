@@ -31,8 +31,9 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
@@ -50,11 +51,10 @@ public class Publish extends MessageType {
         String topic = msg.variableHeader().topicName();
         ByteBuf payload = msg.payload();
         String message = byteBufToString(payload);
-        //// todo qos
         MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
         Singleton.INST.get(TopicRepository.class).add(topic, message);
         int packetId = msg.variableHeader().packetId();
-        CompletableFuture.runAsync(() -> send(topic, payload, packetId));
+        CompletableFuture.runAsync(() -> send(topic, payload, mqttQoS));
 
         switch (mqttQoS.value()) {
             case 0:
@@ -112,16 +112,23 @@ public class Publish extends MessageType {
         }
     }
 
-    private void send(final String topic, final ByteBuf payload, final int packetId) {
-        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(topic);
+    private void send(final String topic, final ByteBuf payload, final MqttQoS publishQoS) {
+        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).get(topic);
         //// todo thread pool
-        channels.parallelStream().forEach(channel -> {
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
             if (channel.isActive()) {
-                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
+                MqttQoS qos = minQoS(publishQoS, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos ? 0 : MqttPacketIdGenerator.next(channel);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, false, 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
                 MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
                 channel.writeAndFlush(mqttPublishMessage);
             }
         });
+    }
+
+    private static MqttQoS minQoS(final MqttQoS publishQoS, final MqttQoS grantedQoS) {
+        return publishQoS.value() <= grantedQoS.value() ? publishQoS : grantedQoS;
     }
 }
