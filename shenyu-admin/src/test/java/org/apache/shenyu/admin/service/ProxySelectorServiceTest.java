@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -25,6 +26,8 @@ import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -53,6 +56,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -117,6 +123,37 @@ class ProxySelectorServiceTest {
         given(proxySelectorMapper.nameExisted("test")).willReturn(null);
         given(proxySelectorMapper.insert(ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO))).willReturn(1);
         assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.CREATE_SUCCESS);
+    }
+
+    @Test
+    void testUpdateWithNullDiscoveryUpstreams() {
+
+        ProxySelectorAddDTO proxySelectorDTO = new ProxySelectorAddDTO();
+        proxySelectorDTO.setId("proxy-1");
+        proxySelectorDTO.setName("test");
+        proxySelectorDTO.setPluginName("test");
+        proxySelectorDTO.setForwardPort(8080);
+        proxySelectorDTO.setDiscovery(new ProxySelectorAddDTO.Discovery());
+
+        DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
+        discoveryRelDO.setDiscoveryHandlerId("handler-1");
+        given(discoveryRelMapper.selectByProxySelectorId("proxy-1")).willReturn(discoveryRelDO);
+
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setId("handler-1");
+        discoveryHandlerDO.setDiscoveryId("discovery-1");
+        given(discoveryHandlerMapper.selectById("handler-1")).willReturn(discoveryHandlerDO);
+
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setDiscoveryType("local");
+        given(discoveryMapper.selectById("discovery-1")).willReturn(discoveryDO);
+
+        DiscoveryProcessor discoveryProcessor = mock(DiscoveryProcessor.class);
+        given(discoveryProcessorHolder.chooseProcessor("local")).willReturn(discoveryProcessor);
+        given(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).willReturn(Collections.emptyList());
+
+        assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
+        verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
     }
 
     @Test

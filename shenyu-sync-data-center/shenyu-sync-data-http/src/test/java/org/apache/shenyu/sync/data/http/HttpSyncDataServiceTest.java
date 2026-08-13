@@ -95,7 +95,7 @@ public final class HttpSyncDataServiceTest {
                         .extensions(mock(ResponseTemplateTransformer.class))
                         .dynamicPort());
         this.wireMockServer.start();
-        wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
+        wireMockServer.stubFor(post(urlPathEqualTo("/platform/login"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(this.mockLoginResponseJson())

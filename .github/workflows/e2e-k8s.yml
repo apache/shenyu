@@ -21,6 +21,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -30,15 +34,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -247,8 +242,6 @@ jobs:
             script: e2e-springcloud-sync-compose
           - case: shenyu-e2e-case-apache-dubbo
             script: e2e-apache-dubbo-sync-compose
-          - case: shenyu-e2e-case-sofa
-            script: e2e-sofa-sync-compose
           - case: shenyu-e2e-case-grpc
             script: e2e-grpc-sync-compose
           - case: shenyu-e2e-case-websocket

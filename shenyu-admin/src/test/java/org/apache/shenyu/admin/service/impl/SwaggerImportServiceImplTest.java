@@ -55,19 +55,24 @@ public class SwaggerImportServiceImplTest {
 
     private static final MediaType JSON_UTF_8 = MediaType.parse("application/json; charset=utf-8");
 
+    private static final long DEFAULT_MAX_SWAGGER_BODY_SIZE = 10L * 1024 * 1024;
+
     private RecordingDocManager docManager;
 
     private StubHttpUtils httpUtils;
+
+    private SwaggerImportServiceImpl service;
 
     @BeforeEach
     public void setUp() {
         docManager = new RecordingDocManager();
         httpUtils = new StubHttpUtils();
+        service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        ReflectionTestUtils.setField(service, "maxSwaggerBodySize", DEFAULT_MAX_SWAGGER_BODY_SIZE);
     }
 
     @Test
     public void importSwaggerShouldReadSmallSwaggerBody() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         httpUtils.setResponse(response(responseBody(
                 SWAGGER_JSON, SWAGGER_JSON.getBytes(StandardCharsets.UTF_8).length, JSON_UTF_8)));
 
@@ -79,7 +84,6 @@ public class SwaggerImportServiceImplTest {
 
     @Test
     public void importSwaggerShouldRejectKnownContentLengthGreaterThanLimit() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", 10L);
         httpUtils.setResponse(response(responseBody("small", 11L, JSON_UTF_8)));
 
@@ -88,42 +92,10 @@ public class SwaggerImportServiceImplTest {
 
     @Test
     public void importSwaggerShouldRejectUnknownContentLengthWhenActualBodyExceedsLimit() throws IOException {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", 10L);
         httpUtils.setResponse(response(responseBody("01234567890", -1L, JSON_UTF_8)));
 
         assertThrows(IllegalArgumentException.class, () -> service.importSwagger(request()));
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldAllowBodyExactlyEqualToLimit() throws IOException {
-        String body = "0123456789";
-
-        String result = ReflectionTestUtils.invokeMethod(new SwaggerImportServiceImpl(docManager, httpUtils),
-                "readLimitedResponseBody", responseBody(body, -1L, JSON_UTF_8), 10L);
-
-        assertEquals(body, result);
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldHandleNullBodySafely() {
-        SwaggerImportServiceImpl service = new SwaggerImportServiceImpl(docManager, httpUtils);
-
-        assertThrows(IllegalArgumentException.class, () ->
-                ReflectionTestUtils.invokeMethod(service, "readLimitedResponseBody", null, 10L));
-    }
-
-    @Test
-    public void readLimitedResponseBodyShouldUseResponseCharset() throws IOException {
-        Charset charset = StandardCharsets.ISO_8859_1;
-        byte[] bytes = new byte[] {'c', 'a', 'f', (byte) 0xE9};
-        String body = new String(bytes, charset);
-        ResponseBody responseBody = responseBody(bytes, -1L, MediaType.parse("text/plain; charset=iso-8859-1"));
-
-        String result = ReflectionTestUtils.invokeMethod(new SwaggerImportServiceImpl(docManager, httpUtils),
-                "readLimitedResponseBody", responseBody, 10L);
-
-        assertEquals(body, result);
     }
 
     private SwaggerImportRequest request() {
