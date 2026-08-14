@@ -281,6 +281,7 @@ public class HttpSyncDataService implements SyncDataService {
                     try {
                         //do long polling.
                         doLongPolling(server);
+                        break;
                     } catch (Exception e) {
                         // print warnning LOG.
                         if (time < retryTimes) {
