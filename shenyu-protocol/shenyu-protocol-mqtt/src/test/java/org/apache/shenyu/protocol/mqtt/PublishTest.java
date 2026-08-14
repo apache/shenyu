@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,6 +28,7 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
@@ -135,15 +137,42 @@ public class PublishTest {
         }
     }
 
+    @Test
+    public void testPublishFanOutRetainsPayloadPerSubscriber() {
+        Channel otherSubscriberChannel = mock(Channel.class);
+        when(otherSubscriberChannel.isActive()).thenReturn(true);
+        addSubscriber(subscriberChannel, MqttQoS.AT_LEAST_ONCE);
+        addSubscriber(otherSubscriberChannel, MqttQoS.AT_LEAST_ONCE);
+        ByteBuf payload = Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8);
+        try {
+            publish(MqttQoS.AT_LEAST_ONCE, payload);
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(3, payload.refCnt()));
+
+            ArgumentCaptor<MqttPublishMessage> captor = ArgumentCaptor.forClass(MqttPublishMessage.class);
+            verify(subscriberChannel, timeout(5000)).writeAndFlush(captor.capture());
+            verify(otherSubscriberChannel, timeout(5000)).writeAndFlush(captor.capture());
+            assertEquals(PAYLOAD, captor.getAllValues().get(0).payload().toString(CharsetUtil.UTF_8));
+            captor.getAllValues().forEach(ReferenceCountUtil::release);
+            assertEquals(1, payload.refCnt());
+        } finally {
+            ReferenceCountUtil.release(payload);
+            MqttPacketIdGenerator.remove(otherSubscriberChannel);
+        }
+    }
+
     private void addSubscriber(final Channel channel, final MqttQoS qos) {
         subscribeRepository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, qos)));
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(qos, subscribeRepository.get(TOPIC).get(channel)));
     }
 
     private void publish(final MqttQoS qos) {
+        publish(qos, Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8));
+    }
+
+    private void publish(final MqttQoS qos, final ByteBuf payload) {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, false, 0);
         MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, PUBLISHER_PACKET_ID);
-        MqttPublishMessage message = new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8));
+        MqttPublishMessage message = new MqttPublishMessage(fixedHeader, variableHeader, payload);
         new Publish().publish(ctx, message);
     }
 

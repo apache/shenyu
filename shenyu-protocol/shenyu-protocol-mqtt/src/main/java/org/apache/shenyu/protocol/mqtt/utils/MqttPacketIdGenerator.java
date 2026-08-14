@@ -19,8 +19,9 @@ package org.apache.shenyu.protocol.mqtt.utils;
 
 import io.netty.channel.Channel;
 
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,7 +33,8 @@ public final class MqttPacketIdGenerator {
 
     private static final int MAX_PACKET_ID = 0xFFFF;
 
-    private static final Map<Channel, AtomicInteger> CHANNEL_PACKET_ID_FACTORY = new ConcurrentHashMap<>();
+    // weak keys so channels closed without a DISCONNECT do not leak their id space
+    private static final Map<Channel, AtomicInteger> CHANNEL_PACKET_ID_FACTORY = Collections.synchronizedMap(new WeakHashMap<>());
 
     private MqttPacketIdGenerator() {
     }
