@@ -162,6 +162,7 @@ public final class HttpSyncDataServiceTest {
         verify(pluginDataSubscriber, atLeastOnce()).refreshPluginDataAll();
         verify(metaDataSubscriber, atLeastOnce()).refresh();
         verify(authDataSubscriber, atLeastOnce()).refresh();
+        verify(proxySelectorDataSubscriber, atLeastOnce()).refresh();
     }
 
     private String getMockServerUrl() {
@@ -193,6 +194,7 @@ public final class HttpSyncDataServiceTest {
         data.put(ConfigGroupEnum.APP_AUTH.name(), emptyData);
         data.put(ConfigGroupEnum.SELECTOR.name(), emptyData);
         data.put(ConfigGroupEnum.RULE.name(), emptyData);
+        data.put(ConfigGroupEnum.PROXY_SELECTOR.name(), emptyData);
         Map<String, Object> response = new HashMap<>();
         response.put("data", data);
         response.put("code", 200);
