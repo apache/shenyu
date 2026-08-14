@@ -73,4 +73,31 @@ public final class TopicMatcher {
 
         return filterLen == topicLen;
     }
+
+    /**
+     * Validate a topic filter per MQTT-4.7.1: wildcards must occupy an entire
+     * level, and # must be the last level. Filters must not be empty or
+     * contain the null character.
+     *
+     * @param filter the subscription topic filter
+     * @return true if the filter is valid
+     */
+    public static boolean isValidFilter(final String filter) {
+        if (Objects.isNull(filter) || filter.isEmpty() || filter.indexOf((char) 0) >= 0) {
+            return false;
+        }
+        String[] levels = filter.split("/", -1);
+        for (int i = 0; i < levels.length; i++) {
+            String level = levels[i];
+            if (level.indexOf('+') >= 0 || level.indexOf('#') >= 0) {
+                if (level.length() > 1) {
+                    return false;
+                }
+                if ("#".equals(level) && i != levels.length - 1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

@@ -73,4 +73,28 @@ class TopicMatcherTest {
         assertFalse(TopicMatcher.matches(null, "topic"));
         assertFalse(TopicMatcher.matches("topic", null));
     }
+
+    @Test
+    void testValidFilter() {
+        assertTrue(TopicMatcher.isValidFilter("sport/tennis/player1"));
+        assertTrue(TopicMatcher.isValidFilter("sport/+/player1"));
+        assertTrue(TopicMatcher.isValidFilter("+"));
+        assertTrue(TopicMatcher.isValidFilter("#"));
+        assertTrue(TopicMatcher.isValidFilter("sport/#"));
+        assertTrue(TopicMatcher.isValidFilter("+/tennis/#"));
+    }
+
+    @Test
+    void testInvalidFilter() {
+        assertFalse(TopicMatcher.isValidFilter("sport#"));
+        assertFalse(TopicMatcher.isValidFilter("sport/tennis#"));
+        assertFalse(TopicMatcher.isValidFilter("#/sport"));
+        assertFalse(TopicMatcher.isValidFilter("sport/#/ranking"));
+        assertFalse(TopicMatcher.isValidFilter("sport+"));
+        assertFalse(TopicMatcher.isValidFilter("+tennis"));
+        assertFalse(TopicMatcher.isValidFilter("sport/+tennis"));
+        assertFalse(TopicMatcher.isValidFilter(""));
+        assertFalse(TopicMatcher.isValidFilter(null));
+        assertFalse(TopicMatcher.isValidFilter("sport/" + (char) 0));
+    }
 }

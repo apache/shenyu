@@ -24,8 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -101,13 +103,26 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @return channels subscribed to matching topic filters
      */
     public List<Channel> getChannelsByTopic(final String topic) {
-        List<Channel> result = new ArrayList<>();
+        // MQTT requires at most one delivery per publish per client, so dedupe
+        // channels when overlapping filters (e.g. sport/# and #) both match.
+        Set<Channel> result = new LinkedHashSet<>();
+
+        // fast path: exact subscription, no wildcard scan needed
+        List<Channel> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
+        if (Objects.nonNull(exactMatch)) {
+            result.addAll(exactMatch);
+        }
+
         for (Map.Entry<String, List<Channel>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
-            if (TopicMatcher.matches(entry.getKey(), topic)) {
+            String filter = entry.getKey();
+            if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
+                continue;
+            }
+            if (TopicMatcher.matches(filter, topic)) {
                 result.addAll(entry.getValue());
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
 }
