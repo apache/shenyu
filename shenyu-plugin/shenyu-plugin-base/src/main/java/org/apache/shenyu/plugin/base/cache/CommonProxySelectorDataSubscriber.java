@@ -51,6 +51,6 @@ public class CommonProxySelectorDataSubscriber implements ProxySelectorDataSubsc
 
     @Override
     public void refresh() {
-        ProxySelectorDataSubscriber.super.refresh();
+        handlerMap.values().forEach(ProxySelectorDataHandler::refresh);
     }
 }
