@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
+import static io.netty.handler.codec.mqtt.MqttMessageType.PUBREC;
 
 /**
  * Publish message.
@@ -74,17 +76,10 @@ public class Publish extends MessageType {
     }
 
     /**
-     * todo qos0.
-     */
-    private void qos0() {
-
-    }
-
-    /**
-     * todo qos1.
+     * send PUBACK to the publisher for a qos1 publish.
      */
     private void qos1(final ChannelHandlerContext ctx, final int packetId) {
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.AT_LEAST_ONCE, false, 0);
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMsgIdVariableHeader = MqttMessageIdVariableHeader.from(packetId);
 
         MqttPubAckMessage mqttPubAckMessage = new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
@@ -92,14 +87,14 @@ public class Publish extends MessageType {
     }
 
     /**
-     * todo qos2.
+     * send PUBREC to the publisher for a qos2 publish.
      */
     private void qos2(final ChannelHandlerContext ctx, final int packetId) {
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.EXACTLY_ONCE, false, 0);
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBREC, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMsgIdVariableHeader = MqttMessageIdVariableHeader.from(packetId);
 
-        MqttPubAckMessage mqttPubAckMessage = new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
-        ctx.writeAndFlush(mqttPubAckMessage);
+        MqttMessage mqttPubRecMessage = new MqttMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
+        ctx.writeAndFlush(mqttPubRecMessage);
     }
 
     private String byteBufToString(final ByteBuf byteBuf) {

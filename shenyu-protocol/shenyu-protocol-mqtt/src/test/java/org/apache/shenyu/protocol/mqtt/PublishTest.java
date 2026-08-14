@@ -22,7 +22,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -158,6 +161,28 @@ public class PublishTest {
             ReferenceCountUtil.release(payload);
             MqttPacketIdGenerator.remove(otherSubscriberChannel);
         }
+    }
+
+    @Test
+    public void testPublishQos1SendsPubAckToPublisher() {
+        publish(MqttQoS.AT_LEAST_ONCE);
+
+        ArgumentCaptor<MqttPubAckMessage> captor = ArgumentCaptor.forClass(MqttPubAckMessage.class);
+        verify(ctx, timeout(5000)).writeAndFlush(captor.capture());
+        assertEquals(PUBLISHER_PACKET_ID, captor.getValue().variableHeader().messageId());
+        assertEquals(MqttQoS.AT_MOST_ONCE, captor.getValue().fixedHeader().qosLevel());
+    }
+
+    @Test
+    public void testPublishQos2SendsPubRecToPublisher() {
+        publish(MqttQoS.EXACTLY_ONCE);
+
+        ArgumentCaptor<MqttMessage> captor = ArgumentCaptor.forClass(MqttMessage.class);
+        verify(ctx, timeout(5000)).writeAndFlush(captor.capture());
+        MqttMessage pubRec = captor.getValue();
+        assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
+        assertEquals(MqttQoS.AT_MOST_ONCE, pubRec.fixedHeader().qosLevel());
+        assertEquals(PUBLISHER_PACKET_ID, ((MqttMessageIdVariableHeader) pubRec.variableHeader()).messageId());
     }
 
     private void addSubscriber(final Channel channel, final MqttQoS qos) {
