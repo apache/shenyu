@@ -39,6 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -98,8 +99,20 @@ public final class InstanceInfoServiceTest {
 
     @Test
     void testFindById() {
-        // current implementation returns null
-        assertEquals(null, instanceInfoService.findById("any"));
+        InstanceInfoDO instanceInfoDO = buildDO();
+        when(instanceInfoMapper.selectById("id-1")).thenReturn(instanceInfoDO);
+        InstanceInfoVO instanceInfoVO = instanceInfoService.findById("id-1");
+        assertNotNull(instanceInfoVO);
+        assertEquals(instanceInfoDO.getInstanceIp(), instanceInfoVO.getInstanceIp());
+        assertEquals(instanceInfoDO.getInstancePort(), instanceInfoVO.getInstancePort());
+        assertEquals(instanceInfoDO.getInstanceType(), instanceInfoVO.getInstanceType());
+        assertEquals(instanceInfoDO.getNamespaceId(), instanceInfoVO.getNamespaceId());
+    }
+
+    @Test
+    void testFindByIdNotFound() {
+        when(instanceInfoMapper.selectById("not-exist")).thenReturn(null);
+        assertNull(instanceInfoService.findById("not-exist"));
     }
 
     private InstanceInfoVO buildVO() {
