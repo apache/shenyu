@@ -40,6 +40,12 @@ public interface ProxySelectorDataHandler {
     void removeProxySelector(String proxySelectorName);
 
     /**
+     * Refresh.
+     */
+    default void refresh() {
+    }
+
+    /**
      * pluginName.
      *
      * @return pluginName
