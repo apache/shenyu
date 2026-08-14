@@ -79,6 +79,15 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
         }));
     }
 
+    /**
+     * remove the channel from all topics it subscribed.
+     * @param channel channel
+     */
+    public void remove(final Channel channel) {
+        CompletableFuture.runAsync(() -> TOPIC_CHANNEL_FACTORY.values().parallelStream()
+                .forEach(subscribers -> subscribers.remove(channel)));
+    }
+
     @Override
     public Map<Channel, MqttQoS> get(final List<String> topics) {
         Map<Channel, MqttQoS> subscribers = new ConcurrentHashMap<>();
