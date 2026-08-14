@@ -150,7 +150,7 @@ public final class CommonPluginDataSubscriberTest {
 
         final SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).enabled(true).pluginName(mockPluginName1).build();
         final RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
-        final RuleData emptyRuleData = RuleData.builder().selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        final RuleData emptyRuleData = RuleData.builder().pluginName(mockPluginName1).build();
         final RuleData unrelatedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).pluginName(mockPluginName1).build();
         baseDataCache.cacheSelectData(selectorData);
         matchDataCache.cacheSelectorData(path, selectorData, 100, 100);
