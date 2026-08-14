@@ -68,6 +68,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
             activeCount.increase();
         }
 
+        // A removed domain's entry lingers for up to recyclePeriod, safely excluded from selection meanwhile.
         if (!updateLock.get() && now - lastRecycle > recyclePeriod && updateLock.compareAndSet(false, true)) {
             try {
                 countMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
