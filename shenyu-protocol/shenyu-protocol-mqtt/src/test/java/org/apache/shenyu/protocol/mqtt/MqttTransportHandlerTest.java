@@ -71,7 +71,7 @@ public class MqttTransportHandlerTest {
         willRepository.add(channel, will);
 
         // publishWill uses subscribeRepository to get target channels
-        when(subscribeRepository.get("status/offline")).thenReturn(java.util.Collections.emptyList());
+        when(subscribeRepository.getChannelsByTopic("status/offline")).thenReturn(java.util.Collections.emptyList());
 
         handler.channelInactive(ctx);
 

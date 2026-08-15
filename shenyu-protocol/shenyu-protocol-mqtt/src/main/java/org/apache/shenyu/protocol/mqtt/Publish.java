@@ -35,6 +35,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
@@ -133,10 +134,10 @@ public class Publish extends MessageType {
      * @param will the will entry containing topic, message, qos, and retain flag
      */
     static void publishWill(final WillRepository.WillEntry will) {
-        if (will == null || will.getTopic() == null || will.getMessage() == null) {
+        if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
             return;
         }
-        final List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(will.getTopic());
+        final List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
         final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
         final int packetId = willQos == MqttQoS.AT_MOST_ONCE
                 ? 0

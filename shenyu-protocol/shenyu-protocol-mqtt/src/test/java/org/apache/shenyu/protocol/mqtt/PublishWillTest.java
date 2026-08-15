@@ -62,7 +62,7 @@ public class PublishWillTest {
     @Test
     public void testPublishWillToActiveSubscriber() {
         when(subscriberChannel.isActive()).thenReturn(true);
-        when(subscribeRepository.get("status/offline"))
+        when(subscribeRepository.getChannelsByTopic("status/offline"))
                 .thenReturn(Collections.singletonList(subscriberChannel));
 
         byte[] message = "client lost".getBytes();
@@ -80,7 +80,7 @@ public class PublishWillTest {
     @Test
     public void testPublishWillSkipsInactiveChannel() {
         when(subscriberChannel.isActive()).thenReturn(false);
-        when(subscribeRepository.get("status/inactive"))
+        when(subscribeRepository.getChannelsByTopic("status/inactive"))
                 .thenReturn(Collections.singletonList(subscriberChannel));
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("status/inactive", "msg".getBytes(), 0, false);
@@ -91,7 +91,7 @@ public class PublishWillTest {
 
     @Test
     public void testPublishWillToEmptySubscribers() {
-        when(subscribeRepository.get("topic/none")).thenReturn(Collections.emptyList());
+        when(subscribeRepository.getChannelsByTopic("topic/none")).thenReturn(Collections.emptyList());
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("topic/none", "msg".getBytes(), 2, false);
         Publish.publishWill(will);
@@ -100,7 +100,7 @@ public class PublishWillTest {
     @Test
     public void testPublishWillQosAndRetain() {
         when(subscriberChannel.isActive()).thenReturn(true);
-        when(subscribeRepository.get("qos/retain"))
+        when(subscribeRepository.getChannelsByTopic("qos/retain"))
                 .thenReturn(Collections.singletonList(subscriberChannel));
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("qos/retain", "data".getBytes(), 0, false);
@@ -111,5 +111,20 @@ public class PublishWillTest {
         MqttPublishMessage published = (MqttPublishMessage) captor.getValue();
         assertEquals(0, published.fixedHeader().qosLevel().value());
         assertFalse(published.fixedHeader().isRetain());
+    }
+
+    @Test
+    public void testPublishWillToWildcardSubscriber() {
+        when(subscriberChannel.isActive()).thenReturn(true);
+        when(subscribeRepository.getChannelsByTopic("status/client-001"))
+                .thenReturn(Collections.singletonList(subscriberChannel));
+
+        WillRepository.WillEntry will = new WillRepository.WillEntry("status/client-001", "gone".getBytes(), 0, false);
+        Publish.publishWill(will);
+
+        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(subscriberChannel).writeAndFlush(captor.capture());
+        MqttPublishMessage published = (MqttPublishMessage) captor.getValue();
+        assertEquals("status/client-001", published.variableHeader().topicName());
     }
 }
