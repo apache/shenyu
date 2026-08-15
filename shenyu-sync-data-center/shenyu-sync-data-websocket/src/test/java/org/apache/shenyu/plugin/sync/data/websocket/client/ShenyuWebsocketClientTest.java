@@ -53,6 +53,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -264,13 +265,13 @@ public class ShenyuWebsocketClientTest {
     }
 
     // ---------- doReconnect tests ----------
-    // reconnectBlocking() is NOT stubbed — the real parent method throws naturally
-    // because the mock has no valid socket connection, so the failure path is tested.
+    // reconnectBlocking() is stubbed to throw, so no real socket connection is attempted.
 
     @Test
-    void testDoReconnectIncrementsBackoffOnFailure() {
+    void testDoReconnectIncrementsBackoffOnFailure() throws InterruptedException {
         ShenyuWebsocketClient client = createMockClient();
         setField(client, "reconnectBackoff", new AtomicInteger(0));
+        doThrow(new RuntimeException("test")).when(client).reconnectBlocking();
         doReturn(URI.create("ws://localhost:9090")).when(client).getURI();
 
         invokePrivate(client, "doReconnect");
@@ -280,9 +281,10 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
-    void testDoReconnectBackoffCappedAtTen() {
+    void testDoReconnectBackoffCappedAtTen() throws InterruptedException {
         ShenyuWebsocketClient client = createMockClient();
         setField(client, "reconnectBackoff", new AtomicInteger(10));
+        doThrow(new RuntimeException("test")).when(client).reconnectBlocking();
         doReturn(URI.create("ws://localhost:9090")).when(client).getURI();
 
         invokePrivate(client, "doReconnect");
@@ -291,8 +293,9 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
-    void testDoReconnectResetsReconnectingOnFailure() {
+    void testDoReconnectResetsReconnectingOnFailure() throws InterruptedException {
         ShenyuWebsocketClient client = createMockClient();
+        doThrow(new RuntimeException("test")).when(client).reconnectBlocking();
         doReturn(URI.create("ws://localhost:9090")).when(client).getURI();
 
         invokePrivate(client, "doReconnect");
@@ -301,10 +304,11 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
-    void testDoReconnectAppliesBackoffSleep() {
+    void testDoReconnectAppliesBackoffSleep() throws InterruptedException {
         ShenyuWebsocketClient client = createMockClient();
         setField(client, "reconnectBackoff", new AtomicInteger(1));
         setField(client, "lastReconnectAttemptTime", System.currentTimeMillis());
+        doThrow(new RuntimeException("test")).when(client).reconnectBlocking();
         doReturn(URI.create("ws://localhost:9090")).when(client).getURI();
 
         long start = System.currentTimeMillis();

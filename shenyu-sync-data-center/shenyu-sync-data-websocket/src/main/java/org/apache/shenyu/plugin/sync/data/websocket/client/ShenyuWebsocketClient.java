@@ -43,16 +43,18 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,8 +68,20 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
 
-    private static final ExecutorService RECONNECT_EXECUTOR = Executors.newCachedThreadPool(
-            ShenyuThreadFactory.create("websocket-reconnect", true));
+    private static final int RECONNECT_EXECUTOR_CORE_POOL_SIZE = 1;
+
+    private static final int RECONNECT_EXECUTOR_MAX_POOL_SIZE = 8;
+
+    private static final long RECONNECT_EXECUTOR_KEEP_ALIVE_MS = TimeUnit.SECONDS.toMillis(60);
+
+    private static final ExecutorService RECONNECT_EXECUTOR = new ShenyuThreadPoolExecutor(
+            RECONNECT_EXECUTOR_CORE_POOL_SIZE,
+            RECONNECT_EXECUTOR_MAX_POOL_SIZE,
+            RECONNECT_EXECUTOR_KEEP_ALIVE_MS,
+            TimeUnit.MILLISECONDS,
+            new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+            ShenyuThreadFactory.create("websocket-reconnect", true),
+            new ThreadPoolExecutor.AbortPolicy());
 
     private static final long MIN_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(1);
 
@@ -280,8 +294,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (waitMs > 0) {
                 Thread.sleep(waitMs);
             }
-            lastReconnectAttemptTime = System.currentTimeMillis();
-            this.reconnectBlocking();
+            try {
+                this.reconnectBlocking();
+            } finally {
+                lastReconnectAttemptTime = System.currentTimeMillis();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
