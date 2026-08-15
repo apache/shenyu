@@ -25,11 +25,14 @@ import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -128,6 +131,24 @@ public class NoHttpApiDocRegistrarTest {
         assertThat(dto.getDocument(), notNullValue());
         assertThat("responseParameters should contain object type",
                 dto.getDocument().contains("\"responseParameters\""), is(true));
+    }
+
+    @Test
+    public void testRpcExtInExtJson() throws Exception {
+        ApiBean apiBean = new ApiBean(RpcTypeEnum.DUBBO.getName(),
+                DubboTestServiceImpl.class.getName(),
+                DubboTestServiceImpl.class.getDeclaredConstructor().newInstance(),
+                "dubboTestService");
+
+        apiBean.addApiDefinition(DubboTestServiceImpl.class.getMethod("findById", String.class), "/findById");
+        ApiBean.ApiDefinition apiDefinition = apiBean.getApiDefinitions().get(0);
+        String rpcExt = "{\"group\":\"test-group\",\"version\":\"1.0.0\"}";
+        apiDefinition.addProperties("rpcExt", rpcExt);
+
+        noHttpApiDocRegistrar.register(apiBean);
+
+        Map<String, Object> extMap = GsonUtils.getInstance().toObjectMap(testPublisher.metaData.getExt());
+        assertThat(extMap.get("rpcExt"), is(rpcExt));
     }
 
     @Test
