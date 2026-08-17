@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
@@ -86,5 +87,11 @@ public class MessageType implements AbstractMessageType {
     public void disconnect(final ChannelHandlerContext ctx) {
         //// todo polymorphism disconnect
         new Disconnect().disconnect(ctx);
+    }
+
+    @Override
+    public void pubRel(final ChannelHandlerContext ctx, final MqttMessage msg) {
+        //// todo polymorphism pubRel
+        new PubRel().pubRel(ctx, msg);
     }
 }
