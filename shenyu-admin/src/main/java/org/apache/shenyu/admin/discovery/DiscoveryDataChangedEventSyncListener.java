@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -34,7 +35,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
@@ -101,41 +101,112 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         final String discoveryHandlerId = discoverySyncData.getDiscoveryHandlerId();
         switch (currentEvent) {
             case ADDED:
-                upstreamDataList.forEach(d -> {
-                    try {
-                        DiscoveryUpstreamDO discoveryUpstreamDO = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, d.getUrl());
-                        if (Objects.isNull(discoveryUpstreamDO)) {
-                            d.setId(UUIDUtils.getInstance().generateShortUuid());
-                            d.setDateCreated(new Timestamp(System.currentTimeMillis()));
-                            d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-                            discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
-                            LOG.info("[DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
-                        }
-                    } catch (DuplicateKeyException ex) {
-                        LOG.info("[DiscoveryDataChangedEventSyncListener]  Upstream {} exist", d.getUrl());
-                    }
-                });
+                handleAdded(upstreamDataList, discoveryHandlerId);
                 break;
             case UPDATED:
-                upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
-                    discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
-                    int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
-                    LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
-                });
+                handleUpdated(upstreamDataList, discoveryHandlerId);
                 break;
             case DELETED:
-                if (CollectionUtils.isNotEmpty(upstreamDataList)) {
-                    upstreamDataList.forEach(up -> {
-                        discoveryUpstreamMapper.deleteByUrl(discoveryHandlerId, up.getUrl());
-                        LOG.info("[DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
-                    });
-                }
+                handleDeleted(upstreamDataList, discoveryHandlerId);
                 break;
             default:
                 throw new IllegalStateException("DiscoveryDataChangedEventSyncListener find IllegalState");
         }
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void handleAdded(final List<DiscoveryUpstreamData> upstreamDataList, final String discoveryHandlerId) {
+        final List<DiscoveryUpstreamDO>[] existingListHolder = new List[]{null};
+        upstreamDataList.forEach(d -> {
+            try {
+                String normalizedUrl = CommonUpstreamUtils.normalizeUrl(d.getUrl());
+                DiscoveryUpstreamDO existing = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, normalizedUrl);
+                if (Objects.isNull(existing)) {
+                    if (Objects.isNull(existingListHolder[0])) {
+                        existingListHolder[0] = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+                    }
+                    existing = CommonUpstreamUtils.matchByHostAndPort(existingListHolder[0], normalizedUrl);
+                }
+                if (Objects.isNull(existing)) {
+                    d.setUrl(normalizedUrl);
+                    d.setId(UUIDUtils.getInstance().generateShortUuid());
+                    d.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                    d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                    discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
+                    LOG.info("[DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", normalizedUrl);
+                } else if (!normalizedUrl.equals(existing.getUpstreamUrl())) {
+                    existing.setUpstreamUrl(normalizedUrl);
+                    discoveryUpstreamMapper.updateSelective(existing);
+                    LOG.info("[DiscoveryDataChangedEventSyncListener] Migrated old URL to {}", normalizedUrl);
+                }
+            } catch (Exception e) {
+                LOG.error("[DiscoveryDataChangedEventSyncListener] ADDED Upstream failed: {}", d.getUrl(), e);
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void handleUpdated(final List<DiscoveryUpstreamData> upstreamDataList, final String discoveryHandlerId) {
+        final List<DiscoveryUpstreamDO>[] existingListHolder = new List[]{null};
+        upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
+            try {
+                discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                discoveryUpstreamDO.setUpstreamUrl(CommonUpstreamUtils.normalizeUrl(discoveryUpstreamDO.getUpstreamUrl()));
+                int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
+                if (effect == 0) {
+                    if (Objects.isNull(existingListHolder[0])) {
+                        existingListHolder[0] = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+                    }
+                    DiscoveryUpstreamDO oldRecord = CommonUpstreamUtils.matchByHostAndPort(
+                            existingListHolder[0], discoveryUpstreamDO.getUpstreamUrl());
+                    if (Objects.nonNull(oldRecord)) {
+                        oldRecord.setUpstreamUrl(discoveryUpstreamDO.getUpstreamUrl());
+                        oldRecord.setProtocol(discoveryUpstreamDO.getProtocol());
+                        oldRecord.setUpstreamStatus(discoveryUpstreamDO.getUpstreamStatus());
+                        oldRecord.setWeight(discoveryUpstreamDO.getWeight());
+                        oldRecord.setProps(discoveryUpstreamDO.getProps());
+                        oldRecord.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
+                        discoveryUpstreamMapper.updateSelective(oldRecord);
+                        effect = 1;
+                        LOG.info("[DiscoveryDataChangedEventSyncListener] Migrated old URL and updated Upstream {}", discoveryUpstreamDO.getUpstreamUrl());
+                    }
+                }
+                LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
+            } catch (Exception e) {
+                LOG.error("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream failed: {}", discoveryUpstreamDO.getUpstreamUrl(), e);
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void handleDeleted(final List<DiscoveryUpstreamData> upstreamDataList, final String discoveryHandlerId) {
+        if (CollectionUtils.isEmpty(upstreamDataList)) {
+            return;
+        }
+        final List<DiscoveryUpstreamDO>[] existingListHolder = new List[]{null};
+        upstreamDataList.forEach(up -> {
+            try {
+                String normalizedUrl = CommonUpstreamUtils.normalizeUrl(up.getUrl());
+                int effect = discoveryUpstreamMapper.deleteByUrl(discoveryHandlerId, normalizedUrl);
+                if (effect == 0) {
+                    if (Objects.isNull(existingListHolder[0])) {
+                        existingListHolder[0] = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+                    }
+                    DiscoveryUpstreamDO oldRecord = CommonUpstreamUtils.matchByHostAndPort(
+                            existingListHolder[0], normalizedUrl);
+                    if (Objects.nonNull(oldRecord)) {
+                        discoveryUpstreamMapper.deleteByIds(Collections.singletonList(oldRecord.getId()));
+                        effect = 1;
+                        LOG.info("[DiscoveryDataChangedEventSyncListener] DELETE Upstream by fallback match {}", normalizedUrl);
+                    }
+                }
+                LOG.info("[DiscoveryDataChangedEventSyncListener] DELETE Upstream {}, effect = {}", normalizedUrl, effect);
+            } catch (Exception e) {
+                LOG.error("[DiscoveryDataChangedEventSyncListener] DELETE Upstream failed: {}", up.getUrl(), e);
+            }
+        });
     }
 
     private DiscoverySyncData buildProxySelectorData(final DiscoverySyncData discoverySyncData, final String value) {
