@@ -140,13 +140,40 @@ public final class CommonPluginDataSubscriberTest {
 
     @Test
     public void testUnSelectorSubscribe() {
+        final String path = "/selector";
+        final String emptyRulePath = "/empty-rule";
+        final String unrelatedRulePath = "/unrelated-rule";
+        final MatchDataCache matchDataCache = MatchDataCache.getInstance();
         baseDataCache.cleanSelectorData();
-        SelectorData selectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
-        baseDataCache.cacheSelectData(selectorData);
-        assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
+        matchDataCache.cleanSelectorData();
+        matchDataCache.cleanRuleDataData();
 
-        commonPluginDataSubscriber.unSelectorSubscribe(selectorData);
-        assertEquals(Lists.newArrayList(), baseDataCache.obtainSelectorData(selectorData.getPluginName()));
+        final SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).enabled(true).pluginName(mockPluginName1).build();
+        final RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        final RuleData emptyRuleData = RuleData.builder().pluginName(mockPluginName1).build();
+        final RuleData unrelatedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).pluginName(mockPluginName1).build();
+        baseDataCache.cacheSelectData(selectorData);
+        matchDataCache.cacheSelectorData(path, selectorData, 100, 100);
+        matchDataCache.cacheRuleData(path, ruleData, 100, 100);
+        matchDataCache.cacheRuleData(emptyRulePath, emptyRuleData, 100, 100);
+        matchDataCache.cacheRuleData(unrelatedRulePath, unrelatedRuleData, 100, 100);
+
+        try {
+            assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
+            assertEquals(selectorData, matchDataCache.obtainSelectorData(mockPluginName1, path));
+            assertEquals(ruleData, matchDataCache.obtainRuleData(mockPluginName1, path));
+
+            commonPluginDataSubscriber.unSelectorSubscribe(selectorData);
+
+            assertEquals(Lists.newArrayList(), baseDataCache.obtainSelectorData(selectorData.getPluginName()));
+            assertNull(matchDataCache.obtainSelectorData(mockPluginName1, path));
+            assertNull(matchDataCache.obtainRuleData(mockPluginName1, path));
+            assertNull(matchDataCache.obtainRuleData(mockPluginName1, emptyRulePath));
+            assertEquals(unrelatedRuleData, matchDataCache.obtainRuleData(mockPluginName1, unrelatedRulePath));
+        } finally {
+            matchDataCache.cleanSelectorData();
+            matchDataCache.cleanRuleDataData();
+        }
     }
 
     @Test
