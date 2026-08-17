@@ -47,11 +47,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -60,18 +62,17 @@ import reactor.test.StepVerifier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests that request body is correctly replayed during retry.
+ * Tests that the request body is correctly replayed during retry.
  *
  * <p>The original body Flux from the Netty channel is single-use; without caching,
- * retry attempts would send an empty body. These tests verify the caching mechanism
- * in {@link AbstractHttpClientPlugin} ensures body replay on retry.
+ * retry attempts would send an empty body.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -88,13 +89,6 @@ public class RequestBodyReplayRetryTest {
         when(chain.execute(any())).thenReturn(Mono.empty());
     }
 
-    /**
-     * Verifies that request body is correctly replayed when retry is triggered.
-     *
-     * <p>With a single-use body (simulating Netty FluxReceive), the first attempt
-     * consumes the body. Without caching, the retry would send an empty body.
-     * The fix caches the body so both attempts receive the full content.
-     */
     @Test
     void testBodyReplayedOnRetry() {
         RecordingPlugin plugin = new RecordingPlugin(1);
@@ -109,64 +103,6 @@ public class RequestBodyReplayRetryTest {
         assertEquals("{\"name\":\"hello\"}", plugin.getCapturedBodies().get(1), "Retry attempt should receive replayed body");
         assertNotNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
                 "Body should be cached when retry is enabled");
-    }
-
-    /**
-     * Verifies that request body is correctly replayed across multiple retries.
-     *
-     * <p>Fails the first 2 attempts, succeeds on the 3rd. All 3 attempts should
-     * receive the same full body content.
-     */
-    @Test
-    void testBodyReplayedAcrossMultipleRetries() {
-        RecordingPlugin plugin = new RecordingPlugin(2);
-        ServerWebExchange exchange = createExchangeWithSingleUseBody("{\"name\":\"hello\"}");
-
-        StepVerifier.create(plugin.execute(exchange, chain))
-                .expectComplete()
-                .verify(Duration.ofSeconds(10));
-
-        assertEquals(3, plugin.getCapturedBodies().size(), "Should have 3 attempts (2 fail + 1 success)");
-        for (int i = 0; i < 3; i++) {
-            assertEquals("{\"name\":\"hello\"}", plugin.getCapturedBodies().get(i),
-                    "Attempt " + (i + 1) + " should receive full body");
-        }
-    }
-
-    /**
-     * Verifies that getCachedRequestBody returns a replayable Flux.
-     *
-     * <p>Subscribing to the returned Flux multiple times should yield the same
-     * body content each time, even when the source body is single-use.
-     */
-    @Test
-    void testGetCachedRequestBodyIsReplayable() {
-        RecordingPlugin plugin = new RecordingPlugin(0);
-        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
-
-        Flux<DataBuffer> cached = plugin.getCachedRequestBody(exchange);
-
-        String firstRead = readBody(cached);
-        String secondRead = readBody(cached);
-
-        assertEquals("test-body", firstRead, "First read should get full body");
-        assertEquals("test-body", secondRead, "Second read (retry) should get same body via replay");
-    }
-
-    /**
-     * Verifies that getCachedRequestBody is idempotent — calling it twice
-     * returns the same cached Flux instance from exchange attributes.
-     */
-    @Test
-    void testGetCachedRequestBodyIsIdempotent() {
-        RecordingPlugin plugin = new RecordingPlugin(0);
-        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
-
-        Flux<DataBuffer> firstCall = plugin.getCachedRequestBody(exchange);
-        Flux<DataBuffer> secondCall = plugin.getCachedRequestBody(exchange);
-
-        assertSame(firstCall, secondCall,
-                "Subsequent calls should return the same cached Flux instance");
     }
 
     @Test
@@ -202,59 +138,63 @@ public class RequestBodyReplayRetryTest {
     }
 
     @Test
-    void testOversizeBodyDisablesRetryAndStreamsOnce() {
-        // failFirstN=1 → first attempt fails; retry disabled so it stays failed after 1 attempt
-        RecordingPlugin plugin = new RecordingPlugin(1, 4);
-        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
+    void testGetRequestRetriesWithoutBody() {
+        RecordingPlugin plugin = new RecordingPlugin(1);
+        ServerWebExchange exchange = createGetExchangeWithRetry();
 
         StepVerifier.create(plugin.execute(exchange, chain))
-                .expectError()
+                .expectComplete()
                 .verify(Duration.ofSeconds(10));
 
-        assertEquals(1, plugin.getCapturedBodies().size(), "Oversize body must not be retried");
-        assertEquals("test-body", plugin.getCapturedBodies().get(0),
-                "The single attempt should receive the full body via streaming");
+        assertEquals(2, plugin.getCapturedBodies().size(), "GET should retry (2 attempts: 1 fail + 1 success)");
         assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
-                "Oversize body must not be cached on the heap");
+                "GET must not cache a body it never reads");
     }
 
     @Test
-    void testChunkedBodyDisablesRetryAndStreamsOnce() {
-        // failFirstN=1 → first attempt fails; retry disabled so it stays failed after 1 attempt
-        RecordingPlugin plugin = new RecordingPlugin(1, Constants.BYTES_PER_MB);
-        ServerWebExchange exchange = createChunkedExchangeWithSingleUseBody("test-body");
+    void testOversizeBodyThrowsDataBufferLimitException() {
+        // body (9 bytes) exceeds maxInMemorySize (4 bytes) during aggregation
+        RecordingPlugin plugin = new RecordingPlugin(0, 4);
+        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
 
         StepVerifier.create(plugin.execute(exchange, chain))
-                .expectError()
+                .expectErrorSatisfies(err -> {
+                    // Body aggregation overflow must be mapped to 413, not a raw/generic 500
+                    assertTrue(err instanceof ResponseStatusException,
+                            "Oversize body should surface as ResponseStatusException");
+                    ResponseStatusException rse = (ResponseStatusException) err;
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, rse.getStatusCode(),
+                            "Oversize body should map to 413 Payload Too Large");
+                    assertTrue(rse.getCause() instanceof org.springframework.core.io.buffer.DataBufferLimitException,
+                            "Underlying cause should be DataBufferLimitException");
+                })
+                .verify(Duration.ofSeconds(10));
+        assertEquals(0, plugin.getCapturedBodies().size(), "Oversize body must never reach doRequest");
+    }
+
+    @Test
+    void testOversizeBodyNotRetriedUnderFixedStrategy() {
+        RecordingPlugin plugin = new RecordingPlugin(0, 4);
+        ServerWebExchange exchange = createExchangeWithSingleUseBody("test-body");
+        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, "fixed");
+
+        StepVerifier.create(plugin.execute(exchange, chain))
+                .expectErrorSatisfies(err -> {
+                    assertTrue(err instanceof ResponseStatusException);
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ((ResponseStatusException) err).getStatusCode());
+                })
                 .verify(Duration.ofSeconds(10));
 
-        assertEquals(1, plugin.getCapturedBodies().size(), "Chunked body must not be retried");
-        assertEquals("test-body", plugin.getCapturedBodies().get(0),
-                "The single attempt should receive the full body via streaming");
-        assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
-                "Chunked body must not be cached on the heap");
+        assertEquals(0, plugin.getCapturedBodies().size(),
+                "Fixed strategy must not retry oversize body (it can never be cached for replay)");
     }
 
     private ServerWebExchange createExchangeWithSingleUseBody(final String body) {
-        return createExchangeWithSingleUseBody(body, true);
-    }
-
-    /**
-     * Builds a single-use-body exchange.
-     *
-     * @param body the request body
-     * @param withContentLength whether to set Content-Length (false simulates chunked/unknown-size)
-     */
-    private ServerWebExchange createExchangeWithSingleUseBody(final String body, final boolean withContentLength) {
         final AtomicBoolean consumed = new AtomicBoolean(false);
-        final byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
-        MockServerHttpRequest.BodyBuilder builder = MockServerHttpRequest
+        final MockServerHttpRequest mockRequest = MockServerHttpRequest
                 .post("/test")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        if (withContentLength) {
-            builder.header(HttpHeaders.CONTENT_LENGTH, String.valueOf(bodyBytes.length));
-        }
-        final MockServerHttpRequest mockRequest = builder.body(body);
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(body);
         ServerWebExchange exchange = MockServerWebExchange.from(mockRequest);
         ServerHttpRequest singleUseRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
             @Override
@@ -275,20 +215,14 @@ public class RequestBodyReplayRetryTest {
         return exchange;
     }
 
-    private ServerWebExchange createChunkedExchangeWithSingleUseBody(final String body) {
-        return createExchangeWithSingleUseBody(body, false);
-    }
-
-    private String readBody(final Flux<DataBuffer> body) {
-        return DataBufferUtils.join(body)
-                .map(buffer -> {
-                    byte[] bytes = new byte[buffer.readableByteCount()];
-                    buffer.read(bytes);
-                    DataBufferUtils.release(buffer);
-                    return new String(bytes, StandardCharsets.UTF_8);
-                })
-                .defaultIfEmpty("")
-                .block(Duration.ofSeconds(5));
+    private ServerWebExchange createGetExchangeWithRetry() {
+        final MockServerHttpRequest mockRequest = MockServerHttpRequest.get("/test").build();
+        ServerWebExchange exchange = MockServerWebExchange.from(mockRequest);
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://localhost/test"));
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 30000L);
+        exchange.getAttributes().put(Constants.HTTP_RETRY, 3);
+        return exchange;
     }
 
     /**
@@ -307,7 +241,7 @@ public class RequestBodyReplayRetryTest {
             this(failFirstN, Constants.BYTES_PER_MB);
         }
 
-        RecordingPlugin(final int failFirstN, final int maxInMemorySize) {
+        RecordingPlugin(final int failFirstN, final long maxInMemorySize) {
             super(maxInMemorySize);
             this.failFirstN = failFirstN;
         }

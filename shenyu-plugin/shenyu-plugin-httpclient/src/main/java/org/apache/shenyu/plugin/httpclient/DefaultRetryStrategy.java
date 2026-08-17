@@ -69,8 +69,9 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .maxBackoff(Duration.ofSeconds(20L))
                     .transientErrors(true)
                     .jitter(0.5d)
-                    .filter(t -> t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
+                    .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
                             || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
+                            && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                         throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
                     });
