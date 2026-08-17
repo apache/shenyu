@@ -42,6 +42,7 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     /**
      * Maximum request body size: 5MB.
      */
-    private static final long MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024L;
+    private static final int MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024;
 
     private final AiProxyConfigService aiProxyConfigService;
 
@@ -93,18 +94,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         CacheKeyUtils.INST.getKey(
                                 selector.getId(), Constants.DEFAULT_RULE));
 
-        return DataBufferUtils.join(exchange.getRequest().getBody())
+        return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
                 .flatMap(dataBuffer -> {
-                    // Validate actual body size after reading, not just Content-Length header
-                    final int actualSize = dataBuffer.readableByteCount();
-                    if (actualSize > MAX_REQUEST_BODY_SIZE_BYTES) {
-                        DataBufferUtils.release(dataBuffer);
-                        LOG.warn("[AiProxy] Request body size {} exceeds maximum allowed size {}", 
-                                actualSize, MAX_REQUEST_BODY_SIZE_BYTES);
-                        exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
-                        return exchange.getResponse().setComplete();
-                    }
-                    
                     final String requestBody = dataBuffer.toString(StandardCharsets.UTF_8);
                     DataBufferUtils.release(dataBuffer);
 
@@ -146,6 +137,12 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         return handleStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
                     }
                     return handleNonStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
+                })
+                .onErrorResume(DataBufferLimitException.class, e -> {
+                    LOG.warn("[AiProxy] Request body exceeds maximum allowed size {} bytes",
+                            MAX_REQUEST_BODY_SIZE_BYTES);
+                    exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
+                    return exchange.getResponse().setComplete();
                 });
     }
 

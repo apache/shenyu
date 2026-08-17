@@ -44,6 +44,8 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletion;
 import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +58,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -265,7 +268,7 @@ public class AiProxyPluginTest {
         fallbackConfig.setProvider(AiModelProviderEnum.DEEP_SEEK.getName());
         fallbackConfig.setBaseUrl("https://api.deepseek.com");
         fallbackConfig.setApiKey("fallback-key");
-        
+
         // Cache the handle for the test
         aiProxyPluginHandler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
         final ChatCompletion chatCompletion = mock(ChatCompletion.class);
@@ -325,5 +328,22 @@ public class AiProxyPluginTest {
         verify(configService).resolveDynamicFallbackConfig(primaryConfig, REQUEST_BODY);
         verify(configService).resolveAdminFallbackConfig(primaryConfig, handle);
         verify(executorService).executeDirectCall(any(OpenAiApi.class), any(Optional.class), any(ChatCompletionRequest.class), any(String.class));
+    }
+
+    @Test
+    public void testRequestBodyExceedsMaxSize() {
+        final AiProxyHandle handle = new AiProxyHandle();
+        aiProxyPluginHandler.getSelectorCachedHandle()
+                .cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+
+        try (MockedStatic<DataBufferUtils> dataBufferUtilsMock = mockStatic(DataBufferUtils.class)) {
+            dataBufferUtilsMock.when(() -> DataBufferUtils.join(any(), anyInt()))
+                    .thenReturn(Mono.error(new DataBufferLimitException("Request body exceeds limit")));
+
+            StepVerifier.create(plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule))
+                    .verifyComplete();
+
+            assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
+        }
     }
 }
