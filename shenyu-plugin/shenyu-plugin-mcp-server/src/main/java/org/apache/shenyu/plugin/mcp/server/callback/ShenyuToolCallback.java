@@ -49,6 +49,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -219,6 +221,15 @@ public class ShenyuToolCallback implements ToolCallback {
                                    final String sessionId,
                                    final String configStr,
                                    final String input) {
+        return executeToolCall(originExchange, chain, sessionId, configStr, input, DEFAULT_TIMEOUT_SECONDS);
+    }
+
+    String executeToolCall(final ServerWebExchange originExchange,
+                           final ShenyuPluginChain chain,
+                           final String sessionId,
+                           final String configStr,
+                           final String input,
+                           final long timeoutSeconds) {
 
         final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
         final String toolMethod = configHelper.getMethod();
@@ -236,7 +247,7 @@ public class ShenyuToolCallback implements ToolCallback {
         final boolean isTemporarySession = sessionId.startsWith("temp_");
 
         // Execute the plugin chain asynchronously
-        chain.execute(decoratedExchange)
+        final Disposable disposable = chain.execute(decoratedExchange)
                 .doOnSubscribe(s -> LOG.debug("Plugin chain subscribed for session: {}", sessionId))
                 .doOnError(e -> {
                     LOG.error("Plugin chain execution failed for session {}: {}", sessionId, e.getMessage(), e);
@@ -267,11 +278,15 @@ public class ShenyuToolCallback implements ToolCallback {
 
         // Wait for the response with timeout
         try {
-            final String result = responseFuture.get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            final String result = responseFuture.get(timeoutSeconds, TimeUnit.SECONDS);
             LOG.debug("Tool call completed successfully for session: {}", sessionId);
             return result;
         } catch (Exception e) {
             LOG.error("Timeout or error waiting for response for session {}: {}", sessionId, e.getMessage(), e);
+
+            if (e instanceof TimeoutException) {
+                disposable.dispose();
+            }
 
             // Ensure cleanup on error for temporary sessions
             if (isTemporarySession) {
