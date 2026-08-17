@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Objects;
 
 public class TcpProxySelectorDataHandler implements ProxySelectorDataHandler {
 
@@ -52,10 +53,16 @@ public class TcpProxySelectorDataHandler implements ProxySelectorDataHandler {
 
     @Override
     public void removeProxySelector(final String proxySelectorName) {
-        if (TcpBootstrapFactory.getSingleton().inCache(proxySelectorName)) {
-            TcpBootstrapFactory.getSingleton().removeCache(proxySelectorName).shutdown();
+        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().removeCache(proxySelectorName);
+        if (Objects.nonNull(bootstrapServer)) {
+            bootstrapServer.shutdown();
             LOG.info("shenyu shutdown {}", proxySelectorName);
         }
+    }
+
+    @Override
+    public void refresh() {
+        TcpBootstrapFactory.getSingleton().clearCache();
     }
 
     @Override

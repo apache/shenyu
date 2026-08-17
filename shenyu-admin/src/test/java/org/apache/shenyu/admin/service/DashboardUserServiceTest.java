@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.NamespaceUserRelVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -56,6 +57,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -81,6 +84,8 @@ public final class DashboardUserServiceTest {
     private static final String TEST_AES_KEY = "2095132720951327";
 
     private static final String TEST_AES_IV = "6075877187097700";
+
+    private static final String TEST_JWT_SECRET_KEY = "testSecretKey12345678901234567890";
 
     @InjectMocks
     private DashboardUserServiceImpl dashboardUserService;
@@ -210,6 +215,8 @@ public final class DashboardUserServiceTest {
     public void testLogin() {
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
+        given(jwtProperties.getSecretKey()).willReturn(TEST_JWT_SECRET_KEY);
+        given(jwtProperties.getExpiredSeconds()).willReturn(86400000L);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
 
         when(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).thenReturn(dashboardUserDO);
@@ -223,6 +230,8 @@ public final class DashboardUserServiceTest {
         LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD, null);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
         assertEquals(TEST_PASSWORD, loginDashboardUserVO.getPassword());
+        assertTrue(JwtUtils.verifyToken(loginDashboardUserVO.getToken(), TEST_JWT_SECRET_KEY));
+        assertFalse(JwtUtils.verifyToken(loginDashboardUserVO.getToken(), "wrongKey"));
 
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
@@ -253,6 +262,8 @@ public final class DashboardUserServiceTest {
     @Test
     public void testLoginMigratesLegacySha512Password() {
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
+        given(jwtProperties.getSecretKey()).willReturn(TEST_JWT_SECRET_KEY);
+        given(jwtProperties.getExpiredSeconds()).willReturn(86400000L);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         DashboardUserDO legacyUser = createDashboardUserDO();
         legacyUser.setPassword(DigestUtils.sha512Hex(TEST_PASSWORD));
@@ -272,6 +283,8 @@ public final class DashboardUserServiceTest {
     @Test
     public void testLoginDoesNotMigrateBcryptPassword() {
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
+        given(jwtProperties.getSecretKey()).willReturn(TEST_JWT_SECRET_KEY);
+        given(jwtProperties.getExpiredSeconds()).willReturn(86400000L);
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);
         DashboardUserDO bcryptUser = createDashboardUserDO();
         bcryptUser.setPassword("$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG");

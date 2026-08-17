@@ -90,7 +90,8 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     @Override
     public InstanceInfoVO findById(final String id) {
-        return null;
+        InstanceInfoDO instanceInfoDO = instanceInfoMapper.selectById(id);
+        return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
