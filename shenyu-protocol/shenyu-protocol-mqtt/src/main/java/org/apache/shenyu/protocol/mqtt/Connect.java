@@ -26,6 +26,7 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +68,17 @@ public class Connect extends MessageType {
 
         // record connect
         Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
+
+        // store will if present
+        if (msg.variableHeader().isWillFlag()) {
+            WillRepository.WillEntry will = new WillRepository.WillEntry(
+                    msg.payload().willTopic(),
+                    msg.payload().willMessageInBytes(),
+                    msg.variableHeader().willQos(),
+                    msg.variableHeader().isWillRetain());
+            Singleton.INST.get(WillRepository.class).add(ctx.channel(), will);
+        }
+
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
                 .sessionPresent(true)

@@ -32,7 +32,10 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
@@ -126,6 +129,31 @@ public class Publish extends MessageType {
                 MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
                 MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
+    }
+
+    /**
+     * Publish a Last Will message to all subscribers of the will topic.
+     *
+     * @param will the will entry containing topic, message, qos, and retain flag
+     */
+    static void publishWill(final WillRepository.WillEntry will) {
+        if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
+            return;
+        }
+        final List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
+        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
+        final int packetId = willQos == MqttQoS.AT_MOST_ONCE
+                ? 0
+                : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
+        channels.parallelStream().forEach(channel -> {
+            if (channel.isActive()) {
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, willQos, will.isRetain(), 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), packetId);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
+                        Unpooled.wrappedBuffer(will.getMessage()));
                 channel.writeAndFlush(mqttPublishMessage);
             }
         });
