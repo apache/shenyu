@@ -86,6 +86,20 @@ public class ClickHouseLogCollectClientTest {
         Assertions.assertEquals(msg, "false");
     }
 
+    @Test
+    public void testInitClientWithoutTtl() {
+        pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"1\",\"database\":\"shenyu-gateway\","
+                + "\"username\":\"foo\",\"password\":\"bar\",\"engine\":\"MergeTree\",\"clusterName\":\"cluster\"}");
+        ClickHouseLogCollectConfig.ClickHouseLogConfig config = GsonUtils.getInstance()
+                .fromJson(pluginData.getConfig(), ClickHouseLogCollectConfig.ClickHouseLogConfig.class);
+        Assertions.assertNull(config.getTtl());
+        try {
+            Assertions.assertDoesNotThrow(() -> clickHouseLogCollectClient.initClient0(config));
+        } finally {
+            clickHouseLogCollectClient.close0();
+        }
+    }
+
     @After
     public void clean() {
         clickHouseLogCollectClient.close();
