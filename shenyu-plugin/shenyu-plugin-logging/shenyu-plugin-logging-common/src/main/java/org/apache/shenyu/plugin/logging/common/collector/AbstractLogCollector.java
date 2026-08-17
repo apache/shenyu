@@ -186,13 +186,19 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         logInfo.setTimeLocal(desensitizeForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, desensitizedAlg));
         logInfo.setMethod(desensitizeForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestUri(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri(), keyWordMatch, desensitizedAlg));
-        logInfo.setResponseContentLength(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
-                logInfo.getResponseContentLength().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getResponseContentLength())) {
+            logInfo.setResponseContentLength(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
+                    logInfo.getResponseContentLength().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setRpcType(desensitizeForSingleWord(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType(), keyWordMatch, desensitizedAlg));
-        logInfo.setStatus(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getStatus())) {
+            logInfo.setStatus(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setUpstreamIp(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp(), keyWordMatch, desensitizedAlg));
-        logInfo.setUpstreamResponseTime(Long.valueOf(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
-                logInfo.getUpstreamResponseTime().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getUpstreamResponseTime())) {
+            logInfo.setUpstreamResponseTime(Long.valueOf(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
+                    logInfo.getUpstreamResponseTime().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setUserAgent(desensitizeForSingleWord(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent(), keyWordMatch, desensitizedAlg));
         logInfo.setHost(desensitizeForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, desensitizedAlg));
         logInfo.setModule(desensitizeForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, desensitizedAlg));
