@@ -55,7 +55,13 @@ public class Publish extends MessageType {
         String message = byteBufToString(payload);
         //// todo qos
         MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
-        Singleton.INST.get(TopicRepository.class).add(topic, message);
+        if (msg.fixedHeader().isRetain()) {
+            if (payload.isReadable()) {
+                Singleton.INST.get(TopicRepository.class).add(topic, message);
+            } else {
+                Singleton.INST.get(TopicRepository.class).remove(topic);
+            }
+        }
         int packetId = msg.variableHeader().packetId();
         CompletableFuture.runAsync(() -> send(topic, payload, packetId));
 
