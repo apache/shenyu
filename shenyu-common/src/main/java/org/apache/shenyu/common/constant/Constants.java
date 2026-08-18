@@ -1011,7 +1011,7 @@ public interface Constants {
     /**
      * Http request retry policy.
      */
-    String HTTP_RETRY_BACK_OFF_SPEC = "default";
+    String HTTP_RETRY_BACK_OFF_SPEC = "httpRetryBackOffSpec";
 
     /**
      * The constant Content.
