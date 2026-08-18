@@ -51,7 +51,10 @@ public final class MqttBootstrapServerTest {
             MqttBootstrapServer server = new MqttBootstrapServer();
             server.start();
             await().atMost(Duration.ofSeconds(10))
-                    .until(() -> getBossGroup(server).isShutdown());
+                    .until(() -> {
+                        EventLoopGroup bossGroup = getBossGroup(server);
+                        return bossGroup == null || bossGroup.isShutdown();
+                    });
             assertDoesNotThrow(server::shutdown);
         }
     }
