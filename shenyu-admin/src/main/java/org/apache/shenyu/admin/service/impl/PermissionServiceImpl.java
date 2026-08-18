@@ -162,10 +162,12 @@ public class PermissionServiceImpl implements PermissionService {
      * @param event event
      */
     @EventListener(BatchResourceDeletedEvent.class)
-    public void onResourcesCreated(final BatchResourceDeletedEvent event) {
-        permissionMapper.deleteByResourceId(event.getDeletedIds());
+    public void onResourcesDeleted(final BatchResourceDeletedEvent event) {
+        if (CollectionUtils.isNotEmpty(event.getDeletedIds())) {
+            permissionMapper.deleteByResourceId(event.getDeletedIds());
+        }
     }
-    
+
     /**
      * listen {@link BatchRoleDeletedEvent} delete  permission.
      *
@@ -173,7 +175,9 @@ public class PermissionServiceImpl implements PermissionService {
      */
     @EventListener(BatchRoleDeletedEvent.class)
     public void onRoleDeleted(final BatchRoleDeletedEvent event) {
-        permissionMapper.deleteByObjectIds(event.getDeletedIds());
+        if (CollectionUtils.isNotEmpty(event.getDeletedIds())) {
+            permissionMapper.deleteByObjectIds(event.getDeletedIds());
+        }
     }
     
     /**
