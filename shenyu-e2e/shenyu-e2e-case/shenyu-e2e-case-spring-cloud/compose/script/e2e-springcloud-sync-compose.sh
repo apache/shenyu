@@ -33,13 +33,14 @@ docker network create -d bridge shenyu
 for sync in "${SYNC_ARRAY[@]}"; do
   echo -e "------------------\n"
   echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}"-eureka.yml up -d --quiet-pull
+  SYNC_COMPOSE_FILE="$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}"-eureka.yml
+  docker compose -f "$SYNC_COMPOSE_FILE" up -d --quiet-pull shenyu-mysql shenyu-admin || exit 1
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health || exit 1
+  docker compose -f "$SYNC_COMPOSE_FILE" up -d --quiet-pull shenyu-bootstrap || exit 1
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health || exit 1
+  docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml up -d --quiet-pull || exit 1
   sleep 30s
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
-  docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml up -d --quiet-pull
-  sleep 30s
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health
+  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:30884/actuator/health || exit 1
   sleep 10s
   docker ps -a
 
@@ -62,16 +63,16 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "------------------"
     echo "shenyu-admin log:"
     echo "------------------"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-admin
+    docker compose -f "$SYNC_COMPOSE_FILE" logs shenyu-admin
     echo "shenyu-bootstrap log:"
     echo "------------------"
-    docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
+    docker compose -f "$SYNC_COMPOSE_FILE" logs shenyu-bootstrap
     echo "shenyu-examples-springcloud log:"
     echo "------------------"
     docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml logs shenyu-examples-springcloud
     exit 1
   fi
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
+  docker compose -f "$SYNC_COMPOSE_FILE" down
   docker compose -f "${PRGDIR}"/shenyu-examples-springcloud-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done

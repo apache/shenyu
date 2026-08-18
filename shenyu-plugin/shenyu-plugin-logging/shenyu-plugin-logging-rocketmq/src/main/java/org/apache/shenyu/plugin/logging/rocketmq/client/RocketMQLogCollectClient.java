@@ -80,7 +80,6 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
         try {
             producer.start();
             LOG.info("init RocketMQLogCollectClient success");
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
         }

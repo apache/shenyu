@@ -123,11 +123,36 @@ public class ApiDocRegistrarImplTest {
         assertThat(docMap.get("operationId"), is("/custom"));
     }
 
+    @Test
+    void testGetExtWithRpcExt() throws Exception {
+        ApiBean apiBean = new ApiBean(RpcTypeEnum.DUBBO.getName(),
+                TestDubboService.class.getName(),
+                TestDubboService.class.getDeclaredConstructor().newInstance(),
+                "dubboTestService");
+
+        apiBean.addApiDefinition(TestDubboService.class.getMethod("findById", String.class), "/findById");
+        ApiBean.ApiDefinition apiDefinition = apiBean.getApiDefinitions().get(0);
+        String rpcExt = "{\"group\":\"test-group\",\"version\":\"1.0.0\"}";
+        apiDefinition.addProperties("rpcExt", rpcExt);
+
+        String ext = invokeGetExt(dubboRegistrar, apiDefinition);
+
+        Map<String, Object> extMap = GsonUtils.getInstance().toObjectMap(ext);
+        assertThat(extMap.get("rpcExt"), is(rpcExt));
+    }
+
     @SuppressWarnings("unchecked")
     private String invokeGetDocument(final ApiDocRegistrarImpl registrar, final ApiBean.ApiDefinition api) throws Exception {
         Method getDocumentMethod = ApiDocRegistrarImpl.class.getDeclaredMethod("getDocument", ApiBean.ApiDefinition.class);
         getDocumentMethod.setAccessible(true);
         return (String) getDocumentMethod.invoke(registrar, api);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String invokeGetExt(final ApiDocRegistrarImpl registrar, final ApiBean.ApiDefinition api) throws Exception {
+        Method getExtMethod = ApiDocRegistrarImpl.class.getDeclaredMethod("getExt", ApiBean.ApiDefinition.class);
+        getExtMethod.setAccessible(true);
+        return (String) getExtMethod.invoke(registrar, api);
     }
 
     // --- Inner types (must be after all methods per checkstyle InnerTypeLast) ---

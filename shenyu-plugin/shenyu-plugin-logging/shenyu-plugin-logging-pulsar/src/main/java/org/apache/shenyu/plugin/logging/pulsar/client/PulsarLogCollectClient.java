@@ -63,7 +63,6 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
             client = PulsarClient.builder().serviceUrl(serviceUrl).build();
             producer = client.newProducer().topic(topic).create();
             LOG.info("init PulsarLogCollectClient success.");
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
 
         } catch (PulsarClientException e) {
             LOG.error("init PulsarLogCollectClient error, ", e);

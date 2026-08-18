@@ -82,7 +82,7 @@ public final class HttpClientPluginConfigurationTest {
     public static void setUpWireMock() throws Exception {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
 
-        wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
+        wireMockServer.stubFor(post(urlPathEqualTo("/platform/login"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(mockLoginResponseJson())

@@ -47,7 +47,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-tars</artifactId>
-            <version>${project.version}</version>
 <!--            <exclusions>-->
 <!--                <exclusion>-->
 <!--                    <artifactId>guava</artifactId>-->

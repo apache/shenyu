@@ -37,7 +37,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-springmvc</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
