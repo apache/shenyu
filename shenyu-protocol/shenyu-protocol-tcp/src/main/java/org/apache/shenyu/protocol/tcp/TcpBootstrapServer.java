@@ -34,6 +34,7 @@ import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpServer;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.Objects;
@@ -86,16 +87,27 @@ public class TcpBootstrapServer implements BootstrapServer {
         SocketAddress socketAddress = serverConn.channel().remoteAddress();
         ActivityConnectionObserver connectionObserver = new ActivityConnectionObserver("TcpClient");
         eventBus.register(connectionObserver);
+        serverConn.onDispose(() -> eventBus.unregister(connectionObserver));
         Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress), connectionObserver);
-        client.subscribe(clientConn -> bridge.bridge(serverConn, clientConn));
+        client.subscribe(
+            clientConn -> bridge.bridge(serverConn, clientConn),
+            error -> {
+                LOG.error("Failed to establish client connection for {}", serverConn, error);
+                eventBus.unregister(connectionObserver);
+                serverConn.dispose();
+            }
+        );
     }
 
     private String getIp(final SocketAddress socketAddress) {
         if (Objects.isNull(socketAddress)) {
             throw new NullPointerException("remoteAddress is null");
         }
-        String address = socketAddress.toString();
-        return address.substring(1, address.indexOf(':'));
+        if (socketAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) socketAddress).getHostString();
+        }
+        LOG.error("Unsupported SocketAddress type: {}", socketAddress.getClass().getName());
+        throw new IllegalArgumentException("Unsupported SocketAddress type: " + socketAddress.getClass().getName());
     }
 
     /**
