@@ -145,6 +145,7 @@ public class WebsocketSyncDataService implements SyncDataService {
         while (iterator.hasNext()) {
             ShenyuWebsocketClient websocketClient = iterator.next();
             if (!websocketClient.isOpen()) {
+                websocketClient.nowClose();
                 iterator.remove();
                 continue;
             }
