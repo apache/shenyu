@@ -96,7 +96,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
                 .setBaseRetryBackoffMs(huaweiLtsLogConfig.getBaseRetryBackoffMs())
                 .setMaxRetryBackoffMs(huaweiLtsLogConfig.getMaxRetryBackoffMs())
                 .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
-                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
+                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getSetGiveUpExtraLongSingleLog()))
                 .builder();
         this.producer = appender.getProducer();
 
