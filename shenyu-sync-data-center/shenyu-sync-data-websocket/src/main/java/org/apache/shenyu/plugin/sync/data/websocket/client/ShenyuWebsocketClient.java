@@ -221,22 +221,26 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
-        }
-        
-        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-        Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
-        if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-            LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
-            this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-            if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
-                return;
+        try {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
             }
-            this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
-            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
-        } else {
-            handleResult(result);
+
+            Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+            Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+            if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+                LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
+                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    return;
+                }
+                this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
+                this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+            } else {
+                handleResult(result);
+            }
+        } catch (Exception e) {
+            LOG.error("websocket server[{}] handle message error", this.getURI(), e);
         }
     }
     
