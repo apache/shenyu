@@ -35,12 +35,14 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -149,5 +151,23 @@ public final class DubboReconcilerTest {
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
         verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    /**
+     * test reconcile with fewer protocols than endpoints.
+     */
+    @Test
+    public void testReconcileWithFewerProtocolsThanEndpoints() {
+        V1Ingress ingress = ingressInformer.getIndexer().getByKey("mockedNamespace/mockedIngress");
+        Map<String, String> annotations = ingress.getMetadata().getAnnotations();
+        annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo+ssl://");
+        V1Endpoints endpoints = endpointsInformer.getIndexer().getByKey("mockedNamespace/testService");
+        endpoints.getSubsets().get(0).setAddresses(java.util.Arrays.asList(
+                new V1EndpointAddress().ip("127.0.0.1"), new V1EndpointAddress().ip("127.0.0.2")));
+        ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress"));
+        ArgumentCaptor<SelectorData> selectorCaptor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
+        Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("dubbo+ssl://"));
+        Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("dubbo://"));
     }
 }
