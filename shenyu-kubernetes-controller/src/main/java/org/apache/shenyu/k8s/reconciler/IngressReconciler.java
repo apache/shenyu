@@ -310,17 +310,21 @@ public class IngressReconciler implements Reconciler {
             Lister<V1Endpoints> namespace = endpointsLister.namespace(request.getNamespace());
             LOG.info("namespace:{}", JsonUtils.toJson(namespace));
             V1Endpoints v1Endpoints = namespace.get(zookeeperK8sIpUrl);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints do not have subsets");
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Cannot find endpoints for zookeeper service {} in namespace {}", zookeeperK8sIpUrl, request.getNamespace());
             } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || addresses.isEmpty()) {
-                        continue;
-                    }
-                    for (V1EndpointAddress address : addresses) {
-                        zookeeperUrl = address.getIp();
+                List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+                if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
+                    LOG.info("Endpoints do not have subsets");
+                } else {
+                    for (V1EndpointSubset subset : subsets) {
+                        List<V1EndpointAddress> addresses = subset.getAddresses();
+                        if (Objects.isNull(addresses) || addresses.isEmpty()) {
+                            continue;
+                        }
+                        for (V1EndpointAddress address : addresses) {
+                            zookeeperUrl = address.getIp();
+                        }
                     }
                 }
             }
