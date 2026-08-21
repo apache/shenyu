@@ -19,11 +19,15 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,6 +93,36 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      */
     public List<Channel> get(final String topic) {
         return TOPIC_CHANNEL_FACTORY.getOrDefault(topic, new CopyOnWriteArrayList<>());
+    }
+
+    /**
+     * Get channels whose subscription filter matches the published topic.
+     * Supports MQTT wildcards: + (single-level) and # (multi-level).
+     *
+     * @param topic the published topic name
+     * @return channels subscribed to matching topic filters
+     */
+    public List<Channel> getChannelsByTopic(final String topic) {
+        // MQTT requires at most one delivery per publish per client, so dedupe
+        // channels when overlapping filters (e.g. sport/# and #) both match.
+        Set<Channel> result = new LinkedHashSet<>();
+
+        // fast path: exact subscription, no wildcard scan needed
+        List<Channel> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
+        if (Objects.nonNull(exactMatch)) {
+            result.addAll(exactMatch);
+        }
+
+        for (Map.Entry<String, List<Channel>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
+            String filter = entry.getKey();
+            if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
+                continue;
+            }
+            if (TopicMatcher.matches(filter, topic)) {
+                result.addAll(entry.getValue());
+            }
+        }
+        return new ArrayList<>(result);
     }
 
 }
