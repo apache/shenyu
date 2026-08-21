@@ -448,14 +448,13 @@ public class OpenApiUtils {
      * Parse protobuf message fields using reflection on getDescriptor().
      * Protobuf descriptor types are mapped to OpenAPI types.
      *
-     * @param responseType    the response type to populate
-     * @param clazz           the protobuf message class
-     * @param depth           current recursion depth
-     * @param typeVariableMap type variable map
+     * @param responseType the response type to populate
+     * @param clazz        the protobuf message class
+     * @param depth        current recursion depth
      * @return populated ResponseType
      */
     private static ResponseType parseProtobufClass(final ResponseType responseType, final Class<?> clazz,
-                                                   final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+                                                   final int depth) {
         if (isProtobufEmpty(clazz)) {
             responseType.setType("object");
             return responseType;
@@ -466,7 +465,7 @@ public class OpenApiUtils {
             java.lang.reflect.Method getFieldsMethod = descriptor.getClass().getMethod("getFields");
             @SuppressWarnings("unchecked")
             List<?> fields = (List<?>) getFieldsMethod.invoke(descriptor);
-            List<ResponseType> refs = parseProtobufFields(fields, clazz, depth, typeVariableMap);
+            List<ResponseType> refs = parseProtobufFields(fields, clazz, depth);
             responseType.setType("object");
             responseType.setRefs(refs);
         } catch (Exception e) {
@@ -476,7 +475,7 @@ public class OpenApiUtils {
     }
 
     private static List<ResponseType> parseProtobufFields(final List<?> fields, final Class<?> clazz,
-                                                          final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                          final int depth) throws Exception {
         List<ResponseType> refs = new ArrayList<>();
         java.lang.reflect.Method getNameMethod = null;
         java.lang.reflect.Method getTypeMethod = null;
@@ -493,23 +492,22 @@ public class OpenApiUtils {
             Object fieldType = getTypeMethod.invoke(field);
             boolean isRepeated = (boolean) isRepeatedMethod.invoke(field);
             refs.add(parseProtobufField(fieldName, fieldType, isRepeated,
-                    getMessageTypeMethod, field, clazz, depth, typeVariableMap));
+                    getMessageTypeMethod, field, clazz, depth));
         }
         return refs;
     }
 
     private static ResponseType parseProtobufField(final String fieldName, final Object fieldType, final boolean isRepeated,
                                                    final java.lang.reflect.Method getMessageTypeMethod, final Object field,
-                                                   final Class<?> clazz, final int depth,
-                                                   final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                   final Class<?> clazz, final int depth) throws Exception {
         if (isRepeated) {
-            return parseRepeatedProtobufField(fieldName, fieldType, getMessageTypeMethod, field);
+            return parseRepeatedProtobufField(fieldName, fieldType, getMessageTypeMethod, field, clazz, depth);
         }
         String fieldTypeName = fieldType.toString();
         ResponseType fieldResponse = new ResponseType();
         fieldResponse.setName(fieldName);
         if ("MESSAGE".equals(fieldTypeName)) {
-            resolveProtobufMessageField(fieldResponse, getMessageTypeMethod, field, clazz, depth, typeVariableMap);
+            resolveProtobufMessageField(fieldResponse, getMessageTypeMethod, field, clazz, depth);
         } else if ("ENUM".equals(fieldTypeName)) {
             fieldResponse.setType("string");
         } else {
@@ -520,19 +518,16 @@ public class OpenApiUtils {
 
     private static ResponseType parseRepeatedProtobufField(final String fieldName, final Object fieldType,
                                                            final java.lang.reflect.Method getMessageTypeMethod,
-                                                           final Object field) throws Exception {
+                                                           final Object field, final Class<?> clazz,
+                                                           final int depth) throws Exception {
         ResponseType arrayType = new ResponseType();
         arrayType.setName(fieldName);
         arrayType.setType("array");
         String fieldTypeName = fieldType.toString();
         ResponseType elementType = new ResponseType();
-        elementType.setName("ITEMS");
+        elementType.setName("items");
         if ("MESSAGE".equals(fieldTypeName)) {
-            Object msgDescriptor = getMessageTypeMethod.invoke(field);
-            java.lang.reflect.Method getFullNameMethod = msgDescriptor.getClass().getMethod("getFullName");
-            String fullMsgName = (String) getFullNameMethod.invoke(msgDescriptor);
-            elementType.setType("object");
-            elementType.setDescription(fullMsgName);
+            resolveProtobufMessageField(elementType, getMessageTypeMethod, field, clazz, depth);
         } else {
             elementType.setType(mapProtobufTypeToOpenApi(fieldTypeName));
         }
@@ -543,8 +538,7 @@ public class OpenApiUtils {
     private static void resolveProtobufMessageField(final ResponseType fieldResponse,
                                                     final java.lang.reflect.Method getMessageTypeMethod,
                                                     final Object field, final Class<?> clazz,
-                                                    final int depth,
-                                                    final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                    final int depth) throws Exception {
         Object msgDescriptor = getMessageTypeMethod.invoke(field);
         java.lang.reflect.Method getFullNameMethod = msgDescriptor.getClass().getMethod("getFullName");
         String fullMsgName = (String) getFullNameMethod.invoke(msgDescriptor);
@@ -553,7 +547,7 @@ public class OpenApiUtils {
         if (depth < 5) {
             try {
                 Class<?> nestedClass = Class.forName(toJavaClassName(clazz, fullMsgName));
-                List<ResponseType> nestedRefs = parseProtobufClass(new ResponseType(), nestedClass, depth + 1, typeVariableMap).getRefs();
+                List<ResponseType> nestedRefs = parseProtobufClass(new ResponseType(), nestedClass, depth + 1).getRefs();
                 if (Objects.nonNull(nestedRefs) && !nestedRefs.isEmpty()) {
                     fieldResponse.setRefs(nestedRefs);
                 }
@@ -665,7 +659,7 @@ public class OpenApiUtils {
     private static ResponseType parseClass(final ResponseType responseType, final Class<?> clazz, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
         if (clazz.isArray()) {
             responseType.setType("array");
-            responseType.setRefs(Collections.singletonList(parseType("ITEMS", clazz.getComponentType(), depth + 1, typeVariableMap)));
+            responseType.setRefs(Collections.singletonList(parseType("items", clazz.getComponentType(), depth + 1, typeVariableMap)));
             return responseType;
         } else if (clazz.isEnum()) {
             responseType.setType("string");
@@ -686,13 +680,10 @@ public class OpenApiUtils {
             responseType.setType("date");
             return responseType;
         } else if (isProtobufMessage(clazz)) {
-            return parseProtobufClass(responseType, clazz, depth, typeVariableMap);
+            return parseProtobufClass(responseType, clazz, depth);
         } else {
             List<ResponseType> refs = new ArrayList<>();
-            for (Field field : clazz.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
+            for (Field field : collectInstanceFields(clazz)) {
                 refs.add(parseType(field.getName(), field.getGenericType(), depth + 1, typeVariableMap));
             }
             responseType.setType("object");
@@ -711,7 +702,7 @@ public class OpenApiUtils {
         }
         if (Collection.class.isAssignableFrom(rawType)) {
             Type actualType = actualTypeArguments[0];
-            ResponseType elementParam = parseType("ITEMS", actualType, depth + 1, newTypeVariableMap);
+            ResponseType elementParam = parseType("items", actualType, depth + 1, newTypeVariableMap);
             responseType.setRefs(Collections.singletonList(elementParam));
             responseType.setType("array");
             return responseType;
@@ -728,10 +719,7 @@ public class OpenApiUtils {
             return responseType;
         } else {
             List<ResponseType> refs = new ArrayList<>();
-            for (Field field : rawType.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
+            for (Field field : collectInstanceFields(rawType)) {
                 ResponseType fieldParam = parseType(field.getName(), field.getGenericType(), depth + 1, newTypeVariableMap);
                 refs.add(fieldParam);
             }
@@ -742,7 +730,7 @@ public class OpenApiUtils {
     }
 
     private static ResponseType parseGenericArrayType(final ResponseType responseType, final GenericArrayType type, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
-        responseType.setRefs(Collections.singletonList(parseType("ITEMS", type.getGenericComponentType(), depth + 1, typeVariableMap)));
+        responseType.setRefs(Collections.singletonList(parseType("items", type.getGenericComponentType(), depth + 1, typeVariableMap)));
         responseType.setType("array");
         return responseType;
     }
@@ -797,13 +785,10 @@ public class OpenApiUtils {
         } else if (Map.class.isAssignableFrom(clazz)) {
             return new Schema("object", null);
         } else if (isProtobufMessage(clazz)) {
-            return parseProtobufClassSchema(clazz, depth, typeVariableMap);
+            return parseProtobufClassSchema(clazz, depth);
         } else {
             List<Schema> refs = new ArrayList<>();
-            for (Field field : clazz.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
+            for (Field field : collectInstanceFields(clazz)) {
                 Schema fieldSchema = parseSchema(field.getGenericType(), depth + 1, typeVariableMap);
                 fieldSchema.setName(field.getName());
                 refs.add(fieldSchema);
@@ -838,10 +823,7 @@ public class OpenApiUtils {
             return schema;
         } else {
             List<Schema> refs = new ArrayList<>();
-            for (Field field : rawType.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
+            for (Field field : collectInstanceFields(rawType)) {
                 Schema fieldSchema = parseSchema(field.getGenericType(), depth + 1, newTypeVariableMap);
                 fieldSchema.setName(field.getName());
                 refs.add(fieldSchema);
@@ -852,7 +834,7 @@ public class OpenApiUtils {
         }
     }
 
-    private static Schema parseProtobufClassSchema(final Class<?> clazz, final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) {
+    private static Schema parseProtobufClassSchema(final Class<?> clazz, final int depth) {
         if (isProtobufEmpty(clazz)) {
             return new Schema("object", null);
         }
@@ -862,7 +844,7 @@ public class OpenApiUtils {
             java.lang.reflect.Method getFieldsMethod = descriptor.getClass().getMethod("getFields");
             @SuppressWarnings("unchecked")
             List<?> fields = (List<?>) getFieldsMethod.invoke(descriptor);
-            List<Schema> refs = parseProtobufFieldsSchema(fields, clazz, depth, typeVariableMap);
+            List<Schema> refs = parseProtobufFieldsSchema(fields, clazz, depth);
             Schema schema = new Schema("object", null);
             schema.setRefs(refs);
             return schema;
@@ -872,7 +854,7 @@ public class OpenApiUtils {
     }
 
     private static List<Schema> parseProtobufFieldsSchema(final List<?> fields, final Class<?> clazz,
-                                                          final int depth, final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                          final int depth) throws Exception {
         List<Schema> refs = new ArrayList<>();
         java.lang.reflect.Method getNameMethod = null;
         java.lang.reflect.Method getTypeMethod = null;
@@ -889,22 +871,21 @@ public class OpenApiUtils {
             Object fieldType = getTypeMethod.invoke(field);
             boolean isRepeated = (boolean) isRepeatedMethod.invoke(field);
             refs.add(parseProtobufFieldSchema(fieldName, fieldType, isRepeated,
-                    getMessageTypeMethod, field, clazz, depth, typeVariableMap));
+                    getMessageTypeMethod, field, clazz, depth));
         }
         return refs;
     }
 
     private static Schema parseProtobufFieldSchema(final String fieldName, final Object fieldType, final boolean isRepeated,
                                                    final java.lang.reflect.Method getMessageTypeMethod, final Object field,
-                                                   final Class<?> clazz, final int depth,
-                                                   final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                   final Class<?> clazz, final int depth) throws Exception {
         if (isRepeated) {
-            return parseRepeatedProtobufFieldSchema(fieldName, fieldType, getMessageTypeMethod, field, clazz, depth, typeVariableMap);
+            return parseRepeatedProtobufFieldSchema(fieldName, fieldType, getMessageTypeMethod, field, clazz, depth);
         }
         String fieldTypeName = fieldType.toString();
         Schema schema;
         if ("MESSAGE".equals(fieldTypeName)) {
-            schema = resolveProtobufMessageFieldSchema(getMessageTypeMethod, field, clazz, depth, typeVariableMap);
+            schema = resolveProtobufMessageFieldSchema(getMessageTypeMethod, field, clazz, depth);
         } else if ("ENUM".equals(fieldTypeName)) {
             schema = new Schema("string", null);
         } else {
@@ -917,12 +898,11 @@ public class OpenApiUtils {
     private static Schema parseRepeatedProtobufFieldSchema(final String fieldName, final Object fieldType,
                                                            final java.lang.reflect.Method getMessageTypeMethod,
                                                            final Object field,
-                                                           final Class<?> clazz, final int depth,
-                                                           final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                           final Class<?> clazz, final int depth) throws Exception {
         String fieldTypeName = fieldType.toString();
         Schema elementSchema;
         if ("MESSAGE".equals(fieldTypeName)) {
-            elementSchema = resolveProtobufMessageFieldSchema(getMessageTypeMethod, field, clazz, depth, typeVariableMap);
+            elementSchema = resolveProtobufMessageFieldSchema(getMessageTypeMethod, field, clazz, depth);
         } else if ("ENUM".equals(fieldTypeName)) {
             elementSchema = new Schema("string", null);
         } else {
@@ -937,8 +917,7 @@ public class OpenApiUtils {
 
     private static Schema resolveProtobufMessageFieldSchema(final java.lang.reflect.Method getMessageTypeMethod,
                                                             final Object field, final Class<?> clazz,
-                                                            final int depth,
-                                                            final Map<TypeVariable<?>, Type> typeVariableMap) throws Exception {
+                                                            final int depth) throws Exception {
         Object msgDescriptor = getMessageTypeMethod.invoke(field);
         java.lang.reflect.Method getFullNameMethod = msgDescriptor.getClass().getMethod("getFullName");
         String fullMsgName = (String) getFullNameMethod.invoke(msgDescriptor);
@@ -946,7 +925,7 @@ public class OpenApiUtils {
         if (depth < 5) {
             try {
                 Class<?> nestedClass = Class.forName(toJavaClassName(clazz, fullMsgName));
-                List<Schema> nestedRefs = parseProtobufClassSchema(nestedClass, depth + 1, typeVariableMap).getRefs();
+                List<Schema> nestedRefs = parseProtobufClassSchema(nestedClass, depth + 1).getRefs();
                 if (Objects.nonNull(nestedRefs) && !nestedRefs.isEmpty()) {
                     schema.setRefs(nestedRefs);
                 }
@@ -967,6 +946,31 @@ public class OpenApiUtils {
             return packageName + "." + relativeName;
         }
         return protobufFullName.replace('.', '$');
+    }
+
+    /**
+     * Collect non-static declared instance fields walking up the class hierarchy.
+     * Fields are ordered subclass-first then superclass, so the generated document
+     * keeps the declared order of the most specific type. Stops at {@code Object}
+     * and protobuf base classes (protobuf messages are parsed via descriptor, not
+     * reflection, so they never reach here).
+     *
+     * @param clazz the class to inspect
+     * @return ordered list of instance fields
+     */
+    private static List<Field> collectInstanceFields(final Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        Class<?> current = clazz;
+        while (Objects.nonNull(current) && current != Object.class && !isProtobufMessage(current)) {
+            for (Field field : current.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                fields.add(field);
+            }
+            current = current.getSuperclass();
+        }
+        return fields;
     }
 
     private static boolean isDateType(final Class<?> clazz) {
