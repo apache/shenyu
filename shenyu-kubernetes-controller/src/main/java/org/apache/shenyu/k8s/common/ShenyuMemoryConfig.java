@@ -33,6 +33,12 @@ public class ShenyuMemoryConfig {
 
     private List<SslCrtAndKeyStream> tlsConfigList;
 
+    /** Whether every backendRef resolved to at least one ready upstream; drives ResolvedRefs. */
+    private boolean allBackendsResolved = true;
+
+    /** Reason for ResolvedRefs=False (BackendNotFound, RefNotPermitted or InvalidKind). */
+    private String unresolvedReason;
+
     /**
      * ShenyuMemoryConfig Constructor.
      */
@@ -91,5 +97,21 @@ public class ShenyuMemoryConfig {
      */
     public void setTlsConfigList(final List<SslCrtAndKeyStream> tlsConfigList) {
         this.tlsConfigList = tlsConfigList;
+    }
+
+    public boolean isAllBackendsResolved() {
+        return allBackendsResolved;
+    }
+
+    public void setAllBackendsResolved(final boolean allBackendsResolved) {
+        this.allBackendsResolved = allBackendsResolved;
+    }
+
+    public String getUnresolvedReason() {
+        return unresolvedReason;
+    }
+
+    public void setUnresolvedReason(final String unresolvedReason) {
+        this.unresolvedReason = unresolvedReason;
     }
 }
