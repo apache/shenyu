@@ -26,6 +26,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
@@ -36,10 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -124,12 +128,32 @@ public class ShenyuCacheRepository {
         discoverySyncData.setSelectorName(selectorData.getName());
         discoverySyncData.setSelectorId(selectorData.getId());
         discoverySyncData.setPluginName(selectorData.getPluginName());
-        discoverySyncData.setUpstreamDataList(convert(selectorData.getPluginName(), selectorData.getHandle()));
+        List<DiscoveryUpstreamData> upstreamDataList = convert(selectorData.getPluginName(), selectorData.getHandle());
+        discoverySyncData.setUpstreamDataList(upstreamDataList);
+        removeStaleUpstreams(selectorData.getId(), upstreamDataList);
         saveOrUpdateDiscoveryUpstreamData(discoverySyncData);
+        LOG.info("Resolved {} upstream(s) for selector {}", upstreamDataList.size(), selectorData.getId());
+    }
+
+    /**
+     * {@link UpstreamCacheManager#submit} merges by URL and only removes entries explicitly
+     * marked offline, because the admin control plane pushes incremental upstream events.
+     * The Kubernetes reconciler submits an authoritative full snapshot, so a vanished
+     * upstream must be dropped here or it keeps receiving traffic forever.
+     */
+    private void removeStaleUpstreams(final String selectorId, final List<DiscoveryUpstreamData> newUpstreams) {
+        List<Upstream> current = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        if (CollectionUtils.isEmpty(current)) {
+            return;
+        }
+        Set<String> newUrls = newUpstreams.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+        boolean hasStale = current.stream().anyMatch(upstream -> !newUrls.contains(upstream.getUrl()));
+        if (hasStale) {
+            UpstreamCacheManager.getInstance().removeByKey(selectorId);
+        }
     }
 
     private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
-        LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
         List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return Collections.emptyList();
@@ -167,6 +191,24 @@ public class ShenyuCacheRepository {
      */
     public void deleteSelectorData(final String pluginName, final String selectorId) {
         subscriber.unSelectorSubscribe(SelectorData.builder().pluginName(pluginName).id(selectorId).build());
+    }
+
+    /**
+     * Delete a selector together with all rules still attached to it. findRuleDataList
+     * exposes the cache's mutable internal list, so iterate over a copy to avoid
+     * ConcurrentModificationException.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selector id
+     */
+    public void deleteSelectorWithRules(final String pluginName, final String selectorId) {
+        List<RuleData> rules = findRuleDataList(selectorId);
+        if (CollectionUtils.isNotEmpty(rules)) {
+            for (RuleData rule : new ArrayList<>(rules)) {
+                deleteRuleData(pluginName, selectorId, rule.getId());
+            }
+        }
+        deleteSelectorData(pluginName, selectorId);
     }
 
     /**
