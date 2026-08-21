@@ -45,6 +45,8 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -60,6 +62,12 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractHttpClientPlugin.class);
 
+    private final long maxInMemorySize;
+
+    protected AbstractHttpClientPlugin(final long maxInMemorySize) {
+        this.maxInMemorySize = maxInMemorySize;
+    }
+
     @Override
     public final Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -73,11 +81,13 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
+        final String httpMethod = Objects.nonNull(exchange.getRequest().getMethod())
+                ? exchange.getRequest().getMethod().name() : "UNKNOWN";
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
-        final Mono<R> response = doRequest(exchange,
-                        Objects.nonNull(exchange.getRequest().getMethod()) ? exchange.getRequest().getMethod().name() : "UNKNOWN",
-                        uri,
-                        exchange.getRequest().getBody())
+        final Flux<DataBuffer> requestBody = (retryTimes > 0 && isRequestBodyRequired(httpMethod))
+                ? getCachedRequestBody(exchange)
+                : exchange.getRequest().getBody();
+        final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         RetryStrategy<R> strategy;
@@ -101,7 +111,49 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
+                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
                 .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+    }
+
+    /**
+     * Cache the request body as byte[] so it can be replayed during retry.
+     *
+     * <p>The original body Flux from the Netty channel is single-use; without caching,
+     * retry attempts would send an empty body.
+     *
+     * <p>Idempotent: the cached Flux is stored in exchange attributes so that both
+     * CURRENT (retryWhen) and FAILOVER (resend) paths share the same replayable instance.
+     *
+     * @param exchange the server web exchange
+     * @return a replayable Flux of DataBuffer
+     */
+    protected Flux<DataBuffer> getCachedRequestBody(final ServerWebExchange exchange) {
+        Flux<DataBuffer> cached = exchange.getAttribute(Constants.CACHED_REQUEST_BODY);
+        if (Objects.nonNull(cached)) {
+            return cached;
+        }
+        final int joinLimit = (int) Math.min(maxInMemorySize, Integer.MAX_VALUE);
+        cached = DataBufferUtils.join(exchange.getRequest().getBody(), joinLimit)
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    DataBufferUtils.release(dataBuffer);
+                    return bytes;
+                })
+                .defaultIfEmpty(new byte[0])
+                .cache()
+                .flatMapMany(bytes -> Flux.defer(() -> {
+                    if (bytes.length == 0) {
+                        return Flux.empty();
+                    }
+                    // ServerHttpRequest has no bufferFactory() API in Spring; the response's
+                    // factory shares the same allocator, and NettyHttpClientPlugin.doRequest
+                    // requires NettyDataBuffer from it.
+                    return Flux.just(exchange.getResponse().bufferFactory().wrap(bytes));
+                }));
+        exchange.getAttributes().put(Constants.CACHED_REQUEST_BODY, cached);
+        return cached;
     }
 
 
