@@ -71,12 +71,12 @@ public final class IngressReconcilerZookeeperUrlTest {
 
     @BeforeEach
     public void init() {
-        SharedIndexInformer<V1Ingress> ingressInformer = mock(SharedIndexInformer.class);
-        SharedIndexInformer<V1Secret> secretInformer = mock(SharedIndexInformer.class);
+        final SharedIndexInformer<V1Ingress> ingressInformer = mock(SharedIndexInformer.class);
+        final SharedIndexInformer<V1Secret> secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        ShenyuSniAsyncMapping shenyuSniAsyncMapping = new ShenyuSniAsyncMapping();
-        SharedIndexInformer<V1Service> serviceInformer = mock(SharedIndexInformer.class);
-        SharedIndexInformer<V1Endpoints> endpointsInformer = mock(SharedIndexInformer.class);
+        final ShenyuSniAsyncMapping shenyuSniAsyncMapping = new ShenyuSniAsyncMapping();
+        final SharedIndexInformer<V1Service> serviceInformer = mock(SharedIndexInformer.class);
+        final SharedIndexInformer<V1Endpoints> endpointsInformer = mock(SharedIndexInformer.class);
 
         // mock ingressInformer
         final Indexer<V1Ingress> ingressIndexer = mock(Indexer.class);
