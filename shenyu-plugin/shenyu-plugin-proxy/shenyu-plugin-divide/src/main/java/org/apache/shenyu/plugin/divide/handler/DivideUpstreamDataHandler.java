@@ -29,7 +29,9 @@ import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -69,7 +71,7 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }
         return upstreamList.stream().map(u -> {
             Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
-            return Upstream.builder()
+            Upstream upstream = Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
                     .weight(u.getWeight())
@@ -79,7 +81,15 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
+            upstream.setMetadata(convertPropertiesToMetadata(properties));
+            return upstream;
         }).collect(Collectors.toList());
+    }
+
+    private Map<String, String> convertPropertiesToMetadata(final Properties properties) {
+        Map<String, String> metadata = new HashMap<>(properties.size());
+        properties.forEach((key, value) -> metadata.put(String.valueOf(key), String.valueOf(value)));
+        return metadata;
     }
 
 }
