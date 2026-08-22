@@ -71,7 +71,7 @@ public class ResourceEventPublisher implements AdminDataModelChangedEventPublish
      */
     @Override
     public void onUpdated(final ResourceDO resource, final ResourceDO before) {
-        publish(new ResourceChangedEvent(resource, before, EventTypeEnum.RULE_DELETE, SessionUtil.visitorName()));
+        publish(new ResourceChangedEvent(resource, before, EventTypeEnum.RESOURCE_UPDATE, SessionUtil.visitorName()));
     }
     
     /**

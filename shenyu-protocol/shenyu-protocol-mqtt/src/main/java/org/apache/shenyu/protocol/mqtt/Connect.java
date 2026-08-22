@@ -54,6 +54,7 @@ public class Connect extends MessageType {
         if (!allowedProtocolVersion(msg)) {
             LOG.info("MQTT protocol version is not supported. clientId: {}", clientId);
             close(ctx, CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
+            return;
         }
 
         String userName = msg.payload().userName();
@@ -88,6 +89,9 @@ public class Connect extends MessageType {
     }
 
     private boolean allowedProtocolVersion(final MqttConnectMessage msg) {
-        return msg.variableHeader().version() == MqttVersion.MQTT_3_1.protocolLevel();
+        int protocolLevel = msg.variableHeader().version();
+        return protocolLevel == MqttVersion.MQTT_3_1.protocolLevel()
+                || protocolLevel == MqttVersion.MQTT_3_1_1.protocolLevel()
+                || protocolLevel == MqttVersion.MQTT_5.protocolLevel();
     }
 }
