@@ -322,7 +322,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
+                            upstream.setProtocol(Objects.isNull(protocol) || i >= protocol.length ? "http://" : protocol[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");
