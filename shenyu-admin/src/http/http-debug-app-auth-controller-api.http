@@ -61,14 +61,14 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
 }
 
 ### updateSk
-GET http://localhost:9095/appAuth/updateSk?appKey=123&appSecret=123
+POST http://localhost:9095/appAuth/updateSk
 Accept: application/json
 Content-Type: application/json
 X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ4NjUwMDg2fQ.aDeChT_Ey6FwYDdzSkc9ZLBHd5v-LVUZ6BPcYqJCo-Y
 
 {
-  "id": 123,
-  "name": "order"
+  "appKey": "123",
+  "appSecret": "123"
 }
 
 ### app auth list by page

@@ -110,7 +110,7 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
         apiExt.setServiceName(api.getApiBean().getBeanClass().getName());
         apiExt.setMethodName(api.getApiMethodName());
         apiExt.setParameterTypes(api.getParameterTypes());
-        apiExt.setRpcExt(api.getPropertiesValue("RpcExt"));
+        apiExt.setRpcExt(api.getPropertiesValue("rpcExt"));
         apiExt.setAddPrefixed(clientRegisterConfig.getAddPrefixed());
         final String rpcType = getRpcType(api);
         

@@ -70,6 +70,7 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #    apollo:
 #      meta: http://localhost:8080
@@ -114,6 +115,10 @@ shenyu:
     object-class: person
     login-field: cn
   jwt:
+    # secret-key must be explicitly configured, especially in multi-instance Admin clusters.
+    # Each instance must share the same secretKey to avoid token verification failures (random 401s).
+    # Please replace this with your own secure key in production.
+    # secret-key: "your-secret-key-here"
     expired-seconds: 86400000
   cluster:
     enabled: false
@@ -182,6 +187,8 @@ shenyu:
       - /index**
       - /platform/login
       - /platform/secretInfo
+      # /websocket is unauthenticated by design for Admin-Gateway data synchronization.
+      # Keep the Admin port on trusted networks and enforce network-level access controls.
       - /websocket
       - /error
       - /actuator/health
@@ -193,6 +200,8 @@ shenyu:
       - /v3/api-docs/**
       - /csrf
       - /alert/report
+  swagger:
+    max-body-size: 10485760
   dashboard:
     core:
       onlySuperAdminPermission:
@@ -225,6 +234,11 @@ shenyu:
       apiServer: "https://127.0.0.1:6443"
       token: "token"
       caCertPath: "/etc/kubernetes/pki/ca.crt"
+  config:
+    import:
+      max-entry-size: 104857600
+      max-total-size: 209715200
+      max-entry-count: 1000
 
 springdoc:
   api-docs:
@@ -244,3 +258,4 @@ logging:
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
 #    org.apache.shenyu.admin.utils.HttpUtils: debug
+

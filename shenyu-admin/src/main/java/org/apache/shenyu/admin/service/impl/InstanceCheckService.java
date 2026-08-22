@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -123,7 +124,7 @@ public class InstanceCheckService {
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
             instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
-            instanceInfoVO.setInstanceState(1);
+            instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
             instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
@@ -179,7 +180,9 @@ public class InstanceCheckService {
     public void close() {
         syncDB();
         instanceHealthBeatInfo.clear();
-        executor.shutdown();
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
     }
 
     /**
