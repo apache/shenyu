@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,6 +117,11 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.handleBeatInfo(dto);
         instanceCheckService.syncDB();
         verify(instanceInfoService, times(1)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testCloseWithoutSetup() {
+        assertDoesNotThrow(instanceCheckService::close);
     }
 
     @Test
