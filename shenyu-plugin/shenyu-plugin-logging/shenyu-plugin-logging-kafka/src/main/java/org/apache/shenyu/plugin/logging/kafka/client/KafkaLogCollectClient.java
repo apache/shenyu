@@ -63,12 +63,13 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
      * init producer.
      *
      * @param config kafka props
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
+    public boolean initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
         if (StringUtils.isBlank(config.getBootstrapServer()) || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
-            return;
+            return false;
         }
 
         LOG.info("initClient0:{}", GsonUtils.getInstance().toJson(config));
@@ -78,7 +79,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
 
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
-            return;
+            return false;
         }
         this.topic = topic;
 
@@ -104,12 +105,16 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
             // We can't recover from these exceptions, so our only option is to close the producer and exit.
             LOG.error("Init kafkaLogCollectClient error, We can't recover from these exceptions, so our only option is to close the producer and exit", e);
             producer.close();
+            return false;
         } catch (KafkaException e) {
             // For all other exceptions, just abort the transaction and try again.
             LOG.error(
                     "init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException"
                             + ", just abort the transaction and try again", e);
+            producer.close();
+            return false;
         }
+        return true;
     }
 
     /**
@@ -119,6 +124,10 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
      */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        if (Objects.isNull(producer)) {
+            LOG.warn("Kafka producer is not initialized.");
+            return;
+        }
         logs.forEach(log -> {
             String logTopic = Optional.ofNullable(LoggingKafkaPluginDataHandler.getSelectApiConfigMap().get(log.getSelectorId()))
                     .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)
