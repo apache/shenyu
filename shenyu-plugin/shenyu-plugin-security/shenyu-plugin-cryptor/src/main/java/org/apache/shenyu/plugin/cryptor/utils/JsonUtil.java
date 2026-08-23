@@ -49,15 +49,32 @@ public final class JsonUtil {
      */
     public static String parser(final String json, final String fieldName) {
         Map<String, Object> map = GsonUtils.getInstance().toObjectMap(json);
+        if (Objects.isNull(map)) {
+            return null;
+        }
         String str = null;
         if (fieldName.contains(".")) {
             String[] split = fieldName.split("\\.");
-            JsonObject jsonObject = (JsonObject) map.get(split[0]);
+            Object firstElement = map.get(split[0]);
+            if (!(firstElement instanceof JsonObject)) {
+                return null;
+            }
+            JsonObject jsonObject = (JsonObject) firstElement;
             for (int i = 1; i < split.length; i++) {
+                JsonElement jsonElement = jsonObject.get(split[i]);
+                if (Objects.isNull(jsonElement)) {
+                    return null;
+                }
                 if (i == split.length - 1) {
-                    str = jsonObject.getAsJsonPrimitive(split[i]).getAsString();
+                    if (!jsonElement.isJsonPrimitive()) {
+                        return null;
+                    }
+                    str = jsonElement.getAsString();
                 } else {
-                    jsonObject = jsonObject.getAsJsonObject(split[i]);
+                    if (!jsonElement.isJsonObject()) {
+                        return null;
+                    }
+                    jsonObject = jsonElement.getAsJsonObject();
                 }
             }
         } else {
