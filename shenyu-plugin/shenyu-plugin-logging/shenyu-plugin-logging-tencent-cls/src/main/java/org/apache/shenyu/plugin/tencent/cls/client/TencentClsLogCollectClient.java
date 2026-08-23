@@ -64,16 +64,17 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
      * init Tencent cls client.
      *
      * @param tencentClsLogConfig shenyu log config
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final TencentLogCollectConfig.TencentClsLogConfig tencentClsLogConfig) {
+    public boolean initClient0(@NonNull final TencentLogCollectConfig.TencentClsLogConfig tencentClsLogConfig) {
         String secretId = tencentClsLogConfig.getSecretId();
         String secretKey = tencentClsLogConfig.getSecretKey();
         String endpoint = tencentClsLogConfig.getEndpoint();
         this.topic = tencentClsLogConfig.getTopic();
         if (StringUtils.isBlank(secretId) || StringUtils.isBlank(secretKey) || StringUtils.isBlank(topic) || StringUtils.isBlank(endpoint)) {
             LOG.error("init Tencent cls client error, please check secretId, secretKey, topic or host");
-            return;
+            return false;
         }
 
         // init AsyncProducerConfig, AsyncProducerClient
@@ -96,7 +97,10 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
             client = new AsyncProducerClient(config);
         } catch (Exception e) {
             LOG.warn("TencentClsLogCollectClient initClient error message:{}", e.getMessage());
+            threadExecutor.shutdownNow();
+            return false;
         }
+        return true;
     }
 
     /**
@@ -106,6 +110,10 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
      */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        if (Objects.isNull(client)) {
+            LOG.warn("Tencent CLS client is not initialized.");
+            return;
+        }
         logs.forEach(this::sendLog);
     }
 
