@@ -121,9 +121,10 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
      * init client .
      *
      * @param config properties.
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
+    public boolean initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
         final String username = config.getUsername();
         final String password = config.getPassword();
         final String ttl = StringUtils.defaultIfBlank(config.getTtl(), "30");
@@ -141,6 +142,9 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
         } catch (Exception e) {
             LOG.error("inti ClickHouseLogClient error", e);
+            close0();
+            return false;
         }
+        return true;
     }
 }
