@@ -123,7 +123,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        int rows = scaleRuleMapper.updateByPrimaryKey(after);
+        int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
         if (rows > 0) {
             scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
         }
