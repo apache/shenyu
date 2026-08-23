@@ -109,7 +109,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
         final ScaleRuleDO scaleRuleDO = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
         int rows = scaleRuleMapper.insertSelective(scaleRuleDO);
         if (rows > 0) {
-            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+            scaleRuleCache.addOrUpdateRuleToCache(scaleRuleDO);
         }
         return rows;
     }
@@ -125,7 +125,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
         int rows = scaleRuleMapper.updateByPrimaryKey(after);
         if (rows > 0) {
-            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+            scaleRuleCache.addOrUpdateRuleToCache(after);
         }
         return rows;
     }
