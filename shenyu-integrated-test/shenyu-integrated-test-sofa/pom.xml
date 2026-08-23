@@ -28,8 +28,6 @@
     <artifactId>shenyu-integrated-test-sofa</artifactId>
     
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <curator.version>4.3.0</curator.version>
         <!--        <zookeeper.version>3.5.7</zookeeper.version>-->
     </properties>
