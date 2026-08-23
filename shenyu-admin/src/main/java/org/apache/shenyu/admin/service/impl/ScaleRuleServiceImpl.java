@@ -140,7 +140,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     public int delete(final List<String> ids) {
         int rows = scaleRuleMapper.delete(ids);
         if (rows > 0) {
-            scaleRuleCache.removeRulesFromCache(ids);
+            scaleRuleCache.removeRulesByIdsFromCache(ids);
         }
         return rows;
     }
