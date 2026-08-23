@@ -26,6 +26,7 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
+
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
@@ -42,6 +43,7 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -66,8 +68,11 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private static final Logger LOG = LoggerFactory.getLogger(SwaggerImportServiceImpl.class);
 
     private final DocManager docManager;
-    
+
     private final HttpUtils httpUtils;
+
+    @Value("${shenyu.swagger.max-body-size:10485760}")
+    private long maxSwaggerBodySize;
 
     @Resource
     private ShenyuClientRegisterMcpServiceImpl shenyuClientRegisterMcpService;
@@ -102,6 +107,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             
             return "Import successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
             
+        } catch (IllegalArgumentException e) {
+            // Keep bad user input unwrapped so the controller can return HTTP 400.
+            LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
+            throw e;
         } catch (Exception e) {
             LOG.error("Failed to import swagger document: {}", request.getProjectName(), e);
             throw new RuntimeException("Import failed: " + e.getMessage(), e);
@@ -124,6 +133,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             });
 
             return "Import mcp server config successful, supports Swagger 2.0 and OpenAPI 3.0 formats";
+        } catch (IllegalArgumentException e) {
+            // Keep bad user input unwrapped so the controller can return HTTP 400.
+            LOG.error("Failed to import mcp config: {}", request.getProjectName(), e);
+            throw e;
         } catch (IOException e) {
             LOG.error("Failed to import mcp config: {}", request.getProjectName(), e);
             throw new RuntimeException("Import mcp server config failed: " + e.getMessage(), e);
@@ -194,6 +207,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private MetaDataRegisterDTO buildMetaDataRegisterDTO(final OpenAPI openapi, final String selectorName,
                                                          final ShenyuMcpTool shenyuMcpTool, final String contentPath,
                                                          final String namespaceId) {
+        if (Objects.isNull(openapi.getServers()) || openapi.getServers().isEmpty()) {
+            throw new IllegalArgumentException("OpenAPI document is missing the top-level 'servers' field, which is required for MCP import. "
+                + "Please add a servers section, e.g.: servers: [{ url: 'http://localhost:8080' }]");
+        }
         String urlString = openapi.getServers().get(0).getUrl();
         URL url;
         try {
@@ -205,10 +222,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         String host = url.getHost();
         int port = url.getPort();
         Operation operation = shenyuMcpTool.getOperation();
-        String parameterTypes = operation.getParameters()
-                .stream()
-                .map(Parameter::getIn)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Objects.isNull(operation.getParameters())
+                ? ""
+                : operation.getParameters()
+                        .stream()
+                        .map(Parameter::getIn)
+                        .collect(Collectors.joining(","));
 
         return MetaDataRegisterDTO.builder()
                 .appName(openapi.getInfo().getTitle())
@@ -252,11 +271,13 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
             if (response.code() != 200) {
                 throw new RuntimeException("Failed to get Swagger document, HTTP status code: " + response.code());
             }
-            
-            return response.body().string();
+
+            return HttpUtils.readLimitedResponseBody(response.body(), maxSwaggerBodySize);
         }
     }
-    
+
+
+
     private void validateSwaggerContent(final String swaggerJson) {
         try {
             JsonObject docRoot = GsonUtils.getInstance().fromJson(swaggerJson, JsonObject.class);

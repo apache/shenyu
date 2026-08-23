@@ -44,6 +44,8 @@ spec:
               value: h2
             - name: shenyu.database.init_script
               value: sql-script/h2/schema.sql
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           ports:
             - containerPort: 9095
           livenessProbe:
@@ -97,6 +99,8 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-h2:9095/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
           ports:
             - containerPort: 9195
           imagePullPolicy: IfNotPresent

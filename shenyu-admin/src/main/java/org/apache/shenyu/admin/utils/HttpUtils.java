@@ -43,6 +43,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -62,6 +63,8 @@ public class HttpUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
 
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
+
+    private static final int READ_BUFFER_SIZE = 8192;
 
     private Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
@@ -458,6 +461,52 @@ public class HttpUtils {
         public String value() {
             return this.name();
         }
+    }
+
+    /**
+     * Read response body with a size limit to prevent excessive memory usage.
+     *
+     * @param responseBody the response body to read
+     * @param maxBodySize  maximum allowed body size in bytes
+     * @return the response body as a string
+     * @throws IOException              if an I/O error occurs
+     * @throws IllegalArgumentException if the body exceeds maxBodySize
+     */
+    public static String readLimitedResponseBody(final ResponseBody responseBody, final long maxBodySize) throws IOException {
+        if (Objects.isNull(responseBody)) {
+            throw new IllegalArgumentException("Response body is empty");
+        }
+        if (maxBodySize < 0) {
+            throw new IllegalArgumentException("Max response body size must not be negative");
+        }
+
+        long contentLength = responseBody.contentLength();
+        if (contentLength > maxBodySize) {
+            throw new IllegalArgumentException(String.format(
+                    "Response body exceeds maximum size of %d bytes", maxBodySize));
+        }
+
+        ByteArrayOutputStream outputStream = contentLength > 0
+                ? new ByteArrayOutputStream((int) Math.min(contentLength, Integer.MAX_VALUE))
+                : new ByteArrayOutputStream();
+        byte[] buffer = new byte[READ_BUFFER_SIZE];
+        long totalBytes = 0;
+        try (InputStream inputStream = responseBody.byteStream()) {
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                totalBytes += bytesRead;
+                if (totalBytes > maxBodySize) {
+                    throw new IllegalArgumentException(String.format(
+                            "Response body exceeds maximum size of %d bytes", maxBodySize));
+                }
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
+
+        Charset charset = Objects.isNull(responseBody.contentType())
+                ? StandardCharsets.UTF_8
+                : responseBody.contentType().charset(StandardCharsets.UTF_8);
+        return outputStream.toString(charset.name());
     }
 
     public static class HttpToolConfig {

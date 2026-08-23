@@ -21,6 +21,8 @@ import com.google.common.eventbus.EventBus;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpBootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * TcpBootstrapFactory.
  */
 public final class TcpBootstrapFactory {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TcpBootstrapFactory.class);
 
     private static final TcpBootstrapFactory SINGLETON = new TcpBootstrapFactory();
 
@@ -87,6 +91,21 @@ public final class TcpBootstrapFactory {
      */
     public BootstrapServer removeCache(final String selectorName) {
         return cache.remove(selectorName);
+    }
+
+    /**
+     * Clear cache.
+     */
+    public void clearCache() {
+        cache.forEach((selectorName, bootstrapServer) -> {
+            if (cache.remove(selectorName, bootstrapServer)) {
+                try {
+                    bootstrapServer.shutdown();
+                } catch (RuntimeException ex) {
+                    LOG.error("Failed to shutdown TcpBootstrapServer for selector {}", selectorName, ex);
+                }
+            }
+        });
     }
 
     /**

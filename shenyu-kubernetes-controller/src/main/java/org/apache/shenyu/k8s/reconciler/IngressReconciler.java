@@ -24,6 +24,7 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -40,9 +41,12 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSecretCache;
@@ -186,6 +190,11 @@ public class IngressReconciler implements Reconciler {
             ServiceIngressCache.getInstance().putIngressName(pair.getLeft(), pair.getRight(), request.getNamespace(), request.getName());
             LOG.info("Add service cache {} for ingress {}", pair.getLeft() + "/" + pair.getRight(), request.getNamespace() + "/" + request.getName());
         });
+
+        // Ensure upstream handles are populated from endpoints
+        // This handles the race condition where EndpointsReconciler may have already
+        // fired before ServiceIngressCache was populated during initial informer sync
+        updateUpstreamFromEndpoints(v1Ingress);
 
         return new Result(false);
     }
@@ -549,6 +558,129 @@ public class IngressReconciler implements Reconciler {
 
             IngressSecretCache.getInstance().putDomainByIngress(namespace, ingressName, newDomainSet);
         }
+    }
+
+    private void updateUpstreamFromEndpoints(final V1Ingress v1Ingress) {
+        String pluginName = getPluginName(v1Ingress);
+        if (!PluginEnum.DIVIDE.getName().equals(pluginName) && !PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
+            return;
+        }
+        List<Pair<String, String>> serviceList = parseServiceFromIngress(v1Ingress);
+        if (CollectionUtils.isEmpty(serviceList)) {
+            return;
+        }
+        String namespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
+        String ingressName = v1Ingress.getMetadata().getName();
+        Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
+        for (Pair<String, String> service : serviceList) {
+            String serviceNamespace = service.getLeft();
+            String serviceName = service.getRight();
+            V1Endpoints v1Endpoints = endpointsLister.namespace(serviceNamespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Cannot find endpoints for service {}/{} when updating upstream", serviceNamespace, serviceName);
+                continue;
+            }
+            List<Pair<V1EndpointAddress, String>> addresses = endpointAddresses(v1Endpoints);
+            if (CollectionUtils.isEmpty(addresses)) {
+                continue;
+            }
+            String handle;
+            if (PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
+                handle = buildWebSocketUpstreamHandle(addresses);
+            } else {
+                handle = buildDivideUpstreamHandle(addresses);
+            }
+            List<String> selectorIdList = IngressSelectorCache.getInstance().get(namespace, ingressName, pluginName);
+            if (CollectionUtils.isEmpty(selectorIdList)) {
+                continue;
+            }
+            List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(pluginName);
+            if (CollectionUtils.isEmpty(totalSelectors)) {
+                continue;
+            }
+            for (SelectorData selectorData : totalSelectors) {
+                if (selectorIdList.contains(selectorData.getId())) {
+                    SelectorData newSelectorData = SelectorData.builder()
+                            .id(selectorData.getId())
+                            .pluginId(selectorData.getPluginId())
+                            .pluginName(selectorData.getPluginName())
+                            .name(selectorData.getName())
+                            .matchMode(selectorData.getMatchMode())
+                            .type(selectorData.getType())
+                            .sort(selectorData.getSort())
+                            .enabled(selectorData.getEnabled())
+                            .logged(selectorData.getLogged())
+                            .continued(selectorData.getContinued())
+                            .handle(handle)
+                            .conditionList(selectorData.getConditionList())
+                            .matchRestful(selectorData.getMatchRestful()).build();
+                    shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
+                    LOG.info("Updated upstream handle for selector {} of plugin {} from endpoints {}/{}",
+                            selectorData.getId(), pluginName, serviceNamespace, serviceName);
+                }
+            }
+        }
+    }
+
+    private String buildWebSocketUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses) {
+        List<WebSocketUpstream> res = new ArrayList<>();
+        addresses.forEach(pair -> res.add(WebSocketUpstream.builder()
+                .upstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight())
+                .weight(100)
+                .protocol("ws://")
+                .warmup(0)
+                .status(true)
+                .host("")
+                .build()));
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private String buildDivideUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses) {
+        List<DivideUpstream> res = new ArrayList<>();
+        addresses.forEach(pair -> {
+            DivideUpstream upstream = new DivideUpstream();
+            upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
+            upstream.setWeight(100);
+            upstream.setProtocol("http://");
+            upstream.setWarmup(0);
+            upstream.setStatus(true);
+            upstream.setUpstreamHost("");
+            res.add(upstream);
+        });
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints) {
+        List<Pair<V1EndpointAddress, String>> res = new ArrayList<>();
+        List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+        if (CollectionUtils.isNotEmpty(subsets)) {
+            for (V1EndpointSubset subset : subsets) {
+                List<CoreV1EndpointPort> ports = subset.getPorts();
+                List<V1EndpointAddress> addresses = subset.getAddresses();
+                if (CollectionUtils.isEmpty(ports) || CollectionUtils.isEmpty(addresses)) {
+                    continue;
+                }
+                CoreV1EndpointPort endpointPort = ports.stream()
+                        .filter(coreV1EndpointPort -> "TCP".equals(coreV1EndpointPort.getProtocol()))
+                        .findFirst()
+                        .orElse(null);
+                if (Objects.isNull(endpointPort)) {
+                    continue;
+                }
+                String port = endpointPort.getPort() > 0
+                        ? String.valueOf(endpointPort.getPort())
+                        : endpointPort.getName();
+                if (Objects.isNull(port)) {
+                    continue;
+                }
+                for (V1EndpointAddress address : addresses) {
+                    if (Objects.nonNull(address.getIp())) {
+                        res.add(Pair.of(address, port));
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     private String getPluginName(final V1Ingress ingress) {
