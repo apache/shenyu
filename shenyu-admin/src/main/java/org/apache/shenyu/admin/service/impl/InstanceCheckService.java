@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -179,7 +180,9 @@ public class InstanceCheckService {
     public void close() {
         syncDB();
         instanceHealthBeatInfo.clear();
-        executor.shutdown();
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
     }
 
     /**
