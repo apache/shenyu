@@ -18,7 +18,6 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
@@ -28,6 +27,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
@@ -50,8 +50,6 @@ public class Publish extends MessageType {
         String topic = msg.variableHeader().topicName();
         ByteBuf payload = msg.payload();
         String message = byteBufToString(payload);
-        //// todo qos
-        MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
         if (msg.fixedHeader().isRetain()) {
             if (payload.isReadable()) {
                 Singleton.INST.get(TopicRepository.class).add(topic, message);
@@ -60,8 +58,18 @@ public class Publish extends MessageType {
             }
         }
         int packetId = msg.variableHeader().packetId();
-        CompletableFuture.runAsync(() -> send(topic, payload, packetId));
+        // The inbound message is released by MqttTransportHandler once publish returns, retain the payload for the asynchronous send.
+        payload.retain();
+        CompletableFuture.runAsync(() -> {
+            try {
+                send(topic, payload, packetId);
+            } finally {
+                ReferenceCountUtil.safeRelease(payload);
+            }
+        });
 
+        //// todo qos
+        MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
         switch (mqttQoS.value()) {
             case 0:
                 break;
@@ -125,7 +133,7 @@ public class Publish extends MessageType {
             if (channel.isActive()) {
                 MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
-                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, payload.retainedDuplicate());
                 channel.writeAndFlush(mqttPublishMessage);
             }
         });
