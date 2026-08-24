@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -139,8 +140,13 @@ public class AccessTokenManager {
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
             LOG.info("login success: {} ", tokenJson);
             Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
+            Object expiredTime = tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
+            if (Objects.isNull(expiredTime)) {
+                LOG.warn("get token from server : [{}] missing expired time", server);
+                return false;
+            }
             this.accessToken = (String) tokenMap.get(Constants.ADMIN_RESULT_TOKEN);
-            this.tokenExpiredTime = (long) tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
+            this.tokenExpiredTime = (long) expiredTime;
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
         } catch (IOException e) {
