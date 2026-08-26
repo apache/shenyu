@@ -44,8 +44,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -274,6 +276,30 @@ class PolarisSyncDataServiceTest {
 
         service.close();
         verify(configFile, atLeastOnce()).removeChangeListener(any(ConfigFileChangeListener.class));
+    }
+
+    @Test
+    void testRemoveListenerAllowsListenerToBeAddedAgain() {
+        PolarisSyncDataService service = new PolarisSyncDataService(
+                polarisConfig,
+                configFileService,
+                pluginDataSubscriber,
+                Collections.singletonList(metaDataSubscriber),
+                Collections.singletonList(authDataSubscriber),
+                Collections.singletonList(proxySelectorDataSubscriber),
+                Collections.singletonList(discoveryUpstreamDataSubscriber),
+                shenyuConfig
+        );
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        verify(configFileService, atLeastOnce()).getConfigFile(anyString(), anyString(), keyCaptor.capture());
+        String watchedKey = keyCaptor.getAllValues().get(0);
+        clearInvocations(configFile);
+
+        service.doRemoveListener(watchedKey);
+        service.getServiceConfig(watchedKey, content -> { }, deletedKey -> { });
+
+        verify(configFile).removeChangeListener(any(ConfigFileChangeListener.class));
+        verify(configFile, times(1)).addChangeListener(any(ConfigFileChangeListener.class));
     }
 
     @Test
