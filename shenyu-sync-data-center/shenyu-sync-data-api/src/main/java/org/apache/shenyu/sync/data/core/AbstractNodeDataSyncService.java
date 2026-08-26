@@ -216,9 +216,14 @@ public abstract class AbstractNodeDataSyncService {
                 .flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
     }
 
-    protected void unCachePluginData(final String pluginName) {
+    protected void unCachePluginData(final String removeKey) {
+        final String[] pluginKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(pluginKeys) || pluginKeys.length < 3) {
+            LOG.warn("AbstractNodeDataSyncService invalid plugin data remove key: {}", removeKey);
+            return;
+        }
         final PluginData data = new PluginData();
-        data.setName(pluginName);
+        data.setName(pluginKeys[2]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
     }
 
