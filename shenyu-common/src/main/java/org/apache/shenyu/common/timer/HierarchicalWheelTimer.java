@@ -113,10 +113,16 @@ public class HierarchicalWheelTimer implements Timer {
 
     @Override
     public void advanceClock(final long timeoutMs) throws InterruptedException {
+        if (taskExecutor.isShutdown()) {
+            return;
+        }
         TimerTaskList bucket = delayQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
         if (Objects.nonNull(bucket)) {
             writeLock.lock();
             try {
+                if (taskExecutor.isShutdown()) {
+                    return;
+                }
                 while (Objects.nonNull(bucket)) {
                     timingWheel.advanceClock(bucket.getExpiration());
                     bucket.flush(this::addTimerTaskEntry);
@@ -129,6 +135,9 @@ public class HierarchicalWheelTimer implements Timer {
     }
 
     private void start() {
+        if (taskExecutor.isShutdown()) {
+            throw new IllegalStateException("Timer already shutdown");
+        }
         int state = WORKER_STATE_UPDATER.get(this);
         if (state == 0) {
             if (WORKER_STATE_UPDATER.compareAndSet(this, 0, 1)) {
@@ -144,28 +153,35 @@ public class HierarchicalWheelTimer implements Timer {
 
     @Override
     public void shutdown() {
-        taskExecutor.shutdown();
+        writeLock.lock();
+        try {
+            workerThread.interrupt();
+            taskExecutor.shutdown();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     private static class Worker implements Runnable {
 
-        private final Timer timer;
+        private final HierarchicalWheelTimer timer;
 
         /**
          * Instantiates a new Worker.
          *
          * @param timer the timer
          */
-        Worker(final Timer timer) {
+        Worker(final HierarchicalWheelTimer timer) {
             this.timer = timer;
         }
 
         @Override
         public void run() {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     timer.advanceClock(100L);
                 } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }
