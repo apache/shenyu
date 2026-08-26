@@ -24,6 +24,9 @@ import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -40,6 +43,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -49,6 +53,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,6 +61,8 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class ApolloDataServiceTest {
+
+    private static final String NAMESPACE = "shenyu";
 
     @Mock
     private Config configService;
@@ -82,7 +89,7 @@ class ApolloDataServiceTest {
     @BeforeEach
     void setUp() {
         shenyuConfig = new ShenyuConfig();
-        shenyuConfig.setNamespace("shenyu");
+        shenyuConfig.setNamespace(NAMESPACE);
 
         lenient().when(configService.getProperty(anyString(), any())).thenReturn("[]");
     }
@@ -100,7 +107,7 @@ class ApolloDataServiceTest {
         );
 
         ArgumentCaptor<ConfigChangeListener> listenerCaptor = ArgumentCaptor.forClass(ConfigChangeListener.class);
-        verify(configService).addChangeListener(listenerCaptor.capture(), anySet(), eq(ApolloPathConstants.pathKeySet()));
+        verify(configService).addChangeListener(listenerCaptor.capture(), anySet(), eq(ApolloPathConstants.pathKeySet(NAMESPACE)));
 
         capturedListener = listenerCaptor.getValue();
         assertNotNull(capturedListener);
@@ -132,7 +139,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.PLUGIN_DATA_ID + "/test-plugin",
+                NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".test-plugin",
                 "{\"id\":\"1\",\"name\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -146,7 +153,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.PLUGIN_DATA_ID + "/new-plugin",
+                NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".new-plugin",
                 "{\"id\":\"2\",\"name\":\"new\"}",
                 PropertyChangeType.ADDED
         );
@@ -156,11 +163,27 @@ class ApolloDataServiceTest {
     }
 
     @Test
+    void testPluginDataDeleted() {
+        ApolloDataService apolloDataService = createApolloDataService();
+
+        ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".test-plugin",
+                null,
+                PropertyChangeType.DELETED
+        );
+
+        capturedListener.onChange(event);
+        ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
+        verify(pluginDataSubscriber, times(1)).unSubscribe(captor.capture());
+        assertEquals("test-plugin", captor.getValue().getName());
+    }
+
+    @Test
     void testSelectorDataChange() {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.SELECTOR_DATA_ID + "/test-selector",
+                NAMESPACE + "." + ApolloPathConstants.SELECTOR_DATA_ID + ".test-plugin.test-selector",
                 "{\"id\":\"1\",\"name\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -174,7 +197,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.RULE_DATA_ID + "/test-rule",
+                NAMESPACE + "." + ApolloPathConstants.RULE_DATA_ID + ".test-plugin.test-selector.test-rule",
                 "{\"id\":\"1\",\"name\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -184,11 +207,29 @@ class ApolloDataServiceTest {
     }
 
     @Test
+    void testRuleDataDeleted() {
+        ApolloDataService apolloDataService = createApolloDataService();
+
+        ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.RULE_DATA_ID + ".test-plugin.test-selector.test-rule",
+                null,
+                PropertyChangeType.DELETED
+        );
+
+        capturedListener.onChange(event);
+        ArgumentCaptor<RuleData> captor = ArgumentCaptor.forClass(RuleData.class);
+        verify(pluginDataSubscriber, times(1)).unRuleSubscribe(captor.capture());
+        assertEquals("test-plugin", captor.getValue().getPluginName());
+        assertEquals("test-selector", captor.getValue().getSelectorId());
+        assertEquals("test-rule", captor.getValue().getId());
+    }
+
+    @Test
     void testAuthDataChange() {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.AUTH_DATA_ID + "/test-auth",
+                NAMESPACE + "." + ApolloPathConstants.AUTH_DATA_ID + ".test-auth",
                 "{\"appKey\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -202,7 +243,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.META_DATA_ID + "/test-meta",
+                NAMESPACE + "." + ApolloPathConstants.META_DATA_ID + ".test-meta",
                 "{\"id\":\"1\",\"path\":\"/test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -216,7 +257,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.PROXY_SELECTOR_DATA_ID + "/test-proxy",
+                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.test-proxy",
                 "{\"id\":\"1\",\"name\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
@@ -226,17 +267,62 @@ class ApolloDataServiceTest {
     }
 
     @Test
+    void testProxySelectorDataDeleted() {
+        ApolloDataService apolloDataService = createApolloDataService();
+
+        ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.test-proxy",
+                null,
+                PropertyChangeType.DELETED
+        );
+
+        capturedListener.onChange(event);
+        ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
+        verify(proxySelectorDataSubscriber, times(1)).unSubscribe(captor.capture());
+        assertEquals("test-plugin", captor.getValue().getPluginName());
+        assertEquals("test-proxy", captor.getValue().getName());
+    }
+
+    @Test
     void testDiscoveryDataChange() {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                ApolloPathConstants.DISCOVERY_DATA_ID + "/test-discovery",
+                NAMESPACE + "." + ApolloPathConstants.DISCOVERY_DATA_ID + ".test-plugin.test-discovery",
                 "{\"name\":\"test\"}",
                 PropertyChangeType.MODIFIED
         );
 
         capturedListener.onChange(event);
         verify(discoveryUpstreamDataSubscriber, times(1)).onSubscribe(any());
+    }
+
+    @Test
+    void testListKeySkipped() {
+        ApolloDataService apolloDataService = createApolloDataService();
+
+        ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".list",
+                "[\"test-plugin\"]",
+                PropertyChangeType.MODIFIED
+        );
+
+        capturedListener.onChange(event);
+        verifyNoInteractions(pluginDataSubscriber);
+    }
+
+    @Test
+    void testChangeKeyWithoutNamespacePrefixIgnored() {
+        ApolloDataService apolloDataService = createApolloDataService();
+
+        ConfigChangeEvent event = mockConfigChangeEvent(
+                "other-namespace." + ApolloPathConstants.PLUGIN_DATA_ID + ".test-plugin",
+                "{\"id\":\"1\",\"name\":\"test\"}",
+                PropertyChangeType.MODIFIED
+        );
+
+        capturedListener.onChange(event);
+        verifyNoInteractions(pluginDataSubscriber);
     }
 
     @Test
@@ -260,7 +346,7 @@ class ApolloDataServiceTest {
 
         ConfigChangeEvent event = mock(ConfigChangeEvent.class);
         Set<String> keys = new HashSet<>();
-        keys.add(ApolloPathConstants.PLUGIN_DATA_ID + "/test");
+        keys.add(NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".test");
         when(event.changedKeys()).thenReturn(keys);
         when(event.getChange(anyString())).thenThrow(new RuntimeException("Test exception"));
 
@@ -281,7 +367,7 @@ class ApolloDataServiceTest {
         );
 
         ArgumentCaptor<ConfigChangeListener> listenerCaptor = ArgumentCaptor.forClass(ConfigChangeListener.class);
-        verify(configService).addChangeListener(listenerCaptor.capture(), anySet(), eq(ApolloPathConstants.pathKeySet()));
+        verify(configService).addChangeListener(listenerCaptor.capture(), anySet(), eq(ApolloPathConstants.pathKeySet(NAMESPACE)));
         capturedListener = listenerCaptor.getValue();
 
         return service;
@@ -297,7 +383,7 @@ class ApolloDataServiceTest {
         when(event.changedKeys()).thenReturn(keys);
         when(event.getChange(key)).thenReturn(configChange);
         when(configChange.getNewValue()).thenReturn(newValue);
-        when(configChange.getChangeType()).thenReturn(changeType);
+        lenient().when(configChange.getChangeType()).thenReturn(changeType);
 
         return event;
     }
