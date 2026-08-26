@@ -68,9 +68,10 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
      * init Huawei lts client.
      *
      * @param huaweiLtsLogConfig shenyu log config
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
+    public boolean initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
         final String accessKeyId = huaweiLtsLogConfig.getAccessKeyId();
         final String accessKeySecret = huaweiLtsLogConfig.getAccessKeySecret();
         final String regionName = huaweiLtsLogConfig.getRegionName();
@@ -80,7 +81,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         if (StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(accessKeySecret) || StringUtils.isBlank(projectId)
                 || StringUtils.isBlank(regionName) || StringUtils.isBlank(logGroupId) || StringUtils.isBlank(logStreamId)) {
             LOG.error("init Huawei lts client error, please check projectId, accessKeyId, accessKeySecret, regionName, logGroupId or logStreamId");
-            return;
+            return false;
         }
         JavaSDKAppender appender = JavaSDKAppender.custom()
                 .setProjectId(projectId)
@@ -101,6 +102,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         this.producer = appender.getProducer();
 
         threadExecutor = createThreadPoolExecutor(huaweiLtsLogConfig.getIoThreadCount());
+        return true;
     }
 
     /**
