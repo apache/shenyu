@@ -125,7 +125,8 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
         int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
         if (rows > 0) {
-            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+            final ScaleRuleDO persisted = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
+            scaleRuleCache.addOrUpdateRuleToCache(persisted);
         }
         return rows;
     }
