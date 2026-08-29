@@ -296,10 +296,10 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByNamespaceId(final List<String> ids, final String namespaceId) {
-        final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
+        final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids), namespaceId);
         List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
         unbindDiscovery(selectors, pluginDOS);
-        return deleteSelector(selectors, pluginDOS);
+        return deleteSelector(selectors, pluginDOS, namespaceId);
     }
 
     /**
@@ -620,7 +620,7 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @EventListener(value = BatchNamespacePluginDeletedEvent.class)
     public void onPluginDeleted(final BatchNamespacePluginDeletedEvent event) {
-        deleteSelector(selectorMapper.findByPluginIdsAndNamespaceId(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins());
+        deleteSelector(selectorMapper.findByPluginIdsAndNamespaceId(event.getDeletedPluginIds(), event.getNamespaceId()), event.getPlugins(), event.getNamespaceId());
     }
 
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {
@@ -630,10 +630,10 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
 
-    private int deleteSelector(final List<SelectorDO> selectors, final List<PluginDO> plugins) {
+    private int deleteSelector(final List<SelectorDO> selectors, final List<PluginDO> plugins, final String namespaceId) {
         if (CollectionUtils.isNotEmpty(selectors)) {
             final List<String> selectorIds = ListUtil.map(selectors, BaseDO::getId);
-            final int count = selectorMapper.deleteByIds(selectorIds);
+            final int count = selectorMapper.deleteByIds(selectorIds, namespaceId);
             // delete all selector conditions
             this.selectorConditionMapper.deleteBySelectorIds(selectorIds);
             if (count > 0) {
