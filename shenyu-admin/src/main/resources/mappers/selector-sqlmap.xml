@@ -81,7 +81,8 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
-         WHERE id IN
+         WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+           AND id IN
                  <foreach collection="idSet" item="id" index="index" open="(" separator="," close=")">
                     #{id, jdbcType=VARCHAR}
                  </foreach>
@@ -464,7 +465,8 @@
 
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM selector
-              WHERE id IN
+              WHERE namespace_id = #{namespaceId, jdbcType=VARCHAR}
+                AND id IN
                     <foreach item="id" collection="list" open="(" separator="," close=")">
                         #{id, jdbcType=VARCHAR}
                     </foreach>
