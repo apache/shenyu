@@ -40,6 +40,13 @@ public class ShenyuMemoryConfig {
     private String unresolvedReason;
 
     /**
+     * Whether any rule carried filters. Filters are not implemented; per the Gateway API
+     * spec an unsupported filter must surface as Accepted=False with reason UnsupportedValue
+     * and the affected rule must not be programmed.
+     */
+    private boolean hasUnsupportedFilters;
+
+    /**
      * ShenyuMemoryConfig Constructor.
      */
     public ShenyuMemoryConfig() {
@@ -113,5 +120,13 @@ public class ShenyuMemoryConfig {
 
     public void setUnresolvedReason(final String unresolvedReason) {
         this.unresolvedReason = unresolvedReason;
+    }
+
+    public boolean isHasUnsupportedFilters() {
+        return hasUnsupportedFilters;
+    }
+
+    public void setHasUnsupportedFilters(final boolean hasUnsupportedFilters) {
+        this.hasUnsupportedFilters = hasUnsupportedFilters;
     }
 }

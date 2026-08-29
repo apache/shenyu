@@ -21,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -38,7 +39,6 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.JsonFields;
@@ -49,10 +49,24 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
+/**
+ * Parses an HTTPRoute into ShenYu divide selectors/rules. The parser is pure: it neither
+ * touches GatewayRouteCache nor the data plane, so a reconcile can compute status from a
+ * parse result without side effects.
+ *
+ * <p>Known divergences from the Gateway API spec, by design of the ShenYu matching model:
+ * match precedence is encoded in the selector sort only for the path dimension (exact beats
+ * longer prefix beats shorter prefix beats regex beats no-path); ShenYu evaluates the
+ * number of AND conditions before sort, so a match carrying more conditions still wins over
+ * a more specific path with fewer conditions.
+ */
 public class HttpRouteParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpRouteParser.class);
@@ -62,6 +76,21 @@ public class HttpRouteParser {
 
     /** Stable hostname slot for rules without a hostname, keeping deterministic IDs well-defined. */
     private static final String NO_HOSTNAME_PLACEHOLDER = "_";
+
+    /** Sort of an exact path match: highest precedence. Lower sort wins in ShenYu. */
+    private static final int SORT_EXACT_PATH = 100;
+
+    /** Base sort of a path prefix match; longer prefixes sort lower via length subtraction. */
+    private static final int SORT_PREFIX_BASE = 1000;
+
+    /** Cap of the prefix length subtracted from the base sort, keeping prefix sorts above exact. */
+    private static final int SORT_PREFIX_LENGTH_CAP = 800;
+
+    /** Sort of a regex path match: below any exact or prefix match. */
+    private static final int SORT_REGEX_PATH = 2000;
+
+    /** Sort of a rule without any path match: lowest precedence. */
+    private static final int SORT_NO_PATH = 3000;
 
     private final Lister<V1Endpoints> endpointsLister;
 
@@ -73,43 +102,55 @@ public class HttpRouteParser {
         this.referenceGrantLister = referenceGrantLister;
     }
 
-    public ShenyuMemoryConfig parse(final DynamicKubernetesObject httpRoute) {
+    /**
+     * Parse the HTTPRoute into a ShenYu config snapshot.
+     *
+     * @param httpRoute the route object
+     * @param hostnames effective hostnames (route hostnames intersected with the listener
+     *                  hostnames of every accepting Gateway); empty means "any host"
+     * @return the parsed config, never null
+     */
+    public ShenyuMemoryConfig parse(final DynamicKubernetesObject httpRoute, final List<String> hostnames) {
         ShenyuMemoryConfig res = new ShenyuMemoryConfig();
         String namespace = Objects.requireNonNull(httpRoute.getMetadata()).getNamespace();
         String routeName = httpRoute.getMetadata().getName();
         List<IngressConfiguration> routeConfigList = new ArrayList<>();
         res.setRouteConfigList(routeConfigList);
 
-        JsonObject raw = httpRoute.getRaw();
-        JsonObject spec = raw.getAsJsonObject("spec");
+        JsonObject spec = JsonFields.getJsonObject(httpRoute.getRaw(), "spec");
         if (Objects.nonNull(spec)) {
-            JsonArray hostnames = spec.getAsJsonArray("hostnames");
-            JsonArray rules = spec.getAsJsonArray("rules");
+            JsonArray rules = JsonFields.getJsonArray(spec, "rules");
             ResolveState resolveState = new ResolveState();
             for (int ruleIndex = 0; Objects.nonNull(rules) && ruleIndex < rules.size(); ruleIndex++) {
-                processRule(rules.get(ruleIndex).getAsJsonObject(), hostnames, namespace, routeName, ruleIndex,
-                        routeConfigList, resolveState);
+                if (rules.get(ruleIndex).isJsonObject()) {
+                    processRule(rules.get(ruleIndex).getAsJsonObject(), hostnames, namespace, routeName, ruleIndex,
+                            routeConfigList, resolveState);
+                }
             }
             res.setAllBackendsResolved(!resolveState.anyUnresolved);
             res.setUnresolvedReason(resolveState.reason);
+            res.setHasUnsupportedFilters(resolveState.unsupportedFilters);
         }
-
-        List<String> selectorIds = new ArrayList<>();
-        for (IngressConfiguration rc : routeConfigList) {
-            selectorIds.add(rc.getSelectorData().getId());
-        }
-        GatewayRouteCache.getInstance().putRouteSelectors(namespace, routeName,
-                PluginEnum.DIVIDE.getName(), selectorIds);
         return res;
     }
 
-    private void processRule(final JsonObject rule, final JsonArray hostnames, final String namespace,
+    private void processRule(final JsonObject rule, final List<String> hostnames, final String namespace,
                              final String routeName, final int ruleIndex,
                              final List<IngressConfiguration> routeConfigList,
                              final ResolveState resolveState) {
+        // Filters are not implemented. Per the spec an unsupported filter MUST surface as
+        // Accepted=False/UnsupportedValue and the rule MUST NOT be applied partially.
+        JsonArray filters = JsonFields.getJsonArray(rule, "filters");
+        if (Objects.nonNull(filters) && !filters.isEmpty()) {
+            resolveState.unsupportedFilters = true;
+            LOG.warn("HTTPRoute {}/{} rule {} declares filters which are not supported; the rule is not programmed",
+                    namespace, routeName, ruleIndex);
+            return;
+        }
+
         // A rule without backendRefs has no ShenYu equivalent; skipping it leaves matching
         // requests unmatched instead of programming an empty upstream list.
-        JsonArray backendRefs = rule.getAsJsonArray("backendRefs");
+        JsonArray backendRefs = JsonFields.getJsonArray(rule, "backendRefs");
         if (Objects.isNull(backendRefs) || backendRefs.isEmpty()) {
             return;
         }
@@ -132,39 +173,36 @@ public class HttpRouteParser {
 
         // One selector+rule per hostname: a request matches at most one hostname, and the
         // selector's AND semantics cannot express "any of these hostnames".
-        List<ConditionData> hostnameConditions = new ArrayList<>();
-        if (Objects.nonNull(hostnames) && !hostnames.isEmpty()) {
-            for (JsonElement hostname : hostnames) {
-                hostnameConditions.add(buildHostnameCondition(hostname.getAsString()));
-            }
-        }
-
-        JsonArray matches = rule.getAsJsonArray("matches");
+        JsonArray matches = JsonFields.getJsonArray(rule, "matches");
         if (Objects.nonNull(matches) && !matches.isEmpty()) {
             for (int matchIndex = 0; matchIndex < matches.size(); matchIndex++) {
+                if (!matches.get(matchIndex).isJsonObject()) {
+                    continue;
+                }
                 JsonObject match = matches.get(matchIndex).getAsJsonObject();
                 List<ConditionData> matchConditions = new ArrayList<>();
                 appendMatchConditions(matchConditions, match);
-                if (hostnameConditions.isEmpty()) {
+                int sort = pathSort(match);
+                if (hostnames.isEmpty()) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                            matchIndex, matchConditions, upstreamList);
+                            matchIndex, sort, matchConditions, upstreamList);
                 } else {
-                    for (ConditionData hostCondition : hostnameConditions) {
+                    for (String hostname : hostnames) {
                         addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
-                                hostCondition.getParamValue(), matchIndex,
-                                composeConditions(hostCondition, matchConditions), upstreamList);
+                                hostname, matchIndex, sort,
+                                composeConditions(hostname, matchConditions), upstreamList);
                     }
                 }
             }
         } else {
-            if (hostnameConditions.isEmpty()) {
+            if (hostnames.isEmpty()) {
                 addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                        0, new ArrayList<>(), upstreamList);
+                        0, SORT_NO_PATH, new ArrayList<>(), upstreamList);
             } else {
-                for (ConditionData hostCondition : hostnameConditions) {
+                for (String hostname : hostnames) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
-                            hostCondition.getParamValue(), 0,
-                            composeConditions(hostCondition, new ArrayList<>()), upstreamList);
+                            hostname, 0, SORT_NO_PATH,
+                            composeConditions(hostname, new ArrayList<>()), upstreamList);
                 }
             }
         }
@@ -172,21 +210,36 @@ public class HttpRouteParser {
 
     private void addSelectorRule(final List<IngressConfiguration> routeConfigList,
                                  final String namespace, final String routeName, final int ruleIndex,
-                                 final String hostname, final int matchIndex,
+                                 final String hostname, final int matchIndex, final int sort,
                                  final List<ConditionData> conditions, final List<DivideUpstream> upstreamList) {
+        // A CUSTOM_FLOW selector with an empty condition list never matches in ShenYu, so a
+        // rule without matches (spec: matches everything, like PathPrefix /) needs an
+        // explicit match-all condition.
+        if (conditions.isEmpty()) {
+            conditions.add(matchAllCondition());
+        }
         String selectorId = deterministicSelectorId(namespace, routeName, ruleIndex, hostname, matchIndex);
         String ruleId = deterministicRuleId(selectorId, matchIndex);
         String hostComponent = Objects.isNull(hostname) ? "" : "-" + hostname;
         String selectorName = routeName + "-rule-" + ruleIndex + hostComponent + "-m" + matchIndex;
-        SelectorData selectorData = buildSelectorData(selectorId, selectorName, conditions, upstreamList);
+        SelectorData selectorData = buildSelectorData(selectorId, selectorName, sort, conditions, upstreamList);
         RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
         routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
     }
 
-    private List<ConditionData> composeConditions(final ConditionData hostCondition,
+    /** Every request path starts with '/', so this condition matches all requests. */
+    private ConditionData matchAllCondition() {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setOperator(OperatorEnum.STARTS_WITH.getAlias());
+        condition.setParamValue("/");
+        return condition;
+    }
+
+    private List<ConditionData> composeConditions(final String hostname,
                                                   final List<ConditionData> matchConditions) {
         List<ConditionData> conditions = new ArrayList<>();
-        conditions.add(hostCondition);
+        conditions.add(buildHostnameCondition(hostname));
         conditions.addAll(matchConditions);
         return conditions;
     }
@@ -226,14 +279,14 @@ public class HttpRouteParser {
         return condition;
     }
 
-    private SelectorData buildSelectorData(final String selectorId, final String selectorName,
+    private SelectorData buildSelectorData(final String selectorId, final String selectorName, final int sort,
                                            final List<ConditionData> conditions, final List<DivideUpstream> upstreamList) {
         return SelectorData.builder()
                 .id(selectorId)
                 .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
                 .pluginName(PluginEnum.DIVIDE.getName())
                 .name(selectorName)
-                .sort(1)
+                .sort(sort)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .enabled(true)
@@ -278,89 +331,147 @@ public class HttpRouteParser {
         int unresolvedCount = 0;
         String unresolvedReason = null;
         for (JsonElement element : backendRefs) {
-            JsonObject backendRef = element.getAsJsonObject();
-            String serviceName = JsonFields.getString(backendRef, "name");
-            String backendNamespace = JsonFields.getString(backendRef, "namespace");
-            if (Objects.isNull(backendNamespace)) {
-                backendNamespace = namespace;
-            }
-            // Gateway API spec: an omitted weight defaults to 1, so it mixes 1:1 with an explicit one
-            int weight = backendRef.has("weight") ? backendRef.get("weight").getAsInt() : 1;
-            Integer port = backendRef.has("port") ? backendRef.get("port").getAsInt() : null;
-
-            if (Objects.isNull(serviceName)) {
+            if (!element.isJsonObject()) {
                 continue;
             }
-
-            if (!GatewayApiConstants.isServiceRef(backendRef)) {
-                LOG.warn("HTTPRoute {}/{} backendRef to kind '{}' is not supported, only Service",
-                        namespace, routeName, JsonFields.getString(backendRef, "kind"));
+            BackendRefOutcome outcome = resolveBackendRef(element.getAsJsonObject(), namespace, routeName);
+            if (Objects.nonNull(outcome.unresolvedReason)) {
                 unresolvedCount++;
                 if (Objects.isNull(unresolvedReason)) {
-                    unresolvedReason = GatewayApiConstants.REASON_INVALID_KIND;
+                    unresolvedReason = outcome.unresolvedReason;
                 }
                 continue;
             }
-
-            if (!backendNamespace.equals(namespace)
-                    && !ReferenceGrants.isGranted(referenceGrantLister, backendNamespace, namespace,
-                    GatewayApiConstants.CORE_API_GROUP, GatewayApiConstants.SERVICE_KIND, serviceName)) {
-                LOG.warn("HTTPRoute {}/{} backendRef to Service {}/{} is not permitted by a ReferenceGrant",
-                        namespace, routeName, backendNamespace, serviceName);
-                unresolvedCount++;
-                if (Objects.isNull(unresolvedReason)) {
-                    unresolvedReason = GatewayApiConstants.REASON_REF_NOT_PERMITTED;
-                }
-                continue;
-            }
-
-            V1Endpoints v1Endpoints = endpointsLister.namespace(backendNamespace).get(serviceName);
-            if (Objects.isNull(v1Endpoints) || CollectionUtils.isEmpty(v1Endpoints.getSubsets())) {
-                LOG.warn("Cannot find endpoints for service {}/{}", backendNamespace, serviceName);
-                unresolvedCount++;
-                if (Objects.isNull(unresolvedReason)) {
-                    unresolvedReason = GatewayApiConstants.REASON_BACKEND_NOT_FOUND;
-                }
-                continue;
-            }
-
-            int before = upstreamList.size();
-            for (V1EndpointSubset subset : v1Endpoints.getSubsets()) {
-                if (CollectionUtils.isEmpty(subset.getAddresses())) {
-                    continue;
-                }
-                for (V1EndpointAddress address : subset.getAddresses()) {
-                    String ip = address.getIp();
-                    if (Objects.nonNull(ip)) {
-                        DivideUpstream upstream = new DivideUpstream();
-                        upstream.setUpstreamUrl(Objects.nonNull(port) ? ip + ":" + port : ip);
-                        upstream.setWeight(weight);
-                        upstream.setProtocol("http://");
-                        upstream.setWarmup(0);
-                        upstream.setStatus(true);
-                        upstream.setUpstreamHost("");
-                        upstreamList.add(upstream);
-                    }
-                }
-            }
-            // Endpoints existed but yielded no ready address → treat as unresolved
-            if (upstreamList.size() == before) {
-                unresolvedCount++;
-                if (Objects.isNull(unresolvedReason)) {
-                    unresolvedReason = GatewayApiConstants.REASON_BACKEND_NOT_FOUND;
-                }
-            }
+            upstreamList.addAll(outcome.upstreams);
         }
         return new BackendResolveResult(upstreamList, unresolvedCount, unresolvedReason);
     }
 
+    /**
+     * Resolve one backendRef into upstreams, or into the Gateway API reason of its failure
+     * (InvalidKind / RefNotPermitted / BackendNotFound).
+     */
+    private BackendRefOutcome resolveBackendRef(final JsonObject backendRef, final String namespace,
+                                                final String routeName) {
+        String serviceName = JsonFields.getString(backendRef, "name");
+        if (Objects.isNull(serviceName)) {
+            return BackendRefOutcome.ok(List.of());
+        }
+        String backendNamespace = JsonFields.getString(backendRef, "namespace");
+        if (Objects.isNull(backendNamespace)) {
+            backendNamespace = namespace;
+        }
+        if (!GatewayApiConstants.isServiceRef(backendRef)) {
+            LOG.warn("HTTPRoute {}/{} backendRef to kind '{}' is not supported, only Service",
+                    namespace, routeName, JsonFields.getString(backendRef, "kind"));
+            return BackendRefOutcome.unresolved(GatewayApiConstants.REASON_INVALID_KIND);
+        }
+        if (!backendNamespace.equals(namespace)
+                && !ReferenceGrants.isGranted(referenceGrantLister, backendNamespace, namespace,
+                GatewayApiConstants.CORE_API_GROUP, GatewayApiConstants.SERVICE_KIND, serviceName)) {
+            LOG.warn("HTTPRoute {}/{} backendRef to Service {}/{} is not permitted by a ReferenceGrant",
+                    namespace, routeName, backendNamespace, serviceName);
+            return BackendRefOutcome.unresolved(GatewayApiConstants.REASON_REF_NOT_PERMITTED);
+        }
+        V1Endpoints v1Endpoints = endpointsLister.namespace(backendNamespace).get(serviceName);
+        if (Objects.isNull(v1Endpoints) || CollectionUtils.isEmpty(v1Endpoints.getSubsets())) {
+            LOG.warn("Cannot find endpoints for service {}/{}", backendNamespace, serviceName);
+            return BackendRefOutcome.unresolved(GatewayApiConstants.REASON_BACKEND_NOT_FOUND);
+        }
+        List<String> readyIps = new ArrayList<>();
+        Set<Long> endpointPorts = new LinkedHashSet<>();
+        for (V1EndpointSubset subset : v1Endpoints.getSubsets()) {
+            if (Objects.nonNull(subset.getPorts())) {
+                for (CoreV1EndpointPort endpointPort : subset.getPorts()) {
+                    if (Objects.nonNull(endpointPort.getPort())) {
+                        endpointPorts.add(endpointPort.getPort().longValue());
+                    }
+                }
+            }
+            if (CollectionUtils.isEmpty(subset.getAddresses())) {
+                continue;
+            }
+            for (V1EndpointAddress address : subset.getAddresses()) {
+                if (Objects.nonNull(address.getIp())) {
+                    readyIps.add(address.getIp());
+                }
+            }
+        }
+        // Endpoints existed but yielded no ready address → treat as unresolved
+        if (readyIps.isEmpty()) {
+            return BackendRefOutcome.unresolved(GatewayApiConstants.REASON_BACKEND_NOT_FOUND);
+        }
+        Long targetPort = resolvePort(endpointPorts, JsonFields.getLong(backendRef, "port"),
+                namespace, routeName, backendNamespace, serviceName);
+        if (Objects.isNull(targetPort)) {
+            return BackendRefOutcome.unresolved(GatewayApiConstants.REASON_BACKEND_NOT_FOUND);
+        }
+        // Gateway API spec: an omitted weight defaults to 1, so it mixes 1:1 with an explicit one
+        int weight = backendRef.has("weight") && backendRef.get("weight").isJsonPrimitive()
+                ? backendRef.get("weight").getAsInt() : 1;
+        // Spec: weight 0 removes the backend from rotation. Otherwise the backendRef weight
+        // is per-backend, so it is spread across its endpoints to keep the backend-level
+        // traffic share independent of replica counts.
+        if (weight == 0) {
+            return BackendRefOutcome.ok(List.of());
+        }
+        int perEndpointWeight = Math.max(1, weight / readyIps.size());
+        List<DivideUpstream> upstreams = new ArrayList<>();
+        for (String ip : readyIps) {
+            DivideUpstream upstream = new DivideUpstream();
+            upstream.setUpstreamUrl(ip + ":" + targetPort);
+            upstream.setWeight(perEndpointWeight);
+            upstream.setProtocol("http://");
+            upstream.setWarmup(0);
+            upstream.setStatus(true);
+            upstream.setUpstreamHost("");
+            // Constant timestamp: the handle json must be byte-identical across resyncs,
+            // otherwise the unchanged-check in ShenyuCacheRepository never triggers.
+            upstream.setTimestamp(0L);
+            upstreams.add(upstream);
+        }
+        return BackendRefOutcome.ok(upstreams);
+    }
+
+    /**
+     * Map the backendRef (Service) port to the port the pods actually listen on. Endpoints
+     * subsets carry the target ports; the Service port must not be dialed on a pod IP.
+     * Without watching Services the port→targetPort mapping is not always recoverable, so:
+     * a single distinct endpoint port wins; a servicePort matching one of the endpoint ports
+     * is used as-is; no port information at all falls back to the servicePort (legacy
+     * behavior); anything else is ambiguous and reported BackendNotFound instead of being
+     * silently misrouted.
+     */
+    private Long resolvePort(final Set<Long> endpointPorts, final Long servicePort, final String namespace,
+                             final String routeName, final String backendNamespace, final String serviceName) {
+        if (endpointPorts.size() == 1) {
+            return endpointPorts.iterator().next();
+        }
+        if (Objects.nonNull(servicePort) && (endpointPorts.isEmpty() || endpointPorts.contains(servicePort))) {
+            return servicePort;
+        }
+        LOG.warn("HTTPRoute {}/{} backendRef to Service {}/{}: cannot map service port {} to an endpoint port {}",
+                namespace, routeName, backendNamespace, serviceName, servicePort, endpointPorts);
+        return null;
+    }
+
     private void appendMatchConditions(final List<ConditionData> conditions, final JsonObject match) {
-        JsonObject path = match.getAsJsonObject("path");
-        if (Objects.nonNull(path) && path.has("value")) {
+        JsonObject path = JsonFields.getJsonObject(match, "path");
+        String pathValue = JsonFields.getString(path, "value");
+        if (Objects.nonNull(pathValue)) {
             ConditionData pathCondition = new ConditionData();
             pathCondition.setParamType(ParamTypeEnum.URI.getName());
-            pathCondition.setOperator(mapPathType(JsonFields.getString(path, "type")));
-            pathCondition.setParamValue(path.get("value").getAsString());
+            String pathType = JsonFields.getString(path, "type");
+            if (Objects.isNull(pathType) || "PathPrefix".equals(pathType)) {
+                // Spec: a path prefix matches on element boundaries — /foo matches /foo and
+                // /foo/bar but NOT /foobar — and a trailing '/' in the prefix is ignored.
+                // ShenYu's raw startsWith cannot express this, hence an anchored regex.
+                pathCondition.setOperator(OperatorEnum.REGEX.getAlias());
+                pathCondition.setParamValue(prefixRegex(pathValue));
+            } else {
+                pathCondition.setOperator(mapPathType(pathType));
+                pathCondition.setParamValue(pathValue);
+            }
             conditions.add(pathCondition);
         }
 
@@ -373,9 +484,12 @@ public class HttpRouteParser {
             conditions.add(methodCondition);
         }
 
-        JsonArray headers = match.getAsJsonArray("headers");
+        JsonArray headers = JsonFields.getJsonArray(match, "headers");
         if (Objects.nonNull(headers)) {
             for (JsonElement headerElement : headers) {
+                if (!headerElement.isJsonObject()) {
+                    continue;
+                }
                 JsonObject header = headerElement.getAsJsonObject();
                 ConditionData headerCondition = new ConditionData();
                 headerCondition.setParamType(ParamTypeEnum.HEADER.getName());
@@ -386,9 +500,12 @@ public class HttpRouteParser {
             }
         }
 
-        JsonArray queryParams = match.getAsJsonArray("queryParams");
+        JsonArray queryParams = JsonFields.getJsonArray(match, "queryParams");
         if (Objects.nonNull(queryParams)) {
             for (JsonElement queryElement : queryParams) {
+                if (!queryElement.isJsonObject()) {
+                    continue;
+                }
                 JsonObject queryParam = queryElement.getAsJsonObject();
                 ConditionData queryCondition = new ConditionData();
                 queryCondition.setParamType(ParamTypeEnum.QUERY.getName());
@@ -400,12 +517,40 @@ public class HttpRouteParser {
         }
     }
 
+    /**
+     * Anchored full-match regex for a path prefix (the REGEX judge is a full match):
+     * {@code /foo} → {@code ^\Q/foo\E(/.*)?$}, matching {@code /foo} and everything under it.
+     */
+    private String prefixRegex(final String prefix) {
+        String stripped = prefix.length() > 1 && prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+        return "^" + Pattern.quote(stripped) + "(/.*)?$";
+    }
+
+    /**
+     * Spec path-match precedence encoded into the ShenYu selector sort (lower wins):
+     * exact &gt; longest prefix &gt; regex &gt; no path. Note ShenYu groups by AND-condition
+     * count before evaluating sort, so this ordering is decisive only among matches with the
+     * same number of conditions.
+     */
+    private int pathSort(final JsonObject match) {
+        JsonObject path = JsonFields.getJsonObject(match, "path");
+        String pathValue = JsonFields.getString(path, "value");
+        if (Objects.isNull(pathValue)) {
+            return SORT_NO_PATH;
+        }
+        String pathType = JsonFields.getString(path, "type");
+        if ("Exact".equals(pathType)) {
+            return SORT_EXACT_PATH;
+        }
+        if ("RegularExpression".equals(pathType)) {
+            return SORT_REGEX_PATH;
+        }
+        return SORT_PREFIX_BASE - Math.min(pathValue.length(), SORT_PREFIX_LENGTH_CAP);
+    }
+
     private String mapPathType(final String pathType) {
         if ("Exact".equals(pathType)) {
             return OperatorEnum.EQ.getAlias();
-        }
-        if ("PathPrefix".equals(pathType)) {
-            return OperatorEnum.STARTS_WITH.getAlias();
         }
         if ("RegularExpression".equals(pathType)) {
             return OperatorEnum.REGEX.getAlias();
@@ -421,6 +566,30 @@ public class HttpRouteParser {
      */
     private String exactOrRegex(final String matchType) {
         return "RegularExpression".equals(matchType) ? OperatorEnum.REGEX.getAlias() : OperatorEnum.EQ.getAlias();
+    }
+
+    /**
+     * Outcome of resolving one backendRef: either its upstreams (possibly empty for a
+     * weight-0 backend) or the Gateway API reason of the failure.
+     */
+    private static final class BackendRefOutcome {
+
+        private final List<DivideUpstream> upstreams;
+
+        private final String unresolvedReason;
+
+        private BackendRefOutcome(final List<DivideUpstream> upstreams, final String unresolvedReason) {
+            this.upstreams = upstreams;
+            this.unresolvedReason = unresolvedReason;
+        }
+
+        static BackendRefOutcome ok(final List<DivideUpstream> upstreams) {
+            return new BackendRefOutcome(upstreams, null);
+        }
+
+        static BackendRefOutcome unresolved(final String reason) {
+            return new BackendRefOutcome(List.of(), reason);
+        }
     }
 
     /**
@@ -451,5 +620,7 @@ public class HttpRouteParser {
         private boolean anyUnresolved;
 
         private String reason;
+
+        private boolean unsupportedFilters;
     }
 }

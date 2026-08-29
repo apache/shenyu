@@ -42,11 +42,44 @@ public final class GatewayApiConstants {
     /** ResolvedRefs=False reason: a backendRef's Service has no ready endpoints. */
     public static final String REASON_BACKEND_NOT_FOUND = "BackendNotFound";
 
-    /** ResolvedRefs=False reason: a cross-namespace reference is not permitted by a ReferenceGrant. */
+    /** ResolvedRefs=False / Accepted=False reason: a cross-namespace reference (parentRef or backendRef) is not permitted by a ReferenceGrant or listener policy. */
     public static final String REASON_REF_NOT_PERMITTED = "RefNotPermitted";
 
     /** ResolvedRefs=False reason: a backendRef's kind is not Service, the only supported kind. */
     public static final String REASON_INVALID_KIND = "InvalidKind";
+
+    /** Condition type Accepted. */
+    public static final String CONDITION_ACCEPTED = "Accepted";
+
+    /** Condition type ResolvedRefs. */
+    public static final String CONDITION_RESOLVED_REFS = "ResolvedRefs";
+
+    /** Condition type Programmed. */
+    public static final String CONDITION_PROGRAMMED = "Programmed";
+
+    /** Accepted=False reason: parentRef does not resolve to an existing Gateway. */
+    public static final String REASON_NO_MATCHING_PARENT = "NoMatchingParent";
+
+    /** Accepted=False reason: no listener hostname intersects the route hostnames. */
+    public static final String REASON_NO_MATCHING_LISTENER_HOSTNAME = "NoMatchingListenerHostname";
+
+    /** Condition reason: a spec value (filter, sectionName, ...) is unsupported. */
+    public static final String REASON_UNSUPPORTED_VALUE = "UnsupportedValue";
+
+    /** Listener Accepted=False reason: protocol is not supported (only HTTP is served). */
+    public static final String REASON_UNSUPPORTED_PROTOCOL = "UnsupportedProtocol";
+
+    /** Listener Accepted=False reason: port is not served by this gateway. */
+    public static final String REASON_PORT_UNAVAILABLE = "PortUnavailable";
+
+    /** Condition reason: programmed into the data plane. */
+    public static final String REASON_PROGRAMMED = "Programmed";
+
+    /** Gateway Programmed=False reason: no listener with a supported protocol and port. */
+    public static final String REASON_LISTENERS_NOT_VALID = "ListenersNotValid";
+
+    /** The only listener protocol this controller serves. */
+    public static final String PROTOCOL_HTTP = "HTTP";
 
     public static final String SHENYU_CONTROLLER_NAME = "gateway.shenyu.apache.org/shenyu-controller";
 

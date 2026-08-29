@@ -29,14 +29,13 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
-import org.apache.shenyu.k8s.common.JsonFields;
-import org.apache.shenyu.k8s.common.ReferenceGrants;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
+import org.apache.shenyu.k8s.common.JsonFields;
+import org.apache.shenyu.k8s.common.ListenerSupport;
+import org.apache.shenyu.k8s.common.ReferenceGrants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
@@ -44,15 +43,20 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+/**
+ * Reconciler for HTTPRoute resources (Gateway API v1).
+ *
+ * <p>Every parentRef is evaluated individually and reported in status.parents — including
+ * rejections (no ReferenceGrant, listener policy, hostname mismatch, missing parent) with
+ * the spec-defined reason — except parentRefs resolved to Gateways owned by another
+ * controller, whose status entries belong to that controller.
+ */
 public class HTTPRouteReconciler implements Reconciler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HTTPRouteReconciler.class);
@@ -89,320 +93,387 @@ public class HTTPRouteReconciler implements Reconciler {
 
     @Override
     public Result reconcile(final Request request) {
-        LOG.info("Starting to reconcile HTTPRoute {}", request);
-        try {
-            String namespace = request.getNamespace();
-            String routeName = request.getName();
-            DynamicKubernetesObject httpRoute = httpRouteLister.namespace(namespace).get(routeName);
+        String namespace = request.getNamespace();
+        String routeName = request.getName();
+        LOG.debug("Starting to reconcile HTTPRoute {}/{}", namespace, routeName);
 
-            if (Objects.isNull(httpRoute)) {
-                deleteConfig(namespace, routeName);
-                return new Result(false);
-            }
-
-            List<JsonObject> eligibleParents = findEligibleParentRefs(httpRoute);
-            if (eligibleParents.isEmpty()) {
-                // The route may have been bound before (grant removed, GatewayClass
-                // re-pointed, listener removed): clean up whatever was programmed.
-                LOG.info("HTTPRoute {} is not bound to a ShenYu Gateway, cleaning up previously applied config", request);
-                deleteConfig(namespace, routeName);
-                removeShenyuParentStatus(httpRoute);
-                return new Result(false);
-            }
-
-            GatewayRouteCache cache = GatewayRouteCache.getInstance();
-            List<String> oldSelectorIds = new ArrayList<>(
-                    Optional.ofNullable(cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()))
-                            .orElse(Collections.emptyList()));
-
-            ShenyuMemoryConfig config = httpRouteParser.parse(httpRoute);
-
-            Set<String> newSelectorIds = config.getRouteConfigList().stream()
-                    .map(rc -> rc.getSelectorData().getId())
-                    .collect(Collectors.toSet());
-
-            deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
-
-            applyConfig(config);
-
-            bindToGateways(eligibleParents, namespace, routeName);
-
-            updateHTTPRouteStatus(httpRoute, eligibleParents, namespace, config);
-
-            LOG.debug("HTTPRoute {} reconciled successfully", request);
+        DynamicKubernetesObject httpRoute = httpRouteLister.namespace(namespace).get(routeName);
+        if (Objects.isNull(httpRoute)) {
+            deleteConfig(namespace, routeName);
             return new Result(false);
-        } catch (Exception e) {
-            LOG.error("Error reconciling HTTPRoute {}, will retry", request, e);
-            return new Result(true);
+        }
+
+        List<ParentDecision> decisions = evaluateParents(httpRoute);
+        if (decisions.isEmpty()) {
+            // Not attached to any ShenYu-managed Gateway; drop previously programmed config
+            // and our status entries, then leave the route to other controllers.
+            deleteConfig(namespace, routeName);
+            removeShenyuParentStatus(httpRoute, namespace, routeName);
+            return new Result(false);
+        }
+
+        List<ParentDecision> accepted = new ArrayList<>();
+        for (ParentDecision decision : decisions) {
+            if (decision.accepted) {
+                accepted.add(decision);
+            }
+        }
+
+        ShenyuMemoryConfig config = null;
+        if (accepted.isEmpty()) {
+            // All ShenYu parents rejected the attachment: clean up but still report status.
+            deleteConfig(namespace, routeName);
+        } else {
+            config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
+            if (config.isHasUnsupportedFilters()) {
+                // Accepted=False must not coexist with programmed traffic: the route would
+                // only be partially applied, so nothing is programmed at all and any config
+                // from a previous (valid) spec of this route is dropped.
+                deleteConfig(namespace, routeName);
+            } else {
+                GatewayRouteCache cache = GatewayRouteCache.getInstance();
+                List<String> newSelectorIds = selectorIdsOf(config);
+                // read the previous snapshot before putRouteSelectors overwrites it
+                List<String> oldSelectorIds = Objects.requireNonNullElse(
+                        cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()), List.of());
+                cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), newSelectorIds);
+                deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
+                applyConfig(config, namespace, routeName);
+                rebindGateways(cache, namespace, routeName, accepted);
+            }
+        }
+
+        updateHTTPRouteStatus(httpRoute, decisions, config, namespace, routeName);
+        return new Result(false);
+    }
+
+    private List<String> selectorIdsOf(final ShenyuMemoryConfig config) {
+        List<String> ids = new ArrayList<>();
+        for (IngressConfiguration rc : config.getRouteConfigList()) {
+            ids.add(rc.getSelectorData().getId());
+        }
+        return ids;
+    }
+
+    /**
+     * Effective hostnames for the data plane: the union of the per-parent intersections of
+     * route hostnames with listener hostnames. Empty means "any host".
+     */
+    private List<String> effectiveHostnames(final List<ParentDecision> accepted) {
+        Set<String> union = new LinkedHashSet<>();
+        for (ParentDecision decision : accepted) {
+            union.addAll(decision.hostnames);
+        }
+        return new ArrayList<>(union);
+    }
+
+    /**
+     * Rebuild the route→gateway bindings from the currently accepted parents, dropping
+     * stale bindings of parentRefs that were removed or became ineligible.
+     */
+    private void rebindGateways(final GatewayRouteCache cache, final String namespace, final String routeName,
+                                final List<ParentDecision> accepted) {
+        cache.removeRouteGatewayBinding(namespace, routeName);
+        for (ParentDecision decision : accepted) {
+            cache.bindRouteToGateway(decision.parentNamespace, decision.parentName, namespace, routeName);
         }
     }
 
     /**
-     * Resolve the eligible ShenYu parents once per reconcile; config programming, gateway
-     * binding and status reporting all consume this list, so a mixed parentRefs list (one
-     * valid, one unauthorized cross-namespace parent) cannot leak the unauthorized parent.
+     * Evaluate every parentRef of the route. Only verdicts this controller is responsible
+     * for are returned: parentRefs of a foreign kind or group, and parentRefs resolving to
+     * a Gateway owned by another controller, are skipped silently.
      */
-    private List<JsonObject> findEligibleParentRefs(final DynamicKubernetesObject httpRoute) {
-        JsonObject spec = JsonFields.getJsonObject(httpRoute.getRaw(), "spec");
-        JsonArray parentRefs = Objects.isNull(spec) ? null : JsonFields.getJsonArray(spec, "parentRefs");
-        if (Objects.isNull(parentRefs)) {
-            return Collections.emptyList();
-        }
+    private List<ParentDecision> evaluateParents(final DynamicKubernetesObject httpRoute) {
         String routeNamespace = Objects.requireNonNull(httpRoute.getMetadata()).getNamespace();
-        String routeName = httpRoute.getMetadata().getName();
-        List<JsonObject> eligible = new ArrayList<>();
+        JsonObject spec = JsonFields.getJsonObject(httpRoute.getRaw(), "spec");
+        JsonArray parentRefs = JsonFields.getJsonArray(spec, "parentRefs");
+        List<String> routeHostnames = readStringList(JsonFields.getJsonArray(spec, "hostnames"));
+        List<ParentDecision> decisions = new ArrayList<>();
+        if (Objects.isNull(parentRefs)) {
+            return decisions;
+        }
         for (JsonElement element : parentRefs) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
             JsonObject parentRef = element.getAsJsonObject();
-            if (isEligibleParentRef(parentRef, routeNamespace, routeName)) {
-                eligible.add(parentRef);
+            String group = JsonFields.getString(parentRef, "group");
+            String kind = JsonFields.getString(parentRef, "kind");
+            if ((Objects.nonNull(group) && !GatewayApiConstants.GATEWAY_API_GROUP.equals(group))
+                    || (Objects.nonNull(kind) && !GatewayApiConstants.GATEWAY_KIND.equals(kind))) {
+                continue;
             }
+            String parentName = JsonFields.getString(parentRef, "name");
+            if (Objects.isNull(parentName)) {
+                continue;
+            }
+            String parentNamespace = JsonFields.getString(parentRef, "namespace");
+            if (Objects.isNull(parentNamespace)) {
+                parentNamespace = routeNamespace;
+            }
+            DynamicKubernetesObject gateway = gatewayLister.namespace(parentNamespace).get(parentName);
+            if (Objects.isNull(gateway)) {
+                decisions.add(ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                        GatewayApiConstants.REASON_NO_MATCHING_PARENT,
+                        "Gateway " + parentNamespace + "/" + parentName + " does not exist"));
+                continue;
+            }
+            if (!isShenyuGateway(gateway)) {
+                continue;
+            }
+            if (!parentNamespace.equals(routeNamespace)
+                    && !ReferenceGrants.isGranted(referenceGrantLister, parentNamespace, routeNamespace,
+                    GatewayApiConstants.GATEWAY_API_GROUP, GatewayApiConstants.GATEWAY_KIND, parentName)) {
+                decisions.add(ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                        GatewayApiConstants.REASON_REF_NOT_PERMITTED,
+                        "cross-namespace parent reference to Gateway " + parentNamespace + "/" + parentName
+                                + " is not permitted by any ReferenceGrant"));
+                continue;
+            }
+            String sectionName = JsonFields.getString(parentRef, "sectionName");
+            decisions.add(evaluateListeners(gateway, sectionName, routeNamespace, parentNamespace, parentName,
+                    routeHostnames, parentRef));
         }
-        return eligible;
+        return decisions;
     }
 
     /**
-     * A parentRef is eligible when it references a Gateway (the default group/kind), the
-     * Gateway is ShenYu-managed, the optional sectionName matches a Gateway listener, and a
-     * cross-namespace reference is permitted by a ReferenceGrant.
+     * Attachment evaluation against the selected listeners: protocol support, the
+     * allowedRoutes namespace/kind policy, and the listener/route hostname intersection.
+     * The route attaches when at least one selected listener accepts it.
      */
-    private boolean isEligibleParentRef(final JsonObject parentRef, final String routeNamespace,
-                                        final String routeName) {
-        String parentName = JsonFields.getString(parentRef, "name");
-        if (Objects.isNull(parentName)) {
-            return false;
+    private ParentDecision evaluateListeners(final DynamicKubernetesObject gateway, final String sectionName,
+                                             final String routeNamespace, final String parentNamespace,
+                                             final String parentName, final List<String> routeHostnames,
+                                             final JsonObject parentRef) {
+        List<JsonObject> selected = ListenerSupport.selectListeners(gateway.getRaw(), sectionName);
+        if (selected.isEmpty()) {
+            String message = Objects.nonNull(sectionName)
+                    ? "no listener named '" + sectionName + "' on Gateway " + parentNamespace + "/" + parentName
+                    : "Gateway " + parentNamespace + "/" + parentName + " has no listeners";
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE, message);
         }
-        String parentGroup = Optional.ofNullable(JsonFields.getString(parentRef, "group"))
-                .orElse(GatewayApiConstants.GATEWAY_API_GROUP);
-        String parentKind = Optional.ofNullable(JsonFields.getString(parentRef, "kind"))
-                .orElse(GatewayApiConstants.GATEWAY_KIND);
-        if (!GatewayApiConstants.GATEWAY_API_GROUP.equals(parentGroup)
-                || !GatewayApiConstants.GATEWAY_KIND.equals(parentKind)) {
-            return false;
+        Set<String> effective = new LinkedHashSet<>();
+        boolean anyMatched = false;
+        boolean notPermitted = false;
+        boolean hostnameMismatch = false;
+        for (JsonObject listener : selected) {
+            if (!ListenerSupport.isSupportedProtocol(listener)) {
+                continue;
+            }
+            if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace)
+                    || !ListenerSupport.allowsKind(listener)) {
+                notPermitted = true;
+                continue;
+            }
+            List<String> intersect = ListenerSupport.intersectHostnames(ListenerSupport.hostnameOf(listener), routeHostnames);
+            if (Objects.isNull(intersect)) {
+                hostnameMismatch = true;
+                continue;
+            }
+            // note an empty intersection is still a match: route without hostnames attaching
+            // to a listener without hostname means "any host"
+            anyMatched = true;
+            effective.addAll(intersect);
         }
-        String parentNamespace = Optional.ofNullable(JsonFields.getString(parentRef, "namespace"))
-                .orElse(routeNamespace);
-        String sectionName = JsonFields.getString(parentRef, "sectionName");
-        DynamicKubernetesObject gateway = gatewayLister.namespace(parentNamespace).get(parentName);
-        if (Objects.isNull(gateway) || !GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
-            return false;
+        if (anyMatched) {
+            return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective));
         }
-        if (Objects.nonNull(sectionName) && !hasMatchingListener(gateway, sectionName)) {
-            LOG.info("HTTPRoute {}/{} references sectionName '{}' but Gateway {}/{} has no matching listener",
-                    routeNamespace, routeName, sectionName, parentNamespace, parentName);
-            return false;
+        if (notPermitted) {
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                    GatewayApiConstants.REASON_REF_NOT_PERMITTED,
+                    "listener allowedRoutes policy does not permit routes from namespace " + routeNamespace);
         }
-        if (!parentNamespace.equals(routeNamespace)
-                && !ReferenceGrants.isGranted(referenceGrantLister, parentNamespace, routeNamespace,
-                GatewayApiConstants.GATEWAY_API_GROUP, GatewayApiConstants.GATEWAY_KIND, parentName)) {
-            LOG.info("HTTPRoute {}/{} cross-namespace parentRef to Gateway {}/{} rejected: no matching ReferenceGrant",
-                    routeNamespace, routeName, parentNamespace, parentName);
-            return false;
+        if (hostnameMismatch) {
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                    GatewayApiConstants.REASON_NO_MATCHING_LISTENER_HOSTNAME,
+                    "route hostnames do not intersect any listener hostname");
         }
-        return true;
+        return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                "no listener with a supported protocol (HTTP)");
     }
 
-    private boolean hasMatchingListener(final DynamicKubernetesObject gateway, final String sectionName) {
+    private List<String> readStringList(final JsonArray array) {
+        List<String> result = new ArrayList<>();
+        if (Objects.nonNull(array)) {
+            for (JsonElement element : array) {
+                if (element.isJsonPrimitive()) {
+                    result.add(element.getAsString());
+                }
+            }
+        }
+        return result;
+    }
+
+    private boolean isShenyuGateway(final DynamicKubernetesObject gateway) {
         JsonObject spec = JsonFields.getJsonObject(gateway.getRaw(), "spec");
-        JsonArray listeners = Objects.isNull(spec) ? null : JsonFields.getJsonArray(spec, "listeners");
-        if (Objects.isNull(listeners)) {
+        String className = JsonFields.getString(spec, "gatewayClassName");
+        if (Objects.isNull(className)) {
             return false;
         }
-        for (JsonElement listenerElement : listeners) {
-            JsonObject listener = listenerElement.getAsJsonObject();
-            if (sectionName.equals(JsonFields.getString(listener, "name"))) {
-                return true;
+        DynamicKubernetesObject gatewayClass = gatewayClassLister.get(className);
+        if (Objects.isNull(gatewayClass)) {
+            return false;
+        }
+        JsonObject classSpec = JsonFields.getJsonObject(gatewayClass.getRaw(), "spec");
+        return GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(classSpec, "controllerName"));
+    }
+
+    private void applyConfig(final ShenyuMemoryConfig config, final String namespace, final String routeName) {
+        for (IngressConfiguration routeConfig : config.getRouteConfigList()) {
+            shenyuCacheRepository.saveOrUpdateSelectorData(routeConfig.getSelectorData());
+            if (CollectionUtils.isNotEmpty(routeConfig.getRuleDataList())) {
+                shenyuCacheRepository.saveOrUpdateRuleData(routeConfig.getRuleDataList().get(0));
             }
         }
-        return false;
+        LOG.debug("HTTPRoute {}/{}: applied {} selector(s)", namespace, routeName, config.getRouteConfigList().size());
     }
 
     /**
-     * Full cleanup when an HTTPRoute is deleted or detached: remove all its selectors/rules
-     * from the data plane and drop the route→gateway bindings.
+     * Delete selectors that were programmed by a previous spec of this route but are no
+     * longer part of the current parse. Runs BEFORE applying the new config: IDs are
+     * deterministic, so a spec change never produces the delete-after-create window that
+     * would briefly leave a live route unmatched.
      */
+    private void deleteStaleSelectors(final String namespace, final String routeName,
+                                      final List<String> oldSelectorIds, final List<String> newSelectorIds) {
+        Set<String> stale = new LinkedHashSet<>(oldSelectorIds);
+        stale.removeAll(newSelectorIds);
+        for (String selectorId : stale) {
+            shenyuCacheRepository.deleteSelectorWithRules(PluginEnum.DIVIDE.getName(), selectorId);
+            LOG.info("HTTPRoute {}/{}: removed stale divide selector {}", namespace, routeName, selectorId);
+        }
+    }
+
     private void deleteConfig(final String namespace, final String routeName) {
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
         List<String> selectorIds = cache.removeRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName());
-        removeSelectors(selectorIds);
+        if (Objects.nonNull(selectorIds)) {
+            for (String selectorId : selectorIds) {
+                shenyuCacheRepository.deleteSelectorWithRules(PluginEnum.DIVIDE.getName(), selectorId);
+                LOG.info("HTTPRoute {}/{}: deleted divide selector {}", namespace, routeName, selectorId);
+            }
+        }
         cache.removeRouteGatewayBinding(namespace, routeName);
     }
 
-    /** Remove only selectors absent from the new spec; retained ones are refreshed by applyConfig. */
-    private void deleteStaleSelectors(final String namespace, final String routeName,
-                                      final List<String> oldSelectorIds, final Set<String> newSelectorIds) {
-        List<String> stale = new ArrayList<>();
-        for (String id : oldSelectorIds) {
-            if (!newSelectorIds.contains(id)) {
-                stale.add(id);
-            }
+    private void updateHTTPRouteStatus(final DynamicKubernetesObject httpRoute, final List<ParentDecision> decisions,
+                                       final ShenyuMemoryConfig config, final String namespace, final String routeName) {
+        Long generation = JsonFields.getLong(JsonFields.getJsonObject(httpRoute.getRaw(), "metadata"), "generation");
+        JsonArray desiredParents = new JsonArray();
+        for (ParentDecision decision : decisions) {
+            desiredParents.add(buildParentStatus(decision, config, generation));
         }
-        if (stale.isEmpty()) {
-            return;
-        }
-        LOG.info("Deleting {} stale selector(s) for HTTPRoute {}/{}", stale.size(), namespace, routeName);
-        removeSelectors(stale);
-    }
 
-    private void removeSelectors(final List<String> selectorIds) {
-        if (CollectionUtils.isEmpty(selectorIds)) {
-            return;
-        }
-        for (String selectorId : selectorIds) {
-            shenyuCacheRepository.deleteSelectorWithRules(PluginEnum.DIVIDE.getName(), selectorId);
-        }
-    }
-
-    private void applyConfig(final ShenyuMemoryConfig config) {
-        List<IngressConfiguration> routeConfigs = config.getRouteConfigList();
-        if (CollectionUtils.isEmpty(routeConfigs)) {
-            return;
-        }
-        for (IngressConfiguration routeConfig : routeConfigs) {
-            SelectorData selectorData = routeConfig.getSelectorData();
-            shenyuCacheRepository.saveOrUpdateSelectorData(selectorData);
-            for (RuleData ruleData : routeConfig.getRuleDataList()) {
-                shenyuCacheRepository.saveOrUpdateRuleData(ruleData);
-            }
-        }
-    }
-
-    private void bindToGateways(final List<JsonObject> eligibleParents, final String routeNamespace,
-                                final String routeName) {
-        for (JsonObject parentRef : eligibleParents) {
-            String parentName = parentRef.get("name").getAsString();
-            String parentNamespace = Optional.ofNullable(JsonFields.getString(parentRef, "namespace"))
-                    .orElse(routeNamespace);
-            GatewayRouteCache.getInstance().bindRouteToGateway(parentNamespace, parentName, routeNamespace, routeName);
-        }
-    }
-
-    /**
-     * Update HTTPRoute status with Accepted=True and a ResolvedRefs condition reflecting the
-     * actual backend resolution, via merge-patch on the /status subresource. Skipped when the
-     * ShenYu entries already match, so an unchanged resync does not re-trigger reconciliation.
-     */
-    private void updateHTTPRouteStatus(final DynamicKubernetesObject httpRoute, final List<JsonObject> eligibleParents,
-                                       final String routeNamespace, final ShenyuMemoryConfig config) {
-        try {
-            JsonArray desiredParents = new JsonArray();
-            for (JsonObject parentRef : eligibleParents) {
-                String parentName = parentRef.get("name").getAsString();
-                String parentNamespace = Optional.ofNullable(JsonFields.getString(parentRef, "namespace"))
-                        .orElse(routeNamespace);
-                desiredParents.add(buildParentStatus(parentNamespace, parentName, config));
-            }
-            if (existingStatusMatches(httpRoute, desiredParents)) {
-                return;
-            }
-
-            JsonObject raw = httpRoute.getRaw();
-            JsonArray existingParents = raw.has("status") && !raw.get("status").isJsonNull()
-                    ? JsonFields.getJsonArray(raw.getAsJsonObject("status"), "parents") : null;
-            preserveTransitionTimes(existingParents, desiredParents);
-
-            // Merge-patch replaces arrays, so preserve status.parents entries owned by other controllers
-            JsonArray mergedParentsStatus = new JsonArray();
-            if (Objects.nonNull(existingParents)) {
-                for (JsonElement parentEl : existingParents) {
-                    JsonObject parent = parentEl.getAsJsonObject();
-                    if (!GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(parent, "controllerName"))) {
-                        mergedParentsStatus.add(parentEl);
-                    }
-                }
-            }
-            desiredParents.forEach(mergedParentsStatus::add);
-            sendStatusPatch(routeNamespace, Objects.requireNonNull(httpRoute.getMetadata()).getName(), mergedParentsStatus);
-        } catch (Exception e) {
-            LOG.warn("Failed to update HTTPRoute status, will retry on next resync", e);
-        }
-    }
-
-    /**
-     * Drop ShenYu-owned entries from status.parents when the route is no longer attached to
-     * any ShenYu Gateway, leaving entries owned by other controllers intact. Skipped when no
-     * ShenYu entry remains, so the patch cannot loop reconciliation.
-     */
-    private void removeShenyuParentStatus(final DynamicKubernetesObject httpRoute) {
-        try {
-            JsonObject raw = httpRoute.getRaw();
-            JsonArray existingParents = raw.has("status") && !raw.get("status").isJsonNull()
-                    ? JsonFields.getJsonArray(raw.getAsJsonObject("status"), "parents") : null;
-            if (Objects.isNull(existingParents)) {
-                return;
-            }
-            JsonArray remaining = new JsonArray();
-            boolean hasShenyuEntry = false;
-            for (JsonElement parentEl : existingParents) {
-                JsonObject parent = parentEl.getAsJsonObject();
-                if (GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(parent, "controllerName"))) {
-                    hasShenyuEntry = true;
-                } else {
-                    remaining.add(parentEl);
-                }
-            }
-            if (!hasShenyuEntry) {
-                return;
-            }
-            sendStatusPatch(Objects.requireNonNull(httpRoute.getMetadata()).getNamespace(),
-                    httpRoute.getMetadata().getName(), remaining);
-        } catch (Exception e) {
-            LOG.warn("Failed to remove ShenYu status from HTTPRoute, will retry on next resync", e);
-        }
-    }
-
-    /**
-     * Replace the freshly built conditions of parents whose status is unchanged with the
-     * existing entries, so lastTransitionTime only advances when a condition actually
-     * transitions, as the Gateway API spec requires.
-     */
-    private void preserveTransitionTimes(final JsonArray existingParents, final JsonArray desiredParents) {
-        if (Objects.isNull(existingParents)) {
-            return;
-        }
-        for (JsonElement desiredEl : desiredParents) {
-            JsonObject desired = desiredEl.getAsJsonObject();
-            for (JsonElement existingEl : existingParents) {
-                JsonObject existing = existingEl.getAsJsonObject();
-                if (!GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(existing, "controllerName"))) {
-                    continue;
-                }
-                if (sameParentRef(JsonFields.getJsonObject(existing, "parentRef"), JsonFields.getJsonObject(desired, "parentRef"))
-                        && conditionsMatch(JsonFields.getJsonArray(existing, "conditions"), JsonFields.getJsonArray(desired, "conditions"))) {
-                    desired.add("conditions", JsonFields.getJsonArray(existing, "conditions"));
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * The ShenYu entries in status must exactly match the desired ones: every desired parent
-     * present with equivalent conditions, and no extra ShenYu entries (a stale entry for a
-     * removed parentRef must also trigger a re-patch).
-     */
-    private boolean existingStatusMatches(final DynamicKubernetesObject httpRoute, final JsonArray desiredParents) {
         JsonObject raw = httpRoute.getRaw();
-        JsonArray existingParents = raw.has("status") && !raw.get("status").isJsonNull()
-                ? JsonFields.getJsonArray(raw.getAsJsonObject("status"), "parents") : null;
-        if (Objects.isNull(existingParents)) {
+        JsonObject currentStatus = JsonFields.getJsonObject(raw, "status");
+        if (Objects.nonNull(currentStatus)) {
+            JsonArray existingParents = JsonFields.getJsonArray(currentStatus, "parents");
+            retainForeignParentEntries(existingParents, desiredParents);
+            if (existingStatusMatches(existingParents, desiredParents)) {
+                return;
+            }
+            preserveTransitionTimes(existingParents, desiredParents);
+        }
+
+        JsonObject status = new JsonObject();
+        status.add("parents", desiredParents);
+        sendStatusPatch(httpRoute, namespace, routeName, status);
+    }
+
+    private JsonObject buildParentStatus(final ParentDecision decision, final ShenyuMemoryConfig config,
+                                         final Long generation) {
+        JsonObject parentRefStatus = new JsonObject();
+        parentRefStatus.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
+        parentRefStatus.addProperty("kind", GatewayApiConstants.GATEWAY_KIND);
+        parentRefStatus.addProperty("namespace", decision.parentNamespace);
+        parentRefStatus.addProperty("name", decision.parentName);
+        String sectionName = JsonFields.getString(decision.parentRef, "sectionName");
+        if (Objects.nonNull(sectionName)) {
+            parentRefStatus.addProperty("sectionName", sectionName);
+        }
+
+        JsonObject parent = new JsonObject();
+        parent.add("parentRef", parentRefStatus);
+        parent.addProperty("controllerName", GatewayApiConstants.SHENYU_CONTROLLER_NAME);
+        parent.add("conditions", buildStatusConditions(decision, config, generation));
+        return parent;
+    }
+
+    private JsonArray buildStatusConditions(final ParentDecision decision, final ShenyuMemoryConfig config,
+                                            final Long generation) {
+        JsonArray conditions = new JsonArray();
+
+        boolean unsupportedFilters = Objects.nonNull(config) && config.isHasUnsupportedFilters();
+        if (!decision.accepted) {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False", decision.reason,
+                    decision.message, generation));
+        } else if (unsupportedFilters) {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False",
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                    "route rules declare filters which are not supported by ShenYu", generation));
+        } else {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "True", "Accepted",
+                    "HTTPRoute is accepted by the ShenYu Gateway", generation));
+        }
+
+        boolean resolved = Objects.isNull(config) || config.isAllBackendsResolved();
+        if (resolved) {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_RESOLVED_REFS, "True", "ResolvedRefs",
+                    "All references have been resolved", generation));
+        } else {
+            String reason = Objects.nonNull(config.getUnresolvedReason())
+                    ? config.getUnresolvedReason() : GatewayApiConstants.REASON_BACKEND_NOT_FOUND;
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_RESOLVED_REFS, "False", reason,
+                    "Some services were not found or not permitted", generation));
+        }
+        return conditions;
+    }
+
+    private static JsonObject buildCondition(final String type, final String status, final String reason,
+                                             final String message, final Long observedGeneration) {
+        JsonObject condition = new JsonObject();
+        condition.addProperty("type", type);
+        condition.addProperty("status", status);
+        condition.addProperty("reason", reason);
+        condition.addProperty("message", message);
+        if (Objects.nonNull(observedGeneration)) {
+            condition.addProperty("observedGeneration", observedGeneration);
+        }
+        condition.addProperty("lastTransitionTime", java.time.Instant.now().toString());
+        return condition;
+    }
+
+    /**
+     * Whether the existing parents already cover every desired parent with matching
+     * conditions; used to skip no-op patches that would otherwise cause an infinite
+     * watch/patch loop (each patch bumps resourceVersion, re-enqueueing the route).
+     */
+    private boolean existingStatusMatches(final JsonArray existingParents, final JsonArray desiredParents) {
+        if (Objects.isNull(existingParents) || existingParents.size() != desiredParents.size()) {
             return false;
         }
-        List<JsonObject> existingShenyuEntries = new ArrayList<>();
-        for (JsonElement parentEl : existingParents) {
-            JsonObject parent = parentEl.getAsJsonObject();
-            if (GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(parent, "controllerName"))) {
-                existingShenyuEntries.add(parent);
+        List<JsonObject> unmatched = new ArrayList<>();
+        for (JsonElement element : existingParents) {
+            if (element.isJsonObject()) {
+                unmatched.add(element.getAsJsonObject());
             }
         }
-        if (existingShenyuEntries.size() != desiredParents.size()) {
-            return false;
-        }
-        for (JsonElement desiredEl : desiredParents) {
-            JsonObject desired = desiredEl.getAsJsonObject();
+        for (JsonElement desiredElement : desiredParents) {
+            JsonObject desired = desiredElement.getAsJsonObject();
             boolean found = false;
-            for (JsonObject parent : existingShenyuEntries) {
-                if (sameParentRef(JsonFields.getJsonObject(parent, "parentRef"), JsonFields.getJsonObject(desired, "parentRef"))
-                        && conditionsMatch(JsonFields.getJsonArray(parent, "conditions"), JsonFields.getJsonArray(desired, "conditions"))) {
+            for (int i = 0; i < unmatched.size(); i++) {
+                JsonObject existing = unmatched.get(i);
+                if (sameParentRef(JsonFields.getJsonObject(existing, "parentRef"),
+                        JsonFields.getJsonObject(desired, "parentRef"))
+                        && Objects.equals(JsonFields.getString(desired, "controllerName"),
+                        JsonFields.getString(existing, "controllerName"))
+                        && conditionsMatch(JsonFields.getJsonArray(existing, "conditions"),
+                        JsonFields.getJsonArray(desired, "conditions"))) {
+                    unmatched.remove(i);
                     found = true;
                     break;
                 }
@@ -415,118 +486,190 @@ public class HTTPRouteReconciler implements Reconciler {
     }
 
     private boolean sameParentRef(final JsonObject existing, final JsonObject desired) {
-        if (Objects.isNull(existing)) {
+        if (Objects.isNull(existing) || Objects.isNull(desired)) {
             return false;
         }
         return Objects.equals(JsonFields.getString(existing, "namespace"), JsonFields.getString(desired, "namespace"))
-                && Objects.equals(JsonFields.getString(existing, "name"), JsonFields.getString(desired, "name"));
+                && Objects.equals(JsonFields.getString(existing, "name"), JsonFields.getString(desired, "name"))
+                && Objects.equals(JsonFields.getString(existing, "sectionName"), JsonFields.getString(desired, "sectionName"));
     }
 
-    /**
-     * Compare desired conditions against existing ones, ignoring lastTransitionTime. For
-     * ResolvedRefs=False the reason must match too; reasons of True conditions are not
-     * significant.
-     */
     private boolean conditionsMatch(final JsonArray existing, final JsonArray desired) {
-        if (Objects.isNull(existing)) {
+        if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() != desired.size()) {
             return false;
         }
-        for (JsonElement desiredEl : desired) {
-            JsonObject desiredCondition = desiredEl.getAsJsonObject();
-            boolean matched = false;
-            for (JsonElement existingEl : existing) {
-                JsonObject existingCondition = existingEl.getAsJsonObject();
-                if (!Objects.equals(JsonFields.getString(desiredCondition, "type"), JsonFields.getString(existingCondition, "type"))
-                        || !Objects.equals(JsonFields.getString(desiredCondition, "status"), JsonFields.getString(existingCondition, "status"))) {
-                    continue;
+        for (JsonElement desiredElement : desired) {
+            JsonObject desiredCondition = desiredElement.getAsJsonObject();
+            boolean found = false;
+            for (JsonElement existingElement : existing) {
+                JsonObject existingCondition = existingElement.getAsJsonObject();
+                boolean reasonMatters = "False".equals(JsonFields.getString(desiredCondition, "status"));
+                boolean reasonMatches = !reasonMatters || Objects.equals(
+                        JsonFields.getString(existingCondition, "reason"), JsonFields.getString(desiredCondition, "reason"));
+                if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
+                        && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                        && reasonMatches) {
+                    found = true;
+                    break;
                 }
-                if ("ResolvedRefs".equals(JsonFields.getString(desiredCondition, "type"))
-                        && "False".equals(JsonFields.getString(desiredCondition, "status"))
-                        && !Objects.equals(JsonFields.getString(desiredCondition, "reason"), JsonFields.getString(existingCondition, "reason"))) {
-                    continue;
-                }
-                matched = true;
-                break;
             }
-            if (!matched) {
+            if (!found) {
                 return false;
             }
         }
         return true;
     }
 
-    private JsonObject buildParentStatus(final String parentNamespace, final String parentName,
-                                         final ShenyuMemoryConfig config) {
-        JsonObject parentRefStatus = new JsonObject();
-        parentRefStatus.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
-        parentRefStatus.addProperty("kind", GatewayApiConstants.GATEWAY_KIND);
-        parentRefStatus.addProperty("namespace", parentNamespace);
-        parentRefStatus.addProperty("name", parentName);
-
-        JsonArray conditions = buildStatusConditions(Instant.now().toString(), config);
-
-        JsonObject parentStatus = new JsonObject();
-        parentStatus.add("parentRef", parentRefStatus);
-        parentStatus.addProperty("controllerName", GatewayApiConstants.SHENYU_CONTROLLER_NAME);
-        parentStatus.add("conditions", conditions);
-        return parentStatus;
-    }
-
-    private JsonArray buildStatusConditions(final String now, final ShenyuMemoryConfig config) {
-        final JsonArray conditions = new JsonArray();
-        conditions.add(buildCondition("Accepted", "True", "Accepted",
-                "Route was accepted by the ShenYu controller", now));
-        if (config.isAllBackendsResolved()) {
-            conditions.add(buildCondition("ResolvedRefs", "True", "ResolvedRefs",
-                    "All references resolved", now));
-        } else {
-            String reason = Objects.nonNull(config.getUnresolvedReason())
-                    ? config.getUnresolvedReason() : GatewayApiConstants.REASON_BACKEND_NOT_FOUND;
-            conditions.add(buildCondition("ResolvedRefs", "False", reason, unresolvedMessage(reason), now));
+    /**
+     * Keep the lastTransitionTime of conditions whose (type, status) is unchanged, as the
+     * spec requires the timestamp to advance only on an actual status transition.
+     */
+    private void preserveTransitionTimes(final JsonArray existingParents, final JsonArray desiredParents) {
+        for (JsonElement desiredElement : desiredParents) {
+            JsonObject desired = desiredElement.getAsJsonObject();
+            JsonObject desiredRef = JsonFields.getJsonObject(desired, "parentRef");
+            JsonArray desiredConditions = JsonFields.getJsonArray(desired, "conditions");
+            for (JsonElement existingElement : existingParents) {
+                JsonObject existing = existingElement.getAsJsonObject();
+                if (!GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(existing, "controllerName"))) {
+                    continue;
+                }
+                if (!sameParentRef(JsonFields.getJsonObject(existing, "parentRef"), desiredRef)) {
+                    continue;
+                }
+                JsonArray existingConditions = JsonFields.getJsonArray(existing, "conditions");
+                if (Objects.isNull(existingConditions) || Objects.isNull(desiredConditions)) {
+                    continue;
+                }
+                for (JsonElement desiredConditionElement : desiredConditions) {
+                    JsonObject desiredCondition = desiredConditionElement.getAsJsonObject();
+                    for (JsonElement existingConditionElement : existingConditions) {
+                        JsonObject existingCondition = existingConditionElement.getAsJsonObject();
+                        if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
+                                && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                                && Objects.nonNull(JsonFields.getString(existingCondition, "lastTransitionTime"))) {
+                            desiredCondition.addProperty("lastTransitionTime",
+                                    JsonFields.getString(existingCondition, "lastTransitionTime"));
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        return conditions;
     }
 
-    private String unresolvedMessage(final String reason) {
-        if (GatewayApiConstants.REASON_REF_NOT_PERMITTED.equals(reason)) {
-            return "One or more backendRefs are not permitted by a ReferenceGrant";
+    /**
+     * Carry over status.parents entries owned by other controllers into the desired
+     * parents: the merge patch replaces the array wholesale, so foreign entries must be
+     * part of the patch body to survive it.
+     */
+    private void retainForeignParentEntries(final JsonArray existingParents, final JsonArray desiredParents) {
+        if (Objects.isNull(existingParents)) {
+            return;
         }
-        if (GatewayApiConstants.REASON_INVALID_KIND.equals(reason)) {
-            return "One or more backendRefs are of an unsupported kind; only Service is supported";
+        for (JsonElement element : existingParents) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject parent = element.getAsJsonObject();
+            if (!GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(parent, "controllerName"))) {
+                desiredParents.add(element);
+            }
         }
-        return "One or more backendRefs could not be resolved to ready endpoints";
     }
 
-    private JsonObject buildCondition(final String type, final String status, final String reason,
-                                      final String message, final String now) {
-        JsonObject condition = new JsonObject();
-        condition.addProperty("type", type);
-        condition.addProperty("status", status);
-        condition.addProperty("reason", reason);
-        condition.addProperty("message", message);
-        condition.addProperty("lastTransitionTime", now);
-        return condition;
+    /**
+     * Remove ShenYu's status.parents entries (used when the route is no longer attached to
+     * any ShenYu Gateway), preserving entries owned by other controllers.
+     */    private void removeShenyuParentStatus(final DynamicKubernetesObject httpRoute, final String namespace,
+                                          final String routeName) {
+        JsonObject status = JsonFields.getJsonObject(httpRoute.getRaw(), "status");
+        JsonArray existingParents = JsonFields.getJsonArray(status, "parents");
+        if (Objects.isNull(existingParents)) {
+            return;
+        }
+        JsonArray kept = new JsonArray();
+        boolean hasShenyuEntry = false;
+        for (JsonElement element : existingParents) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject parent = element.getAsJsonObject();
+            if (GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(parent, "controllerName"))) {
+                hasShenyuEntry = true;
+            } else {
+                kept.add(parent);
+            }
+        }
+        if (!hasShenyuEntry) {
+            return;
+        }
+        JsonObject newStatus = new JsonObject();
+        newStatus.add("parents", kept);
+        sendStatusPatch(httpRoute, namespace, routeName, newStatus);
     }
 
-    private void sendStatusPatch(final String routeNamespace, final String routeName,
-                                  final JsonArray parentsStatus) throws ApiException {
-        JsonObject statusObj = new JsonObject();
-        statusObj.add("parents", parentsStatus);
-
-        JsonObject body = new JsonObject();
-        body.add("status", statusObj);
-        body.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
-        body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
-
+    private void sendStatusPatch(final DynamicKubernetesObject httpRoute, final String namespace,
+                                 final String routeName, final JsonObject status) {
+        JsonObject patch = new JsonObject();
+        patch.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
+        patch.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
         JsonObject metadata = new JsonObject();
+        metadata.addProperty("namespace", namespace);
         metadata.addProperty("name", routeName);
-        metadata.addProperty("namespace", routeNamespace);
-        body.add("metadata", metadata);
+        patch.add("metadata", metadata);
+        patch.add("status", status);
 
         String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION
-                + "/namespaces/" + routeNamespace + "/httproutes/" + routeName + "/status";
+                + "/namespaces/" + namespace + "/httproutes/" + routeName + "/status";
+        try {
+            StatusMergePatch.patch(apiClient, path, patch);
+            LOG.debug("Updated status of HTTPRoute {}/{}", namespace, routeName);
+        } catch (ApiException e) {
+            LOG.warn("Failed to update status of HTTPRoute {}/{}: {}", namespace, routeName, e.getMessage());
+        }
+    }
 
-        StatusMergePatch.patch(apiClient, path, body);
-        LOG.info("Updated HTTPRoute {}/{} status", routeNamespace, routeName);
+    /**
+     * The verdict for one parentRef: acceptance with the effective hostnames, or rejection
+     * with the spec-defined reason reported in status.
+     */
+    private static final class ParentDecision {
+
+        private final JsonObject parentRef;
+
+        private final String parentNamespace;
+
+        private final String parentName;
+
+        private final boolean accepted;
+
+        private final String reason;
+
+        private final String message;
+
+        private final List<String> hostnames;
+
+        private ParentDecision(final JsonObject parentRef, final String parentNamespace, final String parentName,
+                               final boolean accepted, final String reason, final String message,
+                               final List<String> hostnames) {
+            this.parentRef = parentRef;
+            this.parentNamespace = parentNamespace;
+            this.parentName = parentName;
+            this.accepted = accepted;
+            this.reason = reason;
+            this.message = message;
+            this.hostnames = hostnames;
+        }
+
+        static ParentDecision accepted(final JsonObject parentRef, final String parentNamespace, final String parentName,
+                                       final List<String> hostnames) {
+            return new ParentDecision(parentRef, parentNamespace, parentName, true, null, null, hostnames);
+        }
+
+        static ParentDecision rejected(final JsonObject parentRef, final String parentNamespace, final String parentName,
+                                       final String reason, final String message) {
+            return new ParentDecision(parentRef, parentNamespace, parentName, false, reason, message, List.of());
+        }
     }
 }

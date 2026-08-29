@@ -118,39 +118,78 @@ public class ShenyuCacheRepository {
     }
 
     /**
-     * Save or update SelectorData by SelectorData.
+     * Save or update SelectorData by SelectorData. Idempotent: a selector whose cached
+     * content is already equal (including the upstream list in its handle) is skipped, so
+     * the periodic informer resync does not churn the data plane with no-op updates.
      *
      * @param selectorData SelectorData
      */
     public void saveOrUpdateSelectorData(final SelectorData selectorData) {
-        subscriber.onSelectorSubscribe(selectorData);
+        List<DiscoveryUpstreamData> upstreamDataList = new ArrayList<>(convert(selectorData.getPluginName(), selectorData.getHandle()));
+        Set<String> newUrls = upstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+        List<Upstream> cachedUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorData.getId());
+        Set<String> cachedUrls = CollectionUtils.isEmpty(cachedUpstreams) ? Collections.emptySet()
+                : cachedUpstreams.stream().map(Upstream::getUrl).collect(Collectors.toSet());
+        // {@link UpstreamCacheManager#submit} merges by URL and only removes entries
+        // explicitly marked offline, because the admin control plane pushes incremental
+        // upstream events. The Kubernetes reconciler submits an authoritative full snapshot,
+        // so cache-only entries are appended as offline in the SAME submit: the snapshot is
+        // replaced atomically, without the remove-then-readd window that would briefly leave
+        // the selector with zero upstreams. Upstream identity is url+protocol, so both are
+        // taken from the cached entry.
+        if (CollectionUtils.isNotEmpty(cachedUpstreams)) {
+            for (Upstream cached : cachedUpstreams) {
+                if (!newUrls.contains(cached.getUrl())) {
+                    upstreamDataList.add(buildOfflineUpstreamData(cached.getUrl(), cached.getProtocol()));
+                }
+            }
+        }
+        boolean upstreamsChanged = !cachedUrls.equals(newUrls);
+        SelectorData cachedSelector = findSelectorData(selectorData.getPluginName(), selectorData.getId());
+        boolean selectorChanged = !selectorData.equals(cachedSelector);
+        if (!selectorChanged && !upstreamsChanged) {
+            return;
+        }
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorName(selectorData.getName());
         discoverySyncData.setSelectorId(selectorData.getId());
         discoverySyncData.setPluginName(selectorData.getPluginName());
-        List<DiscoveryUpstreamData> upstreamDataList = convert(selectorData.getPluginName(), selectorData.getHandle());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
-        removeStaleUpstreams(selectorData.getId(), upstreamDataList);
         saveOrUpdateDiscoveryUpstreamData(discoverySyncData);
-        LOG.info("Resolved {} upstream(s) for selector {}", upstreamDataList.size(), selectorData.getId());
+        if (upstreamsChanged) {
+            LOG.info("Resolved {} upstream(s) for selector {}", newUrls.size(), selectorData.getId());
+        }
+        if (selectorChanged) {
+            subscriber.onSelectorSubscribe(selectorData);
+            LOG.info("Published divide selector {} for HTTPRoute coordinates {}", selectorData.getId(), selectorData.getName());
+        }
     }
 
     /**
-     * {@link UpstreamCacheManager#submit} merges by URL and only removes entries explicitly
-     * marked offline, because the admin control plane pushes incremental upstream events.
-     * The Kubernetes reconciler submits an authoritative full snapshot, so a vanished
-     * upstream must be dropped here or it keeps receiving traffic forever.
+     * Find a cached SelectorData by plugin name and selector id.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selector id
+     * @return the cached selector, or null
      */
-    private void removeStaleUpstreams(final String selectorId, final List<DiscoveryUpstreamData> newUpstreams) {
-        List<Upstream> current = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
-        if (CollectionUtils.isEmpty(current)) {
-            return;
+    public SelectorData findSelectorData(final String pluginName, final String selectorId) {
+        List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+        if (CollectionUtils.isEmpty(selectors)) {
+            return null;
         }
-        Set<String> newUrls = newUpstreams.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
-        boolean hasStale = current.stream().anyMatch(upstream -> !newUrls.contains(upstream.getUrl()));
-        if (hasStale) {
-            UpstreamCacheManager.getInstance().removeByKey(selectorId);
-        }
+        return selectors.stream()
+                .filter(selector -> selector.getId().equals(selectorId))
+                .findFirst().orElse(null);
+    }
+
+    private DiscoveryUpstreamData buildOfflineUpstreamData(final String url, final String protocol) {
+        DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+        upstreamData.setUrl(url);
+        upstreamData.setProtocol(protocol);
+        // status 1 marks the entry offline, which is how submit evicts it from the cache
+        upstreamData.setStatus(1);
+        upstreamData.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        return upstreamData;
     }
 
     private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
@@ -222,11 +261,17 @@ public class ShenyuCacheRepository {
     }
 
     /**
-     * Save or update RuleData by RuleData.
+     * Save or update RuleData by RuleData. Idempotent like the selector path: an unchanged
+     * rule is skipped so the periodic resync does not churn the data plane.
      *
      * @param ruleData RuleData
      */
     public void saveOrUpdateRuleData(final RuleData ruleData) {
+        boolean unchanged = findRuleDataList(ruleData.getSelectorId()).stream()
+                .anyMatch(cached -> cached.getId().equals(ruleData.getId()) && cached.equals(ruleData));
+        if (unchanged) {
+            return;
+        }
         subscriber.onRuleSubscribe(ruleData);
     }
 

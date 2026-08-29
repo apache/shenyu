@@ -24,7 +24,6 @@ import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
-import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.extended.workqueue.DefaultRateLimitingQueue;
 import io.kubernetes.client.extended.workqueue.RateLimitingQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -41,15 +40,18 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.k8s.cache.K8sCacheReadiness;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
+import org.apache.shenyu.k8s.common.GatewayApiCrdVerifier;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
 import org.apache.shenyu.k8s.reconciler.GatewayClassReconciler;
 import org.apache.shenyu.k8s.reconciler.GatewayReconciler;
 import org.apache.shenyu.k8s.reconciler.HTTPRouteReconciler;
 import org.apache.shenyu.k8s.reconciler.HttpRouteEndpointsHandler;
+import org.apache.shenyu.k8s.reconciler.ReferenceGrantReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -59,6 +61,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.env.Environment;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -91,6 +94,9 @@ public class GatewayApiControllerConfiguration {
      * no-op in client-java.
      */
     private static final long RESYNC_PERIOD_MILLIS = Duration.ofMinutes(1).toMillis();
+
+    /** Fallback for server.port; matches the bootstrap default. */
+    private static final int DEFAULT_SERVER_PORT = 9195;
 
     /**
      * GatewayClass informer factory; separate factories avoid DynamicKubernetesObject class-key collisions.
@@ -200,22 +206,28 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * ReferenceGrant controller: a no-op reconciler is required so the factory's informer
-     * starts and populates the lister used for cross-namespace validation. Affected routes
-     * pick up grant changes on their own informer resync.
+     * ReferenceGrant controller: re-queues HTTPRoutes referencing the grant's namespace, so
+     * grant changes take effect immediately instead of on the next route resync (a revoked
+     * grant must stop unauthorized traffic right away).
      *
      * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
-     * @return a no-op controller keeping the ReferenceGrant informer running
+     * @param httpRouteFactory the HTTPRoute SharedInformerFactory
+     * @param httpRouteWorkQueue the HTTPRoute controller work queue
+     * @return the ReferenceGrant controller
      */
     @Bean("referencegrant-controller")
     public Controller referenceGrantController(
-            @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory) {
+            @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
+            @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
+            @Qualifier("httproute-work-queue") final RateLimitingQueue<Request> httpRouteWorkQueue) {
         DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(referenceGrantFactory);
         builder = builder.watch(q -> ControllerBuilder.controllerWatchBuilder(DynamicKubernetesObject.class, q)
                 .build());
         builder.withWorkerCount(1);
-        Reconciler noOp = request -> new Result(false);
-        return builder.withReconciler(noOp).withName("referenceGrantController").build();
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        Reconciler reconciler = new ReferenceGrantReconciler(httpRouteInformer, httpRouteWorkQueue);
+        return builder.withReconciler(reconciler).withName("referenceGrantController").build();
     }
 
     @Bean("referencegrant-controller-manager")
@@ -223,6 +235,19 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
             @Qualifier("referencegrant-controller") final Controller referenceGrantController) {
         return new ControllerManager(referenceGrantFactory, referenceGrantController);
+    }
+
+    /**
+     * Fail fast when the cluster does not serve the required Gateway API CRDs at v1,
+     * before any informer starts crash-looping on 404s. Runs after all singletons are
+     * instantiated and before the controller lifecycle starts the informers.
+     *
+     * @param apiClient the Kubernetes API client
+     * @return the startup check
+     */
+    @Bean
+    public SmartInitializingSingleton gatewayApiCrdVerifier(final ApiClient apiClient) {
+        return () -> GatewayApiCrdVerifier.verify(apiClient);
     }
 
     /**
@@ -328,7 +353,8 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController,
             final ShenyuCacheRepository shenyuCacheRepository,
-            final ApiClient apiClient) {
+            final ApiClient apiClient,
+            final Environment environment) {
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer =
                 gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
@@ -336,8 +362,9 @@ public class GatewayApiControllerConfiguration {
         SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         RateLimitingQueue<Request> httpRouteWorkQueue = ((DefaultController) httpRouteController).getWorkQueue();
+        int servedPort = environment.getProperty("server.port", Integer.class, DEFAULT_SERVER_PORT);
         return new GatewayReconciler(gatewayInformer, gatewayClassInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient);
+                shenyuCacheRepository, httpRouteWorkQueue, apiClient, servedPort);
     }
 
     @Bean

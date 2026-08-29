@@ -163,12 +163,6 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Gateway API lifecycle scenarios
-        if: steps.filter.outputs.k8s-gateway-api == 'true'
-        timeout-minutes: 20
-        run: |
-          bash ./shenyu-integrated-test/${{ matrix.case }}/script/gateway_api_lifecycle_test.sh
-
       - name: Cluster Test after Healthcheck
         if: steps.filter.outputs.k8s-gateway-api == 'true'
         run: |

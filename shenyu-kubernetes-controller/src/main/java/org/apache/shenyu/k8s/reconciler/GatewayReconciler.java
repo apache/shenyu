@@ -33,6 +33,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.JsonFields;
+import org.apache.shenyu.k8s.common.ListenerSupport;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
@@ -44,6 +45,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Reconciler for Gateway resources (Gateway API v1).
+ *
+ * <p>Besides the Accepted condition, the reconciler reports Programmed and per-listener
+ * status (supportedKinds, attachedRoutes, per-listener Accepted/Programmed). A listener is
+ * usable only when it speaks plain HTTP on the port this gateway actually serves
+ * ({@code server.port}); anything else is reported with the spec-defined reason instead of
+ * being silently ignored. attachedRoutes reflects the in-memory bindings and converges on
+ * gateway resyncs.
+ */
 public class GatewayReconciler implements Reconciler {
 
     private static final Logger LOG = LoggerFactory.getLogger(GatewayReconciler.class);
@@ -60,23 +71,28 @@ public class GatewayReconciler implements Reconciler {
 
     private final ApiClient apiClient;
 
+    /** The port the embedded ShenYu data plane actually listens on ({@code server.port}). */
+    private final int servedPort;
+
     public GatewayReconciler(final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
                              final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
                              final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                              final ShenyuCacheRepository shenyuCacheRepository,
                              final RateLimitingQueue<Request> httpRouteWorkQueue,
-                             final ApiClient apiClient) {
+                             final ApiClient apiClient,
+                             final int servedPort) {
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
         this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.httpRouteWorkQueue = httpRouteWorkQueue;
         this.apiClient = apiClient;
+        this.servedPort = servedPort;
     }
 
     @Override
     public Result reconcile(final Request request) {
-        LOG.info("Starting to reconcile gateway {}", request);
+        LOG.debug("Starting to reconcile gateway {}", request);
         try {
             DynamicKubernetesObject gateway = gatewayLister.namespace(request.getNamespace()).get(request.getName());
 
@@ -106,8 +122,11 @@ public class GatewayReconciler implements Reconciler {
 
             // Requeue only on the Accepted transition (first accept or after losing it):
             // on plain resyncs routes are already reconciled and a cluster scan is wasted.
-            boolean wasAccepted = GatewayApiConstants.isConditionTrue(gateway, "Accepted");
-            updateGatewayAcceptedStatus(gateway);
+            boolean wasAccepted = GatewayApiConstants.isConditionTrue(gateway, GatewayApiConstants.CONDITION_ACCEPTED);
+            JsonObject desiredStatus = buildAcceptedStatus(gateway);
+            if (!gatewayStatusMatches(gateway, desiredStatus)) {
+                patchGatewayStatus(gateway, desiredStatus);
+            }
             if (!wasAccepted) {
                 requeueAffectedHTTPRoutes(request.getNamespace(), request.getName());
             }
@@ -208,61 +227,214 @@ public class GatewayReconciler implements Reconciler {
             return;
         }
         JsonObject condition = new JsonObject();
-        condition.addProperty("type", "Accepted");
+        condition.addProperty("type", GatewayApiConstants.CONDITION_ACCEPTED);
         condition.addProperty("status", "False");
         condition.addProperty("reason", "NoGatewayClassController");
         condition.addProperty("message", "GatewayClass is missing or not managed by the ShenYu controller");
+        Long generation = generationOf(gateway);
+        if (Objects.nonNull(generation)) {
+            condition.addProperty("observedGeneration", generation);
+        }
         condition.addProperty("lastTransitionTime", Instant.now().toString());
-        patchGatewayStatus(gateway, condition);
+
+        JsonArray conditions = new JsonArray();
+        conditions.add(condition);
+        JsonObject statusObj = new JsonObject();
+        statusObj.add("conditions", conditions);
+        patchGatewayStatus(gateway, statusObj);
     }
 
     private boolean isAcceptedCondition(final DynamicKubernetesObject gateway, final String status) {
-        JsonObject raw = gateway.getRaw();
-        if (!raw.has("status") || raw.get("status").isJsonNull()) {
+        JsonObject statusObj = JsonFields.getJsonObject(gateway.getRaw(), "status");
+        JsonArray conditions = JsonFields.getJsonArray(statusObj, "conditions");
+        if (Objects.isNull(conditions)) {
             return false;
         }
-        JsonObject statusObj = raw.getAsJsonObject("status");
-        if (!statusObj.has("conditions") || statusObj.get("conditions").isJsonNull()) {
-            return false;
-        }
-        for (JsonElement el : statusObj.getAsJsonArray("conditions")) {
+        for (JsonElement el : conditions) {
+            if (!el.isJsonObject()) {
+                continue;
+            }
             JsonObject cond = el.getAsJsonObject();
-            if ("Accepted".equals(cond.has("type") ? cond.get("type").getAsString() : null)
-                    && status.equals(cond.has("status") ? cond.get("status").getAsString() : null)) {
+            if (GatewayApiConstants.CONDITION_ACCEPTED.equals(JsonFields.getString(cond, "type"))
+                    && status.equals(JsonFields.getString(cond, "status"))) {
                 return true;
             }
         }
         return false;
     }
 
-    /** Update Gateway status with Accepted=True, via merge-patch on the /status subresource. */
-    private void updateGatewayAcceptedStatus(final DynamicKubernetesObject gateway) {
-        if (GatewayApiConstants.isConditionTrue(gateway, "Accepted")) {
-            return;
+    /**
+     * Build the desired status of an accepted Gateway: Accepted + Programmed conditions and
+     * the per-listener status entries.
+     */
+    private JsonObject buildAcceptedStatus(final DynamicKubernetesObject gateway) {
+        Long generation = generationOf(gateway);
+        String namespace = gateway.getMetadata().getNamespace();
+        String name = gateway.getMetadata().getName();
+        Set<String> boundRoutes = GatewayRouteCache.getInstance().getRoutesByGateway(namespace, name);
+        int attachedRoutes = Objects.isNull(boundRoutes) ? 0 : boundRoutes.size();
+
+        List<JsonObject> listeners = ListenerSupport.selectListeners(gateway.getRaw(), null);
+        JsonArray listenerStatuses = new JsonArray();
+        boolean anyUsableListener = false;
+        for (JsonObject listener : listeners) {
+            boolean protocolOk = ListenerSupport.isSupportedProtocol(listener);
+            Long port = ListenerSupport.portOf(listener);
+            boolean portOk = Objects.nonNull(port) && port == servedPort;
+            boolean usable = protocolOk && portOk;
+            anyUsableListener |= usable;
+
+            JsonObject listenerStatus = new JsonObject();
+            listenerStatus.addProperty("name", ListenerSupport.nameOf(listener));
+            JsonObject kind = new JsonObject();
+            kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
+            kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+            JsonArray supportedKinds = new JsonArray();
+            supportedKinds.add(kind);
+            listenerStatus.add("supportedKinds", supportedKinds);
+            listenerStatus.addProperty("attachedRoutes", attachedRoutes);
+
+            JsonArray listenerConditions = new JsonArray();
+            if (usable) {
+                listenerConditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "True",
+                        GatewayApiConstants.CONDITION_ACCEPTED, "Listener is accepted", generation));
+                listenerConditions.add(buildCondition(GatewayApiConstants.CONDITION_PROGRAMMED, "True",
+                        GatewayApiConstants.REASON_PROGRAMMED, "Listener is programmed", generation));
+            } else {
+                String reason = protocolOk ? GatewayApiConstants.REASON_PORT_UNAVAILABLE
+                        : GatewayApiConstants.REASON_UNSUPPORTED_PROTOCOL;
+                String message = protocolOk
+                        ? "listener port " + port + " is not served by this gateway (serving " + servedPort + ")"
+                        : "listener protocol " + ListenerSupport.protocolOf(listener) + " is not supported, only HTTP";
+                listenerConditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False", reason, message, generation));
+                listenerConditions.add(buildCondition(GatewayApiConstants.CONDITION_PROGRAMMED, "False",
+                        "Pending", "Listener is not programmed", generation));
+            }
+            listenerStatus.add("conditions", listenerConditions);
+            listenerStatuses.add(listenerStatus);
         }
+
+        JsonArray conditions = new JsonArray();
+        conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "True",
+                GatewayApiConstants.CONDITION_ACCEPTED, "Gateway has been accepted by the ShenYu controller", generation));
+        if (anyUsableListener) {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_PROGRAMMED, "True",
+                    GatewayApiConstants.REASON_PROGRAMMED, "Gateway is programmed into the embedded ShenYu data plane", generation));
+        } else {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_PROGRAMMED, "False",
+                    GatewayApiConstants.REASON_LISTENERS_NOT_VALID, "No listener with a supported protocol (HTTP) and a served port",
+                    generation));
+        }
+
+        JsonObject status = new JsonObject();
+        status.add("conditions", conditions);
+        status.add("listeners", listenerStatuses);
+        return status;
+    }
+
+    /**
+     * Whether the current Gateway status already carries our conditions with matching
+     * type/status/reason and per-listener entries with matching attachedRoutes. Timestamps
+     * and observedGeneration are deliberately ignored to keep the steady state patch-free.
+     */
+    private boolean gatewayStatusMatches(final DynamicKubernetesObject gateway, final JsonObject desiredStatus) {
+        JsonObject existingStatus = JsonFields.getJsonObject(gateway.getRaw(), "status");
+        if (Objects.isNull(existingStatus)) {
+            return false;
+        }
+        if (!conditionsMatch(JsonFields.getJsonArray(existingStatus, "conditions"),
+                desiredStatus.getAsJsonArray("conditions"))) {
+            return false;
+        }
+        JsonArray existingListeners = JsonFields.getJsonArray(existingStatus, "listeners");
+        JsonArray desiredListeners = desiredStatus.getAsJsonArray("listeners");
+        if (Objects.isNull(existingListeners) || existingListeners.size() != desiredListeners.size()) {
+            return false;
+        }
+        for (JsonElement desiredElement : desiredListeners) {
+            JsonObject desiredListener = desiredElement.getAsJsonObject();
+            JsonObject existingListener = findListenerStatus(existingListeners, JsonFields.getString(desiredListener, "name"));
+            if (Objects.isNull(existingListener)
+                    || JsonFields.getLong(existingListener, "attachedRoutes")
+                    != JsonFields.getLong(desiredListener, "attachedRoutes")
+                    || !conditionsMatch(JsonFields.getJsonArray(existingListener, "conditions"),
+                    desiredListener.getAsJsonArray("conditions"))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private JsonObject findListenerStatus(final JsonArray listeners, final String name) {
+        for (JsonElement element : listeners) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject listener = element.getAsJsonObject();
+            if (Objects.equals(JsonFields.getString(listener, "name"), name)) {
+                return listener;
+            }
+        }
+        return null;
+    }
+
+    /** Compare by (type, status), plus reason for False conditions; ignores timestamps. */
+    private boolean conditionsMatch(final JsonArray existing, final JsonArray desired) {
+        if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() < desired.size()) {
+            return false;
+        }
+        for (JsonElement desiredElement : desired) {
+            JsonObject desiredCondition = desiredElement.getAsJsonObject();
+            boolean found = false;
+            for (JsonElement existingElement : existing) {
+                if (!existingElement.isJsonObject()) {
+                    continue;
+                }
+                JsonObject existingCondition = existingElement.getAsJsonObject();
+                boolean reasonMatters = "False".equals(JsonFields.getString(desiredCondition, "status"));
+                boolean reasonMatches = !reasonMatters || Objects.equals(
+                        JsonFields.getString(existingCondition, "reason"), JsonFields.getString(desiredCondition, "reason"));
+                if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
+                        && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                        && reasonMatches) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static JsonObject buildCondition(final String type, final String status, final String reason,
+                                             final String message, final Long observedGeneration) {
         JsonObject condition = new JsonObject();
-        condition.addProperty("type", "Accepted");
-        condition.addProperty("status", "True");
-        condition.addProperty("reason", "Accepted");
-        condition.addProperty("message", "Gateway has been accepted by the ShenYu controller");
+        condition.addProperty("type", type);
+        condition.addProperty("status", status);
+        condition.addProperty("reason", reason);
+        condition.addProperty("message", message);
+        if (Objects.nonNull(observedGeneration)) {
+            condition.addProperty("observedGeneration", observedGeneration);
+        }
         condition.addProperty("lastTransitionTime", Instant.now().toString());
-        patchGatewayStatus(gateway, condition);
+        return condition;
+    }
+
+    private static Long generationOf(final DynamicKubernetesObject gateway) {
+        return JsonFields.getLong(JsonFields.getJsonObject(gateway.getRaw(), "metadata"), "generation");
     }
 
     /** Merge-patch the Gateway /status subresource, preserving conditions owned by other controllers. */
-    private void patchGatewayStatus(final DynamicKubernetesObject gateway, final JsonObject condition) {
+    private void patchGatewayStatus(final DynamicKubernetesObject gateway, final JsonObject statusObj) {
         try {
             final String namespace = gateway.getMetadata().getNamespace();
             final String name = gateway.getMetadata().getName();
 
-            JsonArray conditions = buildGatewayStatusConditions(gateway, condition);
-
-            JsonObject statusObj = new JsonObject();
-            statusObj.add("conditions", conditions);
-
             JsonObject body = new JsonObject();
             body.add("status", statusObj);
-            body.addProperty("kind", "Gateway");
+            body.addProperty("kind", GatewayApiConstants.GATEWAY_KIND);
             body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
 
             JsonObject metadata = new JsonObject();
@@ -274,50 +446,9 @@ public class GatewayReconciler implements Reconciler {
                     + "/namespaces/" + namespace + "/gateways/" + name + "/status";
 
             StatusMergePatch.patch(apiClient, path, body);
-            LOG.info("Updated Gateway {}/{} status to Accepted={}", namespace, name, condition.get("status").getAsString());
+            LOG.info("Updated Gateway {}/{} status", namespace, name);
         } catch (Exception e) {
             LOG.warn("Failed to update Gateway status, will retry on next resync", e);
         }
     }
-
-    /**
-     * Build the Gateway status conditions array for the patch body: the Accepted condition
-     * plus all existing non-Accepted conditions, and the spec-mandated Programmed default
-     * (Unknown/Pending) if missing.
-     */
-    private JsonArray buildGatewayStatusConditions(final DynamicKubernetesObject gateway,
-                                                   final JsonObject acceptedCondition) {
-        JsonArray conditions = new JsonArray();
-        conditions.add(acceptedCondition);
-
-        boolean hasProgrammed = false;
-        JsonObject raw = gateway.getRaw();
-        if (raw.has("status") && !raw.get("status").isJsonNull()) {
-            JsonObject status = raw.getAsJsonObject("status");
-            if (status.has("conditions") && !status.get("conditions").isJsonNull()) {
-                JsonArray existingConditions = status.getAsJsonArray("conditions");
-                for (JsonElement el : existingConditions) {
-                    JsonObject existing = el.getAsJsonObject();
-                    String existingType = existing.has("type") ? existing.get("type").getAsString() : null;
-                    if ("Programmed".equals(existingType)) {
-                        hasProgrammed = true;
-                        conditions.add(existing);
-                    } else if (!"Accepted".equals(existingType)) {
-                        conditions.add(existing);
-                    }
-                }
-            }
-        }
-        if (!hasProgrammed) {
-            JsonObject programmedDefault = new JsonObject();
-            programmedDefault.addProperty("type", "Programmed");
-            programmedDefault.addProperty("status", "Unknown");
-            programmedDefault.addProperty("reason", "Pending");
-            programmedDefault.addProperty("message", "Waiting for controller");
-            programmedDefault.addProperty("lastTransitionTime", "1970-01-01T00:00:00Z");
-            conditions.add(programmedDefault);
-        }
-        return conditions;
-    }
-
 }

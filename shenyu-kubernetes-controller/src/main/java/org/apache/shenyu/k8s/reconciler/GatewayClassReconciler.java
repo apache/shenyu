@@ -29,6 +29,7 @@ import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
+import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,6 +179,10 @@ public class GatewayClassReconciler implements Reconciler {
             condition.addProperty("status", "True");
             condition.addProperty("reason", "Accepted");
             condition.addProperty("message", "GatewayClass has been accepted by the ShenYu controller");
+            Long generation = JsonFields.getLong(JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata"), "generation");
+            if (Objects.nonNull(generation)) {
+                condition.addProperty("observedGeneration", generation);
+            }
             condition.addProperty("lastTransitionTime", Instant.now().toString());
 
             JsonArray conditions = buildGatewayClassStatusConditions(gatewayClass, condition);
