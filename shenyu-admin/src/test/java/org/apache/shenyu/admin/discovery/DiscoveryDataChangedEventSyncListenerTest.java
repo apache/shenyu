@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,6 +106,24 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         DiscoveryDataChangedEvent event3 = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED);
         discoveryDataChangedEventSyncListener.onChange(event3);
         verify(discoveryUpstreamMapper).deleteByUrl(anyString(), anyString());
+    }
+
+    @Test
+    public void testOnChangeShouldUseDiscoveryNamespaceWhenUpstreamNamespaceBlank() {
+        final String namespaceId = "namespace-test";
+        final DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setProtocol("http://");
+        discoveryUpstreamData.setUrl("127.0.0.1:8080");
+        when(keyValueParser.parseValue(anyString())).thenReturn(Collections.singletonList(discoveryUpstreamData));
+        when(contextInfo.getNamespaceId()).thenReturn(namespaceId);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
+
+        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED);
+        discoveryDataChangedEventSyncListener.onChange(event);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> discoveryUpstreamCaptor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).insert(discoveryUpstreamCaptor.capture());
+        Assertions.assertEquals(namespaceId, discoveryUpstreamCaptor.getValue().getNamespaceId());
     }
 
     @Test

@@ -103,11 +103,15 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private final String namespaceId;
 
+    private final AtomicBoolean manuallyClosed = new AtomicBoolean(false);
+
     private final AtomicBoolean reconnecting = new AtomicBoolean(false);
 
     private volatile long lastReconnectAttemptTime;
 
     private final AtomicInteger reconnectBackoff = new AtomicInteger(0);
+
+    private volatile Thread reconnectThread;
 
     /**
      * Instantiates a new shenyu websocket client.
@@ -263,14 +267,22 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * now close. will cancel the task execution.
      */
     public void nowClose() {
-        this.close();
+        this.manuallyClosed.set(true);
         if (Objects.nonNull(timerTask)) {
             timerTask.cancel();
         }
+        Thread currentReconnectThread = this.reconnectThread;
+        if (Objects.nonNull(currentReconnectThread)) {
+            currentReconnectThread.interrupt();
+        }
+        this.close();
     }
     
     private void healthCheck() {
         try {
+            if (this.manuallyClosed.get()) {
+                return;
+            }
             if (!this.isOpen()) {
                 if (this.reconnecting.compareAndSet(false, true)) {
                     RECONNECT_EXECUTOR.submit(this::doReconnect);
@@ -287,7 +299,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     }
 
     private void doReconnect() {
+        this.reconnectThread = Thread.currentThread();
         try {
+            if (this.manuallyClosed.get()) {
+                return;
+            }
             long backoff = calculateBackoff();
             long since = System.currentTimeMillis() - lastReconnectAttemptTime;
             long waitMs = backoff - since;
@@ -305,7 +321,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             reconnectBackoff.set(Math.min(reconnectBackoff.get() + 1, 10));
             LOG.error("websocket reconnect server[{}] error", this.getURI(), e);
         } finally {
+            this.reconnectThread = null;
             this.reconnecting.set(false);
+            if (this.manuallyClosed.get()) {
+                this.close();
+            }
         }
     }
 
