@@ -131,7 +131,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
                     changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
 
-                    if (Objects.nonNull(configDataNames) && configDataNames.size() > changedList.size()) {
+                    if (Objects.nonNull(configDataNames)) {
                         configDataNames.removeAll(changeNames);
                         configDataNames.forEach(this::delConfig);
                     }
