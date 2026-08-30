@@ -71,6 +71,9 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RateLimiterHandle limiterHandle = RateLimiterPluginDataHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(limiterHandle)) {
+            return chain.execute(exchange);
+        }
         String resolverKey = Optional.ofNullable(limiterHandle.getKeyResolverName())
                 .flatMap(name -> Optional.of("-" + RateLimiterKeyResolverFactory.newInstance(name).resolve(exchange)))
                 .orElse("");

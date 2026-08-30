@@ -131,7 +131,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
                     changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
 
-                    if (Objects.nonNull(configDataNames) && configDataNames.size() > changedList.size()) {
+                    if (Objects.nonNull(configDataNames)) {
                         configDataNames.removeAll(changeNames);
                         configDataNames.forEach(this::delConfig);
                     }
@@ -174,7 +174,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
             return;
         }
         SelectorData selectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("selectorData is null"));
-        final String configKeyPrefix = selectorData.getNamespaceId() + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String configKeyPrefix = StringUtils.defaultString(selectorData.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID) + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
         LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }
