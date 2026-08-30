@@ -189,16 +189,20 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(final String discoveryId) {
+    public String delete(final String discoveryId, final String namespaceId) {
         List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectByDiscoveryId(discoveryId);
         if (CollectionUtils.isNotEmpty(discoveryHandlerDOS)) {
             LOG.warn("shenyu this discovery has discoveryHandler can't be delete");
             throw new ShenyuException("shenyu this discovery has discoveryHandler can't be delete");
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryId);
+        if (Objects.isNull(discoveryDO) || !Objects.equals(discoveryDO.getNamespaceId(), namespaceId)) {
+            LOG.warn("shenyu discovery {} is not found in namespace {}", discoveryId, namespaceId);
+            throw new ShenyuException("shenyu this discovery is not found in current namespace");
+        }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.removeDiscovery(discoveryDO);
-        discoveryMapper.delete(discoveryId);
+        discoveryMapper.delete(discoveryId, namespaceId);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 
