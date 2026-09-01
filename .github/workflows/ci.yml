@@ -68,25 +68,11 @@ jobs:
     needs: changes
     strategy:
       matrix:
-        java: [17]
-        os: [ubuntu-latest, windows-latest]
-        include:
-          - java: 17
-            os: ubuntu-latest
-#          - java: 18
-#            os: ubuntu-latest
-          - java: 19
-            os: ubuntu-latest
-          - java: 20
-            os: ubuntu-latest
-          - java: 21
-            os: ubuntu-latest
+        java: [17, 19, 20, 21]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.code == 'true'
     steps:
-      - name: Support longpaths
-        if: ${{ matrix.os == 'windows-latest'}}
-        run: git config --system core.longpaths true
       - uses: actions/checkout@v3
         with:
           submodules: true
@@ -106,7 +92,6 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: "temurin"
       - name: Install mvnd
-        if: ${{ runner.os != 'Windows' }}
         shell: bash
         run: |
           MVND_VERSION=1.0.6
@@ -118,17 +103,13 @@ jobs:
           echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
       - name: Verify mvnd installation
-        if: ${{ runner.os != 'Windows' }}
         shell: bash
         run: mvnd --version || echo "mvnd version check failed, will use maven wrapper as fallback"
 
       - name: Build with Maven
         shell: bash
         run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            echo "Building with maven wrapper on Windows"
-            ./mvnw.cmd -B clean test -Prelease
-          elif mvnd --version > /dev/null 2>&1; then
+          if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
             mvnd -B clean test -Prelease -DskipRemoteResources=true
           else
