@@ -133,7 +133,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
                     if (Objects.nonNull(configDataNames)) {
                         configDataNames.removeAll(changeNames);
-                        configDataNames.forEach(this::delConfig);
+                        configDataNames.forEach(name -> delConfig(configKeyPrefix + name));
                     }
 
                     publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
