@@ -47,8 +47,12 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -89,6 +93,27 @@ public final class ApiServiceTest {
     public void testCreateOrUpdate() {
         testCreate();
         testUpdate("123");
+    }
+
+    @Test
+    public void testUpdateWithEmptyTagIdsClearsRelations() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        apiDTO.setTagIds(Collections.emptyList());
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+        verify(tagRelationMapper).deleteByApiId("123");
+        verify(tagRelationMapper, never()).batchInsert(anyList());
+    }
+
+    @Test
+    public void testUpdateWithNullTagIdsKeepsRelations() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+        verify(tagRelationMapper, never()).deleteByApiId("123");
+        verify(tagRelationMapper, never()).batchInsert(anyList());
     }
 
     @Test
