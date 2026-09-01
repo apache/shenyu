@@ -62,15 +62,6 @@ public class AiProxyExecutorService {
             final String requestBody, final boolean stream) {
         return mainApi.chatCompletionStream(request)
                 .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
-                .retryWhen(Retry.max(1)
-                        .filter(AiProxyExecutorService::isRetryable)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            LOG.warn("Direct stream retry exhausted. Triggering fallback.",
-                                    retrySignal.failure());
-                            return new NonTransientAiException(
-                                    "Direct stream failed after 1 retry. Triggering fallback.",
-                                    retrySignal.failure());
-                        }))
                 .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream));
     }
 
