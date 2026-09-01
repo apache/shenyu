@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Optional;
@@ -64,6 +65,7 @@ public enum DiscoveryTransfer {
             .status(data.getStatus())
             .weight(data.getWeight())
             .props(data.getProps())
+            .manualStatus(data.getManualStatus())
             .url(data.getUrl())
             .dateUpdated(data.getDateUpdated())
             .dateCreated(data.getDateCreated()).build()).orElse(null);
@@ -85,6 +87,8 @@ public enum DiscoveryTransfer {
                     .orElse(new Properties());
             commonUpstream
                     .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+            commonUpstream.setNamespaceId(data.getNamespaceId());
+            commonUpstream.setManualStatus(data.getManualStatus());
             return commonUpstream;
         }).orElse(null);
     }
@@ -106,6 +110,7 @@ public enum DiscoveryTransfer {
             vo.setWeight(data.getWeight());
             vo.setProps(data.getProps());
             vo.setStartupTime(String.valueOf(data.getDateCreated().getTime()));
+            vo.setManualStatus(data.getManualStatus());
             return vo;
         }).orElse(null);
     }
@@ -193,6 +198,8 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setProps(data.getProps());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
+            discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
+            discoveryUpstreamData.setManualStatus(data.getManualStatus());
             return discoveryUpstreamData;
         }).orElse(null);
     }
@@ -216,6 +223,7 @@ public enum DiscoveryTransfer {
             discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
             discoveryUpstreamData.setDateCreated(data.getDateCreated());
             discoveryUpstreamData.setDateUpdated(data.getDateUpdated());
+            discoveryUpstreamData.setManualStatus(data.getManualStatus());
             return discoveryUpstreamData;
         }).orElse(null);
     }
@@ -337,6 +345,8 @@ public enum DiscoveryTransfer {
             discoveryUpstreamDTO.setWeight(data.getWeight());
             discoveryUpstreamDTO.setDateCreated(data.getDateCreated());
             discoveryUpstreamDTO.setDateUpdated(data.getDateUpdated());
+            discoveryUpstreamDTO.setNamespaceId(data.getNamespaceId());
+            discoveryUpstreamDTO.setManualStatus(data.getManualStatus());
             return discoveryUpstreamDTO;
         }).orElse(null);
     }
@@ -372,6 +382,7 @@ public enum DiscoveryTransfer {
                 .orElse(new Properties());
         properties.setProperty("healthCheckEnabled", String.valueOf(commonUpstream.isHealthCheckEnabled()));
         discoveryUpstreamDTO.setProps(GsonUtils.getInstance().toJson(properties));
+        discoveryUpstreamDTO.setManualStatus(UpstreamManualStatusEnum.normalize(commonUpstream.getManualStatus()));
         return mapToData(discoveryUpstreamDTO);
     }
 }

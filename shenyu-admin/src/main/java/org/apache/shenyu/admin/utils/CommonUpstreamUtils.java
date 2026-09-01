@@ -251,6 +251,8 @@ public class CommonUpstreamUtils {
                             upstream.getUpstreamHost(), upstream.getUpstreamUrl(),
                             upstream.isStatus(), upstream.getTimestamp());
                     commonUpstream.setHealthCheckEnabled(upstream.isHealthCheckEnabled());
+                    commonUpstream.setNamespaceId(upstream.getNamespaceId());
+                    commonUpstream.setManualStatus(upstream.getManualStatus());
                     return commonUpstream;
                 })
                 .collect(Collectors.toList());

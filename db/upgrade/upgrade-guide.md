@@ -4,6 +4,18 @@
 
 ## To Shenyu Users
 
+- 2.7.1-upgrade-2.7.2-mysql.sql
+
+- 2.7.1-upgrade-2.7.2-ob.sql
+
+- 2.7.1-upgrade-2.7.2-og.sql
+
+- 2.7.1-upgrade-2.7.2-oracle.sql
+
+- 2.7.1-upgrade-2.7.2-pg.sql
+
+  > this file is the Shenyu upgrade sql from v2.7.1 to v2.7.2
+
 - 2.7.0-upgrade-2.7.1-mysql.sql
 
 - 2.7.0-upgrade-2.7.1-og.sql

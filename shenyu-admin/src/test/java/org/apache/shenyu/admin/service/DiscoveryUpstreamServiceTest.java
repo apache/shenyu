@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -39,13 +40,16 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -54,9 +58,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -95,6 +102,9 @@ public final class DiscoveryUpstreamServiceTest {
     @Mock
     private DiscoveryProcessor discoveryProcessor;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @BeforeEach
     public void setUp() {
 
@@ -105,7 +115,8 @@ public final class DiscoveryUpstreamServiceTest {
                 discoveryRelMapper,
                 selectorMapper,
                 pluginMapper,
-                discoveryProcessorHolder
+                discoveryProcessorHolder,
+                eventPublisher
         );
     }
 
@@ -142,8 +153,11 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryHandlerMapper.selectAll()).thenReturn(list);
         when(discoveryRelMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildDiscoveryRelDO());
         when(proxySelectorMapper.selectById(any())).thenReturn(buildProxySelectorDO());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(any())).thenReturn(
+                Collections.singletonList(buildDiscoveryUpstreamDO("", "123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE)));
         List<DiscoverySyncData> dataList = discoveryUpstreamService.listAll();
         assertEquals(dataList.size(), list.size());
+        assertEquals(UpstreamManualStatusEnum.FORCE_OFFLINE.name(), dataList.get(0).getUpstreamDataList().get(0).getManualStatus());
     }
 
     @Test
@@ -182,6 +196,45 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         when(discoveryUpstreamMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(0);
         discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+    }
+
+    @Test
+    public void testChangeManualStatusBySelectorIdAndUrl() {
+        when(discoveryHandlerMapper.selectBySelectorId("selector_1")).thenReturn(buildDiscoveryHandlerDO());
+        when(selectorMapper.selectById("selector_1")).thenReturn(buildSelectorDO());
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("123")).thenReturn(buildDiscoveryRelDOWithSelector());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("123")).thenReturn(
+                Collections.singletonList(buildDiscoveryUpstreamDO("", "123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE)));
+
+        discoveryUpstreamService.changeManualStatusBySelectorIdAndUrl("selector_1", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE);
+
+        verify(discoveryUpstreamMapper).updateManualStatusByUrl("123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE.name());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
+    public void testChangeStatusBySelectorIdAndUrlShouldSkipAliveUpdateWhenForceOffline() {
+        when(discoveryHandlerMapper.selectBySelectorId("selector_1")).thenReturn(buildDiscoveryHandlerDO());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("123", "url1"))
+                .thenReturn(buildDiscoveryUpstreamDO("", "123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE));
+
+        discoveryUpstreamService.changeStatusBySelectorIdAndUrl("selector_1", "url1", Boolean.TRUE);
+
+        verify(discoveryUpstreamMapper, never()).updateStatusByUrl(anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    public void testNativeCreateOrUpdateShouldPreserveManualStatusWhenUrlChanges() {
+        when(discoveryUpstreamMapper.updateSelective(any())).thenReturn(1);
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123")))
+                .thenReturn(Collections.singletonList(buildDiscoveryUpstreamDO("123", "123", "url1", UpstreamManualStatusEnum.FORCE_OFFLINE)));
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("123", "123", "url2");
+
+        discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals(UpstreamManualStatusEnum.FORCE_OFFLINE.name(), captor.getValue().getManualStatus());
     }
 
     private void testUpdate() {
@@ -233,12 +286,18 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     private DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final String id, final String discoveryHandlerId, final String url) {
+        return buildDiscoveryUpstreamDO(id, discoveryHandlerId, url, UpstreamManualStatusEnum.NONE);
+    }
+
+    private DiscoveryUpstreamDO buildDiscoveryUpstreamDO(final String id, final String discoveryHandlerId, final String url,
+                                                         final UpstreamManualStatusEnum manualStatus) {
         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
         discoveryUpstreamDO.setId(id);
         discoveryUpstreamDO.setUpstreamStatus(1);
         discoveryUpstreamDO.setWeight(50);
         discoveryUpstreamDO.setUpstreamUrl(url);
         discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+        discoveryUpstreamDO.setManualStatus(manualStatus.name());
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         discoveryUpstreamDO.setDateCreated(now);
         discoveryUpstreamDO.setDateUpdated(now);
@@ -276,6 +335,7 @@ public final class DiscoveryUpstreamServiceTest {
         SelectorDO selectorDO = new SelectorDO();
         selectorDO.setId("selector_1");
         selectorDO.setSelectorName("selector_1");
+        selectorDO.setNamespaceId("test");
         return selectorDO;
     }
 
@@ -290,6 +350,12 @@ public final class DiscoveryUpstreamServiceTest {
         DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
         discoveryRelDO.setId("123");
         discoveryRelDO.setPluginName("123");
+        return discoveryRelDO;
+    }
+
+    private DiscoveryRelDO buildDiscoveryRelDOWithSelector() {
+        DiscoveryRelDO discoveryRelDO = buildDiscoveryRelDO();
+        discoveryRelDO.setSelectorId("selector_1");
         return discoveryRelDO;
     }
 

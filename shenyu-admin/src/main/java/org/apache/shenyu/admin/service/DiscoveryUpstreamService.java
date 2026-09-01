@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 
 import java.util.List;
 
@@ -117,6 +118,15 @@ public interface DiscoveryUpstreamService {
      * @param enabled    enabled
      */
     void changeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
+
+    /**
+     * changeManualStatusBySelectorIdAndUrl.
+     *
+     * @param selectorId selectorId
+     * @param url url
+     * @param manualStatus manualStatus
+     */
+    void changeManualStatusBySelectorIdAndUrl(String selectorId, String url, UpstreamManualStatusEnum manualStatus);
 
     /**
      * Import the discoveryUpstream data list.

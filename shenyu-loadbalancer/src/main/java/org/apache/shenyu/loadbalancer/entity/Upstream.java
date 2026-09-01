@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.enums.UpstreamManualStatusEnum;
 
 import java.util.Map;
 import java.util.Objects;
@@ -109,6 +110,11 @@ public final class Upstream {
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
+
+    /**
+     * manualStatus.
+     */
+    private String manualStatus = UpstreamManualStatusEnum.NONE.name();
     
     private Map<String, String> metadata = new ConcurrentHashMap<>();
     
@@ -133,6 +139,7 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
         this.healthCheckEnabled = builder.healthCheckEnabled;
+        this.manualStatus = UpstreamManualStatusEnum.normalize(builder.manualStatus);
     }
     
     /**
@@ -250,6 +257,33 @@ public final class Upstream {
      */
     public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
         this.healthCheckEnabled = healthCheckEnabled;
+    }
+
+    /**
+     * Gets manual status.
+     *
+     * @return manual status
+     */
+    public String getManualStatus() {
+        return manualStatus;
+    }
+
+    /**
+     * Sets manual status.
+     *
+     * @param manualStatus manual status
+     */
+    public void setManualStatus(final String manualStatus) {
+        this.manualStatus = UpstreamManualStatusEnum.normalize(manualStatus);
+    }
+
+    /**
+     * Is manual offline.
+     *
+     * @return true when manual offline
+     */
+    public boolean isManualOffline() {
+        return UpstreamManualStatusEnum.isForceOffline(manualStatus);
     }
     
     /**
@@ -519,6 +553,7 @@ public final class Upstream {
                 + ", url='" + url
                 + ", weight=" + weight
                 + ", status=" + status
+                + ", manualStatus='" + manualStatus + '\''
                 + ", timestamp=" + timestamp
                 + ", warmup=" + warmup
                 + ", group='" + group
@@ -580,6 +615,11 @@ public final class Upstream {
          * health check enabled.
          */
         private boolean healthCheckEnabled = true;
+
+        /**
+         * manual status.
+         */
+        private String manualStatus;
 
         /**
          * no args constructor.
@@ -704,6 +744,17 @@ public final class Upstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build manualStatus.
+         *
+         * @param manualStatus manualStatus
+         * @return this builder
+         */
+        public Builder manualStatus(final String manualStatus) {
+            this.manualStatus = manualStatus;
             return this;
         }
 

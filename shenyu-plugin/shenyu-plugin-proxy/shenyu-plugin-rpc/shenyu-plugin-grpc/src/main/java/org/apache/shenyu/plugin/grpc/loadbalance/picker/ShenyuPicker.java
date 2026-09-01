@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +56,9 @@ public class ShenyuPicker extends AbstractReadyPicker {
             LoadBalanceData data = new LoadBalanceData();
             data.setIp(remoteAddressIp);
             Upstream upstream = LoadBalancerFactory.selector(convertUpstreamList(grpcUpstreams), cacheRuleHandle.getLoadBalance(), data);
+            if (Objects.isNull(upstream)) {
+                return null;
+            }
             if (StringUtils.isBlank(upstream.getUrl()) && StringUtils.isBlank(upstream.getGroup()) && StringUtils.isBlank(upstream.getVersion())) {
                 return randomPicker.pick(list);
             }
@@ -71,6 +75,7 @@ public class ShenyuPicker extends AbstractReadyPicker {
                 .weight(u.getWeight())
                 .status(u.isStatus())
                 .timestamp(u.getTimestamp())
+                .manualStatus(u.getManualStatus())
                 .healthCheckEnabled(u.isHealthCheckEnabled())
                 .build()).collect(Collectors.toList());
     }
