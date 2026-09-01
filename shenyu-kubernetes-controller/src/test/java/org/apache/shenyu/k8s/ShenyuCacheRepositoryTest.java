@@ -136,4 +136,39 @@ public final class ShenyuCacheRepositoryTest {
 
         Assertions.assertTrue(BaseDataCache.getInstance().obtainRuleData(selectorId).isEmpty());
     }
+
+    /**
+     * BaseDataCache.obtainRuleData returns null for a selector with no cached rules, and a
+     * first reconcile writes a rule before any rule of that selector is cached, so
+     * saveOrUpdateRuleData must tolerate the empty case instead of throwing NPE — that NPE
+     * aborted the Kubernetes reconciler loops and left the gateway without routing data.
+     */
+    @Test
+    public void testSaveOrUpdateRuleDataWithUncachedSelectorSubscribesRule() {
+        CommonPluginDataSubscriber pluginSubscriber = new CommonPluginDataSubscriber(
+                new ArrayList<>(), Mockito.mock(org.springframework.context.ApplicationEventPublisher.class),
+                new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        ShenyuCacheRepository repository = new ShenyuCacheRepository(pluginSubscriber,
+                Mockito.mock(CommonDiscoveryUpstreamDataSubscriber.class),
+                Mockito.mock(MetaDataSubscriber.class), Mockito.mock(MetaDataCacheSubscriber.class));
+        String selectorId = "gwapi-rule-first-write-test";
+
+        Assertions.assertDoesNotThrow(() -> repository.saveOrUpdateRuleData(RuleData.builder()
+                .id("rule-1").selectorId(selectorId).pluginName(PluginEnum.DIVIDE.getName()).sort(1).build()));
+
+        Assertions.assertEquals(1, repository.findRuleDataList(selectorId).size());
+        BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
+    }
+
+    /**
+     * Reconcilers iterate findRuleDataList directly (e.g. IngressReconciler cascading delete),
+     * so it must return an empty list rather than null for an unseen selector id.
+     */
+    @Test
+    public void testFindRuleDataListForUnknownSelectorIsEmpty() {
+        List<RuleData> rules = repository().findRuleDataList("gwapi-no-such-selector");
+
+        Assertions.assertNotNull(rules);
+        Assertions.assertTrue(rules.isEmpty());
+    }
 }

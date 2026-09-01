@@ -254,10 +254,10 @@ public class ShenyuCacheRepository {
      * Find RuleData list by selector id.
      *
      * @param selectorId selector id
-     * @return RuleData list
+     * @return RuleData list, never null; empty when the selector has no cached rules yet
      */
     public List<RuleData> findRuleDataList(final String selectorId) {
-        return BaseDataCache.getInstance().obtainRuleData(selectorId);
+        return Optional.ofNullable(BaseDataCache.getInstance().obtainRuleData(selectorId)).orElse(Collections.emptyList());
     }
 
     /**
