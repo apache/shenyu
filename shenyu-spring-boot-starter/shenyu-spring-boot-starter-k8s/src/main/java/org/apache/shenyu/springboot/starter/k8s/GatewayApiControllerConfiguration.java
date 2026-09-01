@@ -26,12 +26,15 @@ import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.workqueue.DefaultRateLimitingQueue;
 import io.kubernetes.client.extended.workqueue.RateLimitingQueue;
+import io.kubernetes.client.extended.workqueue.WorkQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesApi;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
@@ -129,10 +132,12 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * HTTPRoute and Endpoints informer factory.
+     * HTTPRoute, Service and Endpoints informer factory. Services are watched to map a
+     * backendRef's Service port to its targetPort (including named targetPorts), which the
+     * Endpoints alone cannot express for multi-port Services.
      *
      * @param apiClient the Kubernetes API client
-     * @return the HTTPRoute and Endpoints SharedInformerFactory
+     * @return the HTTPRoute, Service and Endpoints SharedInformerFactory
      */
     @Bean("httproute-shared-informer-factory")
     public SharedInformerFactory httpRouteSharedInformerFactory(final ApiClient apiClient) {
@@ -143,6 +148,10 @@ public class GatewayApiControllerConfiguration {
                 "httproutes",
                 apiClient);
         factory.sharedIndexInformerFor(httpRouteApi, DynamicKubernetesObject.class, RESYNC_PERIOD_MILLIS);
+
+        GenericKubernetesApi<V1Service, V1ServiceList> serviceApi = new GenericKubernetesApi<>(V1Service.class,
+                V1ServiceList.class, "", "v1", "services", apiClient);
+        factory.sharedIndexInformerFor(serviceApi, V1Service.class, RESYNC_PERIOD_MILLIS);
 
         GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(V1Endpoints.class,
                 V1EndpointsList.class, "", "v1", "endpoints", apiClient);
@@ -375,7 +384,8 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
             final HttpRouteParser httpRouteParser,
             final ShenyuCacheRepository shenyuCacheRepository,
-            final ApiClient apiClient) {
+            final ApiClient apiClient,
+            final Environment environment) {
         SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer =
@@ -384,21 +394,25 @@ public class GatewayApiControllerConfiguration {
                 gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer =
                 referenceGrantFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        int servedPort = environment.getProperty("server.port", Integer.class, DEFAULT_SERVER_PORT);
         return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer,
-                referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, servedPort);
     }
 
     @Bean
     public HttpRouteParser httpRouteParser(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory) {
+        SharedIndexInformer<V1Service> serviceInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(V1Service.class);
         SharedIndexInformer<V1Endpoints> endpointsInformer =
                 httpRouteFactory.getExistingSharedIndexInformer(V1Endpoints.class);
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer =
                 referenceGrantFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        Lister<V1Service> serviceLister = new Lister<>(serviceInformer.getIndexer());
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsInformer.getIndexer());
         Lister<DynamicKubernetesObject> referenceGrantLister = new Lister<>(referenceGrantInformer.getIndexer());
-        return new HttpRouteParser(endpointsLister, referenceGrantLister);
+        return new HttpRouteParser(endpointsLister, serviceLister, referenceGrantLister);
     }
 
     @Bean
@@ -416,30 +430,43 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * Readiness aggregator over all registered informers of this mode.
+     * Readiness aggregator over all registered informers and the controller work queues of
+     * this mode: informer sync alone does not mean the objects were reconciled into the
+     * local cache yet, so the queues' initial backlog must drain too.
      *
      * @param gatewayClassFactory the GatewayClass SharedInformerFactory
      * @param gatewayFactory the Gateway SharedInformerFactory
-     * @param httpRouteFactory the HTTPRoute and Endpoints SharedInformerFactory
+     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
      * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
-     * @return readiness aggregator over all registered informers
+     * @param gatewayClassController the GatewayClass controller (for its work queue)
+     * @param gatewayController the Gateway controller (for its work queue)
+     * @param httpRouteWorkQueue the HTTPRoute controller work queue
+     * @return readiness aggregator over all registered informers and work queues
      */
     @Bean
     public K8sCacheReadiness k8sCacheReadiness(
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
-            @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory) {
+            @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
+            @Qualifier("gatewayclass-controller") final Controller gatewayClassController,
+            @Qualifier("gateway-controller") final Controller gatewayController,
+            @Qualifier("httproute-work-queue") final RateLimitingQueue<Request> httpRouteWorkQueue) {
         List<SharedIndexInformer<?>> informers = new ArrayList<>();
         informers.add(gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
         informers.add(gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
         informers.add(httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
+        informers.add(httpRouteFactory.getExistingSharedIndexInformer(V1Service.class));
         informers.add(httpRouteFactory.getExistingSharedIndexInformer(V1Endpoints.class));
         informers.add(referenceGrantFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
         if (informers.stream().anyMatch(Objects::isNull)) {
             throw new IllegalStateException("Expected informer not registered; informer factory wiring is inconsistent");
         }
-        return new K8sCacheReadiness(informers);
+        List<WorkQueue<?>> workQueues = List.of(
+                ((DefaultController) gatewayClassController).getWorkQueue(),
+                ((DefaultController) gatewayController).getWorkQueue(),
+                httpRouteWorkQueue);
+        return new K8sCacheReadiness(informers, workQueues);
     }
 
     private void enablePlugin(final ShenyuCacheRepository shenyuCacheRepository, final PluginEnum pluginEnum, final String config) {
@@ -472,14 +499,15 @@ public class GatewayApiControllerConfiguration {
          * {@code k8sCacheReadiness} in the readiness group and point the probe at
          * {@code /actuator/health/readiness}.
          *
-         * @param k8sCacheReadiness the informer readiness aggregator
-         * @return health indicator reflecting informer initial-sync state
+         * @param k8sCacheReadiness the informer/reconciliation readiness aggregator
+         * @return health indicator reflecting informer initial-sync and backlog state
          */
         @Bean
         public HealthIndicator k8sCacheReadinessHealthIndicator(final K8sCacheReadiness k8sCacheReadiness) {
             return () -> k8sCacheReadiness.isReady()
-                    ? Health.up().withDetail("pendingInformers", 0L).build()
-                    : Health.down().withDetail("pendingInformers", k8sCacheReadiness.pendingInformers()).build();
+                    ? Health.up().withDetail("pendingInformers", 0L).withDetail("pendingWorkItems", 0L).build()
+                    : Health.down().withDetail("pendingInformers", k8sCacheReadiness.pendingInformers())
+                            .withDetail("pendingWorkItems", k8sCacheReadiness.pendingWorkItems()).build();
         }
     }
 }

@@ -52,8 +52,8 @@ import java.util.Set;
  * status (supportedKinds, attachedRoutes, per-listener Accepted/Programmed). A listener is
  * usable only when it speaks plain HTTP on the port this gateway actually serves
  * ({@code server.port}); anything else is reported with the spec-defined reason instead of
- * being silently ignored. attachedRoutes reflects the in-memory bindings and converges on
- * gateway resyncs.
+ * being silently ignored. attachedRoutes is per listener and reflects the in-memory
+ * listener-level bindings, converging on gateway resyncs.
  */
 public class GatewayReconciler implements Reconciler {
 
@@ -103,12 +103,7 @@ public class GatewayReconciler implements Reconciler {
             }
 
             if (!GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
-                // Gateway conditions carry no controllerName, so an Accepted entry of another
-                // controller is indistinguishable from ours. Only Gateways ShenYu previously
-                // accepted (they have route bindings) are cleaned up and downgraded; touching
-                // anything else would fight the controller that owns it.
-                if (CollectionUtils.isEmpty(GatewayRouteCache.getInstance()
-                        .getRoutesByGateway(request.getNamespace(), request.getName()))) {
+                if (!previouslyServedByShenyu(gateway, request.getNamespace(), request.getName())) {
                     LOG.debug("Gateway {} is not managed by ShenYu, skipping", request);
                     return new Result(false);
                 }
@@ -120,14 +115,16 @@ public class GatewayReconciler implements Reconciler {
                 return new Result(false);
             }
 
-            // Requeue only on the Accepted transition (first accept or after losing it):
-            // on plain resyncs routes are already reconciled and a cluster scan is wasted.
             boolean wasAccepted = GatewayApiConstants.isConditionTrue(gateway, GatewayApiConstants.CONDITION_ACCEPTED);
+            Long generation = generationOf(gateway);
+            boolean generationObserved = observedGenerationUpToDate(
+                    GatewayApiConstants.findCondition(gateway, GatewayApiConstants.CONDITION_ACCEPTED), generation);
             JsonObject desiredStatus = buildAcceptedStatus(gateway);
+            preserveTransitionTimes(gateway, desiredStatus);
             if (!gatewayStatusMatches(gateway, desiredStatus)) {
                 patchGatewayStatus(gateway, desiredStatus);
             }
-            if (!wasAccepted) {
+            if (!wasAccepted || !generationObserved) {
                 requeueAffectedHTTPRoutes(request.getNamespace(), request.getName());
             }
 
@@ -142,7 +139,9 @@ public class GatewayReconciler implements Reconciler {
     /**
      * Re-queue HTTPRoutes whose parentRefs reference this Gateway: covers routes created
      * before the Gateway was accepted, including cross-namespace ones not yet in
-     * GatewayRouteCache. Only invoked on the Accepted transition, not on every resync.
+     * GatewayRouteCache, and re-applies listener policy (hostname, allowedRoutes, port)
+     * after a spec change. Invoked on the Accepted transition and on unobserved spec
+     * generations, not on every resync.
      */
     private void requeueAffectedHTTPRoutes(final String gatewayNamespace, final String gatewayName) {
         for (DynamicKubernetesObject route : httpRouteLister.list()) {
@@ -221,6 +220,70 @@ public class GatewayReconciler implements Reconciler {
         }
     }
 
+    /**
+     * Whether a Gateway not (or no longer) owned by a ShenYu GatewayClass was previously
+     * served by this controller: either it still has live route bindings, or its status
+     * carries the Accepted=True payload this controller writes (the signal for Gateways
+     * that legitimately have zero attached routes).
+     */
+    private boolean previouslyServedByShenyu(final DynamicKubernetesObject gateway, final String namespace, final String name) {
+        return CollectionUtils.isNotEmpty(GatewayRouteCache.getInstance().getRoutesByGateway(namespace, name))
+                || GatewayApiConstants.isConditionAcceptedByShenyu(gateway, GatewayApiConstants.CONDITION_ACCEPTED);
+    }
+
+    private boolean observedGenerationUpToDate(final JsonObject existingCondition, final Long generation) {
+        if (Objects.isNull(generation)) {
+            return true;
+        }
+        return Objects.nonNull(existingCondition)
+                && generation.equals(JsonFields.getLong(existingCondition, "observedGeneration"));
+    }
+
+    /**
+     * Carry over the lastTransitionTime of every gateway- and listener-level condition whose
+     * (type, status) is unchanged: the spec requires the timestamp to advance only on an
+     * actual status transition, not on an attachedRoutes count update or a generation bump.
+     */
+    private void preserveTransitionTimes(final DynamicKubernetesObject gateway, final JsonObject desiredStatus) {
+        JsonObject existingStatus = JsonFields.getJsonObject(gateway.getRaw(), "status");
+        JsonArray existingConditions = JsonFields.getJsonArray(existingStatus, "conditions");
+        if (Objects.nonNull(existingConditions)) {
+            preserveTransitionTimes(existingConditions, desiredStatus.getAsJsonArray("conditions"));
+        }
+        JsonArray existingListeners = JsonFields.getJsonArray(existingStatus, "listeners");
+        JsonArray desiredListeners = desiredStatus.getAsJsonArray("listeners");
+        if (Objects.isNull(existingListeners) || Objects.isNull(desiredListeners)) {
+            return;
+        }
+        for (JsonElement desiredElement : desiredListeners) {
+            JsonObject desiredListener = desiredElement.getAsJsonObject();
+            JsonArray existingListenerConditions = JsonFields.getJsonArray(
+                    findListenerStatus(existingListeners, JsonFields.getString(desiredListener, "name")), "conditions");
+            if (Objects.nonNull(existingListenerConditions)) {
+                preserveTransitionTimes(existingListenerConditions, desiredListener.getAsJsonArray("conditions"));
+            }
+        }
+    }
+
+    private void preserveTransitionTimes(final JsonArray existingConditions, final JsonArray desiredConditions) {
+        for (JsonElement desiredElement : desiredConditions) {
+            JsonObject desiredCondition = desiredElement.getAsJsonObject();
+            for (JsonElement existingElement : existingConditions) {
+                if (!existingElement.isJsonObject()) {
+                    continue;
+                }
+                JsonObject existingCondition = existingElement.getAsJsonObject();
+                String existingTime = JsonFields.getString(existingCondition, "lastTransitionTime");
+                if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
+                        && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                        && Objects.nonNull(existingTime)) {
+                    desiredCondition.addProperty("lastTransitionTime", existingTime);
+                    break;
+                }
+            }
+        }
+    }
+
     /** Patch Accepted=False on a Gateway the controller no longer manages; no-op when already False. */
     private void updateGatewayNotAcceptedStatus(final DynamicKubernetesObject gateway) {
         if (isAcceptedCondition(gateway, "False")) {
@@ -265,14 +328,14 @@ public class GatewayReconciler implements Reconciler {
 
     /**
      * Build the desired status of an accepted Gateway: Accepted + Programmed conditions and
-     * the per-listener status entries.
+     * the per-listener status entries. {@code attachedRoutes} is defined per listener, so
+     * each entry counts only the routes bound to that listener.
      */
     private JsonObject buildAcceptedStatus(final DynamicKubernetesObject gateway) {
         Long generation = generationOf(gateway);
         String namespace = gateway.getMetadata().getNamespace();
         String name = gateway.getMetadata().getName();
-        Set<String> boundRoutes = GatewayRouteCache.getInstance().getRoutesByGateway(namespace, name);
-        int attachedRoutes = Objects.isNull(boundRoutes) ? 0 : boundRoutes.size();
+        GatewayRouteCache cache = GatewayRouteCache.getInstance();
 
         List<JsonObject> listeners = ListenerSupport.selectListeners(gateway.getRaw(), null);
         JsonArray listenerStatuses = new JsonArray();
@@ -292,7 +355,8 @@ public class GatewayReconciler implements Reconciler {
             JsonArray supportedKinds = new JsonArray();
             supportedKinds.add(kind);
             listenerStatus.add("supportedKinds", supportedKinds);
-            listenerStatus.addProperty("attachedRoutes", attachedRoutes);
+            Set<String> listenerRoutes = cache.getRoutesByListener(namespace, name, ListenerSupport.nameOf(listener));
+            listenerStatus.addProperty("attachedRoutes", Objects.isNull(listenerRoutes) ? 0 : listenerRoutes.size());
 
             JsonArray listenerConditions = new JsonArray();
             if (usable) {
@@ -334,8 +398,10 @@ public class GatewayReconciler implements Reconciler {
 
     /**
      * Whether the current Gateway status already carries our conditions with matching
-     * type/status/reason and per-listener entries with matching attachedRoutes. Timestamps
-     * and observedGeneration are deliberately ignored to keep the steady state patch-free.
+     * type/status/reason/observedGeneration and per-listener entries with matching
+     * attachedRoutes. Timestamps are deliberately ignored to keep the steady state
+     * patch-free; observedGeneration is compared so a spec change always produces the
+     * patch that acknowledges it.
      */
     private boolean gatewayStatusMatches(final DynamicKubernetesObject gateway, final JsonObject desiredStatus) {
         JsonObject existingStatus = JsonFields.getJsonObject(gateway.getRaw(), "status");
@@ -355,8 +421,8 @@ public class GatewayReconciler implements Reconciler {
             JsonObject desiredListener = desiredElement.getAsJsonObject();
             JsonObject existingListener = findListenerStatus(existingListeners, JsonFields.getString(desiredListener, "name"));
             if (Objects.isNull(existingListener)
-                    || JsonFields.getLong(existingListener, "attachedRoutes")
-                    != JsonFields.getLong(desiredListener, "attachedRoutes")
+                    || !Objects.equals(JsonFields.getLong(existingListener, "attachedRoutes"),
+                    JsonFields.getLong(desiredListener, "attachedRoutes"))
                     || !conditionsMatch(JsonFields.getJsonArray(existingListener, "conditions"),
                     desiredListener.getAsJsonArray("conditions"))) {
                 return false;
@@ -378,7 +444,10 @@ public class GatewayReconciler implements Reconciler {
         return null;
     }
 
-    /** Compare by (type, status), plus reason for False conditions; ignores timestamps. */
+    /**
+     * Compare by (type, status), plus reason for False conditions and the
+     * observedGeneration so a spec change is always acknowledged; ignores timestamps.
+     */
     private boolean conditionsMatch(final JsonArray existing, final JsonArray desired) {
         if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() < desired.size()) {
             return false;
@@ -396,6 +465,8 @@ public class GatewayReconciler implements Reconciler {
                         JsonFields.getString(existingCondition, "reason"), JsonFields.getString(desiredCondition, "reason"));
                 if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
                         && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                        && Objects.equals(JsonFields.getLong(existingCondition, "observedGeneration"),
+                        JsonFields.getLong(desiredCondition, "observedGeneration"))
                         && reasonMatches) {
                     found = true;
                     break;

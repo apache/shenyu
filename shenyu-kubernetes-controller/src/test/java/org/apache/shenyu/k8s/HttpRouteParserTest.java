@@ -25,6 +25,9 @@ import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBuilder;
+import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -65,7 +68,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithPathPrefix() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -93,7 +96,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithExactPath() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -114,7 +117,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithRuleWithoutMatchesGetsMatchAllCondition() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -140,7 +143,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithHostnames() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -172,7 +175,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithWildcardHostname() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -196,7 +199,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithHeaderMatch() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -225,7 +228,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithMethodMatch() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -250,7 +253,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testParseWithQueryParam() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithQueryParams(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -291,7 +294,7 @@ public final class HttpRouteParserTest {
         unweighted.addProperty("port", 8080);
         backendRefs.add(unweighted);
 
-        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
         ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
 
         List<SelectorData> selectors = extractSelectors(config);
@@ -299,13 +302,129 @@ public final class HttpRouteParserTest {
 
         List<DivideUpstream> upstreams = GsonUtils.getInstance()
                 .fromList(selectors.get(0).getHandle(), DivideUpstream.class);
-        // Each backendRef fans out to the 2 addresses of the mocked Endpoints; the
-        // per-backend weights 9 and 1 are halved across their 2 endpoints (floored at 1)
+        // Each backendRef fans out to the 2 addresses of the mocked Endpoints. The common
+        // scale factor is 2 (lifts the weight-1 backend's per-endpoint share to 1), so the
+        // per-endpoint weights are 9 and 1 and the backend totals keep the declared 9:1
+        // ratio (18:2) regardless of replica counts.
         Assertions.assertEquals(4, upstreams.size());
-        Assertions.assertEquals(4, upstreams.get(0).getWeight());
-        Assertions.assertEquals(4, upstreams.get(1).getWeight());
+        Assertions.assertEquals(9, upstreams.get(0).getWeight());
+        Assertions.assertEquals(9, upstreams.get(1).getWeight());
         Assertions.assertEquals(1, upstreams.get(2).getWeight());
         Assertions.assertEquals(1, upstreams.get(3).getWeight());
+    }
+
+    /**
+     * The root prefix {@code /} is the spec's catch-all and must match every absolute path.
+     * The element-boundary regex form would only match {@code /} itself and paths starting
+     * with {@code //}, leaving the route unreachable.
+     */
+    @Test
+    public void testParseWithRootPathPrefixMatchesEveryPath() {
+        Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
+
+        DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/", "PathPrefix", null, null);
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        ConditionData pathCondition = config.getRouteConfigList().get(0).getSelectorData().getConditionList().get(0);
+        Assertions.assertEquals(OperatorEnum.REGEX.getAlias(), pathCondition.getOperator());
+        Assertions.assertEquals("^/.*$", pathCondition.getParamValue());
+        Assertions.assertTrue(java.util.regex.Pattern.compile(pathCondition.getParamValue()).matcher("/order").matches(),
+                "root prefix must match ordinary paths like /order");
+    }
+
+    /**
+     * A backendRef whose kind is Service but whose group names a foreign API group must be
+     * reported InvalidKind, not resolved against an unrelated core Service of the same name.
+     */
+    @Test
+    public void testBackendRefWithForeignGroupIsInvalidKind() {
+        DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/**", "PathPrefix", null, null);
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").get(0).getAsJsonObject().addProperty("group", "example.com");
+
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        Assertions.assertEquals("InvalidKind", config.getUnresolvedReason());
+    }
+
+    /**
+     * A rule with an unresolved weighted backendRef must fail closed: the selector is still
+     * programmed (so the divide plugin answers matching requests with an explicit error
+     * response) but carries an EMPTY upstream handle — the invalid share must never
+     * silently re-flow onto the healthy backends.
+     */
+    @Test
+    public void testUnresolvedBackendFailsClosedWithEmptyHandle() {
+        DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/**", "PathPrefix", null, null);
+        JsonObject brokenBackend = new JsonObject();
+        brokenBackend.addProperty("name", "missing-service");
+        brokenBackend.addProperty("port", 8080);
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").add(brokenBackend);
+
+        // first backend resolves to 10.0.0.1/2, second has no endpoints
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        List<SelectorData> selectors = extractSelectors(config);
+        Assertions.assertEquals(1, selectors.size(), "fail-closed rule must still program its selector");
+        Assertions.assertEquals("[]", selectors.get(0).getHandle(),
+                "fail-closed selector must carry an empty upstream handle");
+    }
+
+    /**
+     * A multi-port Service is resolved through its spec: the backendRef port selects
+     * spec.ports[], whose numeric targetPort is the pod port. Endpoints alone cannot
+     * express this mapping (two ports targeting 8080 and 8443 would be ambiguous).
+     */
+    @Test
+    public void testServiceTargetPortMapping() {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints endpoints = new V1EndpointsBuilder()
+                .withNewMetadata().withNamespace(NAMESPACE).withName(SERVICE_NAME).endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder()
+                        .withAddresses(new V1EndpointAddress().ip("10.0.0.1"))
+                        .addNewPort().withName("web").withPort(8080).and()
+                        .addNewPort().withName("tls").withPort(8443).and()
+                        .build())
+                .build();
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(endpoints);
+
+        Indexer<V1Service> serviceIndexer = mock(Indexer.class);
+        V1Service service = new V1ServiceBuilder()
+                .withNewMetadata().withNamespace(NAMESPACE).withName(SERVICE_NAME).endMetadata()
+                .withNewSpec()
+                .addToPorts(new V1ServicePortBuilder().withName("http").withPort(80)
+                        .withNewTargetPort(8080).build())
+                .addToPorts(new V1ServicePortBuilder().withName("https").withPort(443)
+                        .withNewTargetPort(8443).build())
+                .endSpec()
+                .build();
+        when(serviceIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(service);
+
+        HttpRouteParser parser = new HttpRouteParser(new Lister<>(endpointsIndexer),
+                new Lister<>(serviceIndexer), mockReferenceGrantLister());
+        DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, 80,
+                "/**", "PathPrefix", null, null);
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertTrue(config.isAllBackendsResolved());
+        List<DivideUpstream> upstreams = GsonUtils.getInstance()
+                .fromList(extractSelectors(config).get(0).getHandle(), DivideUpstream.class);
+        Assertions.assertEquals(1, upstreams.size());
+        Assertions.assertEquals("10.0.0.1:8080", upstreams.get(0).getUpstreamUrl(),
+                "service port 80 must map to its targetPort 8080");
     }
 
     /**
@@ -317,7 +436,7 @@ public final class HttpRouteParserTest {
     @Test
     public void testSelectorAndRuleIdsAreStableAcrossParses() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockReferenceGrantLister());
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
@@ -352,6 +471,14 @@ public final class HttpRouteParserTest {
     }
 
     /**
+     * Empty Service lister: the parser falls back to the Endpoints-only port heuristic,
+     * which is what the pre-existing parser tests exercise.
+     */
+    private Lister<V1Service> mockServiceLister() {
+        return new Lister<>(mock(Indexer.class));
+    }
+
+    /**
      * Empty ReferenceGrant lister: same-namespace backendRefs never consult grants,
      * so all existing parser tests are unaffected by grant matching.
      */
@@ -375,7 +502,7 @@ public final class HttpRouteParserTest {
 
         Indexer<DynamicKubernetesObject> grantIndexer = mock(Indexer.class);
         when(grantIndexer.byIndex("namespace", "other-ns")).thenReturn(List.of(buildServiceGrant("other-ns", NAMESPACE, null)));
-        HttpRouteParser parser = new HttpRouteParser(endpointsLister, new Lister<>(grantIndexer));
+        HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), new Lister<>(grantIndexer));
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,

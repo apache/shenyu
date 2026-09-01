@@ -41,6 +41,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -126,25 +127,18 @@ public class ShenyuCacheRepository {
      */
     public void saveOrUpdateSelectorData(final SelectorData selectorData) {
         List<DiscoveryUpstreamData> upstreamDataList = new ArrayList<>(convert(selectorData.getPluginName(), selectorData.getHandle()));
-        Set<String> newUrls = upstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+        Set<String> newKeys = upstreamDataList.stream().map(ShenyuCacheRepository::upstreamKey).collect(Collectors.toSet());
         List<Upstream> cachedUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorData.getId());
-        Set<String> cachedUrls = CollectionUtils.isEmpty(cachedUpstreams) ? Collections.emptySet()
-                : cachedUpstreams.stream().map(Upstream::getUrl).collect(Collectors.toSet());
-        // {@link UpstreamCacheManager#submit} merges by URL and only removes entries
-        // explicitly marked offline, because the admin control plane pushes incremental
-        // upstream events. The Kubernetes reconciler submits an authoritative full snapshot,
-        // so cache-only entries are appended as offline in the SAME submit: the snapshot is
-        // replaced atomically, without the remove-then-readd window that would briefly leave
-        // the selector with zero upstreams. Upstream identity is url+protocol, so both are
-        // taken from the cached entry.
+        Set<String> cachedKeys = CollectionUtils.isEmpty(cachedUpstreams) ? Collections.emptySet()
+                : cachedUpstreams.stream().map(ShenyuCacheRepository::upstreamKey).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(cachedUpstreams)) {
             for (Upstream cached : cachedUpstreams) {
-                if (!newUrls.contains(cached.getUrl())) {
+                if (!newKeys.contains(upstreamKey(cached))) {
                     upstreamDataList.add(buildOfflineUpstreamData(cached.getUrl(), cached.getProtocol()));
                 }
             }
         }
-        boolean upstreamsChanged = !cachedUrls.equals(newUrls);
+        boolean upstreamsChanged = !cachedKeys.equals(newKeys);
         SelectorData cachedSelector = findSelectorData(selectorData.getPluginName(), selectorData.getId());
         boolean selectorChanged = !selectorData.equals(cachedSelector);
         if (!selectorChanged && !upstreamsChanged) {
@@ -157,12 +151,30 @@ public class ShenyuCacheRepository {
         discoverySyncData.setUpstreamDataList(upstreamDataList);
         saveOrUpdateDiscoveryUpstreamData(discoverySyncData);
         if (upstreamsChanged) {
-            LOG.info("Resolved {} upstream(s) for selector {}", newUrls.size(), selectorData.getId());
+            LOG.info("Resolved {} upstream(s) for selector {}", newKeys.size(), selectorData.getId());
         }
         if (selectorChanged) {
             subscriber.onSelectorSubscribe(selectorData);
             LOG.info("Published divide selector {} for HTTPRoute coordinates {}", selectorData.getId(), selectorData.getName());
         }
+    }
+
+    /**
+     * Upstream identity key, matching {@link UpstreamCacheManager}'s merge key: protocol and
+     * URL together. Comparing URL alone would leave a stale entry routable when the protocol
+     * of an address changes (http:// → https://), since neither submit nor the offline loop
+     * would evict the old-protocol entry.
+     */
+    private static String upstreamKey(final String protocol, final String url) {
+        return Objects.requireNonNullElse(protocol, "") + "_" + Objects.requireNonNullElse(url, "");
+    }
+
+    private static String upstreamKey(final DiscoveryUpstreamData upstreamData) {
+        return upstreamKey(upstreamData.getProtocol(), upstreamData.getUrl());
+    }
+
+    private static String upstreamKey(final Upstream upstream) {
+        return upstreamKey(upstream.getProtocol(), upstream.getUrl());
     }
 
     /**

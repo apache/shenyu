@@ -18,6 +18,7 @@
 package org.apache.shenyu.k8s;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
@@ -33,8 +34,10 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +105,7 @@ public final class GatewayReconcilerTest {
         when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
 
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
-        cache.bindRouteToGateway("mockedNamespace", "shenyu-gateway", "mockedNamespace", "test-route");
+        cache.bindRouteToGateway("mockedNamespace", "shenyu-gateway", Set.of("http"), "mockedNamespace", "test-route");
         cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -158,6 +161,60 @@ public final class GatewayReconcilerTest {
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
         verify(apiClient, never()).execute(any(okhttp3.Call.class));
+    }
+
+    /**
+     * attachedRoutes is defined per listener: a route bound through only one listener of a
+     * two-listener Gateway must be counted on that listener alone, not on both.
+     */
+    @Test
+    public void testAttachedRoutesAreCountedPerListener() throws Exception {
+        final DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        JsonObject secondListener = new JsonObject();
+        secondListener.addProperty("name", "http2");
+        secondListener.addProperty("protocol", "HTTP");
+        secondListener.addProperty("port", 9195);
+        gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").add(secondListener);
+
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        GatewayRouteCache.getInstance().bindRouteToGateway("mockedNamespace", "shenyu-gateway",
+                Set.of("http"), "mockedNamespace", "test-route");
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getAuthentications()).thenReturn(Map.of());
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
+                .thenReturn(mock(okhttp3.Call.class));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient, 9195);
+
+        Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
+        Assertions.assertEquals(new Result(false), result);
+
+        JsonArray listeners = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status").getAsJsonArray("listeners");
+        Assertions.assertEquals(2, listeners.size());
+        for (JsonElement element : listeners) {
+            JsonObject listenerStatus = element.getAsJsonObject();
+            String name = listenerStatus.get("name").getAsString();
+            int attached = listenerStatus.get("attachedRoutes").getAsInt();
+            if ("http".equals(name)) {
+                Assertions.assertEquals(1, attached, "listener the route attached to must count it");
+            } else {
+                Assertions.assertEquals(0, attached, "unrelated listener must not count the route");
+            }
+        }
     }
 
     private JsonArray buildConditions(final String acceptedStatus, final String programmedStatus) {

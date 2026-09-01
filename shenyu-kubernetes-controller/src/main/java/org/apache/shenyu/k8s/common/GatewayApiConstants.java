@@ -83,19 +83,28 @@ public final class GatewayApiConstants {
 
     public static final String SHENYU_CONTROLLER_NAME = "gateway.shenyu.apache.org/shenyu-controller";
 
+    /** Wording shared by every Accepted=True message this controller writes; used to recognize ShenYu's own status payload on resources whose conditions carry no controllerName. */
+    public static final String ACCEPTED_BY_SHENYU_MESSAGE = "accepted by the ShenYu controller";
+
     private GatewayApiConstants() {
     }
 
     /**
-     * Whether a backendRef references a Service: {@code kind} defaults to Service when
-     * absent, the only kind ShenYu can resolve to upstream addresses.
+     * Whether a backendRef references a core (legacy group) Service: both {@code group} and
+     * {@code kind} default to Service's core values when absent. A kind of {@code Service}
+     * with an explicit foreign group names a different resource (e.g. a custom backend
+     * implementation) and must not be resolved against core Services of the same name.
      *
      * @param backendRef the backendRef object
-     * @return true if the reference targets a Service
+     * @return true if the reference targets a core Service
      */
     public static boolean isServiceRef(final JsonObject backendRef) {
         String kind = JsonFields.getString(backendRef, "kind");
-        return Objects.isNull(kind) || SERVICE_KIND.equals(kind);
+        if (Objects.nonNull(kind) && !SERVICE_KIND.equals(kind)) {
+            return false;
+        }
+        String group = JsonFields.getString(backendRef, "group");
+        return Objects.isNull(group) || group.isEmpty();
     }
 
     /**
@@ -106,23 +115,51 @@ public final class GatewayApiConstants {
      * @return true if the condition exists and is "True"
      */
     public static boolean isConditionTrue(final DynamicKubernetesObject resource, final String conditionType) {
+        JsonObject condition = findCondition(resource, conditionType);
+        return Objects.nonNull(condition) && "True".equals(condition.get("status").getAsString());
+    }
+
+    /**
+     * Find a resource's condition of the given type in its status.
+     *
+     * @param resource the dynamic kubernetes object
+     * @param conditionType the condition type to look for
+     * @return the condition object, or null when absent or the status is malformed
+     */
+    public static JsonObject findCondition(final DynamicKubernetesObject resource, final String conditionType) {
         JsonObject raw = resource.getRaw();
-        if (!raw.has("status") || raw.get("status").isJsonNull()) {
-            return false;
+        JsonObject status = JsonFields.getJsonObject(raw, "status");
+        JsonArray conditions = JsonFields.getJsonArray(status, "conditions");
+        if (Objects.isNull(conditions)) {
+            return null;
         }
-        JsonObject status = raw.getAsJsonObject("status");
-        if (!status.has("conditions") || status.get("conditions").isJsonNull()) {
-            return false;
-        }
-        JsonArray conditions = status.getAsJsonArray("conditions");
         for (JsonElement element : conditions) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
             JsonObject condition = element.getAsJsonObject();
-            String type = condition.has("type") ? condition.get("type").getAsString() : null;
-            String value = condition.has("status") ? condition.get("status").getAsString() : null;
-            if (conditionType.equals(type) && "True".equals(value)) {
-                return true;
+            if (conditionType.equals(JsonFields.getString(condition, "type"))) {
+                return condition;
             }
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * Whether the resource's Accepted=True condition is ShenYu's own status payload.
+     * Gateway API conditions carry no controllerName, so on Gateways and GatewayClasses
+     * that changed ownership the only way to tell ShenYu's writing from the new
+     * controller's is the message wording this controller uses.
+     *
+     * @param resource the dynamic kubernetes object
+     * @param conditionType the condition type to check
+     * @return true if the condition is True and was written by this controller
+     */
+    public static boolean isConditionAcceptedByShenyu(final DynamicKubernetesObject resource, final String conditionType) {
+        JsonObject condition = findCondition(resource, conditionType);
+        return Objects.nonNull(condition)
+                && "True".equals(JsonFields.getString(condition, "status"))
+                && Objects.nonNull(JsonFields.getString(condition, "message"))
+                && JsonFields.getString(condition, "message").contains(ACCEPTED_BY_SHENYU_MESSAGE);
     }
 }

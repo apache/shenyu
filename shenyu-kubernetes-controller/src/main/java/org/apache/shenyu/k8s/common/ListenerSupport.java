@@ -39,13 +39,18 @@ public final class ListenerSupport {
 
     /**
      * Listeners selected by a parentRef: the one named by sectionName, or all listeners
-     * when sectionName is absent.
+     * when sectionName is absent; when the parentRef carries a port, only listeners on
+     * that port are selected — the two optional selectors must both match, otherwise a
+     * parentRef selecting port 443 could attach through an unrelated listener chosen by
+     * sectionName alone.
      *
      * @param gatewayRaw raw Gateway json
      * @param sectionName optional sectionName of the parentRef
-     * @return matching listeners; empty when sectionName matches no listener
+     * @param parentPort optional port of the parentRef, null when absent
+     * @return matching listeners; empty when neither selector matches any listener
      */
-    public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName) {
+    public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName,
+                                                   final Long parentPort) {
         JsonObject spec = JsonFields.getJsonObject(gatewayRaw, "spec");
         JsonArray listeners = JsonFields.getJsonArray(spec, "listeners");
         List<JsonObject> result = new ArrayList<>();
@@ -57,11 +62,38 @@ public final class ListenerSupport {
                 continue;
             }
             JsonObject listener = element.getAsJsonObject();
-            if (Objects.isNull(sectionName) || sectionName.equals(nameOf(listener))) {
+            boolean nameMatches = Objects.isNull(sectionName) || sectionName.equals(nameOf(listener));
+            boolean portMatches = Objects.isNull(parentPort) || parentPort.equals(portOf(listener));
+            if (nameMatches && portMatches) {
                 result.add(listener);
             }
         }
         return result;
+    }
+
+    /**
+     * Listeners selected by sectionName only.
+     *
+     * @param gatewayRaw raw Gateway json
+     * @param sectionName optional sectionName
+     * @return matching listeners; empty when sectionName matches no listener
+     */
+    public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName) {
+        return selectListeners(gatewayRaw, sectionName, null);
+    }
+
+    /**
+     * Whether this gateway actually serves the listener's port: usable listeners must speak
+     * HTTP on {@code servedPort} ({@code server.port} of the embedded data plane). A
+     * listener without a port cannot be confirmed served.
+     *
+     * @param listener the listener object
+     * @param servedPort the port the data plane listens on
+     * @return true if the listener's port is served
+     */
+    public static boolean servesPort(final JsonObject listener, final long servedPort) {
+        Long port = portOf(listener);
+        return Objects.nonNull(port) && port == servedPort;
     }
 
     public static String nameOf(final JsonObject listener) {

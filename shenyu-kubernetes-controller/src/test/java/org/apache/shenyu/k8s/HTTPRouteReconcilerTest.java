@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -72,7 +73,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -93,7 +94,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -117,7 +118,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -161,12 +162,58 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(apiClient, never()).execute(any(okhttp3.Call.class));
+    }
+
+    /**
+     * A parentRef carrying a port must only attach through listeners on that port: with the
+     * sectionName selecting a listener whose port differs from the parentRef port, the
+     * attachment is rejected instead of silently going through the named listener.
+     */
+    @Test
+    public void testParentRefPortMustMatchSelectedListener() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
+                .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
+                .build();
+        when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister,
+                new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        // parentRef selects the listener by name but demands port 443; the listener serves 9195
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("parentRefs")
+                .get(0).getAsJsonObject().addProperty("port", 443);
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ApiClient apiClient = mockApiClientWithStatusPatch();
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
+        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+
+        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any());
     }
 
     /**
@@ -176,7 +223,7 @@ public final class HTTPRouteReconcilerTest {
     public void testReconcileHTTPRouteDeletion() {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         // httpRoute not found in indexer → treated as deletion
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
@@ -193,7 +240,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -214,7 +261,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -235,7 +282,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
@@ -258,7 +305,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("route-ns/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -285,7 +332,7 @@ public final class HTTPRouteReconcilerTest {
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("route-ns", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -306,7 +353,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -341,7 +388,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -376,7 +423,7 @@ public final class HTTPRouteReconcilerTest {
                 .build();
         when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -415,7 +462,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
 
@@ -460,7 +507,7 @@ public final class HTTPRouteReconcilerTest {
     public void testReconcileUnboundHTTPRouteCleansUpPreviouslyAppliedConfig() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
         Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
-        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)));
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
@@ -483,7 +530,7 @@ public final class HTTPRouteReconcilerTest {
         when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
 
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
-        cache.bindRouteToGateway("mockedNamespace", "other-gateway", "mockedNamespace", "test-route");
+        cache.bindRouteToGateway("mockedNamespace", "other-gateway", Set.of("http"), "mockedNamespace", "test-route");
         cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -492,7 +539,7 @@ public final class HTTPRouteReconcilerTest {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient);
+                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);

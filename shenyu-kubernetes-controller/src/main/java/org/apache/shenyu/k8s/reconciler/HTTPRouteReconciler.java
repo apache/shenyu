@@ -75,13 +75,17 @@ public class HTTPRouteReconciler implements Reconciler {
 
     private final ApiClient apiClient;
 
+    /** The port the embedded ShenYu data plane actually listens on ({@code server.port}); route attachment is allowed only on listeners the gateway really serves. */
+    private final int servedPort;
+
     public HTTPRouteReconciler(final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer,
                                final HttpRouteParser httpRouteParser,
                                final ShenyuCacheRepository shenyuCacheRepository,
-                               final ApiClient apiClient) {
+                               final ApiClient apiClient,
+                               final int servedPort) {
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
         this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
@@ -89,6 +93,7 @@ public class HTTPRouteReconciler implements Reconciler {
         this.httpRouteParser = httpRouteParser;
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.apiClient = apiClient;
+        this.servedPort = servedPort;
     }
 
     @Override
@@ -126,9 +131,6 @@ public class HTTPRouteReconciler implements Reconciler {
         } else {
             config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
             if (config.isHasUnsupportedFilters()) {
-                // Accepted=False must not coexist with programmed traffic: the route would
-                // only be partially applied, so nothing is programmed at all and any config
-                // from a previous (valid) spec of this route is dropped.
                 deleteConfig(namespace, routeName);
             } else {
                 GatewayRouteCache cache = GatewayRouteCache.getInstance();
@@ -136,9 +138,9 @@ public class HTTPRouteReconciler implements Reconciler {
                 // read the previous snapshot before putRouteSelectors overwrites it
                 List<String> oldSelectorIds = Objects.requireNonNullElse(
                         cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()), List.of());
-                cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), newSelectorIds);
-                deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
                 applyConfig(config, namespace, routeName);
+                deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
+                cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), newSelectorIds);
                 rebindGateways(cache, namespace, routeName, accepted);
             }
         }
@@ -157,25 +159,33 @@ public class HTTPRouteReconciler implements Reconciler {
 
     /**
      * Effective hostnames for the data plane: the union of the per-parent intersections of
-     * route hostnames with listener hostnames. Empty means "any host".
+     * route hostnames with listener hostnames. Empty means "any host" — and one accepting
+     * parent with an empty hostname list makes the route host-agnostic overall, so the
+     * union with other parents' hostnames must not narrow it back down.
      */
     private List<String> effectiveHostnames(final List<ParentDecision> accepted) {
         Set<String> union = new LinkedHashSet<>();
         for (ParentDecision decision : accepted) {
+            if (decision.hostnames.isEmpty()) {
+                return List.of();
+            }
             union.addAll(decision.hostnames);
         }
         return new ArrayList<>(union);
     }
 
     /**
-     * Rebuild the route→gateway bindings from the currently accepted parents, dropping
-     * stale bindings of parentRefs that were removed or became ineligible.
+     * Rebuild the route→gateway bindings from the currently accepted parents at listener
+     * granularity, dropping stale bindings of parentRefs that were removed or became
+     * ineligible. The per-listener bindings drive the Gateway listeners'
+     * attachedRoutes counts.
      */
     private void rebindGateways(final GatewayRouteCache cache, final String namespace, final String routeName,
                                 final List<ParentDecision> accepted) {
         cache.removeRouteGatewayBinding(namespace, routeName);
         for (ParentDecision decision : accepted) {
-            cache.bindRouteToGateway(decision.parentNamespace, decision.parentName, namespace, routeName);
+            cache.bindRouteToGateway(decision.parentNamespace, decision.parentName, decision.listenerNames,
+                    namespace, routeName);
         }
     }
 
@@ -232,35 +242,50 @@ public class HTTPRouteReconciler implements Reconciler {
                 continue;
             }
             String sectionName = JsonFields.getString(parentRef, "sectionName");
-            decisions.add(evaluateListeners(gateway, sectionName, routeNamespace, parentNamespace, parentName,
-                    routeHostnames, parentRef));
+            Long parentPort = JsonFields.getLong(parentRef, "port");
+            decisions.add(evaluateListeners(gateway, sectionName, parentPort, routeNamespace, parentNamespace,
+                    parentName, routeHostnames, parentRef));
         }
         return decisions;
     }
 
     /**
-     * Attachment evaluation against the selected listeners: protocol support, the
-     * allowedRoutes namespace/kind policy, and the listener/route hostname intersection.
-     * The route attaches when at least one selected listener accepts it.
+     * Attachment evaluation against the selected listeners: the listener must be usable for
+     * this gateway (supported protocol on a served port), pass the allowedRoutes
+     * namespace/kind policy, and intersect the route hostnames. The route attaches when at
+     * least one selected listener accepts it, and the accepting listener names are carried
+     * with the decision for the per-listener attachedRoutes binding.
      */
     private ParentDecision evaluateListeners(final DynamicKubernetesObject gateway, final String sectionName,
-                                             final String routeNamespace, final String parentNamespace,
-                                             final String parentName, final List<String> routeHostnames,
-                                             final JsonObject parentRef) {
-        List<JsonObject> selected = ListenerSupport.selectListeners(gateway.getRaw(), sectionName);
+                                             final Long parentPort, final String routeNamespace,
+                                             final String parentNamespace, final String parentName,
+                                             final List<String> routeHostnames, final JsonObject parentRef) {
+        List<JsonObject> selected = ListenerSupport.selectListeners(gateway.getRaw(), sectionName, parentPort);
         if (selected.isEmpty()) {
-            String message = Objects.nonNull(sectionName)
-                    ? "no listener named '" + sectionName + "' on Gateway " + parentNamespace + "/" + parentName
-                    : "Gateway " + parentNamespace + "/" + parentName + " has no listeners";
+            String message;
+            if (Objects.nonNull(sectionName)) {
+                message = "no listener named '" + sectionName + "' on Gateway " + parentNamespace + "/" + parentName;
+                if (Objects.nonNull(parentPort)) {
+                    message = message + " serving port " + parentPort;
+                }
+            } else if (Objects.nonNull(parentPort)) {
+                message = "Gateway " + parentNamespace + "/" + parentName + " has no listener on port " + parentPort;
+            } else {
+                message = "Gateway " + parentNamespace + "/" + parentName + " has no listeners";
+            }
             return ParentDecision.rejected(parentRef, parentNamespace, parentName,
                     GatewayApiConstants.REASON_UNSUPPORTED_VALUE, message);
         }
         Set<String> effective = new LinkedHashSet<>();
+        Set<String> matchedListeners = new LinkedHashSet<>();
         boolean anyMatched = false;
         boolean notPermitted = false;
         boolean hostnameMismatch = false;
         for (JsonObject listener : selected) {
-            if (!ListenerSupport.isSupportedProtocol(listener)) {
+            // Mirror of the Gateway reconciler's listener usability: a listener on an
+            // unserved port is reported PortUnavailable there, so accepting a route on it
+            // here would let status and data-plane behavior diverge.
+            if (!ListenerSupport.isSupportedProtocol(listener) || !ListenerSupport.servesPort(listener, servedPort)) {
                 continue;
             }
             if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace)
@@ -276,10 +301,12 @@ public class HTTPRouteReconciler implements Reconciler {
             // note an empty intersection is still a match: route without hostnames attaching
             // to a listener without hostname means "any host"
             anyMatched = true;
+            matchedListeners.add(ListenerSupport.nameOf(listener));
             effective.addAll(intersect);
         }
         if (anyMatched) {
-            return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective));
+            return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective),
+                    matchedListeners);
         }
         if (notPermitted) {
             return ParentDecision.rejected(parentRef, parentNamespace, parentName,
@@ -293,7 +320,7 @@ public class HTTPRouteReconciler implements Reconciler {
         }
         return ParentDecision.rejected(parentRef, parentNamespace, parentName,
                 GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
-                "no listener with a supported protocol (HTTP)");
+                "no listener with a supported protocol (HTTP) on a served port (serving " + servedPort + ")");
     }
 
     private List<String> readStringList(final JsonArray array) {
@@ -334,9 +361,9 @@ public class HTTPRouteReconciler implements Reconciler {
 
     /**
      * Delete selectors that were programmed by a previous spec of this route but are no
-     * longer part of the current parse. Runs BEFORE applying the new config: IDs are
-     * deterministic, so a spec change never produces the delete-after-create window that
-     * would briefly leave a live route unmatched.
+     * longer part of the current parse. Runs AFTER the new config is applied, so a spec
+     * change that shifts deterministic IDs never leaves a live interval with no matching
+     * selector; the cache's ID snapshot is committed only after this succeeds.
      */
     private void deleteStaleSelectors(final String namespace, final String routeName,
                                       final List<String> oldSelectorIds, final List<String> newSelectorIds) {
@@ -394,6 +421,10 @@ public class HTTPRouteReconciler implements Reconciler {
         String sectionName = JsonFields.getString(decision.parentRef, "sectionName");
         if (Objects.nonNull(sectionName)) {
             parentRefStatus.addProperty("sectionName", sectionName);
+        }
+        Long parentPort = JsonFields.getLong(decision.parentRef, "port");
+        if (Objects.nonNull(parentPort)) {
+            parentRefStatus.addProperty("port", parentPort);
         }
 
         JsonObject parent = new JsonObject();
@@ -491,7 +522,8 @@ public class HTTPRouteReconciler implements Reconciler {
         }
         return Objects.equals(JsonFields.getString(existing, "namespace"), JsonFields.getString(desired, "namespace"))
                 && Objects.equals(JsonFields.getString(existing, "name"), JsonFields.getString(desired, "name"))
-                && Objects.equals(JsonFields.getString(existing, "sectionName"), JsonFields.getString(desired, "sectionName"));
+                && Objects.equals(JsonFields.getString(existing, "sectionName"), JsonFields.getString(desired, "sectionName"))
+                && Objects.equals(JsonFields.getLong(existing, "port"), JsonFields.getLong(desired, "port"));
     }
 
     private boolean conditionsMatch(final JsonArray existing, final JsonArray desired) {
@@ -508,6 +540,8 @@ public class HTTPRouteReconciler implements Reconciler {
                         JsonFields.getString(existingCondition, "reason"), JsonFields.getString(desiredCondition, "reason"));
                 if (Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
                         && Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))
+                        && Objects.equals(JsonFields.getLong(existingCondition, "observedGeneration"),
+                        JsonFields.getLong(desiredCondition, "observedGeneration"))
                         && reasonMatches) {
                     found = true;
                     break;
@@ -631,8 +665,9 @@ public class HTTPRouteReconciler implements Reconciler {
     }
 
     /**
-     * The verdict for one parentRef: acceptance with the effective hostnames, or rejection
-     * with the spec-defined reason reported in status.
+     * The verdict for one parentRef: acceptance with the effective hostnames and the
+     * listener names that accepted the route, or rejection with the spec-defined reason
+     * reported in status.
      */
     private static final class ParentDecision {
 
@@ -650,9 +685,11 @@ public class HTTPRouteReconciler implements Reconciler {
 
         private final List<String> hostnames;
 
+        private final Set<String> listenerNames;
+
         private ParentDecision(final JsonObject parentRef, final String parentNamespace, final String parentName,
                                final boolean accepted, final String reason, final String message,
-                               final List<String> hostnames) {
+                               final List<String> hostnames, final Set<String> listenerNames) {
             this.parentRef = parentRef;
             this.parentNamespace = parentNamespace;
             this.parentName = parentName;
@@ -660,16 +697,17 @@ public class HTTPRouteReconciler implements Reconciler {
             this.reason = reason;
             this.message = message;
             this.hostnames = hostnames;
+            this.listenerNames = listenerNames;
         }
 
         static ParentDecision accepted(final JsonObject parentRef, final String parentNamespace, final String parentName,
-                                       final List<String> hostnames) {
-            return new ParentDecision(parentRef, parentNamespace, parentName, true, null, null, hostnames);
+                                       final List<String> hostnames, final Set<String> listenerNames) {
+            return new ParentDecision(parentRef, parentNamespace, parentName, true, null, null, hostnames, listenerNames);
         }
 
         static ParentDecision rejected(final JsonObject parentRef, final String parentNamespace, final String parentName,
                                        final String reason, final String message) {
-            return new ParentDecision(parentRef, parentNamespace, parentName, false, reason, message, List.of());
+            return new ParentDecision(parentRef, parentNamespace, parentName, false, reason, message, List.of(), Set.of());
         }
     }
 }

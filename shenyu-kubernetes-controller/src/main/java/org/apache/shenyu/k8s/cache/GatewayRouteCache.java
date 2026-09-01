@@ -20,20 +20,30 @@ package org.apache.shenyu.k8s.cache;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * In-memory bindings between ShenYu-managed Gateways, their listeners and the HTTPRoutes
+ * attached to them, maintained by the HTTPRoute reconciler and read by the Gateway
+ * reconciler (listener-level attachedRoutes) and the deletion paths (cascade cleanup).
+ *
+ * <p>Bindings are tracked per listener ({@code attachedRoutes} is defined per listener in
+ * the Gateway API spec): a gateway entry maps each attached route to the set of listener
+ * names that accepted it, so a route targeting only {@code sectionName: http} is counted
+ * on that listener alone.
+ */
 public final class GatewayRouteCache {
 
     private static final GatewayRouteCache INSTANCE = new GatewayRouteCache();
 
     private static final Map<String, List<String>> ROUTE_SELECTOR_MAP = Maps.newConcurrentMap();
 
-    private static final Map<String, Set<String>> GATEWAY_ROUTE_MAP = Maps.newConcurrentMap();
-
-    private static final Map<String, Set<String>> ROUTE_GATEWAY_MAP = Maps.newConcurrentMap();
+    /** gatewayKey → (routeKey → listener names that accepted the route). */
+    private static final Map<String, Map<String, Set<String>>> GATEWAY_ROUTE_MAP = Maps.newConcurrentMap();
 
     private GatewayRouteCache() {
     }
@@ -57,17 +67,63 @@ public final class GatewayRouteCache {
         return ROUTE_SELECTOR_MAP.remove(routeKey(namespace, routeName, pluginName));
     }
 
+    /**
+     * Bind a route to a Gateway on the given listener names, replacing the route's previous
+     * binding to that Gateway.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @param listenerNames listeners of the Gateway that accepted the route
+     * @param routeNamespace namespace of the route
+     * @param routeName name of the route
+     */
     public void bindRouteToGateway(final String gatewayNamespace, final String gatewayName,
+                                   final Set<String> listenerNames,
                                    final String routeNamespace, final String routeName) {
         String gwKey = gatewayKey(gatewayNamespace, gatewayName);
         String rKey = routeKey(routeNamespace, routeName);
-        GATEWAY_ROUTE_MAP.computeIfAbsent(gwKey, k -> Sets.newConcurrentHashSet()).add(rKey);
-        ROUTE_GATEWAY_MAP.computeIfAbsent(rKey, k -> Sets.newConcurrentHashSet()).add(gwKey);
+        GATEWAY_ROUTE_MAP.computeIfAbsent(gwKey, k -> Maps.newConcurrentMap())
+                .compute(rKey, (k, listeners) -> {
+                    Set<String> merged = Objects.isNull(listeners) ? Sets.newConcurrentHashSet() : listeners;
+                    merged.addAll(listenerNames);
+                    return merged;
+                });
     }
 
+    /**
+     * Routes attached to a Gateway through any of its listeners.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @return route keys ("namespace/name") attached to the Gateway, null if none
+     */
     public Set<String> getRoutesByGateway(final String gatewayNamespace, final String gatewayName) {
-        Set<String> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
-        return Objects.isNull(routes) ? null : Set.copyOf(routes);
+        Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
+        return Objects.isNull(routes) || routes.isEmpty() ? null : Set.copyOf(routes.keySet());
+    }
+
+    /**
+     * Routes attached to one specific listener of a Gateway; the count of this set is the
+     * listener's {@code attachedRoutes} status value.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @param listenerName name of the listener
+     * @return route keys ("namespace/name") attached through that listener, empty if none
+     */
+    public Set<String> getRoutesByListener(final String gatewayNamespace, final String gatewayName,
+                                           final String listenerName) {
+        Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
+        if (Objects.isNull(routes)) {
+            return Set.of();
+        }
+        Set<String> attached = new HashSet<>();
+        routes.forEach((routeKey, listeners) -> {
+            if (listeners.contains(listenerName)) {
+                attached.add(routeKey);
+            }
+        });
+        return attached;
     }
 
     /**
@@ -79,35 +135,25 @@ public final class GatewayRouteCache {
      * @return gateway keys ("namespace/name") the route is bound to, null if none
      */
     public Set<String> getGatewaysForRoute(final String routeNamespace, final String routeName) {
-        Set<String> gateways = ROUTE_GATEWAY_MAP.get(routeKey(routeNamespace, routeName));
-        return Objects.isNull(gateways) ? null : Set.copyOf(gateways);
+        String rKey = routeKey(routeNamespace, routeName);
+        Set<String> gateways = new HashSet<>();
+        GATEWAY_ROUTE_MAP.forEach((gwKey, routes) -> {
+            if (routes.containsKey(rKey)) {
+                gateways.add(gwKey);
+            }
+        });
+        return gateways.isEmpty() ? null : gateways;
     }
 
     public Set<String> removeRoutesByGateway(final String gatewayNamespace, final String gatewayName) {
         String gwKey = gatewayKey(gatewayNamespace, gatewayName);
-        Set<String> routes = GATEWAY_ROUTE_MAP.remove(gwKey);
-        if (Objects.nonNull(routes)) {
-            // Drop this Gateway from each route's binding set and remove emptied entries,
-            // so a route still bound to another ShenYu Gateway keeps a non-empty set.
-            routes.forEach(rKey -> ROUTE_GATEWAY_MAP.computeIfPresent(rKey, (k, gateways) -> {
-                gateways.remove(gwKey);
-                return gateways.isEmpty() ? null : gateways;
-            }));
-        }
-        return routes;
+        Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.remove(gwKey);
+        return Objects.isNull(routes) || routes.isEmpty() ? null : Set.copyOf(routes.keySet());
     }
 
     public void removeRouteGatewayBinding(final String routeNamespace, final String routeName) {
         String rKey = routeKey(routeNamespace, routeName);
-        Set<String> gwKeys = ROUTE_GATEWAY_MAP.remove(rKey);
-        if (Objects.nonNull(gwKeys)) {
-            for (String gwKey : gwKeys) {
-                Set<String> routes = GATEWAY_ROUTE_MAP.get(gwKey);
-                if (Objects.nonNull(routes)) {
-                    routes.remove(rKey);
-                }
-            }
-        }
+        GATEWAY_ROUTE_MAP.forEach((gwKey, routes) -> routes.remove(rKey));
     }
 
     /**
@@ -116,7 +162,6 @@ public final class GatewayRouteCache {
     public void clear() {
         ROUTE_SELECTOR_MAP.clear();
         GATEWAY_ROUTE_MAP.clear();
-        ROUTE_GATEWAY_MAP.clear();
     }
 
     private String routeKey(final String namespace, final String name) {
