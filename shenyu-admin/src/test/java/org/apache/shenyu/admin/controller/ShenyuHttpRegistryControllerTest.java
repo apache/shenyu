@@ -44,13 +44,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -76,7 +79,10 @@ public final class ShenyuHttpRegistryControllerTest {
 
     @BeforeEach
     public void setUp() {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuHttpRegistryController)
+                .setValidator(validator)
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
 
@@ -139,7 +145,9 @@ public final class ShenyuHttpRegistryControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-metadata")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500));
+        verifyNoInteractions(publisher);
     }
 
     private NamespaceDO buildNamespaceDO() {
