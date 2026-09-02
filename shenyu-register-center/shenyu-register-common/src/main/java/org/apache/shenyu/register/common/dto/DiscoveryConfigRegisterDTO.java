@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.register.common.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
@@ -24,18 +26,23 @@ import java.util.Properties;
 
 public class DiscoveryConfigRegisterDTO implements DataTypeParent {
 
+    @NotBlank
     private String selectorName;
 
+    @NotBlank
     private String name;
 
+    @NotBlank
     private String discoveryType;
 
+    @NotBlank
     private String serverList;
 
     private String listenerNode;
 
     private String handler;
 
+    @NotBlank
     private String pluginName;
 
     private Properties props;

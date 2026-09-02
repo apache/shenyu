@@ -92,8 +92,10 @@ public final class ShenyuHttpRegistryControllerTest {
         when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
                 .appName("app")
+                .contextPath("/context")
                 .enabled(true)
                 .rpcType(RpcTypeEnum.DUBBO.getName())
+                .ruleName("register")
                 .host("127.0.0.1")
                 .port(8080)
                 .path("/register")
@@ -117,6 +119,7 @@ public final class ShenyuHttpRegistryControllerTest {
         when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
         URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
                 .appName("app")
+                .contextPath("/context")
                 .host("127.0.0.1")
                 .port(8080)
                 .rpcType(RpcTypeEnum.DUBBO.getName())
