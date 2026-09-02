@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -132,10 +133,12 @@ public final class BaseDataCache {
      */
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
-            final List<SelectorData> selectorDataList = SELECTOR_MAP.get(data.getPluginName());
-            synchronized (SELECTOR_MAP) {
-                Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
-            }
+            SELECTOR_MAP.computeIfPresent(data.getPluginName(), (key, value) -> {
+                final List<SelectorData> result = value.stream()
+                        .filter(selector -> !Objects.equals(selector.getId(), data.getId()))
+                        .collect(Collectors.toList());
+                return result.isEmpty() ? null : List.copyOf(result);
+            });
         });
     }
     
@@ -168,7 +171,7 @@ public final class BaseDataCache {
      * Obtain selector data list list.
      *
      * @param pluginName the plugin name
-     * @return the list
+     * @return the immutable snapshot, or {@code null} if no selector data exists
      */
     public List<SelectorData> obtainSelectorData(final String pluginName) {
         return SELECTOR_MAP.get(pluginName);
@@ -190,10 +193,12 @@ public final class BaseDataCache {
      */
     public void removeRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(data -> {
-            final List<RuleData> ruleDataList = RULE_MAP.get(data.getSelectorId());
-            synchronized (RULE_MAP) {
-                Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
-            }
+            RULE_MAP.computeIfPresent(data.getSelectorId(), (key, value) -> {
+                final List<RuleData> result = value.stream()
+                        .filter(rule -> !Objects.equals(rule.getId(), data.getId()))
+                        .collect(Collectors.toList());
+                return result.isEmpty() ? null : List.copyOf(result);
+            });
         });
     }
     
@@ -226,7 +231,7 @@ public final class BaseDataCache {
      * Obtain rule data list list.
      *
      * @param selectorId the selector id
-     * @return the list
+     * @return the immutable snapshot, or {@code null} if no rule data exists
      */
     public List<RuleData> obtainRuleData(final String selectorId) {
         return RULE_MAP.get(selectorId);
@@ -267,17 +272,13 @@ public final class BaseDataCache {
      */
     private void ruleAccept(final RuleData data) {
         String selectorId = data.getSelectorId();
-        synchronized (RULE_MAP) {
-            if (RULE_MAP.containsKey(selectorId)) {
-                List<RuleData> existList = RULE_MAP.get(selectorId);
-                final List<RuleData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-                resultList.add(data);
-                final List<RuleData> collect = resultList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-                RULE_MAP.put(selectorId, collect);
-            } else {
-                RULE_MAP.put(selectorId, Lists.newArrayList(data));
-            }
-        }
+        RULE_MAP.compute(selectorId, (key, value) -> {
+            final List<RuleData> result = Objects.isNull(value) ? new ArrayList<>() : new ArrayList<>(value);
+            result.removeIf(rule -> Objects.equals(rule.getId(), data.getId()));
+            result.add(data);
+            result.sort(Comparator.comparing(RuleData::getSort));
+            return List.copyOf(result);
+        });
     }
 
     /**
@@ -287,16 +288,12 @@ public final class BaseDataCache {
      */
     private void selectorAccept(final SelectorData data) {
         String key = data.getPluginName();
-        synchronized (SELECTOR_MAP) {
-            if (SELECTOR_MAP.containsKey(key)) {
-                List<SelectorData> existList = SELECTOR_MAP.get(key);
-                final List<SelectorData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-                resultList.add(data);
-                final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
-                SELECTOR_MAP.put(key, collect);
-            } else {
-                SELECTOR_MAP.put(key, Lists.newArrayList(data));
-            }
-        }
+        SELECTOR_MAP.compute(key, (pluginName, value) -> {
+            final List<SelectorData> result = Objects.isNull(value) ? new ArrayList<>() : new ArrayList<>(value);
+            result.removeIf(selector -> Objects.equals(selector.getId(), data.getId()));
+            result.add(data);
+            result.sort(Comparator.comparing(SelectorData::getSort));
+            return List.copyOf(result);
+        });
     }
 }
