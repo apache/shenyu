@@ -134,6 +134,14 @@ public final class ShenyuHttpRegistryControllerTest {
                 .andReturn();
     }
 
+    @Test
+    public void testRegisterMetadataRejectsInvalidBody() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-metadata")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
     private NamespaceDO buildNamespaceDO() {
         return NamespaceDO.builder()
                 .id("1")
