@@ -35,7 +35,6 @@ import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.ListenerSupport;
-import org.apache.shenyu.k8s.common.ReferenceGrants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
@@ -53,9 +52,11 @@ import java.util.Set;
  * Reconciler for HTTPRoute resources (Gateway API v1).
  *
  * <p>Every parentRef is evaluated individually and reported in status.parents — including
- * rejections (no ReferenceGrant, listener policy, hostname mismatch, missing parent) with
- * the spec-defined reason — except parentRefs resolved to Gateways owned by another
- * controller, whose status entries belong to that controller.
+ * rejections (listener policy, hostname mismatch, missing parent) with the spec-defined
+ * reason — except parentRefs resolved to Gateways owned by another controller, whose
+ * status entries belong to that controller. Cross-namespace attachment is authorized by
+ * the listener's allowedRoutes only; ReferenceGrant governs cross-namespace backendRefs,
+ * which the {@link HttpRouteParser} validates.
  */
 public class HTTPRouteReconciler implements Reconciler {
 
@@ -66,8 +67,6 @@ public class HTTPRouteReconciler implements Reconciler {
     private final Lister<DynamicKubernetesObject> gatewayLister;
 
     private final Lister<DynamicKubernetesObject> gatewayClassLister;
-
-    private final Lister<DynamicKubernetesObject> referenceGrantLister;
 
     private final HttpRouteParser httpRouteParser;
 
@@ -81,7 +80,6 @@ public class HTTPRouteReconciler implements Reconciler {
     public HTTPRouteReconciler(final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
-                               final SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer,
                                final HttpRouteParser httpRouteParser,
                                final ShenyuCacheRepository shenyuCacheRepository,
                                final ApiClient apiClient,
@@ -89,7 +87,6 @@ public class HTTPRouteReconciler implements Reconciler {
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
         this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
-        this.referenceGrantLister = new Lister<>(referenceGrantInformer.getIndexer());
         this.httpRouteParser = httpRouteParser;
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.apiClient = apiClient;
@@ -232,15 +229,9 @@ public class HTTPRouteReconciler implements Reconciler {
             if (!isShenyuGateway(gateway)) {
                 continue;
             }
-            if (!parentNamespace.equals(routeNamespace)
-                    && !ReferenceGrants.isGranted(referenceGrantLister, parentNamespace, routeNamespace,
-                    GatewayApiConstants.GATEWAY_API_GROUP, GatewayApiConstants.GATEWAY_KIND, parentName)) {
-                decisions.add(ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                        GatewayApiConstants.REASON_REF_NOT_PERMITTED,
-                        "cross-namespace parent reference to Gateway " + parentNamespace + "/" + parentName
-                                + " is not permitted by any ReferenceGrant"));
-                continue;
-            }
+            // Cross-namespace attachment is authorized by the listener's allowedRoutes
+            // policy inside evaluateListeners; per the Gateway API spec a ReferenceGrant
+            // does not apply to a Route's parentRef, so no grant check happens here.
             String sectionName = JsonFields.getString(parentRef, "sectionName");
             Long parentPort = JsonFields.getLong(parentRef, "port");
             decisions.add(evaluateListeners(gateway, sectionName, parentPort, routeNamespace, parentNamespace,

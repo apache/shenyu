@@ -92,9 +92,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -160,9 +159,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -207,9 +205,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -238,9 +235,8 @@ public final class HTTPRouteReconcilerTest {
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         ApiClient apiClient = mock(ApiClient.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -280,9 +276,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
@@ -293,11 +288,12 @@ public final class HTTPRouteReconcilerTest {
     }
 
     /**
-     * Cross-namespace parentRef WITH a matching ReferenceGrant (and a listener permitting
-     * all namespaces): the route is accepted and ShenYu config is programmed.
+     * Cross-namespace parentRef authorized by the listener's allowedRoutes alone: per the
+     * Gateway API spec a ReferenceGrant does not apply to a Route's parentRef, so the
+     * attachment must be accepted without any grant existing in the Gateway's namespace.
      */
     @Test
-    public void testReconcileCrossNamespaceHTTPRouteWithReferenceGrant() throws Exception {
+    public void testReconcileCrossNamespaceHTTPRouteAcceptedByAllowedRoutes() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
         V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
                 .withNewMetadata().withNamespace("route-ns").withName("testService").endMetadata()
@@ -309,8 +305,6 @@ public final class HTTPRouteReconcilerTest {
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
-        // the listener must also permit cross-namespace routes: a ReferenceGrant alone does
-        // not override the listener's allowedRoutes policy (spec default: Same-namespace)
         DynamicKubernetesObject gateway = allowAllNamespaces(buildGateway("gw-ns", "shenyu-gateway", "shenyu"));
         when(gatewayIndexer.getByKey("gw-ns/shenyu-gateway")).thenReturn(gateway);
         when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
@@ -322,17 +316,12 @@ public final class HTTPRouteReconcilerTest {
         when(httpRouteIndexer.getByKey("route-ns/test-route")).thenReturn(httpRoute);
         when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
 
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
-        Indexer<DynamicKubernetesObject> referenceGrantIndexer = referenceGrantInformer.getIndexer();
-        DynamicKubernetesObject grant = buildReferenceGrant("gw-ns", "route-ns", "Gateway");
-        when(referenceGrantIndexer.byIndex("namespace", "gw-ns")).thenReturn(List.of(grant));
-
         ApiClient apiClient = mockApiClientWithStatusPatch();
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("route-ns", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -386,9 +375,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -460,9 +448,8 @@ public final class HTTPRouteReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
 
@@ -537,9 +524,8 @@ public final class HTTPRouteReconcilerTest {
         ApiClient apiClient = mockApiClientWithStatusPatch();
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer = mockReferenceGrantInformer();
         HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
 
         Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
         Assertions.assertEquals(new Result(false), result);
@@ -614,54 +600,6 @@ public final class HTTPRouteReconcilerTest {
         when(indexer.getByKey("other-class")).thenReturn(otherClass);
         when(informer.getIndexer()).thenReturn(indexer);
         return informer;
-    }
-
-    /**
-     * Build a mocked referenceGrant informer backed by an empty Indexer. Mockito returns an
-     * empty list for {@code byIndex(...)} by default, so a cross-namespace parentRef finds no
-     * grant and is rejected. For same-namespace routes the grant check is skipped entirely.
-     */
-    private SharedIndexInformer<DynamicKubernetesObject> mockReferenceGrantInformer() {
-        SharedIndexInformer<DynamicKubernetesObject> informer = mock(SharedIndexInformer.class);
-        Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);
-        when(informer.getIndexer()).thenReturn(indexer);
-        return informer;
-    }
-
-    /**
-     * Build a ReferenceGrant dynamic object: {@code spec.from} allows an HTTPRoute from
-     * {@code fromNamespace} to reference the {@code toKind} resource living in
-     * {@code namespace}. The grant itself lives in {@code namespace}.
-     */
-    private DynamicKubernetesObject buildReferenceGrant(final String namespace, final String fromNamespace,
-                                                        final String toKind) {
-        JsonObject metadata = new JsonObject();
-        metadata.addProperty("namespace", namespace);
-        metadata.addProperty("name", "allow-" + fromNamespace);
-
-        JsonObject from = new JsonObject();
-        from.addProperty("group", "gateway.networking.k8s.io");
-        from.addProperty("kind", "HTTPRoute");
-        from.addProperty("namespace", fromNamespace);
-        JsonArray fromArray = new JsonArray();
-        fromArray.add(from);
-
-        JsonObject to = new JsonObject();
-        to.addProperty("group", "gateway.networking.k8s.io");
-        to.addProperty("kind", toKind);
-        JsonArray toArray = new JsonArray();
-        toArray.add(to);
-
-        JsonObject spec = new JsonObject();
-        spec.add("from", fromArray);
-        spec.add("to", toArray);
-
-        JsonObject raw = new JsonObject();
-        raw.addProperty("apiVersion", "gateway.networking.k8s.io/v1");
-        raw.addProperty("kind", "ReferenceGrant");
-        raw.add("metadata", metadata);
-        raw.add("spec", spec);
-        return new DynamicKubernetesObject(raw);
     }
 
     private DynamicKubernetesObject buildHTTPRoute(final String routeNamespace, final String routeName,

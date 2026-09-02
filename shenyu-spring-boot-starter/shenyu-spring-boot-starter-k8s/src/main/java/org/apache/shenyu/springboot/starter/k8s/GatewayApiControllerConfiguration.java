@@ -49,6 +49,7 @@ import org.apache.shenyu.k8s.reconciler.GatewayClassReconciler;
 import org.apache.shenyu.k8s.reconciler.GatewayReconciler;
 import org.apache.shenyu.k8s.reconciler.HTTPRouteReconciler;
 import org.apache.shenyu.k8s.reconciler.HttpRouteEndpointsHandler;
+import org.apache.shenyu.k8s.reconciler.HttpRouteServiceHandler;
 import org.apache.shenyu.k8s.reconciler.ReferenceGrantReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
@@ -207,7 +208,7 @@ public class GatewayApiControllerConfiguration {
     }
 
     @Bean("httproute-controller-manager")
-    @DependsOn("httpRouteEndpointsHandler")
+    @DependsOn({"httpRouteEndpointsHandler", "httpRouteServiceHandler"})
     public ControllerManager httpRouteControllerManager(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController) {
@@ -320,11 +321,11 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * Enqueues HTTPRoutes whose backendRefs target a changed Service. Declared as a
-     * dependency of the HTTPRoute controller manager so its indexers are registered
-     * before the informers start.
+     * Enqueues HTTPRoutes whose backendRefs target a Service with changed Endpoints
+     * (address/port changes). Declared as a dependency of the HTTPRoute controller manager
+     * so its indexers are registered before the informers start.
      *
-     * @param httpRouteFactory the HTTPRoute and Endpoints SharedInformerFactory
+     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
      * @param httpRouteWorkQueue the HTTPRoute controller work queue
      * @return the registered Endpoints event handler
      */
@@ -338,6 +339,29 @@ public class GatewayApiControllerConfiguration {
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         HttpRouteEndpointsHandler handler = new HttpRouteEndpointsHandler(httpRouteInformer, httpRouteWorkQueue);
         endpointsInformer.addEventHandler(handler);
+        return handler;
+    }
+
+    /**
+     * Enqueues HTTPRoutes whose backendRefs target a changed Service: a Service port or
+     * targetPort edit does not touch Endpoints, so without this handler routes keep the
+     * stale pod port until the periodic HTTPRoute resync. Shares the backend-service index
+     * and the HTTPRoute work queue with the Endpoints handler.
+     *
+     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
+     * @param httpRouteWorkQueue the HTTPRoute controller work queue
+     * @return the registered Service event handler
+     */
+    @Bean
+    public HttpRouteServiceHandler httpRouteServiceHandler(
+            @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
+            @Qualifier("httproute-work-queue") final RateLimitingQueue<Request> httpRouteWorkQueue) {
+        SharedIndexInformer<V1Service> serviceInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(V1Service.class);
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        HttpRouteServiceHandler handler = new HttpRouteServiceHandler(httpRouteInformer, httpRouteWorkQueue);
+        serviceInformer.addEventHandler(handler);
         return handler;
     }
 
@@ -381,7 +405,6 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
-            @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
             final HttpRouteParser httpRouteParser,
             final ShenyuCacheRepository shenyuCacheRepository,
             final ApiClient apiClient,
@@ -392,11 +415,9 @@ public class GatewayApiControllerConfiguration {
                 gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
                 gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
-        SharedIndexInformer<DynamicKubernetesObject> referenceGrantInformer =
-                referenceGrantFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         int servedPort = environment.getProperty("server.port", Integer.class, DEFAULT_SERVER_PORT);
         return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer,
-                referenceGrantInformer, httpRouteParser, shenyuCacheRepository, apiClient, servedPort);
+                httpRouteParser, shenyuCacheRepository, apiClient, servedPort);
     }
 
     @Bean
@@ -432,7 +453,10 @@ public class GatewayApiControllerConfiguration {
     /**
      * Readiness aggregator over all registered informers and the controller work queues of
      * this mode: informer sync alone does not mean the objects were reconciled into the
-     * local cache yet, so the queues' initial backlog must drain too.
+     * local cache yet, so the queues' initial backlog must drain too. The ReferenceGrant
+     * controller's queue is included because its reconcile re-queues HTTPRoutes depending
+     * on grants: without it, readiness could latch while routes accepted earlier are still
+     * denied and unprogrammed until the grant controller eventually re-queues them.
      *
      * @param gatewayClassFactory the GatewayClass SharedInformerFactory
      * @param gatewayFactory the Gateway SharedInformerFactory
@@ -440,6 +464,7 @@ public class GatewayApiControllerConfiguration {
      * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
      * @param gatewayClassController the GatewayClass controller (for its work queue)
      * @param gatewayController the Gateway controller (for its work queue)
+     * @param referenceGrantController the ReferenceGrant controller (for its work queue)
      * @param httpRouteWorkQueue the HTTPRoute controller work queue
      * @return readiness aggregator over all registered informers and work queues
      */
@@ -451,6 +476,7 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
             @Qualifier("gatewayclass-controller") final Controller gatewayClassController,
             @Qualifier("gateway-controller") final Controller gatewayController,
+            @Qualifier("referencegrant-controller") final Controller referenceGrantController,
             @Qualifier("httproute-work-queue") final RateLimitingQueue<Request> httpRouteWorkQueue) {
         List<SharedIndexInformer<?>> informers = new ArrayList<>();
         informers.add(gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
@@ -465,6 +491,7 @@ public class GatewayApiControllerConfiguration {
         List<WorkQueue<?>> workQueues = List.of(
                 ((DefaultController) gatewayClassController).getWorkQueue(),
                 ((DefaultController) gatewayController).getWorkQueue(),
+                ((DefaultController) referenceGrantController).getWorkQueue(),
                 httpRouteWorkQueue);
         return new K8sCacheReadiness(informers, workQueues);
     }
