@@ -238,7 +238,7 @@ public final class LocalPluginControllerTest {
                         .param("id", testSelectorId))
                 .andExpect(status().isOk())
                 .andReturn();
-        assertThat(baseDataCache.obtainSelectorData(selectorPluginName)).isEmpty();
+        assertThat(baseDataCache.obtainSelectorData(selectorPluginName)).isNull();
     }
 
     @Test
@@ -390,7 +390,7 @@ public final class LocalPluginControllerTest {
                 .andReturn();
 
         final List<RuleData> selectorId = baseDataCache.obtainRuleData(testSelectorId);
-        Assertions.assertTrue(selectorId.isEmpty());
+        Assertions.assertNull(selectorId);
     }
 
     @Test
