@@ -93,11 +93,13 @@ kind: ClusterRole
 metadata:
   name: shenyu-gateway-api-controller
 rules:
-# The controllers watch Endpoints (sharing name/namespace with the backed Service)
-# to resolve backendRefs; no Service, Secret or Pod objects are accessed.
+# Services are watched to map a backendRef's Service port to its targetPort
+# (including named targetPorts); Endpoints (sharing name/namespace with the
+# backed Service) are watched to resolve backendRefs.
 - apiGroups:
   - ""
   resources:
+  - services
   - endpoints
   verbs:
   - get
