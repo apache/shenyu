@@ -28,9 +28,15 @@ import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.manager.DocManager;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterMcpServiceImpl;
 import org.apache.shenyu.admin.utils.HttpUtils;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
@@ -41,17 +47,24 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test for {@link SwaggerImportServiceImpl}.
  */
+@ExtendWith(MockitoExtension.class)
 public class SwaggerImportServiceImplTest {
 
     private static final String SWAGGER_URL = "https://8.8.8.8/swagger.json";
 
     private static final String SWAGGER_JSON = "{\"swagger\":\"2.0\",\"info\":{\"title\":\"test\",\"version\":\"1.0\"},\"paths\":{}}";
+
+    private static final String MCP_SWAGGER_JSON = "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"test\",\"version\":\"1.0\"},"
+            + "\"servers\":[{\"url\":\"http://localhost:8080\"}],\"paths\":{\"/pets\":{\"get\":{"
+            + "\"operationId\":\"listPets\",\"parameters\":[],\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}";
 
     private static final MediaType JSON_UTF_8 = MediaType.parse("application/json; charset=utf-8");
 
@@ -63,12 +76,16 @@ public class SwaggerImportServiceImplTest {
 
     private SwaggerImportServiceImpl service;
 
+    @Mock
+    private ShenyuClientRegisterMcpServiceImpl mcpService;
+
     @BeforeEach
     public void setUp() {
         docManager = new RecordingDocManager();
         httpUtils = new StubHttpUtils();
         service = new SwaggerImportServiceImpl(docManager, httpUtils);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", DEFAULT_MAX_SWAGGER_BODY_SIZE);
+        ReflectionTestUtils.setField(service, "shenyuClientRegisterMcpService", mcpService);
     }
 
     @Test
@@ -96,6 +113,20 @@ public class SwaggerImportServiceImplTest {
         httpUtils.setResponse(response(responseBody("01234567890", -1L, JSON_UTF_8)));
 
         assertThrows(IllegalArgumentException.class, () -> service.importSwagger(request()));
+    }
+
+    @Test
+    public void importMcpConfigShouldDefaultMissingNamespaceId() throws IOException {
+        httpUtils.setResponse(response(responseBody(MCP_SWAGGER_JSON,
+                MCP_SWAGGER_JSON.getBytes(StandardCharsets.UTF_8).length, JSON_UTF_8)));
+
+        service.importMcpConfig(request());
+
+        ArgumentCaptor<McpToolsRegisterDTO> captor = ArgumentCaptor.forClass(McpToolsRegisterDTO.class);
+        verify(mcpService).registerMcpTools(captor.capture());
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, captor.getValue().getNamespaceId());
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID,
+                captor.getValue().getMetaDataRegisterDTO().getNamespaceId());
     }
 
     private SwaggerImportRequest request() {
