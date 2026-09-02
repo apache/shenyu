@@ -39,7 +39,9 @@
         instance_type,
         instance_info,
         instance_state,
-        namespace_id
+        namespace_id,
+        date_created,
+        date_updated
     </sql>
     
     <update id="updateById">
