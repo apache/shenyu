@@ -60,7 +60,13 @@ public class RedisRateLimiter {
         List<String> keys = rateLimiterAlgorithm.getKeys(id);
         List<String> scriptArgs = Stream.of(replenishRate, burstCapacity, Instant.now().getEpochSecond(), requestCount).map(String::valueOf).collect(Collectors.toList());
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
-        return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
+        // the error is absorbed right here, so callback/logging must happen in this lambda, not in a downstream doOnError
+        return resultFlux
+                .onErrorResume(throwable -> {
+                    rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
+                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter, fail-open and allow the request:{}", throwable.getMessage());
+                    return Flux.just(Arrays.asList(1L, -1L));
+                })
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
                     longs.addAll(l);
                     return longs;
@@ -68,10 +74,6 @@ public class RedisRateLimiter {
                     boolean allowed = ((Number) results.get(0)).longValue() == 1L;
                     long tokensLeft = ((Number) results.get(1)).longValue();
                     return new RateLimiterResponse(allowed, tokensLeft, keys);
-                })
-                .doOnError(throwable -> {
-                    rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
-                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }
 
