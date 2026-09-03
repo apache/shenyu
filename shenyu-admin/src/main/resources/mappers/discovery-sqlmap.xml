@@ -214,7 +214,7 @@
         server_list = #{serverList, jdbcType=VARCHAR},
         plugin_name = #{pluginName, jdbcType=VARCHAR},
         props = #{props, jdbcType=LONGVARCHAR}
-        WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
@@ -245,12 +245,12 @@
                 props = #{props, jdbcType=LONGVARCHAR},
             </if>
         </set>
-        WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
-    <delete id="delete" parameterType="java.lang.String">
+    <delete id="delete">
         DELETE
         FROM discovery
-        WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </delete>
 </mapper>
