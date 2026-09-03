@@ -131,9 +131,9 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     final List<String> configDataNames = this.getConfigDataNames(configKeyPrefix);
                     changedList.forEach(changedData -> publishConfig(configKeyPrefix + mapperToKey.apply(changedData), changedData));
 
-                    if (Objects.nonNull(configDataNames) && configDataNames.size() > changedList.size()) {
+                    if (Objects.nonNull(configDataNames)) {
                         configDataNames.removeAll(changeNames);
-                        configDataNames.forEach(this::delConfig);
+                        configDataNames.forEach(staleName -> delConfig(configKeyPrefix + staleName));
                     }
 
                     publishConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, changeNames);
@@ -226,6 +226,9 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                     this.delChangedMapToList(nameToIdMap, configKeyPrefix);
                     break;
                 case REFRESH:
+                    changedList.forEach(changedData -> publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData));
+                    this.refreshChangedMapToList(nameToIdMap, configKeyPrefix);
+                    break;
                 case MYSELF:
                 default:
                     changedList.forEach(changedData -> publishConfig(configKeyPrefix + mappingKey.apply(changedData) + DefaultNodeConstants.JOIN_POINT + mappingValue.apply(changedData), changedData));
@@ -237,6 +240,17 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         } finally {
             reentrantLock.unlock();
         }
+    }
+
+    private void refreshChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
+        stringListMap.forEach((key, listIds) -> {
+            final String listKey = configKeyPrefix + key + DefaultNodeConstants.POINT_LIST;
+            final String oldNodeListStr = Optional.ofNullable(getConfig(listKey)).orElse(DefaultNodeConstants.EMPTY_ARRAY_STR);
+            final List<String> oldNodeList = GsonUtils.getInstance().fromList(oldNodeListStr, String.class);
+            oldNodeList.removeAll(listIds);
+            oldNodeList.forEach(id -> delConfig(configKeyPrefix + key + DefaultNodeConstants.JOIN_POINT + id));
+            publishConfig(listKey, listIds);
+        });
     }
 
     private void putChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {
