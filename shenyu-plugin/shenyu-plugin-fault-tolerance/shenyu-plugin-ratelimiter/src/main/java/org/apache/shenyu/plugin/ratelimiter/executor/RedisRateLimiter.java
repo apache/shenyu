@@ -63,8 +63,12 @@ public class RedisRateLimiter {
         // the error is absorbed right here, so callback/logging must happen in this lambda, not in a downstream doOnError
         return resultFlux
                 .onErrorResume(throwable -> {
-                    rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
-                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter, fail-open and allow the request:{}", throwable.getMessage());
+                    try {
+                        rateLimiterAlgorithm.callback(script, keys, scriptArgs);
+                    } catch (final Exception callbackEx) {
+                        LOG.warn("RateLimiterAlgorithm callback failed after RedisRateLimiter error", callbackEx);
+                    }
+                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter; fail-open and allow the request", throwable);
                     return Flux.just(Arrays.asList(1L, -1L));
                 })
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
