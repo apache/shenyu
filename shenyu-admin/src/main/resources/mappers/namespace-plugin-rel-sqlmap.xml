@@ -194,14 +194,15 @@
 
     <select id="nameExistedExclude" resultType="java.lang.Boolean">
         SELECT true
-        FROM namespace_plugin_rel
-        WHERE name = #{name}
-        AND plugin_id NOT IN
+        FROM namespace_plugin_rel npr
+        INNER JOIN plugin p ON npr.plugin_id = p.id
+        WHERE p.name = #{name}
+        AND npr.plugin_id NOT IN
         <foreach collection="exclude" item="id" index="index"
                  open="(" separator="," close=")">
             #{id}
         </foreach>
-        AND namespace_id=#{namespaceId}
+        AND npr.namespace_id = #{namespaceId}
         LIMIT 1
     </select>
 
