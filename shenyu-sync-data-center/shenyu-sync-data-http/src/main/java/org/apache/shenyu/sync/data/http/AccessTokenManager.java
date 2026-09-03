@@ -133,20 +133,30 @@ public class AccessTokenManager {
             Assert.notNull(responseBody, "Resolve response body failed.");
             String result = responseBody.string();
             Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
-            if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
+            if (Objects.isNull(resultMap)
+                    || !String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
                 LOG.warn("get token from server : [{}] error", server);
                 return false;
             }
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
             LOG.info("login success: {} ", tokenJson);
             Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
-            Object expiredTime = tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
-            if (Objects.isNull(expiredTime)) {
-                LOG.warn("get token from server : [{}] missing expired time", server);
+            if (Objects.isNull(tokenMap)) {
+                LOG.warn("get token from server : [{}] returned null data", server);
                 return false;
             }
-            this.accessToken = (String) tokenMap.get(Constants.ADMIN_RESULT_TOKEN);
-            this.tokenExpiredTime = (long) expiredTime;
+            Object token = tokenMap.get(Constants.ADMIN_RESULT_TOKEN);
+            Object expiredTime = tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
+            if (!(token instanceof String) || StringUtils.isBlank((String) token)) {
+                LOG.warn("get token from server : [{}] missing/invalid token", server);
+                return false;
+            }
+            if (!(expiredTime instanceof Number)) {
+                LOG.warn("get token from server : [{}] missing/invalid expired time", server);
+                return false;
+            }
+            this.accessToken = (String) token;
+            this.tokenExpiredTime = ((Number) expiredTime).longValue();
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
         } catch (IOException e) {
@@ -157,7 +167,13 @@ public class AccessTokenManager {
 
     private void start(final List<String> servers) {
         this.login(servers);
-        this.executorService.scheduleWithFixedDelay(() -> this.login(servers), 5000, 5000, TimeUnit.MILLISECONDS);
+        this.executorService.scheduleWithFixedDelay(() -> {
+            try {
+                this.login(servers);
+            } catch (Exception e) {
+                LOG.error("refresh access token error", e);
+            }
+        }, 5000, 5000, TimeUnit.MILLISECONDS);
     }
 
     /**

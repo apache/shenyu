@@ -274,6 +274,59 @@ public class AccessTokenManagerTest {
     }
 
     @Test
+    public void testDoLoginFailureWhenDataNull() throws Exception {
+        HttpConfig testConfig = new HttpConfig();
+        testConfig.setUrl("http://localhost:8080");
+        testConfig.setUsername("admin");
+        testConfig.setPassword("password");
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("data", null);
+        responseMap.put("code", CommonErrorCode.SUCCESSFUL);
+
+        when(mockOkHttpClient.newCall(any(Request.class))).thenReturn(mockCall);
+        when(mockCall.execute()).thenReturn(mockResponse);
+        when(mockResponse.isSuccessful()).thenReturn(true);
+        when(mockResponse.body()).thenReturn(mockResponseBody);
+        when(mockResponseBody.string()).thenReturn(GsonUtils.getInstance().toJson(responseMap));
+
+        AccessTokenManager testManager = createTestAccessTokenManager(mockOkHttpClient, testConfig);
+        Method doLoginMethod = AccessTokenManager.class.getDeclaredMethod("doLogin", String.class);
+        doLoginMethod.setAccessible(true);
+
+        assertFalse((Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080"));
+        assertNull(testManager.getAccessToken());
+    }
+
+    @Test
+    public void testDoLoginFailureWhenExpiredTimeIsString() throws Exception {
+        HttpConfig testConfig = new HttpConfig();
+        testConfig.setUrl("http://localhost:8080");
+        testConfig.setUsername("admin");
+        testConfig.setPassword("password");
+
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("token", "token");
+        tokenData.put("expiredTime", "1800");
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("data", tokenData);
+        responseMap.put("code", CommonErrorCode.SUCCESSFUL);
+
+        when(mockOkHttpClient.newCall(any(Request.class))).thenReturn(mockCall);
+        when(mockCall.execute()).thenReturn(mockResponse);
+        when(mockResponse.isSuccessful()).thenReturn(true);
+        when(mockResponse.body()).thenReturn(mockResponseBody);
+        when(mockResponseBody.string()).thenReturn(GsonUtils.getInstance().toJson(responseMap));
+
+        AccessTokenManager testManager = createTestAccessTokenManager(mockOkHttpClient, testConfig);
+        Method doLoginMethod = AccessTokenManager.class.getDeclaredMethod("doLogin", String.class);
+        doLoginMethod.setAccessible(true);
+
+        assertFalse((Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080"));
+        assertNull(testManager.getAccessToken());
+    }
+
+    @Test
     public void testDoLoginIOException() throws Exception {
 
         HttpConfig testConfig = new HttpConfig();
