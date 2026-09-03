@@ -133,7 +133,7 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     @RequiresPermissions("system:aiProxyApiKey:edit")
     public ShenyuAdminResult update(
             @PathVariable("selectorId") final String selectorId,
-            @PathVariable("id") final String id, @RequestBody final ProxyApiKeyDTO dto) {
+            @PathVariable("id") final String id, @Valid @RequestBody final ProxyApiKeyDTO dto) {
         final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
         if (Objects.isNull(exist)) {
             return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
