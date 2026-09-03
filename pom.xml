@@ -825,7 +825,7 @@
                         <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
-                        <excldue>**/*.MD</excldue>
+                        <exclude>**/*.MD</exclude>
                         <!-- wasm build files -->
                         <exclude>**/Cargo.lock</exclude>
                         <exclude>**/go.sum</exclude>
