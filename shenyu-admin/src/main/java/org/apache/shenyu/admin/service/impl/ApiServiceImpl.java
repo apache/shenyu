@@ -152,6 +152,7 @@ public class ApiServiceImpl implements ApiService {
                         .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
             }
+            register(apiDO);
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
@@ -191,6 +192,9 @@ public class ApiServiceImpl implements ApiService {
     private void register(final ApiDO apiDO) {
         //register selector/rule/metadata if necessary
         final ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(apiDO.getExt(), ApiDocRegisterDTO.ApiExt.class);
+        if (Objects.isNull(ext) || StringUtils.isBlank(apiDO.getContextPath())) {
+            return;
+        }
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         final String contextPath = apiDO.getContextPath();
         final String path = apiDO.getApiPath();
@@ -228,6 +232,7 @@ public class ApiServiceImpl implements ApiService {
         final int deleteRows = this.apiMapper.deleteByIds(apiIds);
         if (deleteRows > 0) {
             tagRelationMapper.deleteByApiIds(apiIds);
+            apis.forEach(this::removeRegister);
         }
         return StringUtils.EMPTY;
     }
@@ -281,6 +286,7 @@ public class ApiServiceImpl implements ApiService {
             final int deleteRows = this.apiMapper.deleteByIds(apiIds);
             if (deleteRows > 0) {
                 tagRelationMapper.deleteByApiIds(apiIds);
+                apiDOs.forEach(this::removeRegister);
             }
             return deleteRows;
         }
