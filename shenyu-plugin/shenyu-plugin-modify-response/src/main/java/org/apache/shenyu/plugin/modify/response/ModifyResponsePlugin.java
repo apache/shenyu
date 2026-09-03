@@ -106,6 +106,13 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             });
         }
 
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            modifyResponseHeadersAndStatus();
+            return super.writeAndFlushWith(body);
+        }
+
         private void modifyResponseHeadersAndStatus() {
             HttpHeaders httpHeaders = new HttpHeaders();
             // add origin headers
