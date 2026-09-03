@@ -111,7 +111,7 @@
         INNER JOIN discovery_handler dh on d.id = dh.discovery_id
         INNER JOIN discovery_rel dr on dh.id = dr.discovery_handler_id
         INNER JOIN selector s on dr.selector_id = s.id and s.enabled = 1
-        where s.name = #{selectorName} and d.plugin_name = #{pluginName}
+        where s.selector_name = #{selectorName} and d.plugin_name = #{pluginName}
     </select>
 
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
