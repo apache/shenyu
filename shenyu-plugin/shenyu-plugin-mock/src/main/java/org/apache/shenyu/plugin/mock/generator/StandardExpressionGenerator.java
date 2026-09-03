@@ -40,8 +40,6 @@ public class StandardExpressionGenerator implements Generator<String> {
     
     private static final ExpressionParser PARSER = new SpelExpressionParser();
     
-    private static final EvaluationContext CONTEXT = initContext();
-    
     @Override
     public String getName() {
         return "standardSPELExpression";
@@ -52,9 +50,10 @@ public class StandardExpressionGenerator implements Generator<String> {
         
         String expression = params.get(0);
         
-        CONTEXT.setVariable("req", mockRequest);
+        EvaluationContext context = initContext();
+        context.setVariable("req", mockRequest);
         
-        Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
+        Object val = PARSER.parseExpression(expression).getValue(context);
         return JsonUtils.toJson(val);
     }
     
