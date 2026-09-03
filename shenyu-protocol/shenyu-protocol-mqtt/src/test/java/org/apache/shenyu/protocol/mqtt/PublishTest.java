@@ -18,6 +18,7 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -25,17 +26,24 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link Publish}.
@@ -78,6 +86,28 @@ public final class PublishTest {
                 .until(() -> "hello".equals(topicRepository.get(CLEARED_TOPIC)));
         publish.publish(mock(ChannelHandlerContext.class), publishMessage(CLEARED_TOPIC, "", true));
         assertNull(topicRepository.get(CLEARED_TOPIC));
+    }
+
+    @Test
+    public void publishDeliversPayloadToEachSubscriber() {
+        Channel channel1 = mock(Channel.class);
+        when(channel1.isActive()).thenReturn(true);
+        Channel channel2 = mock(Channel.class);
+        when(channel2.isActive()).thenReturn(true);
+        SubscribeRepository subscribeRepository = Singleton.INST.get(SubscribeRepository.class);
+        subscribeRepository.add(Collections.singletonList("test/fanout"), Arrays.asList(channel1, channel2));
+        await().atMost(Duration.ofSeconds(5))
+                .until(() -> subscribeRepository.get("test/fanout").contains(channel1) && subscribeRepository.get("test/fanout").contains(channel2));
+        MqttPublishMessage msg = publishMessage("test/fanout", "hello", false);
+        new Publish().publish(mock(ChannelHandlerContext.class), msg);
+        // one reference held by the inbound message plus one per active subscriber after the send completes.
+        await().atMost(Duration.ofSeconds(5))
+                .until(() -> msg.payload().refCnt() == 3);
+        ArgumentCaptor<MqttPublishMessage> captor = ArgumentCaptor.forClass(MqttPublishMessage.class);
+        verify(channel1).writeAndFlush(captor.capture());
+        verify(channel2).writeAndFlush(captor.capture());
+        captor.getAllValues().forEach(message -> assertEquals("hello", message.payload().toString(CharsetUtil.UTF_8)));
+        captor.getAllValues().forEach(ReferenceCountUtil::safeRelease);
     }
 
     private MqttPublishMessage publishMessage(final String topic, final String payload, final boolean retain) {
