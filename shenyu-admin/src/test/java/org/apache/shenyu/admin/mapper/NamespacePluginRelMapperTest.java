@@ -81,6 +81,9 @@ class NamespacePluginRelMapperTest extends AbstractSpringIntegrationTest {
         List<NamespacePluginVO> results = namespacePluginRelMapper.selectByQuery(query);
         Assertions.assertFalse(results.isEmpty());
         Assertions.assertEquals(namespaceId, results.get(0).getNamespaceId());
+    }
+
+    @Test
     void testNameExistedExcludeUsesPluginName() {
         String pluginId = UUIDUtils.getInstance().generateShortUuid();
         String pluginName = "namespace-plugin-" + pluginId;
