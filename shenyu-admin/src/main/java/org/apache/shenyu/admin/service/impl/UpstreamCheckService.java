@@ -435,7 +435,10 @@ public class UpstreamCheckService {
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
         
         if (CollectionUtils.isEmpty(discoveryUpstreamDataList)) {
-            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+            discoveryUpstreamDataList = aliveList.stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
         
         discoveryUpstreamDataList.removeIf(u -> {
@@ -481,6 +484,7 @@ public class UpstreamCheckService {
                     List<CommonUpstream> commonUpstreams = new LinkedList<>();
                     discoveryUpstreamService.findBySelectorId(selectorDO.getId()).stream()
                             .map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream)
+                            .filter(Objects::nonNull)
                             .forEach(commonUpstreams::add);
                     String handle = selectorDO.getHandle();
                     if (StringUtils.isNotEmpty(handle)) {
@@ -506,7 +510,10 @@ public class UpstreamCheckService {
         LOG.info("onDiscoveryUpstreamUpdated plugin={}|list={}", discoverySyncData.getPluginName(), discoverySyncData.getUpstreamDataList());
         if (PluginEnum.DIVIDE.getName().equals(discoverySyncData.getPluginName())) {
             List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
-            List<CommonUpstream> collect = upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream).collect(Collectors.toList());
+            List<CommonUpstream> collect = upstreamDataList.stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(collect);
             LOG.info("UpstreamCacheManager replace selectorId={}|json={}", discoverySyncData.getSelectorId(), GsonUtils.getGson().toJson(commonUpstreams));
             replace(discoverySyncData.getSelectorId(), commonUpstreams);
