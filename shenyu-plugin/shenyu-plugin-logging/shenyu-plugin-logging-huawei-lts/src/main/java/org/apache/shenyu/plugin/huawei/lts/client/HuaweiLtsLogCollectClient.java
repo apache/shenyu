@@ -175,7 +175,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             LOG.warn("send thread count number too large!");
             threadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-huawei-lts", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
