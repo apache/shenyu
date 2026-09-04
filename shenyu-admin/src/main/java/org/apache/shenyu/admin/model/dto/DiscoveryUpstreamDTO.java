@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -43,6 +44,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
      * discoveryHandler id.
      */
     @NotBlank(message = "discoveryHandlerId can't be null")
+    @Existed(provider = DiscoveryHandlerMapper.class, message = "discoveryHandlerId is not existed")
     private String discoveryHandlerId;
 
     /**
