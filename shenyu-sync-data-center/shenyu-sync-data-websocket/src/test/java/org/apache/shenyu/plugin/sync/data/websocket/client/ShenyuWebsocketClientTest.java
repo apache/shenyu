@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -47,14 +48,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.mockito.Answers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.withSettings;
@@ -161,6 +165,7 @@ public class ShenyuWebsocketClientTest {
     private ShenyuWebsocketClient createMockClient() {
         ShenyuWebsocketClient client = mock(ShenyuWebsocketClient.class,
                 withSettings().defaultAnswer(Answers.CALLS_REAL_METHODS));
+        setField(client, "manuallyClosed", new AtomicBoolean(false));
         setField(client, "reconnecting", new AtomicBoolean(false));
         setField(client, "reconnectBackoff", new AtomicInteger(0));
         setField(client, "lastReconnectAttemptTime", 0L);
@@ -288,6 +293,59 @@ public class ShenyuWebsocketClientTest {
 
         assertEquals(0, ((AtomicInteger) getField(client, "reconnectBackoff")).get());
         verify(client).sendPing();
+    }
+
+    @Test
+    void testNowClosePreventsPendingReconnect() throws InterruptedException {
+        ShenyuWebsocketClient client = createMockClient();
+        TimerTask timerTask = mock(TimerTask.class);
+        setField(client, "timerTask", timerTask);
+        doReturn(false).when(client).isOpen();
+
+        client.nowClose();
+        invokePrivate(client, "doReconnect");
+
+        verify(timerTask).cancel();
+        verify(client, never()).reconnectBlocking();
+    }
+
+    @Test
+    void testNowCloseInterruptsRunningReconnect() {
+        ShenyuWebsocketClient client = createMockClient();
+        Thread reconnectThread = mock(Thread.class);
+        setField(client, "reconnectThread", reconnectThread);
+        doReturn(false).when(client).isOpen();
+
+        client.nowClose();
+
+        verify(reconnectThread).interrupt();
+    }
+
+    @Test
+    void testNowCloseCancelsTimerTaskWhenSocketCloseFails() {
+        ShenyuWebsocketClient client = createMockClient();
+        TimerTask timerTask = mock(TimerTask.class);
+        setField(client, "timerTask", timerTask);
+        IllegalStateException closeException = new IllegalStateException("socket close failed");
+        doThrow(closeException).when(client).close();
+
+        assertThrows(IllegalStateException.class, client::nowClose);
+
+        verify(timerTask).cancel();
+    }
+
+    @Test
+    void testReconnectClosesConnectionWhenNowClosedDuringAttempt() throws InterruptedException {
+        ShenyuWebsocketClient client = createMockClient();
+        doAnswer(invocation -> {
+            ((AtomicBoolean) getField(client, "manuallyClosed")).set(true);
+            return true;
+        }).when(client).reconnectBlocking();
+        doNothing().when(client).close();
+
+        invokePrivate(client, "doReconnect");
+
+        verify(client).close();
     }
 
     // ---------- doReconnect tests ----------
