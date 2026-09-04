@@ -56,6 +56,8 @@ public class TcpBootstrapServer implements BootstrapServer {
 
     private final EventBus eventBus;
 
+    private boolean disposed;
+
     public TcpBootstrapServer(final EventBus eventBus) {
         this.eventBus = eventBus;
     }
@@ -71,15 +73,24 @@ public class TcpBootstrapServer implements BootstrapServer {
         connectionContext.init(tcpServerConfiguration.getProps());
         loopResources = LoopResources.create("shenyu-tcp-bootstrap-server-" + tcpServerConfiguration.getPort(), Integer.parseInt(bossGroupThreadCount),
                 Integer.parseInt(workerGroupThreadCount), true);
-        TcpServer tcpServer = TcpServer.create()
-                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
-                .wiretap(true)
-                .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
-                //.childObserve(connectionObserver)
-                .doOnConnection(this::bridgeConnections)
-                .port(tcpServerConfiguration.getPort())
-                .runOn(loopResources);
-        server = tcpServer.bindNow();
+        try {
+            TcpServer tcpServer = TcpServer.create()
+                    .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
+                    .wiretap(true)
+                    .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
+                    //.childObserve(connectionObserver)
+                    .doOnConnection(this::bridgeConnections)
+                    .port(tcpServerConfiguration.getPort())
+                    .runOn(loopResources);
+            server = tcpServer.bindNow();
+        } catch (RuntimeException startFailure) {
+            try {
+                loopResources.dispose();
+            } catch (RuntimeException cleanupFailure) {
+                startFailure.addSuppressed(cleanupFailure);
+            }
+            throw startFailure;
+        }
     }
 
     private void bridgeConnections(final Connection serverConn) {
@@ -125,9 +136,34 @@ public class TcpBootstrapServer implements BootstrapServer {
      * shutdown.
      */
     @Override
-    public void shutdown() {
-        server.disposeNow();
-        loopResources.dispose();
+    public synchronized void shutdown() {
+        if (disposed) {
+            return;
+        }
+        RuntimeException failure = null;
+        try {
+            if (Objects.nonNull(server)) {
+                server.disposeNow();
+            }
+        } catch (RuntimeException ex) {
+            failure = ex;
+        }
+        try {
+            if (Objects.nonNull(loopResources)) {
+                loopResources.dispose();
+            }
+        } catch (RuntimeException ex) {
+            if (Objects.isNull(failure)) {
+                failure = ex;
+            } else {
+                failure.addSuppressed(ex);
+            }
+        } finally {
+            disposed = true;
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
+        }
     }
 
 }

@@ -116,13 +116,11 @@ public class AbstractNodeDataSyncServiceTest {
     @Test
     public void testUnCachePluginData() {
 
-        String pluginName = "testPlugin";
-
-        nodeDataSyncService.unCachePluginData(pluginName);
+        nodeDataSyncService.unCachePluginData("namespace.plugin.testPlugin");
 
         ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
         verify(pluginDataSubscriber).unSubscribe(captor.capture());
-        assertEquals(pluginName, captor.getValue().getName());
+        assertEquals("testPlugin", captor.getValue().getName());
     }
 
     @Test
@@ -165,11 +163,12 @@ public class AbstractNodeDataSyncServiceTest {
 
     @Test
     public void testUnCacheDataWithInvalidKey() {
+        assertDoesNotThrow(() -> nodeDataSyncService.unCachePluginData("namespace"));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData("namespace"));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheMetaData("namespace"));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheProxySelectorData("namespace"));
 
-        verifyNoInteractions(authDataSubscriber, metaDataSubscriber, proxySelectorDataSubscriber);
+        verifyNoInteractions(pluginDataSubscriber, authDataSubscriber, metaDataSubscriber, proxySelectorDataSubscriber);
     }
 
     // Mock implementation
