@@ -103,11 +103,11 @@
         VALUES
         <foreach collection="namespaceUserRelDOList" item="namespaceUserRelDO" separator=",">
             (
-            #{namespacePluginRelDO.id, jdbcType=VARCHAR},
-            #{namespacePluginRelDO.namespaceId, jdbcType=VARCHAR},
-            #{namespacePluginRelDO.userId, jdbcType=VARCHAR},
-            #{namespacePluginRelDO.dateCreated, jdbcType=TIMESTAMP},
-            #{namespacePluginRelDO.dateUpdated, jdbcType=TIMESTAMP})
+            #{namespaceUserRelDO.id, jdbcType=VARCHAR},
+            #{namespaceUserRelDO.namespaceId, jdbcType=VARCHAR},
+            #{namespaceUserRelDO.userId, jdbcType=VARCHAR},
+            #{namespaceUserRelDO.dateCreated, jdbcType=TIMESTAMP},
+            #{namespaceUserRelDO.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>
     </insert>
 
