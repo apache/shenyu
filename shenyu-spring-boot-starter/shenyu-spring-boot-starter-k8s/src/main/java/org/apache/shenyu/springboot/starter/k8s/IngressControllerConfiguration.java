@@ -66,6 +66,7 @@ import java.util.concurrent.Executors;
  * The type shenyu ingress controller configuration.
  */
 @Configuration
+@ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "ingress", matchIfMissing = true)
 public class IngressControllerConfiguration {
 
     /**
