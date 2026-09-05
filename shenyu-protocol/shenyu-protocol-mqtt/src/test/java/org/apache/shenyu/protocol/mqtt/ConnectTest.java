@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
@@ -33,7 +33,6 @@ import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -42,12 +41,10 @@ import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_ACCEP
 import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link Connect}.
@@ -93,32 +90,45 @@ public final class ConnectTest {
 
     @Test
     public void unsupportedProtocolVersionIsRejected() {
-        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
-        Channel channel = mock(Channel.class);
-        when(ctx.channel()).thenReturn(channel);
-        when(ctx.close()).thenReturn(mock(ChannelFuture.class));
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        ChannelHandlerContext ctx = channel.pipeline().lastContext();
 
         new Connect().connect(ctx, connectMessage("MQTT", 6));
 
-        ArgumentCaptor<MqttConnAckMessage> captor = ArgumentCaptor.forClass(MqttConnAckMessage.class);
-        verify(ctx, times(1)).writeAndFlush(captor.capture());
+        MqttConnAckMessage ackMessage = channel.readOutbound();
+        assertNotNull(ackMessage);
         assertEquals(CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION,
-                captor.getValue().variableHeader().connectReturnCode());
-        verify(ctx).close();
+                ackMessage.variableHeader().connectReturnCode());
+        channel.runPendingTasks();
+        assertFalse(channel.isActive());
         assertNull(channelRepository.get(channel));
     }
 
+    @Test
+    public void duplicateConnectIsRejected() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        ChannelHandlerContext ctx = channel.pipeline().lastContext();
+
+        new Connect().connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel()));
+        assertNotNull(channel.readOutbound());
+
+        new Connect().connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel()));
+
+        channel.runPendingTasks();
+        assertFalse(channel.isActive());
+        assertNull(channel.readOutbound());
+    }
+
     private void connectIsAccepted(final MqttVersion version) {
-        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
-        Channel channel = mock(Channel.class);
-        when(ctx.channel()).thenReturn(channel);
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        ChannelHandlerContext ctx = channel.pipeline().lastContext();
 
         new Connect().connect(ctx, connectMessage(version.protocolName(), version.protocolLevel()));
 
-        ArgumentCaptor<MqttConnAckMessage> captor = ArgumentCaptor.forClass(MqttConnAckMessage.class);
-        verify(ctx).writeAndFlush(captor.capture());
-        assertEquals(CONNECTION_ACCEPTED, captor.getValue().variableHeader().connectReturnCode());
-        assertTrue(captor.getValue().variableHeader().isSessionPresent());
+        MqttConnAckMessage ackMessage = channel.readOutbound();
+        assertNotNull(ackMessage);
+        assertEquals(CONNECTION_ACCEPTED, ackMessage.variableHeader().connectReturnCode());
+        assertTrue(ackMessage.variableHeader().isSessionPresent());
         await().atMost(Duration.ofSeconds(5))
                 .until(() -> CLIENT_ID.equals(channelRepository.get(channel)));
     }
