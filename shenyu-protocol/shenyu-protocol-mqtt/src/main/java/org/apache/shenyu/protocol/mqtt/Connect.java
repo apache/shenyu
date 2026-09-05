@@ -44,6 +44,12 @@ public class Connect extends MessageType {
     @Override
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
+        if (isConnected(ctx.channel())) {
+            LOG.info("MQTT client has already sent a CONNECT packet, closing connection.");
+            ctx.close().addListener(CLOSE_ON_FAILURE);
+            return;
+        }
+
         String clientId = msg.payload().clientIdentifier();
         if (StringUtils.isEmpty(clientId)) {
             LOG.info("MQTT clientId can not be empty.");
@@ -54,6 +60,7 @@ public class Connect extends MessageType {
         if (!allowedProtocolVersion(msg)) {
             LOG.info("MQTT protocol version is not supported. clientId: {}", clientId);
             close(ctx, CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
+            return;
         }
 
         String userName = msg.payload().userName();
@@ -72,7 +79,7 @@ public class Connect extends MessageType {
                 .sessionPresent(true)
                 .build();
         ctx.writeAndFlush(ackMessage);
-        setConnected(true);
+        setConnected(ctx.channel(), true);
     }
 
     private void close(final ChannelHandlerContext ctx, final MqttConnectReturnCode returnCode) {
@@ -88,6 +95,9 @@ public class Connect extends MessageType {
     }
 
     private boolean allowedProtocolVersion(final MqttConnectMessage msg) {
-        return msg.variableHeader().version() == MqttVersion.MQTT_3_1.protocolLevel();
+        int protocolLevel = msg.variableHeader().version();
+        return protocolLevel == MqttVersion.MQTT_3_1.protocolLevel()
+                || protocolLevel == MqttVersion.MQTT_3_1_1.protocolLevel()
+                || protocolLevel == MqttVersion.MQTT_5.protocolLevel();
     }
 }

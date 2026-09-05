@@ -69,9 +69,10 @@ public interface DiscoveryService {
      * delete by id.
      *
      * @param discoveryId discoveryId
+     * @param namespaceId namespaceId
      * @return msg
      */
-    String delete(String discoveryId);
+    String delete(String discoveryId, String namespaceId);
 
     /**
      * syncData.

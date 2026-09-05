@@ -68,9 +68,10 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
      * init Huawei lts client.
      *
      * @param huaweiLtsLogConfig shenyu log config
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
+    public boolean initClient0(@NonNull final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig) {
         final String accessKeyId = huaweiLtsLogConfig.getAccessKeyId();
         final String accessKeySecret = huaweiLtsLogConfig.getAccessKeySecret();
         final String regionName = huaweiLtsLogConfig.getRegionName();
@@ -80,7 +81,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         if (StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(accessKeySecret) || StringUtils.isBlank(projectId)
                 || StringUtils.isBlank(regionName) || StringUtils.isBlank(logGroupId) || StringUtils.isBlank(logStreamId)) {
             LOG.error("init Huawei lts client error, please check projectId, accessKeyId, accessKeySecret, regionName, logGroupId or logStreamId");
-            return;
+            return false;
         }
         JavaSDKAppender appender = JavaSDKAppender.custom()
                 .setProjectId(projectId)
@@ -96,11 +97,12 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
                 .setBaseRetryBackoffMs(huaweiLtsLogConfig.getBaseRetryBackoffMs())
                 .setMaxRetryBackoffMs(huaweiLtsLogConfig.getMaxRetryBackoffMs())
                 .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
-                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
+                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getSetGiveUpExtraLongSingleLog()))
                 .builder();
         this.producer = appender.getProducer();
 
         threadExecutor = createThreadPoolExecutor(huaweiLtsLogConfig.getIoThreadCount());
+        return true;
     }
 
     /**
@@ -173,7 +175,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             LOG.warn("send thread count number too large!");
             threadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-huawei-lts", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
