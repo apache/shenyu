@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for InstanceInfoMapper.
@@ -71,12 +72,14 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
     void selectAll() {
         List<InstanceInfoDO> list = instanceInfoMapper.selectAll();
         assertThat(list.size(), greaterThanOrEqualTo(1));
+        assertTrue(list.stream().anyMatch(item -> instance.getId().equals(item.getId()) && instance.getInstanceState().equals(item.getInstanceState())));
     }
 
     @Test
     void findAllByNamespaceId() {
         List<InstanceInfoDO> list = instanceInfoMapper.findAllByNamespaceId(instance.getNamespaceId());
         assertThat(list.size(), greaterThanOrEqualTo(1));
+        assertTrue(list.stream().anyMatch(item -> instance.getId().equals(item.getId()) && instance.getInstanceState().equals(item.getInstanceState())));
     }
 
     @Test
@@ -108,6 +111,7 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
         query.setInstancePort(instance.getInstancePort());
         List<InstanceInfoDO> list = instanceInfoMapper.selectByQuery(query);
         assertThat(list.size(), greaterThanOrEqualTo(1));
+        assertTrue(list.stream().anyMatch(item -> instance.getId().equals(item.getId()) && instance.getInstanceState().equals(item.getInstanceState())));
     }
 
     @Test
