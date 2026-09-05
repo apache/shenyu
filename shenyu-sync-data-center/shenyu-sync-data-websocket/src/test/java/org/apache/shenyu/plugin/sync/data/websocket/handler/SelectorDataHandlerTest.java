@@ -22,6 +22,8 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -31,6 +33,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class SelectorDataHandlerTest {
 
@@ -61,8 +65,25 @@ public final class SelectorDataHandlerTest {
     public void testDoRefresh() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(3);
         selectorDataHandler.doRefresh(selectorDataList);
-        verify(subscriber).refreshSelectorDataSelf(selectorDataList);
-        selectorDataList.forEach(verify(subscriber)::onSelectorSubscribe);
+        verify(subscriber).onSelectorRefresh(selectorDataList);
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    void testRefreshEventsUseOnlyTheBatchCallback(final String eventType) {
+        List<SelectorData> batch = createFakeSelectorDataObjects(2);
+        batch.forEach(data -> data.setContinued(true));
+        selectorDataHandler.handle(new Gson().toJson(batch), eventType);
+        verify(subscriber).onSelectorRefresh(batch);
+        verifyNoMoreInteractions(subscriber);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    void testEmptyRefreshDoesNotCallSubscriber(final String eventType) {
+        selectorDataHandler.handle("[]", eventType);
+        verifyNoInteractions(subscriber);
     }
 
     @Test
