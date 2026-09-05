@@ -133,8 +133,6 @@ public class IngressReconciler implements Reconciler {
         // Do not modify current ingress object directly
         final V1Ingress v1Ingress = this.ingressLister.namespace(request.getNamespace()).get(request.getName());
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
-        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
-        enablePluginsBasedOnAnnotations(annotations, request);
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
                 // Delete ingress binding selectors
@@ -160,6 +158,8 @@ public class IngressReconciler implements Reconciler {
             }
             return new Result(false);
         }
+        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
+        enablePluginsBasedOnAnnotations(annotations, request);
 
         if (!checkIngressClass(v1Ingress)) {
             LOG.info("IngressClass is not match {}", request);

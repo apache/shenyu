@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.mcp.server.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import io.micrometer.common.util.StringUtils;
@@ -60,6 +61,14 @@ public final class JsonSchemaUtil {
         for (McpServerToolParameter parameter : parameters) {
             ObjectNode property = properties.putObject(parameter.getName());
             recursionConstructPropertiesNodes(parameter, property);
+        }
+
+        // Collect required parameters
+        ArrayNode requiredArray = schema.putArray("required");
+        for (McpServerToolParameter parameter : parameters) {
+            if (parameter.isRequired()) {
+                requiredArray.add(parameter.getName());
+            }
         }
 
         processSchemaOptions(schemaOptions, schema);
