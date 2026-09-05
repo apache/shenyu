@@ -125,12 +125,13 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     public int update(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO before = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        int rows = scaleRuleMapper.updateByPrimaryKey(after);
+        int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
         if (rows > 0) {
             if (Objects.nonNull(before) && !Objects.equals(before.getMetricName(), after.getMetricName())) {
                 scaleRuleCache.removeRulesFromCache(List.of(before.getMetricName()));
             }
-            scaleRuleCache.addOrUpdateRuleToCache(after);
+            final ScaleRuleDO persisted = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
+            scaleRuleCache.addOrUpdateRuleToCache(persisted);
         }
         return rows;
     }
