@@ -76,7 +76,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
                 && ThreadLocalRandom.current().nextInt(100) < percentage) {
             rewriteUri = rewriteHandle.getReplace().contains("{") && rewriteHandle.getRegex().contains("{")
                     ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
-                            rewriteUri.substring(rewriteHandle.getRegex().indexOf("{")))
+                    rewriteUri.substring(rewriteHandle.getRegex().indexOf("{")))
                     : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
             Map<String, Object> attributes = exchange.getAttributes();
             if (Optional.ofNullable(rewriteHandle.getRewriteMetaData()).orElse(false)) {
