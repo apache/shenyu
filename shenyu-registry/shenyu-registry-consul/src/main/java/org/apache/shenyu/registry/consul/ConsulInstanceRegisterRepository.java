@@ -41,13 +41,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +73,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private final Map<String, Long> consulIndexes = new HashMap<>();
+    private final Map<String, Long> consulIndexes = new ConcurrentHashMap<>();
 
     private String token;
 
@@ -87,9 +87,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private TtlScheduler ttlScheduler;
 
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new ConcurrentHashMap<>();
 
-    private final Set<String> watchSelectKeySet = new HashSet<>();
+    private final Set<String> watchSelectKeySet = ConcurrentHashMap.newKeySet();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -157,8 +157,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public List<InstanceEntity> selectInstances(final String selectKey) {
-        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
-            return watcherInstanceRegisterMap.get(selectKey);
+        final List<InstanceEntity> cachedInstances = watcherInstanceRegisterMap.get(selectKey);
+        if (Objects.nonNull(cachedInstances)) {
+            return cachedInstances;
         }
         this.watcherStart(selectKey);
         final List<InstanceEntity> healthServices = this.getHealthServices(selectKey, "-1");

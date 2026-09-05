@@ -24,12 +24,15 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases for BaseDataCache.
@@ -142,7 +145,7 @@ public final class BaseDataCacheTest {
         selectorMap.put(mockPluginName1, Lists.newArrayList(selectorData));
 
         BaseDataCache.getInstance().removeSelectData(selectorData);
-        assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
+        assertNull(selectorMap.get(mockPluginName1));
     }
 
     @Test
@@ -167,7 +170,7 @@ public final class BaseDataCacheTest {
         selectorMap.put(mockPluginName2, Lists.newArrayList(secondCachedSelectorData));
 
         BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(firstCachedSelectorData));
-        assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
+        assertNull(selectorMap.get(mockPluginName1));
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName2));
     }
 
@@ -179,6 +182,27 @@ public final class BaseDataCacheTest {
 
         List<SelectorData> selectorDataList = BaseDataCache.getInstance().obtainSelectorData(mockPluginName1);
         assertEquals(Lists.newArrayList(selectorData), selectorDataList);
+    }
+
+    @Test
+    public void testSelectorDataSnapshotRemainsStableAfterDelete() {
+        BaseDataCache.getInstance().cleanSelectorData();
+        SelectorData firstSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData secondSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
+        BaseDataCache.getInstance().cacheSelectData(firstSelectorData);
+        BaseDataCache.getInstance().cacheSelectData(secondSelectorData);
+
+        List<SelectorData> snapshot = BaseDataCache.getInstance().obtainSelectorData(mockPluginName1);
+        Iterator<SelectorData> iterator = snapshot.iterator();
+        assertEquals(firstSelectorData, iterator.next());
+
+        BaseDataCache.getInstance().removeSelectData(firstSelectorData);
+
+        assertDoesNotThrow(() -> iterator.forEachRemaining(selector -> assertNotNull(selector)));
+        assertEquals(Lists.newArrayList(firstSelectorData, secondSelectorData), snapshot);
+        assertEquals(Lists.newArrayList(secondSelectorData), BaseDataCache.getInstance().obtainSelectorData(mockPluginName1));
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.add(firstSelectorData));
+        BaseDataCache.getInstance().cleanSelectorData();
     }
 
     @Test
@@ -200,7 +224,7 @@ public final class BaseDataCacheTest {
         ruleMap.put(mockSelectorId1, Lists.newArrayList(ruleData));
 
         BaseDataCache.getInstance().removeRuleData(ruleData);
-        assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
+        assertNull(ruleMap.get(mockSelectorId1));
     }
 
     @Test
@@ -225,7 +249,7 @@ public final class BaseDataCacheTest {
         ruleMap.put(mockSelectorId2, Lists.newArrayList(secondCachedRuleData));
 
         BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(firstCachedRuleData));
-        assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
+        assertNull(ruleMap.get(mockSelectorId1));
         assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockSelectorId2));
     }
 
@@ -237,6 +261,27 @@ public final class BaseDataCacheTest {
 
         List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(mockSelectorId1);
         assertEquals(Lists.newArrayList(ruleData), ruleDataList);
+    }
+
+    @Test
+    public void testRuleDataSnapshotRemainsStableAfterDelete() {
+        BaseDataCache.getInstance().cleanRuleData();
+        RuleData firstRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).sort(1).build();
+        RuleData secondRuleData = RuleData.builder().id("2").selectorId(mockSelectorId1).sort(2).build();
+        BaseDataCache.getInstance().cacheRuleData(firstRuleData);
+        BaseDataCache.getInstance().cacheRuleData(secondRuleData);
+
+        List<RuleData> snapshot = BaseDataCache.getInstance().obtainRuleData(mockSelectorId1);
+        Iterator<RuleData> iterator = snapshot.iterator();
+        assertEquals(firstRuleData, iterator.next());
+
+        BaseDataCache.getInstance().removeRuleData(firstRuleData);
+
+        assertDoesNotThrow(() -> iterator.forEachRemaining(rule -> assertNotNull(rule)));
+        assertEquals(Lists.newArrayList(firstRuleData, secondRuleData), snapshot);
+        assertEquals(Lists.newArrayList(secondRuleData), BaseDataCache.getInstance().obtainRuleData(mockSelectorId1));
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.add(firstRuleData));
+        BaseDataCache.getInstance().cleanRuleData();
     }
 
     @SuppressWarnings("rawtypes")
