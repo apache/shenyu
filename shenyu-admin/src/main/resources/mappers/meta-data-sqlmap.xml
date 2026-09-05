@@ -197,7 +197,7 @@
         #{parameterTypes,jdbcType=VARCHAR},
         #{rpcExt,jdbcType=VARCHAR},
         #{enabled,jdbcType=TINYINT},
-        #{namespaceId,jdbcType=TINYINT})
+        #{namespaceId,jdbcType=VARCHAR})
     </insert>
 
 
