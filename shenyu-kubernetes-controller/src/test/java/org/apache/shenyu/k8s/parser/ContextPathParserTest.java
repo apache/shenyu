@@ -30,6 +30,8 @@ import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -185,6 +187,14 @@ public final class ContextPathParserTest {
 
         RuleData ruleData = ruleDataList.get(0);
         Assertions.assertEquals(contextPath, ruleData.getName());
+
+        // Verify the ContextMappingRuleHandle.getContextPath() is set correctly,
+        // so that ContextPathPlugin can use it for prefix stripping
+        ContextMappingRuleHandle ruleHandle = GsonUtils.getInstance()
+                .fromJson(ruleData.getHandle(), ContextMappingRuleHandle.class);
+        Assertions.assertEquals(contextPath, ruleHandle.getContextPath(),
+                "ContextMappingRuleHandle.getContextPath() must equal the annotation value "
+                + "so that ContextPathPlugin can strip the prefix correctly");
 
         // Verify the path pattern is correct, NOT "null/**"
         org.apache.shenyu.common.dto.ConditionData condition = ruleData.getConditionDataList().get(0);

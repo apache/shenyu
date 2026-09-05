@@ -115,7 +115,7 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     String contextPath = annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     if (Objects.nonNull(contextPath)) {
-                        ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(annotations);
+                        ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(contextPath, annotations);
                         List<ConditionData> ruleConditionList = getRuleConditionList(contextPath);
                         RuleData ruleData = createRuleData(contextPath, contextMappingRuleHandle, ruleConditionList);
                         ruleDataList.add(ruleData);
@@ -170,8 +170,9 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                 .build();
     }
 
-    private ContextMappingRuleHandle createContextMappingRuleHandle(final Map<String, String> annotations) {
+    private ContextMappingRuleHandle createContextMappingRuleHandle(final String contextPath, final Map<String, String> annotations) {
         ContextMappingRuleHandle ruleHandle = new ContextMappingRuleHandle();
+        ruleHandle.setContextPath(contextPath);
         ruleHandle.setAddPrefix(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIX));
         ruleHandle.setAddPrefixed(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIXED, "false")));
         return ruleHandle;
