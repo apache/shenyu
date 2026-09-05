@@ -214,44 +214,15 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                     .ifPresent(handler -> handler.handlerPlugin(pluginData));
 
             BaseDataCache.getInstance().cachePluginData(pluginData);
-            // update enabled plugins
-            PluginHandlerEventEnum state = Boolean.TRUE.equals(pluginData.getEnabled())
-                    ? PluginHandlerEventEnum.ENABLED : PluginHandlerEventEnum.DISABLED;
-            eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
-            // sorted plugin
-            sortPluginIfOrderChange(oldPluginData, pluginData);
-            
-            final String pluginName = pluginData.getName();
-            // if update plugin, remove selector and rule match cache/trie cache
-            if (selectorMatchConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeSelectorData(pluginName);
-            }
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleData(pluginName);
-            }
+            notifyPluginData(oldPluginData, pluginData);
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().cacheSelectData(selectorData);
-            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
-                    .ifPresent(handler -> handler.handlerSelector(selectorData));
-            // remove match cache
-            if (selectorMatchConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
-                MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
-            }
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
-                MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
-            }
+            handleSelectorData(selectorData);
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().cacheRuleData(ruleData);
-            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
-                    .ifPresent(handler -> handler.handlerRule(ruleData));
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
-                MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
-            }
+            handleRuleData(ruleData);
         }
     }
 
@@ -308,6 +279,85 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
             }
         }
+    }
+
+    private void notifyPluginData(final PluginData oldPluginData, final PluginData pluginData) {
+        // update enabled plugins
+        PluginHandlerEventEnum state = Boolean.TRUE.equals(pluginData.getEnabled())
+                ? PluginHandlerEventEnum.ENABLED : PluginHandlerEventEnum.DISABLED;
+        eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
+        // sorted plugin
+        sortPluginIfOrderChange(oldPluginData, pluginData);
+
+        final String pluginName = pluginData.getName();
+        // if update plugin, remove selector and rule match cache/trie cache
+        if (selectorMatchConfig.getCache().getEnabled()) {
+            MatchDataCache.getInstance().removeSelectorData(pluginName);
+        }
+        if (ruleMatchCacheConfig.getCache().getEnabled()) {
+            MatchDataCache.getInstance().removeRuleData(pluginName);
+        }
+    }
+
+    private void handleSelectorData(final SelectorData selectorData) {
+        Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                .ifPresent(handler -> handler.handlerSelector(selectorData));
+        invalidateSelectorMatchCache(selectorData);
+    }
+
+    private void invalidateSelectorMatchCache(final SelectorData selectorData) {
+        // remove match cache
+        if (selectorMatchConfig.getCache().getEnabled()) {
+            MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
+            MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
+        }
+        if (ruleMatchCacheConfig.getCache().getEnabled()) {
+            MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
+            MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
+        }
+    }
+
+    private void handleRuleData(final RuleData ruleData) {
+        Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                .ifPresent(handler -> handler.handlerRule(ruleData));
+        invalidateRuleMatchCache(ruleData);
+    }
+
+    private void invalidateRuleMatchCache(final RuleData ruleData) {
+        if (ruleMatchCacheConfig.getCache().getEnabled()) {
+            MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
+            MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
+        }
+    }
+
+    @Override
+    public void onPluginRefresh(final List<PluginData> dataList) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
+        dataList.forEach(data -> Optional.ofNullable(handlerMap.get(data.getName()))
+                .ifPresent(handler -> handler.handlerPlugin(data)));
+        BaseDataCache.getInstance().refreshPluginData(dataList);
+        // Legacy refresh removed the old entries before subscription, so it always notified sorting.
+        dataList.forEach(data -> notifyPluginData(null, data));
+    }
+
+    @Override
+    public void onSelectorRefresh(final List<SelectorData> dataList) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
+        BaseDataCache.getInstance().refreshSelectorData(dataList);
+        dataList.forEach(this::handleSelectorData);
+    }
+
+    @Override
+    public void onRuleRefresh(final List<RuleData> dataList) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
+        BaseDataCache.getInstance().refreshRuleData(dataList);
+        dataList.forEach(this::handleRuleData);
     }
 
 }
