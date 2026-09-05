@@ -17,11 +17,16 @@
 
 package org.apache.shenyu.admin.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +34,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -76,5 +86,49 @@ public final class AiProxyApiKeyControllerTest {
 
         assertEquals("selector-namespace", dto.getNamespaceId());
         verify(aiProxyApiKeyService).create(eq(dto), eq("selector-1"));
+    }
+
+    @Test
+    public void shouldDelegateUpdateWhenMappingBelongsToSelector() {
+        final ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        final ProxyApiKeyVO exist = new ProxyApiKeyVO();
+        exist.setSelectorId("selector-1");
+        when(aiProxyApiKeyService.findById("key-1")).thenReturn(exist);
+        when(aiProxyApiKeyService.update(dto)).thenReturn(1);
+
+        final ShenyuAdminResult result = controller.update("selector-1", "key-1", dto);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, result.getMessage());
+        assertEquals("key-1", dto.getId());
+        verify(aiProxyApiKeyService).update(dto);
+    }
+
+    @Test
+    public void shouldRejectUpdateWhenMappingDoesNotExist() {
+        final ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        when(aiProxyApiKeyService.findById("missing-key")).thenReturn(null);
+
+        final ShenyuAdminResult result = controller.update("selector-1", "missing-key", dto);
+
+        assertEquals(AdminConstants.ID_NOT_EXIST, result.getMessage());
+        verify(aiProxyApiKeyService, never()).update(any(ProxyApiKeyDTO.class));
+    }
+
+    @Test
+    public void shouldValidateUpdateRequestBody() throws NoSuchMethodException {
+        final Method update = AiProxyApiKeyController.class.getMethod("update", String.class, String.class,
+                ProxyApiKeyDTO.class);
+        final Parameter requestBody = update.getParameters()[2];
+
+        assertTrue(requestBody.isAnnotationPresent(Valid.class));
+    }
+
+    @Test
+    public void shouldRejectBlankNamespaceIdDuringValidation() {
+        final ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        dto.setNamespaceId(" ");
+        final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        assertFalse(validator.validate(dto).isEmpty());
     }
 }
