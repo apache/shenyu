@@ -37,11 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -57,7 +57,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     private EtcdClient client;
 
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new ConcurrentHashMap<>();
 
     private final Multimap<String, Watch.Watcher> watchCache = ArrayListMultimap.create();
 
@@ -95,10 +95,10 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
                     instanceEntity.setUri(getURI(x, instanceEntity.getPort(), instanceEntity.getHost()));
                     return instanceEntity;
                 }).collect(Collectors.toList());
-        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
+        if (Objects.nonNull(watcherInstanceRegisterMap.get(selectKey))) {
             return getInstanceRegisterFun.apply(client.getKeysMapByPrefix(watchKey));
         }
-        Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
+        Map<String, String> serverNodes = new ConcurrentHashMap<>(client.getKeysMapByPrefix(watchKey));
         this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
                 String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
