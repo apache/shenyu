@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.controller;
+package org.apache.shenyu.examples.controller;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +30,7 @@ import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpRequestConfig;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpToolParam;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.apache.shenyu.dto.OrderDTO;
+import org.apache.shenyu.examples.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

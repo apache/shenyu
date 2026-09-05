@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.mcp.server.callback;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
@@ -34,6 +35,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.HashMap;
@@ -45,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -250,6 +253,19 @@ class ShenyuToolCallbackTest {
         assertThrows(RuntimeException.class, () -> {
             shenyuToolCallback.call("{}", toolContext);
         });
+    }
+
+    @Test
+    void testToolCallUsesHttpRpcType() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(exchange.getAttribute(Constants.CONTEXT)).thenReturn(shenyuContext);
+        when(exchange.getAttributes()).thenReturn(new HashMap<>());
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "configureShenyuContext", exchange,
+                "session123", "/mcp/order/findAll",
+                "{\"requestTemplate\":{\"url\":\"/mcp/order/findAll\",\"method\":\"GET\"},\"argsPosition\":{}}");
+
+        verify(shenyuContext).setRpcType(RpcTypeEnum.HTTP.getName());
     }
 
     @Test
