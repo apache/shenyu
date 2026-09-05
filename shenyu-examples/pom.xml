@@ -39,7 +39,7 @@
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <swagger.version>2.6.0</swagger.version>
-        <shenyu.client.java.version>2.7.0.3</shenyu.client.java.version>
+        <shenyu.client.java.version>2.7.2-SNAPSHOT</shenyu.client.java.version>
     </properties>
 
     <modules>

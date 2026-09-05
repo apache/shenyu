@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.dto;
+package org.apache.shenyu.examples.dto;
 
 import java.io.Serializable;
 import java.util.StringJoiner;
