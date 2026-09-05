@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.divide.context;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,5 +55,6 @@ public final class DivideShenyuContextDecoratorTest {
         ShenyuContext decorator = divideShenyuContextDecorator.decorator(shenyuContext, metaData);
         assert MOCK_CONTEXT_PATH.equals(decorator.getMethod());
         assert MOCK_CONTEXT_PATH.equals(decorator.getRealUrl());
+        Assertions.assertEquals("divide-http", decorator.getModule());
     }
 }
