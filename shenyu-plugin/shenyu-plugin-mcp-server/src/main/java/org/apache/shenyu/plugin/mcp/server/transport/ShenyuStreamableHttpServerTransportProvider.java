@@ -247,6 +247,11 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 if (Objects.nonNull(result.getSessionId())) {
                     builder.header(SESSION_ID_HEADER, result.getSessionId());
                 }
+                // Notifications are acknowledged with 202 Accepted and an empty body
+                // per the Streamable HTTP spec.
+                if (Objects.isNull(result.getResponseBody())) {
+                    return builder.build();
+                }
                 builder.contentType(MediaType.APPLICATION_JSON);
                 return builder.bodyValue(result.getResponseBodyAsJson());
             });
@@ -513,11 +518,37 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                     sessionId, System.identityHashCode(verifyExchange));
         }
         final StreamableHttpSessionTransport transport = getSessionTransport(sessionId);
+        // JSON-RPC notifications (messages without an id, e.g. notifications/initialized,
+        // notifications/cancelled) must be acknowledged with HTTP 202 and an empty body
+        // per the Streamable HTTP spec. They are still dispatched to the MCP framework so
+        // that session state is updated, but they never produce a JSON-RPC response, so we
+        // must not wait for a captured transport response here. Otherwise a stale response
+        // from a previous request could be replayed with the wrong id.
+        if (message instanceof McpSchema.JSONRPCNotification) {
+            return session.handle(message)
+                    .cast(Object.class)
+                    .doOnSuccess(result -> LOGGER.debug("Successfully processed notification for session: {}", sessionId))
+                    .thenReturn(new MessageHandlingResult(HttpStatus.ACCEPTED.value(), null, sessionId))
+                    .onErrorResume(error -> {
+                        LOGGER.error("Error processing notification for session {}: {}", sessionId, error.getMessage(), error);
+                        final Object errorResponse = createJsonRpcError(null, -32603,
+                                "Internal error: " + error.getMessage());
+                        return Mono.just(new MessageHandlingResult(500, errorResponse, sessionId));
+                    });
+        }
         // Let MCP framework handle the message - framework will send response through transport
         return session.handle(message)
                 .cast(Object.class)
                 .doOnSuccess(result -> LOGGER.debug("Successfully processed message for session: {}", sessionId))
                 .then(waitForTransportResponse(transport, sessionId, messageId))
+                .doOnNext(result -> {
+                    // Clear the captured response after each completed message so that a
+                    // subsequent message on this session cannot observe a stale response
+                    // from a previous request.
+                    if (Objects.nonNull(transport)) {
+                        transport.resetCapturedMessage();
+                    }
+                })
                 .onErrorResume(error -> {
                     LOGGER.error("Error processing message for session {}: {}", sessionId, error.getMessage(), error);
                     final Object errorResponse = createJsonRpcError(messageId, -32603,
