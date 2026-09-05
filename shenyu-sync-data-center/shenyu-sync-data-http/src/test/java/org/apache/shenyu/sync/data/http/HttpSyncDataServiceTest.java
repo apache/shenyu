@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.http;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.ConfigData;
@@ -33,6 +34,7 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
+import org.apache.shenyu.sync.data.http.refresh.AbstractDataRefresh;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
@@ -90,6 +94,8 @@ public final class HttpSyncDataServiceTest {
 
     @BeforeEach
     public void before() {
+        Map<?, ?> groupCache = (Map<?, ?>) ReflectionTestUtils.getField(AbstractDataRefresh.class, "GROUP_CACHE");
+        Objects.requireNonNull(groupCache).clear();
         this.wireMockServer = new WireMockServer(
                 options()
                         .extensions(mock(ResponseTemplateTransformer.class))
@@ -163,6 +169,35 @@ public final class HttpSyncDataServiceTest {
         verify(metaDataSubscriber, atLeastOnce()).refresh();
         verify(authDataSubscriber, atLeastOnce()).refresh();
         verify(proxySelectorDataSubscriber, atLeastOnce()).refresh();
+    }
+
+    @Test
+    public void testDoLongPollingIgnoresResponseWithoutData() {
+        httpSyncDataService.close();
+        assertAll(
+                () -> assertLongPollingResponseIgnored("{\"code\":500,\"message\":\"error\"}"),
+                () -> assertLongPollingResponseIgnored("{\"data\":null}"),
+                () -> assertLongPollingResponseIgnored("null"),
+                () -> assertLongPollingResponseIgnored("")
+        );
+    }
+
+    private void assertLongPollingResponseIgnored(final String responseBody) {
+        StubMapping stubMapping = wireMockServer.stubFor(post(urlPathEqualTo("/configs/listener"))
+                .atPriority(1)
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(responseBody)
+                        .withStatus(200))
+        );
+
+        try {
+            assertDoesNotThrow(() -> {
+                ReflectionTestUtils.invokeMethod(httpSyncDataService, "doLongPolling", getMockServerUrl());
+            });
+        } finally {
+            wireMockServer.removeStub(stubMapping);
+        }
     }
 
     private String getMockServerUrl() {

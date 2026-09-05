@@ -34,19 +34,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.client.reactive.MockClientHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -77,7 +87,7 @@ public final class WebClientPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
-        webClientPlugin = new WebClientPlugin(webClient);
+        webClientPlugin = new WebClientPlugin(webClient, Constants.BYTES_PER_MB);
     }
 
     /**
@@ -90,7 +100,7 @@ public final class WebClientPluginTest {
         ServerWebExchange exchangeNoPathTest = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
         exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
+        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest, Constants.BYTES_PER_MB);
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
@@ -100,19 +110,19 @@ public final class WebClientPluginTest {
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
         exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchangePostTest.getAttributes().put(Constants.HTTP_URI, URI.create("/test123?param=1"));
-        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
+        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest, Constants.BYTES_PER_MB);
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainOkTest = mock(ShenyuPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
-        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
+        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest, Constants.BYTES_PER_MB);
         Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainErrorTest = mock(ShenyuPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
-        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
+        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest, Constants.BYTES_PER_MB);
         Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
         StepVerifier.create(monoErrorTest).expectSubscription().verifyError();
     }
@@ -145,6 +155,30 @@ public final class WebClientPluginTest {
     @Test
     public void testNamed() {
         assertEquals(PluginEnum.WEB_CLIENT.getName(), webClientPlugin.named());
+    }
+
+    /**
+     * Test that a non-binary request body cannot exceed the configured in-memory limit.
+     */
+    @Test
+    public void testRequestBodyExceedsMaxInMemorySize() {
+        final int maxInMemorySize = 4;
+        final WebClientPlugin plugin = new WebClientPlugin(mockWebClientOK(), maxInMemorySize);
+        final DataBuffer body = DefaultDataBufferFactory.sharedInstance
+                .wrap("12345".getBytes(StandardCharsets.UTF_8));
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .build());
+
+        plugin.doRequest(exchange, HttpMethod.POST.name(), URI.create("/test"), Flux.just(body)).subscribe();
+        final ClientRequest request = captor.getValue();
+        final MockClientHttpRequest outputMessage = new MockClientHttpRequest(HttpMethod.POST, URI.create("/test"));
+        final BodyInserter.Context context = mock(BodyInserter.Context.class);
+        when(context.messageWriters()).thenReturn(Collections.emptyList());
+
+        StepVerifier.create(request.body().insert(outputMessage, context))
+                .expectError(DataBufferLimitException.class)
+                .verify();
     }
 
     private ServerWebExchange generateServerWebExchange() {
