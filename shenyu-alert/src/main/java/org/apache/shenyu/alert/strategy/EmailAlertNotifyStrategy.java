@@ -81,7 +81,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
         context.setVariable("content", alert.getContent());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date alertTime = alert.getDateCreated();
-        if (Objects.isNull(alert)) {
+        if (Objects.isNull(alertTime)) {
             alertTime = new Date();
         }
         String alarmTime = simpleDateFormat.format(alertTime);
