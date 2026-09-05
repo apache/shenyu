@@ -31,20 +31,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
+import reactor.netty.DisposableServer;
+import reactor.netty.resources.LoopResources;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.SocketAddress;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -197,6 +203,55 @@ public class TcpBootstrapServerTest {
         assertNotNull(contextCaptor.getValue());
     }
 
+    @Test
+    void shouldDisposeLoopResourcesWhenBindFails() throws Exception {
+        TcpBootstrapServer bootstrapServer = new TcpBootstrapServer(new EventBus());
+        try (ServerSocket occupiedPort = new ServerSocket(0)) {
+            TcpServerConfiguration configuration = new TcpServerConfiguration();
+            configuration.setPluginSelectorName("bind-failure");
+            configuration.setPort(occupiedPort.getLocalPort());
+
+            assertThrows(RuntimeException.class, () -> bootstrapServer.start(configuration));
+            LoopResources loopResources = getField(bootstrapServer, "loopResources", LoopResources.class);
+            assertNotNull(loopResources);
+            assertTrue(loopResources.isDisposed());
+        }
+    }
+
+    @Test
+    void shouldShutdownOnlyOnce() throws Exception {
+        DisposableServer disposableServer = mock(DisposableServer.class);
+        LoopResources loopResources = mock(LoopResources.class);
+        setField("server", disposableServer);
+        setField("loopResources", loopResources);
+
+        server.shutdown();
+        server.shutdown();
+
+        verify(disposableServer).disposeNow();
+        verify(loopResources).dispose();
+    }
+
+    @Test
+    void shouldDisposeLoopResourcesWhenServerDisposalFails() throws Exception {
+        DisposableServer disposableServer = mock(DisposableServer.class);
+        LoopResources loopResources = mock(LoopResources.class);
+        IllegalStateException serverFailure = new IllegalStateException("server disposal failed");
+        IllegalStateException loopFailure = new IllegalStateException("loop disposal failed");
+        doThrow(serverFailure).when(disposableServer).disposeNow();
+        doThrow(loopFailure).when(loopResources).dispose();
+        setField("server", disposableServer);
+        setField("loopResources", loopResources);
+
+        IllegalStateException actual = assertThrows(IllegalStateException.class, server::shutdown);
+
+        assertSame(serverFailure, actual);
+        assertEquals(1, actual.getSuppressed().length);
+        assertSame(loopFailure, actual.getSuppressed()[0]);
+        verify(loopResources).dispose();
+        assertDoesNotThrow(server::shutdown);
+    }
+
     private void invokeBridgeConnections(final Connection connection) throws Exception {
         Method method = TcpBootstrapServer.class.getDeclaredMethod("bridgeConnections", Connection.class);
         method.setAccessible(true);
@@ -207,5 +262,11 @@ public class TcpBootstrapServerTest {
         Field field = TcpBootstrapServer.class.getDeclaredField(name);
         field.setAccessible(true);
         field.set(server, value);
+    }
+
+    private static <T> T getField(final Object target, final String name, final Class<T> type) throws Exception {
+        Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        return type.cast(field.get(target));
     }
 }
