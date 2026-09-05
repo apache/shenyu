@@ -79,6 +79,11 @@ public final class DivideIngressReconcilerTest {
 
     @BeforeEach
     public void init() {
+        // These caches are process-wide singletons; isolate each test case.
+        IngressCache.getInstance().remove("mockedNamespace", "mockedIngress");
+        IngressSelectorCache.getInstance().remove("mockedNamespace", "mockedIngress", PluginEnum.DIVIDE.getName());
+        ServiceIngressCache.getInstance().removeSpecifiedIngressName(
+                "mockedNamespace", "testService", "mockedNamespace", "mockedIngress");
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -145,7 +150,8 @@ public final class DivideIngressReconcilerTest {
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
         Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("https://"));
         Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("http://"));
-     }
+    }
+
     /**
      * Test reconcile after ingress deletion.
      */
