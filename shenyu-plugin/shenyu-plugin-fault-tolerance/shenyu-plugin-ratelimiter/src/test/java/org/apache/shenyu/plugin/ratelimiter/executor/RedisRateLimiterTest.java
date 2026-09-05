@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveZSetOperations;
 import org.springframework.data.redis.core.script.RedisScript;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -161,6 +163,32 @@ public final class RedisRateLimiterTest {
             assertEquals(-1, r.getTokensRemaining());
             assertTrue(r.isAllowed());
         }).verifyComplete();
+    }
+
+    /**
+     * redisRateLimiter.isAllowed exception case must still invoke the algorithm's error callback
+     * (e.g. cleanup of optimistically-written keys), since the error is absorbed by onErrorResume
+     * before the response reaches any downstream operator.
+     */
+    @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void allowedThrowableInvokesAlgorithmCallbackTest() {
+        ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
+        Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
+        when(reactiveRedisTemplate.execute(any(RedisScript.class), anyList(), anyList())).thenReturn(
+                Flux.error(new IllegalStateException("redis unavailable")));
+        ReactiveZSetOperations reactiveZSetOperations = mock(ReactiveZSetOperations.class);
+        when(reactiveRedisTemplate.opsForZSet()).thenReturn(reactiveZSetOperations);
+        when(reactiveZSetOperations.remove(any(), any())).thenReturn(Mono.just(1L));
+
+        rateLimiterHandle.setAlgorithmName("concurrent");
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        StepVerifier.create(responseMono).assertNext(r -> {
+            assertEquals(-1, r.getTokensRemaining());
+            assertTrue(r.isAllowed());
+        }).verifyComplete();
+
+        verify(reactiveZSetOperations).remove(any(), any());
     }
 
     /**

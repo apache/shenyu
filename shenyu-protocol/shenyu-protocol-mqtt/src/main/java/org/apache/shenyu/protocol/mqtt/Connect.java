@@ -44,6 +44,12 @@ public class Connect extends MessageType {
     @Override
     public void connect(final ChannelHandlerContext ctx, final MqttConnectMessage msg) {
 
+        if (isConnected(ctx.channel())) {
+            LOG.info("MQTT client has already sent a CONNECT packet, closing connection.");
+            ctx.close().addListener(CLOSE_ON_FAILURE);
+            return;
+        }
+
         String clientId = msg.payload().clientIdentifier();
         if (StringUtils.isEmpty(clientId)) {
             LOG.info("MQTT clientId can not be empty.");
@@ -73,7 +79,7 @@ public class Connect extends MessageType {
                 .sessionPresent(true)
                 .build();
         ctx.writeAndFlush(ackMessage);
-        setConnected(true);
+        setConnected(ctx.channel(), true);
     }
 
     private void close(final ChannelHandlerContext ctx, final MqttConnectReturnCode returnCode) {
