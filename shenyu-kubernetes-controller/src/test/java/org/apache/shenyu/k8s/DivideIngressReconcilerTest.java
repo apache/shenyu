@@ -35,6 +35,10 @@ import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.k8s.cache.IngressCache;
+import org.apache.shenyu.k8s.cache.IngressSelectorCache;
+import org.apache.shenyu.k8s.cache.ServiceIngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -43,13 +47,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Divide Ingress Reconciler Test.
@@ -138,5 +145,25 @@ public final class DivideIngressReconcilerTest {
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
         Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("https://"));
         Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("http://"));
+     }
+    /**
+     * Test reconcile after ingress deletion.
+     */
+    @Test
+    public void testReconcileDeletedIngress() {
+        Result result = ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress"));
+        Assertions.assertEquals(new Result(false), result);
+        when(ingressInformer.getIndexer().getByKey("mockedNamespace/mockedIngress")).thenReturn(null);
+        when(shenyuCacheRepository.findRuleDataList(anyString())).thenReturn(Collections.emptyList());
+
+        result = Assertions.assertDoesNotThrow(
+                () -> ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress")));
+
+        Assertions.assertEquals(new Result(false), result);
+        Assertions.assertNull(IngressCache.getInstance().get("mockedNamespace", "mockedIngress"));
+        Assertions.assertNull(IngressSelectorCache.getInstance().get(
+                "mockedNamespace", "mockedIngress", PluginEnum.DIVIDE.getName()));
+        Assertions.assertTrue(ServiceIngressCache.getInstance().getIngressName("mockedNamespace", "testService").isEmpty());
+        verify(shenyuCacheRepository).deleteSelectorData(eq(PluginEnum.DIVIDE.getName()), anyString());
     }
 }

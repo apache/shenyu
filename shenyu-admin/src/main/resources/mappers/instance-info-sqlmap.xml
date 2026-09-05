@@ -26,6 +26,7 @@
         <result column="instance_port" jdbcType="VARCHAR" property="instancePort"/>
         <result column="instance_type" jdbcType="VARCHAR" property="instanceType"/>
         <result column="instance_info" jdbcType="VARCHAR" property="instanceInfo"/>
+        <result column="instance_state" jdbcType="INTEGER" property="instanceState"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
     </resultMap>
 
