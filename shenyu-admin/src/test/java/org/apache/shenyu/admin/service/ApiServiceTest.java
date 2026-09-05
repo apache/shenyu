@@ -23,12 +23,16 @@ import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.MetaDataDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
+import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.ApiServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,8 +51,14 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -97,6 +107,37 @@ public final class ApiServiceTest {
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(apis);
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         assertEquals(StringUtils.EMPTY, apiService.delete(Collections.singletonList("123")));
+    }
+
+    @Test
+    public void testDeleteCleansRegisteredResources() {
+        RuleVO rule = new RuleVO();
+        rule.setId("rule-1");
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        MetaDataDO metadata = new MetaDataDO();
+        metadata.setId("metadata-1");
+        ApiDO apiDO = buildApiDO("123");
+        when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
+        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
+        when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
+                .thenReturn(Collections.singletonList(selector));
+        when(ruleService.findBySelectorId("selector-1")).thenReturn(Collections.emptyList());
+        when(metaDataService.findByPathAndNamespaceId(apiDO.getApiPath(), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metadata);
+
+        apiService.delete(Collections.singletonList("123"));
+
+        verify(ruleService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorService, times(1)).deleteByNamespaceId(Collections.singletonList("selector-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(metaDataService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("metadata-1"), SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    @Test
+    public void testDeleteWhenApiDoesNotExist() {
+        when(apiMapper.selectByIds(Collections.singletonList("missing"))).thenReturn(Collections.emptyList());
+
+        assertEquals(AdminConstants.SYS_API_ID_NOT_EXIST, apiService.delete(Collections.singletonList("missing")));
     }
 
     @Test

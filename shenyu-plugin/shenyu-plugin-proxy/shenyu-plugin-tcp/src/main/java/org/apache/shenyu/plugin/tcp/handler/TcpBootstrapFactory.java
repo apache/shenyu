@@ -21,11 +21,16 @@ import com.google.common.eventbus.EventBus;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpBootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
+import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * TcpBootstrapFactory.
@@ -36,7 +41,9 @@ public final class TcpBootstrapFactory {
 
     private static final TcpBootstrapFactory SINGLETON = new TcpBootstrapFactory();
 
-    private final Map<String, BootstrapServer> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, BootstrapServer> cache = new ConcurrentHashMap<>();
+
+    private final ConcurrentMap<String, CompletableFuture<BootstrapServer>> creations = new ConcurrentHashMap<>();
 
     private TcpBootstrapFactory() {
     }
@@ -61,6 +68,62 @@ public final class TcpBootstrapFactory {
         BootstrapServer bootstrapServer = new TcpBootstrapServer(eventBus);
         bootstrapServer.start(configuration);
         return bootstrapServer;
+    }
+
+    /**
+     * Create and cache a bootstrap server if absent.
+     *
+     * @param configuration configuration
+     * @return true if a bootstrap server was created
+     */
+    public boolean createBootstrapServerIfAbsent(final TcpServerConfiguration configuration) {
+        String selectorName = configuration.getPluginSelectorName();
+        if (cache.containsKey(selectorName)) {
+            return false;
+        }
+        CompletableFuture<BootstrapServer> creation = new CompletableFuture<>();
+        CompletableFuture<BootstrapServer> existingCreation = creations.putIfAbsent(selectorName, creation);
+        if (Objects.nonNull(existingCreation)) {
+            awaitCreation(existingCreation);
+            return false;
+        }
+        try {
+            BootstrapServer cachedServer = cache.get(selectorName);
+            if (Objects.nonNull(cachedServer)) {
+                creation.complete(cachedServer);
+                return false;
+            }
+            UpstreamProvider.getSingleton().createUpstreams(selectorName, Collections.emptyList());
+            BootstrapServer bootstrapServer = createBootstrapServer(configuration);
+            BootstrapServer existingServer = cache.putIfAbsent(selectorName, bootstrapServer);
+            if (Objects.nonNull(existingServer)) {
+                bootstrapServer.shutdown();
+                creation.complete(existingServer);
+                return false;
+            }
+            creation.complete(bootstrapServer);
+            return true;
+        } catch (RuntimeException ex) {
+            creation.completeExceptionally(ex);
+            throw ex;
+        } finally {
+            creations.remove(selectorName, creation);
+        }
+    }
+
+    private static void awaitCreation(final CompletableFuture<BootstrapServer> creation) {
+        try {
+            creation.join();
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            throw ex;
+        }
     }
 
     /**
@@ -91,6 +154,21 @@ public final class TcpBootstrapFactory {
      */
     public BootstrapServer removeCache(final String selectorName) {
         return cache.remove(selectorName);
+    }
+
+    /**
+     * Remove and shutdown a bootstrap server.
+     *
+     * @param selectorName selectorName
+     * @return true if a bootstrap server was removed
+     */
+    public boolean removeAndShutdown(final String selectorName) {
+        BootstrapServer bootstrapServer = cache.remove(selectorName);
+        if (Objects.isNull(bootstrapServer)) {
+            return false;
+        }
+        bootstrapServer.shutdown();
+        return true;
     }
 
     /**
