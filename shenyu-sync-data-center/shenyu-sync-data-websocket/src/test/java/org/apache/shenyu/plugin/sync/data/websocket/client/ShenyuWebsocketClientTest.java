@@ -121,6 +121,32 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
+    public void testOnMessageShouldIgnoreMalformedJsonAndHandleNextMessage() {
+        Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onMessage("{invalid json"));
+
+        doNothing().when(pluginDataSubscriber).onSubscribe(any());
+        String json = GsonUtils.getInstance().toJson(websocketData);
+        shenyuWebsocketClient.onMessage(json);
+        verify(pluginDataSubscriber).onSubscribe(any());
+    }
+
+    @Test
+    public void testOnMessageShouldIgnoreUnknownGroupType() {
+        websocketData.setGroupType("UNKNOWN_GROUP");
+        String json = GsonUtils.getInstance().toJson(websocketData);
+
+        Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onMessage(json));
+    }
+
+    @Test
+    public void testOnMessageShouldIgnoreUnknownEventType() {
+        websocketData.setEventType("UNKNOWN_EVENT");
+        String json = GsonUtils.getInstance().toJson(websocketData);
+
+        Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onMessage(json));
+    }
+
+    @Test
     public void testOnClose() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
         doNothing().when(shenyuWebsocketClient).close();
