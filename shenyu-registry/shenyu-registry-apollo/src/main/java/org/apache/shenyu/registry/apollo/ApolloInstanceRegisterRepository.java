@@ -33,12 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private final Map<String, ConfigChangeListener> configChangeListenerMap = Maps.newConcurrentMap();
 
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new ConcurrentHashMap<>();
 
     private String namespace;
 
@@ -125,10 +126,11 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
                     instanceEntity.setUri(getURI(x, instanceEntity.getPort(), instanceEntity.getHost()));
                     return instanceEntity;
                 }).collect(Collectors.toList());
-        Map<String, String> childrenList = new HashMap<>();
+        Map<String, String> childrenList = new ConcurrentHashMap<>();
 
-        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
-            return watcherInstanceRegisterMap.get(selectKey);
+        final List<InstanceEntity> cachedInstances = watcherInstanceRegisterMap.get(selectKey);
+        if (Objects.nonNull(cachedInstances)) {
+            return cachedInstances;
         }
 
         configService.getPropertyNames().forEach(key -> {

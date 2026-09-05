@@ -69,14 +69,11 @@ public class RuleDataRefresh extends AbstractDataRefresh<RuleData> {
 
     @Override
     protected void refresh(final List<RuleData> data) {
+        pluginDataSubscriber.refreshRuleDataAll();
         if (CollectionUtils.isEmpty(data)) {
             LOG.info("clear all rule cache, old cache");
-            data.forEach(pluginDataSubscriber::unRuleSubscribe);
-            pluginDataSubscriber.refreshRuleDataAll();
-        } else {
-            // update cache for UpstreamCacheManager
-            pluginDataSubscriber.refreshRuleDataAll();
-            data.forEach(pluginDataSubscriber::onRuleSubscribe);
+            return;
         }
+        data.forEach(pluginDataSubscriber::onRuleSubscribe);
     }
 }
