@@ -50,15 +50,21 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
 
     private String routingKey;
 
+    /**
+     * Initialize RabbitMQ client.
+     *
+     * @param config RabbitMQ configuration
+     * @return true if the client was initialized successfully
+     */
     @Override
-    public void initClient0(@NonNull final RabbitmqLogCollectConfig.RabbitmqLogConfig config) {
+    public boolean initClient0(@NonNull final RabbitmqLogCollectConfig.RabbitmqLogConfig config) {
         if (StringUtils.isBlank(config.getHost())
                 || Objects.isNull(config.getPort())
                 || StringUtils.isBlank(config.getExchangeName())
                 || StringUtils.isBlank(config.getQueueName())
                 || StringUtils.isBlank(config.getExchangeType())) {
             LOG.error("rabbitmq prop is empty. failed init rabbit producer");
-            return;
+            return false;
         }
 
         String queueName = config.getQueueName();
@@ -82,14 +88,22 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
             LOG.info("init rabbitmqLogCollectClient success");
         } catch (IOException e) {
             LOG.error("failed to initialize Rabbitmq connection", e);
+            closeAfterFailedInitialization();
+            return false;
         } catch (TimeoutException e) {
             LOG.error("failed to connect rabbitmq, connect timeout", e);
+            closeAfterFailedInitialization();
+            return false;
         }
-
+        return true;
     }
 
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        if (Objects.isNull(channel)) {
+            LOG.warn("RabbitMQ channel is not initialized.");
+            return;
+        }
         logs.forEach(log -> {
             try {
                 channel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_TEXT_PLAIN, buildLogMessageBytes(log));
@@ -139,6 +153,14 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
             } catch (IOException e) {
                 LOG.error("failed to close RabbitMQ connection", e);
             }
+        }
+    }
+
+    private void closeAfterFailedInitialization() {
+        try {
+            close0();
+        } catch (Exception e) {
+            LOG.error("failed to clean up RabbitMQ resources after initialization failure", e);
         }
     }
 }
