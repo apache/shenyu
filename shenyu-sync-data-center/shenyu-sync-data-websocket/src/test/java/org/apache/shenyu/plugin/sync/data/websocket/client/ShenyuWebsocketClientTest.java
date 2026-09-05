@@ -114,20 +114,20 @@ public class ShenyuWebsocketClientTest {
 
     @Test
     public void testOnMessage() {
-        doNothing().when(pluginDataSubscriber).onSubscribe(any());
+        doNothing().when(pluginDataSubscriber).onPluginRefresh(any());
         String json = GsonUtils.getInstance().toJson(websocketData);
         shenyuWebsocketClient.onMessage(json);
-        verify(pluginDataSubscriber).onSubscribe(any());
+        verify(pluginDataSubscriber).onPluginRefresh(any());
     }
 
     @Test
     public void testOnMessageShouldIgnoreMalformedJsonAndHandleNextMessage() {
         Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onMessage("{invalid json"));
 
-        doNothing().when(pluginDataSubscriber).onSubscribe(any());
+        doNothing().when(pluginDataSubscriber).onPluginRefresh(any());
         String json = GsonUtils.getInstance().toJson(websocketData);
         shenyuWebsocketClient.onMessage(json);
-        verify(pluginDataSubscriber).onSubscribe(any());
+        verify(pluginDataSubscriber).onPluginRefresh(any());
     }
 
     @Test
