@@ -42,8 +42,11 @@ import reactor.test.StepVerifier;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -246,6 +249,85 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeCacheHitSkipsDefaultMatch() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin, times(2)).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executePreSeededCacheUsesCachedSelectorAndRule() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        SelectorData cachedSelector = SelectorData.builder()
+                .id("cached_selector").pluginName("SHENYU")
+                .enabled(true)
+                .continued(true)
+                .logged(false)
+                .matchRestful(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .matchMode(0)
+                .conditionList(conditionDataList)
+                .build();
+        RuleData cachedRule = RuleData.builder()
+                .id("cached_rule").pluginName("SHENYU")
+                .selectorId("cached_selector")
+                .enabled(true)
+                .loged(true)
+                .matchRestful(false)
+                .matchMode(0)
+                .conditionDataList(conditionDataList)
+                .sort(1).build();
+
+        MatchDataCache.getInstance().cacheSelectorData("/http/SHENYU/SHENYU", cachedSelector, 10000, 10000);
+        MatchDataCache.getInstance().cacheRuleData("/http/SHENYU/SHENYU", cachedRule, 10000, 10000);
+
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(cachedSelector);
+        BaseDataCache.getInstance().cacheRuleData(cachedRule);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, cachedSelector, cachedRule);
+    }
+
+    @Test
+    public void executeCacheInvalidatedBySelectorSubscribeReMatches() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+
+        MatchDataCache.getInstance().removeSelectorData("SHENYU", selectorData.getId());
+        MatchDataCache.getInstance().removeRuleData("SHENYU", ruleData.getId());
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin, times(2)).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
 
     @AfterEach
