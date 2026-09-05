@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -122,6 +123,11 @@ public class AiProxyConfigService {
             }
             if (jsonNode.has("content")) {
                 return jsonNode.get("content").asText();
+            }
+            // Strip internal fallbackConfig from body before forwarding to upstream
+            if (jsonNode.has(FALLBACK_CONFIG) && jsonNode.isObject()) {
+                ((ObjectNode) jsonNode).remove(FALLBACK_CONFIG);
+                return jsonNode.toString();
             }
         } catch (Exception e) {
             // ignore parsing errors and fall back to original body
