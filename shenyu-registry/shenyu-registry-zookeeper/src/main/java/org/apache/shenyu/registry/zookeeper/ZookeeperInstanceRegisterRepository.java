@@ -44,11 +44,11 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,11 +64,11 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private String watchPath;
 
-    private final Map<String, String> nodeDataMap = new HashMap<>();
+    private final Map<String, String> nodeDataMap = new ConcurrentHashMap<>();
 
     private final Multimap<String, CuratorCache> cacheMap = ArrayListMultimap.create();
 
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -142,8 +142,9 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 return instanceEntity;
             }).collect(Collectors.toList());
 
-            if (watcherInstanceRegisterMap.containsKey(selectKey)) {
-                return watcherInstanceRegisterMap.get(selectKey);
+            final List<InstanceEntity> cachedInstances = watcherInstanceRegisterMap.get(selectKey);
+            if (Objects.nonNull(cachedInstances)) {
+                return cachedInstances;
             }
 
             List<String> childrenPathList = client.subscribeChildrenChanges(watchKey, new CuratorWatcher() {
