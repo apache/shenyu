@@ -474,7 +474,16 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         // Configure response
         configureStreamableHttpResponse(exchange, result);
 
+        // Notifications are acknowledged with 202 Accepted and an empty body
+        // per the Streamable HTTP spec: a null response body means no body
+        // should be written.
+        if (Objects.isNull(result.getResponseBody())) {
+            LOG.debug("Response body is null, completing response without body");
+            return exchange.getResponse().setComplete();
+        }
+
         // Write response body
+        exchange.getResponse().getHeaders().set("Content-Type", "application/json");
         final String responseBodyJson = result.getResponseBodyAsJson();
         final byte[] responseBytes = responseBodyJson.getBytes(StandardCharsets.UTF_8);
 
@@ -511,7 +520,6 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
 
         // Set standard headers
         setCorsHeaders(exchange);
-        exchange.getResponse().getHeaders().set("Content-Type", "application/json");
 
         // Clean up potentially conflicting headers
         exchange.getResponse().getHeaders().remove("Transfer-Encoding");
