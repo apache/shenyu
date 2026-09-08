@@ -22,8 +22,15 @@ import org.apache.shenyu.plugin.logging.desensitize.api.factory.DataDesensitizeF
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.springframework.util.StringUtils;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * data desensitize utils.
@@ -87,15 +94,59 @@ public final class DataDesensitizeUtils {
     public static String desensitizeBody(final boolean desensitized, final String source,
                                      final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg) {
         if (StringUtils.hasLength(source) && desensitized) {
-            Map<String, String> bodyMap = JsonUtils.jsonToMap(source, String.class);
+            Optional<Map<String, Object>> optionalBodyMap = JsonUtils.tryJsonToMap(source);
+            if (optionalBodyMap.isEmpty()) {
+                return source;
+            }
+            Map<String, Object> bodyMap = optionalBodyMap.get();
             bodyMap.forEach((key, value) -> {
-                if (keyWordMatch.matches(key)) {
-                    bodyMap.put(key, DataDesensitizeFactory.selectDesensitize(value, dataDesensitizeAlg));
+                if (keyWordMatch.matches(key) && Objects.nonNull(value)) {
+                    bodyMap.put(key, DataDesensitizeFactory.selectDesensitize(String.valueOf(value), dataDesensitizeAlg));
                 }
             });
             return JsonUtils.toJson(bodyMap);
         } else {
             return source;
+        }
+    }
+
+    /**
+     * Desensitize query parameter values by parameter name.
+     *
+     * @param source query string
+     * @param keyWordMatch keyword match strategy
+     * @param dataDesensitizeAlg desensitize algorithm
+     * @return desensitized query string
+     */
+    public static String desensitizeQueryParams(final String source,
+                                                final KeyWordMatch keyWordMatch,
+                                                final String dataDesensitizeAlg) {
+        if (!StringUtils.hasLength(source)) {
+            return source;
+        }
+        return Arrays.stream(source.split("&", -1))
+                .map(parameter -> desensitizeQueryParam(parameter, keyWordMatch, dataDesensitizeAlg))
+                .collect(Collectors.joining("&"));
+    }
+
+    private static String desensitizeQueryParam(final String parameter,
+                                                final KeyWordMatch keyWordMatch,
+                                                final String dataDesensitizeAlg) {
+        int separatorIndex = parameter.indexOf('=');
+        String rawKey = separatorIndex < 0 ? parameter : parameter.substring(0, separatorIndex);
+        if (separatorIndex < 0) {
+            return parameter;
+        }
+        try {
+            String key = URLDecoder.decode(rawKey, StandardCharsets.UTF_8);
+            String value = URLDecoder.decode(parameter.substring(separatorIndex + 1), StandardCharsets.UTF_8);
+            String desensitizedValue = desensitizeSingleKeyword(true, key, value, keyWordMatch, dataDesensitizeAlg);
+            if (value.equals(desensitizedValue)) {
+                return parameter;
+            }
+            return rawKey + "=" + URLEncoder.encode(desensitizedValue, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            return parameter;
         }
     }
 

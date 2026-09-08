@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * MockPlugin.
@@ -53,7 +54,7 @@ public class MockPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        exchange.getResponse().setStatusCode(HttpStatus.valueOf(mockHandle.getHttpStatusCode()));
+        exchange.getResponse().setStatusCode(HttpStatus.valueOf(Optional.ofNullable(mockHandle.getHttpStatusCode()).orElse(200)));
         
         return DataBufferUtils.join(exchange.getRequest().getBody())
                 .switchIfEmpty(Mono.just(DefaultDataBufferFactory.sharedInstance.allocateBuffer(0)))

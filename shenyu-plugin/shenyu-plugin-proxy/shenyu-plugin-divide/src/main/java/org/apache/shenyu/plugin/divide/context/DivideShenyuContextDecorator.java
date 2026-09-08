@@ -30,6 +30,8 @@ import java.util.Optional;
  */
 public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
 
+    private static final String DEFAULT_MODULE = PluginEnum.DIVIDE.getName() + "-" + RpcTypeEnum.HTTP.getName();
+
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         String path = shenyuContext.getPath();
@@ -37,7 +39,7 @@ public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         shenyuContext.setModule(Optional.ofNullable(metaData).map(MetaData::getAppName)
-                .orElse(String.format("%s-%s", PluginEnum.DIVIDE.getName(), shenyuContext.getRpcType())));
+                .orElse(DEFAULT_MODULE));
         return shenyuContext;
     }
 }
