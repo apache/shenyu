@@ -75,15 +75,9 @@ public class ClickHouseLogCollectClientTest {
 
     @Test
     public void testConsume() {
-        String msg = "";
         ClickHouseLogCollectConfig.INSTANCE.setClickHouseLogConfig(clickHouseLogConfig);
         clickHouseLogCollectClient.initClient(clickHouseLogConfig);
-        try {
-            clickHouseLogCollectClient.consume(logs);
-        } catch (Exception e) {
-            msg = "false";
-        }
-        Assertions.assertEquals(msg, "false");
+        Assertions.assertDoesNotThrow(() -> clickHouseLogCollectClient.consume(logs));
     }
 
     @Test
