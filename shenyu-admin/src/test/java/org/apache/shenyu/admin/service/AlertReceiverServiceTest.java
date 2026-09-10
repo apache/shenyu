@@ -29,6 +29,7 @@ import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,10 +45,13 @@ import java.util.stream.IntStream;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for AlertReceiverService.
@@ -84,8 +88,20 @@ public final class AlertReceiverServiceTest {
 
     @Test
     public void testUpdateReceiver() {
-        given(alertReceiverMapper.updateByPrimaryKey(any())).willReturn(1);
-        alertReceiverService.updateReceiver(new AlertReceiverDTO());
+        AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
+        receiverDTO.setId("receiver-id");
+        receiverDTO.setName("updated-name");
+        given(alertReceiverMapper.updateByPrimaryKeySelective(any())).willReturn(1);
+
+        alertReceiverService.updateReceiver(receiverDTO);
+
+        ArgumentCaptor<AlertReceiverDO> receiverCaptor = ArgumentCaptor.forClass(AlertReceiverDO.class);
+        verify(alertReceiverMapper).updateByPrimaryKeySelective(receiverCaptor.capture());
+        verify(alertReceiverMapper, never()).updateByPrimaryKey(any(AlertReceiverDO.class));
+        assertEquals("receiver-id", receiverCaptor.getValue().getId());
+        assertEquals("updated-name", receiverCaptor.getValue().getName());
+        assertNull(receiverCaptor.getValue().getEnable());
+        assertNull(receiverCaptor.getValue().getMatchAll());
     }
 
     @Test

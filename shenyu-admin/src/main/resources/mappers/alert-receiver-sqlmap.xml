@@ -125,6 +125,39 @@
         FROM alert_receiver
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
+    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        update alert_receiver
+        <set>
+            <if test="name != null">name = #{name,jdbcType=VARCHAR},</if>
+            <if test="type != null">type = #{type,jdbcType=TINYINT},</if>
+            <if test="phone != null">phone = #{phone,jdbcType=VARCHAR},</if>
+            <if test="email != null">email = #{email,jdbcType=VARCHAR},</if>
+            <if test="hookUrl != null">hook_url = #{hookUrl,jdbcType=VARCHAR},</if>
+            <if test="wechatId != null">wechat_id = #{wechatId,jdbcType=VARCHAR},</if>
+            <if test="accessToken != null">access_token = #{accessToken,jdbcType=TINYINT},</if>
+            <if test="tgBotToken != null">tg_bot_token = #{tgBotToken,jdbcType=VARCHAR},</if>
+            <if test="tgUserId != null">tg_user_id = #{tgUserId,jdbcType=VARCHAR},</if>
+            <if test="slackWebHookUrl != null">slack_web_hook_url = #{slackWebHookUrl,jdbcType=VARCHAR},</if>
+            <if test="corpId != null">corp_id = #{corpId,jdbcType=VARCHAR},</if>
+            <if test="agentId != null">agent_id = #{agentId,jdbcType=VARCHAR},</if>
+            <if test="appSecret != null">app_secret = #{appSecret,jdbcType=VARCHAR},</if>
+            <if test="discordChannelId != null">discord_channel_id = #{discordChannelId,jdbcType=VARCHAR},</if>
+            <if test="discordBotToken != null">discord_bot_token = #{discordBotToken,jdbcType=VARCHAR},</if>
+            <if test="smnAk != null">smn_ak = #{smnAk,jdbcType=VARCHAR},</if>
+            <if test="smnSk != null">smn_sk = #{smnSk,jdbcType=VARCHAR},</if>
+            <if test="smnProjectId != null">smn_project_id = #{smnProjectId,jdbcType=VARCHAR},</if>
+            <if test="smnRegion != null">smn_region = #{smnRegion,jdbcType=VARCHAR},</if>
+            <if test="smnTopicUrn != null">smn_topic_urn = #{smnTopicUrn,jdbcType=VARCHAR},</if>
+            <if test="labels != null">labels = #{labels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.MapStringTypeHandler},</if>
+            <if test="levels != null">levels = #{levels,jdbcType=VARCHAR,typeHandler=org.apache.shenyu.admin.mybatis.handler.ListByteTypeHandler},</if>
+            <if test="namespaceId != null">namespace_id = #{namespaceId,jdbcType=VARCHAR},</if>
+            <if test="dateCreated != null">date_created = #{dateCreated,jdbcType=TIMESTAMP},</if>
+            <if test="dateUpdated != null">date_updated = #{dateUpdated,jdbcType=TIMESTAMP},</if>
+            <if test="matchAll != null">match_all = #{matchAll,jdbcType=TINYINT},</if>
+            <if test="enable != null">enable = #{enable,jdbcType=TINYINT}</if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
     <select id="existed" resultType="java.lang.Boolean">
         select true from alert_receiver where id = #{id} limit 1
     </select>

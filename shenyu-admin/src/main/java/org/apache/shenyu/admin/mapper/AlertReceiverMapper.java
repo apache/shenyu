@@ -56,6 +56,14 @@ public interface AlertReceiverMapper extends ExistProvider {
      * @return object by primary key
      */
     AlertReceiverDO selectByPrimaryKey(String id);
+
+    /**
+     * update record selective.
+     *
+     * @param record the updated record
+     * @return update count
+     */
+    int updateByPrimaryKeySelective(AlertReceiverDO record);
     
     /**
      * update record.
