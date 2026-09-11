@@ -17,7 +17,8 @@ cobertura.ser
 .settings/
 .project
 .classpath
-
+.claude
+.agents
 # idea ignore
 .idea/
 !/.idea/icon.svg
