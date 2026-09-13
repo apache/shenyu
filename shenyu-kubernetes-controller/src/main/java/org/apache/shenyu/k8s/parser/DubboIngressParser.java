@@ -353,7 +353,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                             DubboUpstream upstream = DubboUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .weight(100)
-                                    .protocol(Objects.isNull(protocols[i++]) ? "dubbo://" : protocols[i++])
+                                    .protocol(i >= protocols.length ? "dubbo://" : protocols[i++])
                                     .warmup(0)
                                     .status(true)
                                     .upstreamHost("")
