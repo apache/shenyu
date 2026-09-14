@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 
@@ -60,7 +61,12 @@ public class DivideRuleHandle implements RuleHandle {
      * requestMaxSize.
      */
     private long requestMaxSize;
-    
+
+    /**
+     * Canary routing configuration.
+     */
+    private CanaryConfig canary;
+
     /**
      * New instance divide rule handle.
      *
@@ -178,6 +184,24 @@ public class DivideRuleHandle implements RuleHandle {
         this.requestMaxSize = requestMaxSize;
     }
 
+    /**
+     * Get canary configuration.
+     *
+     * @return canary configuration
+     */
+    public CanaryConfig getCanary() {
+        return canary;
+    }
+
+    /**
+     * Set canary configuration.
+     *
+     * @param canary canary configuration
+     */
+    public void setCanary(final CanaryConfig canary) {
+        this.canary = canary;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -189,12 +213,12 @@ public class DivideRuleHandle implements RuleHandle {
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
-                && Objects.equals(retryStrategy, that.retryStrategy);
+                && Objects.equals(retryStrategy, that.retryStrategy) && Objects.equals(canary, that.canary);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retry, timeout, headerMaxSize, requestMaxSize);
+        return Objects.hash(loadBalance, retryStrategy, retry, timeout, headerMaxSize, requestMaxSize, canary);
     }
 
     @Override
@@ -214,6 +238,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + headerMaxSize
                 + ", requestMaxSize="
                 + requestMaxSize
+                + ", canary="
+                + canary
                 + '}';
     }
 }

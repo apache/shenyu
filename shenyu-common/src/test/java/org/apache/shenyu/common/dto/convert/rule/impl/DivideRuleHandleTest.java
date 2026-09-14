@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.junit.jupiter.api.Test;
@@ -58,4 +59,28 @@ public class DivideRuleHandleTest {
         assertThat(ImmutableSet.of(handle1, handle2), hasSize(1));
     }
     
+    @Test
+    public void testCanaryConfigurationEquality() {
+        final DivideRuleHandle handle1 = new DivideRuleHandle();
+        final DivideRuleHandle handle2 = new DivideRuleHandle();
+        CanaryConfig canary1 = new CanaryConfig();
+        CanaryConfig canary2 = new CanaryConfig();
+        canary1.setEnabled(true);
+        canary1.setPercentage(10);
+        canary2.setEnabled(true);
+        canary2.setPercentage(10);
+        handle1.setCanary(canary1);
+        handle2.setCanary(canary2);
+
+        assertThat(handle1.getCanary(), is(canary1));
+        assertThat(ImmutableSet.of(handle1, handle2), hasSize(1));
+
+        canary2.setPercentage(20);
+        assertThat(handle1.equals(handle2), is(false));
+        assertThat(ImmutableSet.of(handle1, handle2), hasSize(2));
+
+        handle2.setCanary(null);
+        assertThat(handle1.equals(handle2), is(false));
+    }
+
 }
