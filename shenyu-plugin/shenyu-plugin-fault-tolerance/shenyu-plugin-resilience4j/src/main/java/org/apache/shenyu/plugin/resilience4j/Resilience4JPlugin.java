@@ -64,6 +64,9 @@ public class Resilience4JPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         Resilience4JHandle resilience4JHandle = Resilience4JHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(resilience4JHandle)) {
+            return chain.execute(exchange);
+        }
         resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
