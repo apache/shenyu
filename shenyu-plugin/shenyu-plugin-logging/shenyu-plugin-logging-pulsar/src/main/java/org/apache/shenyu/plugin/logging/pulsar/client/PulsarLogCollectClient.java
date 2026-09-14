@@ -50,14 +50,15 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
      * init producer.
      * 
      * @param config pulsar props
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final PulsarLogCollectConfig.PulsarLogConfig config) {
+    public boolean initClient0(@NonNull final PulsarLogCollectConfig.PulsarLogConfig config) {
         String topic = config.getTopic();
         String serviceUrl = config.getServiceUrl();
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(serviceUrl)) {
             LOG.error("init PulsarLogCollectClient error, please check topic or serviceUrl.");
-            return;
+            return false;
         }
         try {
             client = PulsarClient.builder().serviceUrl(serviceUrl).build();
@@ -66,11 +67,18 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
 
         } catch (PulsarClientException e) {
             LOG.error("init PulsarLogCollectClient error, ", e);
+            close0();
+            return false;
         }
+        return true;
     }
 
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        if (Objects.isNull(producer)) {
+            LOG.warn("Pulsar producer is not initialized.");
+            return;
+        }
         logs.forEach(log -> producer.sendAsync(toBytes(log)));
     }
 
@@ -93,13 +101,15 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
 
     @Override
     public void close0() {
-        if (Objects.nonNull(producer)) {
-            try {
+        try {
+            if (Objects.nonNull(producer)) {
                 producer.close();
-                client.close();
-            } catch (PulsarClientException e) {
-                LOG.error("fail to close PulsarLogCollectClient, e", e);
             }
+            if (Objects.nonNull(client)) {
+                client.close();
+            }
+        } catch (PulsarClientException e) {
+            LOG.error("fail to close PulsarLogCollectClient, e", e);
         }
     }
 }

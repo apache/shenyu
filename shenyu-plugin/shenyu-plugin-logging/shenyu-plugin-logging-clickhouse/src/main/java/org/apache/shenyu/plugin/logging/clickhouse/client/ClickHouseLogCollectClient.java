@@ -29,6 +29,7 @@ import com.clickhouse.client.data.ClickHouseLongValue;
 import com.clickhouse.client.data.ClickHouseOffsetDateTimeValue;
 import com.clickhouse.client.data.ClickHouseStringValue;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.apache.shenyu.plugin.logging.clickhouse.constant.ClickHouseLoggingConstant;
@@ -120,12 +121,13 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
      * init client .
      *
      * @param config properties.
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
+    public boolean initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
         final String username = config.getUsername();
         final String password = config.getPassword();
-        final String ttl = config.getTtl().isEmpty() ? "30" : config.getTtl();
+        final String ttl = StringUtils.defaultIfBlank(config.getTtl(), "30");
         database = config.getDatabase();
         endpoint = ClickHouseNode.builder()
             .host(config.getHost())
@@ -140,6 +142,9 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
         } catch (Exception e) {
             LOG.error("inti ClickHouseLogClient error", e);
+            close0();
+            return false;
         }
+        return true;
     }
 }
