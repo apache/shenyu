@@ -55,6 +55,8 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -126,6 +128,8 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10

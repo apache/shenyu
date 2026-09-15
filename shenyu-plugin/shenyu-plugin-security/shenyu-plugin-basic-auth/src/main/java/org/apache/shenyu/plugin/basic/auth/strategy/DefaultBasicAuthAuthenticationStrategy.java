@@ -24,6 +24,8 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 @Join
 public class DefaultBasicAuthAuthenticationStrategy implements BasicAuthAuthenticationStrategy {
 
@@ -41,6 +43,6 @@ public class DefaultBasicAuthAuthenticationStrategy implements BasicAuthAuthenti
 
     @Override
     public boolean authenticate(final BasicAuthRuleHandle basicAuthRuleHandle, final String authentication) {
-        return authentication.equals(((DefaultBasicAuthRuleHandle) basicAuthRuleHandle).getAuthorization());
+        return Objects.equals(authentication, ((DefaultBasicAuthRuleHandle) basicAuthRuleHandle).getAuthorization());
     }
 }

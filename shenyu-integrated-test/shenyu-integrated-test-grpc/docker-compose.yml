@@ -27,6 +27,7 @@ services:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.database.init_script=sql-script/h2/schema.sql
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s

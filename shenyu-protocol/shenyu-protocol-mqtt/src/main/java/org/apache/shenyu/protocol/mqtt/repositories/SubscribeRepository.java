@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,12 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @param channel channel
      */
     public void remove(final List<String> topics, final Channel channel) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> TOPIC_CHANNEL_FACTORY.get(topic).remove(channel)));
+        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
+            List<Channel> channels = TOPIC_CHANNEL_FACTORY.get(topic);
+            if (CollectionUtils.isNotEmpty(channels)) {
+                channels.remove(channel);
+            }
+        }));
     }
 
     @Override

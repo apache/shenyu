@@ -20,5 +20,7 @@ version: '2.3'
 services:
   admin:
     image: shenyu/admin:latest
+    environment:
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     ports:
       - "19095:9095"

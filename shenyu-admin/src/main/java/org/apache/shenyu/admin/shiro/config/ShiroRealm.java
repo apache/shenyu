@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.shiro.config;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
@@ -54,9 +55,12 @@ public class ShiroRealm extends AuthorizingRealm {
 
     private final DashboardUserService dashboardUserService;
 
-    public ShiroRealm(final PermissionService permissionService, final DashboardUserService dashboardUserService) {
+    private final JwtProperties jwtProperties;
+
+    public ShiroRealm(final PermissionService permissionService, final DashboardUserService dashboardUserService, final JwtProperties jwtProperties) {
         this.permissionService = permissionService;
         this.dashboardUserService = dashboardUserService;
+        this.jwtProperties = jwtProperties;
     }
 
     @Override
@@ -112,7 +116,7 @@ public class ShiroRealm extends AuthorizingRealm {
             throw new AuthenticationException("clientId is invalid or does not match");
         }
 
-        if (!JwtUtils.verifyToken(token, dashboardUserVO.getPassword())) {
+        if (!JwtUtils.verifyToken(token, jwtProperties.getSecretKey())) {
             throw new AuthenticationException("token is error.");
         }
 

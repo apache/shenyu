@@ -236,12 +236,15 @@ public class HttpSyncDataService implements SyncDataService {
             Assert.notNull(responseBody, "Resolve response body failed.");
             String json = responseBody.string();
             LOG.info("listener result: [{}]", json);
-            JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
-            JsonElement element = responseFromServer.get("data");
-            if (element.isJsonNull()) {
+            JsonElement responseFromServer = GsonUtils.getGson().fromJson(json, JsonElement.class);
+            if (Objects.isNull(responseFromServer) || responseFromServer.isJsonNull()) {
                 return;
             }
-            groupJson = responseFromServer.getAsJsonArray("data");
+            JsonElement element = responseFromServer.getAsJsonObject().get("data");
+            if (Objects.isNull(element) || element.isJsonNull()) {
+                return;
+            }
+            groupJson = element.getAsJsonArray();
         } catch (IOException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
@@ -281,6 +284,7 @@ public class HttpSyncDataService implements SyncDataService {
                     try {
                         //do long polling.
                         doLongPolling(server);
+                        break;
                     } catch (Exception e) {
                         // print warnning LOG.
                         if (time < retryTimes) {

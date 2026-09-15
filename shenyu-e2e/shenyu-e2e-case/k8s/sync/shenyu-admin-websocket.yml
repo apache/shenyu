@@ -59,6 +59,8 @@ spec:
               value: 'Asia/Beijing'
             - name: SPRING_PROFILES_ACTIVE
               value: mysql, admin-sync-websocket
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           volumeMounts:
             - name: mysql-connector-volume
               mountPath: /opt/shenyu-admin/ext-lib

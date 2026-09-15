@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.http.utils;
 import com.google.gson.Gson;
 import okhttp3.Headers;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,7 +124,7 @@ public final class RegisterUtilsTest {
         Map<String, Object> loginMap = new HashMap<>(2);
         loginMap.put(Constants.LOGIN_NAME, userName);
         loginMap.put(Constants.PASS_WORD, password);
-        when(okHttpTools.get(url, loginMap)).thenReturn("{\"code\":200,\"data\":{\"token\":\"" + token + "\"}}");
+        when(okHttpTools.post(url, GsonUtils.getInstance().toJson(loginMap))).thenReturn("{\"code\":200,\"data\":{\"token\":\"" + token + "\"}}");
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             Optional<Object> objectOptional = RegisterUtils.doLogin(userName, password, url);
@@ -138,7 +139,7 @@ public final class RegisterUtilsTest {
         Map<String, Object> loginMap = new HashMap<>(2);
         loginMap.put(Constants.LOGIN_NAME, userName);
         loginMap.put(Constants.PASS_WORD, password);
-        when(okHttpTools.get(url, loginMap)).thenReturn("{\"code\":300}");
+        when(okHttpTools.post(url, GsonUtils.getInstance().toJson(loginMap))).thenReturn("{\"code\":300}");
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             Optional<Object> objectOptional = RegisterUtils.doLogin(userName, password, url);

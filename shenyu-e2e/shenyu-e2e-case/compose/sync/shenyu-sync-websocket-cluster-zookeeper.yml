@@ -84,6 +84,7 @@ services:
       - shenyu.sync.websocket.messageMaxSize=10240
       - shenyu.sync.websocket.allowOrigins=ws://localhost:9095;ws://localhost:9195;
       - shenyu.sync.websocket.token=shenyu-sync-token
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
@@ -121,6 +122,7 @@ services:
       - shenyu.sync.websocket.messageMaxSize=10240
       - shenyu.sync.websocket.allowOrigins=ws://localhost:9095;ws://localhost:9195;
       - shenyu.sync.websocket.token=shenyu-sync-token
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
     healthcheck:
