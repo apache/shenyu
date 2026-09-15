@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -150,12 +151,12 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             allInstances = new ArrayList<>();
             try {
                 allInstances = discoveryUpstreamDataList.stream().map(discoveryUpstreamData -> {
-                    String[] upstreamUrlArr = discoveryUpstreamData.getUrl().split(":");
+                    String[] upstreamUrlArr = CommonUpstreamUtils.parseHostPort(discoveryUpstreamData.getUrl());
                     UpstreamInstance instance = new UpstreamInstance();
                     instance.setContextPath(contextPath);
                     instance.setEnabled(true);
                     instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setPort(Integer.parseInt(upstreamUrlArr[1]));
                     instance.setHealthy(true);
                     Long startupTime = Optional.ofNullable(discoveryUpstreamData.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis());
                     instance.setStartupTime(startupTime);
@@ -235,12 +236,12 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             allInstances = new ArrayList<>();
             try {
                 allInstances = discoveryUpstreamDataList.stream().map(discoveryUpstreamData -> {
-                    String[] upstreamUrlArr = discoveryUpstreamData.getUrl().split(":");
+                    String[] upstreamUrlArr = CommonUpstreamUtils.parseHostPort(discoveryUpstreamData.getUrl());
                     UpstreamInstance instance = new UpstreamInstance();
                     instance.setContextPath(contextPath);
                     instance.setEnabled(enabled);
                     instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setPort(Integer.parseInt(upstreamUrlArr[1]));
                     instance.setHealthy(true);
                     Long startupTime = Optional.ofNullable(discoveryUpstreamData.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis());
                     instance.setStartupTime(startupTime);
