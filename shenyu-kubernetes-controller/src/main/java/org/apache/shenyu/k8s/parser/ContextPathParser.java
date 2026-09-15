@@ -112,11 +112,14 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     }
                     conditionList.add(pathCondition);
                     SelectorData selectorData = createSelectorData(pathPath, conditionList);
-                    ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(annotations);
+                    String contextPath = annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH);
                     List<RuleData> ruleDataList = new ArrayList<>();
-                    List<ConditionData> ruleConditionList = getRuleConditionList(annotations);
-                    RuleData ruleData = createRuleData(annotations, contextMappingRuleHandle, ruleConditionList);
-                    ruleDataList.add(ruleData);
+                    if (Objects.nonNull(contextPath)) {
+                        ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(contextPath, annotations);
+                        List<ConditionData> ruleConditionList = getRuleConditionList(contextPath);
+                        RuleData ruleData = createRuleData(contextPath, contextMappingRuleHandle, ruleConditionList);
+                        ruleDataList.add(ruleData);
+                    }
                     res.add(new IngressConfiguration(selectorData, ruleDataList, null));
                 }
             }
@@ -167,17 +170,17 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                 .build();
     }
 
-    private ContextMappingRuleHandle createContextMappingRuleHandle(final Map<String, String> annotations) {
+    private ContextMappingRuleHandle createContextMappingRuleHandle(final String contextPath, final Map<String, String> annotations) {
         ContextMappingRuleHandle ruleHandle = new ContextMappingRuleHandle();
-        ruleHandle.setContextPath(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH));
+        ruleHandle.setContextPath(contextPath);
         ruleHandle.setAddPrefix(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIX));
         ruleHandle.setAddPrefixed(Boolean.parseBoolean(annotations.getOrDefault(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIXED, "false")));
         return ruleHandle;
     }
 
-    private RuleData createRuleData(final Map<String, String> annotations, final ContextMappingRuleHandle ruleHandle, final List<ConditionData> ruleConditionList) {
+    private RuleData createRuleData(final String name, final ContextMappingRuleHandle ruleHandle, final List<ConditionData> ruleConditionList) {
         return RuleData.builder()
-                .name(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH))
+                .name(name)
                 .pluginName(PluginEnum.CONTEXT_PATH.getName())
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(ruleConditionList)
@@ -187,12 +190,12 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                 .build();
     }
 
-    private List<ConditionData> getRuleConditionList(final Map<String, String> annotations) {
+    private List<ConditionData> getRuleConditionList(final String contextPath) {
         final List<ConditionData> ruleConditionList = new ArrayList<>();
         ConditionData ruleCondition = new ConditionData();
         ruleCondition.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
         ruleCondition.setParamType(ParamTypeEnum.URI.getName());
-        ruleCondition.setParamValue(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH) + "/**");
+        ruleCondition.setParamValue(contextPath + "/**");
         ruleConditionList.add(ruleCondition);
         return ruleConditionList;
     }
