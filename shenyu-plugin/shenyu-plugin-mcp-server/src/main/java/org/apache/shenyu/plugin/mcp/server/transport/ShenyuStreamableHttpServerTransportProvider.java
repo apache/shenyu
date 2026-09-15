@@ -452,10 +452,11 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * This method handles scenarios where a client provides a session ID that no longer
      * exists on the server (e.g., server restart, session timeout, network disconnection).
      * A new session is created using the MCP framework, which generates its own session ID.
-     * The client receives the new session ID for subsequent requests.
+     * The session is only used to process the current request and is cleaned up afterwards,
+     * so an unknown or stale session ID cannot leave orphaned sessions in the maps.
      * Important: The MCP framework generates its own session IDs, so the
      * client's requested session ID may differ from the actual session ID returned.
-     * The response includes the actual session ID that should be used for future requests.
+     * The response includes the actual session ID used to process this request.
      *
      * @param exchange           the server web exchange
      * @param message            the JSON-RPC message
@@ -479,6 +480,11 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             initializeSessionDirectly(newSession, actualSessionId);
             newTransport.resetCapturedMessage();
             return processWithExistingSession(newSession, actualSessionId, message, messageId)
+                    .doFinally(signalType -> {
+                        LOGGER.debug("Cleaning up restored session: {} (signal: {})", actualSessionId, signalType);
+                        removeSession(actualSessionId);
+                        ShenyuMcpExchangeHolder.remove(actualSessionId);
+                    })
                     .map(result -> {
                         if (!actualSessionId.equals(requestedSessionId)) {
                             LOGGER.info("Returning actual session ID {} instead of requested ID {}", actualSessionId, requestedSessionId);
