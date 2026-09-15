@@ -17,16 +17,20 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test Case For {@link MqttContext}.
+ * Test cases for {@link MqttContext}.
  */
-public class MqttContextTest {
+public final class MqttContextTest {
 
     private static final String USER_NAME = "testUser";
 
@@ -36,8 +40,68 @@ public class MqttContextTest {
 
     @BeforeEach
     public void setUp() {
+        MqttContext context = new MqttContext();
+        context.setPort(1883);
+        context.setBossGroupThreadCount(1);
+        context.setWorkerGroupThreadCount(2);
+        context.setMaxPayloadSize(1024);
+        context.setUserName("test-user");
+        context.setPassword("test-password");
+        context.setLeakDetectorLevel("disabled");
+
         mqttContext.setUserName(USER_NAME);
         mqttContext.setPassword(PASSWORD);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        MqttContext context = new MqttContext();
+        context.setPort(0);
+        context.setBossGroupThreadCount(0);
+        context.setWorkerGroupThreadCount(0);
+        context.setMaxPayloadSize(0);
+        context.setUserName(null);
+        context.setPassword(null);
+        context.setLeakDetectorLevel(null);
+    }
+
+    @Test
+    public void settersShouldUpdateStaticState() {
+        MqttContext context = new MqttContext();
+
+        assertEquals(1883, context.getPort());
+        assertEquals(1, context.getBossGroupThreadCount());
+        assertEquals(2, context.getWorkerGroupThreadCount());
+        assertEquals(1024, context.getMaxPayloadSize());
+        assertEquals("test-user", context.getUserName());
+        assertEquals("test-password", context.getPassword());
+        assertEquals("disabled", context.getLeakDetectorLevel());
+    }
+
+    @Test
+    public void emptyUserNameOrPasswordShouldBeRejected() {
+        byte[] password = "test-password".getBytes(StandardCharsets.UTF_8);
+
+        assertFalse(MqttContext.isValid("", password));
+        assertFalse(MqttContext.isValid("test-user", new byte[0]));
+    }
+
+    @Test
+    public void mismatchedCredentialsShouldBeRejected() {
+        byte[] password = "test-password".getBytes(StandardCharsets.UTF_8);
+
+        assertFalse(MqttContext.isValid("another-user", password));
+        assertFalse(MqttContext.isValid("test-user", "another-password".getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void validCredentialsShouldBeAccepted() {
+        assertTrue(MqttContext.isValid("test-user", "test-password".getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void nullUserNameArgumentShouldBeRejectedWithoutNpe() {
+        assertFalse(MqttContext.isValid(null, "test-password".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
