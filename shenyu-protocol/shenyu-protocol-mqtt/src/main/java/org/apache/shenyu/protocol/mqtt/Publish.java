@@ -35,6 +35,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
 
 /**
@@ -44,7 +45,8 @@ public class Publish extends MessageType {
 
     @Override
     public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
-        if (isConnected()) {
+        if (!isConnected(ctx.channel())) {
+            ctx.channel().close().addListener(FIRE_EXCEPTION_ON_FAILURE);
             return;
         }
         String topic = msg.variableHeader().topicName();
@@ -52,7 +54,13 @@ public class Publish extends MessageType {
         String message = byteBufToString(payload);
         //// todo qos
         MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
-        Singleton.INST.get(TopicRepository.class).add(topic, message);
+        if (msg.fixedHeader().isRetain()) {
+            if (payload.isReadable()) {
+                Singleton.INST.get(TopicRepository.class).add(topic, message);
+            } else {
+                Singleton.INST.get(TopicRepository.class).remove(topic);
+            }
+        }
         int packetId = msg.variableHeader().packetId();
         CompletableFuture.runAsync(() -> send(topic, payload, packetId));
 

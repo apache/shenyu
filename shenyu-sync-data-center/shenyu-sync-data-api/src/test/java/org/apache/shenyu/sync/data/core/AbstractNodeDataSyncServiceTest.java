@@ -18,7 +18,10 @@
 package org.apache.shenyu.sync.data.core;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -37,8 +40,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractNodeDataSyncServiceTest {
@@ -49,13 +54,10 @@ public class AbstractNodeDataSyncServiceTest {
     @Mock
     private PluginDataSubscriber pluginDataSubscriber;
 
-    @Mock
     private List<MetaDataSubscriber> metaDataSubscribers;
 
-    @Mock
     private List<AuthDataSubscriber> authDataSubscribers;
 
-    @Mock
     private List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
 
     @Mock
@@ -67,6 +69,12 @@ public class AbstractNodeDataSyncServiceTest {
     @Mock
     private AuthDataSubscriber authDataSubscriber;
 
+    @Mock
+    private MetaDataSubscriber metaDataSubscriber;
+
+    @Mock
+    private ProxySelectorDataSubscriber proxySelectorDataSubscriber;
+
     private AbstractNodeDataSyncService nodeDataSyncService;
 
     @Before
@@ -76,6 +84,10 @@ public class AbstractNodeDataSyncServiceTest {
 
         authDataSubscribers = new ArrayList<>();
         authDataSubscribers.add(authDataSubscriber);
+        metaDataSubscribers = new ArrayList<>();
+        metaDataSubscribers.add(metaDataSubscriber);
+        proxySelectorDataSubscribers = new ArrayList<>();
+        proxySelectorDataSubscribers.add(proxySelectorDataSubscriber);
 
         nodeDataSyncService = new AbstractNodeDataSyncServiceImpl(
                 changeData,
@@ -104,13 +116,11 @@ public class AbstractNodeDataSyncServiceTest {
     @Test
     public void testUnCachePluginData() {
 
-        String pluginName = "testPlugin";
-
-        nodeDataSyncService.unCachePluginData(pluginName);
+        nodeDataSyncService.unCachePluginData("namespace.plugin.testPlugin");
 
         ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
         verify(pluginDataSubscriber).unSubscribe(captor.capture());
-        assertEquals(pluginName, captor.getValue().getName());
+        assertEquals("testPlugin", captor.getValue().getName());
     }
 
     @Test
@@ -121,6 +131,44 @@ public class AbstractNodeDataSyncServiceTest {
         nodeDataSyncService.cacheAuthData(jsonData);
 
         verify(authDataSubscribers.get(0)).onSubscribe(any());
+    }
+
+    @Test
+    public void testUnCacheAuthData() {
+        nodeDataSyncService.unCacheAuthData("namespace.auth.testApp");
+
+        ArgumentCaptor<AppAuthData> captor = ArgumentCaptor.forClass(AppAuthData.class);
+        verify(authDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("testApp", captor.getValue().getAppKey());
+    }
+
+    @Test
+    public void testUnCacheMetaData() {
+        nodeDataSyncService.unCacheMetaData("namespace.meta.metaId");
+
+        ArgumentCaptor<MetaData> captor = ArgumentCaptor.forClass(MetaData.class);
+        verify(metaDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("metaId", captor.getValue().getId());
+    }
+
+    @Test
+    public void testUnCacheProxySelectorData() {
+        nodeDataSyncService.unCacheProxySelectorData("namespace.proxy.selector.tcp.selectorName");
+
+        ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
+        verify(proxySelectorDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("tcp", captor.getValue().getPluginName());
+        assertEquals("selectorName", captor.getValue().getName());
+    }
+
+    @Test
+    public void testUnCacheDataWithInvalidKey() {
+        assertDoesNotThrow(() -> nodeDataSyncService.unCachePluginData("namespace"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData("namespace"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheMetaData("namespace"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheProxySelectorData("namespace"));
+
+        verifyNoInteractions(pluginDataSubscriber, authDataSubscriber, metaDataSubscriber, proxySelectorDataSubscriber);
     }
 
     // Mock implementation
