@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,6 +43,7 @@ import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
+import static org.awaitility.Awaitility.await;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
@@ -52,6 +54,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     private static final String TOPIC = "shenyu-access-logging";
 
     private static final String TEST = "/http/order/findById?id=123";
+
+    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(30);
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
 
@@ -99,10 +103,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
+                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
                                     try {
-                                        Thread.sleep(1000 * 30);
-                                        request.request(Method.GET, "/http/order/findById?id=23");
-                                        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
                                         consumer.setNamesrvAddr(NAMESERVER);
                                         consumer.subscribe(TOPIC, "*");
                                         consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
@@ -116,14 +118,16 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             }
                                             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                         });
-                                        LOG.info("consumer.start ; isLog.get():{}", isLog.get());
                                         consumer.start();
-                                        Thread.sleep(1000 * 30);
+                                        LOG.info("RocketMQ consumer started");
+                                        request.request(Method.GET, "/http/order/findById?id=23");
+                                        await().atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
                                         LOG.info("isLog.get():{}", isLog.get());
-                                        Assertions.assertTrue(isLog.get());
                                     } catch (Exception e) {
                                         LOG.error("error", e);
-                                        Assertions.assertTrue(isLog.get());
+                                        Assertions.fail("Failed to consume RocketMQ access log", e);
+                                    } finally {
+                                        consumer.shutdown();
                                     }
                                 })
                                 .build()
