@@ -142,12 +142,17 @@ public class RabbitmqLogCollectClient extends AbstractLogConsumeClient<RabbitmqL
             if (Objects.nonNull(channel)) {
                 channel.close();
             }
-            if (Objects.nonNull(connection)) {
-                connection.close();
-            }
-            LOG.info("close RabbitMQ connection success");
         } catch (IOException e) {
-            LOG.error("failed to close RabbitMQ connection", e);
+            LOG.error("failed to close RabbitMQ channel", e);
+        } finally {
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.close();
+                }
+                LOG.info("close RabbitMQ connection success");
+            } catch (IOException e) {
+                LOG.error("failed to close RabbitMQ connection", e);
+            }
         }
     }
 
