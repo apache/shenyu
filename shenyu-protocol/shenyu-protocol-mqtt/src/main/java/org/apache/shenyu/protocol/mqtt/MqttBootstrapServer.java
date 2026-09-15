@@ -73,9 +73,15 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     @Override
     public void shutdown() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
-        future.channel().close();
+        if (future != null) {
+            future.channel().close().syncUninterruptibly();
+        }
+        if (bossGroup != null) {
+            bossGroup.shutdownGracefully().syncUninterruptibly();
+        }
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully().syncUninterruptibly();
+        }
     }
 
     private void initRepositories() throws IllegalAccessException, InstantiationException {
