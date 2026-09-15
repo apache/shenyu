@@ -26,6 +26,8 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -161,11 +163,23 @@ public final class UpstreamCacheManager {
         List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
+        updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private void updateUpstreamMetadata(final String selectorId, final List<Upstream> upstreams, final List<Upstream> existingHealthy) {
+        Map<String, Upstream> existing = new HashMap<>(getCurrentUnhealthyMap(selectorId));
+        existingHealthy.forEach(upstream -> existing.put(upstreamMapKey(upstream), upstream));
+        upstreams.forEach(upstream -> {
+            Upstream cached = existing.get(upstreamMapKey(upstream));
+            if (Objects.nonNull(cached)) {
+                cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
+            }
+        });
     }
 
     private void initializeUpstreamHealthStatus(final List<Upstream> upstreamList) {

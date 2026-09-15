@@ -110,7 +110,7 @@ public final class Upstream {
      */
     private boolean healthCheckEnabled = true;
     
-    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
     /**
