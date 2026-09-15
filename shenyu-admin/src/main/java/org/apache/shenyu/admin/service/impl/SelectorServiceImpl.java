@@ -329,7 +329,7 @@ public class SelectorServiceImpl implements SelectorService {
                 if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
                     discoveryProcessor.removeSelectorUpstream(proxySelectorDTO);
-                    discoveryMapper.delete(discoveryDO.getId());
+                    discoveryMapper.delete(discoveryDO.getId(), discoveryDO.getNamespaceId());
                 }
             }
         }

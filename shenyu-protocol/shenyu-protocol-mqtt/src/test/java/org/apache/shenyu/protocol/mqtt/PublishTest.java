@@ -20,26 +20,36 @@ package org.apache.shenyu.protocol.mqtt;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectPayload;
+import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -56,6 +66,16 @@ public final class PublishTest {
 
     private static final String CLEARED_TOPIC = "test/cleared";
 
+    private static final String UNCONNECTED_TOPIC = "test/unconnected";
+
+    private static final String END_TO_END_TOPIC = "test/end-to-end";
+
+    private static final String CLIENT_ID = "test-client";
+
+    private static final String USER_NAME = "test-user";
+
+    private static final String PASSWORD = "test-password";
+
     private static TopicRepository topicRepository;
 
     @BeforeAll
@@ -63,6 +83,15 @@ public final class PublishTest {
         topicRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, topicRepository);
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        new MqttContext().setUserName(USER_NAME);
+        new MqttContext().setPassword(PASSWORD);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        new MqttContext().setUserName(null);
+        new MqttContext().setPassword(null);
     }
 
     @Test
@@ -76,6 +105,30 @@ public final class PublishTest {
     public void nonRetainedPublishDoesNotStoreMessage() {
         new Publish().publish(mock(ChannelHandlerContext.class), publishMessage(NON_RETAINED_TOPIC, "hello", false));
         assertNull(topicRepository.get(NON_RETAINED_TOPIC));
+    }
+
+    @Test
+    public void publishBeforeConnectClosesChannel() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        ChannelHandlerContext ctx = channel.pipeline().lastContext();
+
+        new Publish().publish(ctx, publishMessage(UNCONNECTED_TOPIC, "hello", true));
+
+        channel.runPendingTasks();
+        assertFalse(channel.isActive());
+        assertNull(topicRepository.get(UNCONNECTED_TOPIC));
+    }
+
+    @Test
+    public void publishAfterConnectOnSameChannelIsAccepted() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        ChannelHandlerContext ctx = channel.pipeline().lastContext();
+
+        new Connect().connect(ctx, connectMessage());
+        new Publish().publish(ctx, publishMessage(END_TO_END_TOPIC, "hello", true));
+
+        await().atMost(Duration.ofSeconds(5))
+                .until(() -> "hello".equals(topicRepository.get(END_TO_END_TOPIC)));
     }
 
     @Test
@@ -108,6 +161,16 @@ public final class PublishTest {
         verify(channel2).writeAndFlush(captor.capture());
         captor.getAllValues().forEach(message -> assertEquals("hello", message.payload().toString(CharsetUtil.UTF_8)));
         captor.getAllValues().forEach(ReferenceCountUtil::safeRelease);
+    }
+
+    private MqttConnectMessage connectMessage() {
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
+                MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel(),
+                true, true, false, 0, false, false, 60);
+        MqttConnectPayload payload = new MqttConnectPayload(CLIENT_ID, null, null,
+                USER_NAME, PASSWORD.getBytes(StandardCharsets.UTF_8));
+        return new MqttConnectMessage(fixedHeader, variableHeader, payload);
     }
 
     private MqttPublishMessage publishMessage(final String topic, final String payload, final boolean retain) {
