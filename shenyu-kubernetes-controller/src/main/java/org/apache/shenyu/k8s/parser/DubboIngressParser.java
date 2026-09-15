@@ -336,7 +336,10 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             String serviceName = path.getBackend().getService().getName();
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
+            String[] protocols = null;
+            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
+                protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
+            }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -345,15 +348,16 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || addresses.isEmpty()) {
                         continue;
                     }
-                    int i = 0;
-                    for (V1EndpointAddress address : addresses) {
+                    for (int i = 0; i < addresses.size(); i++) {
+                        V1EndpointAddress address = addresses.get(i);
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(path.getBackend().getService());
                         if (Objects.nonNull(defaultPort)) {
+                            String upstreamProtocol = Objects.isNull(protocols) || i >= protocols.length ? "dubbo://" : protocols[i];
                             DubboUpstream upstream = DubboUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .weight(100)
-                                    .protocol(Objects.isNull(protocols[i++]) ? "dubbo://" : protocols[i++])
+                                    .protocol(upstreamProtocol)
                                     .warmup(0)
                                     .status(true)
                                     .upstreamHost("")
