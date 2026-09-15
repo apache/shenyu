@@ -85,14 +85,14 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     @Override
     public void shutdown() {
+        if (Objects.nonNull(future)) {
+            future.channel().close().syncUninterruptibly();
+        }
         if (Objects.nonNull(bossGroup)) {
-            bossGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully().syncUninterruptibly();
         }
         if (Objects.nonNull(workerGroup)) {
-            workerGroup.shutdownGracefully();
-        }
-        if (Objects.nonNull(future)) {
-            future.channel().close();
+            workerGroup.shutdownGracefully().syncUninterruptibly();
         }
     }
 
