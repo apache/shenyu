@@ -148,6 +148,12 @@ public interface Constants {
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
 
     /**
+     * The constant CACHED_REQUEST_BODY.
+     * Used to cache the request body for replay during retry.
+     */
+    String CACHED_REQUEST_BODY = "cachedRequestBody";
+
+    /**
      * The constant HTTP_URI.
      */
     String HTTP_URI = "httpUri";
