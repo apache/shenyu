@@ -27,8 +27,10 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The type UpstreamCacheManager check task test.
@@ -78,6 +80,27 @@ public class UpstreamCacheManagerTest {
     public void findUpstreamListBySelectorIdTest() {
         final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
         Assertions.assertNull(upstreamCacheManager.findUpstreamListBySelectorId(SELECTOR_ID));
+    }
+
+    @Test
+    public void findUpstreamListBySelectorIdReturnsCopyOnWriteListTest() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String selectorId = "COPY_ON_WRITE_TEST";
+        final Upstream upstream = Upstream.builder().url("copy-on-write-url:8080").status(true).build();
+        List<Upstream> upstreamList = new ArrayList<>(1);
+        upstreamList.add(upstream);
+        upstreamCacheManager.submit(selectorId, upstreamList);
+
+        List<Upstream> result = upstreamCacheManager.findUpstreamListBySelectorId(selectorId);
+        Assertions.assertTrue(result instanceof CopyOnWriteArrayList);
+        Iterator<Upstream> snapshotIterator = result.iterator();
+        Upstream added = Upstream.builder().url("added-url:8080").status(true).build();
+        getUpstreamCheckTask(upstreamCacheManager).triggerAddOne(selectorId, added);
+
+        Assertions.assertSame(upstream, snapshotIterator.next());
+        Assertions.assertFalse(snapshotIterator.hasNext());
+        Assertions.assertEquals(2, upstreamCacheManager.findUpstreamListBySelectorId(selectorId).size());
+        upstreamCacheManager.removeByKey(selectorId);
     }
 
     @Test
