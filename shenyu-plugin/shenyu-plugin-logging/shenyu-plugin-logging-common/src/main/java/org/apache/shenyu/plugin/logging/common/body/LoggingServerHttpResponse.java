@@ -234,11 +234,16 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatusCode();
         }
-        logInfo.setStatus(httpStatus.value());
+        final int statusCode = httpStatus.value();
+        logInfo.setStatus(statusCode);
         logInfo.setTraceId(getTraceId());
+        final HttpStatus resolvedStatus = HttpStatus.resolve(statusCode);
+        final String reasonPhrase = Objects.isNull(resolvedStatus)
+                ? String.valueOf(statusCode)
+                : resolvedStatus.getReasonPhrase();
         // Do not collect stack
-        Object result = ShenyuResultWrap.error(exchange, httpStatus.value(),
-                ((HttpStatus) httpStatus).getReasonPhrase(), throwable.getMessage());
+        Object result = ShenyuResultWrap.error(exchange, statusCode,
+                reasonPhrase, throwable.getMessage());
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         final Object responseData = shenyuResult.result(exchange, resultData);

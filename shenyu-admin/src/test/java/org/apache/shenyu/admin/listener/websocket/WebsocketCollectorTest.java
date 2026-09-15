@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.listener.websocket;
 
 import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.SendHandler;
+import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -53,8 +55,11 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -122,6 +127,11 @@ public final class WebsocketCollectorTest {
         if (Objects.nonNull(namespaceMap)) {
             namespaceMap.clear();
         }
+        Map<Session, ?> sessionSendQueues =
+                (Map<Session, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        if (Objects.nonNull(sessionSendQueues)) {
+            sessionSendQueues.clear();
+        }
     }
 
     @Test
@@ -176,24 +186,23 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testOnMessageRunningModeStandalone() throws IOException {
+    void testOnMessageRunningModeStandalone() {
         ClusterProperties clusterProperties = mock(ClusterProperties.class);
         when(clusterProperties.isEnabled()).thenReturn(false);
         when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(clusterProperties);
 
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
 
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.RUNNING_MODE.name(), session);
 
-        verify(basic, times(1)).sendText(anyString());
+        verify(async, times(1)).sendText(anyString(), any(SendHandler.class));
         websocketCollector.onClose(session);
         ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test
-    void testOnMessageRunningModeCluster() throws IOException {
+    void testOnMessageRunningModeCluster() {
         ClusterProperties clusterProperties = mock(ClusterProperties.class);
         when(clusterProperties.isEnabled()).thenReturn(true);
         ClusterSelectMasterService masterService = mock(ClusterSelectMasterService.class);
@@ -202,13 +211,12 @@ public final class WebsocketCollectorTest {
         when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(clusterProperties);
         when(SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class)).thenReturn(masterService);
 
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
 
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.RUNNING_MODE.name(), session);
 
-        verify(basic, times(1)).sendText(anyString());
+        verify(async, times(1)).sendText(anyString(), any(SendHandler.class));
         websocketCollector.onClose(session);
         ThreadLocalUtils.remove("sessionKey");
     }
@@ -271,28 +279,26 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testSendOldApi() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendOldApi() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
         when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
-        verify(basic, times(0)).sendText(null);
+        verify(async, times(0)).sendText(eq(null), any(SendHandler.class));
         ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send("test_message_1", DataEventTypeEnum.MYSELF);
-        verify(basic, times(1)).sendText("test_message_1");
+        verify(async, times(1)).sendText(eq("test_message_1"), any(SendHandler.class));
         WebsocketCollector.send("test_message_2", DataEventTypeEnum.CREATE);
-        verify(basic, times(1)).sendText("test_message_2");
+        verify(async, times(1)).sendText(eq("test_message_2"), any(SendHandler.class));
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
         ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test
-    void testSendOldApiMyselfClosedSession() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendOldApiMyselfClosedSession() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
         websocketCollector.onOpen(session);
 
         // Mark session as closed
@@ -300,25 +306,25 @@ public final class WebsocketCollectorTest {
         ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send("msg", DataEventTypeEnum.MYSELF);
         // closed session → removed from SESSION_SET, no sendText
-        verify(basic, never()).sendText("msg");
+        verify(async, never()).sendText(eq("msg"), any(SendHandler.class));
         assertEquals(0L, getSessionSetSize());
         ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test
-    void testSendOldApiMyselfNullSession() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+    void testSendOldApiMyselfNullSession() {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         // No session in ThreadLocal
         ThreadLocalUtils.remove("sessionKey");
         WebsocketCollector.send("msg", DataEventTypeEnum.MYSELF);
-        verify(basic, never()).sendText(anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test
-    void testSendWithNamespaceIdBlankMessageNoOp() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+    void testSendWithNamespaceIdBlankMessageNoOp() {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "", DataEventTypeEnum.CREATE);
-        verify(basic, never()).sendText(anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test
@@ -328,69 +334,119 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testSendWithNamespaceIdMyself() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendWithNamespaceIdMyself() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
         when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
 
         ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "ns-msg", DataEventTypeEnum.MYSELF);
-        verify(basic, times(1)).sendText("ns-msg");
+        verify(async, times(1)).sendText(eq("ns-msg"), any(SendHandler.class));
 
         websocketCollector.onClose(session);
         ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test
-    void testSendWithNamespaceIdMyselfClosedSession() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendWithNamespaceIdMyselfClosedSession() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
         websocketCollector.onOpen(session);
 
         when(session.isOpen()).thenReturn(false);
         ThreadLocalUtils.put("sessionKey", session);
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "ns-msg", DataEventTypeEnum.MYSELF);
-        verify(basic, never()).sendText("ns-msg");
+        verify(async, never()).sendText(eq("ns-msg"), any(SendHandler.class));
 
         ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test
-    void testSendWithNamespaceIdMyselfNullSession() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+    void testSendWithNamespaceIdMyselfNullSession() {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         ThreadLocalUtils.remove("sessionKey");
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "ns-msg", DataEventTypeEnum.MYSELF);
-        verify(basic, never()).sendText(anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test
-    void testSendWithNamespaceIdNonMyselfBroadcast() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendWithNamespaceIdNonMyselfBroadcast() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
         when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
 
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "broadcast-msg", DataEventTypeEnum.CREATE);
-        verify(basic, times(1)).sendText("broadcast-msg");
+        verify(async, times(1)).sendText(eq("broadcast-msg"), any(SendHandler.class));
 
         websocketCollector.onClose(session);
     }
 
     @Test
-    void testSendBySessionIOException() throws IOException {
-        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
-        when(session.getBasicRemote()).thenReturn(basic);
+    void testSendBySessionFailure() {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
         when(session.isOpen()).thenReturn(true);
         websocketCollector.onOpen(session);
 
-        // IOException on sendText should be caught internally
-        org.mockito.Mockito.doThrow(new IOException("io error")).when(basic).sendText(anyString());
+        doAnswer(invocation -> {
+            SendHandler handler = invocation.getArgument(1);
+            handler.onResult(new SendResult(new IllegalStateException("send error")));
+            return null;
+        }).when(async).sendText(anyString(), any(SendHandler.class));
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "fail-msg", DataEventTypeEnum.CREATE);
-        // no exception propagated; verify attempted send
-        verify(basic, times(1)).sendText("fail-msg");
+        verify(async, times(1)).sendText(eq("fail-msg"), any(SendHandler.class));
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testSendDoesNotWaitForOtherSession() {
+        Session anotherSession = mock(Session.class);
+        Map<String, Object> userProperties = session.getUserProperties();
+        when(anotherSession.isOpen()).thenReturn(true);
+        when(anotherSession.getUserProperties()).thenReturn(userProperties);
+        RemoteEndpoint.Async firstAsync = mock(RemoteEndpoint.Async.class);
+        RemoteEndpoint.Async secondAsync = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(firstAsync);
+        when(anotherSession.getAsyncRemote()).thenReturn(secondAsync);
+        websocketCollector.onOpen(session);
+        websocketCollector.onOpen(anotherSession);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "broadcast-msg", DataEventTypeEnum.CREATE);
+
+        verify(firstAsync).sendText(eq("broadcast-msg"), any(SendHandler.class));
+        verify(secondAsync).sendText(eq("broadcast-msg"), any(SendHandler.class));
+        websocketCollector.onClose(session);
+        websocketCollector.onClose(anotherSession);
+    }
+
+    @Test
+    void testSendMessagesSequentiallyForSameSession() {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "first-message", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "second-message", DataEventTypeEnum.CREATE);
+
+        ArgumentCaptor<SendHandler> handlerCaptor = ArgumentCaptor.forClass(SendHandler.class);
+        verify(async).sendText(eq("first-message"), handlerCaptor.capture());
+        verify(async, never()).sendText(eq("second-message"), any(SendHandler.class));
+
+        handlerCaptor.getValue().onResult(new SendResult());
+
+        verify(async).sendText(eq("second-message"), any(SendHandler.class));
+        websocketCollector.onClose(session);
+    }
+
+    private RemoteEndpoint.Async mockSuccessfulAsyncRemote(final Session targetSession) {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(targetSession.getAsyncRemote()).thenReturn(async);
+        doAnswer(invocation -> {
+            SendHandler handler = invocation.getArgument(1);
+            handler.onResult(new SendResult());
+            return null;
+        }).when(async).sendText(anyString(), any(SendHandler.class));
+        return async;
     }
 
     private long getSessionSetSize() {

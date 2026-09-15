@@ -38,6 +38,7 @@ public class DiscoveryUpstreamDataHandler extends AbstractDataHandler<DiscoveryS
 
     @Override
     protected void doRefresh(final List<DiscoverySyncData> dataList) {
+        discoveryUpstreamDataSubscribers.forEach(DiscoveryUpstreamDataSubscriber::refresh);
         dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.onSubscribe(data)));
     }
 
