@@ -165,7 +165,7 @@ public final class CommonPluginDataSubscriberTest {
 
             commonPluginDataSubscriber.unSelectorSubscribe(selectorData);
 
-            assertEquals(Lists.newArrayList(), baseDataCache.obtainSelectorData(selectorData.getPluginName()));
+            assertNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
             assertNull(matchDataCache.obtainSelectorData(mockPluginName1, path));
             assertNull(matchDataCache.obtainRuleData(mockPluginName1, path));
             assertNull(matchDataCache.obtainRuleData(mockPluginName1, emptyRulePath));
@@ -202,7 +202,7 @@ public final class CommonPluginDataSubscriberTest {
         assertNotNull(baseDataCache.obtainSelectorData(secondCachedSelectorData.getPluginName()));
 
         commonPluginDataSubscriber.refreshSelectorDataSelf(Lists.newArrayList(firstCachedSelectorData));
-        assertEquals(Lists.newArrayList(), baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
+        assertNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
         assertEquals(Lists.newArrayList(secondCachedSelectorData), baseDataCache.obtainSelectorData(secondCachedSelectorData.getPluginName()));
     }
 
@@ -224,7 +224,7 @@ public final class CommonPluginDataSubscriberTest {
         assertNotNull(baseDataCache.obtainRuleData(ruleData.getSelectorId()));
 
         commonPluginDataSubscriber.unRuleSubscribe(ruleData);
-        assertEquals(Lists.newArrayList(), baseDataCache.obtainRuleData(ruleData.getSelectorId()));
+        assertNull(baseDataCache.obtainRuleData(ruleData.getSelectorId()));
     }
 
     @Test
@@ -253,7 +253,7 @@ public final class CommonPluginDataSubscriberTest {
         assertNotNull(baseDataCache.obtainRuleData(firstCachedRuleData.getSelectorId()));
 
         commonPluginDataSubscriber.refreshRuleDataSelf(Lists.newArrayList(firstCachedRuleData));
-        assertEquals(Lists.newArrayList(), baseDataCache.obtainRuleData(firstCachedRuleData.getSelectorId()));
+        assertNull(baseDataCache.obtainRuleData(firstCachedRuleData.getSelectorId()));
         assertEquals(Lists.newArrayList(secondCachedRuleData), baseDataCache.obtainRuleData(secondCachedRuleData.getSelectorId()));
     }
 

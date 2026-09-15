@@ -25,11 +25,15 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -37,12 +41,14 @@ import static org.mockito.Mockito.mock;
  */
 public final class SubscribeRepositoryTest {
 
+    private static final String EXISTING_TOPIC = "test/existing-topic";
     private static final String TOPIC = "test/subscribe";
 
     private static final String MULTI_TOPIC_A = "test/subscribe-a";
 
+    private static final String ABSENT_TOPIC = "test/absent-topic";
     private static final String MULTI_TOPIC_B = "test/subscribe-b";
-
+    private static final String KEPT_TOPIC = "test/kept-topic";
     private static final String CONCURRENT_TOPIC = "test/concurrent-subscribe";
 
     private static final String CONCURRENT_TOPICS_TOPIC = "test/concurrent-subscribe-topics";
@@ -54,6 +60,33 @@ public final class SubscribeRepositoryTest {
     @BeforeEach
     void setUp() {
         repository = new SubscribeRepository();
+    }
+
+    @Test
+    public void removeRemovesChannelFromExistingTopic() {
+        SubscribeRepository repository = new SubscribeRepository();
+        Channel channel = mock(Channel.class);
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXISTING_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).contains(channel));
+
+        repository.remove(Collections.singletonList(EXISTING_TOPIC), channel);
+
+        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void removeAbsentTopicDoesNotThrow() {
+        SubscribeRepository repository = new SubscribeRepository();
+        Channel channel = mock(Channel.class);
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(KEPT_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(KEPT_TOPIC).contains(channel));
+
+        assertDoesNotThrow(() -> repository.remove(Collections.singletonList(ABSENT_TOPIC), channel));
+        await().atMost(Duration.ofSeconds(5))
+                .until(() -> ForkJoinPool.commonPool().awaitQuiescence(1, TimeUnit.SECONDS));
+
+        assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
+        assertTrue(repository.get(KEPT_TOPIC).contains(channel));
     }
 
     @Test
