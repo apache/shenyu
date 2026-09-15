@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.Duration;
+import java.util.Objects;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -90,7 +91,8 @@ public final class MqttBootstrapServerTest {
 
         server.start();
 
-        ChannelFuture future = getField(server, "future", ChannelFuture.class);
+        await().atMost(Duration.ofSeconds(10)).until(() -> Objects.nonNull(getChannelFuture(server)));
+        ChannelFuture future = getChannelFuture(server);
         assertTrue(future.channel().isActive());
 
         server.shutdown();
@@ -102,10 +104,18 @@ public final class MqttBootstrapServerTest {
         await().atMost(Duration.ofSeconds(5)).until(workerGroup::isTerminated);
     }
 
-    private <T> T getField(final Object target, final String name, final Class<T> type) throws Exception {
+    private static <T> T getField(final Object target, final String name, final Class<T> type) throws Exception {
         Field field = MqttBootstrapServer.class.getDeclaredField(name);
         field.setAccessible(true);
         return type.cast(field.get(target));
+    }
+
+    private static ChannelFuture getChannelFuture(final MqttBootstrapServer server) {
+        try {
+            return getField(server, "future", ChannelFuture.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Test
@@ -122,7 +132,7 @@ public final class MqttBootstrapServerTest {
             await().atMost(Duration.ofSeconds(10))
                     .until(() -> {
                         EventLoopGroup bossGroup = getBossGroup(server);
-                        return bossGroup == null || bossGroup.isShutdown();
+                        return Objects.isNull(bossGroup) || bossGroup.isShutdown();
                     });
             assertDoesNotThrow(server::shutdown);
         }
