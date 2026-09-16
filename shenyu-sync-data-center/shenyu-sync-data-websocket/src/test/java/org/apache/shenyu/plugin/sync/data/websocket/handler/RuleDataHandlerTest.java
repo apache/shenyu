@@ -61,7 +61,7 @@ public final class RuleDataHandlerTest {
     public void testDoRefresh() {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(3);
         ruleDataHandler.doRefresh(ruleDataList);
-        verify(subscriber).refreshRuleDataSelf(ruleDataList);
+        verify(subscriber).refreshRuleDataAll();
         ruleDataList.forEach(verify(subscriber)::onRuleSubscribe);
     }
 

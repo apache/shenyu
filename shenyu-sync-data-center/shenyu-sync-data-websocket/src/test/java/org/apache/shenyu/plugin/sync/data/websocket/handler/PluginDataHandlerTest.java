@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.jupiter.api.Test;
 
@@ -56,8 +57,15 @@ public final class PluginDataHandlerTest {
     public void testDoRefresh() {
         List<PluginData> pluginDataList = createFakePluginDataObjects(3);
         pluginDataHandler.doRefresh(pluginDataList);
-        verify(subscriber).refreshPluginDataSelf(pluginDataList);
+        verify(subscriber).refreshPluginDataAll();
         pluginDataList.forEach(verify(subscriber)::onSubscribe);
+    }
+
+    @Test
+    public void testEmptySnapshotStillClearsCachedData() {
+        pluginDataHandler.handle("[]", DataEventTypeEnum.MYSELF.name());
+
+        verify(subscriber).refreshPluginDataAll();
     }
 
     @Test
