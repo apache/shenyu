@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.LinkedList;
@@ -98,6 +99,26 @@ public final class WebsocketDataHandlerTest {
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.DELETE.name());
         List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
         pluginDataList.forEach(verify(pluginDataSubscriber)::unSubscribe);
+    }
+
+    @Test
+    public void testHandlersAreIsolatedBetweenInstances() {
+        PluginDataSubscriber firstSubscriber = mock(PluginDataSubscriber.class);
+        PluginDataSubscriber secondSubscriber = mock(PluginDataSubscriber.class);
+        WebsocketDataHandler firstHandler = createHandler(firstSubscriber);
+        createHandler(secondSubscriber);
+        String json = getJson();
+
+        firstHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.UPDATE.name());
+
+        List<PluginData> pluginDataList = new PluginDataHandler(firstSubscriber).convert(json);
+        pluginDataList.forEach(verify(firstSubscriber)::onSubscribe);
+        pluginDataList.forEach(data -> verify(secondSubscriber, never()).onSubscribe(data));
+    }
+
+    private WebsocketDataHandler createHandler(final PluginDataSubscriber subscriber) {
+        return new WebsocketDataHandler(subscriber, new LinkedList<>(), new LinkedList<>(),
+                new LinkedList<>(), new LinkedList<>(), new LinkedList<>());
     }
 
     private String getJson() {
