@@ -51,10 +51,10 @@ public final class ShenyuPluginClassLoaderHolder {
     public ShenyuPluginClassLoader createPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
         ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
         String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
-        if (pluginCache.containsKey(jarKey)) {
-            pluginCache.remove(jarKey).close();
-        }
-        pluginCache.put(jarKey, shenyuPluginClassLoader);
+        pluginCache.compute(jarKey, (key, previous) -> {
+            Optional.ofNullable(previous).ifPresent(ShenyuPluginClassLoader::close);
+            return shenyuPluginClassLoader;
+        });
         return shenyuPluginClassLoader;
     }
 
@@ -64,9 +64,10 @@ public final class ShenyuPluginClassLoaderHolder {
      * @param jarKey jarKey
      */
     public void removePluginClassLoader(final String jarKey) {
-        if (pluginCache.containsKey(jarKey)) {
-            pluginCache.remove(jarKey).close();
-        }
+        pluginCache.computeIfPresent(jarKey, (key, classLoader) -> {
+            classLoader.close();
+            return null;
+        });
     }
 
 }
