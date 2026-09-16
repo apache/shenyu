@@ -22,6 +22,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -89,6 +90,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         }
         final WebClient.ResponseSpec responseSpec = requestHeadersSpec
                 .retrieve()
+                .onRawStatus(httpStatus -> shouldFailover(exchange, httpStatus), clientResponse -> clientResponse.releaseBody()
+                        .thenReturn(new ShenyuUpstreamStatusException(clientResponse.statusCode().value())))
                 // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
                 .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
         return responseSpec.toEntityFlux(DataBuffer.class)
