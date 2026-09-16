@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +38,13 @@ import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -102,10 +107,30 @@ public class WebClientMessageWriterTest {
         StepVerifier.create(monoGatewayTimeout).expectSubscription().verifyComplete();
     }
 
+    @Test
+    public void testWriteErrorDoesNotResubscribeResponseBody() {
+        RuntimeException expected = new RuntimeException("write failed");
+        AtomicInteger subscriptions = new AtomicInteger();
+        Flux<DataBuffer> body = Flux.defer(() -> {
+            subscriptions.incrementAndGet();
+            return Flux.error(expected);
+        });
+        ResponseEntity<Flux<DataBuffer>> clientResponse = ResponseEntity.ok(body);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, clientResponse);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(webClientMessageWriter.writeWith(exchange, chain))
+                .expectErrorMatches(error -> error == expected)
+                .verify();
+
+        assertEquals(1, subscriptions.get());
+    }
+
     private ServerWebExchange generateServerWebExchange(final boolean haveResponse) {
         ResponseEntity mockResponse = mock(ResponseEntity.class);
         when(mockResponse.getHeaders()).thenReturn(mock(HttpHeaders.class));
-        when(mockResponse.getBody()).thenReturn(Mono.empty());
+        when(mockResponse.getBody()).thenReturn(Flux.empty());
 
         ServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
