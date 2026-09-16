@@ -24,6 +24,7 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -103,27 +105,38 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                            final Set<URI> exclude) {
         // does it necessary to add backoff interval time ?
         return response.onErrorResume(th -> {
+            if (th instanceof FailoverExhaustedException) {
+                return Mono.error(th);
+            }
             final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
             final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
             //always query the latest available list
-            final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
-                    .stream().filter(data -> {
-                        final String trimUri = data.getUrl().trim();
-                        for (URI needToExclude : exclude) {
-                            if ((needToExclude.getHost() + ":" + needToExclude.getPort()).equals(trimUri)) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }).collect(Collectors.toList());
+            String partition = exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION);
+            UpstreamCacheManager upstreamCache = UpstreamCacheManager.getInstance();
+            List<Upstream> healthyUpstreams = Optional.ofNullable(Objects.isNull(partition)
+                    ? upstreamCache.findLegacyUpstreamListBySelectorId(selectorId)
+                    : upstreamCache.findUpstreamListBySelectorId(selectorId)).orElseGet(Collections::emptyList);
+            if (Objects.nonNull(partition)) {
+                Map<String, String> labels = exchange.getAttribute(Constants.SHENYU_CANARY_LABELS);
+                healthyUpstreams = UpstreamLabelUtils.filter(healthyUpstreams, labels);
+            }
+            final List<Upstream> upstreamList = healthyUpstreams.stream().filter(data -> {
+                final String trimUri = data.getUrl().trim();
+                for (URI needToExclude : exclude) {
+                    if ((needToExclude.getHost() + ":" + needToExclude.getPort()).equals(trimUri)) {
+                        return false;
+                    }
+                }
+                return true;
+            }).collect(Collectors.toList());
             if (upstreamList.isEmpty()) {
                 // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+                return Mono.error(new FailoverExhaustedException());
             }
             final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
             if (Objects.isNull(upstream)) {
                 // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+                return Mono.error(new FailoverExhaustedException());
             }
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
@@ -132,5 +145,14 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
+    }
+
+    private static final class FailoverExhaustedException extends ShenyuException {
+
+        private static final long serialVersionUID = 1L;
+
+        private FailoverExhaustedException() {
+            super("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER");
+        }
     }
 }

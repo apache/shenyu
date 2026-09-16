@@ -22,6 +22,7 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -75,10 +76,13 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -380,6 +384,42 @@ public final class RuleServiceTest {
         given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));
         given(this.ruleConditionMapper.selectByRuleIdSet(Sets.newHashSet("123"))).willReturn(Collections.singletonList(buildRuleConditionDO()));
+    }
+
+    @Test
+    public void testCreateRejectsOverlappingCanaryLabelsBeforeSaving() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle("{\"canary\":{\"enabled\":false,\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"region\":\"east\"}}}");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsOverlappingCanaryLabelsBeforeSaving() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setHandle("{\"canary\":{\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"release\":\"canary\"}}}");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testSaveAllowsDisabledCanaryWithDisjointPools() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle("{\"canary\":{\"enabled\":false,\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"release\":\"stable\"}}}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+        }
+    }
+
+    private void configureDivideSelector() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("divide").build());
     }
 
     private void testRegisterCreate() {

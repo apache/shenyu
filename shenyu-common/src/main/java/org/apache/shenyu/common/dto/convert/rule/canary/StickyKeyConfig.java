@@ -25,12 +25,13 @@ import java.util.Objects;
 public class StickyKeyConfig {
 
     /**
-     * Identifier source: header, cookie, query or ip.
+     * Registered ParameterData SPI source name, such as header, cookie, query, ip or a custom extension.
      */
     private String paramType;
 
     /**
-     * Header, cookie or query parameter name. Not required for ip.
+     * Source-specific parameter name, passed unchanged to the selected ParameterData implementation.
+     * Canary does not validate the parameter name; the source determines how it is used.
      */
     private String paramName;
 

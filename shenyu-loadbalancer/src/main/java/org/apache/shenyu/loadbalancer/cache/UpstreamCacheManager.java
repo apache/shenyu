@@ -48,6 +48,9 @@ public final class UpstreamCacheManager {
 
     private static final Map<String, List<Upstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    // Presence is based on configured nodes, including unhealthy gray nodes.
+    private static final Map<String, Boolean> LEGACY_GRAY_SELECTORS = Maps.newConcurrentMap();
+
     private UpstreamCheckTask task;
 
     /**
@@ -131,12 +134,27 @@ public final class UpstreamCacheManager {
     }
 
     /**
+     * Find healthy nodes using the legacy gray-exclusive pool policy.
+     *
+     * @param selectorId selector identifier
+     * @return gray healthy nodes when gray is configured, otherwise all healthy nodes
+     */
+    public List<Upstream> findLegacyUpstreamListBySelectorId(final String selectorId) {
+        List<Upstream> healthy = findUpstreamListBySelectorId(selectorId);
+        if (Objects.isNull(healthy) || !Boolean.TRUE.equals(LEGACY_GRAY_SELECTORS.get(selectorId))) {
+            return healthy;
+        }
+        return healthy.stream().filter(Upstream::isGray).collect(Collectors.toList());
+    }
+
+    /**
      * Remove by key.
      *
      * @param key the key
      */
     public void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
+        LEGACY_GRAY_SELECTORS.remove(key);
         task.triggerRemoveAll(key);
     }
 
@@ -155,6 +173,7 @@ public final class UpstreamCacheManager {
             return;
         }
 
+        LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
@@ -178,6 +197,7 @@ public final class UpstreamCacheManager {
             Upstream cached = existing.get(upstreamMapKey(upstream));
             if (Objects.nonNull(cached)) {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
+                cached.setGray(upstream.isGray());
             }
         });
     }

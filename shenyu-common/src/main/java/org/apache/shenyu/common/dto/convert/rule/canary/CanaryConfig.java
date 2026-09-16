@@ -30,7 +30,7 @@ import java.util.Objects;
 public class CanaryConfig {
 
     /**
-     * Whether canary routing is enabled.
+     * Whether Canary traffic is enabled. When false, a present configuration routes to Stable.
      */
     private boolean enabled;
 
@@ -211,6 +211,22 @@ public class CanaryConfig {
      */
     public void setFallbackPolicy(final String fallbackPolicy) {
         this.fallbackPolicy = fallbackPolicy;
+    }
+
+    /**
+     * Validate that the two label selectors cannot match the same upstream.
+     *
+     * @throws IllegalArgumentException when labels are missing or selectors can overlap
+     */
+    public void validatePartitionLabels() {
+        if (Objects.isNull(canaryLabels) || canaryLabels.isEmpty() || Objects.isNull(stableLabels) || stableLabels.isEmpty()) {
+            throw new IllegalArgumentException("Canary and Stable labels must both be configured");
+        }
+        boolean disjoint = canaryLabels.entrySet().stream().anyMatch(entry -> stableLabels.containsKey(entry.getKey())
+                && !Objects.equals(entry.getValue(), stableLabels.get(entry.getKey())));
+        if (!disjoint) {
+            throw new IllegalArgumentException("Canary and Stable labels must have a shared key with different values");
+        }
     }
 
     @Override

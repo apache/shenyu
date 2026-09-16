@@ -65,6 +65,9 @@ public class DividePluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
+            if (Objects.nonNull(divideRuleHandle.getCanary())) {
+                divideRuleHandle.getCanary().validatePartitionLabels();
+            }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean

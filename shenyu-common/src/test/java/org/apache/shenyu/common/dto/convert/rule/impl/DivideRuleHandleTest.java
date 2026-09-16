@@ -23,6 +23,10 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -81,6 +85,21 @@ public class DivideRuleHandleTest {
 
         handle2.setCanary(null);
         assertThat(handle1.equals(handle2), is(false));
+    }
+
+    @Test
+    public void testPartitionLabelsMustBeMutuallyExclusive() {
+        CanaryConfig config = new CanaryConfig();
+        assertThrows(IllegalArgumentException.class, config::validatePartitionLabels);
+        config.setCanaryLabels(Map.of("release", "canary"));
+        config.setStableLabels(Map.of("release", "stable"));
+        assertDoesNotThrow(config::validatePartitionLabels);
+        config.setStableLabels(Map.of("release", "canary"));
+        assertThrows(IllegalArgumentException.class, config::validatePartitionLabels);
+        config.setStableLabels(Map.of("region", "east"));
+        assertThrows(IllegalArgumentException.class, config::validatePartitionLabels);
+        config.setStableLabels(Map.of("release", "stable", "region", "east"));
+        assertDoesNotThrow(config::validatePartitionLabels);
     }
 
 }

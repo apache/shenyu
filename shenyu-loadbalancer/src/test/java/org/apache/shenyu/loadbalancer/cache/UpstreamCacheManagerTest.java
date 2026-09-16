@@ -373,4 +373,51 @@ public class UpstreamCacheManagerTest {
             return null;
         }
     }
+
+    @Test
+    public void testLegacyGrayViewRetainsFullPoolAndUpdatesFlags() {
+        UpstreamCacheManager cache = UpstreamCacheManager.getInstance();
+        String selector = "LEGACY_GRAY_VIEW";
+        Upstream gray = Upstream.builder().url("gray:8080").protocol("http://").status(true).healthCheckEnabled(false).gray(true).build();
+        Upstream stable = Upstream.builder().url("stable:8080").protocol("http://").status(true).healthCheckEnabled(false).build();
+        try {
+            cache.submit(selector, List.of(gray, stable));
+            Assertions.assertEquals(2, cache.findUpstreamListBySelectorId(selector).size());
+            Assertions.assertEquals(List.of(gray), cache.findLegacyUpstreamListBySelectorId(selector));
+            gray.getSucceeded().set(17);
+            Upstream updated = Upstream.builder().url("gray:8080").protocol("http://").status(true).healthCheckEnabled(false).gray(false).build();
+            cache.submit(selector, List.of(updated, stable));
+            Assertions.assertFalse(gray.isGray());
+            Assertions.assertEquals(17, gray.getSucceeded().get());
+            Assertions.assertEquals(2, cache.findLegacyUpstreamListBySelectorId(selector).size());
+            updated.setGray(true);
+            cache.submit(selector, List.of(updated, stable));
+            Assertions.assertEquals(List.of(gray), cache.findLegacyUpstreamListBySelectorId(selector));
+            cache.submit(selector, List.of());
+            Assertions.assertNull(cache.findLegacyUpstreamListBySelectorId(selector));
+            cache.submit(selector, List.of(stable));
+            Assertions.assertEquals(List.of(stable), cache.findLegacyUpstreamListBySelectorId(selector));
+        } finally {
+            cache.removeByKey(selector);
+        }
+    }
+
+    @Test
+    public void testUnhealthyGrayDoesNotEnableStableLegacyFallback() {
+        UpstreamCacheManager cache = UpstreamCacheManager.getInstance();
+        String selector = "UNHEALTHY_GRAY_VIEW";
+        Upstream gray = Upstream.builder().url("gray.invalid:8080").protocol("http://").status(false).gray(true).build();
+        Upstream stable = Upstream.builder().url("stable:8080").protocol("http://").status(true).healthCheckEnabled(false).build();
+        try {
+            cache.submit(selector, List.of(gray, stable));
+            Assertions.assertEquals(List.of(stable), cache.findUpstreamListBySelectorId(selector));
+            Assertions.assertTrue(cache.findLegacyUpstreamListBySelectorId(selector).isEmpty());
+            gray.setGray(false);
+            cache.submit(selector, List.of(gray, stable));
+            Assertions.assertEquals(List.of(stable), cache.findLegacyUpstreamListBySelectorId(selector));
+        } finally {
+            cache.removeByKey(selector);
+        }
+    }
+
 }

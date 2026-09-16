@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -38,15 +39,21 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -60,7 +67,17 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
+    private final CanaryDecisionService canaryDecisionService;
+
     private Long beginTime;
+
+    public DividePlugin() {
+        this(new DefaultCanaryDecisionService());
+    }
+
+    public DividePlugin(final CanaryDecisionService canaryDecisionService) {
+        this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
+    }
     
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
@@ -97,7 +114,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        Upstream upstream = selectUpstream(exchange, selector.getId(), rule, ruleHandle, upstreamList);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
@@ -105,11 +122,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set the http url
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        String domain = upstream.buildDomain();
         if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            upstream.setUrl(specifyDomains.get(0));
+            String protocol = StringUtils.defaultIfBlank(upstream.getProtocol(), "http://");
+            domain = protocol + specifyDomains.get(0).trim();
         }
         // set domain
-        String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
@@ -154,6 +172,46 @@ public class DividePlugin extends AbstractShenyuPlugin {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
     
+    private Upstream selectUpstream(final ServerWebExchange exchange, final String selectorId, final RuleData rule,
+                                    final DivideRuleHandle ruleHandle, final List<Upstream> upstreams) {
+        CanaryConfig config = ruleHandle.getCanary();
+        if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN))) {
+            return selectLegacyUpstream(exchange, selectorId, ruleHandle);
+        }
+        if (Objects.isNull(config)) {
+            return selectLegacyUpstream(exchange, selectorId, ruleHandle);
+        }
+        CanaryDecision actual = canaryDecisionService.decide(exchange, rule.getId(), config);
+        Map<String, String> labels = partitionLabels(actual, config);
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        if (candidates.isEmpty() && actual == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
+            actual = CanaryDecision.STABLE;
+            labels = partitionLabels(actual, config);
+            candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        }
+        if (candidates.isEmpty()) {
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            return null;
+        }
+        // The pool is resolved before load balancing. A backend failure must not change this partition.
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, actual.getName());
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, labels);
+        return LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
+    }
+
+    private Upstream selectLegacyUpstream(final ServerWebExchange exchange, final String selectorId, final DivideRuleHandle ruleHandle) {
+        List<Upstream> candidates = UpstreamCacheManager.getInstance().findLegacyUpstreamListBySelectorId(selectorId);
+        if (CollectionUtils.isEmpty(candidates)) {
+            return null;
+        }
+        return LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
+    }
+
+    private Map<String, String> partitionLabels(final CanaryDecision partition, final CanaryConfig config) {
+        Map<String, String> labels = partition == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
+        return Objects.isNull(labels) ? Map.of() : Map.copyOf(labels);
+    }
+
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }

@@ -113,11 +113,13 @@ public class DivideUpstreamDataHandlerTest {
         "{\"warmup\":\"12\",\"gray\":\"true\",\"healthCheckEnabled\":\"false\",\"labels\":{\"release\":\"canary\"}}",
         "{\"warmup\":12,\"gray\":true,\"healthCheckEnabled\":false,\"labels\":{\"release\":\"canary\"}}"
     })
-    public void testScalarCompatibilityAndLegacyGrayFiltering(final String props) {
+    public void testScalarCompatibilityAndSeparateLegacyGrayView(final String props) {
         publish(List.of(instance("canary:8080", props), instance("stable:8080", "{\"labels\":{\"release\":\"stable\"}}")));
         List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
-        assertEquals(1, upstreams.size());
-        Upstream canary = upstreams.get(0);
+        assertEquals(2, upstreams.size());
+        List<Upstream> legacy = UpstreamCacheManager.getInstance().findLegacyUpstreamListBySelectorId("handler");
+        assertEquals(1, legacy.size());
+        Upstream canary = legacy.get(0);
         assertEquals(12, canary.getWarmup());
         assertTrue(canary.isGray());
         assertFalse(canary.isHealthCheckEnabled());

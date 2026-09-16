@@ -51,12 +51,8 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }
         List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
         final List<Upstream> upstreams = convertUpstreamList(upstreamList);
-        final List<Upstream> grayUpstreamList = upstreams.stream().filter(Upstream::isGray).toList();
-        if (!grayUpstreamList.isEmpty()) {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
-        } else {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
-        }
+        // A selector may serve both Canary and legacy rules; keep all nodes for per-request routing.
+        UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();

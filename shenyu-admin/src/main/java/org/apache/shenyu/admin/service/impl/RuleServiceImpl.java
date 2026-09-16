@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -55,7 +56,10 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -176,6 +180,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int create(final RuleDTO ruleDTO) {
+        validateCanaryLabels(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -189,6 +194,7 @@ public class RuleServiceImpl implements RuleService {
     public int update(final RuleDTO ruleDTO) {
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
+        validateCanaryLabels(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 
@@ -222,6 +228,28 @@ public class RuleServiceImpl implements RuleService {
             ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions(), beforeRuleCondition);
         }
         return ruleCount;
+    }
+
+    private void validateCanaryLabels(final String selectorId, final String handle) {
+        if (StringUtils.isBlank(handle)) {
+            return;
+        }
+        SelectorDO selector = selectorMapper.selectById(selectorId);
+        if (Objects.isNull(selector)) {
+            return;
+        }
+        PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
+        if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
+            return;
+        }
+        try {
+            DivideRuleHandle divide = GsonUtils.getInstance().fromJson(handle, DivideRuleHandle.class);
+            if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
+                divide.getCanary().validatePartitionLabels();
+            }
+        } catch (IllegalArgumentException ex) {
+            throw new ShenyuAdminException(ex.getMessage(), ex);
+        }
     }
 
     /**
