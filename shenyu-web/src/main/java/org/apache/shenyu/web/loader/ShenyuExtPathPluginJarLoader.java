@@ -51,12 +51,16 @@ public class ShenyuExtPathPluginJarLoader {
         for (File file : jarFiles) {
             String absolutePath = file.getAbsolutePath();
             currentPaths.add(absolutePath);
-            if (pluginJarName.contains(absolutePath)) {
-                continue;
-            }
             byte[] pluginBytes = Files.readAllBytes(Paths.get(absolutePath));
             PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseJar(pluginBytes);
             uploadPluginJar.setAbsolutePath(absolutePath);
+            if (pluginJarName.contains(absolutePath)) {
+                ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
+                if (holder.hasPluginClassLoader(absolutePath, uploadPluginJar.getVersion())) {
+                    continue;
+                }
+                holder.removePluginClassLoader(absolutePath);
+            }
             uploadPluginJars.add(uploadPluginJar);
         }
         Sets.SetView<String> removePluginSet = Sets.difference(pluginJarName, currentPaths);
