@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -50,6 +51,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -228,6 +230,26 @@ public final class DividePluginTest {
         method.setAccessible(true);
         method.invoke(DividePlugin.class.newInstance(), upstream);
         assertNotEquals(0, upstream.getLag());
+    }
+
+    @Test
+    public void p2cInflightShouldBeReleasedOnCancellation() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("p2c");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        upstream.getInflight().set(2);
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+            Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+
+            subscription.dispose();
+
+            assertEquals(1, upstream.getInflight().get());
+        }
     }
 
     @Test
