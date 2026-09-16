@@ -68,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -115,6 +116,8 @@ public final class AppAuthServiceTest {
         appAuthDTO.setAuthParamList(authParamDTOList);
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+        verify(appAuthMapper).updateSelective(any(AppAuthDO.class));
+        verify(appAuthMapper, never()).update(any(AppAuthDO.class));
     }
 
     @Test
