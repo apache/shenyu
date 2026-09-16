@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,8 +45,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 
@@ -96,9 +96,8 @@ public class LoggingServerHttpResponseTest {
         requestInfo.setUserAgent(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(serverHttpRequest.getURI().getRawPath());
-        Set<String> keyWordSet = new HashSet<>();
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo,
-                logCollector, false, keyWordSet, "dataMaskByCharReplace");
+                logCollector, false, new KeyWordMatch(Collections.emptySet()), "dataMaskByCharReplace");
     }
 
     @Test

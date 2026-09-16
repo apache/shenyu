@@ -53,7 +53,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * decorate ServerHttpResponse for read body.
@@ -83,18 +82,18 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
      * @param logInfo access log
      * @param logCollector LogCollector instance
      * @param desensitized desensitize flag
-     * @param keyWordSet user keyWord set
+     * @param keyWordMatch compiled keyword matcher
      * @param dataDesensitizeAlg desensitize function
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
                                      final LogCollector<L> logCollector, final boolean desensitized,
-                                     final Set<String> keyWordSet, final String dataDesensitizeAlg) {
+                                     final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
         this.desensitized = desensitized;
         this.dataDesensitizeAlg = dataDesensitizeAlg;
-        this.keyWordMatch = new KeyWordMatch(keyWordSet);
+        this.keyWordMatch = keyWordMatch;
     }
 
     /**
