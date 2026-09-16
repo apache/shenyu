@@ -156,9 +156,11 @@
   </insert>
   <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ScaleRuleQuery" resultType="java.lang.Long">
     select count(*) from scale_rule
-    <if test="metricName != null">
-      and metric_name = #{metricName, jdbcType=VARCHAR}
-    </if>
+    <where>
+      <if test="metricName != null">
+        and metric_name like CONCAT('%', #{metricName, jdbcType=VARCHAR}, '%')
+      </if>
+    </where>
   </select>
   <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleRuleDO">
     update scale_rule

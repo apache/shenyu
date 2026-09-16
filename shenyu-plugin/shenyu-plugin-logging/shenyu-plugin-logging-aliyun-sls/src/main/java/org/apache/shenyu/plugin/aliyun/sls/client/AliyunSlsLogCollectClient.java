@@ -72,15 +72,16 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
      * init aliyun sls client.
      *
      * @param config config
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
+    public boolean initClient0(@NonNull final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
         String accessId = config.getAccessId();
         String accessKey = config.getAccessKey();
         String host = config.getHost();
         if (StringUtils.isBlank(accessId) || StringUtils.isBlank(accessKey) || StringUtils.isBlank(host)) {
             LOG.error("init aliyun sls client error, please check accessId, accessKey or host");
-            return;
+            return false;
         }
         client = new Client(host, accessId, accessKey);
         // create LogStore, if you don't create logStore, shenyu will do it.
@@ -98,7 +99,14 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
             client.CreateLogStore(projectName, store);
         } catch (LogException e) {
             LOG.warn("error code:{}, error message:{}", e.GetErrorCode(), e.GetErrorMessage());
+            try {
+                close0();
+            } catch (Exception closeException) {
+                LOG.error("failed to clean up Aliyun SLS resources after initialization failure", closeException);
+            }
+            return false;
         }
+        return true;
     }
 
     /**
@@ -181,7 +189,7 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
             LOG.warn("send thread count number too large!");
             sendThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(sendThreadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(sendThreadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-aliyun-sls", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }

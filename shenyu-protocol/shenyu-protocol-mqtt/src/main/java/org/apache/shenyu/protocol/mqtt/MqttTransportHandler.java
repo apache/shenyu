@@ -45,6 +45,12 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+        Singleton.INST.get(ChannelRepository.class).remove(ctx.channel());
+        ctx.fireChannelInactive();
+    }
+
+    @Override
     public void operationComplete(final Future<? super Void> future) throws Exception {
         Channel channel = ((ChannelFuture) future).channel();
         Singleton.INST.get(ChannelRepository.class).remove(channel);

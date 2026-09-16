@@ -54,7 +54,8 @@ public class DiscoveryUpstreamDataRefresh extends AbstractDataRefresh<DiscoveryS
     @Override
     protected void refresh(final List<DiscoverySyncData> data) {
         if (CollectionUtils.isEmpty(data)) {
-            LOG.info("clear all plugin data cache");
+            LOG.info("clear all discovery upstream data cache");
+            discoveryUpstreamDataSubscribers.forEach(DiscoveryUpstreamDataSubscriber::refresh);
             return;
         }
         data.forEach(d -> discoveryUpstreamDataSubscribers.forEach(dus -> dus.onSubscribe(d)));
