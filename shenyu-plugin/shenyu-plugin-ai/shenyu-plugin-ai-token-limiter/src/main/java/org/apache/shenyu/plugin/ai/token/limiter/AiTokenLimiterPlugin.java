@@ -78,6 +78,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
     private static final Pattern COMPLETION_TOKENS_PATTERN = Pattern.compile("\"completion_tokens\"\\s*:\\s*(\\d+)");
 
+    private static final Pattern SSE_LINE_PATTERN = Pattern.compile("\\r?\\n");
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -265,7 +267,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                     processedBytes = inBytes;
                                 }
                                 String chunk = new String(processedBytes, StandardCharsets.UTF_8);
-                                for (String line : chunk.split("\\r?\\n")) {
+                                for (String line : SSE_LINE_PATTERN.split(chunk)) {
                                     if (!line.startsWith("data:")) {
                                         continue;
                                     }
