@@ -46,7 +46,9 @@ public class ShenyuClientRegisterEventPublisherTest {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(shenyuClientRegisterRepository);
         Assertions.assertNotNull(publisher.getProviderManage());
-        assertDoesNotThrow(() -> publisher.getProviderManage().startup());
+        Object providerManage = publisher.getProviderManage();
+        publisher.start(shenyuClientRegisterRepository);
+        assertSame(providerManage, publisher.getProviderManage());
     }
 
     @Test
