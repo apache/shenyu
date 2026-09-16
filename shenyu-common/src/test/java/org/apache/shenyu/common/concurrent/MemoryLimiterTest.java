@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.instrument.Instrumentation;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -114,8 +115,12 @@ public final class MemoryLimiterTest {
         MemoryLimiter memoryLimiter = new MemoryLimiter(testObjectSize + 1, instrumentation);
         memoryLimiter.acquire(testObject);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
-        Future<Boolean> acquireResult = executorService.submit(() -> memoryLimiter.acquire(testObject, 4, TimeUnit.SECONDS));
-        Thread.sleep(2000);
+        CountDownLatch readyLatch = new CountDownLatch(1);
+        Future<Boolean> acquireResult = executorService.submit(() -> {
+            readyLatch.countDown();
+            return memoryLimiter.acquire(testObject, 4, TimeUnit.SECONDS);
+        });
+        assertTrue(readyLatch.await(5, TimeUnit.SECONDS));
         memoryLimiter.release(testObject);
         assertTrue(acquireResult.get());
         assertEquals(testObjectSize, memoryLimiter.getCurrentMemory());
@@ -180,7 +185,9 @@ public final class MemoryLimiterTest {
     public void testReleaseInterruptiblyWithTimeWait() throws Exception {
         MemoryLimiter memoryLimiter = new MemoryLimiter(testObjectSize + 1, instrumentation);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
+        CountDownLatch readyLatch = new CountDownLatch(1);
         Future<Boolean> acquireResult = executorService.submit(() -> {
+            readyLatch.countDown();
             try {
                 memoryLimiter.releaseInterruptibly(testObject, 4, TimeUnit.SECONDS);
                 return Boolean.TRUE;
@@ -188,7 +195,7 @@ public final class MemoryLimiterTest {
                 return Boolean.FALSE;
             }
         });
-        Thread.sleep(2000);
+        assertTrue(readyLatch.await(5, TimeUnit.SECONDS));
         memoryLimiter.acquire(testObject);
         assertTrue(acquireResult.get());
         assertEquals(0, memoryLimiter.getCurrentMemory());

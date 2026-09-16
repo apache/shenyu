@@ -97,8 +97,8 @@ jobs:
         if: steps.filter.outputs.k8s-examples == 'true'
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
-          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          MVND_VERSION=1.0.6
+          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
           unzip -q mvnd.zip
           mkdir -p $HOME/.local
           mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd

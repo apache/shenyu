@@ -88,12 +88,17 @@ public class ShenyuClientShutdownHook {
                 Field field = clazz.getDeclaredField(props.getProperty("applicationShutdownHooksFieldName", "hooks"));
                 field.setAccessible(true);
                 hooks = (IdentityHashMap<Thread, Thread>) field.get(clazz);
-            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
-                LOG.error(ex.getMessage(), ex);
+            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | RuntimeException ex) {
+                LOG.warn("Failed to access application shutdown hooks, skip delaying other hooks.", ex);
+                return;
+            }
+            if (Objects.isNull(hooks)) {
+                LOG.warn("Application shutdown hooks are null, skip delaying other hooks.");
+                return;
             }
             long s = System.currentTimeMillis();
             while (System.currentTimeMillis() - s < delayOtherHooksExecTime) {
-                for (Iterator<Thread> iterator = Objects.requireNonNull(hooks).keySet().iterator(); iterator.hasNext();) {
+                for (Iterator<Thread> iterator = hooks.keySet().iterator(); iterator.hasNext();) {
                     Thread hook = iterator.next();
                     if (hook.getName().equals(ShutdownHookManager.getHookName())) {
                         continue;

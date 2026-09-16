@@ -26,13 +26,17 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.transformer.response.template.AiResponseTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -43,13 +47,18 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
 
@@ -137,6 +146,27 @@ class AiResponseTransformerPluginTest {
         // Verify execution result
         StepVerifier.create(result)
                 .verifyComplete();
+    }
+
+    @Test
+    void testGzipInputStreamClosedWhenDecompressionFails() throws IOException {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        ChatClient chatClient = mock(ChatClient.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.empty());
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("gzip".getBytes(StandardCharsets.UTF_8));
+
+        try (MockedConstruction<GZIPInputStream> gzipStreams = mockConstruction(GZIPInputStream.class,
+                (gzipInputStream, context) -> when(gzipInputStream.read(any(byte[].class))).thenThrow(new IOException()))) {
+            StepVerifier.create(decorator.writeWith(Mono.just(responseBody)))
+                    .verifyComplete();
+
+            assertEquals(1, gzipStreams.constructed().size());
+            verify(gzipStreams.constructed().get(0)).close();
+        }
     }
 
     @Test
