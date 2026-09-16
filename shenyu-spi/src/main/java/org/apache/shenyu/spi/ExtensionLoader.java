@@ -50,7 +50,7 @@ public final class ExtensionLoader<T> {
     
     private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
     
-    private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
+    private static final Map<LoaderKey, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 
     private static final Comparator<Holder<Object>> HOLDER_COMPARATOR = Comparator.comparing(Holder::getOrder);
 
@@ -99,12 +99,8 @@ public final class ExtensionLoader<T> {
         if (!clazz.isAnnotationPresent(SPI.class)) {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") without @" + SPI.class + " Annotation");
         }
-        ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADERS.get(clazz);
-        if (Objects.nonNull(extensionLoader)) {
-            return extensionLoader;
-        }
-        LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz, cl));
-        return (ExtensionLoader<T>) LOADERS.get(clazz);
+        LoaderKey key = new LoaderKey(clazz, cl);
+        return (ExtensionLoader<T>) LOADERS.computeIfAbsent(key, ignored -> new ExtensionLoader<>(clazz, cl));
     }
     
     /**
@@ -366,6 +362,35 @@ public final class ExtensionLoader<T> {
          */
         public Integer getOrder() {
             return order;
+        }
+    }
+
+    private static final class LoaderKey {
+
+        private final Class<?> extensionClass;
+
+        private final ClassLoader classLoader;
+
+        private LoaderKey(final Class<?> extensionClass, final ClassLoader classLoader) {
+            this.extensionClass = extensionClass;
+            this.classLoader = classLoader;
+        }
+
+        @Override
+        public boolean equals(final Object object) {
+            if (this == object) {
+                return true;
+            }
+            if (!(object instanceof LoaderKey)) {
+                return false;
+            }
+            LoaderKey loaderKey = (LoaderKey) object;
+            return extensionClass == loaderKey.extensionClass && classLoader == loaderKey.classLoader;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * System.identityHashCode(extensionClass) + System.identityHashCode(classLoader);
         }
     }
     
