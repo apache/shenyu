@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.client.apache.dubbo.processor.extractor;
 
+import org.apache.dubbo.config.annotation.Service;
+import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.ApiAnnotationProcessor;
 import org.apache.shenyu.client.core.register.matcher.ExtractorProcessor;
+import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExtBuilders;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -38,7 +40,14 @@ public class ServiceProcessor implements ApiAnnotationProcessor<Service>, Extrac
     
     @Override
     public void process(final ApiBean apiBean, final Service annotation) {
-        apiBean.setBeanPath(annotation.value());
+        apiBean.setBeanPath(annotation.path());
+        
+        apiBean.addProperties("rpcExt", getRpcExt(apiBean));
+    }
+    
+    @Override
+    public void process(final ApiBean.ApiDefinition definition) {
+        definition.addProperties("rpcExt", getRpcExt(definition));
     }
     
     @Override
@@ -49,5 +58,21 @@ public class ServiceProcessor implements ApiAnnotationProcessor<Service>, Extrac
     @Override
     public Class<Service> matchAnnotation() {
         return Service.class;
+    }
+    
+    private String getRpcExt(final ApiBean apiBean) {
+        final Object beanInstance = apiBean.getBeanInstance();
+        if (beanInstance instanceof ServiceBean) {
+            return DubboRpcExtBuilders.buildRpcExt((ServiceBean<?>) beanInstance);
+        }
+        return "{}";
+    }
+    
+    private String getRpcExt(final ApiBean.ApiDefinition definition) {
+        final Object beanInstance = definition.getApiBean().getBeanInstance();
+        if (beanInstance instanceof ServiceBean) {
+            return DubboRpcExtBuilders.buildRpcExt((ServiceBean<?>) beanInstance);
+        }
+        return "{}";
     }
 }
