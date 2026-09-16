@@ -43,7 +43,7 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         MetaData metaExist = META_DATA.get(metaData.getPath());
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
-        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()));
+        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()));
         if (!exist) {
             ApplicationConfigCache.getInstance().initPrx(metaData);
         }
@@ -58,7 +58,7 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
         List<TarsInvokePrx> removePrxList = prxList.stream()
-                .filter(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()))
+                .filter(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()))
                 .collect(Collectors.toList());
         prxList.removeAll(removePrxList);
         if (CollectionUtils.isEmpty(prxList)) {

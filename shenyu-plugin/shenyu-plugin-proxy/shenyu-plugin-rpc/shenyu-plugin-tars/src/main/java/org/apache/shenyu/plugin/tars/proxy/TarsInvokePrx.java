@@ -26,6 +26,8 @@ public class TarsInvokePrx {
 
     private String host;
 
+    private String appName;
+
     /**
      * Instantiates a new Tars invoke prx.
      */
@@ -39,8 +41,20 @@ public class TarsInvokePrx {
      * @param host      the host
      */
     public TarsInvokePrx(final Object invokePrx, final String host) {
+        this(invokePrx, host, null);
+    }
+
+    /**
+     * Instantiates a new Tars invoke prx.
+     *
+     * @param invokePrx the invoke prx
+     * @param host      the host
+     * @param appName   the application name
+     */
+    public TarsInvokePrx(final Object invokePrx, final String host, final String appName) {
         this.invokePrx = invokePrx;
         this.host = host;
+        this.appName = appName;
     }
 
     /**
@@ -77,5 +91,23 @@ public class TarsInvokePrx {
      */
     public void setHost(final String host) {
         this.host = host;
+    }
+
+    /**
+     * Gets application name.
+     *
+     * @return the application name
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     * Sets application name.
+     *
+     * @param appName the application name
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
     }
 }
