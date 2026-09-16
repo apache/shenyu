@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -48,6 +49,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -65,6 +67,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -328,7 +331,8 @@ public final class AppAuthServiceTest {
     }
 
     private void testApplyUpdateSuccess() {
-        AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        final AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        appAuthDO.setOpen(false);
         AuthPathDO authPathDO = new AuthPathDO();
         String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
         String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
@@ -343,8 +347,18 @@ public final class AppAuthServiceTest {
         given(this.appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
         given(authPathMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
         given(authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
-        ShenyuAdminResult successResult = this.appAuthService.applyUpdate(buildAuthApplyDTO());
+        ShenyuAdminResult successResult = this.appAuthService.applyUpdate(authApplyDTO);
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, successResult.getMessage());
+        verify(appAuthMapper).updateSelective(argThat(updated -> authApplyDTO.getUserId().equals(updated.getUserId())
+                && authApplyDTO.getPhone().equals(updated.getPhone())
+                && authApplyDTO.getExtInfo().equals(updated.getExtInfo())
+                && Boolean.TRUE.equals(updated.getOpen())));
+        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 1
+                && authApplyDTO.getPathList().get(0).equals(paths.get(0).getPath())));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);
+        assertEquals(Boolean.TRUE, publishedData.getOpen());
     }
 
     private AuthApplyDTO buildAuthApplyDTO() {
