@@ -140,7 +140,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         } catch (Exception e) {
             LogUtils.error(LOG, "fail to check the index exists, error:", e);
         }
-        return true;
+        return false;
     }
 
     /**

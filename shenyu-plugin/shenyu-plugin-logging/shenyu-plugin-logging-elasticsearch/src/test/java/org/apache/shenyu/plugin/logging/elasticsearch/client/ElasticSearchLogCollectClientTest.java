@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -25,8 +27,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * test cases for ElasticSearchLog.
@@ -75,5 +85,18 @@ public class ElasticSearchLogCollectClientTest {
         ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(elasticSearchLogConfig);
         elasticSearchLogCollectClient.initClient(elasticSearchLogConfig);
         elasticSearchLogCollectClient.createIndex("test");
+    }
+
+    @Test
+    public void testExistsIndexReturnsFalseWhenCheckFails() throws Exception {
+        ElasticsearchClient client = mock(ElasticsearchClient.class);
+        ElasticsearchIndicesClient indicesClient = mock(ElasticsearchIndicesClient.class);
+        when(client.indices()).thenReturn(indicesClient);
+        when(indicesClient.exists(any(Function.class))).thenThrow(new IOException("connection failed"));
+        Field clientField = ElasticSearchLogCollectClient.class.getDeclaredField("client");
+        clientField.setAccessible(true);
+        clientField.set(elasticSearchLogCollectClient, client);
+
+        assertFalse(elasticSearchLogCollectClient.existsIndex("missing-index"));
     }
 }
