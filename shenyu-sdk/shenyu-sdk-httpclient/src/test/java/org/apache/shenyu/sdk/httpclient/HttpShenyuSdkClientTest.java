@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -81,6 +82,19 @@ public class HttpShenyuSdkClientTest {
         } finally {
             Thread.interrupted();
         }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCancelledRequestThrowsIOException() throws Exception {
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient();
+        HttpAsyncClient httpAsyncClient = mock(HttpAsyncClient.class);
+        Future<HttpResponse> future = mock(Future.class);
+        when(httpAsyncClient.execute(Mockito.any(HttpUriRequest.class), Mockito.<FutureCallback<HttpResponse>>any())).thenReturn(future);
+        when(future.get()).thenThrow(new CancellationException("cancelled"));
+        setHttpAsyncClient(shenyuHttpClient, httpAsyncClient);
+
+        Assert.assertThrows(IOException.class, () -> shenyuHttpClient.doRequest(createRequest()));
     }
 
     private ShenyuRequest createRequest() {
