@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.grpc.client;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.ClientCall;
@@ -39,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
@@ -91,21 +93,26 @@ public class ShenyuGrpcClient implements Closeable {
         callParams.setResponseObserver(streamObserver);
         callParams.setRequests(jsonRequestList);
         
-        try {
-            this.invoke(callParams).get();
-        } catch (InterruptedException e) {
-            // InterruptedExceptions should never be ignored in the code.
-            // InterruptedExceptions should either be rethrown - immediately or after cleaning up the method’s state -
-            // or the thread should be re-interrupted by calling Thread.interrupt() even if this is supposed to be a single-threaded application.
-            // Any other course of action risks delaying thread shutdown and loses the information
-            // that the thread was interrupted - probably without finishing its task.
-            LOG.error("Grpc plugin invoke method is exception, Will cause the thread to be interrupted");
-            Thread.currentThread().interrupt();
-            throw new ShenyuGrpcException("Caught exception while waiting for rpc :{ " + e.getMessage() + "}", e);
-        } catch (ExecutionException e) {
-            throw new ShenyuGrpcException("Caught exception while waiting for rpc :{ " + e.getMessage() + "}", e);
-        }
-        return CompletableFuture.completedFuture(shenyuGrpcResponse);
+        ListenableFuture<Void> invocation = this.invoke(callParams);
+        CompletableFuture<ShenyuGrpcResponse> result = new CompletableFuture<>();
+        Futures.addCallback(invocation, new FutureCallback<>() {
+            @Override
+            public void onSuccess(final Void ignored) {
+                result.complete(shenyuGrpcResponse);
+            }
+
+            @Override
+            public void onFailure(final Throwable throwable) {
+                result.completeExceptionally(new ShenyuGrpcException(
+                        "Caught exception while waiting for rpc :{ " + throwable.getMessage() + "}", throwable));
+            }
+        }, MoreExecutors.directExecutor());
+        result.whenComplete((ignored, throwable) -> {
+            if (result.isCancelled()) {
+                invocation.cancel(true);
+            }
+        });
+        return result;
     }
     
     /**
