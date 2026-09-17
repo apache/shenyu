@@ -20,7 +20,6 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Topic and channel association.
@@ -75,12 +71,6 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param channel channel
      */
     public void remove(final List<String> topics, final Channel channel) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
-            List<Channel> channels = TOPIC_CHANNEL_FACTORY.get(topic);
-            if (CollectionUtils.isNotEmpty(channels)) {
-                channels.remove(channel);
-            }
-        }));
         CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
             Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(topic);
             if (Objects.nonNull(subscribers)) {

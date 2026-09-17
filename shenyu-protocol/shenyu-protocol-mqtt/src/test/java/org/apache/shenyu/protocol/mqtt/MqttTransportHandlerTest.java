@@ -30,15 +30,14 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
+import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Collections;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,22 +58,46 @@ public final class MqttTransportHandlerTest {
 
     private static final String PASSWORD = "test-password";
 
-    private final SubscribeRepository subscribeRepository = new SubscribeRepository();
+    private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
-    private static ChannelRepository channelRepository;
+    private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
 
-    private EmbeddedChannel channel;
+    /**
+     * The repositories keep their state in static maps shared with the other test classes of this module,
+     * so they are registered before every test and released again afterwards.
+     */
+    private static final ChannelRepository CHANNEL_REPOSITORY = new ChannelRepository();
 
-    @BeforeAll
-    static void setUp() {
-        channelRepository = new ChannelRepository();
-        Singleton.INST.single(ChannelRepository.class, channelRepository);
+    private static final SubscribeRepository SUBSCRIBE_REPOSITORY = new SubscribeRepository();
+
+    private EmbeddedChannel registeredChannel;
+
+    @BeforeEach
+    public void setUp() {
+        Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
+        Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
+
+        registeredChannel = new EmbeddedChannel();
+        CHANNEL_REPOSITORY.add(registeredChannel, CLIENT_ID);
+        SUBSCRIBE_REPOSITORY.add(registeredChannel,
+                Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE)));
+        awaitAssert(() -> {
+            assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(registeredChannel));
+            assertTrue(SUBSCRIBE_REPOSITORY.get(TOPIC).containsKey(registeredChannel));
+        });
     }
 
-    @AfterAll
-    static void tearDown() {
+    @AfterEach
+    public void tearDown() {
+        MqttPacketIdGenerator.remove(registeredChannel);
+        CHANNEL_REPOSITORY.remove(registeredChannel);
+        SUBSCRIBE_REPOSITORY.remove(registeredChannel);
+        awaitAssert(() -> assertFalse(SUBSCRIBE_REPOSITORY.get(TOPIC).containsKey(registeredChannel)));
+
+        registeredChannel.finishAndReleaseAll();
+
         new MqttContext().setUserName(null);
         new MqttContext().setPassword(null);
     }
@@ -84,13 +107,13 @@ public final class MqttTransportHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler());
 
         channel.writeInbound(connectMessage());
-        assertEquals(CLIENT_ID, channelRepository.get(channel));
+        assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(channel));
 
         channel.writeInbound(connectMessage());
         channel.runPendingTasks();
 
         assertFalse(channel.isActive());
-        assertNull(channelRepository.get(channel));
+        assertNull(CHANNEL_REPOSITORY.get(channel));
         channel.finishAndReleaseAll();
     }
 
@@ -99,13 +122,27 @@ public final class MqttTransportHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler());
 
         channel.writeInbound(connectMessage());
-        assertEquals(CLIENT_ID, channelRepository.get(channel));
+        assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(channel));
 
         channel.close();
         channel.runPendingTasks();
 
         assertFalse(channel.isActive());
-        assertNull(channelRepository.get(channel));
+        assertNull(CHANNEL_REPOSITORY.get(channel));
+        channel.finishAndReleaseAll();
+    }
+
+    @Test
+    public void nonMqttMessageClosesConnectedChannel() {
+        EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler());
+
+        channel.writeInbound(connectMessage());
+        assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(channel));
+
+        channel.writeInbound("not-a-mqtt-message");
+
+        assertFalse(channel.isActive());
+        assertNull(CHANNEL_REPOSITORY.get(channel));
         channel.finishAndReleaseAll();
     }
 
@@ -119,35 +156,24 @@ public final class MqttTransportHandlerTest {
         return new MqttConnectMessage(fixedHeader, variableHeader, payload);
     }
 
-    @BeforeEach
-    public void setUp() {
-        channel = new EmbeddedChannel();
-        Singleton.INST.single(ChannelRepository.class, channelRepository);
-        Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
-        channelRepository.add(channel, CLIENT_ID);
-        subscribeRepository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE)));
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            assertEquals(CLIENT_ID, channelRepository.get(channel));
-            assertTrue(!subscribeRepository.get(TOPIC).isEmpty());
-        });
-    }
-
-    @AfterEach
-    public void tearDown() {
-        channel.finishAndReleaseAll();
-        channel.close();
-    }
-
     @Test
     public void testOperationCompleteCleansRepositoriesOnClose() throws Exception {
-        assertEquals(1, MqttPacketIdGenerator.next(channel));
+        assertEquals(1, MqttPacketIdGenerator.next(registeredChannel));
 
-        new MqttTransportHandler().operationComplete(channel.closeFuture());
+        new MqttTransportHandler().operationComplete(registeredChannel.closeFuture());
 
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            assertNull(channelRepository.get(channel));
-            assertTrue(subscribeRepository.get(TOPIC).isEmpty());
-        });
-        assertEquals(1, MqttPacketIdGenerator.next(channel));
+        awaitAssert(() -> assertNull(CHANNEL_REPOSITORY.get(registeredChannel)));
+        awaitAssert(() -> assertFalse(SUBSCRIBE_REPOSITORY.get(TOPIC).containsKey(registeredChannel)));
+        assertEquals(1, MqttPacketIdGenerator.next(registeredChannel));
+    }
+
+    /**
+     * The repositories mutate their state asynchronously on the common pool,
+     * so assertions are retried until the mutation becomes visible.
+     *
+     * @param assertion assertion to retry
+     */
+    private void awaitAssert(final ThrowingRunnable assertion) {
+        await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).untilAsserted(assertion);
     }
 }
