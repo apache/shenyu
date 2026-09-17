@@ -72,7 +72,7 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
         boolean sofaEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SOFA_ENABLED);
 
-        if (!dubboEnabled || !sofaEnabled) {
+        if (!dubboEnabled && !webSocketEnabled && !brpcEnabled && !grpcEnabled && !sofaEnabled) {
             contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
         }
         if (dubboEnabled) {
