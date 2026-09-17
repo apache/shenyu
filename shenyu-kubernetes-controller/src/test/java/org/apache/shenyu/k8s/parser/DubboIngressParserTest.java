@@ -160,6 +160,16 @@ public class DubboIngressParserTest {
         assertNotNull(upstreams);
     }
 
+    @Test
+    public void shouldParseIngressWhenAnnotationsAreNull() {
+        ShenyuMemoryConfig config = assertDoesNotThrow(() -> createParser().parse(
+                createIngress(null, Collections.emptyMap(), true), null));
+
+        String handle = config.getRouteConfigList().get(0).getSelectorData().getHandle();
+        List<DubboUpstream> upstreams = GsonUtils.getInstance().fromList(handle, DubboUpstream.class);
+        assertEquals(1, upstreams.size());
+        assertEquals("dubbo://", upstreams.get(0).getProtocol());
+    }
 
     @Test
     public void shouldIgnorePathWithNullBackend() {
