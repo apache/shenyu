@@ -111,4 +111,8 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
         }
         return super.offer(e);
     }
+
+    boolean offerWithoutMemoryCheck(final E e) {
+        return super.offer(e);
+    }
 }
