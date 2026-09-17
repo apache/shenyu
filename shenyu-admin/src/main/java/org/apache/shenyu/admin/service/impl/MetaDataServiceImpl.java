@@ -129,7 +129,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         for (MetaDataDO metaDataDO : metaDataDoList) {
             metaDataDO.setEnabled(enabled);
         }
-        if (metaDataMapper.updateEnableBatch(ids, enabled) > 0) {
+        if (metaDataMapper.updateEnableBatch(ListUtil.map(metaDataDoList, MetaDataDO::getId), enabled) > 0) {
             publisher.onEnabled(metaDataDoList);
         }
         return StringUtils.EMPTY;
