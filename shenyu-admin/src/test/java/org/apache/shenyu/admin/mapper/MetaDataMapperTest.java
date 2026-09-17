@@ -168,6 +168,16 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void insertWithStringNamespaceId() {
+        MetaDataDO metaDataDO = getMetaDataDO();
+        String namespaceId = "namespace-text";
+        metaDataDO.setNamespaceId(namespaceId);
+
+        assertThat(metaDataMapper.insert(metaDataDO), comparesEqualTo(1));
+        assertThat(metaDataMapper.selectById(metaDataDO.getId()).getNamespaceId(), comparesEqualTo(namespaceId));
+    }
+
+    @Test
     public void update() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);

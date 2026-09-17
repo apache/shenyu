@@ -102,15 +102,17 @@ public class HttpClientPluginConfiguration {
         public ShenyuPlugin webClientPlugin(
                 final HttpClientProperties properties,
                 final ObjectProvider<HttpClient> httpClient) {
+            int maxInMemorySize =
+                    properties.getMaxInMemorySize() * Constants.BYTES_PER_MB;
             WebClient webClient = WebClient.builder()
                     // fix Exceeded limit on max bytes to buffer
                     // detail see https://stackoverflow.com/questions/59326351/configure-spring-codec-max-in-memory-size-when-using-reactiveelasticsearchclient
                     .exchangeStrategies(ExchangeStrategies.builder()
-                            .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(properties.getMaxInMemorySize() * Constants.BYTES_PER_MB))
+                            .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(maxInMemorySize))
                             .build())
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
-            return new WebClientPlugin(webClient);
+            return new WebClientPlugin(webClient, maxInMemorySize);
         }
     }
 

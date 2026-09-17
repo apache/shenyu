@@ -192,6 +192,17 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
     }
 
     @Test
+    public void testCheckNamespacePluginRelWhenPluginMissing() {
+        String pluginName = "missing-plugin";
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> abstractShenyuClientRegisterService.checkNamespacePluginRel(SYS_DEFAULT_NAMESPACE_ID, pluginName));
+
+        assertEquals("missing-plugin plugin not enabled for current namespace or plugin not exist for namespaceId: "
+                + SYS_DEFAULT_NAMESPACE_ID, exception.getMessage());
+    }
+
+    @Test
     public void testGetMetaDataService() {
         assertEquals(metaDataService, abstractShenyuClientRegisterService.getMetaDataService());
     }
