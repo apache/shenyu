@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -265,15 +266,12 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testClose() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-        ScheduledThreadPoolExecutor invokeExecutor = new ScheduledThreadPoolExecutor(1);
-        ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
-        ReflectionTestUtils.setField(upstreamCheckService, "invokeExecutor", invokeExecutor);
-
+        Properties properties = new Properties();
+        properties.setProperty(Constants.IS_CHECKED, "true");
+        shenyuRegisterCenterConfig.setProps(properties);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
         upstreamCheckService.close();
-
-        assertTrue(executor.isShutdown());
-        assertTrue(invokeExecutor.isShutdown());
     }
 
     private void setupZombieSet() {

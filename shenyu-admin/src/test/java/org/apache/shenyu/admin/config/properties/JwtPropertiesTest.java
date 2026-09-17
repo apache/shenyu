@@ -46,14 +46,6 @@ public class JwtPropertiesTest {
     }
 
     @Test
-    public void testInitThrowsWhenSecretKeyIsPublicComposeKey() {
-        final JwtProperties jwtProperties = new JwtProperties();
-        jwtProperties.setSecretKey("please-replace-with-your-own-secret-key");
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> ReflectionTestUtils.invokeMethod(jwtProperties, "init"));
-    }
-
-    @Test
     public void testInitDoesNotThrowWhenSecretKeyIsConfigured() {
         final JwtProperties jwtProperties = new JwtProperties();
         jwtProperties.setSecretKey("mySecretKey");

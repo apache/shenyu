@@ -56,7 +56,7 @@ public class InstanceInfoVO implements Serializable {
     /**
      * status.
      */
-    private Integer instanceState;
+    private int instanceState;
     
     /**
      * created time.
@@ -204,7 +204,7 @@ public class InstanceInfoVO implements Serializable {
      *
      * @return instanceState
      */
-    public Integer getInstanceState() {
+    public int getInstanceState() {
         return instanceState;
     }
 
@@ -213,7 +213,7 @@ public class InstanceInfoVO implements Serializable {
      *
      * @param instanceState instanceState
      */
-    public void setInstanceState(final Integer instanceState) {
+    public void setInstanceState(final int instanceState) {
         this.instanceState = instanceState;
     }
 

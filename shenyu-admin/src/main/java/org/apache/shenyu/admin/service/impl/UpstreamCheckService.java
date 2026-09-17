@@ -183,9 +183,6 @@ public class UpstreamCheckService {
             if (Objects.nonNull(executor)) {
                 executor.shutdown();
             }
-            if (Objects.nonNull(invokeExecutor)) {
-                invokeExecutor.shutdown();
-            }
         }
     }
 

@@ -34,7 +34,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * GlobalErrorHandler.
@@ -62,13 +61,9 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
             errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), throwable.getMessage(), null);
             errorMsg = throwable.getMessage();
         } else if (throwable instanceof ResponseStatusException) {
-            ResponseStatusException responseStatusException = (ResponseStatusException) throwable;
-            httpStatusCode = responseStatusException.getStatusCode();
-            String errMsg = responseStatusException.getReason();
-            if (!StringUtils.hasLength(errMsg)) {
-                HttpStatus httpStatus = HttpStatus.resolve(httpStatusCode.value());
-                errMsg = Objects.isNull(httpStatus) ? httpStatusCode.toString() : httpStatus.getReasonPhrase();
-            }
+            httpStatusCode = ((ResponseStatusException) throwable).getStatusCode();
+            HttpStatus httpStatus = (HttpStatus) httpStatusCode;
+            String errMsg = StringUtils.hasLength(((ResponseStatusException) throwable).getReason()) ? ((ResponseStatusException) throwable).getReason() : httpStatus.getReasonPhrase();
             errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), errMsg, null);
             errorMsg = errMsg;
         } else {
@@ -96,3 +91,5 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         return "Resolved [" + reason + "] for HTTP " + request.getMethod() + " " + request.getURI().getRawPath();
     }
 }
+
+

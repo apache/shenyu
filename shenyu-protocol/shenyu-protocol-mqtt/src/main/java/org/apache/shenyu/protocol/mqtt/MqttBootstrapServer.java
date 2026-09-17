@@ -23,11 +23,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
-import java.util.Locale;
-import java.util.Objects;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.BaseRepository;
 import org.reflections.Reflections;
+
+import java.util.Locale;
 
 /**
  * mqtt server.
@@ -73,15 +73,9 @@ public class MqttBootstrapServer implements BootstrapServer {
 
     @Override
     public void shutdown() {
-        if (Objects.nonNull(future)) {
-            future.channel().close().syncUninterruptibly();
-        }
-        if (Objects.nonNull(bossGroup)) {
-            bossGroup.shutdownGracefully().syncUninterruptibly();
-        }
-        if (Objects.nonNull(workerGroup)) {
-            workerGroup.shutdownGracefully().syncUninterruptibly();
-        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+        future.channel().close();
     }
 
     private void initRepositories() throws IllegalAccessException, InstantiationException {

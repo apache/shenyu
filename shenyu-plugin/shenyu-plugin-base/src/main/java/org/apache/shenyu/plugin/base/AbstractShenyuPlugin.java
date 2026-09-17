@@ -99,11 +99,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.nonNull(selectorData) && StringUtils.isBlank(selectorData.getId())) {
             return handleSelectorIfNull(pluginName, exchange, chain);
         }
+        selectorData = defaultMatchSelector(exchange, selectors, path);
         if (Objects.isNull(selectorData)) {
-            selectorData = defaultMatchSelector(exchange, selectors, path);
-            if (Objects.isNull(selectorData)) {
-                return handleSelectorIfNull(pluginName, exchange, chain);
-            }
+            return handleSelectorIfNull(pluginName, exchange, chain);
         }
         printLog(selectorData, pluginName);
         if (!selectorData.getContinued()) {
@@ -127,11 +125,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
+        ruleData = defaultMatchRule(exchange, rules, path);
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, rules, path);
-            if (Objects.isNull(ruleData)) {
-                return handleRuleIfNull(pluginName, exchange, chain);
-            }
+            return handleRuleIfNull(pluginName, exchange, chain);
         }
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);

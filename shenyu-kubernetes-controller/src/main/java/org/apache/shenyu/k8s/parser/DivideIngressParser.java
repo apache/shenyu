@@ -314,16 +314,15 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || addresses.isEmpty()) {
                         continue;
                     }
-                    for (int i = 0; i < addresses.size(); i++) {
-                        V1EndpointAddress address = addresses.get(i);
+                    int i = 0;
+                    for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
                         if (Objects.nonNull(defaultPort)) {
-                            String upstreamProtocol = Objects.isNull(protocol) || i >= protocol.length ? "http://" : protocol[i];
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(upstreamProtocol);
+                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");

@@ -154,12 +154,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         boolean isDiscoveryLocalMode = ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
         if (isDiscoveryLocalMode) {
             List<String> namespaceIds = this.getNamespace();
-            namespaceIds.forEach(namespaceId -> {
-                URIRegisterDTO uriRegisterDTO = buildURIRegisterDTO(context, beans, namespaceId);
-                if (Objects.nonNull(uriRegisterDTO)) {
-                    publisher.publishEvent(uriRegisterDTO);
-                }
-            });
+            namespaceIds.forEach(namespaceId -> publisher.publishEvent(buildURIRegisterDTO(context, beans, namespaceId)));
         }
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);

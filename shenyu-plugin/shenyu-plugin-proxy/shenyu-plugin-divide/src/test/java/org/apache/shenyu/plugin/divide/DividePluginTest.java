@@ -53,6 +53,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -162,7 +163,6 @@ public final class DividePluginTest {
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(null);
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
-        loadBalancerFactoryMockedStatic.close();
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
@@ -233,12 +233,15 @@ public final class DividePluginTest {
     @Test
     public void successResponseTriggerTest() throws Exception {
         dividePlugin = DividePlugin.class.newInstance();
-        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class, long.class);
+        Field field = DividePlugin.class.getDeclaredField("beginTime");
+        field.setAccessible(true);
+        field.set(dividePlugin, 0L);
+        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class);
         method.setAccessible(true);
         Upstream upstream = Upstream.builder()
                 .url("upstream")
                 .build();
-        method.invoke(dividePlugin, upstream, 0L);
+        method.invoke(dividePlugin, upstream);
         assertEquals(1, upstream.getSucceeded().get());
     }
 

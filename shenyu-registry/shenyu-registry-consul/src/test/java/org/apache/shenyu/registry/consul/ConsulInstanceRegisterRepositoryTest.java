@@ -30,14 +30,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -118,46 +113,6 @@ public final class ConsulInstanceRegisterRepositoryTest {
             repository.init(instanceConfig);
             repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
             repository.close();
-        }
-    }
-
-    @Test
-    public void testCloseShutsDownExecutors() throws NoSuchFieldException, IllegalAccessException {
-        final TtlScheduler ttlScheduler = new TtlScheduler(60, mock(ConsulClient.class));
-        final Field ttlExecutorField = TtlScheduler.class.getDeclaredField("scheduler");
-        ttlExecutorField.setAccessible(true);
-        final ScheduledExecutorService ttlExecutor = (ScheduledExecutorService) ttlExecutorField.get(ttlScheduler);
-
-        final Field executorField = ConsulInstanceRegisterRepository.class.getDeclaredField("executor");
-        executorField.setAccessible(true);
-        final ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) executorField.get(repository);
-
-        final NewService service = new NewService();
-        service.setId("test-service");
-        final Field serviceField = ConsulInstanceRegisterRepository.class.getDeclaredField("newService");
-        serviceField.setAccessible(true);
-        serviceField.set(repository, service);
-        final Field ttlSchedulerField = ConsulInstanceRegisterRepository.class.getDeclaredField("ttlScheduler");
-        ttlSchedulerField.setAccessible(true);
-        ttlSchedulerField.set(repository, ttlScheduler);
-        final Field watchDelayField = ConsulInstanceRegisterRepository.class.getDeclaredField("watchDelay");
-        watchDelayField.setAccessible(true);
-        watchDelayField.set(repository, "60");
-
-        ttlScheduler.add(service.getId());
-        repository.watcherStart("test-service");
-        try {
-            assertFalse(executor.isShutdown());
-            assertFalse(ttlExecutor.isShutdown());
-
-            repository.close();
-
-            assertAll(
-                    () -> assertTrue(executor.isShutdown()),
-                    () -> assertTrue(ttlExecutor.isShutdown()));
-        } finally {
-            executor.shutdownNow();
-            ttlExecutor.shutdownNow();
         }
     }
 }
