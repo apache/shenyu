@@ -31,6 +31,8 @@ public final class ComposableSignServiceTest {
     public void testMatchesDefaultModule() {
         assertTrue(ComposableSignService.matchesDefaultModule("divide-http", "http", "divide"));
         assertTrue(ComposableSignService.matchesDefaultModule("springCloud-springCloud", "springCloud", "springCloud"));
+        assertTrue(ComposableSignService.matchesDefaultModule("divide-", "", "divide"));
+        assertTrue(ComposableSignService.matchesDefaultModule("divide-null", null, "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule("divide-http", "dubbo", "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule("custom-http", "http", "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule(null, "http", "divide"));
