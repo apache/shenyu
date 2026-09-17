@@ -20,6 +20,8 @@ package org.apache.shenyu.sdk.httpclient;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -31,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.junit.Assert.assertNotSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,6 +67,14 @@ public class HttpShenyuSdkClientTest {
 
         verify(httpAsyncClient).close();
         verify(connectionManager).shutdown();
+    }
+
+    @Test
+    public void testFactoryCreatesIndependentClients() {
+        ShenyuSdkClient firstClient = ShenyuSdkClientFactory.newInstance("httpclient");
+        ShenyuSdkClient secondClient = ShenyuSdkClientFactory.newInstance("httpclient");
+
+        assertNotSame(firstClient, secondClient);
     }
 
     private void setField(final HttpShenyuSdkClient client, final String name, final Object value) throws Exception {

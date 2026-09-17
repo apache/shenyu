@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 /**
  * shenyu httpclient.
  */
-@Join
+@Join(isSingleton = false)
 public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpShenyuSdkClient.class);
