@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -46,6 +47,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class ShenyuPluginClassLoader extends ClassLoader implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginClassLoader.class);
+
+    private static final AtomicLong GENERATION = new AtomicLong();
 
     static {
         registerAsParallelCapable();
@@ -58,6 +61,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     private final Map<String, byte[]> resourceCache = new ConcurrentHashMap<>();
 
     private final Set<String> registeredBeanNames = ConcurrentHashMap.newKeySet();
+
+    private final long generation = GENERATION.incrementAndGet();
 
     private final PluginJarParser.PluginJar pluginJar;
 
@@ -154,7 +159,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
         if (SpringBeanUtils.getInstance().existBeanByName(beanName)) {
             T inst = SpringBeanUtils.getInstance().getBeanByName(beanName);
             // if the class is loaded by other classloader, then reload it
-            if (!isLoadedByOtherClassLoader(inst)) {
+            if (Objects.nonNull(inst) && !isLoadedByOtherClassLoader(inst)) {
                 return inst;
             }
         }
@@ -199,9 +204,9 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
         return !inst.getClass().getClassLoader().equals(this);
     }
 
-    private String getPluginBeanName(final String className) {
+    String getPluginBeanName(final String className) {
         String pluginKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
-        return pluginKey + "#" + className;
+        return pluginKey + "#" + generation + "#" + className;
     }
 
     private ShenyuLoaderResult buildResult(final Object instance) {
