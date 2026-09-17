@@ -38,6 +38,8 @@ class MetaDataCacheTest {
         MetaData broad = createMetaData("p", "/api/**");
         MetaData specific = createMetaData("a", "/api/users/**");
         cache.cache(broad);
+        assertSame(broad, cache.obtain("/api/users/42"));
+
         cache.cache(specific);
 
         assertSame(specific, cache.obtain("/api/users/42"));
