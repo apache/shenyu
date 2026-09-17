@@ -87,6 +87,23 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void testUpdateByPrimaryKeySelective() {
+        TagRelationDO record = buildTagRelationDO();
+        int count = tagRelationMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+
+        record.setApiId("456");
+        int updateCount = tagRelationMapper.updateByPrimaryKeySelective(record);
+        assertThat(updateCount, greaterThan(0));
+
+        TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
+        assertThat(tagRelationDO.getApiId(), equalTo("456"));
+
+        int delete = tagRelationMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
+    }
+
+    @Test
     public void testSelectByQuery() {
         TagRelationDO record = buildTagRelationDO();
         int count = tagRelationMapper.insertSelective(record);
