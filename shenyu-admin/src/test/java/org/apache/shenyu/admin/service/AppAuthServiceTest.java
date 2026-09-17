@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -42,12 +43,14 @@ import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -270,6 +273,21 @@ public final class AppAuthServiceTest {
             appAuthService.syncData();
         }
         verify(eventPublisher, times(1)).publishEvent(any());
+    }
+
+    @Test
+    public void testSyncEmptyDataByNamespaceId() {
+        String namespaceId = "namespace-id";
+        when(appAuthMapper.selectAllByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
+
+        appAuthService.syncDataByNamespaceId(namespaceId);
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        DataChangedEvent event = eventCaptor.getValue();
+        assertEquals(ConfigGroupEnum.APP_AUTH, event.getGroupKey());
+        assertEquals(namespaceId, event.getNamespaceId());
+        assertEquals(Collections.emptyList(), event.getSource());
     }
 
     private void testApplyCreateParameterError() {

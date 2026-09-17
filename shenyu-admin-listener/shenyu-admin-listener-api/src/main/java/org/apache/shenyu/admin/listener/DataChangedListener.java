@@ -45,6 +45,17 @@ public interface DataChangedListener {
     }
 
     /**
+     * Invoke this method when AppAuth was received for a known namespace.
+     *
+     * @param changed changed data
+     * @param eventType event type
+     * @param namespaceId namespace id
+     */
+    default void onAppAuthChanged(List<AppAuthData> changed, DataEventTypeEnum eventType, String namespaceId) {
+        onAppAuthChanged(changed, eventType);
+    }
+
+    /**
      * invoke this method when Plugin was received.
      *
      * @param changed   the changed
@@ -54,12 +65,34 @@ public interface DataChangedListener {
     }
 
     /**
+     * Invoke this method when Plugin was received for a known namespace.
+     *
+     * @param changed changed data
+     * @param eventType event type
+     * @param namespaceId namespace id
+     */
+    default void onPluginChanged(List<PluginData> changed, DataEventTypeEnum eventType, String namespaceId) {
+        onPluginChanged(changed, eventType);
+    }
+
+    /**
      * invoke this method when Selector was received.
      *
      * @param changed   the changed
      * @param eventType the event type
      */
     default void onSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * Invoke this method when Selector was received for a known namespace.
+     *
+     * @param changed changed data
+     * @param eventType event type
+     * @param namespaceId namespace id
+     */
+    default void onSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType, String namespaceId) {
+        onSelectorChanged(changed, eventType);
     }
 
     /**
@@ -79,6 +112,17 @@ public interface DataChangedListener {
      * @param eventType the event type
      */
     default void onRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * Invoke this method when Rule was received for a known namespace.
+     *
+     * @param changed changed data
+     * @param eventType event type
+     * @param namespaceId namespace id
+     */
+    default void onRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType, String namespaceId) {
+        onRuleChanged(changed, eventType);
     }
 
     /**

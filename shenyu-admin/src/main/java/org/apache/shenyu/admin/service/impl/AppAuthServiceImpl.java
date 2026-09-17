@@ -270,6 +270,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult syncDataByNamespaceId(final String namespaceId) {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.REFRESH, Collections.emptyList(), namespaceId));
+            return ShenyuAdminResult.success();
+        }
         return syncData(appAuthDOList);
     }
 

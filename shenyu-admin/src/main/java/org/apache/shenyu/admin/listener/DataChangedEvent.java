@@ -39,6 +39,8 @@ public class DataChangedEvent extends ApplicationEvent {
 
     private final ConfigGroupEnum groupKey;
 
+    private final String namespaceId;
+
     /**
      * Instantiates a new Data changed event.
      *
@@ -47,9 +49,23 @@ public class DataChangedEvent extends ApplicationEvent {
      * @param source      the source
      */
     public DataChangedEvent(final ConfigGroupEnum groupKey, final DataEventTypeEnum type, final List<?> source) {
+        this(groupKey, type, source, null);
+    }
+
+    /**
+     * Instantiates a new data changed event for a known namespace.
+     *
+     * @param groupKey group key
+     * @param type event type
+     * @param source source data
+     * @param namespaceId namespace id
+     */
+    public DataChangedEvent(final ConfigGroupEnum groupKey, final DataEventTypeEnum type,
+                            final List<?> source, final String namespaceId) {
         super(source.stream().filter(Objects::nonNull).collect(Collectors.toList()));
         this.eventType = type;
         this.groupKey = groupKey;
+        this.namespaceId = namespaceId;
     }
 
     /**
@@ -73,6 +89,15 @@ public class DataChangedEvent extends ApplicationEvent {
      */
     public ConfigGroupEnum getGroupKey() {
         return this.groupKey;
+    }
+
+    /**
+     * Gets namespace id.
+     *
+     * @return namespace id, or null when it was not supplied
+     */
+    public String getNamespaceId() {
+        return namespaceId;
     }
 
 }
