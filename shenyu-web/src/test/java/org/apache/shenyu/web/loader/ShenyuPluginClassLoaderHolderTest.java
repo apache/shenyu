@@ -23,11 +23,13 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,10 +58,9 @@ public final class ShenyuPluginClassLoaderHolderTest {
     }
 
     @Test
-    public void createPluginClassLoader() {
+    public void replacePluginClassLoader() {
         ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
-        ShenyuPluginClassLoader pluginClassLoader = singleton.createPluginClassLoader(pluginJar);
-        assertNotNull(pluginClassLoader);
+        singleton.replacePluginClassLoader(pluginJar, classLoader -> assertNotNull(classLoader));
     }
 
     @Test
@@ -69,7 +70,7 @@ public final class ShenyuPluginClassLoaderHolderTest {
     }
 
     @Test
-    public void createPluginClassLoaderAtomicallyClosesEveryDisplacedLoader() throws InterruptedException {
+    public void replacePluginClassLoaderSerializesLoadingAndClosesEveryDisplacedLoader() throws Exception {
         int threadCount = 32;
         String jarKey = "concurrent-test-key";
         CountingBeanFactory beanFactory = new CountingBeanFactory();
@@ -82,24 +83,40 @@ public final class ShenyuPluginClassLoaderHolderTest {
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch ready = new CountDownLatch(threadCount);
         CountDownLatch start = new CountDownLatch(1);
+        AtomicInteger activeLoads = new AtomicInteger();
+        AtomicInteger maximumActiveLoads = new AtomicInteger();
+        List<Future<?>> futures = new ArrayList<>();
 
-        List<Runnable> tasks = Collections.nCopies(threadCount, () -> {
-            ready.countDown();
-            try {
-                start.await();
-                ShenyuPluginClassLoaderHolder.getSingleton().createPluginClassLoader(concurrentPluginJar);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
+        try {
+            List<Runnable> tasks = Collections.nCopies(threadCount, () -> {
+                ready.countDown();
+                try {
+                    start.await();
+                    ShenyuPluginClassLoaderHolder.getSingleton().replacePluginClassLoader(concurrentPluginJar, classLoader -> {
+                        int current = activeLoads.incrementAndGet();
+                        maximumActiveLoads.accumulateAndGet(current, Math::max);
+                        activeLoads.decrementAndGet();
+                    });
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(ex);
+                }
+            });
+            tasks.forEach(task -> futures.add(executor.submit(task)));
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
+            start.countDown();
+            for (Future<?> future : futures) {
+                future.get(5, TimeUnit.SECONDS);
             }
-        });
-        tasks.forEach(executor::submit);
-        assertTrue(ready.await(5, TimeUnit.SECONDS));
-        start.countDown();
-        executor.shutdown();
-        assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
 
-        assertEquals(threadCount - 1, beanFactory.destroyCount.get());
-        ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(jarKey);
+            assertEquals(1, maximumActiveLoads.get());
+            assertEquals(threadCount - 1, beanFactory.destroyCount.get());
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+            ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(jarKey);
+        }
     }
 
     private static final class CountingBeanFactory extends DefaultListableBeanFactory {
