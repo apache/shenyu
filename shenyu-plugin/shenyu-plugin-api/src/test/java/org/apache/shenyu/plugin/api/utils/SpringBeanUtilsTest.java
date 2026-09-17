@@ -18,9 +18,15 @@
 package org.apache.shenyu.plugin.api.utils;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Proxy;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,26 +34,57 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SpringBeanUtilsTest {
 
     @Test
-    void registerBeanShouldNotReplaceSharedBeanFactoryClassLoader() {
+    void registerBeanShouldUsePluginClassLoaderWithoutReplacingSharedLoader() throws IOException {
         DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
         final ClassLoader sharedClassLoader = beanFactory.getBeanClassLoader();
         GenericApplicationContext context = new GenericApplicationContext(beanFactory);
         context.refresh();
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClassName(TestBean.class.getName());
-        ClassLoader pluginClassLoader = new ClassLoader(TestBean.class.getClassLoader()) {
-        };
+        GenericBeanDefinition delegate = new GenericBeanDefinition();
+        delegate.setBeanClassName(TestBean.class.getName());
+        BeanDefinition beanDefinition = (BeanDefinition) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class[]{BeanDefinition.class}, (proxy, method, args) -> method.invoke(delegate, args));
+        ClassLoader pluginClassLoader = new PluginTestClassLoader(TestBean.class);
 
         String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, pluginClassLoader);
 
         assertSame(sharedClassLoader, beanFactory.getBeanClassLoader());
         assertTrue(context.containsBean(beanName));
-        assertSame(TestBean.class, beanDefinition.getBeanClass());
-        assertSame(TestBean.class, context.getBean(beanName).getClass());
+        assertSame(pluginClassLoader, context.getBean(beanName).getClass().getClassLoader());
         context.close();
     }
 
-    private static final class TestBean {
+    public static final class TestBean {
+    }
+
+    private static final class PluginTestClassLoader extends ClassLoader {
+
+        private final String className;
+
+        private final byte[] classBytes;
+
+        private PluginTestClassLoader(final Class<?> targetClass) throws IOException {
+            super(targetClass.getClassLoader());
+            className = targetClass.getName();
+            String resourceName = "/" + className.replace('.', '/') + ".class";
+            try (InputStream input = targetClass.getResourceAsStream(resourceName)) {
+                classBytes = input.readAllBytes();
+            }
+        }
+
+        @Override
+        protected synchronized Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
+            if (!className.equals(name)) {
+                return super.loadClass(name, resolve);
+            }
+            Class<?> loaded = findLoadedClass(name);
+            if (Objects.isNull(loaded)) {
+                loaded = defineClass(name, classBytes, 0, classBytes.length);
+            }
+            if (resolve) {
+                resolveClass(loaded);
+            }
+            return loaded;
+        }
     }
 }

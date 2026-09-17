@@ -22,6 +22,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -82,16 +83,15 @@ public final class SpringBeanUtils {
             throw new NullPointerException("beanDefinition.beanClassName is null");
         }
         String beanName = getBeanName(beanClassName);
-        if (!(beanDefinition instanceof AbstractBeanDefinition)) {
-            throw new IllegalArgumentException("beanDefinition must be an AbstractBeanDefinition");
-        }
+        AbstractBeanDefinition definition = beanDefinition instanceof AbstractBeanDefinition
+                ? (AbstractBeanDefinition) beanDefinition : new GenericBeanDefinition(beanDefinition);
         try {
-            ((AbstractBeanDefinition) beanDefinition).setBeanClass(Class.forName(beanClassName, false, classLoader));
+            definition.setBeanClass(Class.forName(beanClassName, false, classLoader));
         } catch (ClassNotFoundException ex) {
             throw new IllegalArgumentException("Cannot load bean class " + beanClassName, ex);
         }
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-        beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        beanFactory.registerBeanDefinition(beanName, definition);
         return beanName;
     }
     
