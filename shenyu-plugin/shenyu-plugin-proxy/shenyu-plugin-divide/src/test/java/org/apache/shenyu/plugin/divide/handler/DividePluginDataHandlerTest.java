@@ -31,6 +31,8 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -116,6 +118,41 @@ public final class DividePluginDataHandlerTest {
     @Test
     public void removeRuleTest() {
         dividePluginDataHandler.removeRule(ruleData);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"\"percentage\":101", "\"percentage\":20.5", "\"enabled\":true,\"percentage\":20",
+        "\"fallbackPolicy\":\"TYPO\"", "\"stickyKey\":{\"paramType\":\"missing-extension\"}"})
+    public void testInvalidConfigurationDoesNotReplaceCachedRule(final String fields) {
+        RuleData rule = new RuleData();
+        rule.setId("invalid-config-rule");
+        rule.setSelectorId("invalid-config-selector");
+        rule.setHandle("{\"timeout\":5000}");
+        dividePluginDataHandler.handlerRule(rule);
+        DivideRuleHandle previous = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        rule.setHandle("{\"canary\":{\"stableLabels\":{\"release\":\"stable\"},\"canaryLabels\":{\"release\":\"canary\"}," + fields + "}}");
+        try {
+            assertThrows(IllegalArgumentException.class, () -> dividePluginDataHandler.handlerRule(rule));
+            assertSame(previous, DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+        } finally {
+            dividePluginDataHandler.removeRule(rule);
+        }
+    }
+
+    @Test
+    public void testInstalledCustomParameterSourceCanBeCached() {
+        RuleData rule = new RuleData();
+        rule.setId("custom-source-rule");
+        rule.setSelectorId("custom-source-selector");
+        rule.setHandle("{\"canary\":{\"enabled\":true,\"percentage\":20,\"stickyKey\":{\"paramType\":\"test_attribute\"},"
+                + "\"stableLabels\":{\"release\":\"stable\"},\"canaryLabels\":{\"release\":\"canary\"}}}");
+        try {
+            dividePluginDataHandler.handlerRule(rule);
+            DivideRuleHandle cached = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+            assertEquals("test_attribute", cached.getCanary().getStickyKey().getParamType());
+        } finally {
+            dividePluginDataHandler.removeRule(rule);
+        }
     }
 
     @Test

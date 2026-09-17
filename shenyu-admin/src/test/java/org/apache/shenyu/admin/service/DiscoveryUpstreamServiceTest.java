@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -43,20 +44,31 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -182,6 +194,128 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         when(discoveryUpstreamMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(0);
         discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"labels\":{}}", "{\"labels\":{\"release\":\"canary\"}}", "{\"warmup\":20}", "{}", "{\"warmup\":20,\"extension\":{\"x\":1},\"labels\":{}}"})
+    public void testSingleUpdateReplacesPropsAndSynchronizesLabels(final String props) {
+        AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(existingLabeledUpstream());
+        configureSync();
+        when(discoveryUpstreamMapper.update(any())).thenAnswer(invocation -> {
+            stored.set(invocation.getArgument(0));
+            return 1;
+        });
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("123")).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("123", "123", "localhost:8080");
+        dto.setProtocol("http://");
+        dto.setProps(props);
+        discoveryUpstreamService.createOrUpdate(dto);
+        assertEquals(props, stored.get().getProps());
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(discoveryProcessor).changeUpstream(any(), synced.capture());
+        assertEquals(stored.get().getProps(), synced.getValue().get(0).getProps());
+        when(discoveryHandlerMapper.selectBySelectorId("selector_1")).thenReturn(buildDiscoveryHandlerDO());
+        assertEquals(stored.get().getProps(), discoveryUpstreamService.findBySelectorId("selector_1").get(0).getProps());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"labels\":{}}", "{\"labels\":{\"release\":\"canary\"}}", "{\"warmup\":20}", "{}", "{\"warmup\":20,\"extension\":{\"x\":1},\"labels\":{}}"})
+    public void testBatchUpdateReplacesPropsAndSynchronizesLabels(final String props) {
+        AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(existingLabeledUpstream());
+        configureSync();
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("123")).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.insert(any())).thenAnswer(invocation -> {
+            stored.set(invocation.getArgument(0));
+            return 1;
+        });
+        DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("", "123", "localhost:8080");
+        dto.setProtocol("http://");
+        dto.setProps(props);
+        discoveryUpstreamService.updateBatch("123", Collections.singletonList(dto));
+        assertEquals(props, stored.get().getProps());
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(discoveryProcessor).changeUpstream(any(), synced.capture());
+        assertEquals(stored.get().getProps(), synced.getValue().get(0).getProps());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testBatchReplacementRemovesOmittedInstances(final boolean removeAll) {
+        List<DiscoveryUpstreamDO> stored = new ArrayList<>();
+        stored.add(existingLabeledUpstream());
+        stored.add(buildDiscoveryUpstreamDO("other", "123", "localhost:8081"));
+        configureSync();
+        doAnswer(invocation -> {
+            stored.clear();
+            return 2;
+        }).when(discoveryUpstreamMapper).deleteByDiscoveryHandlerId("123");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("123")).thenAnswer(invocation -> new ArrayList<>(stored));
+        List<DiscoveryUpstreamDTO> submitted = Collections.emptyList();
+        if (!removeAll) {
+            DiscoveryUpstreamDTO remaining = buildDiscoveryUpstreamDTO("", "123", "localhost:8080");
+            remaining.setProtocol("http://");
+            remaining.setProps("{}");
+            submitted = Collections.singletonList(remaining);
+            when(discoveryUpstreamMapper.insert(any())).thenAnswer(invocation -> {
+                stored.add(invocation.getArgument(0));
+                return 1;
+            });
+        }
+        discoveryUpstreamService.updateBatch("123", submitted);
+        assertEquals(removeAll ? 0 : 1, stored.size());
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(discoveryProcessor).changeUpstream(any(), synced.capture());
+        assertEquals(stored.size(), synced.getValue().size());
+        if (!removeAll) {
+            assertEquals("localhost:8080", synced.getValue().get(0).getUrl());
+            assertEquals("{}", synced.getValue().get(0).getProps());
+        } else {
+            verify(discoveryUpstreamMapper, never()).insert(any());
+        }
+    }
+
+    @Test
+    public void testNativeUpdateReplacesSubmittedProps() {
+        DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("123");
+        dto.setProps("{\"warmup\":20}");
+        discoveryUpstreamService.nativeCreateOrUpdate(dto);
+        ArgumentCaptor<DiscoveryUpstreamDO> saved = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(saved.capture());
+        assertEquals(dto.getProps(), saved.getValue().getProps());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"labels\":null}", "{\"labels\":[]}", "{\"labels\":{\"release\":123}}", "[]"})
+    public void testInvalidPropsNeverWriteOrSynchronize(final String props) {
+        DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("");
+        dto.setProps(props);
+        assertThrows(ShenyuAdminException.class, () -> discoveryUpstreamService.createOrUpdate(dto));
+        DiscoveryUpstreamDTO valid = buildDiscoveryUpstreamDTO("");
+        valid.setProps("{\"labels\":{}}");
+        assertThrows(ShenyuAdminException.class, () -> discoveryUpstreamService.updateBatch("123", Arrays.asList(valid, dto)));
+        assertThrows(ShenyuAdminException.class, () -> discoveryUpstreamService.importData(Arrays.asList(valid, dto)));
+        dto.setId("123");
+        assertThrows(ShenyuAdminException.class, () -> discoveryUpstreamService.createOrUpdate(dto));
+        verify(discoveryUpstreamMapper, never()).insert(any());
+        verify(discoveryUpstreamMapper, never()).update(any());
+        verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+        verifyNoInteractions(discoveryProcessor, discoveryProcessorHolder);
+    }
+
+    private DiscoveryUpstreamDO existingLabeledUpstream() {
+        DiscoveryUpstreamDO upstream = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        upstream.setProtocol("http://");
+        upstream.setProps("{\"warmup\":10,\"gray\":true,\"healthCheckEnabled\":false,\"extension\":{\"x\":1},"
+                + "\"labels\":{\"release\":\"stable\",\"region\":\"east\"}}");
+        return upstream;
+    }
+
+    private void configureSync() {
+        when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
+        when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
+        when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
+        when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
     }
 
     private void testUpdate() {
