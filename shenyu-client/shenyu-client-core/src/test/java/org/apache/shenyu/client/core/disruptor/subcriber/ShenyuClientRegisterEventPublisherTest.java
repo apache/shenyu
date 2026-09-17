@@ -18,6 +18,8 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.disruptor.executor.RegisterClientConsumerExecutor.RegisterClientExecutorFactory;
+import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +27,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class ShenyuClientRegisterEventPublisherTest {
     @Mock
@@ -63,5 +69,51 @@ public class ShenyuClientRegisterEventPublisherTest {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(shenyuClientRegisterRepository);
         assertDoesNotThrow(() -> publisher.publishEvent(null));
+    }
+
+    @Test
+    public void testStartupFailureCleansResourcesAndAllowsRetry() {
+        DisruptorProviderManage<DataTypeParent> failedManage = mock(DisruptorProviderManage.class);
+        DisruptorProviderManage<DataTypeParent> successfulManage = mock(DisruptorProviderManage.class);
+        ShenyuClientURIExecutorSubscriber failedSubscriber = mock(ShenyuClientURIExecutorSubscriber.class);
+        ShenyuClientURIExecutorSubscriber successfulSubscriber = mock(ShenyuClientURIExecutorSubscriber.class);
+        doThrow(new IllegalStateException("startup failed")).when(failedManage).startup();
+        TestPublisher publisher = new TestPublisher(failedManage, successfulManage, failedSubscriber, successfulSubscriber);
+
+        assertThrows(IllegalStateException.class, () -> publisher.start(shenyuClientRegisterRepository));
+        verify(failedSubscriber).shutdown();
+
+        publisher.start(shenyuClientRegisterRepository);
+        assertSame(successfulManage, publisher.getProviderManage());
+        verify(successfulSubscriber).start();
+    }
+
+    private static final class TestPublisher extends ShenyuClientRegisterEventPublisher {
+
+        private final DisruptorProviderManage<DataTypeParent>[] manages;
+
+        private final ShenyuClientURIExecutorSubscriber[] subscribers;
+
+        private int manageIndex;
+
+        private int subscriberIndex;
+
+        private TestPublisher(final DisruptorProviderManage<DataTypeParent> failedManage,
+                              final DisruptorProviderManage<DataTypeParent> successfulManage,
+                              final ShenyuClientURIExecutorSubscriber failedSubscriber,
+                              final ShenyuClientURIExecutorSubscriber successfulSubscriber) {
+            manages = new DisruptorProviderManage[]{failedManage, successfulManage};
+            subscribers = new ShenyuClientURIExecutorSubscriber[]{failedSubscriber, successfulSubscriber};
+        }
+
+        @Override
+        protected ShenyuClientURIExecutorSubscriber createUriSubscriber(final ShenyuClientRegisterRepository repository) {
+            return subscribers[subscriberIndex++];
+        }
+
+        @Override
+        protected DisruptorProviderManage<DataTypeParent> createProviderManage(final RegisterClientExecutorFactory<DataTypeParent> factory) {
+            return manages[manageIndex++];
+        }
     }
 }

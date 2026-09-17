@@ -56,14 +56,45 @@ public class ShenyuClientRegisterEventPublisher {
         if (Objects.nonNull(providerManage)) {
             return;
         }
-        RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
+        RegisterClientExecutorFactory<DataTypeParent> factory = new RegisterClientExecutorFactory<>();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
-        factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
+        ShenyuClientURIExecutorSubscriber uriSubscriber = createUriSubscriber(shenyuClientRegisterRepository);
+        factory.addSubscribers(uriSubscriber);
         factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientMcpExecutorSubscriber(shenyuClientRegisterRepository));
-        DisruptorProviderManage<DataTypeParent> manage = new DisruptorProviderManage<>(factory);
-        manage.startup();
-        providerManage = manage;
+        DisruptorProviderManage<DataTypeParent> manage = createProviderManage(factory);
+        try {
+            manage.startup();
+            uriSubscriber.start();
+            providerManage = manage;
+        } catch (RuntimeException ex) {
+            uriSubscriber.shutdown();
+            DisruptorProvider<DataTypeParent> provider = manage.getProvider();
+            if (Objects.nonNull(provider)) {
+                provider.shutdown();
+            }
+            throw ex;
+        }
+    }
+
+    /**
+     * Create URI subscriber.
+     *
+     * @param repository register repository
+     * @return URI subscriber
+     */
+    protected ShenyuClientURIExecutorSubscriber createUriSubscriber(final ShenyuClientRegisterRepository repository) {
+        return new ShenyuClientURIExecutorSubscriber(repository);
+    }
+
+    /**
+     * Create provider manager.
+     *
+     * @param factory consumer executor factory
+     * @return provider manager
+     */
+    protected DisruptorProviderManage<DataTypeParent> createProviderManage(final RegisterClientExecutorFactory<DataTypeParent> factory) {
+        return new DisruptorProviderManage<>(factory);
     }
 
     /**
