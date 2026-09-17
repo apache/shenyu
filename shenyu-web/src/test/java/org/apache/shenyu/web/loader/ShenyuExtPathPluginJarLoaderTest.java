@@ -30,6 +30,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ShenyuExtPathPluginJarLoaderTest {
 
@@ -41,15 +43,28 @@ class ShenyuExtPathPluginJarLoaderTest {
         Path jar = directory.resolve("plugin.jar");
         writePluginJar(jar, "1.0.0");
         List<PluginJarParser.PluginJar> initial = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString());
-        ShenyuPluginClassLoaderHolder.getSingleton().createPluginClassLoader(initial.get(0));
+        ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
+        String jarKey = jar.toFile().getAbsolutePath();
+        try {
+            holder.replacePluginClassLoader(initial.get(0), classLoader -> { });
 
-        assertEquals(0, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).size());
+            assertEquals(0, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).size());
 
-        writePluginJar(jar, "1.0.1");
-        List<PluginJarParser.PluginJar> replacement = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString());
+            writePluginJar(jar, "1.0.1");
+            List<PluginJarParser.PluginJar> replacement = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString());
 
-        assertEquals(1, replacement.size());
-        assertEquals("1.0.1", replacement.get(0).getVersion());
+            assertEquals(1, replacement.size());
+            assertEquals("1.0.1", replacement.get(0).getVersion());
+            assertTrue(holder.hasPluginClassLoader(jarKey, "1.0.0"));
+            assertThrows(IllegalStateException.class,
+                    () -> holder.replacePluginClassLoader(replacement.get(0), classLoader -> {
+                        throw new IllegalStateException("load failed");
+                    }));
+            assertTrue(holder.hasPluginClassLoader(jarKey, "1.0.0"));
+            assertEquals(1, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).size());
+        } finally {
+            holder.removePluginClassLoader(jarKey);
+        }
     }
 
     private void writePluginJar(final Path jar, final String version) throws IOException {

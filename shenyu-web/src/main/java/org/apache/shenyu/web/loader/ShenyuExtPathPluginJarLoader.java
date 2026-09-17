@@ -59,7 +59,6 @@ public class ShenyuExtPathPluginJarLoader {
                 if (holder.hasPluginClassLoader(absolutePath, uploadPluginJar.getVersion())) {
                     continue;
                 }
-                holder.removePluginClassLoader(absolutePath);
             }
             uploadPluginJars.add(uploadPluginJar);
         }

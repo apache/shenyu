@@ -42,6 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for CommonPluginDataSubscriber.
@@ -85,6 +88,30 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.onSubscribe(pluginData);
         assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
+    }
+
+    @Test
+    public void testReplaceExtendPluginDataHandlerWithoutOverridingBuiltInHandler() {
+        PluginDataHandler firstExtendHandler = mock(PluginDataHandler.class);
+        PluginDataHandler replacementExtendHandler = mock(PluginDataHandler.class);
+        PluginDataHandler builtInHandler = mock(PluginDataHandler.class);
+        PluginDataHandler conflictingExtendHandler = mock(PluginDataHandler.class);
+        when(firstExtendHandler.pluginNamed()).thenReturn(mockPluginName1);
+        when(replacementExtendHandler.pluginNamed()).thenReturn(mockPluginName1);
+        when(builtInHandler.pluginNamed()).thenReturn(mockPluginName2);
+        when(conflictingExtendHandler.pluginNamed()).thenReturn(mockPluginName2);
+        CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(
+                Lists.newArrayList(builtInHandler), eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
+
+        subscriber.putExtendPluginDataHandler(Lists.newArrayList(firstExtendHandler));
+        subscriber.putExtendPluginDataHandler(Lists.newArrayList(replacementExtendHandler, conflictingExtendHandler));
+        subscriber.onSelectorSubscribe(SelectorData.builder().pluginName(mockPluginName1).build());
+        subscriber.onSelectorSubscribe(SelectorData.builder().pluginName(mockPluginName2).build());
+
+        verify(replacementExtendHandler).handlerSelector(org.mockito.ArgumentMatchers.any());
+        verify(firstExtendHandler, never()).handlerSelector(org.mockito.ArgumentMatchers.any());
+        verify(builtInHandler).handlerSelector(org.mockito.ArgumentMatchers.any());
+        verify(conflictingExtendHandler, never()).handlerSelector(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
