@@ -154,7 +154,9 @@ public class AppAuthServiceImpl implements AppAuthService {
         appAuthDO.setUserId(authApplyDTO.getUserId());
         appAuthDO.setPhone(authApplyDTO.getPhone());
         appAuthDO.setExtInfo(authApplyDTO.getExtInfo());
-        appAuthDO.setOpen(authApplyDTO.getOpen());
+        if (Objects.nonNull(authApplyDTO.getOpen())) {
+            appAuthDO.setOpen(authApplyDTO.getOpen());
+        }
         appAuthMapper.updateSelective(appAuthDO);
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());

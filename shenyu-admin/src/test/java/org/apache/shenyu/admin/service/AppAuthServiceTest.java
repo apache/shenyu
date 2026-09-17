@@ -112,6 +112,28 @@ public final class AppAuthServiceTest {
     }
 
     @Test
+    public void testApplyUpdatePreservesOpenWhenOmitted() {
+        final AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        authApplyDTO.setOpen(null);
+        authApplyDTO.setPathList(null);
+        appAuthDO.setOpen(true);
+        given(appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
+        given(authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName()))
+                .willReturn(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
+        given(authPathMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+        given(authParamMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+
+        ShenyuAdminResult result = appAuthService.applyUpdate(authApplyDTO);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, result.getMessage());
+        verify(appAuthMapper).updateSelective(argThat(updated -> Boolean.TRUE.equals(updated.getOpen())));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);
+        assertEquals(Boolean.TRUE, publishedData.getOpen());
+    }
+
+    @Test
     public void testUpdateDetail() {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
