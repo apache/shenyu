@@ -100,9 +100,15 @@ public final class ExtensionLoader<T> {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") without @" + SPI.class + " Annotation");
         }
         LoaderKey key = new LoaderKey(clazz, cl);
-        return (ExtensionLoader<T>) LOADERS.computeIfAbsent(key, ignored -> new ExtensionLoader<>(clazz, cl));
+        ExtensionLoader<?> extensionLoader = LOADERS.get(key);
+        if (Objects.isNull(extensionLoader)) {
+            ExtensionLoader<T> newExtensionLoader = new ExtensionLoader<>(clazz, cl);
+            ExtensionLoader<?> previous = LOADERS.putIfAbsent(key, newExtensionLoader);
+            extensionLoader = Objects.isNull(previous) ? newExtensionLoader : previous;
+        }
+        return (ExtensionLoader<T>) extensionLoader;
     }
-    
+
     /**
      * Gets extension loader.
      *
@@ -112,6 +118,15 @@ public final class ExtensionLoader<T> {
      */
     public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz) {
         return getExtensionLoader(clazz, ExtensionLoader.class.getClassLoader());
+    }
+
+    /**
+     * Remove extension loaders associated with a class loader.
+     *
+     * @param classLoader class loader to evict
+     */
+    public static void removeExtensionLoaders(final ClassLoader classLoader) {
+        LOADERS.keySet().removeIf(key -> key.classLoader == classLoader);
     }
     
     /**
