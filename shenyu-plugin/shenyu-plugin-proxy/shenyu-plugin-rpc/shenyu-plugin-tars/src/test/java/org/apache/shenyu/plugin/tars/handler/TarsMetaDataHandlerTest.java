@@ -33,6 +33,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -83,7 +84,29 @@ public class TarsMetaDataHandlerTest {
         try (MockedStatic<ApplicationConfigCache> cacheStatic = mockStatic(ApplicationConfigCache.class)) {
             cacheStatic.when(ApplicationConfigCache::getInstance).thenReturn(cache);
             tarsMetaDataHandler.handle(metaData);
+            clearInvocations(cache);
+            tarsMetaDataHandler.handle(metaData);
             verify(cache, never()).initPrx(metaData);
+        }
+    }
+
+    @Test
+    public void testHandleRefreshesUpdatedService() {
+        final ApplicationConfigCache cache = mock(ApplicationConfigCache.class);
+        final TarsInvokePrxList invokePrxList = new TarsInvokePrxList();
+        invokePrxList.addTarsInvokePrxList(Collections.singletonList(
+                new TarsInvokePrx(new Object(), "127.0.0.1:8080", metaData.getAppName())));
+        when(cache.get(anyString())).thenReturn(invokePrxList);
+        final MetaData updated = new MetaData("id", "testApp", "contextPath",
+                "path", RpcTypeEnum.TARS.getName(), "updatedService", "method1",
+                "parameterTypes", metaData.getRpcExt(), false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+
+        try (MockedStatic<ApplicationConfigCache> cacheStatic = mockStatic(ApplicationConfigCache.class)) {
+            cacheStatic.when(ApplicationConfigCache::getInstance).thenReturn(cache);
+            tarsMetaDataHandler.handle(metaData);
+            clearInvocations(cache);
+            tarsMetaDataHandler.handle(updated);
+            verify(cache).initPrx(updated);
         }
     }
 

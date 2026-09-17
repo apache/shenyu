@@ -44,12 +44,19 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
         boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()));
-        if (!exist) {
+        if (!exist || requiresRefresh(metaExist, metaData)) {
             ApplicationConfigCache.getInstance().initPrx(metaData);
         }
-        if (Objects.isNull(metaExist)) {
-            META_DATA.put(metaData.getPath(), metaData);
-        }
+        META_DATA.put(metaData.getPath(), metaData);
+    }
+
+    private boolean requiresRefresh(final MetaData current, final MetaData updated) {
+        return Objects.nonNull(current) && (!Objects.equals(current.getAppName(), updated.getAppName())
+                || !Objects.equals(current.getContextPath(), updated.getContextPath())
+                || !Objects.equals(current.getServiceName(), updated.getServiceName())
+                || !Objects.equals(current.getMethodName(), updated.getMethodName())
+                || !Objects.equals(current.getParameterTypes(), updated.getParameterTypes())
+                || !Objects.equals(current.getRpcExt(), updated.getRpcExt()));
     }
     
     @Override
