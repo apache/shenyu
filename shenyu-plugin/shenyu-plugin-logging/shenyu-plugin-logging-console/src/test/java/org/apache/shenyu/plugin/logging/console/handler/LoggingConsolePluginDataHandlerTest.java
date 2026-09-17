@@ -24,6 +24,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -69,5 +71,16 @@ public final class LoggingConsolePluginDataHandlerTest {
         handler.removeRule(ruleData);
 
         assertNull(LoggingConsolePluginDataHandler.CACHED_HANDLE.get().obtainHandle(cacheKey));
+    }
+
+    @Test
+    public void testDisabledMaskDoesNotCompileKeywords() {
+        ruleData.setHandle("{\"keyword\":\"[\",\"maskStatus\":false}");
+
+        assertDoesNotThrow(() -> handler.handlerRule(ruleData));
+        LoggingConsoleRuleHandle ruleHandle = LoggingConsolePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        assertNotNull(ruleHandle);
+        assertFalse(ruleHandle.isDesensitized());
     }
 }

@@ -50,8 +50,8 @@ public final class LoggingConsoleRuleHandle {
         this.desensitized = StringUtils.isNotBlank(keyword) && Boolean.TRUE.equals(ruleHandle.getMaskStatus());
         this.dataDesensitizeAlg = Objects.nonNull(ruleHandle.getMaskType())
                 ? ruleHandle.getMaskType() : DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg();
-        this.keyWordMatch = new KeyWordMatch(StringUtils.isBlank(keyword)
-                ? Collections.emptySet() : new HashSet<>(Arrays.asList(keyword.split(";"))));
+        this.keyWordMatch = new KeyWordMatch(desensitized
+                ? new HashSet<>(Arrays.asList(keyword.split(";"))) : Collections.emptySet());
     }
 
     /**
