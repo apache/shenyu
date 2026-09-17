@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForBody;
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForSingleWord;
+import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeQueryParams;
 
 /**
  * abstract log collector,Contains common methods.
@@ -212,7 +213,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         logInfo.setResponseBody(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestHeader(desensitizeForBody(logInfo.getRequestHeader(), keyWordMatch, desensitizedAlg));
         logInfo.setResponseHeader(desensitizeForBody(logInfo.getResponseHeader(), keyWordMatch, desensitizedAlg));
-        logInfo.setQueryParams(desensitizeForBody(logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
+        logInfo.setQueryParams(desensitizeQueryParams(logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestBody(desensitizeForBody(logInfo.getRequestBody(), keyWordMatch, desensitizedAlg));
         logInfo.setResponseBody(desensitizeForBody(logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
     }
