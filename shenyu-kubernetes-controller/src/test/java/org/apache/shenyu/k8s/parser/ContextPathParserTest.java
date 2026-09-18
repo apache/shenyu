@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -112,18 +113,14 @@ public final class ContextPathParserTest {
         ShenyuMemoryConfig result = contextPathParser.parse(ingress, coreV1Api);
         List<IngressConfiguration> routeConfigs = result.getRouteConfigList();
 
-        Assertions.assertNotNull(routeConfigs);
-        Assertions.assertEquals(1, routeConfigs.size());
-
-        IngressConfiguration routeConfig = routeConfigs.get(0);
-        List<RuleData> ruleDataList = routeConfig.getRuleDataList();
-
-        // The critical assertion: ruleDataList should be empty when
-        // no context-path annotation is present. Before the fix, it would
-        // contain a rule with paramValue "null/**" which never matches real traffic.
-        Assertions.assertTrue(ruleDataList.isEmpty(),
-                "Rule list should be empty when context-path annotation is absent, "
-                + "but got rules: " + ruleDataList);
+        // When the context-path annotation is absent, no route configurations
+        // should be produced at all — not even selectors without rules.
+        // Before the fix, a phantom ContextPath selector was created (without rules)
+        // because the IngressReconciler persists selectors even when ruleDataList is empty.
+        Assertions.assertTrue(
+                Objects.isNull(routeConfigs) || routeConfigs.isEmpty(),
+                "No route configs should be produced when context-path annotation is absent, "
+                + "but got: " + routeConfigs);
     }
 
     /**

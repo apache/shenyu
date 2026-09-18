@@ -106,20 +106,21 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     }
                     OperatorEnum operator = getOperator(path.getPathType());
                     ConditionData pathCondition = createPathCondition(pathPath, operator);
-                    List<ConditionData> conditionList = new ArrayList<>(2);
-                    if (Objects.nonNull(hostCondition)) {
-                        conditionList.add(hostCondition);
-                    }
-                    conditionList.add(pathCondition);
-                    SelectorData selectorData = createSelectorData(pathPath, conditionList);
                     String contextPath = annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH);
-                    List<RuleData> ruleDataList = new ArrayList<>();
-                    if (Objects.nonNull(contextPath)) {
-                        ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(contextPath, annotations);
-                        List<ConditionData> ruleConditionList = getRuleConditionList(contextPath);
-                        RuleData ruleData = createRuleData(contextPath, contextMappingRuleHandle, ruleConditionList);
-                        ruleDataList.add(ruleData);
+                    if (Objects.isNull(contextPath)) {
+                        continue;
                     }
+                    List<ConditionData> conditionListWithPath = new ArrayList<>(2);
+                    if (Objects.nonNull(hostCondition)) {
+                        conditionListWithPath.add(hostCondition);
+                    }
+                    conditionListWithPath.add(pathCondition);
+                    SelectorData selectorData = createSelectorData(pathPath, conditionListWithPath);
+                    ContextMappingRuleHandle contextMappingRuleHandle = createContextMappingRuleHandle(contextPath, annotations);
+                    List<ConditionData> ruleConditionList = getRuleConditionList(contextPath);
+                    List<RuleData> ruleDataList = new ArrayList<>(1);
+                    RuleData ruleData = createRuleData(contextPath, contextMappingRuleHandle, ruleConditionList);
+                    ruleDataList.add(ruleData);
                     res.add(new IngressConfiguration(selectorData, ruleDataList, null));
                 }
             }
