@@ -52,6 +52,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -162,14 +164,33 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
                 LOG.debug("HttpResponse cancelled.");
             }
         });
+        HttpResponse response = waitForResponse(execute);
+        return new ShenyuResponse(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),
+                Arrays.stream(response.getAllHeaders()).collect(Collectors.groupingBy(Header::getName, HashMap::new,
+                        Collectors.mapping(Header::getValue, Collectors.toCollection(LinkedList::new)))),
+                EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8), request);
+    }
+
+    private HttpResponse waitForResponse(final Future<HttpResponse> responseFuture) throws IOException {
         try {
-            HttpResponse response = execute.get();
-            return new ShenyuResponse(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),
-                    Arrays.stream(response.getAllHeaders()).collect(Collectors.groupingBy(Header::getName, HashMap::new,
-                            Collectors.mapping(Header::getValue, Collectors.toCollection(LinkedList::new)))),
-                    EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8), request);
-        } catch (Exception e) {
-            throw new ShenyuException(e);
+            return responseFuture.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while waiting for the HTTP response", e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
+            }
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            throw new IOException("HTTP request failed", cause);
+        } catch (CancellationException e) {
+            throw new IOException("HTTP request was cancelled", e);
         }
     }
 
