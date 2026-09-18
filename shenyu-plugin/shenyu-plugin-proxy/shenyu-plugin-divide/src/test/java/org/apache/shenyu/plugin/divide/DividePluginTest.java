@@ -169,7 +169,6 @@ public final class DividePluginTest {
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
-        loadBalancerFactoryMockedStatic.close();
     }
 
     /**
