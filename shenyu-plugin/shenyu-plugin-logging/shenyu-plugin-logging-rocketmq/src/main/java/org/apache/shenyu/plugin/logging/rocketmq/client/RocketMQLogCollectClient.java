@@ -61,16 +61,17 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
      * init producer.
      *
      * @param config rocketmq props
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final RocketMQLogCollectConfig.RocketMQLogConfig config) {
+    public boolean initClient0(@NonNull final RocketMQLogCollectConfig.RocketMQLogConfig config) {
         String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
         String producerGroup = config.getProducerGroup();
         producerGroup = Optional.ofNullable(producerGroup).orElse(DEFAULT_PRODUCER_GROUP);
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init RocketMQLogCollectClient error, please check topic or nameserverAddress");
-            return;
+            return false;
         }
         this.topic = topic;
         producer = new DefaultMQProducer(producerGroup, getAclRPCHook(config));
@@ -80,10 +81,12 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
         try {
             producer.start();
             LOG.info("init RocketMQLogCollectClient success");
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
+            producer.shutdown();
+            return false;
         }
+        return true;
     }
 
     /**
@@ -106,6 +109,10 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
      */
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        if (Objects.isNull(producer)) {
+            LOG.warn("RocketMQ producer is not initialized.");
+            return;
+        }
         logs.forEach(log -> {
             String logTopic = Optional.ofNullable(LoggingRocketMQPluginDataHandler.getSelectApiConfigMap().get(log.getSelectorId()))
                     .map(apiConfig -> StringUtils.defaultIfBlank(apiConfig.getTopic(), topic)

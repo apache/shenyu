@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -187,7 +188,10 @@ public class AiResponseTransformerTemplate {
                     // as the response body is not yet available when the template is assembled)
                     ObjectNode responseNode = objectMapper.createObjectNode();
                     responseNode.set("headers", responseHeadersJson);
-                    responseNode.put("status", exchange.getResponse().getStatusCode().value());
+                    HttpStatusCode responseStatus = exchange.getResponse().getStatusCode();
+                    if (Objects.nonNull(responseStatus)) {
+                        responseNode.put("status", responseStatus.value());
+                    }
                     responseNode.put("body", "");
 
                     rootNode.set("request", requestNode);

@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -109,7 +110,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
         final ScaleRuleDO scaleRuleDO = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
         int rows = scaleRuleMapper.insertSelective(scaleRuleDO);
         if (rows > 0) {
-            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+            scaleRuleCache.addOrUpdateRuleToCache(scaleRuleDO);
         }
         return rows;
     }
@@ -122,10 +123,15 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
+        final ScaleRuleDO before = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        int rows = scaleRuleMapper.updateByPrimaryKey(after);
+        int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
         if (rows > 0) {
-            scaleRuleCache.addOrUpdateRuleToCache(ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO));
+            if (Objects.nonNull(before) && !Objects.equals(before.getMetricName(), after.getMetricName())) {
+                scaleRuleCache.removeRulesFromCache(List.of(before.getMetricName()));
+            }
+            final ScaleRuleDO persisted = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
+            scaleRuleCache.addOrUpdateRuleToCache(persisted);
         }
         return rows;
     }

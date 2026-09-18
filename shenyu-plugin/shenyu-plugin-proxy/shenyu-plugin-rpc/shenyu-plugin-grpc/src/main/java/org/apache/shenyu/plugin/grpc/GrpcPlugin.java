@@ -47,6 +47,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -97,7 +99,10 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         Context.current().withValue(GrpcConstants.GRPC_SELECTOR_ID, selector.getId()).attach();
         Context.current().withValue(GrpcConstants.GRPC_RULE_ID, rule.getId()).attach();
         Context.current().withValue(GrpcConstants.GRPC_REMOTE_ADDRESS,
-                Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress()).attach();
+                Optional.ofNullable(exchange.getRequest().getRemoteAddress())
+                        .map(InetSocketAddress::getAddress)
+                        .map(InetAddress::getHostAddress)
+                        .orElse(StringUtils.EMPTY)).attach();
 
         GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);

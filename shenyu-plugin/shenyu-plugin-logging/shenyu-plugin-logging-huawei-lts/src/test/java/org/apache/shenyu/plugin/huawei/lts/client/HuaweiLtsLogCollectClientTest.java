@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.huawei.lts.client;
 
+import com.huaweicloud.lts.appender.JavaSDKAppender;
+import com.huaweicloud.lts.producer.Producer;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.huawei.lts.config.HuaweiLogCollectConfig;
@@ -24,6 +26,8 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -67,6 +71,25 @@ public class HuaweiLtsLogCollectClientTest {
         field.setAccessible(true);
         Assertions.assertEquals(field.get(huaweiLtsLogCollectClient), "logGroupId");
         huaweiLtsLogCollectClient.close();
+    }
+
+    @Test
+    public void testGiveUpExtraLongSingleLogUsesDedicatedConfig() throws Exception {
+        huaweiLtsLogConfig.setEnableLocalTest("true");
+        huaweiLtsLogConfig.setSetGiveUpExtraLongSingleLog("false");
+        JavaSDKAppender.Builder builder = Mockito.mock(JavaSDKAppender.Builder.class, Mockito.RETURNS_SELF);
+        JavaSDKAppender appender = Mockito.mock(JavaSDKAppender.class);
+        Producer producer = Mockito.mock(Producer.class);
+        Mockito.when(builder.builder()).thenReturn(appender);
+        Mockito.when(appender.getProducer()).thenReturn(producer);
+
+        try (MockedStatic<JavaSDKAppender> appenderMockedStatic = Mockito.mockStatic(JavaSDKAppender.class)) {
+            appenderMockedStatic.when(JavaSDKAppender::custom).thenReturn(builder);
+            huaweiLtsLogCollectClient.initClient0(huaweiLtsLogConfig);
+        }
+
+        Mockito.verify(builder).setEnableLocalTest(true);
+        Mockito.verify(builder).setGiveUpExtraLongSingleLog(false);
     }
 
     @Test

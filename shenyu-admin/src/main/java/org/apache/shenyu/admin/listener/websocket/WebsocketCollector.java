@@ -46,10 +46,11 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
-import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -66,6 +67,8 @@ public class WebsocketCollector {
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
     
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
+
+    private static final Map<Session, SessionSendQueue> SESSION_SEND_QUEUES = Maps.newConcurrentMap();
     
     private static final String SESSION_KEY = "sessionKey";
     
@@ -249,6 +252,7 @@ public class WebsocketCollector {
                     sendMessageBySession(session, message);
                 } else {
                     SESSION_SET.remove(session);
+                    removeSessionSendQueue(session);
                 }
             }
         } else {
@@ -279,6 +283,7 @@ public class WebsocketCollector {
                     sendMessageBySession(session, message);
                 } else {
                     NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
+                    removeSessionSendQueue(session);
                 }
             }
         } else {
@@ -288,16 +293,20 @@ public class WebsocketCollector {
         
     }
     
-    private static synchronized void sendMessageBySession(final Session session, final String message) {
-        try {
-            session.getBasicRemote().sendText(message);
-        } catch (IOException e) {
-            LOG.error("websocket send result is exception: ", e);
+    private static void sendMessageBySession(final Session session, final String message) {
+        SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
+    }
+
+    private static void removeSessionSendQueue(final Session session) {
+        SessionSendQueue sendQueue = SESSION_SEND_QUEUES.remove(session);
+        if (Objects.nonNull(sendQueue)) {
+            sendQueue.close();
         }
     }
     
     private void clearSession(final Session session) {
         SESSION_SET.remove(session);
+        removeSessionSendQueue(session);
         String namespaceId = getNamespaceId(session);
         if (StringUtils.isNotBlank(namespaceId)) {
             NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
@@ -323,6 +332,72 @@ public class WebsocketCollector {
             return json;
         } catch (Exception e) {
             return json;
+        }
+    }
+
+    private static final class SessionSendQueue {
+
+        private final Session session;
+
+        private final Queue<String> messages = new ArrayDeque<>();
+
+        private boolean sending;
+
+        private boolean closed;
+
+        private SessionSendQueue(final Session session) {
+            this.session = session;
+        }
+
+        private void send(final String message) {
+            boolean startSending = false;
+            synchronized (this) {
+                if (closed) {
+                    return;
+                }
+                messages.offer(message);
+                if (!sending) {
+                    sending = true;
+                    startSending = true;
+                }
+            }
+            if (startSending) {
+                sendNext();
+            }
+        }
+
+        private void sendNext() {
+            final String message;
+            synchronized (this) {
+                if (closed) {
+                    sending = false;
+                    messages.clear();
+                    return;
+                }
+                message = messages.poll();
+                if (Objects.isNull(message)) {
+                    sending = false;
+                    return;
+                }
+            }
+            try {
+                session.getAsyncRemote().sendText(message, result -> {
+                    if (!result.isOK()) {
+                        LOG.error("websocket send result is exception: ", result.getException());
+                    }
+                    sendNext();
+                });
+            } catch (RuntimeException ex) {
+                LOG.error("websocket send result is exception: ", ex);
+                sendNext();
+            }
+        }
+
+        private void close() {
+            synchronized (this) {
+                closed = true;
+                messages.clear();
+            }
         }
     }
 }

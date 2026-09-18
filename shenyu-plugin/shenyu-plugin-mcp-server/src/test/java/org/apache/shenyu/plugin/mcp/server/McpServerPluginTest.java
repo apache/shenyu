@@ -24,7 +24,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +48,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -85,6 +88,11 @@ class McpServerPluginTest {
     @BeforeEach
     void setUp() {
         mcpServerPlugin = new McpServerPlugin(shenyuMcpServerManager, messageReaders);
+    }
+
+    @AfterEach
+    void tearDown() {
+        ShenyuMcpExchangeHolder.clear();
     }
 
     @Test
@@ -201,5 +209,49 @@ class McpServerPluginTest {
 
         final String allowHeaders = webExchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Headers");
         assertTrue(allowHeaders.toLowerCase(Locale.ROOT).contains("xrequest"));
+    }
+
+    /**
+     * A JSON-RPC notification routed through the real plugin path must be
+     * acknowledged with HTTP 202 and an empty body, not a serialized null
+     * response body.
+     */
+    @Test
+    void testStreamableHttpNotificationReturnsEmptyBodyViaPluginPath() {
+        final ShenyuMcpServerManager manager = new ShenyuMcpServerManager();
+        manager.getOrCreateStreamableHttpTransport("/mcp/streamablehttp");
+        final McpServerPlugin plugin = new McpServerPlugin(manager,
+                HandlerStrategies.withDefaults().messageReaders());
+
+        // Initialize a session through the plugin path.
+        final MockServerWebExchange initExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("/mcp/streamablehttp")
+                .header("Content-Type", "application/json")
+                .body("{\"jsonrpc\":\"2.0\",\"id\":\"init-1\",\"method\":\"initialize\","
+                        + "\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},"
+                        + "\"clientInfo\":{\"name\":\"test-client\",\"version\":\"1.0.0\"}}}"));
+        initExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+
+        StepVerifier.create(plugin.doExecute(initExchange, chain, selector, rule))
+                .verifyComplete();
+
+        assertEquals(HttpStatus.OK, initExchange.getResponse().getStatusCode());
+        final String sessionId = initExchange.getResponse().getHeaders().getFirst("Mcp-Session-Id");
+        assertNotNull(sessionId);
+
+        // Send a notification on the same session through the plugin path.
+        final MockServerWebExchange notificationExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("/mcp/streamablehttp")
+                .header("Content-Type", "application/json")
+                .header("Mcp-Session-Id", sessionId)
+                .body("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\",\"params\":{}}"));
+        notificationExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+
+        StepVerifier.create(plugin.doExecute(notificationExchange, chain, selector, rule))
+                .verifyComplete();
+
+        assertEquals(HttpStatus.ACCEPTED, notificationExchange.getResponse().getStatusCode());
+        assertEquals(sessionId, notificationExchange.getResponse().getHeaders().getFirst("Mcp-Session-Id"));
+        assertEquals("", notificationExchange.getResponse().getBodyAsString().block());
     }
 }
