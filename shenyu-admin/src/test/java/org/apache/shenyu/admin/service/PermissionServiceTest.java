@@ -26,7 +26,10 @@ import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
+import org.apache.shenyu.admin.model.event.resource.BatchResourceDeletedEvent;
+import org.apache.shenyu.admin.model.event.role.BatchRoleDeletedEvent;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -57,8 +60,11 @@ import java.util.stream.Stream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -165,5 +171,35 @@ public final class PermissionServiceTest {
     public void testGetAuthPermByUserName() {
         final Set<String> result = permissionServiceImplUnderTest.getAuthPermByUserName("admin");
         assertThat(result.size(), is(1));
+    }
+
+    @Test
+    public void testOnResourcesDeletedEmpty() {
+        final BatchResourceDeletedEvent event = new BatchResourceDeletedEvent(Collections.emptyList(), "admin");
+        permissionServiceImplUnderTest.onResourcesDeleted(event);
+        verify(mockPermissionMapper, never()).deleteByResourceId(anyList());
+    }
+
+    @Test
+    public void testOnResourcesDeleted() {
+        final ResourceDO resourceDO = ResourceDO.builder().id("resource-1").build();
+        final BatchResourceDeletedEvent event = new BatchResourceDeletedEvent(Collections.singletonList(resourceDO), "admin");
+        permissionServiceImplUnderTest.onResourcesDeleted(event);
+        verify(mockPermissionMapper).deleteByResourceId(Collections.singletonList("resource-1"));
+    }
+
+    @Test
+    public void testOnRoleDeletedEmpty() {
+        final BatchRoleDeletedEvent event = new BatchRoleDeletedEvent(Collections.emptyList(), "admin");
+        permissionServiceImplUnderTest.onRoleDeleted(event);
+        verify(mockPermissionMapper, never()).deleteByObjectIds(anyList());
+    }
+
+    @Test
+    public void testOnRoleDeleted() {
+        final RoleDO roleDO = RoleDO.builder().id("role-1").build();
+        final BatchRoleDeletedEvent event = new BatchRoleDeletedEvent(Collections.singletonList(roleDO), "admin");
+        permissionServiceImplUnderTest.onRoleDeleted(event);
+        verify(mockPermissionMapper).deleteByObjectIds(Collections.singletonList("role-1"));
     }
 }

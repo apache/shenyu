@@ -61,8 +61,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
-    private Long beginTime;
-
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
@@ -136,8 +134,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
             )).doOnError(throwable -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
-            beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+            long beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream, beginTime
             ));
         }
         return chain.execute(exchange);
@@ -195,7 +193,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.setLag(lag);
     }
 
-    private void successResponseTrigger(final Upstream upstream) {
+    private void successResponseTrigger(final Upstream upstream, final long beginTime) {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
     }

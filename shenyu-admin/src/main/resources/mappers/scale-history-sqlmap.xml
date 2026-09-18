@@ -54,22 +54,19 @@
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into scale_history (config_id, num, `action`, 
+    insert into scale_history (id, config_id, num, `action`,
       date_created, date_updated, msg
       )
-    values (#{configId,jdbcType=INTEGER}, #{num,jdbcType=INTEGER}, #{action,jdbcType=INTEGER}, 
+    values (#{id,jdbcType=VARCHAR}, #{configId,jdbcType=INTEGER}, #{num,jdbcType=INTEGER}, #{action,jdbcType=INTEGER},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}, #{msg,jdbcType=LONGVARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ScaleHistoryDO">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.String">
-      SELECT LAST_INSERT_ID()
-    </selectKey>
     insert into scale_history
     <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
       <if test="configId != null">
         config_id,
       </if>
@@ -90,6 +87,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
       <if test="configId != null">
         #{configId,jdbcType=INTEGER},
       </if>
