@@ -51,7 +51,8 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
         String shenyuRuleId = invocation.getAttachment(Constants.DUBBO_RULE_ID);
         String remoteAddressIp = invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS);
         List<DubboUpstream> dubboUpstreams = ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(shenyuSelectorId);
-        DubboRuleHandle dubboRuleHandle = ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId);
+        DubboRuleHandle dubboRuleHandle = Objects.requireNonNullElseGet(
+                ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(shenyuRuleId), DubboRuleHandle::newInstance);
         // if gray list is not empty,just use load balance to choose one.
         if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
             Upstream upstream = LoadbalancerUtils.getForNoExchange(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(shenyuSelectorId), dubboRuleHandle.getLoadBalance());
