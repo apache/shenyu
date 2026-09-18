@@ -21,6 +21,7 @@ import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -33,6 +34,8 @@ import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -139,6 +142,39 @@ public final class CrossFilterTest {
         StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
+    }
+
+    @Test
+    public void testOptionsRequestFromDisallowedOriginContinuesFilterChain() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .options("http://localhost:8080")
+                .header(HttpHeaders.ORIGIN, "http://disallowed.example")
+                .build());
+        WebFilterChain chain = mock(WebFilterChain.class);
+        when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(new CrossFilter(new CrossFilterConfig()).filter(exchange, chain))
+                .verifyComplete();
+
+        verify(chain).filter(exchange);
+        Assertions.assertNull(exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void testOptionsRequestFromAllowedOriginIsHandled() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .options("http://localhost:8080")
+                .header(HttpHeaders.ORIGIN, "http://allowed.example")
+                .build());
+        WebFilterChain chain = mock(WebFilterChain.class);
+        CrossFilterConfig filterConfig = new CrossFilterConfig();
+        filterConfig.setAllowedAnyOrigin(true);
+
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chain))
+                .verifyComplete();
+
+        verify(chain, never()).filter(exchange);
+        Assertions.assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
     }
 
     @Test
