@@ -144,7 +144,11 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                 LOG.error("kafka push logs error", e);
             }
         });
-        producer.flush();
+        try {
+            producer.flush();
+        } catch (Exception e) {
+            LOG.error("kafka flush logs error", e);
+        }
     }
 
     private ProducerRecord<String, String> toProducerRecord(final String logTopic, final ShenyuRequestLog log) {
