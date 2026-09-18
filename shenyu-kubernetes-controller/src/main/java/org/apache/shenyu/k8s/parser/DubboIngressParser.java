@@ -332,12 +332,14 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
     private List<DubboUpstream> parseUpstream(final V1HTTPIngressPath path, final String namespace, final Map<String, String> annotations) {
         List<DubboUpstream> upstreamList = new ArrayList<>();
-        if (Objects.nonNull(path) && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
+        if (Objects.nonNull(path) && Objects.nonNull(path.getBackend())
+                && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
             String serviceName = path.getBackend().getService().getName();
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocols = null;
-            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
+            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)
+                    && Objects.nonNull(annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY))) {
                 protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
