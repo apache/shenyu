@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
@@ -53,6 +54,8 @@ import java.util.Objects;
 public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
+
+    private static final String RESOURCE_ALREADY_EXISTS_EXCEPTION = "resource_already_exists_exception";
     
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -151,6 +154,12 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
     public void createIndex(final String indexName) {
         try {
             client.indices().create(c -> c.index(indexName));
+        } catch (ElasticsearchException e) {
+            if (RESOURCE_ALREADY_EXISTS_EXCEPTION.equals(e.error().type())) {
+                LogUtils.info(LOG, "index {} already exists", indexName);
+                return;
+            }
+            throw e;
         } catch (IOException e) {
             LogUtils.error(LOG, "create index error:", e);
         }
