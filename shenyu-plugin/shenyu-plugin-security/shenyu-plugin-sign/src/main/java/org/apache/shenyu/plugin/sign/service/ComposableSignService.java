@@ -231,8 +231,20 @@ public class ComposableSignService implements SignService {
     }
 
     private boolean skipSignExchange(final ShenyuContext context) {
-        return StringUtils.equals(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.DIVIDE.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), context.getRpcType()), context.getModule());
+        return matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.SPRING_CLOUD.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.DIVIDE.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.WEB_SOCKET.getName());
+    }
+
+    static boolean matchesDefaultModule(final String module, final String rpcType, final String pluginName) {
+        if (StringUtils.isEmpty(module)) {
+            return false;
+        }
+        String resolvedRpcType = String.valueOf(rpcType);
+        int separatorIndex = pluginName.length();
+        return module.length() == separatorIndex + resolvedRpcType.length() + 1
+                && module.startsWith(pluginName)
+                && module.charAt(separatorIndex) == '-'
+                && module.regionMatches(separatorIndex + 1, resolvedRpcType, 0, resolvedRpcType.length());
     }
 }
