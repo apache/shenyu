@@ -118,6 +118,11 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         return !"GET".equals(httpMethod) && !"HEAD".equals(httpMethod);
     }
 
+    protected boolean shouldFailover(final ServerWebExchange exchange, final int statusCode) {
+        String retryStrategy = exchange.getAttribute(Constants.RETRY_STRATEGY);
+        return RetryEnum.FAILOVER.getName().equals(retryStrategy) && statusCode >= 500 && statusCode < 600;
+    }
+
     protected void duplicateHeaders(final ServerWebExchange exchange, final HttpHeaders headers, final UniqueHeaderEnum uniqueHeaderEnum) {
         final String duplicateHeader = exchange.getAttribute(uniqueHeaderEnum.getName());
         if (StringUtils.isEmpty(duplicateHeader)) {
