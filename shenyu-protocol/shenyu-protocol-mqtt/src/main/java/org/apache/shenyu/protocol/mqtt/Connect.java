@@ -26,8 +26,13 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 import static io.netty.channel.ChannelFutureListener.CLOSE_ON_FAILURE;
 import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
@@ -74,9 +79,30 @@ public class Connect extends MessageType {
 
         // record connect
         Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
+
+        boolean cleanSession = msg.variableHeader().isCleanSession();
+        SessionRepository sessionRepository = Singleton.INST.get(SessionRepository.class);
+        MqttSession session = sessionRepository.get(clientId);
+        // MQTT-3.2.2-6/7: session present is only true when the client connects
+        // with cleanSession=0 and the server holds a stored session for the clientId.
+        boolean sessionPresent = !cleanSession && Objects.nonNull(session);
+        if (cleanSession) {
+            // A clean-session connect must discard any previously stored session.
+            session = new MqttSession(clientId, true);
+            sessionRepository.add(clientId, session);
+        } else if (Objects.isNull(session)) {
+            session = new MqttSession(clientId, false);
+            sessionRepository.add(clientId, session);
+        }
+        if (sessionPresent && !session.getTopics().isEmpty()) {
+            // Resume the stored subscriptions (with their QoS) for the new channel.
+            Singleton.INST.get(SubscribeRepository.class)
+                    .add(ctx.channel(), session.getTopicSubscriptions());
+        }
+
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
                 .returnCode(MqttConnectReturnCode.CONNECTION_ACCEPTED)
-                .sessionPresent(true)
+                .sessionPresent(sessionPresent)
                 .build();
         ctx.writeAndFlush(ackMessage);
         setConnected(ctx.channel(), true);
