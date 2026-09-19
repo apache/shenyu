@@ -19,12 +19,15 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.service.impl.NamespacePluginServiceImpl;
+import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +56,46 @@ public final class NamespacePluginServiceTest {
 
     @Mock
     private PluginHandleMapper pluginHandleMapper;
+
+    @Mock
+    private PluginMapper pluginMapper;
+
+    @Mock
+    private NamespacePluginEventPublisher namespacePluginEventPublisher;
+
+    @Test
+    public void testCreatePublishesCreatedEvent() {
+        String namespaceId = "namespaceId";
+        String pluginId = "pluginId";
+        PluginDO pluginDO = Mockito.mock(PluginDO.class);
+        NamespacePluginVO created = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(pluginDO.getId()).thenReturn(pluginId);
+        Mockito.when(pluginMapper.selectById(pluginId)).thenReturn(pluginDO);
+        Mockito.when(namespacePluginRelMapper.insertSelective(Mockito.any())).thenReturn(1);
+        Mockito.when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId))
+                .thenReturn(null, created);
+
+        NamespacePluginVO result = namespacePluginService.create(namespaceId, pluginId);
+
+        Assertions.assertSame(created, result);
+        Mockito.verify(namespacePluginEventPublisher).onCreated(created);
+    }
+
+    @Test
+    public void testCreateDoesNotPublishWhenInsertFails() {
+        String namespaceId = "namespaceId";
+        String pluginId = "pluginId";
+        PluginDO pluginDO = Mockito.mock(PluginDO.class);
+        Mockito.when(pluginDO.getId()).thenReturn(pluginId);
+        Mockito.when(pluginMapper.selectById(pluginId)).thenReturn(pluginDO);
+        Mockito.when(namespacePluginRelMapper.insertSelective(Mockito.any())).thenReturn(0);
+
+        NamespacePluginVO result = namespacePluginService.create(namespaceId, pluginId);
+
+        Assertions.assertNull(result);
+        Mockito.verify(namespacePluginEventPublisher, Mockito.never()).onCreated(Mockito.any(NamespacePluginVO.class));
+        Mockito.verify(namespacePluginRelMapper).selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+    }
 
     @Test
     public void testActivePluginSnapshot() {
