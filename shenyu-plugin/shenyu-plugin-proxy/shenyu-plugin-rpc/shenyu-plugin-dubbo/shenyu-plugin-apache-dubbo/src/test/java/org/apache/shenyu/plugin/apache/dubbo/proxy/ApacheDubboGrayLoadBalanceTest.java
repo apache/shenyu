@@ -107,5 +107,11 @@ public class ApacheDubboGrayLoadBalanceTest {
         ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
                 .removeHandle(Constants.DUBBO_SELECTOR_ID);
         assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
+
+        ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
+                .cachedHandle(Constants.DUBBO_SELECTOR_ID, Collections.singletonList(DubboUpstream.builder().build()));
+        ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get()
+                .removeHandle(Constants.DUBBO_RULE_ID);
+        assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
     }
 }
