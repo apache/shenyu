@@ -29,6 +29,11 @@ import org.springframework.expression.spel.SpelEvaluationException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -39,6 +44,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.oneOf;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -181,6 +187,47 @@ public class ExpressionGeneratorTest {
         
         assertThat(generator.generate("expression|#req.json.address.country", mockRequest),
                 is("\"CHINA\""));
+    }
+
+    @Test
+    public void testGenerateDataFromReqConcurrently() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            assertConcurrentRequestValues(executor, generator, "expression|#req.json.value");
+            assertConcurrentRequestValues(executor, new StandardExpressionGenerator(), "standardSPELExpression|#req.json.value");
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    private void assertConcurrentRequestValues(final ExecutorService executor, final Generator<String> testGenerator,
+                                               final String rule) throws Exception {
+        for (int i = 0; i < 100; i++) {
+            MockRequest firstRequest = createRequest("first");
+            MockRequest secondRequest = createRequest("second");
+            CyclicBarrier barrier = new CyclicBarrier(2);
+
+            Future<String> firstResult = submitRequest(executor, testGenerator, rule, firstRequest, barrier);
+            Future<String> secondResult = submitRequest(executor, testGenerator, rule, secondRequest, barrier);
+
+            assertEquals("\"first\"", firstResult.get(5, TimeUnit.SECONDS));
+            assertEquals("\"second\"", secondResult.get(5, TimeUnit.SECONDS));
+        }
+    }
+
+    private Future<String> submitRequest(final ExecutorService executor, final Generator<String> testGenerator,
+                                         final String rule,
+                                         final MockRequest mockRequest, final CyclicBarrier barrier) {
+        return executor.submit(() -> {
+            barrier.await();
+            return testGenerator.generate(rule, mockRequest);
+        });
+    }
+
+    private MockRequest createRequest(final String value) {
+        byte[] body = ("{\"value\":\"" + value + "\"}").getBytes(StandardCharsets.UTF_8);
+        return MockRequest.Builder.builder().body(body).build();
     }
     
     @Test
