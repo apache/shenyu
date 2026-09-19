@@ -68,15 +68,7 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
             synchronized (this.body) {
                 this.body.append(chunk);
             }
-            // Complete future early for efficiency, but safely check if already done
-            if (!future.isDone()) {
-                synchronized (future) {
-                    if (!future.isDone()) {
-                        future.complete(applyResponseTemplate(this.body.toString()));
-                    }
-                }
-            }
-        }));
+        }).doOnComplete(() -> completeFuture()));
     }
 
     @Override
@@ -88,6 +80,11 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     @Override
     public Mono<Void> setComplete() {
         LOG.debug("Response completed for session: {}", sessionId);
+        completeFuture();
+        return super.setComplete();
+    }
+
+    private void completeFuture() {
         String responseBody;
         synchronized (this.body) {
             responseBody = this.body.toString();
@@ -100,7 +97,6 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
                 }
             }
         }
-        return super.setComplete();
     }
 
     private String applyResponseTemplate(final String responseBody) {
