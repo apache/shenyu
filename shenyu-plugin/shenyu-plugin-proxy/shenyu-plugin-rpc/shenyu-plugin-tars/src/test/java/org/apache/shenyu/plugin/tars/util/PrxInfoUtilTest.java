@@ -76,5 +76,7 @@ public class PrxInfoUtilTest {
                 PrxInfoUtil.getParamArray(new Class<?>[]{int.class, double.class, long.class, short.class, byte.class, boolean.class, char.class, float.class},
                         new String[]{"int", "double", "long", "short", "byte", "boolean", "char", "float"},
                         "{\"int\":11,\"double\":1.321321312,\"long\":131231312,\"short\":11,\"byte\":0,\"boolean\":false,\"char\":'a',\"float\":1.321321312}"));
+        assertArrayEquals(new Object[]{true}, PrxInfoUtil.getParamArray(new Class<?>[]{boolean.class},
+                new String[]{"boolean"}, "{\"boolean\":\"true\"}"));
     }
 }
