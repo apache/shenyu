@@ -92,13 +92,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         if (getMultiClient()) {
             String selectorId = log.getSelectorId();
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
-            if (bufferQueue.size() < bufferSize) {
-                bufferQueue.add(log);
-            }
+            bufferQueue.offer(log);
         } else {
-            if (bufferQueue.size() < bufferSize) {
-                bufferQueue.add(log);
-            }
+            bufferQueue.offer(log);
         }
     }
 
