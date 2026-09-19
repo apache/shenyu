@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.mapper;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
+import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -58,6 +60,27 @@ class NamespacePluginRelMapperTest extends AbstractSpringIntegrationTest {
         List<NamespacePluginVO> queryResults = namespacePluginRelMapper.selectByIds(List.of(id));
         Assertions.assertEquals(1, queryResults.size());
         Assertions.assertEquals(id, queryResults.get(0).getId());
+    }
+
+    @Test
+    void testSelectByQueryWithStringNamespaceId() {
+        String namespaceId = "namespace-text";
+        NamespacePluginRelDO relation = NamespacePluginRelDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .pluginId("plugin")
+                .namespaceId(namespaceId)
+                .config("{}")
+                .sort(0)
+                .enabled(false)
+                .dateCreated(new Timestamp(new java.util.Date().getTime()))
+                .dateUpdated(new Timestamp(new java.util.Date().getTime()))
+                .build();
+        namespacePluginRelMapper.insertSelective(relation);
+
+        NamespacePluginQuery query = new NamespacePluginQuery(null, null, new PageParameter(), namespaceId);
+        List<NamespacePluginVO> results = namespacePluginRelMapper.selectByQuery(query);
+        Assertions.assertFalse(results.isEmpty());
+        Assertions.assertEquals(namespaceId, results.get(0).getNamespaceId());
     }
 
     @Test

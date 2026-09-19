@@ -154,6 +154,22 @@ public final class MetaDataServiceTest {
     }
 
     /**
+     * Test case for enabled only updates metadata that belongs to the current namespace.
+     */
+    @Test
+    public void testEnabledOnlyUpdatesIdsWithinNamespace() {
+        List<String> ids = Lists.newArrayList("id-in-current-namespace", "id-in-other-namespace");
+        MetaDataDO inNamespace = MetaDataDO.builder().id("id-in-current-namespace").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(Collections.singletonList(inNamespace));
+        when(metaDataMapper.updateEnableBatch(Collections.singletonList("id-in-current-namespace"), true)).thenReturn(1);
+        String msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(StringUtils.EMPTY, msg);
+        verify(metaDataMapper).updateEnableBatch(Collections.singletonList("id-in-current-namespace"), true);
+        verify(publisher).onEnabled(Collections.singletonList(inNamespace));
+    }
+
+    /**
      * Test case for syncData.
      */
     @Test

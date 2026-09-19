@@ -95,7 +95,7 @@
                 AND enabled = #{enabled, jdbcType=TINYINT}
             </if>
             <if test="namespaceId != null">
-                AND namespace_id = #{namespaceId, jdbcType=TINYINT}
+                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
             </if>
         </where>
         ) npr
