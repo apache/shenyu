@@ -18,8 +18,10 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -181,6 +183,25 @@ public final class WebClientPluginTest {
                 .verify();
     }
 
+    /**
+     * Test that request headers use the configured deduplication strategy.
+     */
+    @Test
+    public void testRequestHeadersAreDeduplicated() {
+        final String headerName = "X-Test-Header";
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header(headerName, "first", "last")
+                .build());
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), headerName);
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.RETAIN_LAST);
+
+        StepVerifier.create(webClientPlugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
+                .expectNextCount(1)
+                .verifyComplete();
+
+        assertEquals(Collections.singletonList("last"), captor.getValue().headers().get(headerName));
+    }
+
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
@@ -195,6 +216,7 @@ public final class WebClientPluginTest {
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.OK);
         when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToFlux(DataBuffer.class)).thenReturn(Flux.empty());
         when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just("{\"test\":\"ok\"}".getBytes()));
         when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
