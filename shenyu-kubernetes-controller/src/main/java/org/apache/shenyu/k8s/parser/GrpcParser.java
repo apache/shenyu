@@ -252,8 +252,15 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                     SelectorData selectorData = createSelectorData(pathPath, conditionList, grpcUpstreamList);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<MetaData> metaDataList = new ArrayList<>();
+                    if (Objects.isNull(labels)) {
+                        return res;
+                    }
                     for (String label : labels.keySet()) {
-                        Map<String, String> metadataAnnotations = serviceLister.namespace(namespace).get(labels.get(label)).getMetadata().getAnnotations();
+                        V1Service service = serviceLister.namespace(namespace).get(labels.get(label));
+                        if (Objects.isNull(service)) {
+                            continue;
+                        }
+                        Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleConditionList, annotations);
                         MetaData metaData = parseMetaData(metadataAnnotations);
