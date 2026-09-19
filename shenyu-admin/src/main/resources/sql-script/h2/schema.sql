@@ -611,6 +611,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('53', 'aiRequestTransformer', 'Ai', 65, null, '0');
 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('61', 'mcpServer', 'MCP', 180, null, '0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('67', 'agentGateway', 'Ai', 198, null, '0');
 
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}');
@@ -1041,6 +1042,8 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1722804548510507243', '53', 'model', 'model', 2, 3, 3, '{"required":"0","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1722804548510507244', '53', 'content', 'content', 2, 3, 4, '{"required":"0","rule":""}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1942847622591684610', '67', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1942847622591684611', '67', 'responseRequestId', 'responseRequestId', 3, 2, 1, '{"required":"0","defaultValue":"false","rule":""}');
 
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1722804548510507245', '53', 'provider', 'provider', 3, 2, 0, '{"required":"0","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1722804548510507246', '53', 'baseUrl', 'baseUrl', 2, 2, 1, '{"required":"0","rule":""}');
@@ -1484,6 +1487,7 @@ INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `con
 
 
 INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1907261515594055680','649330b6-c2d7-4edc-be8e-8a54df9eb385','61', NULL, 180, 0, '2025-04-02 10:39:15.000', '2025-04-02 10:39:15.000');
+INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1907261515594055681','649330b6-c2d7-4edc-be8e-8a54df9eb385','67', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 
 
 
@@ -1632,6 +1636,19 @@ INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`
 ('1844026099075534903','1844026099075534849','SHENYU.BUTTON.AI.PROXY.APIKEY.DELETE','','','',2,3,'',1,0,'system:aiProxyApiKey:delete',1,'2022-05-25 18:02:58.000','2022-05-25 18:02:58.000'),
 ('1844026099075534904','1844026099075534849','SHENYU.BUTTON.AI.PROXY.APIKEY.DISABLE','','','',2,4,'',1,0,'system:aiProxyApiKey:disable',1,'2022-05-25 18:02:58.000','2022-05-25 18:02:58.000');
 
+-- agentGateway menu and buttons
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1942847622591684620', '1346775491550474240', 'agentGateway', 'agentGateway', '/plug/agentGateway', 'agentGateway', 1, 0, 'pic-center', 0, 0, '', 1, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES
+('1942847622591684621','1942847622591684620','SHENYU.BUTTON.PLUGIN.SELECTOR.ADD','','','',2,0,'',1,0,'plugin:agentGatewaySelector:add',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684622','1942847622591684620','SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY','','','',2,0,'',1,0,'plugin:agentGatewaySelector:query',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684623','1942847622591684620','SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT','','','',2,0,'',1,0,'plugin:agentGatewaySelector:edit',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684624','1942847622591684620','SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE','','','',2,0,'',1,0,'plugin:agentGatewaySelector:delete',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684625','1942847622591684620','SHENYU.BUTTON.PLUGIN.RULE.ADD','','','',2,0,'',1,0,'plugin:agentGatewayRule:add',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684626','1942847622591684620','SHENYU.BUTTON.PLUGIN.RULE.QUERY','','','',2,0,'',1,0,'plugin:agentGatewayRule:query',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684627','1942847622591684620','SHENYU.BUTTON.PLUGIN.RULE.EDIT','','','',2,0,'',1,0,'plugin:agentGatewayRule:edit',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684628','1942847622591684620','SHENYU.BUTTON.PLUGIN.RULE.DELETE','','','',2,0,'',1,0,'plugin:agentGatewayRule:delete',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000'),
+('1942847622591684629','1942847622591684620','SHENYU.BUTTON.PLUGIN.SYNCHRONIZE','','','',2,0,'',1,0,'plugin:agentGateway:modify',1,'2026-09-19 00:00:00.000','2026-09-19 00:00:00.000');
+
 -- grant aiProxy menu to admin role
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`)
 VALUES ('1697146860569542741', '1346358560427216896', '1844026099075534849', '2023-08-31 06:59:01.000', '2023-08-31 06:59:01.000');
@@ -1651,3 +1668,15 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303917', '1346358560427216896', '1844026099075534902', '2023-08-31 06:59:01.000', '2023-08-31 06:59:01.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303918', '1346358560427216896', '1844026099075534903', '2023-08-31 06:59:01.000', '2023-08-31 06:59:01.000');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303919', '1346358560427216896', '1844026099075534904', '2023-08-31 06:59:01.000', '2023-08-31 06:59:01.000');
+
+-- grant agentGateway menu and buttons to admin role
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684630', '1346358560427216896', '1942847622591684620', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684631', '1346358560427216896', '1942847622591684621', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684632', '1346358560427216896', '1942847622591684622', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684633', '1346358560427216896', '1942847622591684623', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684634', '1346358560427216896', '1942847622591684624', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684635', '1346358560427216896', '1942847622591684625', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684636', '1346358560427216896', '1942847622591684626', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684637', '1346358560427216896', '1942847622591684627', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684638', '1346358560427216896', '1942847622591684628', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1942847622591684639', '1346358560427216896', '1942847622591684629', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
