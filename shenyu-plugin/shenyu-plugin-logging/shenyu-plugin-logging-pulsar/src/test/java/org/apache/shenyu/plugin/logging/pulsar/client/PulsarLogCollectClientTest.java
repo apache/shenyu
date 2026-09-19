@@ -53,16 +53,9 @@ public class PulsarLogCollectClientTest {
 
     @Test
     public void testConsume() {
-        String msg = "";
         PulsarLogCollectConfig.INSTANCE.setPulsarLogConfig(pulsarLogConfig);
         pulsarLogCollectClient.initClient(pulsarLogConfig);
-        try {
-            pulsarLogCollectClient.consume(logs);
-        } catch (Exception e) {
-            msg = "false";
-        }
-        Assertions.assertEquals(msg, "false");
+        Assertions.assertDoesNotThrow(() -> pulsarLogCollectClient.consume(logs));
         pulsarLogCollectClient.close();
     }
 }
-

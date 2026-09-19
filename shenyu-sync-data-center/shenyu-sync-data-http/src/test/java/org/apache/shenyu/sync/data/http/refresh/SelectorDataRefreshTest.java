@@ -28,6 +28,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,5 +81,16 @@ public final class SelectorDataRefreshTest {
         selectorDataRefresh.refresh(selectorDataList);
         selectorDataList.add(selectorData);
         selectorDataRefresh.refresh(selectorDataList);
+    }
+
+    @Test
+    public void testRefreshWithNullData() {
+        final PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
+        final SelectorDataRefresh selectorDataRefresh = new SelectorDataRefresh(subscriber);
+        // data is null, should not throw NPE; cache is still refreshed unconditionally, then return early
+        selectorDataRefresh.refresh((List<SelectorData>) null);
+        verify(subscriber).refreshSelectorDataAll();
+        verify(subscriber, never()).unSelectorSubscribe(any(SelectorData.class));
+        verify(subscriber, never()).onSelectorSubscribe(any(SelectorData.class));
     }
 }

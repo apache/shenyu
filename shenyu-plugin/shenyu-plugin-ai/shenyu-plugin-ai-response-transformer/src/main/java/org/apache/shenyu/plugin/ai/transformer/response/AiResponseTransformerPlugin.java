@@ -48,6 +48,8 @@ import reactor.core.publisher.Mono;
 import org.reactivestreams.Publisher;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -309,17 +312,13 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 String contentEncoding = exchange.getResponse().getHeaders().getFirst("Content-Encoding");
                 if ("gzip".equalsIgnoreCase(contentEncoding)) {
                     LOG.debug("Detected gzip encoding, attempting to decompress");
-                    try {
-                        java.io.ByteArrayInputStream bis = new java.io.ByteArrayInputStream(bytes);
-                        java.util.zip.GZIPInputStream gis = new java.util.zip.GZIPInputStream(bis);
-                        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                    try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
+                         ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                         byte[] buffer = new byte[1024];
                         int len;
                         while ((len = gis.read(buffer)) > 0) {
                             bos.write(buffer, 0, len);
                         }
-                        gis.close();
-                        bos.close();
                         originalResponseBody = bos.toString(StandardCharsets.UTF_8.name());
                         LOG.debug("Decompressed response body: {}", originalResponseBody);
                     } catch (Exception e) {

@@ -90,7 +90,8 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     @Override
     public InstanceInfoVO findById(final String id) {
-        return null;
+        InstanceInfoDO instanceInfoDO = instanceInfoMapper.selectById(id);
+        return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
@@ -108,9 +109,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
         instanceInfoVO.setInstanceInfo(instanceInfoDO.getInstanceInfo());
+        instanceInfoVO.setInstanceState(instanceInfoDO.getInstanceState());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());
         instanceInfoVO.setDateUpdated(instanceInfoDO.getDateUpdated());
+        instanceInfoVO.setLastHeartBeatTime(instanceInfoDO.getLastHeartBeatTime());
         return instanceInfoVO;
     }
 }

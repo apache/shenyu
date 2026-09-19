@@ -33,6 +33,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import java.util.List;
 import java.util.Objects;
 
+import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 import static io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader.from;
 
 /**
@@ -42,7 +43,8 @@ public class Unsubscribe extends MessageType {
 
     @Override
     public void unsubscribe(final ChannelHandlerContext ctx, final MqttUnsubscribeMessage msg) {
-        if (isConnected()) {
+        if (!isConnected(ctx.channel())) {
+            ctx.channel().close().addListener(FIRE_EXCEPTION_ON_FAILURE);
             return;
         }
         List<String> topics = msg.payload().topics();
