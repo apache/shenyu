@@ -50,7 +50,7 @@ public final class ExtensionLoader<T> {
     
     private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
     
-    private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
+    private static final Map<LoaderKey, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 
     private static final Comparator<Holder<Object>> HOLDER_COMPARATOR = Comparator.comparing(Holder::getOrder);
 
@@ -99,14 +99,16 @@ public final class ExtensionLoader<T> {
         if (!clazz.isAnnotationPresent(SPI.class)) {
             throw new IllegalArgumentException("extension clazz (" + clazz + ") without @" + SPI.class + " Annotation");
         }
-        ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADERS.get(clazz);
-        if (Objects.nonNull(extensionLoader)) {
-            return extensionLoader;
+        LoaderKey key = new LoaderKey(clazz, cl);
+        ExtensionLoader<?> extensionLoader = LOADERS.get(key);
+        if (Objects.isNull(extensionLoader)) {
+            ExtensionLoader<T> newExtensionLoader = new ExtensionLoader<>(clazz, cl);
+            ExtensionLoader<?> previous = LOADERS.putIfAbsent(key, newExtensionLoader);
+            extensionLoader = Objects.isNull(previous) ? newExtensionLoader : previous;
         }
-        LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz, cl));
-        return (ExtensionLoader<T>) LOADERS.get(clazz);
+        return (ExtensionLoader<T>) extensionLoader;
     }
-    
+
     /**
      * Gets extension loader.
      *
@@ -116,6 +118,15 @@ public final class ExtensionLoader<T> {
      */
     public static <T> ExtensionLoader<T> getExtensionLoader(final Class<T> clazz) {
         return getExtensionLoader(clazz, ExtensionLoader.class.getClassLoader());
+    }
+
+    /**
+     * Remove extension loaders associated with a class loader.
+     *
+     * @param classLoader class loader to evict
+     */
+    public static void removeExtensionLoaders(final ClassLoader classLoader) {
+        LOADERS.keySet().removeIf(key -> key.classLoader == classLoader);
     }
     
     /**
@@ -366,6 +377,35 @@ public final class ExtensionLoader<T> {
          */
         public Integer getOrder() {
             return order;
+        }
+    }
+
+    private static final class LoaderKey {
+
+        private final Class<?> extensionClass;
+
+        private final ClassLoader classLoader;
+
+        private LoaderKey(final Class<?> extensionClass, final ClassLoader classLoader) {
+            this.extensionClass = extensionClass;
+            this.classLoader = classLoader;
+        }
+
+        @Override
+        public boolean equals(final Object object) {
+            if (this == object) {
+                return true;
+            }
+            if (!(object instanceof LoaderKey)) {
+                return false;
+            }
+            LoaderKey loaderKey = (LoaderKey) object;
+            return extensionClass == loaderKey.extensionClass && classLoader == loaderKey.classLoader;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * System.identityHashCode(extensionClass) + System.identityHashCode(classLoader);
         }
     }
     
