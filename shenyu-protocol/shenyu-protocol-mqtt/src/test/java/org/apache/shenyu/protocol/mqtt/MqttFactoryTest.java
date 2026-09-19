@@ -40,6 +40,8 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribePayload;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository.WillEntry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -62,15 +65,24 @@ public final class MqttFactoryTest {
 
     private static final String PASSWORD = "factory-password";
 
+    private ChannelRepository channelRepository;
+
+    private WillRepository willRepository;
+
     @BeforeEach
     public void setUp() {
-        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        channelRepository = new ChannelRepository();
+        willRepository = new WillRepository();
+        Singleton.INST.single(ChannelRepository.class, channelRepository);
+        Singleton.INST.single(WillRepository.class, willRepository);
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
     }
 
     @AfterEach
     public void tearDown() {
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(WillRepository.class, new WillRepository());
         new MqttContext().setUserName(null);
         new MqttContext().setPassword(null);
     }
@@ -149,13 +161,18 @@ public final class MqttFactoryTest {
     }
 
     @Test
-    public void disconnectShouldFallThroughToNoOp() {
+    public void disconnectShouldBeDispatchedAndClearConnectionState() {
         EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
         ChannelHandlerContext ctx = channel.pipeline().lastContext();
+        channelRepository.add(channel, CLIENT_ID);
+        willRepository.add(channel, new WillEntry("status/will", "goodbye".getBytes(StandardCharsets.UTF_8), 1, true));
 
         new MqttFactory(new MqttMessage(fixedHeader(MqttMessageType.DISCONNECT)), ctx).connect();
+        channel.runPendingTasks();
 
-        assertTrue(channel.isActive());
+        assertFalse(channel.isActive());
+        assertNull(channelRepository.get(channel));
+        assertNull(willRepository.get(channel));
         channel.finishAndReleaseAll();
     }
 

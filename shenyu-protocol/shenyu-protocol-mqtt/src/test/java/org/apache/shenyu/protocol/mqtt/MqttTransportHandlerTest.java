@@ -27,6 +27,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.junit.jupiter.api.AfterAll;
@@ -41,8 +42,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,7 +80,7 @@ public final class MqttTransportHandlerTest {
     private WillRepository willRepository;
 
     @BeforeAll
-    static void setUp() {
+    static void setUpAll() {
         channelRepository = new ChannelRepository();
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         new MqttContext().setUserName(USER_NAME);
@@ -85,7 +88,7 @@ public final class MqttTransportHandlerTest {
     }
 
     @AfterAll
-    static void tearDown() {
+    static void tearDownAll() {
         new MqttContext().setUserName(null);
         new MqttContext().setPassword(null);
     }
@@ -120,6 +123,24 @@ public final class MqttTransportHandlerTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test
+    public void channelInactiveIsPropagatedOnlyOnce() {
+        AtomicInteger fired = new AtomicInteger();
+        EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler(), new ChannelInboundHandlerAdapter() {
+            @Override
+            public void channelInactive(final ChannelHandlerContext context) throws Exception {
+                fired.incrementAndGet();
+                super.channelInactive(context);
+            }
+        });
+
+        channel.close();
+        channel.runPendingTasks();
+
+        assertEquals(1, fired.get());
+        channel.finishAndReleaseAll();
+    }
+
     private MqttConnectMessage connectMessage() {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
@@ -131,16 +152,17 @@ public final class MqttTransportHandlerTest {
     }
 
     @BeforeEach
-    public void setUp2() {
+    public void setUp() {
         handler = new MqttTransportHandler();
         willRepository = new WillRepository();
         Singleton.INST.single(WillRepository.class, willRepository);
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
-        when(ctx.channel()).thenReturn(channel);
+        // shared stub: only the tests driving the handler with a mock context use it
+        lenient().when(ctx.channel()).thenReturn(channel);
     }
 
     @AfterEach
-    public void tearDown2() {
+    public void tearDown() {
         Singleton.INST.single(WillRepository.class, new WillRepository());
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
     }

@@ -21,36 +21,33 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.protocol.mqtt.TopicMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Topic and channel association.
+ *
+ * <p>Subscription updates are applied synchronously on the calling (event loop) thread and every
+ * topic holds a copy-on-write list of channels, so a subscription is visible to publish as soon as
+ * {@code add} returns and concurrent subscribers of the same topic never overwrite each other.
  */
 public class SubscribeRepository implements BaseRepository<List<String>, List<Channel>> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SubscribeRepository.class);
 
     private static final Map<String, List<Channel>> TOPIC_CHANNEL_FACTORY = new ConcurrentHashMap<>();
 
     @Override
     public void add(final List<String> topics, final List<Channel> channels) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(s -> {
-            List<Channel> list = get(s);
-            list.addAll(channels);
-            TOPIC_CHANNEL_FACTORY.put(s, list);
-        }));
+        topics.forEach(topic -> TOPIC_CHANNEL_FACTORY
+                .computeIfAbsent(topic, key -> new CopyOnWriteArrayList<>())
+                .addAll(channels));
     }
 
     /**
@@ -59,16 +56,14 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream().forEach(s -> {
-            List<Channel> channels = get(s.topicName());
-            channels.add(channel);
-            TOPIC_CHANNEL_FACTORY.put(s.topicName(), channels);
-        }));
+        mqttTopicSubscription.forEach(subscription -> TOPIC_CHANNEL_FACTORY
+                .computeIfAbsent(subscription.topicName(), key -> new CopyOnWriteArrayList<>())
+                .add(channel));
     }
 
     @Override
     public void remove(final List<String> topics) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(TOPIC_CHANNEL_FACTORY::remove));
+        topics.forEach(TOPIC_CHANNEL_FACTORY::remove);
     }
 
     /**
@@ -77,19 +72,19 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @param channel channel
      */
     public void remove(final List<String> topics, final Channel channel) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
+        topics.forEach(topic -> {
             List<Channel> channels = TOPIC_CHANNEL_FACTORY.get(topic);
             if (CollectionUtils.isNotEmpty(channels)) {
                 channels.remove(channel);
             }
-        }));
+        });
     }
 
     @Override
     public List<Channel> get(final List<String> topics) {
-        Set<Channel> channels = new CopyOnWriteArraySet<>();
-        topics.parallelStream().forEach(s -> channels.addAll(TOPIC_CHANNEL_FACTORY.get(s)));
-        return new CopyOnWriteArrayList<>(channels);
+        Set<Channel> channels = new LinkedHashSet<>();
+        topics.forEach(topic -> channels.addAll(TOPIC_CHANNEL_FACTORY.getOrDefault(topic, Collections.emptyList())));
+        return new ArrayList<>(channels);
     }
 
     /**

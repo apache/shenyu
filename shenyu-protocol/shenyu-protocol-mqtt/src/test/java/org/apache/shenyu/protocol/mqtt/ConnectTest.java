@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -31,82 +30,83 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository.WillEntry;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_ACCEPTED;
+import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
+import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED;
 import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link Connect}.
  */
-@ExtendWith(MockitoExtension.class)
 public final class ConnectTest {
-
-    private static final String VALID_USER = "admin";
-
-    private static final String VALID_PASS = "pass123";
-
-    private static final String CLIENT_ID = "test-client";
 
     private static final String USER_NAME = "test-user";
 
     private static final String PASSWORD = "test-password";
 
-    private static ChannelRepository channelRepository;
+    private static final String CLIENT_ID = "test-client";
 
-    @Mock
-    private ChannelHandlerContext ctx;
+    private static final String WILL_TOPIC = "status/client-001";
 
-    @Mock
-    private Channel channel;
+    private final List<EmbeddedChannel> channels = new ArrayList<>();
 
-    @Mock
-    private MqttConnectMessage msg;
-
-    @Mock
-    private MqttConnectVariableHeader variableHeader;
-
-    @Mock
-    private MqttConnectPayload payload;
-
-    private Connect connect;
+    private ChannelRepository channelRepository;
 
     private WillRepository willRepository;
 
+    private Connect connect;
+
     @BeforeAll
-    static void setUp() {
-        channelRepository = new ChannelRepository();
-        Singleton.INST.single(ChannelRepository.class, channelRepository);
-        new MqttContext().setUserName(USER_NAME);
-        new MqttContext().setPassword(PASSWORD);
+    static void setUpCredentials() {
+        MqttContext mqttContext = new MqttContext();
+        mqttContext.setUserName(USER_NAME);
+        mqttContext.setPassword(PASSWORD);
     }
 
     @AfterAll
-    static void tearDown() {
-        new MqttContext().setUserName(null);
-        new MqttContext().setPassword(null);
+    static void clearCredentials() {
+        MqttContext mqttContext = new MqttContext();
+        mqttContext.setUserName(null);
+        mqttContext.setPassword(null);
+    }
+
+    @BeforeEach
+    public void setUp() {
+        connect = new Connect();
+        channelRepository = new ChannelRepository();
+        willRepository = new WillRepository();
+        Singleton.INST.single(ChannelRepository.class, channelRepository);
+        Singleton.INST.single(WillRepository.class, willRepository);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        for (EmbeddedChannel channel : channels) {
+            channelRepository.remove(channel);
+            willRepository.remove(channel);
+            channel.finishAndReleaseAll();
+        }
+        channels.clear();
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(WillRepository.class, new WillRepository());
     }
 
     @Test
@@ -126,99 +126,70 @@ public final class ConnectTest {
 
     @Test
     public void unsupportedProtocolVersionIsRejected() {
-        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
-        ChannelHandlerContext ctx = channel.pipeline().lastContext();
+        EmbeddedChannel channel = newChannel();
 
-        new Connect().connect(ctx, connectMessage("MQTT", 6));
+        connect.connect(context(channel), connectMessage("MQTT", 6));
 
         MqttConnAckMessage ackMessage = channel.readOutbound();
         assertNotNull(ackMessage);
-        assertEquals(CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION,
-                ackMessage.variableHeader().connectReturnCode());
-        channel.runPendingTasks();
-        assertFalse(channel.isActive());
+        assertEquals(CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION, ackMessage.variableHeader().connectReturnCode());
+        assertFalse(ackMessage.variableHeader().isSessionPresent());
+        assertChannelClosed(channel);
+        assertNull(channelRepository.get(channel));
+    }
+
+    @Test
+    public void emptyClientIdIsRejected() {
+        EmbeddedChannel channel = newChannel();
+
+        connect.connect(context(channel), buildConnectMessage(MqttVersion.MQTT_3_1_1.protocolName(),
+                MqttVersion.MQTT_3_1_1.protocolLevel(), "", PASSWORD, false, 0, false, null, null));
+
+        MqttConnAckMessage ackMessage = channel.readOutbound();
+        assertNotNull(ackMessage);
+        assertEquals(CONNECTION_REFUSED_IDENTIFIER_REJECTED, ackMessage.variableHeader().connectReturnCode());
+        assertChannelClosed(channel);
+        assertNull(channelRepository.get(channel));
+    }
+
+    @Test
+    public void invalidCredentialsAreRejected() {
+        EmbeddedChannel channel = newChannel();
+
+        connect.connect(context(channel), buildConnectMessage(MqttVersion.MQTT_3_1_1.protocolName(),
+                MqttVersion.MQTT_3_1_1.protocolLevel(), CLIENT_ID, "invalid-password", false, 0, false, null, null));
+
+        MqttConnAckMessage ackMessage = channel.readOutbound();
+        assertNotNull(ackMessage);
+        assertEquals(CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD, ackMessage.variableHeader().connectReturnCode());
+        assertChannelClosed(channel);
         assertNull(channelRepository.get(channel));
     }
 
     @Test
     public void duplicateConnectIsRejected() {
-        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
-        ChannelHandlerContext ctx = channel.pipeline().lastContext();
+        EmbeddedChannel channel = newChannel();
+        ChannelHandlerContext ctx = context(channel);
 
-        new Connect().connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel()));
+        connect.connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1));
         assertNotNull(channel.readOutbound());
 
-        new Connect().connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel()));
+        connect.connect(ctx, connectMessage(MqttVersion.MQTT_3_1_1));
 
-        channel.runPendingTasks();
-        assertFalse(channel.isActive());
+        assertChannelClosed(channel);
         assertNull(channel.readOutbound());
-    }
-
-    private void connectIsAccepted(final MqttVersion version) {
-        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
-        ChannelHandlerContext ctx = channel.pipeline().lastContext();
-
-        new Connect().connect(ctx, connectMessage(version.protocolName(), version.protocolLevel()));
-
-        MqttConnAckMessage ackMessage = channel.readOutbound();
-        assertNotNull(ackMessage);
-        assertEquals(CONNECTION_ACCEPTED, ackMessage.variableHeader().connectReturnCode());
-        assertTrue(ackMessage.variableHeader().isSessionPresent());
-        await().atMost(Duration.ofSeconds(5))
-                .until(() -> CLIENT_ID.equals(channelRepository.get(channel)));
-    }
-
-    private MqttConnectMessage connectMessage(final String protocolName, final int protocolLevel) {
-        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
-        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(protocolName, protocolLevel,
-                true, true, false, 0, false, false, 60);
-        MqttConnectPayload payload = new MqttConnectPayload(CLIENT_ID, null, null,
-                USER_NAME, PASSWORD.getBytes(StandardCharsets.UTF_8));
-        return new MqttConnectMessage(fixedHeader, variableHeader, payload);
-    }
-
-    @BeforeEach
-    public void setUp() {
-        connect = new Connect();
-        willRepository = new WillRepository();
-        channelRepository = new ChannelRepository();
-        Singleton.INST.single(WillRepository.class, willRepository);
-        Singleton.INST.single(ChannelRepository.class, channelRepository);
-
-        when(ctx.channel()).thenReturn(channel);
-        when(msg.variableHeader()).thenReturn(variableHeader);
-        when(msg.payload()).thenReturn(payload);
-        when(variableHeader.version()).thenReturn((int) MqttVersion.MQTT_3_1.protocolLevel());
-        when(payload.clientIdentifier()).thenReturn("test-client-001");
-        when(payload.userName()).thenReturn(VALID_USER);
-        when(payload.passwordInBytes()).thenReturn(VALID_PASS.getBytes());
-
-        MqttContext mqttContext = new MqttContext();
-        mqttContext.setUserName(VALID_USER);
-        mqttContext.setPassword(VALID_PASS);
-    }
-
-    @AfterEach
-    public void tearDown() {
-        Singleton.INST.single(WillRepository.class, new WillRepository());
-        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
     }
 
     @Test
     public void testStoresWillOnConnect() {
-        byte[] willMessage = "client disconnected unexpectedly".getBytes();
-        when(variableHeader.isWillFlag()).thenReturn(true);
-        when(variableHeader.willQos()).thenReturn(1);
-        when(variableHeader.isWillRetain()).thenReturn(true);
-        when(payload.willTopic()).thenReturn("status/client-001");
-        when(payload.willMessageInBytes()).thenReturn(willMessage);
+        EmbeddedChannel channel = newChannel();
+        byte[] willMessage = "client disconnected unexpectedly".getBytes(StandardCharsets.UTF_8);
 
-        connect.connect(ctx, msg);
+        connect.connect(context(channel), willConnectMessage(1, true, WILL_TOPIC, willMessage));
 
-        WillRepository.WillEntry will = willRepository.get(channel);
-        assertThat(will, notNullValue());
-        assertEquals("status/client-001", will.getTopic());
+        WillEntry will = willRepository.get(channel);
+        assertNotNull(will);
+        assertEquals(WILL_TOPIC, will.getTopic());
         assertArrayEquals(willMessage, will.getMessage());
         assertEquals(1, will.getQos());
         assertTrue(will.isRetain());
@@ -226,45 +197,98 @@ public final class ConnectTest {
 
     @Test
     public void testDoesNotStoreWillWhenWillFlagIsFalse() {
-        when(variableHeader.isWillFlag()).thenReturn(false);
+        EmbeddedChannel channel = newChannel();
 
-        connect.connect(ctx, msg);
+        connect.connect(context(channel), connectMessage(MqttVersion.MQTT_3_1_1));
 
-        WillRepository.WillEntry will = willRepository.get(channel);
-        assertThat(will, nullValue());
+        assertNull(willRepository.get(channel));
     }
 
     @Test
     public void testWillQosZero() {
-        byte[] willMessage = "qos0 will".getBytes();
-        when(variableHeader.isWillFlag()).thenReturn(true);
-        when(variableHeader.willQos()).thenReturn(0);
-        when(variableHeader.isWillRetain()).thenReturn(false);
-        when(payload.willTopic()).thenReturn("topic/qos0");
-        when(payload.willMessageInBytes()).thenReturn(willMessage);
+        EmbeddedChannel channel = newChannel();
+        byte[] willMessage = "qos0 will".getBytes(StandardCharsets.UTF_8);
 
-        connect.connect(ctx, msg);
+        connect.connect(context(channel), willConnectMessage(0, false, "topic/qos0", willMessage));
 
-        WillRepository.WillEntry will = willRepository.get(channel);
-        assertThat(will, notNullValue());
+        WillEntry will = willRepository.get(channel);
+        assertNotNull(will);
         assertEquals(0, will.getQos());
         assertFalse(will.isRetain());
     }
 
     @Test
     public void testWillRetainTrue() {
-        byte[] willMessage = "retained will".getBytes();
-        when(variableHeader.isWillFlag()).thenReturn(true);
-        when(variableHeader.willQos()).thenReturn(2);
-        when(variableHeader.isWillRetain()).thenReturn(true);
-        when(payload.willTopic()).thenReturn("topic/retained");
-        when(payload.willMessageInBytes()).thenReturn(willMessage);
+        EmbeddedChannel channel = newChannel();
+        byte[] willMessage = "retained will".getBytes(StandardCharsets.UTF_8);
 
-        connect.connect(ctx, msg);
+        connect.connect(context(channel), willConnectMessage(2, true, "topic/retained", willMessage));
 
-        WillRepository.WillEntry will = willRepository.get(channel);
-        assertThat(will, notNullValue());
-        assertTrue(will.isRetain());
+        WillEntry will = willRepository.get(channel);
+        assertNotNull(will);
         assertEquals(2, will.getQos());
+        assertTrue(will.isRetain());
+    }
+
+    @Test
+    public void willIsNotStoredWhenConnectIsRejected() {
+        EmbeddedChannel channel = newChannel();
+
+        connect.connect(context(channel), buildConnectMessage("MQTT", 6, CLIENT_ID, PASSWORD,
+                true, 1, true, WILL_TOPIC, "retained will".getBytes(StandardCharsets.UTF_8)));
+
+        assertNull(willRepository.get(channel));
+    }
+
+    private void connectIsAccepted(final MqttVersion version) {
+        EmbeddedChannel channel = newChannel();
+
+        connect.connect(context(channel), connectMessage(version));
+
+        MqttConnAckMessage ackMessage = channel.readOutbound();
+        assertNotNull(ackMessage);
+        assertEquals(CONNECTION_ACCEPTED, ackMessage.variableHeader().connectReturnCode());
+        assertTrue(ackMessage.variableHeader().isSessionPresent());
+        assertEquals(CLIENT_ID, channelRepository.get(channel));
+    }
+
+    private void assertChannelClosed(final EmbeddedChannel channel) {
+        channel.runPendingTasks();
+        assertFalse(channel.isActive());
+    }
+
+    private EmbeddedChannel newChannel() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        channels.add(channel);
+        return channel;
+    }
+
+    private ChannelHandlerContext context(final EmbeddedChannel channel) {
+        return channel.pipeline().lastContext();
+    }
+
+    private MqttConnectMessage connectMessage(final MqttVersion version) {
+        return connectMessage(version.protocolName(), version.protocolLevel());
+    }
+
+    private MqttConnectMessage connectMessage(final String protocolName, final int protocolLevel) {
+        return buildConnectMessage(protocolName, protocolLevel, CLIENT_ID, PASSWORD, false, 0, false, null, null);
+    }
+
+    private MqttConnectMessage willConnectMessage(final int willQos, final boolean willRetain,
+            final String willTopic, final byte[] willMessage) {
+        return buildConnectMessage(MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel(),
+                CLIENT_ID, PASSWORD, true, willQos, willRetain, willTopic, willMessage);
+    }
+
+    private MqttConnectMessage buildConnectMessage(final String protocolName, final int protocolLevel,
+            final String clientId, final String password, final boolean willFlag, final int willQos,
+            final boolean willRetain, final String willTopic, final byte[] willMessage) {
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(protocolName, protocolLevel,
+                true, true, willRetain, willQos, willFlag, false, 60);
+        MqttConnectPayload payload = new MqttConnectPayload(clientId, willTopic, willMessage,
+                USER_NAME, password.getBytes(StandardCharsets.UTF_8));
+        return new MqttConnectMessage(fixedHeader, variableHeader, payload);
     }
 }

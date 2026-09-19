@@ -26,20 +26,17 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.function.BooleanSupplier;
-import java.util.stream.Collectors;
-import java.time.Duration;
 import java.util.Collections;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for {@link SubscribeRepository}.
@@ -52,52 +49,45 @@ public final class SubscribeRepositoryTest {
 
     private static final String KEPT_TOPIC = "test/kept-topic";
 
+    private static final long JOIN_TIMEOUT_MILLIS = 5000L;
+
     private final SubscribeRepository repository = new SubscribeRepository();
 
     private final List<Channel> channels = new ArrayList<>();
 
-    private final List<String> topicFilters = new ArrayList<>();
+    private final Set<String> subscribedTopics = new LinkedHashSet<>();
+
+    @AfterEach
+    public void tearDown() {
+        // subscriptions live in a static map shared with the other test classes,
+        // so every topic has to be empty before the next test runs.
+        channels.forEach(channel -> subscribedTopics.forEach(
+                topic -> repository.remove(Collections.singletonList(topic), channel)));
+        subscribedTopics.forEach(topic -> assertTrue(repository.get(topic).isEmpty()));
+        channels.forEach(channel -> ((EmbeddedChannel) channel).finishAndReleaseAll());
+    }
 
     @Test
     public void removeRemovesChannelFromExistingTopic() {
-        SubscribeRepository repository = new SubscribeRepository();
-        Channel channel = mock(Channel.class);
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXISTING_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).contains(channel));
+        Channel channel = newSubscriber(EXISTING_TOPIC);
 
         repository.remove(Collections.singletonList(EXISTING_TOPIC), channel);
 
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).isEmpty());
+        assertTrue(repository.get(EXISTING_TOPIC).isEmpty());
     }
 
     @Test
     public void removeAbsentTopicDoesNotThrow() {
-        SubscribeRepository repository = new SubscribeRepository();
-        Channel channel = mock(Channel.class);
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(KEPT_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(KEPT_TOPIC).contains(channel));
+        Channel channel = newSubscriber(KEPT_TOPIC);
 
         assertDoesNotThrow(() -> repository.remove(Collections.singletonList(ABSENT_TOPIC), channel));
-        await().atMost(Duration.ofSeconds(5))
-                .until(() -> ForkJoinPool.commonPool().awaitQuiescence(1, TimeUnit.SECONDS));
 
         assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
         assertTrue(repository.get(KEPT_TOPIC).contains(channel));
     }
 
-    @AfterEach
-    void cleanup() throws InterruptedException {
-        if (!topicFilters.isEmpty()) {
-            for (Channel subscribed : channels) {
-                repository.remove(topicFilters, subscribed);
-            }
-            awaitUntil(() -> topicFilters.stream().allMatch(topic -> repository.get(topic).isEmpty()));
-        }
-        channels.forEach(channel -> ((EmbeddedChannel) channel).finishAndReleaseAll());
-    }
-
     @Test
-    void testGetChannelsByTopicExactMatch() throws InterruptedException {
+    public void testGetChannelsByTopicExactMatch() {
         Channel subscriber = newSubscriber("sport/tennis");
 
         assertTrue(repository.getChannelsByTopic("sport/tennis").contains(subscriber));
@@ -105,7 +95,7 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    void testGetChannelsByTopicWildcardMatch() throws InterruptedException {
+    public void testGetChannelsByTopicWildcardMatch() {
         Channel subscriber = newSubscriber("sport/+/player1");
 
         assertTrue(repository.getChannelsByTopic("sport/tennis/player1").contains(subscriber));
@@ -113,7 +103,7 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    void testGetChannelsByTopicDeduplicatesOverlappingSubscriptions() throws InterruptedException {
+    public void testGetChannelsByTopicDeduplicatesOverlappingSubscriptions() {
         Channel subscriber = newSubscriber("#", "sport/#");
 
         // MQTT requires at most one delivery per publish per client
@@ -122,23 +112,48 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    void testGetChannelsByTopicMultipleSubscribers() throws InterruptedException {
-        final Channel first = newSubscriber("sport/tennis");
-        final Channel second = new EmbeddedChannel();
-        channels.add(second);
-        topicFilters.add("sport/tennis");
-        repository.add(second, subscriptions("sport/tennis"));
-        awaitUntil(() -> repository.get("sport/tennis").containsAll(Arrays.asList(first, second)));
+    public void testGetChannelsByTopicMultipleSubscribers() {
+        Channel first = newSubscriber("sport/tennis");
+        Channel second = newSubscriber("sport/tennis");
 
         assertEquals(2, repository.getChannelsByTopic("sport/tennis").size());
+        assertTrue(repository.getChannelsByTopic("sport/tennis").containsAll(Arrays.asList(first, second)));
     }
 
-    private Channel newSubscriber(final String... topics) throws InterruptedException {
+    /**
+     * Regression guard: subscribing to a brand new topic must keep every client
+     * when several clients send SUBSCRIBE at the same time.
+     */
+    @Test
+    public void concurrentSubscribersOfTheSameNewTopicAreAllRegistered() throws InterruptedException {
+        int subscriberCount = 8;
+        String topic = "sport/concurrent";
+        subscribedTopics.add(topic);
+        CountDownLatch startGate = new CountDownLatch(1);
+        List<Thread> subscribingThreads = new ArrayList<>();
+        for (int i = 0; i < subscriberCount; i++) {
+            EmbeddedChannel subscriber = new EmbeddedChannel();
+            channels.add(subscriber);
+            Thread thread = new Thread(() -> subscribeAfter(startGate, subscriber, topic));
+            thread.start();
+            subscribingThreads.add(thread);
+        }
+
+        startGate.countDown();
+        for (Thread thread : subscribingThreads) {
+            thread.join(JOIN_TIMEOUT_MILLIS);
+            assertFalse(thread.isAlive(), "subscribing thread did not finish in time");
+        }
+
+        assertEquals(subscriberCount, repository.get(topic).size());
+        assertEquals(subscriberCount, repository.getChannelsByTopic(topic).size());
+    }
+
+    private Channel newSubscriber(final String... topics) {
         Channel subscriber = new EmbeddedChannel();
         channels.add(subscriber);
-        topicFilters.addAll(Arrays.asList(topics));
+        subscribedTopics.addAll(Arrays.asList(topics));
         repository.add(subscriber, subscriptions(topics));
-        awaitUntil(() -> Arrays.stream(topics).allMatch(topic -> repository.get(topic).contains(subscriber)));
         return subscriber;
     }
 
@@ -148,13 +163,13 @@ public final class SubscribeRepositoryTest {
                 .collect(Collectors.toList());
     }
 
-    private void awaitUntil(final BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 5000;
-        while (!condition.getAsBoolean()) {
-            if (System.currentTimeMillis() >= deadline) {
-                fail("condition not met within timeout");
-            }
-            Thread.sleep(10);
+    private void subscribeAfter(final CountDownLatch startGate, final Channel subscriber, final String topic) {
+        try {
+            startGate.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
         }
+        repository.add(subscriber, subscriptions(topic));
     }
 }
