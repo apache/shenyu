@@ -259,8 +259,10 @@ public final class UpstreamCheckServiceTest {
         upstreamCheckService.fetchUpstreamData();
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME));
         assertEquals(2, upstreamMap.get(MOCK_SELECTOR_NAME).size());
+        assertTrue(upstreamMap.get(MOCK_SELECTOR_NAME) instanceof CopyOnWriteArrayList);
         assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
         assertEquals(2, upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).size());
+        assertTrue(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER) instanceof CopyOnWriteArrayList);
     }
 
     @Test
