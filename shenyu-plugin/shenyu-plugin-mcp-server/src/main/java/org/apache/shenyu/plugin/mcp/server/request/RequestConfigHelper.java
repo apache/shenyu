@@ -79,7 +79,11 @@ public class RequestConfigHelper {
      * @return the url template string
      */
     public String getUrlTemplate() {
-        return getRequestTemplate().get("url").getAsString();
+        JsonObject requestTemplate = getRequiredRequestTemplate();
+        if (!requestTemplate.has("url") || requestTemplate.get("url").isJsonNull()) {
+            throw new IllegalArgumentException("url is required in requestTemplate");
+        }
+        return requestTemplate.get("url").getAsString();
     }
 
     /**
@@ -88,13 +92,27 @@ public class RequestConfigHelper {
      * @return the HTTP method string
      */
     public String getMethod() {
-        JsonObject requestTemplate = getRequestTemplate();
+        JsonObject requestTemplate = getRequiredRequestTemplate();
         return requestTemplate.has("method") ? requestTemplate.get("method").getAsString() : "GET";
     }
 
     public boolean isArgsToJsonBody() {
-        JsonObject requestTemplate = getRequestTemplate();
+        JsonObject requestTemplate = getRequiredRequestTemplate();
         return requestTemplate.has("argsToJsonBody") && requestTemplate.get("argsToJsonBody").getAsBoolean();
+    }
+
+    /**
+     * Get the required request template json object.
+     *
+     * @return the request template json object
+     * @throws IllegalArgumentException when requestTemplate is absent
+     */
+    private JsonObject getRequiredRequestTemplate() {
+        JsonObject requestTemplate = getRequestTemplate();
+        if (Objects.isNull(requestTemplate)) {
+            throw new IllegalArgumentException("requestTemplate is required");
+        }
+        return requestTemplate;
     }
 
     /**
