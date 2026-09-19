@@ -37,10 +37,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -126,5 +130,32 @@ class ShenyuClientRegisterWebSocketServiceImplTest {
         assertEquals(webSocketUpstreamResult.get("warmup"), 600000.0);
         assertEquals(webSocketUpstreamResult.get("upstreamHost"), "localhost");
         assertEquals(webSocketUpstreamResult.get("status"), true);
+    }
+
+    /**
+     * An offline upstream coming back online should be written back into the selector handle as well,
+     * and only the re-registered one should be touched.
+     * see <a href="https://github.com/apache/shenyu/issues/6522">issue #6522</a>
+     */
+    @Test
+    public void testBuildHandleWithStatusRecovered() {
+        when(upstreamCheckService.checkAndSubmit(any(), any())).thenReturn(false);
+        SelectorDO selectorDO = new SelectorDO();
+        selectorDO.setHandle(GsonUtils.getInstance().toJson(Arrays.asList(
+                offlineUpstream("host:8080"), offlineUpstream("host:8081"))));
+
+        List<URIRegisterDTO> uriList = Collections.singletonList(URIRegisterDTO.builder()
+                .protocol("ws://").host("host").port(8080).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build());
+        String actual = shenyuClientRegisterWebSocketService.buildHandle(uriList, selectorDO);
+
+        List<WebSocketUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, WebSocketUpstream.class);
+        assertEquals(2, resultList.size());
+        assertTrue(resultList.get(0).isStatus());
+        assertFalse(resultList.get(1).isStatus());
+    }
+
+    private static WebSocketUpstream offlineUpstream(final String url) {
+        return WebSocketUpstream.builder().host("localhost").protocol("ws://").upstreamUrl(url)
+                .weight(50).warmup(10).namespaceId(SYS_DEFAULT_NAMESPACE_ID).status(false).build();
     }
 }
