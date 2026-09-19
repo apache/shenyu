@@ -122,7 +122,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
                 producer.close();
 
             } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+                LOG.error("Close producer error.", e);
             }
         }
     }
