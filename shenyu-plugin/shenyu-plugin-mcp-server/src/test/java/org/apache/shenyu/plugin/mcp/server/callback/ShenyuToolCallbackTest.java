@@ -34,9 +34,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -250,6 +254,26 @@ class ShenyuToolCallbackTest {
         assertThrows(RuntimeException.class, () -> {
             shenyuToolCallback.call("{}", toolContext);
         });
+    }
+
+    @Test
+    void testExecuteToolCallDisposesPluginChainOnTimeout() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+
+        final String sessionId = "session123";
+        final MockServerWebExchange webExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost/original").build());
+        final AtomicBoolean cancelled = new AtomicBoolean();
+
+        when(chain.execute(any())).thenReturn(Mono.<Void>never().doOnCancel(() -> cancelled.set(true)));
+
+        final RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> shenyuToolCallback.executeToolCall(webExchange, chain, sessionId,
+                        "{\"requestTemplate\":{\"url\":\"/test\",\"method\":\"GET\"},\"argsPosition\":{}}",
+                        "{}", 0));
+
+        assertTrue(exception.getMessage().contains("Tool execution timeout or error"));
+        assertTrue(cancelled.get());
     }
 
     @Test
