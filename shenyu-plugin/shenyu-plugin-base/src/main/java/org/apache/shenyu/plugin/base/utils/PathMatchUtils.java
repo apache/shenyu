@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.shenyu.common.constant.Constants;
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.util.pattern.PathPattern;
@@ -30,7 +33,13 @@ import java.util.regex.Pattern;
  */
 public class PathMatchUtils {
 
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
+    private static final Cache<String, AntPathMatcher> MATCHER_CACHE = Caffeine.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build();
+
+    private static final Cache<String, PathPattern> PATH_PATTERN_CACHE = Caffeine.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build();
     
     /**
      * replace url {id} to real param.
@@ -52,7 +61,12 @@ public class PathMatchUtils {
      * @return the boolean
      */
     public static boolean match(final String matchUrls, final String realPath) {
-        return MATCHER.match(matchUrls, realPath);
+        AntPathMatcher matcher = MATCHER_CACHE.get(matchUrls, key -> {
+            AntPathMatcher result = new AntPathMatcher();
+            result.setCachePatterns(true);
+            return result;
+        });
+        return matcher.match(matchUrls, realPath);
     }
     
     /**
@@ -63,7 +77,7 @@ public class PathMatchUtils {
      * @return the boolean
      */
     public static boolean pathPattern(final String pathPattern, final String realPath) {
-        PathPattern pattern = PathPatternParser.defaultInstance.parse(pathPattern);
+        PathPattern pattern = PATH_PATTERN_CACHE.get(pathPattern, PathPatternParser.defaultInstance::parse);
         return pattern.matches(PathContainer.parsePath(realPath));
     }
 }
