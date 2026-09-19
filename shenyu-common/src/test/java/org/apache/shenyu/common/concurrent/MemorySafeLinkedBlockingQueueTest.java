@@ -19,6 +19,8 @@ package org.apache.shenyu.common.concurrent;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,5 +45,18 @@ public class MemorySafeLinkedBlockingQueueTest {
         queue.setRejector(new AbortPolicy<>());
         assertThrows(RejectException.class, () -> queue.offer(() -> {
         }));
+    }
+
+    @Test
+    public void testDiscardOldestDoesNotReenterMemoryCheck() {
+        Runnable oldest = () -> { };
+        Runnable replacement = () -> { };
+        MemorySafeLinkedBlockingQueue<Runnable> queue =
+                new MemorySafeLinkedBlockingQueue<>(Collections.singletonList(oldest), Integer.MAX_VALUE);
+        queue.setRejector(new DiscardOldestPolicy<>());
+
+        assertThat(queue.offer(replacement), is(false));
+        assertThat(queue.size(), is(1));
+        assertThat(queue.peek(), is(replacement));
     }
 }
