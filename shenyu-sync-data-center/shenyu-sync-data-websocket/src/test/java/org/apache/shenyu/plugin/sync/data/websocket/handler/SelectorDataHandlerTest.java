@@ -61,7 +61,7 @@ public final class SelectorDataHandlerTest {
     public void testDoRefresh() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(3);
         selectorDataHandler.doRefresh(selectorDataList);
-        verify(subscriber).refreshSelectorDataSelf(selectorDataList);
+        verify(subscriber).refreshSelectorDataAll();
         selectorDataList.forEach(verify(subscriber)::onSelectorSubscribe);
     }
 
