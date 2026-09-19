@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * The Test Case For AbstractLogCollector.
@@ -150,6 +155,75 @@ public class AbstractLogCollectorTest {
         assertEquals(1024, log.getResponseContentLength());
         assertEquals(200, log.getStatus());
         assertEquals(15L, log.getUpstreamResponseTime());
+    }
+
+    @Test
+    public void testCloseFlushesBufferedLogsBeforeClosingClient() throws Exception {
+        BlockingQueue<ShenyuRequestLog> bufferQueue = new LinkedBlockingDeque<>(2);
+        ShenyuRequestLog first = new ShenyuRequestLog();
+        ShenyuRequestLog second = new ShenyuRequestLog();
+        bufferQueue.add(first);
+        bufferQueue.add(second);
+        setField(collector, "bufferQueue", bufferQueue);
+
+        collector.close();
+
+        org.mockito.InOrder closeOrder = inOrder(logConsumeClient);
+        closeOrder.verify(logConsumeClient).consume(argThat(logs -> logs.size() == 2
+                && logs.get(0) == first && logs.get(1) == second));
+        closeOrder.verify(logConsumeClient).close();
+        assertTrue(bufferQueue.isEmpty());
+    }
+
+    @Test
+    public void testCloseFlushesEveryMultiClientBuffer() throws Exception {
+        AbstractLogConsumeClient<?, ShenyuRequestLog> firstClient = mock(AbstractLogConsumeClient.class);
+        AbstractLogConsumeClient<?, ShenyuRequestLog> secondClient = mock(AbstractLogConsumeClient.class);
+        Map<String, AbstractLogConsumeClient<?, ShenyuRequestLog>> clients = new HashMap<>();
+        clients.put("first", firstClient);
+        clients.put("second", secondClient);
+        AbstractLogCollector<AbstractLogConsumeClient<?, ShenyuRequestLog>, ShenyuRequestLog, GenericGlobalConfig> multiClientCollector =
+                new AbstractLogCollector<>() {
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                        return logConsumeClient;
+                    }
+
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient(final String selectorId) {
+                        return clients.get(selectorId);
+                    }
+
+                    @Override
+                    protected boolean getMultiClient() {
+                        return true;
+                    }
+
+                    @Override
+                    protected GenericGlobalConfig getLogCollectConfig() {
+                        return null;
+                    }
+
+                    @Override
+                    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+                    }
+                };
+        ShenyuRequestLog first = new ShenyuRequestLog();
+        ShenyuRequestLog second = new ShenyuRequestLog();
+        BlockingQueue<ShenyuRequestLog> firstQueue = new LinkedBlockingDeque<>(1);
+        BlockingQueue<ShenyuRequestLog> secondQueue = new LinkedBlockingDeque<>(1);
+        firstQueue.add(first);
+        secondQueue.add(second);
+        getBufferQueues(multiClientCollector).put("first", firstQueue);
+        getBufferQueues(multiClientCollector).put("second", secondQueue);
+
+        multiClientCollector.close();
+
+        verify(firstClient).consume(argThat(logs -> logs.size() == 1 && logs.get(0) == first));
+        verify(secondClient).consume(argThat(logs -> logs.size() == 1 && logs.get(0) == second));
+        verify(logConsumeClient).close();
+        assertTrue(firstQueue.isEmpty());
+        assertTrue(secondQueue.isEmpty());
     }
 
     private static void setField(final Object target, final String fieldName, final Object value) throws Exception {
