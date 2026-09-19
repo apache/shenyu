@@ -53,6 +53,29 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class CryptorRequestPluginTest {
 
+    // 2048-bit RSA keypair (OAEP/SHA-256 needs a key large enough to hold the
+    // plaintext after padding; the legacy 512-bit fixture cannot). RSA_CIPHERTEXT
+    // is the OAEP encryption of {"nickName":"openApi"} under ENC_KEY.
+    private static final String ENC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtxADsITceaH5ubXIISZHpRU7nH89rVzbxkp9l9u3Qr3NAYCrx5kOffMtiik/ndD6iCTusKrJkGqJqmkgT3V2PG/o72FMvxGMQGgI6X+Lwr"
+            + "WMuShiF/WBB1aEirII1151J9L6vBzr2JxAb96612CYgB4ZodYW9my569UI0DovLP68L29VS4r+Zndxx3C3EASfdjllgPHysZWIv8iA2t4g7Zap/xnHNIgEJ3MC50nl7gtu+I3aTF6WV/SkzhxZat4G"
+            + "EXfzErDfoFvZwVqtRTwG6SDtdxXPpMGWUELOdICVr9hJ4sNKbIacjEuwTvdf9w9sRrTv//Um+8fg9uUS3e9xMQIDAQAB";
+
+    private static final String DEC_KEY = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3EAOwhNx5ofm5tcghJkelFTucfz2tXNvGSn2X27dCvc0BgKvHmQ598y2KKT+d0PqIJO6wqsmQaomqaSBPdXY8b+jvYUy/EYxAaA"
+            + "jpf4vCtYy5KGIX9YEHVoSKsgjXXnUn0vq8HOvYnEBv3rrXYJiAHhmh1hb2bLnr1QjQOi8s/rwvb1VLiv5md3HHcLcQBJ92OWWA8fKxlYi/yIDa3iDtlqn/Gcc0iAQncwLnSeXuC274jdpMXpZX9KTO"
+            + "HFlq3gYRd/MSsN+gW9nBWq1FPAbpIO13Fc+kwZZQQs50gJWv2Eniw0pshpyMS7BO91/3D2xGtO//9Sb7x+D25RLd73ExAgMBAAECggEADQvyY154sx+A44Qp3Pj0MrcCblsgK26aiDWPYWcKltJdnb"
+            + "2MoJdPMdlGtdnOO6Jk9JaDP2qQnn8FTDSdVaRmtpR4OrVJybVHtGBlwDRzor8bJigTY6c+2KXJIPRizmygN2QhNA5wnZm3OvHaCZcMD1d11rOiI9JoZr8iV2rKKW/n+qyNckJTFNC88O5RFxmdMx2Q"
+            + "6iGoSS3LGdXxCKhdKXdzGwD2cFDSIMMFCiO2SJDfzyj6mWVZipnduFuc2q9jD4nIcxeDXv1+wYHkUV301CJYvm/Cluw10+pJB193fuC15ZMMrOEuMtTWLAyG0BLSsU6831aqZHhra2RJw4Q2sQKBgQ"
+            + "D+KkYhpep0vHDwvpq26cpvvj34f4BdevKPZxhu5INkQiVBffIfo/WiWgBMn6IrE+Mp2hf7HvvYmQNIDpW15fhutxnKhM4AnaGLNaWndSa/EiLNcATmVD9i+RowA+ZpELtWiG6pstn/DP5C17ttPhY5"
+            + "wPCVxqN0amHUuBL+yo8JWQKBgQC4YlW2wsjRSsblyryYae7Orh2ZAa+2rvO/Vmkuf684tlEGlyg0ruF5i0kKYDkrl9ffLAmN+/3hzJ9ur5XrO/zGlsMsIyy+A+1cnitykUU93A2L//fSME4zR14PmT"
+            + "PPyIYZxa1kLcEcDRCByuO2glk/44kfChzVygNbMdVKOWNTmQKBgQCm0QwyrXkSoVPnTtKw1wV9DfoSjWys7jMhl+LbdbQfK6LUN1uhFLX1lui3YdbIO0dPgstWkOFvKg6TTq9IMeY6lIai+0NR+CO9"
+            + "ALr3C9cgdUDOYYV1vznTNffQJ98kekza4LTxQGgAFIEVUg68BpID2fSN+U/y6pfHTAF7pWr4EQKBgAYqw9MpEK5vYdetwEEYyfP/vt2vQMFLeLudmEcF3kZ3Up51z9JzRvdZwUenkEH1AjNkta0aEJ"
+            + "PM1EhPdyQ3DW1W/ZAsXQK9/uJqJ+ndEgPPqGRWW2OcWgE9EdhTt3frrRCPnA0NurfFeBffQV6JXZLVeXCgVfaQmywhrpCc+sWBAoGAZIk5MEk+zrQt3CrH2UC/ly+1/DsrwAtYpWFlLR7KmFL9p+X8"
+            + "rF6NdeaqiPNZ7KFLB+veOyriNRQ7oT3i8zmd2uv+DVokxlZ/QowBgUd2AGBudX5unAT0lEykf+4hK7mrvkePv+K2UsxPm+BfpIDI7ggq+4SWeDcx7OqGt6rU3Xc=";
+
+    private static final String RSA_CIPHERTEXT = "KMyfRryRP2XUPnXAVa+nuXf0jM7VDJYOFkim2aeP0Ar5j9RhuhX9g2ozG9B1AfVmBGN+HoU8qTEzfo1i3/sz6e3Fxb/nsoe8oxdh5F/J44pa3XHqwBbL14hsvBizt6eDuOIXFULcTQNtIexBvMg6t"
+            + "tgSPOZWZzm1Z0/gFsCkNT/8qX1S2HUPwJnl2L9h+MlNDNgSp1E+Zqu2f/UnJTTqCDtsoDRIwuK2fnLZOuzBiN27Du81kbcjJbmExGHj8qMsItF5c0EjvG138RImMFFdcBh+2VA0LEQ84NRrxS+HNcDf"
+            + "/lycLNFa+XJWYfwmRmP1D2uuDkFBHNNMTMSZn2vx2w==";
+
     private RuleData ruleData;
 
     @Mock
@@ -77,22 +100,15 @@ public class CryptorRequestPluginTest {
     public void decryptTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"decrypt\","
                 + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"inputToken\": "
-                        + "\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\""
-                        + "}"));
+                .body("{\"inputToken\": \"" + RSA_CIPHERTEXT + "\"}"));
         SelectorData selectorData = mock(SelectorData.class);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         cryptorRequestPluginDataHandler.handlerRule(ruleData);
@@ -103,22 +119,15 @@ public class CryptorRequestPluginTest {
     public void encryptTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"encrypt\","
                 + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"inputToken\": "
-                        + "\"shenyu\""
-                        + "}"));
+                .body("{\"inputToken\": \"shenyu\"}"));
         SelectorData selectorData = mock(SelectorData.class);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         cryptorRequestPluginDataHandler.handlerRule(ruleData);
@@ -129,22 +138,15 @@ public class CryptorRequestPluginTest {
     public void multiJsonEncryptTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken.test\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"encrypt\","
                 + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"inputToken\": "
-                        + "{\"test\":\"shenyu\"}"
-                        + "}"));
+                .body("{\"inputToken\": {\"test\":\"shenyu\"}}"));
         SelectorData selectorData = mock(SelectorData.class);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         cryptorRequestPluginDataHandler.handlerRule(ruleData);
@@ -155,22 +157,15 @@ public class CryptorRequestPluginTest {
     public void multiJsonDecryptTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken.test\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"decrypt\","
                 + "\"mapType\":\"field\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"inputToken\": "
-                        + "{\"test\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"}"
-                        + "}"));
+                .body("{\"inputToken\": {\"test\":\"" + RSA_CIPHERTEXT + "\"}}"));
         SelectorData selectorData = mock(SelectorData.class);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         cryptorRequestPluginDataHandler.handlerRule(ruleData);
@@ -188,24 +183,17 @@ public class CryptorRequestPluginTest {
         final int result = cryptorRequestPlugin.getOrder();
         assertEquals(PluginEnum.CRYPTOR_REQUEST.getCode(), result);
     }
-    
+
     @Test
     public void mapTypeDecryptFieldTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken.test\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"decrypt\","
                 + "\"mapType\":\"field\""
                 + "}\n");
-        final String originalBody = "{\"inputToken\": "
-                + "{\"test\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"}"
-                + "}";
+        final String originalBody = "{\"inputToken\": {\"test\":\"" + RSA_CIPHERTEXT + "\"}}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -220,19 +208,12 @@ public class CryptorRequestPluginTest {
     public void mapTypeDecryptAllTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken.test\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"decrypt\","
                 + "\"mapType\":\"all\""
                 + "}\n");
-        final String originalBody = "{\"inputToken\": "
-                + "{\"test\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"}"
-                + "}";
+        final String originalBody = "{\"inputToken\": {\"test\":\"" + RSA_CIPHERTEXT + "\"}}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -247,20 +228,12 @@ public class CryptorRequestPluginTest {
     public void mapTypeDecryptMultFieldsTest() {
         this.ruleData.setHandle("{\"strategyName\":\"rsa\","
                 + "\"fieldNames\":\"inputToken.one,inputToken.two\","
-                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
-                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
-                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
-                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
-                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
-                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
-                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"decryptKey\":\"" + DEC_KEY + "\","
+                + "\"encryptKey\":\"" + ENC_KEY + "\","
                 + "\"way\":\"decrypt\","
                 + "\"mapType\":\"all\""
                 + "}\n");
-        final String originalBody = "{\"inputToken\": "
-                + "{\"one\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"," 
-                + "\"two\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"}"
-                + "}";
+        final String originalBody = "{\"inputToken\": {\"one\":\"" + RSA_CIPHERTEXT + "\",\"two\":\"" + RSA_CIPHERTEXT + "\"}}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -270,5 +243,5 @@ public class CryptorRequestPluginTest {
         String parseBody = MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
         assertEquals(parseBody, "{\"inputToken\":{\"one\":\"{\\\"nickName\\\":\\\"openApi\\\"}\",\"two\":\"{\\\"nickName\\\":\\\"openApi\\\"}\"}}");
     }
-    
+
 }
