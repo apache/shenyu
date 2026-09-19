@@ -193,15 +193,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDTO> authPathDTOList = appAuthDTO.getAuthPathList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
-            List<AuthPathDO> oldAuthPathDOList = authPathMapper.findByAuthId(appAuthDTO.getId());
-            String appName = oldAuthPathDOList.stream().findFirst()
-                    .map(AuthPathDO::getAppName).orElse(StringUtils.EMPTY);
-
             authPathMapper.deleteByAuthId(appAuthDTO.getId());
 
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
                     .filter(Objects::nonNull)
-                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName))
+                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), dto.getAppName()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(authPathDOList);
         }
