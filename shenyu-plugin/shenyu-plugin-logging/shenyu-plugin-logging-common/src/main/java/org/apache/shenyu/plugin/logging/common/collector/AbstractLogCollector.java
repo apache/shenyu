@@ -86,7 +86,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     @Override
     public void collect(final L log) {
-        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
+        if (!started.get() || Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
             return;
         }
         if (getMultiClient()) {
@@ -178,6 +178,31 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         }
     }
 
+    private void flushBufferQueues() throws Exception {
+        if (getMultiClient()) {
+            for (Map.Entry<String, BlockingQueue<L>> entry : bufferQueueS.entrySet()) {
+                flushBufferQueue(entry.getValue(), getLogConsumeClient(entry.getKey()));
+            }
+        } else {
+            flushBufferQueue(bufferQueue, getLogConsumeClient());
+        }
+    }
+
+    private void flushBufferQueue(final BlockingQueue<L> queue, final AbstractLogConsumeClient<?, L> logConsumeClient) throws Exception {
+        if (Objects.isNull(queue) || Objects.isNull(logConsumeClient)) {
+            return;
+        }
+        int batchSize = 100;
+        while (!queue.isEmpty()) {
+            List<L> logs = new ArrayList<>(batchSize);
+            queue.drainTo(logs, batchSize);
+            if (logs.isEmpty()) {
+                return;
+            }
+            logConsumeClient.consume(logs);
+        }
+    }
+
     private void desensitizeShenyuRequestLog(final L logInfo, final KeyWordMatch keyWordMatch, final String desensitizedAlg) {
         logInfo.setClientIp(desensitizeForSingleWord(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp(), keyWordMatch, desensitizedAlg));
         logInfo.setTimeLocal(desensitizeForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, desensitizedAlg));
@@ -259,8 +284,12 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     public void close() throws Exception {
         started.set(false);
         AbstractLogConsumeClient<?, ?> logCollectClient = getLogConsumeClient();
-        if (Objects.nonNull(logCollectClient)) {
-            logCollectClient.close();
+        try {
+            flushBufferQueues();
+        } finally {
+            if (Objects.nonNull(logCollectClient)) {
+                logCollectClient.close();
+            }
         }
     }
 }
