@@ -26,7 +26,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +48,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private static final Logger LOG = LoggerFactory.getLogger(CommonPluginDataSubscriber.class);
     
     private final Map<String, PluginDataHandler> handlerMap;
+
+    private final Set<String> builtInHandlerNames;
 
     private ApplicationEventPublisher eventPublisher;
     
@@ -66,6 +68,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = handlerMap.keySet().stream().collect(Collectors.toSet());
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
@@ -83,6 +86,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = handlerMap.keySet().stream().collect(Collectors.toSet());
         this.eventPublisher = eventPublisher;
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
@@ -99,8 +103,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            MapUtils.computeIfAbsent(handlerMap, pluginNamed, name -> {
-                LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
+            handlerMap.compute(pluginNamed, (name, current) -> {
+                if (builtInHandlerNames.contains(name)) {
+                    return current;
+                }
+                LOG.info("shenyu add or replace extends plugin data handler name is :{}", pluginNamed);
                 return handler;
             });
         }

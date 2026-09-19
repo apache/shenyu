@@ -43,10 +43,13 @@ public final class ShenyuPluginClassLoaderHolderTest {
     }
 
     @Test
-    public void createPluginClassLoader() {
+    public void replacePluginClassLoader() {
         ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
-        ShenyuPluginClassLoader pluginClassLoader = singleton.createPluginClassLoader(pluginJar);
-        assertNotNull(pluginClassLoader);
+        try {
+            singleton.replacePluginClassLoader(pluginJar, classLoader -> assertNotNull(classLoader));
+        } finally {
+            singleton.removePluginClassLoader("testKey");
+        }
     }
 
     @Test
