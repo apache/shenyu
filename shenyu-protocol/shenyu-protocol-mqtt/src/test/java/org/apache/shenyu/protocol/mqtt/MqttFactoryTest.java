@@ -40,6 +40,8 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribePayload;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +67,8 @@ public final class MqttFactoryTest {
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
     }
@@ -149,13 +153,13 @@ public final class MqttFactoryTest {
     }
 
     @Test
-    public void disconnectShouldFallThroughToNoOp() {
+    public void disconnectShouldCloseChannel() {
         EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
         ChannelHandlerContext ctx = channel.pipeline().lastContext();
 
         new MqttFactory(new MqttMessage(fixedHeader(MqttMessageType.DISCONNECT)), ctx).connect();
 
-        assertTrue(channel.isActive());
+        assertFalse(channel.isActive());
         channel.finishAndReleaseAll();
     }
 

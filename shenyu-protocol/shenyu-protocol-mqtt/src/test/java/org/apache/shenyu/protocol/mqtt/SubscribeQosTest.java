@@ -24,6 +24,8 @@ import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
@@ -50,6 +52,8 @@ public class SubscribeQosTest {
 
     private Channel channel;
 
+    private Attribute<Boolean> connectedAttribute;
+
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
@@ -58,7 +62,10 @@ public class SubscribeQosTest {
         Singleton.INST.single(TopicRepository.class, new TopicRepository());
         ctx = mock(ChannelHandlerContext.class);
         channel = mock(Channel.class);
+        connectedAttribute = mock(Attribute.class);
         when(ctx.channel()).thenReturn(channel);
+        when(channel.attr(any(AttributeKey.class))).thenReturn(connectedAttribute);
+        when(connectedAttribute.get()).thenReturn(true);
         when(ctx.writeAndFlush(any())).thenReturn(mock(ChannelFuture.class));
         when(channel.writeAndFlush(any())).thenReturn(mock(ChannelFuture.class));
     }

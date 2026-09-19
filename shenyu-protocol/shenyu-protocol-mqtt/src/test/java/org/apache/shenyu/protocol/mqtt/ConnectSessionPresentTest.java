@@ -22,10 +22,16 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectPayload;
+import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
@@ -48,7 +54,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +68,8 @@ public class ConnectSessionPresentTest {
 
     private Channel channel;
 
+    private Attribute<Boolean> connectedAttribute;
+
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
@@ -74,8 +81,11 @@ public class ConnectSessionPresentTest {
         connect = new Connect();
         ctx = mock(ChannelHandlerContext.class);
         channel = mock(Channel.class);
+        connectedAttribute = mock(Attribute.class);
         ChannelFuture channelFuture = mock(ChannelFuture.class);
         when(ctx.channel()).thenReturn(channel);
+        when(channel.attr(any(AttributeKey.class))).thenReturn(connectedAttribute);
+        when(connectedAttribute.get()).thenReturn(false);
         when(ctx.writeAndFlush(any())).thenReturn(channelFuture);
         when(ctx.close()).thenReturn(channelFuture);
     }
@@ -133,13 +143,11 @@ public class ConnectSessionPresentTest {
 
     @Test
     public void unsupportedProtocolVersionShouldNotAuthenticateOrStoreSession() {
-        MqttConnectMessage msg = MqttMessageBuilders.connect()
-                .clientId("client-mqtt-5")
-                .cleanSession(false)
-                .protocolVersion(MqttVersion.MQTT_3_1_1)
-                .username("shenyu")
-                .password("shenyu".getBytes(StandardCharsets.UTF_8))
-                .build();
+        MqttConnectMessage msg = new MqttConnectMessage(
+                new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0),
+                new MqttConnectVariableHeader("MQTT", 6, true, true, false, 0, false, false, 60),
+                new MqttConnectPayload("client-mqtt-6", null, null, "shenyu",
+                        "shenyu".getBytes(StandardCharsets.UTF_8)));
 
         connect.connect(ctx, msg);
 
@@ -147,9 +155,9 @@ public class ConnectSessionPresentTest {
         verify(ctx).writeAndFlush(captor.capture());
         MqttConnAckMessage ack = (MqttConnAckMessage) captor.getValue();
         assertEquals(CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION, ack.variableHeader().connectReturnCode());
-        verify(ctx, never()).channel();
+        verify(ctx).channel();
         verify(ctx).close();
-        assertNull(Singleton.INST.get(SessionRepository.class).get("client-mqtt-5"));
+        assertNull(Singleton.INST.get(SessionRepository.class).get("client-mqtt-6"));
     }
 
     private MqttConnAckMessage connectWithCleanSession(final String clientId, final boolean cleanSession) {
