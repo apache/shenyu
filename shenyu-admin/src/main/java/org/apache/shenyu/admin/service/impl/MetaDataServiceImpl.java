@@ -108,6 +108,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<MetaDataDO> deletedMetaData = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(deletedMetaData)) {
@@ -121,6 +122,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
