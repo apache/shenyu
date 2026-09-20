@@ -115,6 +115,15 @@ public class GrpcPluginTest {
     }
 
     @Test
+    public void testDoExecuteWithEmptyRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt("");
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @Test
     public void testDoExecuteWithBlankRpcExt()
             throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange();
