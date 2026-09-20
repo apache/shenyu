@@ -23,6 +23,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -73,7 +74,7 @@ public final class SseEventFormatter {
         String formattedEvent = sseData.toString();
         LOG.debug("Formatted SSE event: {}", formattedEvent.trim());
         
-        return exchange.getResponse().bufferFactory().wrap(formattedEvent.getBytes());
+        return exchange.getResponse().bufferFactory().wrap(formattedEvent.getBytes(StandardCharsets.UTF_8));
     }
     
     /**
@@ -86,6 +87,6 @@ public final class SseEventFormatter {
     public static DataBuffer formatComment(final String comment, final ServerWebExchange exchange) {
         String formattedComment = ": " + comment + "\n\n";
         LOG.debug("Formatted SSE comment: {}", formattedComment.trim());
-        return exchange.getResponse().bufferFactory().wrap(formattedComment.getBytes());
+        return exchange.getResponse().bufferFactory().wrap(formattedComment.getBytes(StandardCharsets.UTF_8));
     }
 }
