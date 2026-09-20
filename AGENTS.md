@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to AI Coding CLI Tools when working with code in this repository.
+This file provides guidance to AI Coding CLI when working with code in this repository.
 
 ## Project
 
