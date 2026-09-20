@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.rabbitmq.client;
 
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -24,7 +26,10 @@ import org.apache.shenyu.plugin.logging.rabbitmq.config.RabbitmqLogCollectConfig
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +75,20 @@ public class RabbitmqLogCollectClientTest {
         }
         Assert.assertEquals(logMassage, "Hello Shenyu");
         rabbitmqLogCollectClient.close();
+    }
+
+    @Test
+    public void testCloseConnectionWhenChannelCloseFails() throws Exception {
+        Channel channel = Mockito.mock(Channel.class);
+        Connection connection = Mockito.mock(Connection.class);
+        Mockito.doThrow(new IOException("channel close failed")).when(channel).close();
+        ReflectionTestUtils.setField(rabbitmqLogCollectClient, "channel", channel);
+        ReflectionTestUtils.setField(rabbitmqLogCollectClient, "connection", connection);
+
+        rabbitmqLogCollectClient.close0();
+
+        Mockito.verify(channel).close();
+        Mockito.verify(connection).close();
     }
 
 }

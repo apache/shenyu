@@ -228,19 +228,23 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         if (LOG.isDebugEnabled()) {
             LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
         }
-        
-        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-        Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
-        if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-            LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
-            this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-            if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
-                return;
+
+        try {
+            Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+            Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+            if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+                LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
+                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    return;
+                }
+                this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
+                this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+            } else {
+                handleResult(result);
             }
-            this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
-            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
-        } else {
-            handleResult(result);
+        } catch (RuntimeException ex) {
+            LOG.warn("Failed to handle websocket message from server[{}], the message will be ignored", this.getURI(), ex);
         }
     }
     

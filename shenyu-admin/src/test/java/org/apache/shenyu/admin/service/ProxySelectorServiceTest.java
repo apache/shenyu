@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -154,6 +155,69 @@ class ProxySelectorServiceTest {
 
         assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
         verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+    }
+
+    @Test
+    void testFetchDataWithProxySelector() {
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setId("handler-1");
+        discoveryHandlerDO.setDiscoveryId("discovery-1");
+        given(discoveryHandlerMapper.selectById("handler-1")).willReturn(discoveryHandlerDO);
+
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setDiscoveryType("local");
+        given(discoveryMapper.selectById("discovery-1")).willReturn(discoveryDO);
+
+        ProxySelectorDO proxySelectorDO = buildProxySelectorDO();
+        given(proxySelectorMapper.selectByHandlerId("handler-1")).willReturn(proxySelectorDO);
+        DiscoveryProcessor discoveryProcessor = mock(DiscoveryProcessor.class);
+        given(discoveryProcessorHolder.chooseProcessor("local")).willReturn(discoveryProcessor);
+
+        proxySelectorService.fetchData("handler-1");
+
+        verify(discoveryProcessor).fetchAll(any(), any());
+    }
+
+    @Test
+    void testFetchDataWithMissingDiscoveryHandler() {
+        given(discoveryHandlerMapper.selectById("missing-handler")).willReturn(null);
+
+        assertDoesNotThrow(() -> proxySelectorService.fetchData("missing-handler"));
+
+        verify(discoveryMapper, never()).selectById(any());
+        verify(proxySelectorMapper, never()).selectByHandlerId(any());
+        verify(selectorMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(discoveryProcessorHolder, never()).chooseProcessor(any());
+    }
+
+    @Test
+    void testFetchDataWithMissingDiscovery() {
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setDiscoveryId("missing-discovery");
+        given(discoveryHandlerMapper.selectById("handler-1")).willReturn(discoveryHandlerDO);
+        given(discoveryMapper.selectById("missing-discovery")).willReturn(null);
+
+        assertDoesNotThrow(() -> proxySelectorService.fetchData("handler-1"));
+
+        verify(proxySelectorMapper, never()).selectByHandlerId(any());
+        verify(selectorMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(discoveryProcessorHolder, never()).chooseProcessor(any());
+    }
+
+    @Test
+    void testFetchDataWithoutBoundSelector() {
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setId("handler-1");
+        discoveryHandlerDO.setDiscoveryId("discovery-1");
+        given(discoveryHandlerMapper.selectById("handler-1")).willReturn(discoveryHandlerDO);
+
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setDiscoveryType("local");
+        given(discoveryMapper.selectById("discovery-1")).willReturn(discoveryDO);
+
+        assertDoesNotThrow(() -> proxySelectorService.fetchData("handler-1"));
+
+        verify(discoveryProcessorHolder, never()).chooseProcessor(any());
     }
 
     @Test

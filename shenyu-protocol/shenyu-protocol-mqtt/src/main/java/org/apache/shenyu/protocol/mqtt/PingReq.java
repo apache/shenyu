@@ -19,6 +19,8 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
 
+import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
+
 /**
  * Client sends pingreq to the server.
  */
@@ -26,6 +28,10 @@ public class PingReq extends MessageType {
 
     @Override
     public void pingReq(final ChannelHandlerContext ctx) {
+        if (!isConnected(ctx.channel())) {
+            ctx.channel().close().addListener(FIRE_EXCEPTION_ON_FAILURE);
+            return;
+        }
         new PingResp().pingResp(ctx);
     }
 }

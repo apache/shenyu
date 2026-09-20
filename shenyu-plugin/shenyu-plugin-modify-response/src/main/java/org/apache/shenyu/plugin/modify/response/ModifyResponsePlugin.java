@@ -40,6 +40,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -97,6 +98,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             modifyResponseHeadersAndStatus();
+            if (!hasBodyModifications() || !isJsonResponse()) {
+                return super.writeWith(body);
+            }
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
@@ -104,6 +108,13 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 DataBufferUtils.release(dataBuffer);
                 return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
             });
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            modifyResponseHeadersAndStatus();
+            return super.writeAndFlushWith(body);
         }
 
         private void modifyResponseHeadersAndStatus() {
@@ -143,6 +154,19 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             // reset http headers
             this.getDelegate().getHeaders().clear();
             this.getDelegate().getHeaders().putAll(httpHeaders);
+        }
+
+        private boolean hasBodyModifications() {
+            return CollectionUtils.isNotEmpty(this.ruleHandle.getAddBodyKeys())
+                    || CollectionUtils.isNotEmpty(this.ruleHandle.getReplaceBodyKeys())
+                    || CollectionUtils.isNotEmpty(this.ruleHandle.getRemoveBodyKeys());
+        }
+
+        private boolean isJsonResponse() {
+            MediaType contentType = this.getHeaders().getContentType();
+            return Objects.isNull(contentType)
+                    || MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                    || contentType.getSubtype().endsWith("+json");
         }
 
         private byte[] modifyBody(final byte[] responseBody) {

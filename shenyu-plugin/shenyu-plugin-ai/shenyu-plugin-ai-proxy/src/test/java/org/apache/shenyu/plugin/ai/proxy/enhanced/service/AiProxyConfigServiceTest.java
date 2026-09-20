@@ -195,7 +195,9 @@ public class AiProxyConfigServiceTest {
     void testExtractPromptWithFallbackConfigButNoPromptOrContent() {
         String requestBody = "{\"fallbackConfig\": {\"model\": \"test-model\"}, \"messages\": [{\"role\": \"user\"}]}";
         String result = configService.extractPrompt(requestBody);
-        assertEquals(requestBody, result);
+        // fallbackConfig should be stripped before forwarding to upstream
+        assertFalse(result.contains("fallbackConfig"));
+        assertTrue(result.contains("messages"));
     }
 
     @Test
