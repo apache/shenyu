@@ -398,7 +398,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     public void fetchData(final String discoveryHandlerId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        if (Objects.isNull(discoveryDO)) {
+            return;
+        }
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         if (Objects.nonNull(proxySelectorDO)) {
