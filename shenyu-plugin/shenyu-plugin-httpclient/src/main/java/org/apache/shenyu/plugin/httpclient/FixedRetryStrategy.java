@@ -55,6 +55,7 @@ public class FixedRetryStrategy<R> implements RetryStrategy<R> {
     }
 
     private Retry initFixedBackoff(final int retryTimes) {
-        return Retry.fixedDelay(retryTimes, Duration.ofSeconds(2));
+        return Retry.fixedDelay(retryTimes, Duration.ofSeconds(2))
+                .filter(t -> !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException));
     }
 }
