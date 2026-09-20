@@ -17,9 +17,51 @@ name: it-k8s
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
