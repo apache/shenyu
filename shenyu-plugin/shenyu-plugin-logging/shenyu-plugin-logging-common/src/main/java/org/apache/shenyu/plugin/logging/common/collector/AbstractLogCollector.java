@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForBody;
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForSingleWord;
+import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeQueryParams;
 
 /**
  * abstract log collector,Contains common methods.
@@ -91,13 +92,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         if (getMultiClient()) {
             String selectorId = log.getSelectorId();
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
-            if (bufferQueue.size() < bufferSize) {
-                bufferQueue.add(log);
-            }
+            bufferQueue.offer(log);
         } else {
-            if (bufferQueue.size() < bufferSize) {
-                bufferQueue.add(log);
-            }
+            bufferQueue.offer(log);
         }
     }
 
@@ -117,15 +114,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 List<L> logs = new ArrayList<>();
                 int batchSize = 100;
                 if (getMultiClient()) {
-                    bufferQueueS.forEach((selectorId, bufferQueue) -> {
-                        List<L> logsS = new ArrayList<>();
-                        Long lastPushTime = lastPushTimeS.get(selectorId);
-                        try {
-                            processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logsS, lastPushTime, selectorId);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    processMultiClientBufferQueues(batchSize, diffTimeMSForPush);
                 } else {
                     processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logs, lastPushTime);
                 }
@@ -134,6 +123,18 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
             }
         }
+    }
+
+    void processMultiClientBufferQueues(final int batchSize, final int diffTimeMSForPush) {
+        bufferQueueS.forEach((selectorId, bufferQueue) -> {
+            List<L> logs = new ArrayList<>();
+            Long lastPushTime = lastPushTimeS.get(selectorId);
+            try {
+                processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logs, lastPushTime, selectorId);
+            } catch (Exception e) {
+                LOG.error("Log collector failed to consume logs for selector {}", selectorId, e);
+            }
+        });
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {
@@ -186,13 +187,19 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         logInfo.setTimeLocal(desensitizeForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, desensitizedAlg));
         logInfo.setMethod(desensitizeForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestUri(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri(), keyWordMatch, desensitizedAlg));
-        logInfo.setResponseContentLength(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
-                logInfo.getResponseContentLength().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getResponseContentLength())) {
+            logInfo.setResponseContentLength(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
+                    logInfo.getResponseContentLength().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setRpcType(desensitizeForSingleWord(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType(), keyWordMatch, desensitizedAlg));
-        logInfo.setStatus(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getStatus())) {
+            logInfo.setStatus(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setUpstreamIp(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp(), keyWordMatch, desensitizedAlg));
-        logInfo.setUpstreamResponseTime(Long.valueOf(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
-                logInfo.getUpstreamResponseTime().toString(), keyWordMatch, desensitizedAlg)));
+        if (Objects.nonNull(logInfo.getUpstreamResponseTime())) {
+            logInfo.setUpstreamResponseTime(Long.valueOf(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
+                    logInfo.getUpstreamResponseTime().toString(), keyWordMatch, desensitizedAlg)));
+        }
         logInfo.setUserAgent(desensitizeForSingleWord(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent(), keyWordMatch, desensitizedAlg));
         logInfo.setHost(desensitizeForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, desensitizedAlg));
         logInfo.setModule(desensitizeForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, desensitizedAlg));
@@ -206,7 +213,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         logInfo.setResponseBody(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestHeader(desensitizeForBody(logInfo.getRequestHeader(), keyWordMatch, desensitizedAlg));
         logInfo.setResponseHeader(desensitizeForBody(logInfo.getResponseHeader(), keyWordMatch, desensitizedAlg));
-        logInfo.setQueryParams(desensitizeForBody(logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
+        logInfo.setQueryParams(desensitizeQueryParams(logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestBody(desensitizeForBody(logInfo.getRequestBody(), keyWordMatch, desensitizedAlg));
         logInfo.setResponseBody(desensitizeForBody(logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
     }

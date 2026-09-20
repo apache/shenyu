@@ -29,13 +29,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.reactivestreams.Publisher;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,6 +106,64 @@ public final class ModifyResponsePluginTest {
         ModifyResponsePluginDataHandler.CACHED_HANDLE.get().cachedHandle("test_test-modify-response-plugin", responseRuleHandle);
         Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleDataTest);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testWriteAndFlushWith() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        final Map<String, String> addHeaders = new HashMap<>();
+        addHeaders.put("X-Test", "streaming");
+        responseRuleHandle.setAddHeaders(addHeaders);
+        responseRuleHandle.setStatusCode(HttpStatus.CREATED.value());
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final DataBuffer dataBuffer = response.bufferFactory()
+                .wrap("data: hello\n\n".getBytes(StandardCharsets.UTF_8));
+        final Publisher<? extends Publisher<? extends DataBuffer>> body = Flux.just(Flux.just(dataBuffer));
+
+        StepVerifier.create(decorator.writeAndFlushWith(body)).verifyComplete();
+
+        assertEquals("streaming", response.getHeaders().getFirst("X-Test"));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("data: hello\n\n")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithPreservesNonJsonBodyForHeaderOnlyRule() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setAddHeaders(Collections.singletonMap("X-Test", "header-only"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.TEXT_HTML);
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("<p>unchanged</p>".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals("header-only", response.getHeaders().getFirst("X-Test"));
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("<p>unchanged</p>")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithSkipsBodyRulesForNonJsonResponse() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setRemoveBodyKeys(Collections.singleton("$.value"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.APPLICATION_XML);
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("<value>unchanged</value>".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("<value>unchanged</value>")
+                .verifyComplete();
     }
 
     @Test

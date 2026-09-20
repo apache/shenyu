@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -94,6 +95,9 @@ public class InstanceCheckService {
     public void fetchInstanceData() {
         List<InstanceInfoVO> list = instanceInfoService.list();
         list.forEach(instanceInfoVO -> {
+            if (Objects.isNull(instanceInfoVO.getInstanceState())) {
+                instanceInfoVO.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+            }
             String instanceKey = getInstanceKey(instanceInfoVO);
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         });
@@ -145,7 +149,7 @@ public class InstanceCheckService {
     private void doCheck() {
         instanceHealthBeatInfo.values().forEach(instance -> {
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
-                if (InstanceStatusEnum.ONLINE.getCode() == instance.getInstanceState()) {
+                if (Objects.equals(InstanceStatusEnum.ONLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(InstanceStatusEnum.OFFLINE.getCode());
@@ -156,7 +160,7 @@ public class InstanceCheckService {
                 instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             }
             if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
-                if (InstanceStatusEnum.OFFLINE.getCode() == instance.getInstanceState()) {
+                if (Objects.equals(InstanceStatusEnum.OFFLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(InstanceStatusEnum.DELETED.getCode());
@@ -179,7 +183,9 @@ public class InstanceCheckService {
     public void close() {
         syncDB();
         instanceHealthBeatInfo.clear();
-        executor.shutdown();
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
     }
 
     /**
@@ -205,7 +211,9 @@ public class InstanceCheckService {
 
     private void collectStateData() {
         if (!CollectionUtils.isEmpty(instanceHealthBeatInfo)) {
-            Map<Integer, Long> pieData = instanceHealthBeatInfo.values().stream().collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
+            Map<Integer, Long> pieData = instanceHealthBeatInfo.values().stream()
+                    .filter(instance -> Objects.nonNull(instance.getInstanceState()))
+                    .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
             updateStateHistory(pieData);
         }
     }
@@ -216,7 +224,9 @@ public class InstanceCheckService {
         if (StringUtils.isNotBlank(namespaceId)) {
             instanceInfoVOS = instanceInfoVOS.stream().filter(vo -> namespaceId.equals(vo.getNamespaceId())).collect(Collectors.toList());
         }
-        Map<Integer, Long> pieData = instanceInfoVOS.stream().collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
+        Map<Integer, Long> pieData = instanceInfoVOS.stream()
+                .filter(instance -> Objects.nonNull(instance.getInstanceState()))
+                .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
         List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
         for (Integer state : Arrays.asList(0, 1, 2)) {
             Deque<Long> queue = stateHistoryMap.getOrDefault(state, new ArrayDeque<>(MAX_HISTORY_SIZE));

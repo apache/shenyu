@@ -18,15 +18,19 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 
@@ -72,6 +76,7 @@ public class DiscoveryController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/insertOrUpdate")
+    @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final DiscoveryDTO discoveryDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.createOrUpdate(discoveryDTO));
     }
@@ -80,11 +85,15 @@ public class DiscoveryController {
      * delete by id.
      *
      * @param discoveryId discoveryId
+     * @param namespaceId namespaceId
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/{discoveryId}")
-    public ShenyuAdminResult delete(@PathVariable("discoveryId") final String discoveryId) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.delete(discoveryId));
+    @RequiresPermissions("system:plugin:delete")
+    public ShenyuAdminResult delete(@PathVariable("discoveryId") final String discoveryId,
+                                    @Existed(message = "namespaceId is not existed", provider = NamespaceMapper.class)
+                                    @RequestParam("namespaceId") final String namespaceId) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.delete(discoveryId, namespaceId));
     }
 
 }
