@@ -122,7 +122,7 @@
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="apiId != null">
-                name = #{apiId, jdbcType=VARCHAR},
+                api_id = #{apiId, jdbcType=VARCHAR},
             </if>
             <if test="tagId != null">
                 tag_id = #{tagId, jdbcType=VARCHAR},

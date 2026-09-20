@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -42,6 +43,7 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,6 +128,41 @@ public final class ModifyResponsePluginTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         StepVerifier.create(response.getBodyAsString())
                 .expectNext("data: hello\n\n")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithPreservesNonJsonBodyForHeaderOnlyRule() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setAddHeaders(Collections.singletonMap("X-Test", "header-only"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.TEXT_HTML);
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("<p>unchanged</p>".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals("header-only", response.getHeaders().getFirst("X-Test"));
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("<p>unchanged</p>")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithSkipsBodyRulesForNonJsonResponse() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setRemoveBodyKeys(Collections.singleton("$.value"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.APPLICATION_XML);
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("<value>unchanged</value>".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("<value>unchanged</value>")
                 .verifyComplete();
     }
 
