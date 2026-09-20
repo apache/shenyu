@@ -46,4 +46,17 @@ class KeyWordMatchTest {
         Assertions.assertTrue(keyWordMatch.matches("test"));
         Assertions.assertFalse(keyWordMatch.matches("dsaer"));
     }
+
+    @Test
+    public void matchesKeywordsContainingRegexMetacharacters() {
+        Set<String> set = new HashSet<>();
+        set.add("a.b");
+        set.add("ab[secret]yz");
+        KeyWordMatch match = new KeyWordMatch(set);
+
+        Assertions.assertTrue(match.matches("a.b"));
+        Assertions.assertFalse(match.matches("axb"));
+        Assertions.assertTrue(match.matches("ab[secret]yz"));
+        Assertions.assertTrue(match.matches("ab[other]yz"));
+    }
 }
