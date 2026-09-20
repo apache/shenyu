@@ -122,8 +122,9 @@ class AiResponseTransformerPluginTest {
 
     @Test
     void testDoExecute() {
-        SelectorData selectorData = mock(SelectorData.class);
-        RuleData ruleData = mock(RuleData.class);
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-response-rule-id");
+        ruleData.setSelectorId("test-selector-id");
         
         // Mock the factory registry and factory
         lenient().when(aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName("test-provider")))
@@ -141,6 +142,7 @@ class AiResponseTransformerPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
         // Execute plugin - this should succeed with proper configuration
+        SelectorData selectorData = mock(SelectorData.class);
         Mono<Void> result = plugin.doExecute(exchange, chain, selectorData, ruleData);
         
         // Verify execution result

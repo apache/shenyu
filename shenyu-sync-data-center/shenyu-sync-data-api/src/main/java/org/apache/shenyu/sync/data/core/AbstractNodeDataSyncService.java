@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -215,9 +216,14 @@ public abstract class AbstractNodeDataSyncService {
                 .flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
     }
 
-    protected void unCachePluginData(final String pluginName) {
+    protected void unCachePluginData(final String removeKey) {
+        final String[] pluginKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(pluginKeys) || pluginKeys.length < 3) {
+            LOG.warn("AbstractNodeDataSyncService invalid plugin data remove key: {}", removeKey);
+            return;
+        }
         final PluginData data = new PluginData();
-        data.setName(pluginName);
+        data.setName(pluginKeys[2]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
     }
 
@@ -259,9 +265,13 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheAuthData(final String removeKey) {
+        final String[] authKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(authKeys) || authKeys.length < 3) {
+            LOG.warn("AbstractNodeDataSyncService invalid auth data remove key: {}", removeKey);
+            return;
+        }
         final AppAuthData appAuthData = new AppAuthData();
-        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        appAuthData.setAppKey(ruleKeys[1]);
+        appAuthData.setAppKey(authKeys[2]);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));
         removeListener(removeKey);
     }
@@ -273,9 +283,13 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheMetaData(final String removeKey) {
+        final String[] metaKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(metaKeys) || metaKeys.length < 3) {
+            LOG.warn("AbstractNodeDataSyncService invalid meta data remove key: {}", removeKey);
+            return;
+        }
         final MetaData metaData = new MetaData();
-        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        metaData.setId(ruleKeys[1]);
+        metaData.setId(metaKeys[2]);
         metaDataSubscribers.forEach(e -> e.unSubscribe(metaData));
         removeListener(removeKey);
     }
@@ -287,10 +301,14 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheProxySelectorData(final String removeKey) {
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
         final String[] proxySelectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        proxySelectorData.setPluginName(proxySelectorKeys[2]);
-        proxySelectorData.setName(proxySelectorKeys[3]);
+        if (Objects.isNull(proxySelectorKeys) || proxySelectorKeys.length < 5) {
+            LOG.warn("AbstractNodeDataSyncService invalid proxy selector data remove key: {}", removeKey);
+            return;
+        }
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setPluginName(proxySelectorKeys[3]);
+        proxySelectorData.setName(proxySelectorKeys[4]);
         proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
         removeListener(removeKey);
     }

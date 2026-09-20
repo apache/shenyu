@@ -50,7 +50,7 @@ public class AiCommonConfig {
     /**
      * temperature.
      */
-    private Double temperature = 0.8;
+    private Double temperature;
 
     /**
      * max tokens.
