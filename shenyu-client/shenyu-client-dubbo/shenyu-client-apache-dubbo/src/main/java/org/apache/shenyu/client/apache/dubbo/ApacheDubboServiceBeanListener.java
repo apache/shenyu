@@ -18,19 +18,14 @@
 package org.apache.shenyu.client.apache.dubbo;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.common.constants.CommonConstants;
-import org.apache.dubbo.config.MethodConfig;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
-import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
-import org.apache.shenyu.client.dubbo.common.dto.DubboRpcMethodExt;
-import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExtBuilders;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -46,15 +41,12 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 
 /**
  * The Apache Dubbo ServiceBean Listener.
@@ -223,31 +215,6 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     }
     
     private String buildRpcExt(final ServiceBean<?> serviceBean, final String methodName) {
-        DubboRpcExt build = DubboRpcExt.builder()
-                .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")
-                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
-                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
-                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
-                .retries(Optional.ofNullable(serviceBean.getRetries()).orElse(CommonConstants.DEFAULT_RETRIES))
-                .timeout(Optional.ofNullable(serviceBean.getTimeout()).orElse(DEFAULT_CONNECT_TIMEOUT))
-                .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
-                .url("")
-                .serialization(serviceBean.getSerialization())
-                .build();
-        // method config: loadbalance,retries,timeout,sent
-        if (Objects.nonNull(serviceBean.getMethods())) {
-            build.setMethods(new ArrayList<>());
-            for (MethodConfig methodConfig : serviceBean.getMethods()) {
-                DubboRpcMethodExt methodExt = new DubboRpcMethodExt();
-                methodExt.setName(methodConfig.getName());
-                methodExt.setLoadbalance(methodConfig.getLoadbalance());
-                methodExt.setRetries(methodConfig.getRetries());
-                methodExt.setTimeout(methodConfig.getTimeout());
-                methodExt.setSent(methodConfig.getSent());
-                build.getMethods().add(methodExt);
-            }
-        }
-        return GsonUtils.getInstance().toJson(build);
+        return DubboRpcExtBuilders.buildRpcExt(serviceBean);
     }
 }
