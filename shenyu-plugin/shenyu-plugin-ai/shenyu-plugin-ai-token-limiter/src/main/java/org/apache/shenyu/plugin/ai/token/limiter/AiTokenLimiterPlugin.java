@@ -52,10 +52,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
@@ -348,46 +345,52 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
     static class BodyWriter {
 
-        private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        private static final int MAX_BUFFER_SIZE = 64 * 1024;
 
-        private final WritableByteChannel channel = Channels.newChannel(stream);
+        private final byte[] bytes;
+
+        private int size;
 
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
-        void write(final ByteBuffer buffer) {
-            if (!isClosed.get()) {
-                try {
-                    channel.write(buffer);
-                } catch (IOException e) {
-                    isClosed.compareAndSet(false, true);
-                    LOG.error("Parse Failed.", e);
-                }
+        BodyWriter() {
+            this(MAX_BUFFER_SIZE);
+        }
+
+        BodyWriter(final int maxBufferSize) {
+            if (maxBufferSize <= 0) {
+                throw new IllegalArgumentException("maxBufferSize must be greater than zero");
             }
+            this.bytes = new byte[maxBufferSize];
+        }
+
+        void write(final ByteBuffer source) {
+            if (isClosed.get() || !source.hasRemaining()) {
+                return;
+            }
+            int incomingSize = source.remaining();
+            if (incomingSize >= bytes.length) {
+                source.position(source.limit() - bytes.length);
+                source.get(bytes);
+                size = bytes.length;
+                return;
+            }
+            int overflow = Math.max(0, size + incomingSize - bytes.length);
+            if (overflow > 0) {
+                System.arraycopy(bytes, overflow, bytes, 0, size - overflow);
+                size -= overflow;
+            }
+            source.get(bytes, size, incomingSize);
+            size += incomingSize;
         }
 
         boolean isEmpty() {
-            return stream.size() == 0;
+            return size == 0;
         }
 
         String output() {
-            try {
-                isClosed.compareAndSet(false, true);
-                return stream.toString(StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                LOG.error("Write failed: ", e);
-                return "Write failed: " + e.getMessage();
-            } finally {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    LOG.error("Close stream error: ", e);
-                }
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    LOG.error("Close channel error: ", e);
-                }
-            }
+            isClosed.compareAndSet(false, true);
+            return new String(bytes, 0, size, StandardCharsets.UTF_8);
         }
     }
 }

@@ -139,14 +139,20 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public void close() {
-        if (this.running.compareAndSet(true, false) && !ObjectUtils.isEmpty(this.watchFutures)) {
-            this.watchFutures.forEach(watchFuture -> watchFuture.cancel(true));
+        try {
+            if (this.running.compareAndSet(true, false) && !ObjectUtils.isEmpty(this.watchFutures)) {
+                this.watchFutures.forEach(watchFuture -> watchFuture.cancel(true));
+            }
+            if (!ObjectUtils.isEmpty(newService)) {
+                consulClient.agentServiceDeregister(newService.getId(), token);
+                ttlScheduler.remove(newService.getId());
+            }
+        } finally {
+            executor.shutdownNow();
+            if (Objects.nonNull(ttlScheduler)) {
+                ttlScheduler.shutdown();
+            }
         }
-        if (!ObjectUtils.isEmpty(newService)) {
-            consulClient.agentServiceDeregister(newService.getId(), token);
-            ttlScheduler.remove(newService.getId());
-        }
-
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {
