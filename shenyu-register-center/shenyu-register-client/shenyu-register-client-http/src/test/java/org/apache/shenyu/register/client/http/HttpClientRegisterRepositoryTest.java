@@ -213,6 +213,21 @@ public final class HttpClientRegisterRepositoryTest {
     }
 
     @Test
+    public void offlineShouldThrowWhenEveryServerFails() throws IOException {
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class)) {
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
+                    .thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doUnregister(anyString(), anyString(), anyString()))
+                    .thenThrow(new IOException("unregister failed"));
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> repository.offline(uriRegisterDTO()));
+
+            assertTrue(exception.getCause() instanceof IOException);
+            assertEquals("unregister failed", exception.getCause().getMessage());
+        }
+    }
+
+    @Test
     public void loginFailureShouldSkipRegistration() {
         URIRegisterDTO uriRegisterDTO = uriRegisterDTO();
 
