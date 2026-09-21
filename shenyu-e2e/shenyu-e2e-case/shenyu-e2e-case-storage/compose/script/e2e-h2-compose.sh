@@ -16,24 +16,25 @@
 # limitations under the License.
 #
 
+set -euo pipefail
+
 # init kubernetes for h2
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml up -d --quiet-pull
-sleep 30s
+COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-h2.yml"
 
-# execute healthcheck.sh
-chmod +x "${curPath}"/healthcheck.sh
-sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+# Start services and wait for their healthchecks.
+docker network create -d bridge shenyu || true
+trap 'docker compose -f "$COMPOSE_FILE" down || true' EXIT
+docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait
 ## run e2e-test
-sleep 60s
 
 ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
 
 echo "shenyu-admin log:"
 echo "------------------"
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml logs shenyu-admin
+docker compose -f "$COMPOSE_FILE" logs shenyu-admin
 echo "shenyu-bootstrap log:"
 echo "------------------"
-docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-h2.yml logs shenyu-bootstrap
+docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap
