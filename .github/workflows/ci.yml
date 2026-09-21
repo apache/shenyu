@@ -72,14 +72,16 @@ jobs:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
-      code: ${{ steps.filter.outputs.code }}
+      code: ${{ steps.modules.outputs.has_code_changes }}
       code_files: ${{ steps.filter.outputs.code_files }}
+      modules: ${{ steps.modules.outputs.modules }}
+      full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/paths-filter
         id: filter
         with:
-          list-files: "csv"
+          list-files: "json"
           filters: |
             code:
               - '!**/*.md'
@@ -105,15 +107,18 @@ jobs:
               - 'mvnw.cmd'
               - '.mvn/**'
               - '.github/workflows/**'
+              - '.github/scripts/**'
+      - name: Resolve changed Maven modules
+        id: modules
+        if: steps.filter.outputs.code == 'true'
+        env:
+          CHANGED_FILES_JSON: ${{ steps.filter.outputs.code_files }}
+        run: bash .github/scripts/resolve-ci-modules.sh
 
-  build:
+  pr_build:
     needs: changes
-    strategy:
-      matrix:
-        java: [17, 21]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    if: github.repository == 'apache/shenyu' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && github.event_name == 'pull_request' && needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -121,6 +126,8 @@ jobs:
       - name: Debug - Show matched files
         run: |
           echo "Matched files: ${{ needs.changes.outputs.code_files }}"
+          echo "Resolved modules: ${{ needs.changes.outputs.modules }}"
+          echo "Full build required: ${{ needs.changes.outputs.full_build_required }}"
       - name: Restore ShenYu Maven Repos
         id: restore-maven-cache
         uses: actions/cache/restore@v3
@@ -131,7 +138,7 @@ jobs:
             ${{ runner.os }}-maven-
       - uses: ./actions/setup-java-with-retry
         with:
-          java-version: ${{ matrix.java }}
+          java-version: "17"
           distribution: "temurin"
       - name: Install mvnd
         shell: bash
@@ -151,16 +158,163 @@ jobs:
       - name: Build with Maven
         shell: bash
         run: |
+          MAVEN_ARGS="-B -ntp -T 1C"
+          TEST_ARGS="-Prelease -DskipRemoteResources=true -Djacoco.skip=true"
+          MODULE_ARGS=""
+
+          if [[ "${{ needs.changes.outputs.full_build_required }}" != "true" && -n "${{ needs.changes.outputs.modules }}" ]]; then
+            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am -amd"
+          fi
+
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean test -Prelease -DskipRemoteResources=true
+            mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           else
             echo "Falling back to maven wrapper"
-            ./mvnw -B clean test -Prelease -DskipRemoteResources=true
+            ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           fi
+
+  build_local_repo:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && github.event_name == 'push' && needs.changes.outputs.code == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Install mvnd
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.6
+          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+
+      - name: Build ShenYu local Maven repository
+        shell: bash
+        run: |
+          MAVEN_ARGS="-B -ntp -T 1C"
+          BUILD_ARGS="-Prelease -DskipTests -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true"
+
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for local repository build"
+            mvnd ${MAVEN_ARGS} install ${BUILD_ARGS}
+          else
+            echo "Falling back to maven wrapper"
+            ./mvnw ${MAVEN_ARGS} install ${BUILD_ARGS}
+          fi
+
+          mkdir -p /tmp/shenyu-m2/org/apache
+          cp -R "${HOME}/.m2/repository/org/apache/shenyu" /tmp/shenyu-m2/org/apache/shenyu
+      - name: Upload ShenYu local Maven repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+          retention-days: 1
+
+  test_group:
+    needs:
+      - changes
+      - build_local_repo
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && github.event_name == 'push' && needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: core
+            modules: shenyu-common,shenyu-spi,shenyu-disruptor,shenyu-protocol,shenyu-loadbalancer
+          - name: gateway
+            modules: shenyu-web,shenyu-bootstrap,shenyu-spring-boot-starter
+          - name: admin-sync
+            modules: shenyu-admin,shenyu-admin-listener,shenyu-sync-data-center
+          - name: plugin
+            modules: shenyu-plugin
+          - name: client-register-registry
+            modules: shenyu-client,shenyu-register-center,shenyu-registry
+          - name: dist-extra
+            modules: shenyu-dist,shenyu-sdk,shenyu-alert,shenyu-kubernetes-controller,shenyu-infra
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+      - name: Restore ShenYu local Maven repository
+        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Run Maven tests
+        shell: bash
+        run: |
+          modules="$(GROUP_ROOTS="${{ matrix.modules }}" bash .github/scripts/expand-ci-module-roots.sh)"
+          echo "Testing Maven modules: ${modules}"
+          ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true
       - uses: codecov/codecov-action@v1
         with:
           token: 2760af6a-3405-4882-9e61-04c5176fecfa
+          flags: ${{ matrix.name }}
+
+  compat_java21:
+    needs:
+      - changes
+      - build_local_repo
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && github.event_name == 'push' && needs.changes.outputs.code == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+      - name: Restore ShenYu local Maven repository
+        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Run Java 21 compatibility tests
+        shell: bash
+        run: |
+          ./mvnw -B -ntp -T 1C test -Prelease -DskipRemoteResources=true -Djacoco.skip=true
 
   check-license-header:
     name: check-license-header
@@ -181,10 +335,20 @@ jobs:
     if: (github.repository == 'apache/shenyu') && always()
     needs:
       - changes
-      - build
+      - pr_build
+      - build_local_repo
+      - test_group
+      - compat_java21
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit -1
-          [[ "${{ needs.changes.outputs.code }}" != "true" || "${{ needs.build.result }}" == "success" ]] || exit -1
+          if [[ "${{ needs.changes.outputs.code }}" == "true" && "${{ github.event_name }}" == "pull_request" ]]; then
+            [[ "${{ needs.pr_build.result }}" == "success" ]] || exit -1
+          fi
+          if [[ "${{ needs.changes.outputs.code }}" == "true" && "${{ github.event_name }}" == "push" ]]; then
+            [[ "${{ needs.build_local_repo.result }}" == "success" ]] || exit -1
+            [[ "${{ needs.test_group.result }}" == "success" ]] || exit -1
+            [[ "${{ needs.compat_java21.result }}" == "success" ]] || exit -1
+          fi

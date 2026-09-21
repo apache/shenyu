@@ -72,15 +72,15 @@ jobs:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
-      k8s_ingress: ${{ steps.filter.outputs['k8s-ingress'] }}
+      k8s_ingress: ${{ steps.cases.outputs.run_k8s_ingress }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/paths-filter
         id: filter
         with:
+          list-files: "json"
           filters: |
             k8s-ingress:
-              - '.github/workflows/integrated-test-k8s-ingress.yml'
               - 'shenyu-integrated-test-k8s-ingress*/**'
               - 'shenyu-*/**'
               - 'pom.xml'
@@ -94,8 +94,16 @@ jobs:
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
+              - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+      - name: Resolve k8s ingress cases
+        id: cases
+        if: steps.filter.outputs['k8s-ingress'] == 'true'
+        env:
+          CHANGED_FILES_JSON: ${{ steps.filter.outputs['k8s-ingress_files'] }}
+          CI_CASE_MODE: k8s-ingress
+        run: bash .github/scripts/resolve-test-case-matrix.sh
 
   build:
     needs: changes
