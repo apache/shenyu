@@ -65,6 +65,8 @@ public final class ModifyResponsePluginDataHandlerTest {
      */
     @Test
     public void removeSelectorTest() {
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        when(ruleData.getHandle()).thenReturn(null);
         modifyResponsePluginDataHandler.removeRule(ruleData);
         ModifyResponseRuleHandle modifyResponseRuleHandle = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         assertNull(modifyResponseRuleHandle);
