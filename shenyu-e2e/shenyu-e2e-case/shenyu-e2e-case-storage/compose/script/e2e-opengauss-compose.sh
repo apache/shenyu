@@ -29,6 +29,9 @@ COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-opengauss.yml"
 docker network create -d bridge shenyu || true
 trap 'docker compose -f "$COMPOSE_FILE" down || true' EXIT
 dump_logs() {
+  echo "shenyu-opengauss log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-opengauss || true
   echo "shenyu-admin log:"
   echo "------------------"
   docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true

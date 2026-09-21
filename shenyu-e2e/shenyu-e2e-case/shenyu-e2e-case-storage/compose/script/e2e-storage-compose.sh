@@ -32,12 +32,9 @@ cleanup() {
   fi
 }
 dump_logs() {
-  echo "shenyu-admin log:"
+  echo "compose service logs:"
   echo "------------------"
-  docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true
-  echo "shenyu-bootstrap log:"
-  echo "------------------"
-  docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap || true
+  docker compose -f "$COMPOSE_FILE" logs || true
 }
 trap cleanup EXIT
 

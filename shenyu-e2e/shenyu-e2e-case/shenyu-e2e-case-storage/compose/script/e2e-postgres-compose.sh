@@ -29,6 +29,9 @@ COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-postgres.yml"
 docker network create -d bridge shenyu || true
 trap 'docker compose -f "$COMPOSE_FILE" down || true' EXIT
 dump_logs() {
+  echo "shenyu-postgres log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-postgres || true
   echo "shenyu-admin log:"
   echo "------------------"
   docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true
