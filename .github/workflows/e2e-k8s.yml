@@ -45,8 +45,6 @@ jobs:
           list-files: "json"
           filters: |
             e2e:
-              - '.github/workflows/e2e-k8s.yml'
-              - '.github/scripts/resolve-test-case-matrix.sh'
               - 'shenyu-e2e/**'
               - '**/e2e/**'
               - 'shenyu-*/**'

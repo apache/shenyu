@@ -41,8 +41,6 @@ jobs:
           list-files: "json"
           filters: |
             integration:
-              - '.github/workflows/integrated-test.yml'
-              - '.github/scripts/resolve-test-case-matrix.sh'
               - 'shenyu-integrated-test/**'
               - 'shenyu-*/**'
               - 'db/**'
