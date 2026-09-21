@@ -23,6 +23,8 @@ full_required=false
 storage_cases=()
 e2e_cases=()
 integration_cases=()
+run_k8s_ingress=false
+run_k8s_examples=false
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required to resolve test case matrices." >&2
@@ -72,6 +74,42 @@ add_integration_all() {
   add_unique integration_cases "shenyu-integrated-test-combination"
   add_unique integration_cases "shenyu-integrated-test-sdk-apache-dubbo"
   add_unique integration_cases "shenyu-integrated-test-sdk-http"
+}
+
+is_ignored_change() {
+  local file="$1"
+
+  case "${file}" in
+    .github/*|*.md|*.txt|resources/static/*|.asf.yaml|.gitignore|.licenserc.yaml|LICENSE|NOTICE)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+resolve_k8s_change() {
+  local file="$1"
+
+  if [[ "${mode}" == "k8s-ingress" ]]; then
+    case "${file}" in
+      shenyu-integrated-test-k8s-ingress*/*|shenyu-*/*|pom.xml|*/pom.xml|shenyu-examples/*)
+        run_k8s_ingress=true
+        ;;
+    esac
+    return 0
+  fi
+
+  if [[ "${mode}" == "k8s-examples-http" ]]; then
+    case "${file}" in
+      shenyu-examples/*|shenyu-*/*|pom.xml|*/pom.xml)
+        run_k8s_examples=true
+        ;;
+    esac
+    return 0
+  fi
+
+  return 1
 }
 
 mark_full_if_shared() {
@@ -250,6 +288,14 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
+  if is_ignored_change "${file}"; then
+    continue
+  fi
+
+  if resolve_k8s_change "${file}"; then
+    continue
+  fi
+
   if [[ "$(basename "${file}")" == "pom.xml" && -f "${file}" ]] && grep -q "<modules>" "${file}"; then
     full_required=true
   fi
@@ -285,9 +331,13 @@ run_integration=$([[ "${#integration_cases[@]}" -gt 0 ]] && echo true || echo fa
   echo "run_integration=${run_integration}"
   echo "integration_matrix=${integration_matrix}"
   echo "full_required=${full_required}"
+  echo "run_k8s_ingress=${run_k8s_ingress}"
+  echo "run_k8s_examples=${run_k8s_examples}"
 } >> "${GITHUB_OUTPUT}"
 
 echo "Full required: ${full_required}"
 echo "Storage matrix: ${storage_matrix}"
 echo "E2E matrix: ${e2e_matrix}"
 echo "Integration matrix: ${integration_matrix}"
+echo "Run k8s ingress: ${run_k8s_ingress}"
+echo "Run k8s examples: ${run_k8s_examples}"

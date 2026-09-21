@@ -30,7 +30,7 @@ jobs:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
-      code: ${{ steps.filter.outputs.code }}
+      code: ${{ steps.modules.outputs.has_code_changes }}
       code_files: ${{ steps.filter.outputs.code_files }}
       modules: ${{ steps.modules.outputs.modules }}
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
