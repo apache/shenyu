@@ -250,20 +250,6 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
-  if [[ "${mode}" == "e2e" ]]; then
-    case "${file}" in
-      .github/workflows/e2e-k8s.yml|.github/scripts/resolve-test-case-matrix.sh)
-        full_required=true
-        ;;
-    esac
-  else
-    case "${file}" in
-      .github/workflows/integrated-test.yml|.github/scripts/resolve-test-case-matrix.sh)
-        full_required=true
-        ;;
-    esac
-  fi
-
   if [[ "$(basename "${file}")" == "pom.xml" && -f "${file}" ]] && grep -q "<modules>" "${file}"; then
     full_required=true
   fi
