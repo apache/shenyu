@@ -91,7 +91,7 @@ public class DubboIngressParserTest {
         if (Objects.nonNull(annotations)) {
             allAnnotations.putAll(annotations);
         }
-        Map<String, String> labels = new HashMap<>();
+        Map<String, String> labels = metadataLabels();
 
         V1Ingress ingress = new V1IngressBuilder()
                 .withNewMetadata().withName("testIngress").withNamespace("test")
@@ -166,7 +166,7 @@ public class DubboIngressParserTest {
     @Test
     public void shouldParseIngressWhenAnnotationsAreNull() {
         ShenyuMemoryConfig config = assertDoesNotThrow(() -> createParser().parse(
-                createIngress(null, Collections.emptyMap(), true), null));
+                createIngress(null, metadataLabels(), true), null));
 
         String handle = config.getRouteConfigList().get(0).getSelectorData().getHandle();
         List<DubboUpstream> upstreams = GsonUtils.getInstance().fromList(handle, DubboUpstream.class);
@@ -177,7 +177,7 @@ public class DubboIngressParserTest {
     @Test
     public void shouldIgnorePathWithNullBackend() {
         ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> createParser().parse(
-                createIngress(null, Collections.emptyMap(), false), null));
+                createIngress(null, metadataLabels(), false), null));
 
         Assertions.assertEquals(1, config.getRouteConfigList().size());
         Assertions.assertEquals("[]", config.getRouteConfigList().get(0).getSelectorData().getHandle());
@@ -190,6 +190,10 @@ public class DubboIngressParserTest {
                 .withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build()).build();
         when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(endpoints);
         return new DubboIngressParser(new Lister<>(serviceIndexer), new Lister<>(endpointsIndexer));
+    }
+
+    private Map<String, String> metadataLabels() {
+        return Collections.singletonMap("shenyu.apache.org/metadata-labels-1", SERVICE_NAME);
     }
 
     private V1Ingress createIngress(final Map<String, String> annotations, final Map<String, String> labels,
