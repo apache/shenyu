@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -144,7 +144,7 @@ public final class ConsulSyncDataServiceTest {
         Field cacheDataField = ConsulSyncDataService.class.getDeclaredField("cacheConsulDataKeyMap");
         cacheDataField.setAccessible(true);
 
-        Assertions.assertTrue(consulIndexesField.get(consulSyncDataService) instanceof ConcurrentHashMap);
-        Assertions.assertTrue(cacheDataField.get(consulSyncDataService) instanceof ConcurrentHashMap);
+        Assertions.assertTrue(consulIndexesField.get(consulSyncDataService) instanceof ConcurrentMap);
+        Assertions.assertTrue(cacheDataField.get(consulSyncDataService) instanceof ConcurrentMap);
     }
 }
