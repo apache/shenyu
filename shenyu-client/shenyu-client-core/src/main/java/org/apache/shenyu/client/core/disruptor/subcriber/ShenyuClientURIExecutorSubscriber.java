@@ -102,17 +102,21 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             
             URIS.add(uriRegisterDTO);
             
-            ShutdownHookManager.get().addShutdownHook(new Thread(() -> {
-                final URIRegisterDTO offlineDTO = new URIRegisterDTO();
-                BeanUtils.copyProperties(uriRegisterDTO, offlineDTO);
-                offlineDTO.setEventType(EventType.OFFLINE);
-                shenyuClientRegisterRepository.offline(offlineDTO);
-                
-                // shutdown heartbeat executor
-                if (!executor.isTerminated()) {
-                    executor.shutdown();
-                }
-            }), 2);
+            ShutdownHookManager.get().addShutdownHook(new Thread(() -> offlineAndShutdown(uriRegisterDTO)), 2);
+        }
+    }
+
+    void offlineAndShutdown(final URIRegisterDTO uriRegisterDTO) {
+        final URIRegisterDTO offlineDTO = new URIRegisterDTO();
+        BeanUtils.copyProperties(uriRegisterDTO, offlineDTO);
+        offlineDTO.setEventType(EventType.OFFLINE);
+        try {
+            shenyuClientRegisterRepository.offline(offlineDTO);
+        } finally {
+            // shutdown heartbeat executor
+            if (!executor.isTerminated()) {
+                executor.shutdown();
+            }
         }
     }
     

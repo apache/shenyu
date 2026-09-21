@@ -36,6 +36,7 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Properties;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -224,6 +225,26 @@ public final class HttpClientRegisterRepositoryTest {
 
             assertTrue(exception.getCause() instanceof IOException);
             assertEquals("unregister failed", exception.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void offlineShouldNotThrowWhenOnlyLastServerFails() throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(
+                FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class)) {
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
+                    .thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doUnregister(anyString(),
+                            eq(SECOND_SERVER + Constants.OFFLINE_PATH), anyString()))
+                    .thenThrow(new IOException("unregister failed"));
+
+            assertDoesNotThrow(() -> multiServerRepository.offline(uriRegisterDTO()));
+
+            registerUtils.verify(() -> RegisterUtils.doUnregister(anyString(),
+                    eq(FIRST_SERVER + Constants.OFFLINE_PATH), eq(TOKEN)));
+            registerUtils.verify(() -> RegisterUtils.doUnregister(anyString(),
+                    eq(SECOND_SERVER + Constants.OFFLINE_PATH), eq(TOKEN)));
         }
     }
 
