@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -14,23 +14,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-PRGDIR=`dirname "$0"`
-for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
-do
-    for loop in `seq 1 30`
-    do
-        status=`curl -o /dev/null -s -w %{http_code} $service`
-        echo -e "curl $service response $status"
+set -euo pipefail
 
-        if [ $status -eq 200  ]; then
-            break
-        fi
+artifact_dir="${1:-/tmp/shenyu-m2}"
+target_dir="${HOME}/.m2/repository/org/apache"
 
-        sleep 2
-    done
-done
+if [[ ! -d "${artifact_dir}/org/apache/shenyu" ]]; then
+  echo "ShenYu local repository artifact is missing: ${artifact_dir}/org/apache/shenyu" >&2
+  exit 1
+fi
 
-sleep 3
-echo -e "\n-------------------"
+mkdir -p "${target_dir}"
+if [[ -d "${target_dir}/shenyu" ]]; then
+  mv "${target_dir}/shenyu" "${target_dir}/shenyu.backup.${GITHUB_RUN_ID:-$$}"
+fi
+cp -R "${artifact_dir}/org/apache/shenyu" "${target_dir}/shenyu"
+
+echo "Restored ShenYu local Maven repository."
