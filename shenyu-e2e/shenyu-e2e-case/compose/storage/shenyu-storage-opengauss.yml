@@ -31,10 +31,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 768M
+          memory: 4G
         reservations:
           cpus: '0.5'
-          memory: 512M
+          memory: 2G
     healthcheck:
       test: [ "CMD-SHELL", "gsql -U gaussdb -h 127.0.0.1 -p 5432 -d shenyu -c \"SELECT 1\"" ]
       interval: 10s
