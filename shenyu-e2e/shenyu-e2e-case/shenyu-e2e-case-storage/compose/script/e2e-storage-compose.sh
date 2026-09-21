@@ -31,6 +31,14 @@ cleanup() {
     docker compose -f "$COMPOSE_FILE" down || true
   fi
 }
+dump_logs() {
+  echo "shenyu-admin log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true
+  echo "shenyu-bootstrap log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap || true
+}
 trap cleanup EXIT
 
 STORAGE_ARRAY=("h2" "mysql" "opengauss" "postgres")
@@ -40,16 +48,17 @@ for storage in "${STORAGE_ARRAY[@]}"; do
   fi
 
   COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-$storage.yml"
-  docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait
+  if ! docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 300; then
+    dump_logs
+    exit 1
+  fi
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
+  if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
+    dump_logs
+    exit 1
+  fi
 
-  echo "shenyu-admin log:"
-  echo "------------------"
-  docker compose -f "$COMPOSE_FILE" logs shenyu-admin
-  echo "shenyu-bootstrap log:"
-  echo "------------------"
-  docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap
-  docker compose -f "$COMPOSE_FILE" down
+  dump_logs
+  docker compose -f "$COMPOSE_FILE" down || true
   COMPOSE_FILE=""
 done

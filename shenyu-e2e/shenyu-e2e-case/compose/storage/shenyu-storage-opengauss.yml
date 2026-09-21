@@ -26,7 +26,7 @@ services:
     ports:
       - "30432:5432"
     volumes:
-      - /tmp/shenyu-e2e/opengauss/schema/create-table.sql:/docker-entrypoint-initdb.d
+      - /tmp/shenyu-e2e/opengauss/schema/create-table.sql:/docker-entrypoint-initdb.d/create-table.sql
     deploy:
       resources:
         limits:

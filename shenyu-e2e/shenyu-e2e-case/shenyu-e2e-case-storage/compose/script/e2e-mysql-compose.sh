@@ -28,14 +28,23 @@ COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-mysql.yml"
 # Start services and wait for their healthchecks.
 docker network create -d bridge shenyu || true
 trap 'docker compose -f "$COMPOSE_FILE" down || true' EXIT
-docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait
+dump_logs() {
+  echo "shenyu-admin log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true
+  echo "shenyu-bootstrap log:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap || true
+}
+if ! docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 300; then
+  dump_logs
+  exit 1
+fi
 ## run e2e-test
 
-./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
+if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
+  dump_logs
+  exit 1
+fi
 
-echo "shenyu-admin log:"
-echo "------------------"
-docker compose -f "$COMPOSE_FILE" logs shenyu-admin
-echo "shenyu-bootstrap log:"
-echo "------------------"
-docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap
+dump_logs
