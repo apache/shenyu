@@ -51,12 +51,15 @@ public class SpringMvcContractTest {
 
     private static final Method DEL;
 
+    private static final Method HEALTH;
+
     static {
         try {
             FIND_BY_ID = InvocationClient.class.getDeclaredMethod("findById", String.class);
             INSERT = InvocationClient.class.getDeclaredMethod("insert", MetaData.class);
             UPDATE = InvocationClient.class.getDeclaredMethod("update", MetaData.class);
             DEL = InvocationClient.class.getDeclaredMethod("del", String.class);
+            HEALTH = InvocationClient.class.getDeclaredMethod("health");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -95,6 +98,17 @@ public class SpringMvcContractTest {
         assertEquals(template.getHttpMethod(), ShenyuRequest.HttpMethod.DELETE);
     }
 
+    @Test
+    public void parseRootMappingRequestTemplateTest() {
+        SpringMvcContract contract = new SpringMvcContract();
+
+        RequestTemplate template = contract.parseRequestTemplate(HEALTH, bean);
+
+        assertSame(template.getMethod(), HEALTH);
+        assertEquals("", template.getPath());
+        assertEquals(ShenyuRequest.HttpMethod.GET, template.getHttpMethod());
+    }
+
     @ShenyuClient(value = "invocationClient", path = "/dev/null")
     public interface InvocationClient {
 
@@ -129,6 +143,13 @@ public class SpringMvcContractTest {
          */
         @DeleteMapping("/delete")
         int del(@RequestParam("id") String id);
+
+        /**
+         * health check mapping.
+         * @return status
+         */
+        @GetMapping
+        String health();
     }
 
 }

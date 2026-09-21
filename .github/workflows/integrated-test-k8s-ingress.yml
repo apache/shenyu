@@ -17,9 +17,51 @@ name: it-k8s
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,15 +72,15 @@ jobs:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
-      k8s_ingress: ${{ steps.filter.outputs['k8s-ingress'] }}
+      k8s_ingress: ${{ steps.cases.outputs.run_k8s_ingress }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/paths-filter
         id: filter
         with:
+          list-files: "json"
           filters: |
             k8s-ingress:
-              - '.github/workflows/integrated-test-k8s-ingress.yml'
               - 'shenyu-integrated-test-k8s-ingress*/**'
               - 'shenyu-*/**'
               - 'pom.xml'
@@ -52,8 +94,16 @@ jobs:
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
+              - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+      - name: Resolve k8s ingress cases
+        id: cases
+        if: steps.filter.outputs['k8s-ingress'] == 'true'
+        env:
+          CHANGED_FILES_JSON: ${{ steps.filter.outputs['k8s-ingress_files'] }}
+          CI_CASE_MODE: k8s-ingress
+        run: bash .github/scripts/resolve-test-case-matrix.sh
 
   build:
     needs: changes
@@ -100,8 +150,8 @@ jobs:
       - name: Install mvnd
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
-          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          MVND_VERSION=1.0.6
+          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
           unzip -q mvnd.zip
           mkdir -p $HOME/.local
           mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
