@@ -43,6 +43,7 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -126,9 +127,51 @@ public final class SensitiveWordPluginTest {
         MockServerWebExchange exchange = exchange("this request is banned");
         StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
         verify(chain, never()).execute(any(ServerWebExchange.class));
+        // the client is told that the request was rejected, never which word matched
         StepVerifier.create(exchange.getResponse().getBodyAsString())
-                .expectNextMatches(body -> body.contains("sensitive words") && body.contains("banned"))
+                .expectNextMatches(body -> body.contains("sensitive content detected") && !body.contains("banned"))
                 .verifyComplete();
+    }
+
+    @Test
+    public void testFailClosedRejectsTheRequestWhenTheDictionaryIsUnavailable() {
+        SensitiveWordPluginDataHandler.CACHED_HANDLE.get()
+                .cachedHandle(CacheKeyUtils.INST.getKey(ruleData), failClosedHandle());
+        ReactiveRedisTemplate<String, String> redisTemplate = mock(ReactiveRedisTemplate.class);
+        ReactiveSetOperations<String, String> setOperations = mock(ReactiveSetOperations.class);
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(REDIS_KEY)).thenReturn(Flux.error(new IllegalStateException("redis is down")));
+        cacheRedisTemplate(redisTemplate);
+
+        MockServerWebExchange exchange = exchange("a clean request");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .expectNextMatches(body -> body.contains("sensitive content detected"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void testTheStaleDictionaryIsUsedWhenRedisFails() {
+        mockRedisDictionary("forbidden", "banned");
+        MockServerWebExchange first = exchange("a clean request");
+        StepVerifier.create(plugin.doExecute(first, chain, null, ruleData)).verifyComplete();
+        // the first request legitimately went through, only what follows matters here
+        clearInvocations(chain);
+
+        // failClosed + refreshIntervalSeconds = 0: the dictionary is read again on every request
+        SensitiveWordPluginDataHandler.CACHED_HANDLE.get()
+                .cachedHandle(CacheKeyUtils.INST.getKey(ruleData), failClosedHandle());
+        ReactiveRedisTemplate<String, String> brokenTemplate = mock(ReactiveRedisTemplate.class);
+        ReactiveSetOperations<String, String> setOperations = mock(ReactiveSetOperations.class);
+        when(brokenTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(REDIS_KEY)).thenReturn(Flux.error(new IllegalStateException("redis is down")));
+        cacheRedisTemplate(brokenTemplate);
+
+        MockServerWebExchange exchange = exchange("this request is banned");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        // the stale dictionary is still enforced instead of letting the request through
+        verify(chain, never()).execute(any(ServerWebExchange.class));
     }
 
     @Test
@@ -157,6 +200,14 @@ public final class SensitiveWordPluginTest {
     private void cacheRedisTemplate(final ReactiveRedisTemplate<String, String> redisTemplate) {
         SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
                 .cachedHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME, redisTemplate);
+    }
+
+    private SensitiveWordHandle failClosedHandle() {
+        SensitiveWordHandle handle = SensitiveWordHandle.newDefaultInstance();
+        handle.setRedisKey(REDIS_KEY);
+        handle.setRefreshIntervalSeconds(0L);
+        handle.setFailClosed(true);
+        return handle;
     }
 
     private MockServerWebExchange exchange(final String body) {

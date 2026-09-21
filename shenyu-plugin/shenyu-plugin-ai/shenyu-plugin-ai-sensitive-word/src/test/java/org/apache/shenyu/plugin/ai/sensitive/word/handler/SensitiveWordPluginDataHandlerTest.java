@@ -132,6 +132,21 @@ public final class SensitiveWordPluginDataHandlerTest {
     }
 
     @Test
+    public void testRemovePluginReleasesTheRedisTemplate() {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig("{\"url\":\"127.0.0.1:6379\"}");
+        handler.handlerPlugin(pluginData);
+        assertNotNull(SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME));
+        handler.removePlugin(pluginData);
+        assertNull(SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME));
+        assertNull(SensitiveWordPluginDataHandler.REDIS_PROPERTIES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME));
+    }
+
+    @Test
     public void testCachedDictionaryExpires() {
         CachedDictionary dictionary = new CachedDictionary(AhoCorasick.empty());
         assertTrue(dictionary.isExpired(0L));

@@ -40,6 +40,13 @@ public class SensitiveWordHandle {
     private long refreshIntervalSeconds = 300L;
 
     /**
+     * Whether the request must be rejected when the dictionary is unavailable. It defaults to
+     * false, which means such a request is passed through: a broken redis must not take the
+     * traffic down. Deployments with a hard compliance requirement can opt into blocking.
+     */
+    private boolean failClosed;
+
+    /**
      * get redis key.
      *
      * @return redis key
@@ -73,6 +80,24 @@ public class SensitiveWordHandle {
      */
     public void setRefreshIntervalSeconds(final long refreshIntervalSeconds) {
         this.refreshIntervalSeconds = refreshIntervalSeconds;
+    }
+
+    /**
+     * whether the request must be rejected when the dictionary is unavailable.
+     *
+     * @return true when the request must be rejected
+     */
+    public boolean isFailClosed() {
+        return failClosed;
+    }
+
+    /**
+     * set whether the request must be rejected when the dictionary is unavailable.
+     *
+     * @param failClosed true to reject the request
+     */
+    public void setFailClosed(final boolean failClosed) {
+        this.failClosed = failClosed;
     }
 
     /**

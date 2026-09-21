@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.ai.sensitive.word.handler.SensitiveWordPluginDat
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -53,9 +54,17 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(SensitiveWordPlugin.class);
 
     /**
-     * The error code returned to the client when the request contains sensitive words.
+     * The error code returned to a client whose request was rejected. It follows the waf plugin,
+     * which rejects with 403 as well.
      */
-    private static final int SENSITIVE_WORD_CODE = 1500;
+    private static final int SENSITIVE_WORD_CODE = HttpStatus.FORBIDDEN.value();
+
+    /**
+     * The message returned to a client whose request was rejected. It never contains the matched
+     * words: echoing them back would confirm the dictionary to the caller and would re-emit
+     * forbidden content into the caller side logs.
+     */
+    private static final String REJECT_MESSAGE = "Request rejected: sensitive content detected";
 
     private final List<HttpMessageReader<?>> readers;
 
@@ -94,14 +103,17 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                                final ReactiveRedisTemplate<String, String> redisTemplate,
                                final SensitiveWordHandle handle,
                                final String body) {
-        return dictionary(redisTemplate, handle)
+        return dictionary(exchange, redisTemplate, handle)
                 .map(automaton -> automaton.search(body))
                 .flatMap(matches -> {
                     if (matches.isEmpty()) {
                         return Mono.just(body);
                     }
-                    return Mono.error(new ResponsiveException(SENSITIVE_WORD_CODE,
-                            String.format("The request contains sensitive words: %s", matches), exchange));
+                    // The matches are logged server side only: returning them to the caller would
+                    // turn the gateway into an oracle of the dictionary and would push content that
+                    // was just classified as forbidden into the caller side logs.
+                    LOG.warn("sensitive word plugin: the request was rejected, matched words: {}", matches);
+                    return Mono.error(new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
                 });
     }
 
@@ -114,26 +126,42 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
      * @param handle the rule handle
      * @return the automaton of the dictionary
      */
-    private Mono<AhoCorasick> dictionary(final ReactiveRedisTemplate<String, String> redisTemplate,
+    private Mono<AhoCorasick> dictionary(final ServerWebExchange exchange,
+                                         final ReactiveRedisTemplate<String, String> redisTemplate,
                                          final SensitiveWordHandle handle) {
         String redisKey = Objects.isNull(handle.getRedisKey())
                 ? SensitiveWordHandle.DEFAULT_REDIS_KEY : handle.getRedisKey();
         CachedDictionary cached = SensitiveWordPluginDataHandler.DICTIONARIES.get().obtainHandle(redisKey);
+        Mono<AhoCorasick> automaton;
         if (Objects.nonNull(cached) && !cached.isExpired(handle.getRefreshIntervalSeconds())) {
-            return Mono.just(cached.getAutomaton());
+            automaton = Mono.just(cached.getAutomaton());
+        } else {
+            automaton = redisTemplate.opsForSet()
+                    .members(redisKey)
+                    .collectList()
+                    // building the automaton is cpu bound, keep it away from the event loop
+                    .map(AhoCorasick::of)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .doOnNext(loaded -> SensitiveWordPluginDataHandler.DICTIONARIES.get()
+                            .cachedHandle(redisKey, new CachedDictionary(loaded)))
+                    .onErrorResume(error -> {
+                        LOG.error("sensitive word plugin: cannot read the dictionary from redis key {}", redisKey, error);
+                        if (Objects.nonNull(cached)) {
+                            return Mono.just(cached.getAutomaton());
+                        }
+                        if (handle.isFailClosed()) {
+                            LOG.warn("sensitive word plugin: no dictionary is available and failClosed is set,"
+                                    + " the request is rejected");
+                            return Mono.error(new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
+                        }
+                        // fail open: a broken redis must not take the traffic down
+                        LOG.warn("sensitive word plugin: no dictionary is available, the request is passed through");
+                        return Mono.just(AhoCorasick.empty());
+                    });
         }
-        return redisTemplate.opsForSet()
-                .members(redisKey)
-                .collectList()
-                // building the automaton is cpu bound, keep it away from the event loop
-                .map(AhoCorasick::of)
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(automaton -> SensitiveWordPluginDataHandler.DICTIONARIES.get()
-                        .cachedHandle(redisKey, new CachedDictionary(automaton)))
-                .onErrorResume(error -> {
-                    LOG.error("sensitive word plugin: cannot read the dictionary from redis key {}", redisKey, error);
-                    return Mono.just(Objects.isNull(cached) ? AhoCorasick.empty() : cached.getAutomaton());
-                });
+        // The cached path emits on the thread that subscribes to it, which is the netty event loop
+        // of the request being filtered: hop once here so that the scan below never runs on it.
+        return automaton.publishOn(Schedulers.boundedElastic());
     }
 
     @Override

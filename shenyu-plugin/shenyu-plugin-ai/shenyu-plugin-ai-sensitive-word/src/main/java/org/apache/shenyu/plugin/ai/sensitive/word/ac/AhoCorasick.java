@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.plugin.ai.sensitive.word.ac;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -76,6 +78,9 @@ public final class AhoCorasick {
     /**
      * Find every dictionary word contained in the given text.
      *
+     * <p>The scan is linear in the length of the text: every node carries the words matched by
+     * itself and by its failure chain, so no failure link is walked here.
+     *
      * @param text the text to scan
      * @return the matched words, in the order they were found, each word is reported once
      */
@@ -92,11 +97,8 @@ public final class AhoCorasick {
             }
             TrieNode next = current.children.get(c);
             current = Objects.isNull(next) ? root : next;
-            // Walk the whole failure chain, otherwise nested and overlapping words are missed.
-            for (TrieNode node = current; node != root; node = node.fail) {
-                if (Objects.nonNull(node.word)) {
-                    matches.add(node.word);
-                }
+            if (!current.outputs.isEmpty()) {
+                matches.addAll(current.outputs);
             }
         }
         return matches;
@@ -131,13 +133,22 @@ public final class AhoCorasick {
                     fail = fail.fail;
                 }
                 child.fail = Objects.nonNull(fail) ? fail.children.get(entry.getKey()) : root;
+                // Resolve the words matched at this node once, so that scanning a text never has
+                // to walk the failure chain: the words of the failure chain are the suffixes.
+                List<String> outputs = new ArrayList<>();
+                if (Objects.nonNull(child.word)) {
+                    outputs.add(child.word);
+                }
+                outputs.addAll(child.fail.outputs);
+                child.outputs = outputs.isEmpty() ? Collections.emptyList() : outputs;
                 queue.add(child);
             }
         }
     }
 
     /**
-     * A trie node, {@code word} is not null only on the node that ends a dictionary word.
+     * A trie node: {@code word} is not null only on the node that ends a dictionary word, and
+     * {@code outputs} holds every word matched when the automaton is in this state.
      */
     private static final class TrieNode {
 
@@ -146,5 +157,7 @@ public final class AhoCorasick {
         private TrieNode fail;
 
         private String word;
+
+        private List<String> outputs = Collections.emptyList();
     }
 }

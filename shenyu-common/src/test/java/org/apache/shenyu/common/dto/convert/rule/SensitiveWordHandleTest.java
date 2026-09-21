@@ -20,6 +20,8 @@ package org.apache.shenyu.common.dto.convert.rule;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for {@link SensitiveWordHandle}.
@@ -31,6 +33,14 @@ public final class SensitiveWordHandleTest {
         SensitiveWordHandle handle = SensitiveWordHandle.newDefaultInstance();
         assertEquals(SensitiveWordHandle.DEFAULT_REDIS_KEY, handle.getRedisKey());
         assertEquals(300L, handle.getRefreshIntervalSeconds());
+    }
+
+    @Test
+    public void testFailClosed() {
+        SensitiveWordHandle handle = new SensitiveWordHandle();
+        assertFalse(handle.isFailClosed());
+        handle.setFailClosed(true);
+        assertTrue(handle.isFailClosed());
     }
 
     @Test

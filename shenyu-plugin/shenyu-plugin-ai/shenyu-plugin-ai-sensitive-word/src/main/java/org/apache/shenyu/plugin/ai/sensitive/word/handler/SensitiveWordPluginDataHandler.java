@@ -101,6 +101,13 @@ public class SensitiveWordPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
+    public void removePlugin(final PluginData pluginData) {
+        REDIS_TEMPLATES.get().removeHandle(PLUGIN_NAME);
+        REDIS_PROPERTIES.get().removeHandle(PLUGIN_NAME);
+        LOG.info("sensitive word plugin: released the cached redis template");
+    }
+
+    @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(json -> {
             SensitiveWordHandle handle = GsonUtils.getInstance().fromJson(json, SensitiveWordHandle.class);
