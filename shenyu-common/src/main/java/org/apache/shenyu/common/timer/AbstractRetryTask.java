@@ -106,6 +106,7 @@ public abstract class AbstractRetryTask extends TimerTask {
         }
         if (!retryLimit && tickCount > retryCount) {
             logger.warn("Final failed to execute task, key:{}, retried:{}, task over.", key, tickCount);
+            this.onRetryExhausted(key);
             return;
         }
         try {
@@ -123,5 +124,13 @@ public abstract class AbstractRetryTask extends TimerTask {
      * @param timerTask the timer task
      */
     protected abstract void doRetry(String key, TimerTask timerTask);
+
+    /**
+     * Invoked when this task reaches its retry limit.
+     *
+     * @param key the task key
+     */
+    protected void onRetryExhausted(final String key) {
+    }
     
 }

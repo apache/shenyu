@@ -68,6 +68,13 @@ public final class FailureRegistryTaskTest {
     }
 
     @Test
+    public void testRetryExhaustedRemovesFailure() {
+        failureRegistryTask.onRetryExhausted(TEST_KEY);
+
+        verify(mockRepository, times(1)).remove(TEST_KEY);
+    }
+
+    @Test
     public void testDoRetryWithException() {
 
         doNothing().when(mockRepository).accept(anyString());

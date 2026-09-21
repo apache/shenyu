@@ -186,7 +186,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     private void addToFail(final Holder t) {
         Holder oldObj = concurrentHashMap.put(t.getKey(), t);
         if (Objects.nonNull(oldObj)) {
-            logger.warn("Updated failback registration payload, {}", t.getPath());
+            logger.debug("Updated failback registration payload, {}", t.getPath());
             return;
         }
         FailureRegistryTask registryTask = new FailureRegistryTask(t.getKey(), this);
