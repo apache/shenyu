@@ -27,4 +27,3 @@ RUN groupadd --system shenyu && \
     useradd --system --gid shenyu --create-home --home-dir /home/shenyu shenyu && \
     chown shenyu:shenyu /opt/shenyu-custom-plugin.jar
 USER shenyu
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["sh", "-c", "test -s /opt/shenyu-custom-plugin.jar"]

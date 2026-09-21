@@ -28,10 +28,10 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 RUN addgroup -S shenyu && \
-    adduser -S shenyu -G shenyu && \
+    adduser -S shenyu -G shenyu -h /home/shenyu && \
     chown -R shenyu:shenyu ${LOCAL_PATH}
 USER shenyu
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "kill -0 1"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "wget -q -O - http://127.0.0.1:8011/actuator/health | grep -q UP"]
 EXPOSE 8011
 EXPOSE 20888
 

@@ -31,7 +31,7 @@ RUN groupadd --system shenyu && \
     useradd --system --gid shenyu --create-home --home-dir /home/shenyu shenyu && \
     chown -R shenyu:shenyu ${LOCAL_PATH}
 USER shenyu
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "kill -0 1"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "wget -q -O - http://127.0.0.1:9195/actuator/health | grep -q UP"]
 EXPOSE 9195
 
 CMD java --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.net.util=ALL-UNNAMED -jar ${APP_NAME}.jar
