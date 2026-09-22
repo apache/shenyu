@@ -123,6 +123,7 @@ public class HttpClientPropertiesTest {
     public void httpClientPropertiesPoolTest() {
         HttpClientProperties httpClientProperties = new HttpClientProperties();
         HttpClientProperties.Pool pool = httpClientProperties.getPool();
+        Assertions.assertEquals(HttpClientProperties.Pool.PoolType.FIXED, pool.getType());
         pool.setAcquireTimeout(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
         pool.setMaxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
         pool.setName("name");

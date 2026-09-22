@@ -396,9 +396,9 @@ public class HttpClientProperties {
     public static class Pool {
 
         /**
-         * Type of pool for HttpClient to use, defaults to ELASTIC.
+        * Type of pool for HttpClient to use, defaults to FIXED.
          */
-        private PoolType type = PoolType.ELASTIC;
+        private PoolType type = PoolType.FIXED;
 
         /**
          * The channel pool map name, defaults to proxy.

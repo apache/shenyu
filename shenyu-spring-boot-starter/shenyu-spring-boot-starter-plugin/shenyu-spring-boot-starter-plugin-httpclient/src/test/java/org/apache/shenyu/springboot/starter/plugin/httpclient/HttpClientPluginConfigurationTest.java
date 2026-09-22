@@ -60,7 +60,6 @@ public class HttpClientPluginConfigurationTest {
                         "debug=true",
                         "shenyu.httpclient.connectTimeout=3",
                         "shenyu.httpclient.responseTimeout=0",
-                        "shenyu.httpclient.pool.PoolType=0",
                         "shenyu.httpclient.pool.name=proxy",
                         "shenyu.httpclient.pool.maxConnections=1",
                         "shenyu.httpclient.pool.acquireTimeout=45000",
@@ -79,7 +78,7 @@ public class HttpClientPluginConfigurationTest {
                     assertNotNull(properties);
                     assertThat(properties.getConnectTimeout(), is(3));
                     assertThat(properties.getResponseTimeout(), is(Duration.ZERO));
-                    assertThat(properties.getPool().getType(), is(HttpClientProperties.Pool.PoolType.ELASTIC));
+                    assertThat(properties.getPool().getType(), is(HttpClientProperties.Pool.PoolType.FIXED));
                     assertThat(properties.getPool().getName(), is("proxy"));
                     assertThat(properties.getPool().getMaxConnections(), is(1));
                     assertThat(properties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
