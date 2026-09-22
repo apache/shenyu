@@ -36,14 +36,18 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * RateLimiterPluginDataHandler test.
@@ -89,6 +93,31 @@ public final class RateLimiterPluginDataHandlerTest {
         new RateLimiterPluginDataHandler().handlerPlugin(pluginData);
         assertEquals(redisConfigProperties.getUrl(), Singleton.INST.get(RedisConfigProperties.class).getUrl());
         assertNotNull(Singleton.INST.get(ReactiveRedisTemplate.class));
+    }
+
+    /**
+     * the client that is replaced must not keep its connection pool and its threads alive.
+     */
+    @Test
+    public void handlerPluginDestroysTheClientItReplaces() {
+        RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        handler.handlerPlugin(pluginData(generateRedisConfig("localhost:6379")));
+        ReactiveRedisTemplate first = Singleton.INST.get(ReactiveRedisTemplate.class);
+        assertNotNull(first);
+        assertTrue(((LettuceConnectionFactory) first.getConnectionFactory()).isRunning());
+
+        handler.handlerPlugin(pluginData(generateRedisConfig("localhost:6380")));
+        ReactiveRedisTemplate second = Singleton.INST.get(ReactiveRedisTemplate.class);
+        assertNotSame(first, second);
+        assertFalse(((LettuceConnectionFactory) first.getConnectionFactory()).isRunning());
+        assertTrue(((LettuceConnectionFactory) second.getConnectionFactory()).isRunning());
+    }
+
+    private PluginData pluginData(final RedisConfigProperties redisConfigProperties) {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig(GsonUtils.getInstance().toJson(redisConfigProperties));
+        return pluginData;
     }
 
     /**
