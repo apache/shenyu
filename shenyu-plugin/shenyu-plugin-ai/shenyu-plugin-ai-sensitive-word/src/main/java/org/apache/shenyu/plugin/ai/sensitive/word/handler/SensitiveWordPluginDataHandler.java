@@ -114,9 +114,14 @@ public class SensitiveWordPluginDataHandler implements PluginDataHandler {
             if (Objects.isNull(handle)) {
                 handle = SensitiveWordHandle.newDefaultInstance();
             }
+            SensitiveWordHandle previous = CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
-            // The rule changed, drop the cached dictionary so that it is read from redis again.
-            DICTIONARIES.get().removeHandle(handle.getRedisKey());
+            // The rule changed, drop the cached dictionary of the previous and of the new
+            // configuration, so that both are read from redis again.
+            if (Objects.nonNull(previous)) {
+                DICTIONARIES.get().removeHandle(previous.dictionaryKey());
+            }
+            DICTIONARIES.get().removeHandle(handle.dictionaryKey());
         });
     }
 
