@@ -35,6 +35,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,6 +90,55 @@ public class AiProxyExecutorServiceTest {
         final AiCommonConfig fallbackConfig = new AiCommonConfig();
         fallbackConfig.setModel("fallback-model");
         final AiProxyExecutorService.FallbackContext ctx = new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
+
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(ctx), request, REQUEST_BODY, true))
+                .expectNext(fallbackChunk)
+                .verifyComplete();
+
+        verify(fallbackApi, times(1)).chatCompletionStream(any(ChatCompletionRequest.class));
+    }
+
+    @Test
+    void testExecuteDirectStreamDoesNotFallbackAfterChunkEmitted() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final OpenAiApi fallbackApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletionChunk mainChunk = mock(ChatCompletionChunk.class);
+
+        // Main stream emits one chunk and then fails — regression for #7021: the
+        // fallback must NOT be subscribed, otherwise the client would receive
+        // "main partial + fallback completion" concatenated output.
+        when(mainApi.chatCompletionStream(request)).thenReturn(
+                Flux.concat(Flux.just(mainChunk), Flux.error(new RuntimeException("upstream error after chunk"))));
+
+        final AiCommonConfig fallbackConfig = new AiCommonConfig();
+        fallbackConfig.setModel("fallback-model");
+        final AiProxyExecutorService.FallbackContext ctx =
+                new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
+
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(ctx), request, REQUEST_BODY, true))
+                .expectNext(mainChunk)
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(fallbackApi, never()).chatCompletionStream(any(ChatCompletionRequest.class));
+    }
+
+    @Test
+    void testExecuteDirectStreamFallbackAfterErrorWithoutChunks() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final OpenAiApi fallbackApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletionChunk fallbackChunk = mock(ChatCompletionChunk.class);
+
+        // No chunk emitted before the failure — fallback is still allowed.
+        when(mainApi.chatCompletionStream(request)).thenReturn(Flux.error(new RuntimeException("upstream error")));
+        when(fallbackApi.chatCompletionStream(any(ChatCompletionRequest.class))).thenReturn(Flux.just(fallbackChunk));
+
+        final AiCommonConfig fallbackConfig = new AiCommonConfig();
+        fallbackConfig.setModel("fallback-model");
+        final AiProxyExecutorService.FallbackContext ctx =
+                new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
 
         StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(ctx), request, REQUEST_BODY, true))
                 .expectNext(fallbackChunk)

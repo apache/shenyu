@@ -38,6 +38,7 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AI proxy executor service.
@@ -60,9 +61,15 @@ public class AiProxyExecutorService {
     public Flux<ChatCompletionChunk> executeDirectStream(final OpenAiApi mainApi,
             final Optional<FallbackContext> fallbackCtxOpt, final ChatCompletionRequest request,
             final String requestBody, final boolean stream) {
+        // Tracks whether any chunk has already been emitted downstream. Once a chunk has
+        // been delivered, switching to the fallback provider would concatenate a partial
+        // upstream response with a complete one (the corruption reported in #7021), so the
+        // fallback is only allowed while the main stream has produced nothing.
+        final AtomicBoolean chunkEmitted = new AtomicBoolean(false);
         return mainApi.chatCompletionStream(request)
+                .doOnNext(chunk -> chunkEmitted.set(true))
                 .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
-                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream));
+                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream, chunkEmitted.get()));
     }
 
     /**
@@ -92,7 +99,14 @@ public class AiProxyExecutorService {
     }
 
     private Flux<ChatCompletionChunk> handleDirectFallbackStream(final Throwable throwable,
-            final Optional<FallbackContext> fallbackCtxOpt, final String requestBody, final boolean stream) {
+            final Optional<FallbackContext> fallbackCtxOpt, final String requestBody, final boolean stream,
+            final boolean chunkAlreadyEmitted) {
+        if (chunkAlreadyEmitted) {
+            LOG.warn("Main direct stream failed after emitting at least one chunk; "
+                    + "not switching to fallback to avoid mixing partial and fallback output.", throwable);
+            return Flux.error(throwable);
+        }
+
         LOG.warn("Main direct stream failed, attempting fallback...", throwable);
 
         if (fallbackCtxOpt.isEmpty()) {
