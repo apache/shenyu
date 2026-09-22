@@ -22,11 +22,17 @@ import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
+import reactor.core.publisher.Mono;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -165,6 +171,32 @@ class AiTokenLimiterPluginTest {
         // Verify decompression succeeded
         assertEquals(sseContent, decompressed.toString());
         assertTrue(decompressed.toString().contains("completion_tokens\":75"));
+    }
+
+    @Test
+    void testRecordTokensUsageGivesTheCounterItsWindowWhenItIsCreated() throws Exception {
+        // Regression for #6649: the expiration must be applied when the counter is created, not re-issued on
+        // every increment, otherwise a sustained traffic keeps pushing the window forward and the token
+        // budget of the window is never reset.
+        ReactiveRedisTemplate redisTemplate = Mockito.mock(ReactiveRedisTemplate.class);
+        ReactiveValueOperations valueOperations = Mockito.mock(ReactiveValueOperations.class);
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(valueOperations.setIfAbsent("key", 0L, Duration.ofSeconds(60L))).thenReturn(Mono.just(false));
+        Mockito.when(valueOperations.increment("key", 10L)).thenReturn(Mono.just(30L));
+
+        recordTokensUsage(new AiTokenLimiterPlugin(), redisTemplate, "key", 10L, 60L);
+
+        Mockito.verify(valueOperations).setIfAbsent("key", 0L, Duration.ofSeconds(60L));
+        Mockito.verify(valueOperations).increment("key", 10L);
+        Mockito.verify(redisTemplate, Mockito.never()).expire(Mockito.anyString(), Mockito.any(Duration.class));
+    }
+
+    private void recordTokensUsage(final AiTokenLimiterPlugin plugin, final ReactiveRedisTemplate redisTemplate,
+                                   final String cacheKey, final Long tokens, final Long windowSeconds) throws Exception {
+        Method method = AiTokenLimiterPlugin.class.getDeclaredMethod("recordTokensUsage",
+                ReactiveRedisTemplate.class, String.class, Long.class, Long.class);
+        method.setAccessible(true);
+        method.invoke(plugin, redisTemplate, cacheKey, tokens, windowSeconds);
     }
 
     private String buildSseContentWithTokens(final int tokens) {

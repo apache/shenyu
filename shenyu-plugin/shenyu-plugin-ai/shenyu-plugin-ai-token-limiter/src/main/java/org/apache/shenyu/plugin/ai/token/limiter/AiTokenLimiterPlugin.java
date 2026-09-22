@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -169,10 +170,11 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     }
 
     private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        // Record token usage with expiration
-        reactiveRedisTemplate.opsForValue()
-                .increment(cacheKey, tokens)
-                .flatMap(currentValue -> reactiveRedisTemplate.expire(cacheKey, Duration.ofSeconds(windowSeconds)))
+        // The counter is given its window when it is created: re-issuing the expiration after every increment
+        // would push the window forward, so a sustained traffic would never reset the token budget.
+        final ReactiveValueOperations valueOperations = reactiveRedisTemplate.opsForValue();
+        valueOperations.setIfAbsent(cacheKey, 0L, Duration.ofSeconds(windowSeconds))
+                .then(valueOperations.increment(cacheKey, tokens))
                 .subscribe();
     }
 
