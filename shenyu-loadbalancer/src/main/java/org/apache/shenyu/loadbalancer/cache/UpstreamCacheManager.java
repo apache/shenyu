@@ -134,8 +134,10 @@ public final class UpstreamCacheManager {
      * @param key the key
      */
     public void removeByKey(final String key) {
-        UPSTREAM_MAP.remove(key);
-        task.triggerRemoveAll(key);
+        task.withLock(() -> {
+            UPSTREAM_MAP.remove(key);
+            task.triggerRemoveAll(key);
+        });
     }
 
     /**
@@ -145,6 +147,10 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
+        task.withLock(() -> doSubmit(selectorId, upstreamList));
+    }
+
+    private void doSubmit(final String selectorId, final List<Upstream> upstreamList) {
         List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
 
         // Check if the list is empty first to avoid unnecessary processing
@@ -161,11 +167,45 @@ public final class UpstreamCacheManager {
         List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
+        removeStaleUpstreams(selectorId, actualUpstreamList, existUpstreamList);
+
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private void removeStaleUpstreams(final String selectorId, final List<Upstream> actualUpstreamList,
+                                      final List<Upstream> existUpstreamList) {
+        Set<String> actualKeySet = actualUpstreamList.stream()
+                .map(this::upstreamMapKey)
+                .collect(Collectors.toSet());
+        // 找出存在旧缓存中但不在新列表中的 upstream
+        for (Upstream existUp : Lists.newArrayList(existUpstreamList)) {
+            if (!actualKeySet.contains(upstreamMapKey(existUp))) {
+                task.triggerRemoveOne(selectorId, existUp);
+                existUpstreamList.remove(existUp);
+            }
+        }
+        // 同时清理 healthyUpstream 中可能残留的、不在新列表中的节点
+        List<Upstream> healthyList = task.getHealthyUpstream().get(selectorId);
+        if (Objects.nonNull(healthyList)) {
+            for (Upstream healthyUp : Lists.newArrayList(healthyList)) {
+                if (!actualKeySet.contains(upstreamMapKey(healthyUp))) {
+                    task.removeFromMap(task.getHealthyUpstream(), selectorId, healthyUp);
+                }
+            }
+        }
+        // 清理 unhealthyUpstream 中残留的、不在新列表中的节点
+        List<Upstream> unhealthyList = task.getUnhealthyUpstream().get(selectorId);
+        if (Objects.nonNull(unhealthyList)) {
+            for (Upstream unhealthyUp : Lists.newArrayList(unhealthyList)) {
+                if (!actualKeySet.contains(upstreamMapKey(unhealthyUp))) {
+                    task.removeFromMap(task.getUnhealthyUpstream(), selectorId, unhealthyUp);
+                }
+            }
+        }
     }
 
     private void initializeUpstreamHealthStatus(final List<Upstream> upstreamList) {

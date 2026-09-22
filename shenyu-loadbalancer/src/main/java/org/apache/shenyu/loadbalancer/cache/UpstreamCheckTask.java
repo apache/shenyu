@@ -310,6 +310,17 @@ public final class UpstreamCheckTask implements Runnable {
     }
     
     /**
+     * Run a configuration update atomically with respect to health checks.
+     *
+     * @param action configuration update
+     */
+    void withLock(final Runnable action) {
+        synchronized (lock) {
+            action.run();
+        }
+    }
+
+    /**
      * Remove all upstream via selectorId.
      *
      * @param selectorId selectorId

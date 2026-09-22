@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -113,6 +115,57 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         ArgumentCaptor<DiscoveryUpstreamDO> discoveryUpstreamCaptor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
         verify(discoveryUpstreamMapper).insert(discoveryUpstreamCaptor.capture());
         Assertions.assertEquals(namespaceId, discoveryUpstreamCaptor.getValue().getNamespaceId());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = DiscoveryDataChangedEvent.Event.class, names = {"ADDED", "UPDATED", "DELETED"})
+    public void testRegistryEventsPublishCompleteSnapshot(final DiscoveryDataChangedEvent.Event eventType) {
+        prepareRegistryEvent();
+        DiscoveryUpstreamDO remaining = new DiscoveryUpstreamDO();
+        remaining.setUpstreamUrl("remaining:8080");
+        List<DiscoveryUpstreamDO> storedUpstreams = new ArrayList<>();
+        storedUpstreams.add(remaining);
+        if (eventType != DiscoveryDataChangedEvent.Event.DELETED) {
+            DiscoveryUpstreamDO changed = new DiscoveryUpstreamDO();
+            changed.setUpstreamUrl("changed:8080");
+            storedUpstreams.add(changed);
+        }
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler")).thenReturn(storedUpstreams);
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", eventType));
+
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        DiscoverySyncData snapshot = (DiscoverySyncData) ((List<?>) captor.getValue().getSource()).get(0);
+        Assertions.assertEquals(storedUpstreams.size(), snapshot.getUpstreamDataList().size());
+        Assertions.assertEquals("remaining:8080", snapshot.getUpstreamDataList().get(0).getUrl());
+        Assertions.assertEquals("selector", snapshot.getSelectorId());
+        Assertions.assertEquals(SYS_DEFAULT_NAMESPACE_ID, snapshot.getNamespaceId());
+    }
+
+    @Test
+    public void testDeletingLastInstancePublishesEmptySnapshot() {
+        prepareRegistryEvent();
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler")).thenReturn(Collections.emptyList());
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED));
+
+        verify(discoveryUpstreamMapper).deleteByUrl("handler", "changed:8080");
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        DiscoverySyncData snapshot = (DiscoverySyncData) ((List<?>) captor.getValue().getSource()).get(0);
+        Assertions.assertTrue(snapshot.getUpstreamDataList().isEmpty());
+    }
+
+    private void prepareRegistryEvent() {
+        DiscoveryUpstreamData changed = new DiscoveryUpstreamData();
+        changed.setUrl("changed:8080");
+        changed.setProtocol("http://");
+        changed.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(keyValueParser.parseValue("value")).thenReturn(Collections.singletonList(changed));
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("handler");
+        when(contextInfo.getSelectorId()).thenReturn("selector");
     }
 
 }
