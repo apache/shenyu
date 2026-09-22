@@ -32,6 +32,7 @@ dump_logs() {
   echo "shenyu-opengauss log:"
   echo "------------------"
   docker compose -f "$COMPOSE_FILE" logs shenyu-opengauss || true
+  docker inspect --format '{{range .State.Health.Log}}{{println .ExitCode .Output}}{{end}}' shenyu-opengauss || true
   echo "shenyu-admin log:"
   echo "------------------"
   docker compose -f "$COMPOSE_FILE" logs shenyu-admin || true
