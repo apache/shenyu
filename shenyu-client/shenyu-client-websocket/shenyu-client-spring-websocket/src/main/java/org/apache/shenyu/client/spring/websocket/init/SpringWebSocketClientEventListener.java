@@ -228,6 +228,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                 .enabled(true)
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
+                .registerMetaData(webSocketClient.registerMetaData())
                 .namespaceId(namespaceId)
                 .build();
     }
