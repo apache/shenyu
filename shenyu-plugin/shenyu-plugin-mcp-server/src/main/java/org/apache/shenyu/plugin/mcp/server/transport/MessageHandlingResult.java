@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.mcp.server.transport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.json.McpJsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,17 +36,21 @@ public class MessageHandlingResult {
 
     private final String sessionId;
 
+    private final McpJsonMapper jsonMapper;
+
     /**
      * Creates a new message handling result.
      *
      * @param statusCode   the HTTP status code for the response
      * @param responseBody the response body object
      * @param sessionId    the session identifier for correlation (nullable)
+     * @param jsonMapper    the configured MCP JSON mapper
      */
-    public MessageHandlingResult(final int statusCode, final Object responseBody, final String sessionId) {
+    public MessageHandlingResult(final int statusCode, final Object responseBody, final String sessionId, final McpJsonMapper jsonMapper) {
         this.statusCode = statusCode;
         this.responseBody = responseBody;
         this.sessionId = sessionId;
+        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -90,7 +94,7 @@ public class MessageHandlingResult {
         }
 
         try {
-            return new ObjectMapper().writeValueAsString(responseBody);
+            return jsonMapper.writeValueAsString(responseBody);
         } catch (Exception e) {
             LOGGER.error("Failed to serialize response body to JSON: {}", e.getMessage());
             return "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32603,\"message\":\"Internal error\"}}";
