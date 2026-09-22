@@ -27,10 +27,15 @@ import org.apache.shenyu.plugin.ai.sensitive.word.handler.SensitiveWordPluginDat
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -147,11 +152,60 @@ public final class SensitiveWordPluginDataHandlerTest {
     }
 
     @Test
+    public void testHandlerPluginDestroysTheClientItReplaces() {
+        handler.handlerPlugin(pluginData("127.0.0.1:6379"));
+        ReactiveRedisTemplate<String, String> first = SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
+        assertNotNull(first);
+        assertTrue(lettuceFactory(first).isRunning());
+
+        handler.handlerPlugin(pluginData("127.0.0.1:6380"));
+        ReactiveRedisTemplate<String, String> second = SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
+        assertNotSame(first, second);
+        // the client that was replaced must not keep its connection pool and its threads alive
+        assertFalse(lettuceFactory(first).isRunning());
+        assertTrue(lettuceFactory(second).isRunning());
+    }
+
+    @Test
+    public void testHandlerPluginKeepsTheClientWhenTheConfigurationIsUnchanged() {
+        handler.handlerPlugin(pluginData("127.0.0.1:6379"));
+        ReactiveRedisTemplate<String, String> first = SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
+        handler.handlerPlugin(pluginData("127.0.0.1:6379"));
+        assertSame(first, SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME));
+        assertTrue(lettuceFactory(first).isRunning());
+    }
+
+    @Test
+    public void testRemovePluginDestroysTheClient() {
+        handler.handlerPlugin(pluginData("127.0.0.1:6379"));
+        ReactiveRedisTemplate<String, String> cached = SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
+                .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
+        assertNotNull(cached);
+        handler.removePlugin(new PluginData());
+        assertFalse(lettuceFactory(cached).isRunning());
+    }
+
+    @Test
     public void testCachedDictionaryExpires() {
         CachedDictionary dictionary = new CachedDictionary(AhoCorasick.empty());
         assertTrue(dictionary.isExpired(0L));
         assertTrue(dictionary.isExpired(-1L));
         assertTrue(!dictionary.isExpired(300L));
+    }
+
+    private PluginData pluginData(final String url) {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setConfig("{\"url\":\"" + url + "\"}");
+        return pluginData;
+    }
+
+    private LettuceConnectionFactory lettuceFactory(final ReactiveRedisTemplate<String, String> template) {
+        return (LettuceConnectionFactory) template.getConnectionFactory();
     }
 
     private RuleData ruleData(final String handle) {
