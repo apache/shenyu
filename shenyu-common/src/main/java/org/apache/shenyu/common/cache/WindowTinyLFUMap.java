@@ -135,6 +135,7 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     
     @Override
     public int size() {
+        this.cache.cleanUp();
         return this.cache.asMap().entrySet().size();
     }
     
