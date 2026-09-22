@@ -45,10 +45,13 @@ import org.springframework.lang.NonNull;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -147,6 +150,27 @@ public final class SofaProxyServiceTest {
         applicationConfigCache.init(sofaRegisterConfig);
         sofaProxyService.genericInvoker("", metaData, selectorData, exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
+    }
+
+    @Test
+    @SuppressWarnings("all")
+    public void testGenericInvokerWithNullResult() throws IllegalAccessException {
+        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        GenericService genericService = mock(GenericService.class);
+        when(consumerConfig.refer()).thenReturn(genericService);
+        when(consumerConfig.getInterfaceId()).thenReturn(PATH);
+        when(genericService.$genericInvoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
+        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
+        final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
+        assertNotNull(cacheField);
+        ((LoadingCache) cacheField.get(applicationConfigCache)).put(PATH, consumerConfig);
+        SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
+
+        Mono<Object> result = sofaProxyService.genericInvoker("", metaData, new SelectorData(), exchange);
+        RpcInvokeContext.getContext().getResponseCallback().onAppResponse(null, null, null);
+
+        StepVerifier.create(result).expectNext(Constants.SOFA_RPC_RESULT_EMPTY).verifyComplete();
+        assertEquals(Constants.SOFA_RPC_RESULT_EMPTY, exchange.getAttribute(Constants.RPC_RESULT));
     }
 
     @Test
