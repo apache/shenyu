@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc;
 
+import io.grpc.MethodDescriptor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -28,8 +29,11 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
+import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +51,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,12 +87,57 @@ public class GrpcPluginTest {
         when(selector.getId()).thenReturn("grpcId");
     }
 
+    @AfterEach
+    public void tearDown() {
+        GrpcClientCache.removeClient("grpcId");
+    }
+
     @Test
-    @SuppressWarnings("all")
     public void testDoExecute() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange(new InetSocketAddress("127.0.0.1", 8090));
+        executeRequest(exchange, "127.0.0.1", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
+    }
+
+    @Test
+    public void testDoExecuteWithNullRemoteAddress()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange();
+        executeRequest(exchange, "", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
+    }
+
+    @Test
+    public void testDoExecuteWithNullRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt(null);
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @Test
+    public void testDoExecuteWithEmptyRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt("");
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @Test
+    public void testDoExecuteWithBlankRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt(" ");
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void executeRequest(final ServerWebExchange exchange, final String expectedRemoteAddress,
+                                final MetaData metaData, final MethodDescriptor.MethodType expectedMethodType)
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{message:1}");
-        exchange.getAttributes().put(Constants.META_DATA, getMetaData());
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
 
         Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
         Field clientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
@@ -96,8 +147,12 @@ public class GrpcPluginTest {
         ShenyuGrpcResponse response = new ShenyuGrpcResponse();
         response.getResults().add("success");
         when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenReturn(CompletableFuture.completedFuture(response));
-        clientCacheMap.put("/grpc", mockClient);
+                .thenAnswer(invocation -> {
+                    assertEquals(expectedRemoteAddress, GrpcConstants.GRPC_REMOTE_ADDRESS.get());
+                    assertEquals(expectedMethodType, invocation.getArgument(3));
+                    return CompletableFuture.completedFuture(response);
+                });
+        clientCacheMap.put("grpcId", mockClient);
 
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
@@ -146,13 +201,21 @@ public class GrpcPluginTest {
                 .serviceName("echo.EchoService")
                 .methodName("echo")
                 .rpcType(RpcTypeEnum.GRPC.getName())
-                .rpcExt("{timeout:5000}")
+                .rpcExt("{\"timeout\":5000,\"methodType\":\"SERVER_STREAMING\"}")
                 .parameterTypes("param")
                 .enabled(true).build();
     }
 
     private ServerWebExchange getServerWebExchange() {
-        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/grpc/echo").build());
+        return getServerWebExchange(null);
+    }
+
+    private ServerWebExchange getServerWebExchange(final InetSocketAddress remoteAddress) {
+        MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest.get("http://localhost/grpc/echo");
+        if (Objects.nonNull(remoteAddress)) {
+            requestBuilder.remoteAddress(remoteAddress);
+        }
+        ServerWebExchange exchange = MockServerWebExchange.from(requestBuilder.build());
         ShenyuContext shenyuContext = mock(ShenyuContext.class);
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.GRPC.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);

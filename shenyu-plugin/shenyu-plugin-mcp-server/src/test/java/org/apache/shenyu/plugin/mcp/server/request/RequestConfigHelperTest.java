@@ -203,7 +203,18 @@ class RequestConfigHelperTest {
         inputJson.addProperty("query", "hello world & special chars");
         
         String result = RequestConfigHelper.buildPath("/search", argsPosition, inputJson);
-        // The implementation doesn't URL encode, so check for raw string
-        assertTrue(result.contains("query=hello world & special chars"));
+        assertEquals("/search?query=hello%20world%20%26%20special%20chars", result);
+    }
+
+    @Test
+    void testReservedCharactersInPathParameter() {
+        JsonObject argsPosition = new JsonObject();
+        argsPosition.addProperty("id", "path");
+        JsonObject inputJson = new JsonObject();
+        inputJson.addProperty("id", "a/b #?+%");
+
+        String result = RequestConfigHelper.buildPath("/items/{{.id}}", argsPosition, inputJson);
+
+        assertEquals("/items/a%2Fb%20%23%3F+%25", result);
     }
 }

@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,6 +93,19 @@ public final class RedirectPluginTest {
     public void testNamed() {
         final String result = redirectPlugin.named();
         assertThat(PluginEnum.REDIRECT.getName(), Matchers.is(result));
+    }
+
+    @Test
+    public void testRemoveRuleWithoutHandle() {
+        RuleData ruleData = RuleData.builder().selectorId("selector").id("rule")
+                .handle("{\"redirectURI\":\"/test\"}").build();
+        RedirectPluginDataHandler handler = new RedirectPluginDataHandler();
+        handler.handlerRule(ruleData);
+        ruleData.setHandle(null);
+
+        handler.removeRule(ruleData);
+
+        assertNull(RedirectPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
 }
