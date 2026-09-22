@@ -18,7 +18,7 @@ version: '3.9'
 
 services:
   shenyu-opengauss:
-    image: enmotech/opengauss:5.0.0
+    image: enmotech/opengauss-lite:5.0.1
     container_name: shenyu-opengauss
     environment:
       - GS_PASSWORD=ShenYuE2E@123
@@ -31,10 +31,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 4G
+          memory: 768M
         reservations:
           cpus: '0.5'
-          memory: 2G
+          memory: 512M
     healthcheck:
       test: [ "CMD-SHELL", "gsql -U gaussdb -h 127.0.0.1 -p 5432 -d shenyu -c \"SELECT 1\"" ]
       interval: 10s
