@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,6 +79,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 @SuppressWarnings("all")
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
 
+    private static final int SCHEDULER_THREADS = 4;
+
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
     private static final String X_REAL_IP = "X-Real-IP";
@@ -97,6 +98,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      */
     private final Map<String, BlockingQueue<LongPollingClient>> clientsMap;
 
+    private final Map<String, Object> refreshLocks;
+
     private final ScheduledExecutorService scheduler;
 
     private final HttpSyncProperties httpSyncProperties;
@@ -108,7 +111,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         this.clientsMap = new ConcurrentHashMap<>();
-        this.scheduler = new ScheduledThreadPoolExecutor(1,
+        this.refreshLocks = new ConcurrentHashMap<>();
+        this.scheduler = new ScheduledThreadPoolExecutor(SCHEDULER_THREADS,
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
     }
@@ -258,12 +262,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         if (latest != serverCache) {
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
-        synchronized (this) {
+        Object refreshLock = refreshLocks.computeIfAbsent(serverCache.getNamespaceId(), key -> new Object());
+        synchronized (refreshLock) {
             latest = CACHE.get(configDataCacheKey);
             if (latest != serverCache) {
                 return !StringUtils.equals(clientMd5, latest.getMd5());
             }
-            super.refreshLocalCache();
+            this.refreshLocalCache(serverCache.getNamespaceId());
             latest = CACHE.get(configDataCacheKey);
             return !StringUtils.equals(clientMd5, latest.getMd5());
         }
@@ -353,20 +358,18 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             if (CollectionUtils.isEmpty(namespaceClients)) {
                 return;
             }
-            if (namespaceClients.size() > httpSyncProperties.getNotifyBatchSize()) {
-                List<LongPollingClient> targetClients = new ArrayList<>(namespaceClients.size());
-                namespaceClients.drainTo(targetClients);
+            List<LongPollingClient> targetClients = new ArrayList<>(namespaceClients.size());
+            namespaceClients.drainTo(targetClients);
+            if (targetClients.size() > httpSyncProperties.getNotifyBatchSize()) {
                 List<List<LongPollingClient>> partitionClients = Lists.partition(targetClients, httpSyncProperties.getNotifyBatchSize());
                 partitionClients.forEach(item -> scheduler.execute(() -> doRun(item)));
             } else {
-                doRun(namespaceClients);
+                doRun(targetClients);
             }
         }
 
         private void doRun(final Collection<LongPollingClient> clients) {
-            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
-                LongPollingClient client = iter.next();
-                iter.remove();
+            for (LongPollingClient client : clients) {
                 client.sendResponse(Collections.singletonList(groupKey));
                 LOG.info("send response with the changed group,ip={}, group={}, changeTime={}", client.ip, groupKey, changeTime);
             }
