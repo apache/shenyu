@@ -1044,7 +1044,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      */
     private class StreamableHttpSessionTransport implements McpServerTransport {
 
-        private final String sessionId;
+        private String sessionId;
 
         private volatile boolean closed;
 
