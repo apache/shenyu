@@ -51,11 +51,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
@@ -64,8 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 /**
  * Shenyu ai token limiter plugin.
@@ -91,13 +85,13 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
 
-        // generate redis key
+        // generate redis key - include rule id to scope counters per rule
         String tokenLimitType = aiTokenLimiterHandle.getAiTokenLimitType();
         String keyName = aiTokenLimiterHandle.getKeyName();
         Long tokenLimit = aiTokenLimiterHandle.getTokenLimit();
         Long timeWindowSeconds = aiTokenLimiterHandle.getTimeWindowSeconds();
 
-        String cacheKey = REDIS_KEY_PREFIX + getCacheKey(exchange, tokenLimitType, keyName);
+        String cacheKey = REDIS_KEY_PREFIX + CacheKeyUtils.INST.getKey(rule) + ":" + getCacheKey(exchange, tokenLimitType, keyName);
 
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(),
                 tokens -> recordTokensUsage(reactiveRedisTemplate,
@@ -232,9 +226,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     && headers.getFirst(Constants.CONTENT_ENCODING)
                     .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
 
-            final Inflater inflater = isGzip ? new Inflater(true) : null;
-            final byte[] outBuf = new byte[4096];
-            final AtomicBoolean headerSkipped = new AtomicBoolean(!isGzip);
+            final GzipStreamDecoder decoder = isGzip ? new GzipStreamDecoder() : null;
 
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
@@ -244,59 +236,18 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes;
-                                if (isGzip) {
-                                    int offset = 0;
-                                    if (headerSkipped.compareAndSet(false, true)) {
-                                        offset = skipGzipHeader(inBytes);
-                                    }
-                                    inflater.setInput(inBytes, offset, inBytes.length - offset);
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    try {
-                                        int cnt;
-                                        while ((cnt = inflater.inflate(outBuf)) > 0) {
-                                            baos.write(outBuf, 0, cnt);
-                                        }
-                                    } catch (DataFormatException ex) {
-                                        LOG.error("Inflater decompression failed", ex);
-                                    }
-                                    processedBytes = baos.toByteArray();
-                                } else {
-                                    processedBytes = inBytes;
+                                byte[] processedBytes = isGzip ? decoder.decode(inBytes) : inBytes;
+                                if (processedBytes.length > 0) {
+                                    processChunk(processedBytes, writer);
                                 }
-                                String chunk = new String(processedBytes, StandardCharsets.UTF_8);
-                                for (String line : chunk.split("\\r?\\n")) {
-                                    if (!line.startsWith("data:")) {
-                                        continue;
-                                    }
-                                    String payload = line.substring("data:".length()).trim();
-                                    if (payload.isEmpty() || "[DONE]".equals(payload)) {
-                                        continue;
-                                    }
-                                    if (!payload.startsWith("{")) {
-                                        continue;
-                                    }
-                                    try {
-                                        JsonNode node = MAPPER.readTree(payload);
-                                        JsonNode usage = node.get(Constants.USAGE);
-                                        if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
-                                            long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
-                                            tokensRecorder.accept(c);
-                                            streamingUsageRecorded.set(true);
-                                        }
-                                    } catch (Exception e) {
-                                        LOG.error("Failed to parse AI response JSON payload", e);
-                                    }
-                                }
-                                writer.write(ByteBuffer.wrap(processedBytes));
                             });
                         } catch (Exception e) {
                             LOG.error("read dataBuffer error", e);
                         }
                     })
                     .doFinally(signal -> {
-                        if (Objects.nonNull(inflater)) {
-                            inflater.end();
+                        if (Objects.nonNull(decoder)) {
+                            decoder.close();
                         }
                         if (!streamingUsageRecorded.get()) {
                             String sse = writer.output();
@@ -304,6 +255,34 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                             tokensRecorder.accept(usageTokens);
                         }
                     });
+        }
+
+        private void processChunk(final byte[] processedBytes, final BodyWriter writer) {
+            String chunk = new String(processedBytes, StandardCharsets.UTF_8);
+            for (String line : chunk.split("\\r?\\n")) {
+                if (!line.startsWith("data:")) {
+                    continue;
+                }
+                String payload = line.substring("data:".length()).trim();
+                if (payload.isEmpty() || "[DONE]".equals(payload)) {
+                    continue;
+                }
+                if (!payload.startsWith("{")) {
+                    continue;
+                }
+                try {
+                    JsonNode node = MAPPER.readTree(payload);
+                    JsonNode usage = node.get(Constants.USAGE);
+                    if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
+                        long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
+                        tokensRecorder.accept(c);
+                        streamingUsageRecorded.set(true);
+                    }
+                } catch (Exception e) {
+                    LOG.error("Failed to parse AI response JSON payload", e);
+                }
+            }
+            writer.write(ByteBuffer.wrap(processedBytes));
         }
 
         private long extractUsageTokensFromSse(final String sse) {
@@ -315,79 +294,56 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return last;
         }
 
-        private int skipGzipHeader(final byte[] b) {
-            int pos = 10;
-            int flg = b[3] & 0xFF;
-
-            if ((flg & 0x04) != 0) {
-                int xlen = (b[pos] & 0xFF) | ((b[pos + 1] & 0xFF) << 8);
-                pos += 2 + xlen;
-            }
-
-            if ((flg & 0x08) != 0) {
-                while (b[pos] != 0) {
-                    pos++;
-                }
-                pos++;
-            }
-
-            if ((flg & 0x10) != 0) {
-                while (b[pos] != 0) {
-                    pos++;
-                }
-                pos++;
-            }
-
-            if ((flg & 0x02) != 0) {
-                pos += 2;
-            }
-            return pos;
-        }
-
     }
 
     static class BodyWriter {
 
-        private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        private static final int MAX_BUFFER_SIZE = 64 * 1024;
 
-        private final WritableByteChannel channel = Channels.newChannel(stream);
+        private final byte[] bytes;
+
+        private int size;
 
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
-        void write(final ByteBuffer buffer) {
-            if (!isClosed.get()) {
-                try {
-                    channel.write(buffer);
-                } catch (IOException e) {
-                    isClosed.compareAndSet(false, true);
-                    LOG.error("Parse Failed.", e);
-                }
+        BodyWriter() {
+            this(MAX_BUFFER_SIZE);
+        }
+
+        BodyWriter(final int maxBufferSize) {
+            if (maxBufferSize <= 0) {
+                throw new IllegalArgumentException("maxBufferSize must be greater than zero");
             }
+            this.bytes = new byte[maxBufferSize];
+        }
+
+        void write(final ByteBuffer source) {
+            if (isClosed.get() || !source.hasRemaining()) {
+                return;
+            }
+            int incomingSize = source.remaining();
+            if (incomingSize >= bytes.length) {
+                source.position(source.limit() - bytes.length);
+                source.get(bytes);
+                size = bytes.length;
+                return;
+            }
+            int overflow = Math.max(0, size + incomingSize - bytes.length);
+            if (overflow > 0) {
+                System.arraycopy(bytes, overflow, bytes, 0, size - overflow);
+                size -= overflow;
+            }
+            source.get(bytes, size, incomingSize);
+            size += incomingSize;
         }
 
         boolean isEmpty() {
-            return stream.size() == 0;
+            return size == 0;
         }
 
         String output() {
-            try {
-                isClosed.compareAndSet(false, true);
-                return stream.toString(StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                LOG.error("Write failed: ", e);
-                return "Write failed: " + e.getMessage();
-            } finally {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    LOG.error("Close stream error: ", e);
-                }
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    LOG.error("Close channel error: ", e);
-                }
-            }
+            isClosed.compareAndSet(false, true);
+            return new String(bytes, 0, size, StandardCharsets.UTF_8);
         }
     }
 }
