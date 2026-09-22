@@ -19,10 +19,14 @@ package org.apache.shenyu.plugin.metrics;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.metrics.constant.LabelNames;
+import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
+import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,5 +87,33 @@ public class MetricsPluginTest {
     @Test
     public void testNamed() {
         Assertions.assertEquals(metricsPlugin.named(), PluginEnum.METRICS.getName());
+    }
+
+    @Test
+    public void testRequestTypeTotalIsNotLabelledByRawPath() {
+        MetricsRegister metricsRegister = Mockito.mock(MetricsRegister.class);
+        MetricsReporter.register(metricsRegister);
+        try {
+            Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+            String rpcType = RpcTypeEnum.HTTP.getName();
+            ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
+            Mockito.lenient().when(shenyuContext.getRpcType()).thenReturn(rpcType);
+            StepVerifier.create(metricsPlugin.execute(createExchange("/api/user/123", shenyuContext), chain))
+                    .expectSubscription().verifyComplete();
+            StepVerifier.create(metricsPlugin.execute(createExchange("/api/order/456", shenyuContext), chain))
+                    .expectSubscription().verifyComplete();
+            // the raw path must not be used as label value, otherwise the prometheus client keeps
+            // one child series per distinct path and its children map grows without bound.
+            Mockito.verify(metricsRegister, Mockito.times(2))
+                    .counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{rpcType}, 1L);
+        } finally {
+            MetricsReporter.clean();
+        }
+    }
+
+    private ServerWebExchange createExchange(final String path, final ShenyuContext shenyuContext) {
+        ServerWebExchange result = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost" + path).build());
+        result.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        return result;
     }
 }

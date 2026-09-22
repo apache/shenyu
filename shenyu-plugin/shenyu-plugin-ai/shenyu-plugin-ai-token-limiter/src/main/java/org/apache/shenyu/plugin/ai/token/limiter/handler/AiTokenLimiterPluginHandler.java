@@ -88,6 +88,20 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final AiTokenLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, AiTokenLimiterHandle.class);
+            // Fill defaults for null fields to prevent NPE
+            AiTokenLimiterHandle defaultHandle = AiTokenLimiterHandle.newDefaultInstance();
+            if (Objects.isNull(rateLimiterHandle.getTokenLimit())) {
+                rateLimiterHandle.setTokenLimit(defaultHandle.getTokenLimit());
+            }
+            if (Objects.isNull(rateLimiterHandle.getTimeWindowSeconds())) {
+                rateLimiterHandle.setTimeWindowSeconds(defaultHandle.getTimeWindowSeconds());
+            }
+            if (Objects.isNull(rateLimiterHandle.getAiTokenLimitType())) {
+                rateLimiterHandle.setAiTokenLimitType(defaultHandle.getAiTokenLimitType());
+            }
+            if (Objects.isNull(rateLimiterHandle.getKeyName())) {
+                rateLimiterHandle.setKeyName(defaultHandle.getKeyName());
+            }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
         });
     }

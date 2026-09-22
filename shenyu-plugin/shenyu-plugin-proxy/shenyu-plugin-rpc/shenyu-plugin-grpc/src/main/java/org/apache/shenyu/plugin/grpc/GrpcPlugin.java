@@ -104,7 +104,10 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
                         .map(InetAddress::getHostAddress)
                         .orElse(StringUtils.EMPTY)).attach();
 
-        GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
+        GrpcExtInfo extInfo = StringUtils.isBlank(metaData.getRpcExt())
+                ? new GrpcExtInfo()
+                : Optional.ofNullable(GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class))
+                        .orElseGet(GrpcExtInfo::new);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.GRPC.getName())).ifPresent(
@@ -168,7 +171,7 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
 
         private Integer timeout = 5000;
 
-        private MethodDescriptor.MethodType methodType;
+        private MethodDescriptor.MethodType methodType = MethodDescriptor.MethodType.UNARY;
 
         public Integer getTimeout() {
             return timeout;
