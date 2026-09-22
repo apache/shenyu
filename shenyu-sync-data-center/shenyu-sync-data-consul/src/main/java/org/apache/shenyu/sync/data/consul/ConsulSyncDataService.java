@@ -39,10 +39,10 @@ import org.apache.shenyu.sync.data.core.AbstractPathDataSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -60,9 +60,9 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(ConsulSyncDataService.class);
 
-    private final Map<String, Long> consulIndexes = new HashMap<>();
+    private final Map<String, Long> consulIndexes = new ConcurrentHashMap<>();
 
-    private final Map<String, List<ConsulData>> cacheConsulDataKeyMap = new HashMap<>();
+    private final Map<String, List<ConsulData>> cacheConsulDataKeyMap = new ConcurrentHashMap<>();
 
     private final ScheduledThreadPoolExecutor executor;
 
