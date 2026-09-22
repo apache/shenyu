@@ -270,10 +270,24 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
-        // warm up L1: cache selector into MatchDataCache
-        MatchDataCache.getInstance().cacheSelectorData("/http/SHENYU/SHENYU", selectorData, 100, 100);
+        // warm up L1 with a selector that is deliberately DIFFERENT from the one L2 matching would
+        // return (same id so the rule lookup still resolves, different name so equals() tells them
+        // apart). If the L1 lookup is ever bypassed, matching falls through to L2 and this assertion
+        // fails on the name mismatch instead of passing silently.
+        SelectorData cachedSelectorData = SelectorData.builder()
+                .id("1")
+                .name("cached-selector")
+                .pluginName("SHENYU")
+                .enabled(true)
+                .logged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionList(conditionDataList)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .build();
+        MatchDataCache.getInstance().cacheSelectorData("/http/SHENYU/SHENYU", cachedSelectorData, 100, 100);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
-        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, cachedSelectorData, ruleData);
     }
 
     /**
@@ -306,10 +320,24 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
-        // warm up L1: cache rule into MatchDataCache
-        MatchDataCache.getInstance().cacheRuleData("/http/SHENYU/SHENYU", ruleData, 100, 100);
+        // warm up L1 with a rule that is deliberately DIFFERENT from the one L2 matching would
+        // return (same id, different name). If the L1 lookup is ever bypassed, matching falls
+        // through to L2 and this assertion fails on the name mismatch instead of passing silently.
+        RuleData cachedRuleData = RuleData.builder()
+                .id("1")
+                .name("cached-rule")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionDataList(conditionDataList)
+                .sort(1)
+                .build();
+        MatchDataCache.getInstance().cacheRuleData("/http/SHENYU/SHENYU", cachedRuleData, 100, 100);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
-        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, cachedRuleData);
     }
 
     /**

@@ -250,8 +250,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, SelectorData> matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        // hot path: prefer plain loop over stream to reduce allocations.
-        // de-duplicate via LinkedHashSet to preserve original semantics (equals/hashCode based).
+        // de-duplicate via LinkedHashSet, which keeps the encounter order and the equals/hashCode
+        // contract of the previous stream().distinct() call.
         Set<SelectorData> matched = null;
         for (SelectorData selector : selectors) {
             if (selector.getEnabled() && filterSelector(selector, exchange)) {
@@ -261,7 +261,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 matched.add(selector);
             }
         }
-        if (Objects.isNull(matched) || matched.isEmpty()) {
+        // the set is only created when a selector is added, so a non-null set is never empty.
+        if (Objects.isNull(matched)) {
             return Pair.of(Boolean.TRUE, null);
         }
         if (matched.size() == 1) {
@@ -295,8 +296,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
-        // hot path: prefer plain loop over stream to reduce allocations.
-        // de-duplicate via LinkedHashSet to preserve original semantics (equals/hashCode based).
+        // de-duplicate via LinkedHashSet, which keeps the encounter order and the equals/hashCode
+        // contract of the previous stream().distinct() call.
         Set<RuleData> matched = null;
         for (RuleData rule : rules) {
             if (filterRule(rule, exchange)) {
@@ -306,7 +307,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 matched.add(rule);
             }
         }
-        if (Objects.isNull(matched) || matched.isEmpty()) {
+        // the set is only created when a rule is added, so a non-null set is never empty.
+        if (Objects.isNull(matched)) {
             return Pair.of(Boolean.TRUE, null);
         }
         if (matched.size() == 1) {
