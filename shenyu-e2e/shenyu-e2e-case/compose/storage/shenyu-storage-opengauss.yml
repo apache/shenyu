@@ -36,7 +36,7 @@ services:
           cpus: '0.5'
           memory: 512M
     healthcheck:
-      test: [ "CMD-SHELL", "LD_LIBRARY_PATH=/usr/local/opengauss/lib PGPASSWORD=$$GS_PASSWORD /usr/local/opengauss/bin/gsql -U gaussdb -h 127.0.0.1 -p 5432 -d shenyu -c \"SELECT 1\"" ]
+      test: [ "CMD-SHELL", "LD_LIBRARY_PATH=/usr/local/opengauss/lib /usr/local/opengauss/bin/gsql -U gaussdb --password $$GS_PASSWORD -h 127.0.0.1 -p 5432 -d shenyu -c \"SELECT 1\"" ]
       interval: 10s
       timeout: 5s
       retries: 3
