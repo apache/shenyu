@@ -99,6 +99,16 @@ while IFS= read -r file; do
   fi
 done < <(printf '%s' "${changed_files_json}" | jq -r '.[]')
 
+# SPI changes can affect modules that consume shared classes without declaring a
+# direct Maven dependency on every transitive module. Build the full reactor so
+# those modules cannot silently use a stale SNAPSHOT from the Maven cache.
+for module in "${modules[@]}"; do
+  if [[ "${module}" == "shenyu-spi" ]]; then
+    full_build_required=true
+    break
+  fi
+done
+
 if [[ "${has_code_changes}" == "true" && ("${#modules[@]}" -eq 0 || "${#modules[@]}" -gt "${max_modules}") ]]; then
   full_build_required=true
 fi
