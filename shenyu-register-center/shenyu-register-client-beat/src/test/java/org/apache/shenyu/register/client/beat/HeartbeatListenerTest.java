@@ -157,9 +157,6 @@ class HeartbeatListenerTest {
                 }
             });
 
-            // Wait a bit to allow the heartbeat to be processed
-            Thread.sleep(100);
-
             // Should be called for both servers in serverList
             registerUtilsMockedStatic.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()),
                     Mockito.times(2));
@@ -210,9 +207,6 @@ class HeartbeatListenerTest {
             assertTrue(!executor.isShutdown());
 
             heartbeatListener.onShutdown();
-
-            // Wait a bit for shutdown to complete
-            Thread.sleep(100);
 
             assertTrue(executor.isShutdown());
         }
