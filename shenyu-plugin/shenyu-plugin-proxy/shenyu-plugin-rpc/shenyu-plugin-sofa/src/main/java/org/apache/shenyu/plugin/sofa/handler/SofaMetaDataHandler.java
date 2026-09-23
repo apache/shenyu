@@ -40,7 +40,7 @@ public class SofaMetaDataHandler implements MetaDataHandler {
             // The first initialization
             ApplicationConfigCache.getInstance().initRef(metaData);
         } else {
-            if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+            if (!Objects.equals(exist.getServiceName(), metaData.getServiceName()) || !Objects.equals(exist.getRpcExt(), metaData.getRpcExt())) {
                 // remove old upstream reference
                 ApplicationConfigCache.getInstance().invalidateWithMetadataPath(metaData.getPath());
                 // update
