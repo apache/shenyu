@@ -154,6 +154,7 @@ public class HttpClientPropertiesTest {
     @Test
     public void httpClientPropertiesTest() {
         HttpClientProperties httpClientProperties = new HttpClientProperties();
+        Assertions.assertTrue(httpClientProperties.isKeepAlive());
         httpClientProperties.setAllIdleTime(1);
         httpClientProperties.setConnectTimeout(1);
         httpClientProperties.setKeepAlive(true);

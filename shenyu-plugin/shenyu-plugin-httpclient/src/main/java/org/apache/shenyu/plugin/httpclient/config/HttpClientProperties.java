@@ -112,9 +112,9 @@ public class HttpClientProperties {
     private boolean wiretap;
 
     /**
-     * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
+     * Whether persistent HTTP connections are enabled.
      */
-    private boolean keepAlive;
+    private boolean keepAlive = true;
 
     /**
      * body max memory size, unit mb.
