@@ -288,6 +288,11 @@ public enum PluginEnum {
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
 
     /**
+     * Sensitive-word plugin enum.
+     */
+    SENSITIVE_WORD(197, 0, "sensitiveWord"),
+
+    /**
      * Mcp-server plugin enum.
      */
     MCP_SERVER(180, 0, "mcpServer"),
