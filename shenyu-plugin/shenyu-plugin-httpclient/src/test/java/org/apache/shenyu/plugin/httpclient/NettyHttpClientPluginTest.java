@@ -73,7 +73,7 @@ public final class NettyHttpClientPluginTest {
         chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any())).thenReturn(Mono.empty());
         HttpClient httpClient = HttpClient.create();
-        nettyHttpClientPlugin = new NettyHttpClientPlugin(httpClient);
+        nettyHttpClientPlugin = new NettyHttpClientPlugin(httpClient, Constants.BYTES_PER_MB);
     }
 
     /**
