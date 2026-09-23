@@ -59,7 +59,6 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -363,15 +362,6 @@ public final class HttpLongPollingDataChangedListenerTest {
         assertEquals(true, result);
         assertEquals(namespaceId, recordingListener.refreshedNamespace);
         getCache().remove(cacheKey);
-    }
-
-    @Test
-    public void testLongPollingSchedulerUsesMultipleThreads() throws Exception {
-        Field schedulerField = HttpLongPollingDataChangedListener.class.getDeclaredField("scheduler");
-        schedulerField.setAccessible(true);
-        ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor) schedulerField.get(listener);
-
-        assertEquals(4, scheduler.getCorePoolSize());
     }
 
     /**

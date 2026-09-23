@@ -79,8 +79,6 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 @SuppressWarnings("all")
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
 
-    private static final int SCHEDULER_THREADS = 4;
-
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
     private static final String X_REAL_IP = "X-Real-IP";
@@ -112,7 +110,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         this.clientsMap = new ConcurrentHashMap<>();
         this.refreshLocks = new ConcurrentHashMap<>();
-        this.scheduler = new ScheduledThreadPoolExecutor(SCHEDULER_THREADS,
+        this.scheduler = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
     }
