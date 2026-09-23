@@ -150,4 +150,36 @@ public final class DubboReconcilerTest {
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
         verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
     }
+
+    @Test
+    public void testParseSkipsContextPathWhenDubboEnabled() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("kubernetes.io/ingress.class", "shenyu");
+        annotations.put("shenyu.apache.org/plugin-dubbo-enabled", "true");
+        annotations.put("shenyu.apache.org/zookeeper-register-address", "zookeeper://zookeeperService:2181");
+        annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo://,dubbo://");
+        Map<String, String> labels = new HashMap<>();
+        labels.put("shenyu.apache.org/metadata-labels-1", "dubboFindIdService");
+
+        V1Ingress ingress = new V1IngressBuilder().withNewMetadata()
+                .withName("mockedIngress")
+                .withNamespace("mockedNamespace")
+                .withAnnotations(annotations)
+                .withLabels(labels)
+                .endMetadata()
+                .withNewSpec()
+                .withRules(new V1IngressRuleBuilder()
+                        .withNewHttp()
+                        .withPaths(new V1HTTPIngressPathBuilder().withPath("/**")
+                                .withNewBackend()
+                                .withNewService().withName("testService").withNewPort().withNumber(20888).endPort().endService()
+                                .endBackend().build())
+                        .endHttp()
+                        .build())
+                .endSpec()
+                .build();
+
+        IngressParser ingressParser = new IngressParser(serviceInformer, endpointsInformer);
+        Assertions.assertEquals(1, ingressParser.parse(ingress, mock(io.kubernetes.client.openapi.apis.CoreV1Api.class)).size());
+    }
 }
