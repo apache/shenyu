@@ -27,6 +27,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.InetSocketAddress;
 import java.util.Collections;
 
 import static org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver.X_FORWARDED_FOR;
@@ -61,26 +62,42 @@ public final class ForwardedRemoteAddressResolverTest {
     @Test
     public void testResolver() {
         ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(1);
+        InetSocketAddress remoteAddress = new InetSocketAddress("192.0.2.10", 8080);
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .remoteAddress(remoteAddress)
                 .build());
         final ServerWebExchange emptyForwardExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
                 .header("X-Forwarded-For", "")
+                .remoteAddress(remoteAddress)
                 .build());
         final ServerWebExchange forwardExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
                 .header("X-Forwarded-For", "127.0.0.1")
+                .remoteAddress(remoteAddress)
                 .build());
         final ServerWebExchange multiForwardExchangeError = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
                 .header("X-Forwarded-For", "127.0.0.1", "127.0.0.2")
+                .remoteAddress(remoteAddress)
                 .build());
         final ServerWebExchange multiForwardExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
                 .header("X-Forwarded-For", "127.0.0.1, 127.0.0.2")
+                .remoteAddress(remoteAddress)
+                .build());
+        final ServerWebExchange ipv6ForwardExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("X-Forwarded-For", "2001:db8::1")
+                .remoteAddress(remoteAddress)
+                .build());
+        final ServerWebExchange hostnameForwardExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("X-Forwarded-For", "attacker.example")
+                .remoteAddress(remoteAddress)
                 .build());
 
-        instance.resolve(exchange);
-        instance.resolve(emptyForwardExchange);
-        instance.resolve(forwardExchange);
-        instance.resolve(multiForwardExchangeError);
-        instance.resolve(multiForwardExchange);
+        assertEquals(remoteAddress, instance.resolve(exchange));
+        assertEquals(remoteAddress, instance.resolve(emptyForwardExchange));
+        assertEquals("127.0.0.1", instance.resolve(forwardExchange).getAddress().getHostAddress());
+        assertEquals(remoteAddress, instance.resolve(multiForwardExchangeError));
+        assertEquals("127.0.0.1", instance.resolve(multiForwardExchange).getAddress().getHostAddress());
+        assertEquals("2001:db8:0:0:0:0:0:1", instance.resolve(ipv6ForwardExchange).getAddress().getHostAddress());
+        assertEquals(remoteAddress, instance.resolve(hostnameForwardExchange));
 
         ServerWebExchange headerEmptyExchange = mock(ServerWebExchange.class);
         ServerHttpRequest headerEmptyServerHttpRequest = mock(ServerHttpRequest.class);
