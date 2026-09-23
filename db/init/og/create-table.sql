@@ -190,7 +190,7 @@ COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 -- ----------------------------
 -- Table structure for data_permission
@@ -1090,6 +1090,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330564', '5', 'multiR
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330565', '5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330566', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330567', '5', 'retryStrategy', 'retryStrategy', 3, 2, 0, '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613199979560', '5', 'retryBackOffSpec', 'retryBackOffSpec', 3, 2, 1, '{"required":"0","defaultValue":"default","placeholder":"retryBackOffSpec","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330568', '13', 'upstreamHost', 'host', 2, 1, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330569', '13', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330570', '13', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -2165,6 +2166,9 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302089', 'threadpool', 
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302090', 'threadpool', 'THREADPOOL', 'limited', 'limited', '', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302091', 'retryStrategy', 'RETRY_STRATEGY', 'current', 'current', 'current', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302092', 'retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784250', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'default', 'default', 'default', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784251', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'fixed', 'fixed', 'fixed', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784252', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'exponential', 'exponential', 'exponential', 2, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302094', 'compressAlg', 'COMPRESS_ALG', 'none', 'none', '', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302095', 'compressAlg', 'COMPRESS_ALG', 'LZ4', 'LZ4', '', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302096', 'cacheType', 'CACHE_TYPE_MEMORY', 'memory', 'memory', 'use memory to cache data', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
@@ -3103,3 +3107,43 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303902', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', '2025-08-06 17:00:00.000', '2025-08-06 17:00:00.000');
+
+-- insert data for the sensitive word plugin
+INSERT INTO "public"."plugin" VALUES ('67', 'sensitiveWord', NULL, 'Ai', 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000', NULL);
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{"required":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{"required":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684611', '67', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684612', '67', 'mode', 'mode', 2, 3, 3, '{"required":"0","defaultValue":"standalone","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684613', '67', 'master', 'master', 2, 3, 4, '{"required":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684614', '67', 'maxIdle', 'maxIdle', 1, 3, 5, '{"required":"0","defaultValue":"8","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684615', '67', 'minIdle', 'minIdle', 1, 3, 6, '{"required":"0","defaultValue":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684616', '67', 'maxActive', 'maxActive', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684617', '67', 'maxWait', 'maxWait', 1, 3, 8, '{"required":"0","defaultValue":"-1","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684618', '67', 'redisKey', 'redisKey', 2, 2, 0, '{"required":"0","defaultValue":"shenyu:sensitive:words","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684619', '67', 'refreshIntervalSeconds', 'refreshIntervalSeconds', 1, 2, 1, '{"required":"0","defaultValue":"300","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684620', '67', 'failClosed', 'failClosed', 3, 2, 2, '{"required":"0","defaultValue":"false","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684621', '67', 'words', 'words', 2, 2, 3, '{"required":"0","placeholder":"words separated by commas or by new lines","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684622', '67', 'maxBodySize', 'maxBodySize', 1, 2, 4, '{"required":"0","defaultValue":"0","placeholder":"the largest body that is scanned, in bytes, 0 means unlimited","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116905', '1346775491550474240', 'sensitiveWord', 'sensitiveWord', '/plug/sensitiveWord', 'sensitiveWord', 1, 0, 'pic-center', 0, 0, '', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116906', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:add', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116907', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:query', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116908', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:edit', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116909', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:delete', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116910', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:add', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116911', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:query', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116912', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:edit', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116913', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:delete', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1953048313980116914', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWord:modify', 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737584', 'failClosed', 'FAIL_CLOSED', 'open', 'true', '', 1, 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737585', 'failClosed', 'FAIL_CLOSED', 'close', 'false', '', 2, 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303965', '1346358560427216896', '1953048313980116905', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303966', '1346358560427216896', '1953048313980116906', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303967', '1346358560427216896', '1953048313980116907', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303968', '1346358560427216896', '1953048313980116908', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303969', '1346358560427216896', '1953048313980116909', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303970', '1346358560427216896', '1953048313980116910', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303971', '1346358560427216896', '1953048313980116911', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303972', '1346358560427216896', '1953048313980116912', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');

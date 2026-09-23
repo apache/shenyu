@@ -26,13 +26,21 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.transformer.response.template.AiResponseTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -40,16 +48,24 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
 
@@ -113,8 +129,9 @@ class AiResponseTransformerPluginTest {
 
     @Test
     void testDoExecute() {
-        SelectorData selectorData = mock(SelectorData.class);
-        RuleData ruleData = mock(RuleData.class);
+        RuleData ruleData = new RuleData();
+        ruleData.setId("test-response-rule-id");
+        ruleData.setSelectorId("test-selector-id");
         
         // Mock the factory registry and factory
         lenient().when(aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName("test-provider")))
@@ -132,11 +149,55 @@ class AiResponseTransformerPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
         // Execute plugin - this should succeed with proper configuration
+        SelectorData selectorData = mock(SelectorData.class);
         Mono<Void> result = plugin.doExecute(exchange, chain, selectorData, ruleData);
         
         // Verify execution result
         StepVerifier.create(result)
                 .verifyComplete();
+    }
+
+    @Test
+    void testGzipInputStreamClosedWhenDecompressionFails() throws IOException {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        ChatClient chatClient = mock(ChatClient.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.empty());
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("gzip".getBytes(StandardCharsets.UTF_8));
+
+        try (MockedConstruction<GZIPInputStream> gzipStreams = mockConstruction(GZIPInputStream.class,
+                (gzipInputStream, context) -> when(gzipInputStream.read(any(byte[].class))).thenThrow(new IOException()))) {
+            StepVerifier.create(decorator.writeWith(Mono.just(responseBody)))
+                    .verifyComplete();
+
+            assertEquals(1, gzipStreams.constructed().size());
+            verify(gzipStreams.constructed().get(0)).close();
+        }
+    }
+
+    @Test
+    void testOriginalHeadersRemainWhenTransformedBodyIsInvalid() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().set("X-Original", "original");
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 200 OK\nX-New: transformed"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals("original", response.getHeaders().getFirst("X-Original"));
+        assertNull(response.getHeaders().getFirst("X-New"));
     }
 
     @Test

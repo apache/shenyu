@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
+import com.dylibso.chicory.runtime.Memory;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,11 +26,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -38,58 +41,84 @@ class AbstractWasmDiscoveryHandlerTest {
 
     private DiscoverySyncData discoverySyncData;
 
-    private SimpleTestHandler testWasmPluginDiscoveryHandler;
-
-    private DiscoveryUpstreamDataHandler discoveryUpstreamDataHandler;
-
     @BeforeEach
     public void setUp() {
-
         this.discoverySyncData = mock(DiscoverySyncData.class);
-        // Use a simple test handler instead of WebAssembly-dependent handler
-        this.testWasmPluginDiscoveryHandler = new SimpleTestHandler();
-        this.discoveryUpstreamDataHandler = testWasmPluginDiscoveryHandler;
         when(discoverySyncData.getSelectorId()).thenReturn("SHENYU");
     }
 
-    /**
-     * The handlerDiscoveryUpstreamData test.
-     */
+    /** Go WASM test. */
     @Test
-    public void handlerDiscoveryUpstreamDataTest() {
-        discoveryUpstreamDataHandler = mock(DiscoveryUpstreamDataHandler.class);
-        discoveryUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
-        testWasmPluginDiscoveryHandler.handlerDiscoveryUpstreamData(discoverySyncData);
-        verify(discoveryUpstreamDataHandler).handlerDiscoveryUpstreamData(discoverySyncData);
-
+    public void goHandlerDiscoveryUpstreamDataTest() {
+        final TestGoWasmPluginDiscoveryHandler goHandler = new TestGoWasmPluginDiscoveryHandler("go result");
+        goHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        assertEquals("SHENYU_TEST", goHandler.pluginName());
     }
 
-    /**
-     * The plugin name test.
-     */
+    /** Rust WASM test. */
     @Test
-    public void pluginNameTest() {
-        assertEquals("SHENYU_TEST", discoveryUpstreamDataHandler.pluginName());
-        assertEquals("SHENYU_TEST", testWasmPluginDiscoveryHandler.pluginName());
+    public void rustHandlerDiscoveryUpstreamDataTest() {
+        final TestWasmPluginDiscoveryHandler rustHandler = new TestWasmPluginDiscoveryHandler("rust result");
+        rustHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        assertEquals("SHENYU_TEST", rustHandler.pluginName());
     }
 
-    /**
-     * Simple test handler for testing without WebAssembly dependencies.
-     */
-    static class SimpleTestHandler implements DiscoveryUpstreamDataHandler {
-        
-        @Override
-        public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
-            // Simple test implementation - just store for verification
+    abstract static class WasmTestHandler extends AbstractWasmDiscoveryHandler {
+
+        private static final java.util.concurrent.atomic.AtomicLong ID =
+                new java.util.concurrent.atomic.AtomicLong();
+
+        private final Map<Long, String> results = new ConcurrentHashMap<>();
+
+        private final String expectedResult;
+
+        WasmTestHandler(final String expectedResult) {
+            this.expectedResult = expectedResult;
         }
-        
+
+        @Override
+        protected long onGetArgs(final long argId, final long addr, final int len) {
+            String config = "hello from java " + argId;
+            assertTrue(config.startsWith("hello from java "));
+            Memory memory = super.getMemory();
+            byte[] data = config.getBytes(StandardCharsets.UTF_8);
+            int writeLen = Math.min(len, data.length);
+            memory.write((int) addr, data, 0, writeLen);
+            return writeLen;
+        }
+
+        @Override
+        protected long onPutResult(final long argId, final long addr, final int len) {
+            Memory memory = super.getMemory();
+            byte[] bytes = memory.readBytes((int) addr, len);
+            String result = new String(bytes, StandardCharsets.UTF_8);
+            assertEquals(expectedResult, result);
+            results.put(argId, result);
+            return 0;
+        }
+
         @Override
         public String pluginName() {
             return "SHENYU_TEST";
         }
-        
+
+        @Override
         protected Long getArgumentId(final DiscoverySyncData discoverySyncData) {
-            return 0L;
+            return ID.incrementAndGet();
+        }
+    }
+
+    /** Loads $TestGoWasmPluginDiscoveryHandler.wasm. */
+    static class TestGoWasmPluginDiscoveryHandler extends WasmTestHandler {
+        TestGoWasmPluginDiscoveryHandler(final String expected) {
+            super(expected);
+        }
+    }
+
+    /** Loads $TestWasmPluginDiscoveryHandler.wasm. */
+    static class TestWasmPluginDiscoveryHandler extends WasmTestHandler {
+        TestWasmPluginDiscoveryHandler(final String expected) {
+            super(expected);
         }
     }
 }

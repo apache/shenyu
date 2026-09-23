@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
@@ -40,7 +41,6 @@ import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -112,18 +112,20 @@ public class ApiServiceImpl implements ApiService {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (updateRows > 0) {
-            if (CollectionUtils.isNotEmpty(apiDTO.getTagIds())) {
+            if (Objects.nonNull(apiDTO.getTagIds())) {
                 List<String> tagIds = apiDTO.getTagIds();
-                Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-                List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
-                    .id(UUIDUtils.getInstance().generateShortUuid())
-                    .apiId(apiDO.getId())
-                    .tagId(tagId)
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime)
-                    .build()).collect(Collectors.toList());
                 tagRelationMapper.deleteByApiId(apiDO.getId());
-                tagRelationMapper.batchInsert(tags);
+                if (CollectionUtils.isNotEmpty(tagIds)) {
+                    Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+                    List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .apiId(apiDO.getId())
+                        .tagId(tagId)
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build()).collect(Collectors.toList());
+                    tagRelationMapper.batchInsert(tags);
+                }
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -152,6 +154,7 @@ public class ApiServiceImpl implements ApiService {
                         .build()).collect(Collectors.toList());
                 tagRelationMapper.batchInsert(tags);
             }
+            register(apiDO);
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
@@ -191,6 +194,9 @@ public class ApiServiceImpl implements ApiService {
     private void register(final ApiDO apiDO) {
         //register selector/rule/metadata if necessary
         final ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(apiDO.getExt(), ApiDocRegisterDTO.ApiExt.class);
+        if (Objects.isNull(ext) || StringUtils.isBlank(apiDO.getContextPath())) {
+            return;
+        }
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         final String contextPath = apiDO.getContextPath();
         final String path = apiDO.getApiPath();
@@ -228,6 +234,7 @@ public class ApiServiceImpl implements ApiService {
         final int deleteRows = this.apiMapper.deleteByIds(apiIds);
         if (deleteRows > 0) {
             tagRelationMapper.deleteByApiIds(apiIds);
+            apis.forEach(this::removeRegister);
         }
         return StringUtils.EMPTY;
     }
@@ -243,12 +250,14 @@ public class ApiServiceImpl implements ApiService {
                 tagVOs = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             ApiVO apiVO = ApiVO.buildApiVO(item, tagVOs);
-            if (apiVO.getApiSource().equals(ApiSourceEnum.SWAGGER.getValue())) {
+            if (StringUtils.isNotBlank(apiVO.getDocument())) {
                 DocItem docItem = JsonUtils.jsonToObject(apiVO.getDocument(), DocItem.class);
-                apiVO.setRequestHeaders(docItem.getRequestHeaders());
-                apiVO.setRequestParameters(docItem.getRequestParameters());
-                apiVO.setResponseParameters(docItem.getResponseParameters());
-                apiVO.setBizCustomCodeList(docItem.getBizCodeList());
+                if (Objects.nonNull(docItem)) {
+                    apiVO.setRequestHeaders(docItem.getRequestHeaders());
+                    apiVO.setRequestParameters(docItem.getRequestParameters());
+                    apiVO.setResponseParameters(docItem.getResponseParameters());
+                    apiVO.setBizCustomCodeList(docItem.getBizCodeList());
+                }
             }
             return apiVO;
 
@@ -279,6 +288,7 @@ public class ApiServiceImpl implements ApiService {
             final int deleteRows = this.apiMapper.deleteByIds(apiIds);
             if (deleteRows > 0) {
                 tagRelationMapper.deleteByApiIds(apiIds);
+                apiDOs.forEach(this::removeRegister);
             }
             return deleteRows;
         }

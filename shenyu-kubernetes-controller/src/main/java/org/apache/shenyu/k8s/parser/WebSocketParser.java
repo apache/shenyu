@@ -153,32 +153,47 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
             String serviceName = defaultBackend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for websocket default backend", serviceName);
+                return webSocketUpstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
-            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
-            String[] protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
-            } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
-                        continue;
-                    }
-                    int i = 0;
-                    for (V1EndpointAddress address : addresses) {
-                        String upstreamIp = address.getIp();
-                        String defaultPort = parsePort(defaultBackend.getService());
-                        if (Objects.nonNull(defaultPort)) {
-                            WebSocketUpstream upstream = WebSocketUpstream.builder()
-                                    .upstreamUrl(upstreamIp + ":" + defaultPort)
-                                    .weight(50)
-                                    .protocol(Objects.isNull(protocols[i++]) ? "ws://" : protocols[i++])
-                                    .warmup(0)
-                                    .status(true)
-                                    .host("").build();
-                            webSocketUpstreamList.add(upstream);
-                        }
+                return webSocketUpstreamList;
+            }
+            V1Service v1Service = serviceLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Service)) {
+                LOG.info("Service {} not found for websocket default backend", serviceName);
+                return webSocketUpstreamList;
+            }
+            Map<String, String> annotations = v1Service.getMetadata().getAnnotations();
+            String[] protocols = {};
+            if (Objects.nonNull(annotations)) {
+                String protocolStr = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY);
+                if (Objects.nonNull(protocolStr)) {
+                    protocols = protocolStr.split(",");
+                }
+            }
+            for (V1EndpointSubset subset : subsets) {
+                List<V1EndpointAddress> addresses = subset.getAddresses();
+                if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
+                    continue;
+                }
+                for (int i = 0; i < addresses.size(); i++) {
+                    V1EndpointAddress address = addresses.get(i);
+                    String upstreamIp = address.getIp();
+                    String defaultPort = parsePort(defaultBackend.getService());
+                    if (Objects.nonNull(defaultPort)) {
+                        String protocol = i < protocols.length ? protocols[i] : null;
+                        WebSocketUpstream upstream = WebSocketUpstream.builder()
+                                .upstreamUrl(upstreamIp + ":" + defaultPort)
+                                .weight(50)
+                                .protocol(Objects.isNull(protocol) ? "ws://" : protocol)
+                                .warmup(0)
+                                .status(true)
+                                .host("").build();
+                        webSocketUpstreamList.add(upstream);
                     }
                 }
             }
@@ -293,6 +308,10 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for websocket upstream", serviceName);
+                return upstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);

@@ -891,7 +891,7 @@ comment on column FIELD.date_updated
   is 'update time';
 
 /**default admin user**/
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(dashboard_user(id)) */ INTO dashboard_user (id, user_name, password, role, enabled) VALUES ('1','admin','ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413', '1', '1');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(dashboard_user(id)) */ INTO dashboard_user (id, user_name, password, role, enabled) VALUES ('1','admin','$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', '1', '1');
 
 /** insert admin role */
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(user_role(id)) */ INTO user_role (id, user_id, role_id) VALUES ('1351007709096976384', '1', '1346358560427216896');
@@ -1088,6 +1088,16 @@ values ('1518229897206079525', 'retryStrategy', 'RETRY_STRATEGY', 'current', 'cu
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 values ('1518229897206079526', 'retryStrategy', 'RETRY_STRATEGY', 'failover', 'failover', 'failover', 1, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1529402613195784250', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'default', 'default', 'default', 0, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1529402613195784251', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'fixed', 'fixed', 'fixed', 1, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1529402613195784252', 'retryBackOffSpec', 'RETRY_BACKOFF_SPEC', 'exponential', 'exponential', 'exponential', 2, 1);
+
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 values ('1518229897206079527', 'table', 'INIT_FLAG', 'status', 'false', 'table(resource,permission) init status', 0, 0);
@@ -1594,6 +1604,9 @@ values ('1518229897210273844', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4,
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273845', '5', 'retryStrategy', 'retryStrategy', 3, 2, 0, '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1529402613199979560', '5', 'retryBackOffSpec', 'retryBackOffSpec', 3, 2, 1, '{"required":"0","defaultValue":"default","placeholder":"retryBackOffSpec","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273846', '13', 'upstreamHost', 'host', 2, 1, 0, null);
@@ -3814,3 +3827,43 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303903', '1346358560427216896', '1953048313980116902', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303904', '1346358560427216896', '1953048313980116903', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303905', '1346358560427216896', '1953048313980116904', sysdate, sysdate);
+
+-- insert data for the sensitive word plugin
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated) VALUES ('67', 'sensitiveWord', NULL, 'Ai', 197, 0, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{"required":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684611', '67', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684612', '67', 'mode', 'mode', 2, 3, 3, '{"required":"0","defaultValue":"standalone","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684613', '67', 'master', 'master', 2, 3, 4, '{"required":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684614', '67', 'maxIdle', 'maxIdle', 1, 3, 5, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684615', '67', 'minIdle', 'minIdle', 1, 3, 6, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684616', '67', 'maxActive', 'maxActive', 1, 3, 7, '{"required":"0","defaultValue":"8","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684617', '67', 'maxWait', 'maxWait', 1, 3, 8, '{"required":"0","defaultValue":"-1","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684618', '67', 'redisKey', 'redisKey', 2, 2, 0, '{"required":"0","defaultValue":"shenyu:sensitive:words","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684619', '67', 'refreshIntervalSeconds', 'refreshIntervalSeconds', 1, 2, 1, '{"required":"0","defaultValue":"300","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684620', '67', 'failClosed', 'failClosed', 3, 2, 2, '{"required":"0","defaultValue":"false","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684621', '67', 'words', 'words', 2, 2, 3, '{"required":"0","placeholder":"words separated by commas or by new lines","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684622', '67', 'maxBodySize', 'maxBodySize', 1, 2, 4, '{"required":"0","defaultValue":"0","placeholder":"the largest body that is scanned, in bytes, 0 means unlimited","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116905', '1346775491550474240', 'sensitiveWord', 'sensitiveWord', '/plug/sensitiveWord', 'sensitiveWord', 1, 0, 'pic-center', 0, 0, '', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116906', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116907', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116908', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116909', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordSelector:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116910', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116911', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116912', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116913', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWordRule:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116914', '1953048313980116905', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:sensitiveWord:modify', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated) VALUES ('1679002911061737584', 'failClosed', 'FAIL_CLOSED', 'open', 'true', '', 1, 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated) VALUES ('1679002911061737585', 'failClosed', 'FAIL_CLOSED', 'close', 'false', '', 2, 1, sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303965', '1346358560427216896', '1953048313980116905', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303966', '1346358560427216896', '1953048313980116906', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303967', '1346358560427216896', '1953048313980116907', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303968', '1346358560427216896', '1953048313980116908', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303969', '1346358560427216896', '1953048313980116909', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303970', '1346358560427216896', '1953048313980116910', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303971', '1346358560427216896', '1953048313980116911', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303972', '1346358560427216896', '1953048313980116912', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);

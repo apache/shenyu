@@ -23,6 +23,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
@@ -60,8 +61,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
-    private Long beginTime;
-    
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
@@ -97,16 +96,28 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        Upstream upstream;
+        if (CollectionUtils.isNotEmpty(specifyDomains)) {
+            String requested = specifyDomains.get(0);
+            upstream = upstreamList.stream()
+                    .filter(u -> u.getUrl().equals(requested))
+                    .findFirst()
+                    .map(u -> Upstream.builder()
+                            .url(u.getUrl())
+                            .protocol(u.getProtocol())
+                            .weight(u.getWeight())
+                            .warmup(u.getWarmup())
+                            .status(u.isStatus())
+                            .build())
+                    .orElseGet(() -> LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange));
+        } else {
+            upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+        }
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
-        }
-        // set the http url
-        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
-        if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            upstream.setUrl(specifyDomains.get(0));
         }
         // set domain
         String domain = upstream.buildDomain();
@@ -115,6 +126,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
+        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, StringUtils.defaultIfEmpty(ruleHandle.getRetryBackOffSpec(), HttpRetryBackoffSpecEnum.getDefault()));
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
@@ -122,8 +134,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
             )).doOnError(throwable -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
-            beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+            long beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream, beginTime
             ));
         }
         return chain.execute(exchange);
@@ -153,7 +165,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
-    
+
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
@@ -161,8 +173,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private void responseTrigger(final Upstream upstream) {
         long now = System.currentTimeMillis();
         upstream.getInflight().decrementAndGet();
-        upstream.setResponseStamp(now);
         long stamp = upstream.getResponseStamp();
+        upstream.setResponseStamp(now);
         long td = now - stamp;
         if (td < 0) {
             td = 0;
@@ -181,9 +193,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.setLag(lag);
     }
 
-    private void successResponseTrigger(final Upstream upstream) {
+    private void successResponseTrigger(final Upstream upstream, final long beginTime) {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
     }
-    
+
 }

@@ -631,7 +631,17 @@ public class AppAuthServiceImpl implements AppAuthService {
     
     @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
-        return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
+        int count = appAuthMapper.updateAppSecretByAppKey(appKey, appSecret);
+        if (count > 0) {
+            AppAuthDO appAuthDO = appAuthMapper.findByAppKey(appKey);
+            if (Objects.nonNull(appAuthDO)) {
+                AppAuthData appAuthData = buildByEntity(appAuthDO);
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                        DataEventTypeEnum.UPDATE,
+                        Lists.newArrayList(appAuthData)));
+            }
+        }
+        return ShenyuAdminResult.success(count);
     }
 
     @Override

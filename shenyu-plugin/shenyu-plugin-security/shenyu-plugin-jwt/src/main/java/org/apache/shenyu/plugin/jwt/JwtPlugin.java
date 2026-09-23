@@ -98,19 +98,21 @@ public class JwtPlugin extends AbstractShenyuPlugin {
      * @return the authorization after processing
      */
     private String compatible(final String token, final String authorization) {
-        String finalAuthorization;
         if (StringUtils.isNotEmpty(token)) {
-            finalAuthorization = token;
-        } else if (StringUtils.isNotEmpty(authorization)) {
-            finalAuthorization = authorization;
-        } else {
+            return token;
+        }
+        if (StringUtils.isEmpty(authorization)) {
             return null;
         }
-        return isAuth2(finalAuthorization) ? finalAuthorization.split(" ")[1] : finalAuthorization;
+        if (isAuth2(authorization)) {
+            String jwtToken = authorization.substring(AUTH2_TOKEN.length()).trim();
+            return StringUtils.isEmpty(jwtToken) ? null : jwtToken;
+        }
+        return authorization;
     }
 
     private boolean isAuth2(final String authorization) {
-        return authorization.contains(AUTH2_TOKEN);
+        return authorization.startsWith(AUTH2_TOKEN + " ");
     }
 
     /**

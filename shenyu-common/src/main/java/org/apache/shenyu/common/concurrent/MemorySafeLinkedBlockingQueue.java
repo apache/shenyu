@@ -30,9 +30,9 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
 
     private static final long serialVersionUID = 8032578371749960142L;
 
-    private int maxFreeMemory;
+    private volatile int maxFreeMemory;
 
-    private Rejector<E> rejector;
+    private volatile Rejector<E> rejector;
 
     public MemorySafeLinkedBlockingQueue(final int maxFreeMemory) {
         super(Integer.MAX_VALUE);
@@ -87,10 +87,11 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
 
     @Override
     public void put(final E e) throws InterruptedException {
-        if (hasRemainedMemory()) {
-            super.put(e);
+        if (!hasRemainedMemory()) {
+            rejector.reject(e, this);
+            return;
         }
-        rejector.reject(e, this);
+        super.put(e);
     }
 
     @Override

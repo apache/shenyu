@@ -46,6 +46,8 @@ spec:
               value: "true"
             - name: shenyu.sync.websocket.allowOrigins
               value: ws://localhost:9095;ws://localhost:9195;
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
@@ -56,6 +58,8 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -119,6 +123,8 @@ spec:
               value: "true"
             - name: shenyu.sync.websocket.allowOrigins
               value: ws://localhost:9096;ws://localhost:9195;
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
             - name: shenyu.cluster.type
               value: "zookeeper"
             - name: shenyu.cluster.zookeeper.url
@@ -129,6 +135,8 @@ spec:
               value: shenyue2e
             - name: spring.datasource.url
               value: jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+            - name: SHENYU_JWT_SECRETKEY
+              value: shenyu-e2e-jwt-secret-key-2024
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -185,6 +193,8 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-master:9095/websocket,ws://shenyu-admin-slave:9096/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
           ports:
             - containerPort: 9195
           livenessProbe:

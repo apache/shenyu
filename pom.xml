@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.1-SNAPSHOT</version>
+    <version>2.7.2-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -84,6 +84,7 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
+        <skipRemoteResources>false</skipRemoteResources>
         <!-- maven plugin version start -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
@@ -103,6 +104,8 @@
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
         <!-- maven plugin version end -->
 
         <!-- dependency version start -->
@@ -182,8 +185,8 @@
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
         <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
-        <wasmtime-java.version>0.19.0</wasmtime-java.version>
-        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
+        <chicory.version>1.7.3</chicory.version>
+        <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.1.2</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
@@ -567,9 +570,19 @@
             </dependency>
 
             <dependency>
-                <groupId>io.github.kawamuray.wasmtime</groupId>
-                <artifactId>wasmtime-java</artifactId>
-                <version>${wasmtime-java.version}</version>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>runtime</artifactId>
+                <version>${chicory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>wasi</artifactId>
+                <version>${chicory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dylibso.chicory</groupId>
+                <artifactId>compiler</artifactId>
+                <version>${chicory.version}</version>
             </dependency>
 
             <dependency>
@@ -660,6 +673,13 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <configuration>
+                    <skip>${skipRemoteResources}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${maven-source-plugin.version}</version>
                 <executions>
@@ -735,7 +755,7 @@
                     <configLocation>/script/shenyu_checkstyle.xml</configLocation>
                     <headerLocation>/script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <excludes>**/transfer/**/*</excludes>
+                    <excludes>**/transfer/**/*,**/generated*/**/*</excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -805,7 +825,10 @@
                         <exclude>**/.gitpod.yml</exclude>
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
-                        <excldue>**/*.MD</excldue>
+                        <exclude>**/*.MD</exclude>
+                        <!-- wasm build files -->
+                        <exclude>**/Cargo.lock</exclude>
+                        <exclude>**/go.sum</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->

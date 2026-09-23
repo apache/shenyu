@@ -41,6 +41,11 @@ public class WebsocketSyncProperties {
     private String allowOrigins;
 
     /**
+     * WebSocket sync token.
+     */
+    private String token;
+
+    /**
      * Gets the value of enabled.
      *
      * @return the value of enabled
@@ -90,5 +95,23 @@ public class WebsocketSyncProperties {
      */
     public void setAllowOrigins(final String allowOrigins) {
         this.allowOrigins = allowOrigins;
+    }
+
+    /**
+     * get token.
+     *
+     * @return token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * set token.
+     *
+     * @param token token
+     */
+    public void setToken(final String token) {
+        this.token = token;
     }
 }

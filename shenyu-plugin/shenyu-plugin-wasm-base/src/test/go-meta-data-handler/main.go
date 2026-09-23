@@ -1,0 +1,58 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Go WASM handler for AbstractWasmMetaDataHandler.
+// Exports handleMetaData, removeMetaData (i64) -> () and refresh () -> ().
+// Compile with: tinygo build -target wasm-unknown -opt=2 -no-debug -panic=trap -o plugin.wasm main.go
+
+package main
+
+import (
+	"shenyu/wasmabi"
+	"strconv"
+	"unsafe"
+)
+
+func handle(argId int64) {
+	buf := make([]byte, 1024)
+	wasmabi.Eprintln("go side-> buffer base address: " + strconv.FormatUint(uint64(uintptr(unsafe.Pointer(&buf[0]))), 10))
+	input := wasmabi.GetArgs(argId, buf)
+	wasmabi.Eprintln("go side-> GetArgs returned " + strconv.Itoa(len(input)) + ", recv:" + string(input))
+	wasmabi.PutResult(argId, []byte("go result"))
+}
+
+//go:wasmexport handleMetaData
+func handleMetaData(argId int64) {
+	wasmabi.Eprintln("go side-> handleMetaData")
+	handle(argId)
+}
+
+//go:wasmexport removeMetaData
+func removeMetaData(argId int64) {
+	wasmabi.Eprintln("go side-> removeMetaData")
+	handle(argId)
+}
+
+// NOTE: refresh takes NO arguments — Java calls ExportFunction.apply() with zero params.
+//
+//go:wasmexport refresh
+func refresh() {
+	wasmabi.Eprintln("go side-> refresh")
+}
+
+// main is required by TinyGo's WASI target but is never called.
+func main() {}

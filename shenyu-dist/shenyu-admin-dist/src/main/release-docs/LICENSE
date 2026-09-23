@@ -501,6 +501,8 @@ The text of each license is the standard Apache 2.0 license.
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
     json-schema-core 1.2.14: https://mvnrepository.com/artifact/com.github.java-json-tools/json-schema-core, Apache 2.0
     uri-template 0.10: https://github.com/java-json-tools/uri-template, Apache 2.0
+    zookeeper 3.9.5: http://zookeeper.apache.org, Apache 2.0
+    zookeeper-jute 3.9.5: http://zookeeper.apache.org, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -527,6 +529,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
     xstream 1.4.19: https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream, BSD
     encoder 1.2.3: https://github.com/OWASP/owasp-java-encoder, BSD 3-Clause
+    re2j 1.8: https://github.com/google/re2j, BSD 3-Clause
 
 ========================================================================
 CC0 licenses
@@ -556,6 +559,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     hk2-locator 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator, EPL 2.0/GPL
     aopalliance-repackaged 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2.external/aopalliance-repackaged, EPL 2.0/GPL
     jakarta.ws.rs-api 3.1.0: https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api EPL 2.0/GPL 2.0
+    jakarta.mail-api 2.1.3: https://mvnrepository.com/artifact/jakarta.mail/jakarta.mail-api, EPL 2.0
 
 ========================================================================
 MIT licenses
@@ -576,6 +580,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://checkerframework.org/, MIT
     jopt-simple 5.0.4: https://github.com/jopt-simple/jopt-simple, MIT
+    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
     oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
 
 ========================================================================
@@ -713,6 +718,7 @@ Bouncy Castle licenses
     bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
     bcutil-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
     bcpkix-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
+    bcprov-jdk18on 1.84: https://github.com/bcgit/bc-java, Bouncy Castle
 
 ========================================================================
 XPP License
@@ -737,3 +743,13 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jakarta.xml.bind-api 4.0.2: https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api, EDL 1.0
     jakarta.mail 1.6.7: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail, EDL 1.0
     angus-activation 2.0.2: https://mvnrepository.com/artifact/org.eclipse.angus/angus-activation, EDL 1.0
+
+
+========================================================================
+LGPL licenses
+========================================================================
+
+The following components are provided under a LGPL license. See project link for details.
+
+    jna 5.18.1: https://mvnrepository.com/artifact/net.java.dev.jna/jna, LGPL-2.1-or-later
+    jna-platform 5.18.1: https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform, LGPL-2.1-or-later

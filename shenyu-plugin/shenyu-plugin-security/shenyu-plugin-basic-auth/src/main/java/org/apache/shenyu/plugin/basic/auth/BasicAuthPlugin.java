@@ -54,6 +54,9 @@ public class BasicAuthPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String authorization = StringUtils.defaultString(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION), exchange.getRequest().getURI().getUserInfo());
+        if (StringUtils.isBlank(authorization)) {
+            return WebFluxResultUtils.result(exchange, ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN));
+        }
         BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         BasicAuthAuthenticationStrategy authenticationStrategy = Optional.ofNullable(basicAuthRuleHandle).map(BasicAuthRuleHandle::getBasicAuthAuthenticationStrategy).orElse(null);
 

@@ -25,9 +25,15 @@ import org.slf4j.LoggerFactory;
 import reactor.netty.Connection;
 import reactor.netty.ConnectionObserver;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -86,11 +92,31 @@ public class ActivityConnectionObserver implements ConnectionObserver {
      * @return boolean
      */
     private boolean in(final List<DiscoveryUpstreamData> removeList, final SocketAddress cacheSocketAddress) {
+        if (!(cacheSocketAddress instanceof InetSocketAddress)) {
+            LOG.warn("Unsupported SocketAddress type: {}", cacheSocketAddress.getClass().getName());
+            return false;
+        }
+        InetSocketAddress inetAddr = (InetSocketAddress) cacheSocketAddress;
         return removeList.stream().anyMatch(u -> {
-            String cacheUrl = cacheSocketAddress.toString().substring(1);
             String removedUrl = u.getUrl();
-            LOG.info("compare {} , {}", cacheUrl, removedUrl);
-            return StringUtils.equals(cacheUrl, removedUrl);
+            if (inetAddr.isUnresolved() || Objects.isNull(inetAddr.getAddress())) {
+                String cacheUrl = inetAddr.getHostString() + ":" + inetAddr.getPort();
+                LOG.info("compare {} , {}", cacheUrl, removedUrl);
+                return StringUtils.equals(cacheUrl, removedUrl);
+            }
+            try {
+                URI uri = new URI("tcp://" + removedUrl);
+                if (inetAddr.getPort() != uri.getPort()) {
+                    return false;
+                }
+                InetAddress uriAddr = InetAddress.getByName(uri.getHost());
+                boolean matched = inetAddr.getAddress().equals(uriAddr);
+                LOG.info("compare {} , {} -> {}", inetAddr, removedUrl, matched);
+                return matched;
+            } catch (URISyntaxException | UnknownHostException e) {
+                LOG.warn("Failed to match upstream URL: {}", removedUrl, e);
+                return false;
+            }
         });
     }
 }

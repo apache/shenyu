@@ -40,6 +40,8 @@ public class NettyHttpProperties {
 
     private SniProperties sni = new SniProperties();
 
+    private HttpDecoderProperties httpDecoder = new HttpDecoderProperties();
+
     /**
      * get webServerFactoryEnabled.
      *
@@ -167,6 +169,24 @@ public class NettyHttpProperties {
         this.accessLog = accessLog;
     }
 
+    /**
+     * get httpDecoder properties.
+     *
+     * @return httpDecoder properties
+     */
+    public HttpDecoderProperties getHttpDecoder() {
+        return httpDecoder;
+    }
+
+    /**
+     * set httpDecoder properties.
+     *
+     * @param httpDecoder http decoder properties
+     */
+    public void setHttpDecoder(final HttpDecoderProperties httpDecoder) {
+        this.httpDecoder = httpDecoder;
+    }
+
     public static class ServerSocketChannelProperties extends NettyChannelProperties {
 
         private Integer soBacklog = 128;
@@ -289,6 +309,84 @@ public class NettyHttpProperties {
          */
         public void setAllowHalfClosure(final Boolean allowHalfClosure) {
             this.allowHalfClosure = allowHalfClosure;
+        }
+    }
+
+    /**
+     * Properties for HTTP request decoder configuration.
+     */
+    public static class HttpDecoderProperties {
+
+        /**
+         * The maximum length of the initial line (e.g. "GET / HTTP/1.1").
+         * Default is 4096.
+         */
+        private int maxInitialLineLength = 4096;
+
+        /**
+         * The maximum size of all headers.
+         * Default is 8192.
+         */
+        private int maxHeaderSize = 8192;
+
+        /**
+         * The maximum size of the content of each chunk.
+         * Default is 8192.
+         */
+        private int maxChunkSize = 8192;
+
+        /**
+         * get maxInitialLineLength.
+         *
+         * @return maxInitialLineLength
+         */
+        public int getMaxInitialLineLength() {
+            return maxInitialLineLength;
+        }
+
+        /**
+         * set maxInitialLineLength.
+         *
+         * @param maxInitialLineLength max initial line length
+         */
+        public void setMaxInitialLineLength(final int maxInitialLineLength) {
+            this.maxInitialLineLength = maxInitialLineLength;
+        }
+
+        /**
+         * get maxHeaderSize.
+         *
+         * @return maxHeaderSize
+         */
+        public int getMaxHeaderSize() {
+            return maxHeaderSize;
+        }
+
+        /**
+         * set maxHeaderSize.
+         *
+         * @param maxHeaderSize max header size
+         */
+        public void setMaxHeaderSize(final int maxHeaderSize) {
+            this.maxHeaderSize = maxHeaderSize;
+        }
+
+        /**
+         * get maxChunkSize.
+         *
+         * @return maxChunkSize
+         */
+        public int getMaxChunkSize() {
+            return maxChunkSize;
+        }
+
+        /**
+         * set maxChunkSize.
+         *
+         * @param maxChunkSize max chunk size
+         */
+        public void setMaxChunkSize(final int maxChunkSize) {
+            this.maxChunkSize = maxChunkSize;
         }
     }
 

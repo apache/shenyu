@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.core.client;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -103,8 +102,6 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     private ApplicationContext context;
 
-    private final Boolean isDiscoveryLocalMode;
-    
     /**
      * multiple namespace support.
      */
@@ -139,7 +136,6 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        this.isDiscoveryLocalMode = Boolean.valueOf(props.getProperty(ShenyuClientConstants.DISCOVERY_LOCAL_MODE_KEY));
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -153,9 +149,17 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (!markRegistered()) {
             return;
         }
+        String discoveryMode = context.getEnvironment()
+                .getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        boolean isDiscoveryLocalMode = ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
         if (isDiscoveryLocalMode) {
             List<String> namespaceIds = this.getNamespace();
-            namespaceIds.forEach(namespaceId -> publisher.publishEvent(buildURIRegisterDTO(context, beans, namespaceId)));
+            namespaceIds.forEach(namespaceId -> {
+                URIRegisterDTO uriRegisterDTO = buildURIRegisterDTO(context, beans, namespaceId);
+                if (Objects.nonNull(uriRegisterDTO)) {
+                    publisher.publishEvent(uriRegisterDTO);
+                }
+            });
         }
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
@@ -194,10 +198,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             return Collections.emptyList();
         }
         Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
-        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
-        if (superPath.contains("*")) {
-            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
-        }
+        List<String> superPaths = buildApiSuperPaths(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
         if (Objects.isNull(annotation)) {
             return Lists.newArrayList();
@@ -209,30 +210,33 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         String contextPath = getContextPath();
         String[] value0 = sextet.getValue0();
         List<ApiDocRegisterDTO> list = Lists.newArrayList();
-        for (String value : value0) {
-            String apiPath = pathJoin(contextPath, superPath, value);
-            ApiHttpMethodEnum[] value3 = sextet.getValue3();
-            for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
-                String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method);
-                String extJson = buildExtJson(method);
-                ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                        .consume(sextet.getValue1())
-                        .produce(sextet.getValue2())
-                        .httpMethod(apiHttpMethodEnum.getValue())
-                        .contextPath(contextPath)
-                        .ext(extJson)
-                        .document(documentJson)
-                        .rpcType(sextet.getValue4().getName())
-                        .version(sextet.getValue5())
-                        .apiDesc(pairs.getLeft())
-                        .tags(pairs.getRight())
-                        .apiPath(apiPath)
-                        .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
-                        .state(ApiStateEnum.UNPUBLISHED.getState())
-                        .apiOwner("admin")
-                        .eventType(EventType.REGISTER)
-                        .build();
-                list.add(build);
+        for (String rawPath : superPaths) {
+            String superPath = rawPath.contains("*") ? rawPath.substring(0, rawPath.lastIndexOf("/")) : rawPath;
+            for (String value : value0) {
+                String apiPath = pathJoin(contextPath, superPath, value);
+                ApiHttpMethodEnum[] value3 = sextet.getValue3();
+                for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
+                    String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method, sextet.getValue4());
+                    String extJson = buildExtJson(method);
+                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                            .consume(sextet.getValue1())
+                            .produce(sextet.getValue2())
+                            .httpMethod(apiHttpMethodEnum.getValue())
+                            .contextPath(contextPath)
+                            .ext(extJson)
+                            .document(documentJson)
+                            .rpcType(sextet.getValue4().getName())
+                            .version(sextet.getValue5())
+                            .apiDesc(pairs.getLeft())
+                            .tags(pairs.getRight())
+                            .apiPath(apiPath)
+                            .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
+                            .state(ApiStateEnum.UNPUBLISHED.getState())
+                            .apiOwner("admin")
+                            .eventType(EventType.REGISTER)
+                            .build();
+                    list.add(build);
+                }
             }
         }
         return list;
@@ -258,15 +262,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return ext;
     }
 
-    private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
-        Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
-                .put("tags", tags)
-                .put("operationId", path)
-                .put("parameters", OpenApiUtils.generateDocumentParameters(path, method))
-                .put("responses", OpenApiUtils.generateDocumentResponse(path))
-                .put("responseType", Collections.singletonList(OpenApiUtils.parseReturnType(method)))
-                .build();
-        return GsonUtils.getInstance().toJson(documentMap);
+    private String buildDocumentJson(final List<String> tags, final String path, final Method method, final RpcTypeEnum rpcTypeEnum) {
+        return OpenApiUtils.buildDocumentJson(tags, path, method, rpcTypeEnum);
     }
 
     protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, T> beans);
@@ -305,6 +302,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     protected abstract String buildApiSuperPath(Class<?> clazz,
                                                 @Nullable A beanShenyuClient);
+
+    protected List<String> buildApiSuperPaths(final Class<?> clazz,
+                                              @Nullable final A beanShenyuClient) {
+        return Collections.singletonList(buildApiSuperPath(clazz, beanShenyuClient));
+    }
 
     protected void handleClass(final Class<?> clazz,
                                final T bean,

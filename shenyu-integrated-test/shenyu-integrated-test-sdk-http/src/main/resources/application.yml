@@ -92,6 +92,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
+      token: shenyu-sync-token
       allowOrigin: ws://localhost:9195
   exclude:
     enabled: true

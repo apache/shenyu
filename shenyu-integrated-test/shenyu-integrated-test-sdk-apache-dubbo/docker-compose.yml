@@ -34,7 +34,9 @@ services:
       - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.database.init_script=sql-script/h2/schema.sql
+      - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
       timeout: 2s
@@ -47,6 +49,7 @@ services:
           memory: 2048M
     container_name: shenyu-examples-sdk-apache-dubbo-provider
     image: shenyu-examples-sdk-apache-dubbo-provider:latest
+    pull_policy: never
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
@@ -69,6 +72,7 @@ services:
           memory: 2048M
     container_name: shenyu-examples-sdk-apache-dubbo-consumer
     image: shenyu-examples-sdk-apache-dubbo-consumer:latest
+    pull_policy: never
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8899/actuator/health | grep UP || exit 1"]
@@ -93,6 +97,7 @@ services:
     environment:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.sync.websocket.token=shenyu-sync-token
     depends_on:
       shenyu-admin:
         condition: service_healthy

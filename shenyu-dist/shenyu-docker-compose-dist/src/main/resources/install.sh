@@ -81,5 +81,9 @@ echo "Downloading shenyu-bootstrap configuration ..."
 
 printf '\n'
 echo "Next steps? Please modify the configuration in ./shenyu-${version}"
+echo "IMPORTANT: You MUST set 'shenyu.jwt.secretKey' in shenyu-admin/conf/application.yml"
+echo "  or set the environment variable SHENYU_JWT_SECRETKEY in docker-compose.yaml"
+echo "  before starting shenyu-admin, otherwise it will fail to start."
+echo "  In a multi-instance Admin cluster, all instances must share the same secretKey."
 echo "And then, you can run docker-compose"
 echo "For more detail, see https://shenyu.apache.org/docs/index"

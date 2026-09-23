@@ -81,12 +81,15 @@ public class RequestPluginTest {
     public void setup() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("localhost")
+                .cookie(new HttpCookie("addKey", "oldValue"))
                 .cookie(new HttpCookie("replaceKey", "oldValue"))
                 .cookie(new HttpCookie("removeKey", "value"))
                 .cookie(new HttpCookie("setKey", "oldValue"))
+                .header("addKey", "oldValue")
                 .header("replaceKey", "oldValue")
                 .header("removeKey", "value")
                 .header("setKey", "oldValue")
+                .queryParam("addKey", "oldValue")
                 .queryParam("replaceKey", "oldValue")
                 .queryParam("removeKey", "value")
                 .queryParam("setKey", "oldValue")
@@ -131,21 +134,21 @@ public class RequestPluginTest {
         assertNotNull(request);
         HttpHeaders httpHeaders = request.getHeaders();
         assertNotNull(httpHeaders);
-        assertTrue(checkMapSizeAndEqualVal(httpHeaders, "addKey", "addValue"));
+        assertEquals(Arrays.asList("oldValue", "addValue"), httpHeaders.get("addKey"));
         assertTrue(checkMapSizeAndEqualVal(httpHeaders, "newKey", "oldValue"));
         assertTrue(checkMapSizeAndEqualVal(httpHeaders, "setKey", "newValue"));
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
 
         LinkedMultiValueMap<String, String> cookies = getCookieMapFromHeader(httpHeaders);
-        assertTrue(checkMapSizeAndEqualVal(cookies, "addKey", "addValue"));
+        assertEquals(Arrays.asList("oldValue", "addValue"), cookies.get("addKey"));
         assertTrue(checkMapSizeAndEqualVal(cookies, "newKey", "oldValue"));
         assertTrue(checkMapSizeAndEqualVal(cookies, "setKey", "newValue"));
         assertFalse(cookies.containsKey("removeKey"));
 
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
-        assertTrue(checkMapSizeAndEqualVal(queryParams, "addKey", "addValue"));
+        assertEquals(Arrays.asList("oldValue", "addValue"), queryParams.get("addKey"));
         assertTrue(checkMapSizeAndEqualVal(queryParams, "newKey", "oldValue"));
         assertTrue(checkMapSizeAndEqualVal(queryParams, "setKey", "newValue"));
         assertFalse(queryParams.containsKey("removeKey"));
@@ -170,7 +173,10 @@ public class RequestPluginTest {
                 .flatMap(s ->
                         Arrays.stream(s).filter(cookie -> cookie.split("=").length == 2)
                                 .map(cookie -> Pair.of(cookie.split("=")[0].trim(), Lists.newArrayList(cookie.split("=")[1].trim()))))
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (k, v) -> k)));
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (current, added) -> {
+                    current.addAll(added);
+                    return current;
+                })));
     }
 
     @Test

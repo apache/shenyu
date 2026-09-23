@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -38,6 +39,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -72,6 +74,12 @@ public class TagServiceTest {
         tagService.create(buildTagDTO());
         int cnt = tagService.create(buildTagDTO1());
         assertEquals(cnt, 1);
+    }
+
+    @Test
+    public void testCreateWithNonExistentParentTag() {
+        given(this.tagMapper.selectByPrimaryKey("456")).willReturn(null);
+        assertThrows(ValidFailException.class, () -> tagService.create(buildTagDTO()));
     }
 
     @Test

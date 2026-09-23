@@ -204,11 +204,12 @@ public class SofaServiceEventListenerTest {
         String expectedPath = "/sofa/findByIdsAndName/path";
         String expectedRpcExt = "{\"loadbalance\":\"loadBalance\",\"retries\":0,\"timeout\":0}";
 
+        String apiPath = sofaServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR, shenyuSofaClient);
         MetaDataRegisterDTO realMetaDataRegisterDTO = sofaServiceEventListener
                 .buildMetaDataDTO(
                         serviceFactoryBean,
                         shenyuSofaClient,
-                        SUPER_PATH_NOT_CONTAINS_STAR,
+                        apiPath,
                         SofaServiceEventListener.class,
                         method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         MetaDataRegisterDTO expectedMetaDataRegisterDTO = MetaDataRegisterDTO

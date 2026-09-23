@@ -19,13 +19,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-integrated-test</artifactId>
-    <version>2.7.1-SNAPSHOT</version>
+    <version>2.7.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.1-SNAPSHOT</version>
+        <version>2.7.2-SNAPSHOT</version>
     </parent>
 
     <modules>
@@ -53,8 +53,6 @@
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <spring-cloud.version>4.1.2</spring-cloud.version>
         <gson.version>2.9.0</gson.version>
         <okhttp3.version>4.9.3</okhttp3.version>

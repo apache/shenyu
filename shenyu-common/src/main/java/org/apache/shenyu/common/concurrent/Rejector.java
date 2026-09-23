@@ -31,7 +31,7 @@ public interface Rejector<E> {
 
     /**
      * Method that may be invoked by a {@link MemorySafeLinkedBlockingQueue} when
-     * {@link MemorySafeLinkedBlockingQueue#hasRemainedMemory} return true.
+     * {@link MemorySafeLinkedBlockingQueue#hasRemainedMemory} return false.
      * This may occur when no more memory are available because their bounds would be exceeded.
      *
      * <p>In the absence of other alternatives, the method may throw an unchecked

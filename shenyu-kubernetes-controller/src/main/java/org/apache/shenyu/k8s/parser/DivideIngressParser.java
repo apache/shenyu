@@ -154,6 +154,10 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             String serviceName = defaultBackend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for divide default backend", serviceName);
+                return defaultUpstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
@@ -293,6 +297,10 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for divide upstream", serviceName);
+                return upstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocol = null;
             if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
@@ -306,15 +314,16 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || addresses.isEmpty()) {
                         continue;
                     }
-                    int i = 0;
-                    for (V1EndpointAddress address : addresses) {
+                    for (int i = 0; i < addresses.size(); i++) {
+                        V1EndpointAddress address = addresses.get(i);
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
                         if (Objects.nonNull(defaultPort)) {
+                            String upstreamProtocol = Objects.isNull(protocol) || i >= protocol.length ? "http://" : protocol[i];
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(Objects.isNull(protocol) ? "http://" : protocol[i++]);
+                            upstream.setProtocol(upstreamProtocol);
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");

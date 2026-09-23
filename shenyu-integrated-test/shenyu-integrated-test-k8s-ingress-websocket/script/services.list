@@ -15,3 +15,4 @@
 # limitations under the License.
 
 http://localhost:30095/actuator/health
+http://localhost:31188/actuator/health
