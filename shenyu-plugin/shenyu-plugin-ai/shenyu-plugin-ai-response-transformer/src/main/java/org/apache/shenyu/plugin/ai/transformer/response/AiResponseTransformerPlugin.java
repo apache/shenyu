@@ -358,10 +358,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
                                         String newBody = extractBodyFromAiResponse(aiResponse);
 
-                                        this.getHeaders().clear();
-                                        this.getHeaders().putAll(newHeaders);
-
                                         if (Objects.nonNull(newBody) && !newBody.isEmpty()) {
+                                            this.getHeaders().clear();
+                                            this.getHeaders().putAll(newHeaders);
                                             LOG.debug("Returning transformed response body: {}", newBody);
                                             return WebFluxResultUtils.result(this.exchange, newBody.getBytes(StandardCharsets.UTF_8));
                                         } else {
