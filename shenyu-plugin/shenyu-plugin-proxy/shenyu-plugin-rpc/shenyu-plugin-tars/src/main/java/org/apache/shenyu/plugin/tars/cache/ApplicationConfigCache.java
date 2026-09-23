@@ -186,27 +186,20 @@ public final class ApplicationConfigCache {
      * @param metaData metaData
      */
     public void initPrx(final MetaData metaData) {
-        while (true) {
-            Class<?> prxClass = prxClassCache.get(metaData.getPath());
-            try {
-                if (Objects.isNull(prxClass)) {
-                    // Spin's Attempt to Load
-                    tryLockedLoadMetaData(metaData);
-                } else {
-                    if (Objects.nonNull(metaData.getContextPath()) && Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
-                        refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
-                    }
-                    break;
-                }
-            } catch (Exception e) {
-                LOG.error("ShenyuTarsPluginInitializeException: init tars ref ex:{}", e.getMessage());
-                break;
+        try {
+            if (Objects.isNull(prxClassCache.get(metaData.getPath()))) {
+                lockedLoadMetaData(metaData);
             }
+            if (Objects.nonNull(metaData.getContextPath()) && Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
+                refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
+            }
+        } catch (Exception e) {
+            LOG.error("ShenyuTarsPluginInitializeException: init tars ref ex:{}", e.getMessage());
         }
     }
-    
+
     /**
-     * Try to load once, if it fails, it will give up.<br>
+     * Load metadata while holding the initialization lock.<br>
      * add class cache to {@link #prxClassCache}.<br>
      * add method params cache to {@link #prxParamCache}.<br>
      * add paths cache to {@link #ctxPathCache}.<br>
@@ -215,23 +208,24 @@ public final class ApplicationConfigCache {
      * @throws ClassNotFoundException meta data class definition not found
      * @see ReentrantLock
      */
-    private void tryLockedLoadMetaData(final MetaData metaData) throws ClassNotFoundException {
-        Objects.requireNonNull(LOCK);
-        if (LOCK.tryLock()) {
-            try {
-                if (StringUtils.isEmpty(metaData.getRpcExt())) {
-                    throw new ShenyuTarsPluginException("ShenyuTarsPluginInitializeException: can't init prx with empty ext string");
-                }
-                Class<?> prxClazz = buildClassDefinition(metaData);
-                prxClassCache.put(metaData.getPath(), prxClazz);
-                List<MetaData> paths = ctxPathCache.getOrDefault(metaData.getContextPath(), new ArrayList<>());
-                if (!IterableUtils.matchesAny(paths, p -> p.getPath().equals(metaData.getPath()))) {
-                    paths.add(metaData);
-                }
-                ctxPathCache.put(metaData.getContextPath(), paths);
-            } finally {
-                LOCK.unlock();
+    private void lockedLoadMetaData(final MetaData metaData) throws ClassNotFoundException {
+        LOCK.lock();
+        try {
+            if (prxClassCache.containsKey(metaData.getPath())) {
+                return;
             }
+            if (StringUtils.isEmpty(metaData.getRpcExt())) {
+                throw new ShenyuTarsPluginException("ShenyuTarsPluginInitializeException: can't init prx with empty ext string");
+            }
+            Class<?> prxClazz = buildClassDefinition(metaData);
+            prxClassCache.put(metaData.getPath(), prxClazz);
+            List<MetaData> paths = ctxPathCache.getOrDefault(metaData.getContextPath(), new ArrayList<>());
+            if (!IterableUtils.matchesAny(paths, p -> p.getPath().equals(metaData.getPath()))) {
+                paths.add(metaData);
+            }
+            ctxPathCache.put(metaData.getContextPath(), paths);
+        } finally {
+            LOCK.unlock();
         }
     }
     
