@@ -74,17 +74,20 @@ public class ShenyuClientURIExecutorSubscriberTest {
 
     @Test
     public void testExecutorValidData() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            Collection<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
+                    .protocol("http")
+                    .contextPath("/test")
+                    .rpcType("http")
+                    .host("localhost")
+                    .eventType(EventType.REGISTER)
+                    .port(socket.getLocalPort())
+                    .build();
+            uriRegisterDTOList.add(uriRegisterDTO);
 
-        // open port for connection
-        ServerSocket socket = new ServerSocket(9527);
-
-        Collection<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
-
-        URIRegisterDTO uriRegisterDTO =
-                URIRegisterDTO.builder().protocol("http").contextPath("/test").rpcType("http").host("localhost").eventType(EventType.REGISTER).port(9527).build();
-        uriRegisterDTOList.add(uriRegisterDTO);
-
-        executorSubscriber.executor(uriRegisterDTOList);
-        verify(shenyuClientRegisterRepository, times(1)).persistURI(uriRegisterDTO);
+            executorSubscriber.executor(uriRegisterDTOList);
+            verify(shenyuClientRegisterRepository, times(1)).persistURI(uriRegisterDTO);
+        }
     }
 }
