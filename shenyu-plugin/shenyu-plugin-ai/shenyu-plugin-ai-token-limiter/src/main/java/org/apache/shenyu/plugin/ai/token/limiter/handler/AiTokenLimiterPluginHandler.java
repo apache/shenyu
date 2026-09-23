@@ -62,12 +62,18 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
             if (Objects.isNull(REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))
                     || Objects.isNull(REDIS_PROPERTIES_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))
                     || !redisConfigProperties.equals(REDIS_PROPERTIES_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))) {
+                final ReactiveRedisTemplate previousRedisTemplate = REDIS_CACHED_HANDLE.get()
+                        .obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
                 ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
                         ShenyuRedisSerializationContext.stringSerializationContext());
                 REDIS_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), reactiveRedisTemplate);
                 REDIS_PROPERTIES_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), redisConfigProperties);
+                // The client that is replaced must not keep its connection pool and its threads alive.
+                if (Objects.nonNull(previousRedisTemplate)) {
+                    RedisConnectionFactory.destroyQuietly(previousRedisTemplate.getConnectionFactory());
+                }
             }
         }
     }
