@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -42,14 +44,14 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
 
 /**
  * MCP (Model Context Protocol) Server Plugin for Shenyu Gateway.
@@ -64,6 +66,8 @@ import java.nio.charset.StandardCharsets;
 public class McpServerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(McpServerPlugin.class);
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * Standard message endpoint path.
@@ -613,15 +617,21 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                     exchange.getResponse().getHeaders().add("Content-Type", "application/json");
                     setCorsHeaders(exchange);
 
-                    // Create response body
-                    final String responseBody = String.format("{\"message\":\"%s\"}", result.getResponseBody());
-                    LOG.debug("Sending message response with length: {} chars", responseBody.length());
-
-                    return exchange.getResponse()
-                            .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(responseBody.getBytes())));
+                    try {
+                        final byte[] responseBody = serializeMessageResponse(result.getResponseBody());
+                        LOG.debug("Sending message response with length: {} bytes", responseBody.length);
+                        return exchange.getResponse()
+                                .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(responseBody)));
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
                 })
                 .doOnSuccess(aVoid -> LOG.debug("Message response completed"))
                 .doOnError(error -> LOG.error("Error in message response: {}", error.getMessage(), error));
+    }
+
+    private byte[] serializeMessageResponse(final Object message) throws JsonProcessingException {
+        return OBJECT_MAPPER.writeValueAsBytes(Collections.singletonMap("message", message));
     }
 
     /**
@@ -715,10 +725,9 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         }
 
         try {
-            final String errorResponse = new ObjectMapper()
-                    .writeValueAsString(errorBody);
+            final byte[] errorResponse = OBJECT_MAPPER.writeValueAsBytes(errorBody);
             return exchange.getResponse()
-                    .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(errorResponse.getBytes())));
+                    .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(errorResponse)));
         } catch (Exception e) {
             LOG.error("Error writing JSON response: {}", e.getMessage(), e);
             return Mono.empty();
