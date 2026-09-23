@@ -38,6 +38,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressUtils;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,14 +106,14 @@ public class EndpointsReconciler implements Reconciler {
             return new Result(false);
         }
 
-        updateSelectors(ingressList, PluginEnum.DIVIDE.getName(), getDivideUpstreamFromEndpoints(v1Endpoints));
-        updateSelectors(ingressList, PluginEnum.WEB_SOCKET.getName(), getWebSocketUpstreamFromEndpoints(v1Endpoints));
+        updateSelectors(ingressList, PluginEnum.DIVIDE.getName(), v1Endpoints);
+        updateSelectors(ingressList, PluginEnum.WEB_SOCKET.getName(), v1Endpoints);
         LOG.info("Update selector for endpoint {}", request);
 
         return new Result(false);
     }
 
-    private void updateSelectors(final List<Pair<String, String>> ingressList, final String pluginName, final String handle) {
+    private void updateSelectors(final List<Pair<String, String>> ingressList, final String pluginName, final V1Endpoints v1Endpoints) {
         if (!ENDPOINT_UPSTREAM_PLUGINS.contains(pluginName)) {
             return;
         }
@@ -120,49 +121,48 @@ public class EndpointsReconciler implements Reconciler {
         if (CollectionUtils.isEmpty(totalSelectors)) {
             return;
         }
-        Set<String> needUpdateSelectorId = new HashSet<>();
         ingressList.forEach(item -> {
             List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), pluginName);
-            if (CollectionUtils.isNotEmpty(selectorIdList)) {
-                needUpdateSelectorId.addAll(selectorIdList);
+            if (CollectionUtils.isEmpty(selectorIdList)) {
+                return;
             }
-        });
-        if (needUpdateSelectorId.isEmpty()) {
-            return;
-        }
-        totalSelectors.forEach(selectorData -> {
-            if (needUpdateSelectorId.contains(selectorData.getId())) {
-                SelectorData newSelectorData = SelectorData.builder().id(selectorData.getId())
-                        .pluginId(selectorData.getPluginId())
-                        .pluginName(selectorData.getPluginName())
-                        .name(selectorData.getName())
-                        .matchMode(selectorData.getMatchMode())
-                        .type(selectorData.getType())
-                        .sort(selectorData.getSort())
-                        .enabled(selectorData.getEnabled())
-                        .logged(selectorData.getLogged())
-                        .continued(selectorData.getContinued())
-                        .handle(handle)
-                        .conditionList(selectorData.getConditionList())
-                        .matchRestful(selectorData.getMatchRestful()).build();
-                shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
-            }
+            V1Ingress ingress = ingressLister.namespace(item.getLeft()).get(item.getRight());
+            String handle = PluginEnum.DIVIDE.getName().equals(pluginName)
+                    ? getDivideUpstreamFromEndpoints(v1Endpoints, ingress)
+                    : getWebSocketUpstreamFromEndpoints(v1Endpoints);
+            totalSelectors.stream()
+                    .filter(selectorData -> selectorIdList.contains(selectorData.getId()))
+                    .map(selectorData -> SelectorData.builder().id(selectorData.getId())
+                            .pluginId(selectorData.getPluginId())
+                            .pluginName(selectorData.getPluginName())
+                            .name(selectorData.getName())
+                            .matchMode(selectorData.getMatchMode())
+                            .type(selectorData.getType())
+                            .sort(selectorData.getSort())
+                            .enabled(selectorData.getEnabled())
+                            .logged(selectorData.getLogged())
+                            .continued(selectorData.getContinued())
+                            .handle(handle)
+                            .conditionList(selectorData.getConditionList())
+                            .matchRestful(selectorData.getMatchRestful()).build())
+                    .forEach(shenyuCacheRepository::saveOrUpdateSelectorData);
         });
     }
 
-    private String getDivideUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
+    private String getDivideUpstreamFromEndpoints(final V1Endpoints v1Endpoints, final V1Ingress ingress) {
         List<DivideUpstream> res = new ArrayList<>();
-        endpointAddresses(v1Endpoints).forEach(pair -> {
+        List<Pair<V1EndpointAddress, String>> addresses = endpointAddresses(v1Endpoints);
+        for (int i = 0; i < addresses.size(); i++) {
+            Pair<V1EndpointAddress, String> pair = addresses.get(i);
             DivideUpstream upstream = new DivideUpstream();
             upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
             upstream.setWeight(100);
-            // TODO support config protocol in annotation
-            upstream.setProtocol("http://");
+            upstream.setProtocol(IngressUtils.getUpstreamProtocol(Objects.isNull(ingress) ? null : ingress.getMetadata().getAnnotations(), i, "http://"));
             upstream.setWarmup(0);
             upstream.setStatus(true);
             upstream.setUpstreamHost("");
             res.add(upstream);
-        });
+        }
         return GsonUtils.getInstance().toJson(res);
     }
 

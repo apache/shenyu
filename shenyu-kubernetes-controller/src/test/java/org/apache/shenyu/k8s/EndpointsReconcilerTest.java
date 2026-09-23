@@ -28,10 +28,12 @@ import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.reconciler.EndpointsReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
@@ -101,5 +103,65 @@ public final class EndpointsReconcilerTest {
         Assertions.assertEquals(PluginEnum.WEB_SOCKET.getName(), updatedSelector.getPluginName());
         assertThat(updatedSelector.getHandle(), containsString("\"protocol\":\"ws://\""));
         assertThat(updatedSelector.getHandle(), containsString("\"upstreamUrl\":\"127.0.0.1:8001\""));
+    }
+
+    /**
+     * test divide selector update preserves ingress protocol.
+     */
+    @Test
+    public void testUpdateDivideSelectorProtocol() {
+        SharedIndexInformer<V1Ingress> ingressInformer = mock(SharedIndexInformer.class);
+        SharedIndexInformer<V1Endpoints> endpointsInformer = mock(SharedIndexInformer.class);
+        Indexer<V1Ingress> ingressIndexer = mock(Indexer.class);
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        when(ingressInformer.getIndexer()).thenReturn(ingressIndexer);
+        when(endpointsInformer.getIndexer()).thenReturn(endpointsIndexer);
+
+        String namespace = "endpoint-divide-ns";
+        String serviceName = "endpoint-divide-service";
+        String ingressName = "endpoint-divide-ingress";
+        String selectorId = "endpoint-divide-selector";
+        V1Endpoints endpoints = new V1EndpointsBuilder().withKind("Endpoints")
+                .withNewMetadata().withNamespace(namespace).withName(serviceName).endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder()
+                        .withAddresses(new V1EndpointAddress().ip("127.0.0.1"))
+                        .withPorts(new CoreV1EndpointPort().port(8443).protocol("TCP"))
+                        .build())
+                .build();
+        V1Ingress ingress = new V1IngressBuilder()
+                .withNewMetadata()
+                .withNamespace(namespace)
+                .withName(ingressName)
+                .addToAnnotations(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "https://")
+                .endMetadata()
+                .build();
+        when(endpointsIndexer.getByKey(namespace + "/" + serviceName)).thenReturn(endpoints);
+        when(ingressIndexer.getByKey(namespace + "/" + ingressName)).thenReturn(ingress);
+
+        ServiceIngressCache.getInstance().putIngressName(namespace, serviceName, namespace, ingressName);
+        IngressSelectorCache.getInstance().put(namespace, ingressName, PluginEnum.DIVIDE.getName(), selectorId);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SelectorData selectorData = SelectorData.builder()
+                .id(selectorId)
+                .pluginId(String.valueOf(PluginEnum.DIVIDE.getCode()))
+                .pluginName(PluginEnum.DIVIDE.getName())
+                .name("/**")
+                .handle("[]")
+                .enabled(true)
+                .build();
+        when(shenyuCacheRepository.findSelectorDataList(PluginEnum.DIVIDE.getName())).thenReturn(Collections.singletonList(selectorData));
+        when(shenyuCacheRepository.findSelectorDataList(PluginEnum.WEB_SOCKET.getName())).thenReturn(Collections.emptyList());
+
+        EndpointsReconciler endpointsReconciler = new EndpointsReconciler(ingressInformer, endpointsInformer, shenyuCacheRepository, mock(ApiClient.class));
+        Result result = endpointsReconciler.reconcile(new Request(namespace, serviceName));
+
+        Assertions.assertEquals(new Result(false), result);
+        ArgumentCaptor<SelectorData> selectorCaptor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
+        SelectorData updatedSelector = selectorCaptor.getValue();
+        Assertions.assertEquals(PluginEnum.DIVIDE.getName(), updatedSelector.getPluginName());
+        assertThat(updatedSelector.getHandle(), containsString("\"protocol\":\"https://\""));
+        assertThat(updatedSelector.getHandle(), containsString("\"upstreamUrl\":\"127.0.0.1:8443\""));
     }
 }
