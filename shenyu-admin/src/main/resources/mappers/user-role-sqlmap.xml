@@ -132,4 +132,13 @@
              #{userId, jdbcType=VARCHAR}
          </foreach>
     </delete>
+
+    <delete id="deleteByRoleIdList">
+        DELETE
+          FROM user_role
+         WHERE role_id in
+         <foreach collection="roleIdList" index="index" item="roleId" open="(" separator="," close=")">
+             #{roleId, jdbcType=VARCHAR}
+         </foreach>
+    </delete>
 </mapper>
