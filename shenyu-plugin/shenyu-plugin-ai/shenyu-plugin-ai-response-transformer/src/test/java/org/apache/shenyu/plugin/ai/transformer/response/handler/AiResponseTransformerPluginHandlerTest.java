@@ -176,12 +176,15 @@ class AiResponseTransformerPluginHandlerTest {
 
         // First add the rule
         handler.handlerRule(ruleData);
+        ChatClientCache.getInstance().init(ruleData.getId(), chatModel);
+        assertNotNull(ChatClientCache.getInstance().getClient(ruleData.getId()));
 
         // Then remove the rule
         handler.removeRule(ruleData);
 
         // Verify rule is properly removed
         assertNull(AiResponseTransformerPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        assertNull(ChatClientCache.getInstance().getClient(ruleData.getId()));
     }
 
     @Test
