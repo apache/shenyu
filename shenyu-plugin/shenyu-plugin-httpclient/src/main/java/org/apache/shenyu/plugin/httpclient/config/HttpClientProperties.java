@@ -396,12 +396,12 @@ public class HttpClientProperties {
     public static class Pool {
 
         /**
-        * Type of pool for HttpClient to use, defaults to FIXED.
+         * Type of pool for HttpClient to use, defaults to FIXED.
          */
         private PoolType type = PoolType.FIXED;
 
         /**
-         * The channel pool map name, defaults to proxy.
+         * The channel pool map name, defaults to shenyu-proxy.
          */
         private String name = "shenyu-proxy";
 
@@ -412,9 +412,9 @@ public class HttpClientProperties {
         private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
 
         /**
-         * Only for type FIXED, the maximum time in millis to wait for aquiring.
+         * Only for type FIXED, the maximum time in millis to wait for acquiring, defaults to 3 seconds.
          */
-        private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+        private Long acquireTimeout = 3000L;
 
         /**
          * Time in millis after which the channel will be closed,

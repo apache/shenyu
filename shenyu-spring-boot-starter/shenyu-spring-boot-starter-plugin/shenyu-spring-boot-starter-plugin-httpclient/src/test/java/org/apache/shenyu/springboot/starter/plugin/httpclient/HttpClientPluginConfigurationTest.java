@@ -20,6 +20,10 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
 
@@ -27,6 +31,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.resources.ConnectionProvider.Builder;
 
 /**
  * Test case for {@link HttpClientPluginConfiguration}.
@@ -92,6 +98,19 @@ public class HttpClientPluginConfigurationTest {
                     assertThat(properties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
                     assertThat(properties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
                 });
+    }
+
+    @Test
+    public void testFixedConnectionPoolUsesBoundedPendingQueue() {
+        HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        HttpClientFactory factory = new HttpClientFactory(new HttpClientProperties(), null, new ServerProperties());
+
+        factory.buildFixedConnectionPool(pool, builder);
+
+        verify(builder).maxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+        verify(builder).pendingAcquireTimeout(Duration.ofMillis(3000L));
+        verify(builder, never()).pendingAcquireMaxCount(anyInt());
     }
 
     @Test
