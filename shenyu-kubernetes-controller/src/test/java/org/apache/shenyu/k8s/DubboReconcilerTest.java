@@ -35,6 +35,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -71,6 +72,7 @@ public final class DubboReconcilerTest {
 
     @BeforeEach
     public void init() {
+        IngressCache.getInstance().remove("mockedNamespace", "mockedIngress");
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
