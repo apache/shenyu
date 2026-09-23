@@ -109,6 +109,19 @@ public class GeneralContextPluginTest {
     }
 
     @Test
+    public void testDoExecuteWithoutACachedHandlePassesThrough() {
+        // regression for #6657: the rule handle cache returns null on a miss, the plugin must not dereference it
+        GeneralContextPluginDataHandler.CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(this.ruleData));
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(generalContextPlugin.doExecute(this.exchange, this.chain, mock(SelectorData.class), this.ruleData))
+                .expectSubscription().verifyComplete();
+
+        Mockito.verify(this.chain, times(1)).execute(this.exchange);
+        assertNull(this.exchange.getAttributes().get(Constants.GENERAL_CONTEXT));
+    }
+
+    @Test
     public void testGetOrder() {
         assertEquals(this.generalContextPlugin.getOrder(), PluginEnum.GENERAL_CONTEXT.getCode());
     }
