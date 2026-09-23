@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -55,6 +56,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -86,6 +88,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -272,7 +276,7 @@ public final class SelectorServiceTest {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
 
-        final List<SelectorDTO> selectorDTOs = buildSelectorDTOList();
+        final List<SelectorDTO> selectorDTOs = Arrays.asList(buildSelectorDTO("456"), buildSelectorDTO("457"));
         given(this.selectorMapper.insertSelective(any())).willReturn(1);
 
         given(this.pluginMapper.selectById(any())).willReturn(buildPluginDO());
@@ -281,10 +285,9 @@ public final class SelectorServiceTest {
 
         assertNotNull(configImportResult);
         assertEquals(configImportResult.getSuccessCount(), selectorDTOs.size());
-    }
-
-    private List<SelectorDTO> buildSelectorDTOList() {
-        return Collections.singletonList(buildSelectorDTO("456"));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        assertEquals(selectorDTOs.size(), eventCaptor.getValue().getSource().size());
     }
 
     private void testUpdate() {
