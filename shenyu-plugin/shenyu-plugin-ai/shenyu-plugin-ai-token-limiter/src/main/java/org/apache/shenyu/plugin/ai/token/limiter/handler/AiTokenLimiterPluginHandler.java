@@ -79,6 +79,18 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
     }
     
     @Override
+    public void removePlugin(final PluginData pluginData) {
+        final ReactiveRedisTemplate redisTemplate = REDIS_CACHED_HANDLE.get()
+                .obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        if (Objects.nonNull(redisTemplate)) {
+            // the client is not used any more, its connection pool and its threads must not stay alive
+            RedisConnectionFactory.destroyQuietly(redisTemplate.getConnectionFactory());
+        }
+        REDIS_CACHED_HANDLE.get().removeHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        REDIS_PROPERTIES_CACHED_HANDLE.get().removeHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+    }
+    
+    @Override
     public void handlerSelector(final SelectorData selectorData) {
         if (!selectorData.getContinued()) {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), AiTokenLimiterHandle.newDefaultInstance());
