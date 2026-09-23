@@ -19,7 +19,9 @@ package org.apache.shenyu.plugin.mcp.server.request;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -141,7 +143,7 @@ public class RequestConfigHelper {
             if (inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
-                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                    if (value.startsWith("http://") || value.startsWith("https://")) {
                         return true;
                     }
                 } catch (Exception exception) {
@@ -164,7 +166,7 @@ public class RequestConfigHelper {
             if (inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
-                    if (value.startsWith("http://") || value.startsWith("https://") || value.contains("?")) {
+                    if (value.startsWith("http://") || value.startsWith("https://")) {
                         return value;
                     }
                 } catch (Exception exception) {
@@ -192,11 +194,8 @@ public class RequestConfigHelper {
             if ("path".equals(position) && inputJson.has(key)) {
                 // Process path parameters
                 String value = inputJson.get(key).getAsString();
-                if (value.contains("?")) {
-                    value = value.substring(0, value.indexOf("?"));
-                }
                 value = value.replace("\"", "").trim();
-                modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", value);
+                modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", UriUtils.encodePathSegment(value, StandardCharsets.UTF_8));
             } else if ("query".equals(position) && inputJson.has(key)) {
                 // Handle query parameters
                 if (!modifiedBasePath.contains(key + "=")) {
@@ -204,11 +203,8 @@ public class RequestConfigHelper {
                         queryBuilder.append("&");
                     }
                     String value = inputJson.get(key).getAsString();
-                    if (value.contains("?")) {
-                        value = value.substring(0, value.indexOf("?"));
-                    }
                     value = value.replace("\"", "").trim();
-                    queryBuilder.append(key).append("=").append(value);
+                    queryBuilder.append(key).append("=").append(UriUtils.encodeQueryParam(value, StandardCharsets.UTF_8));
                 }
             }
         }
