@@ -62,12 +62,18 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
             if (Objects.isNull(REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))
                     || Objects.isNull(REDIS_PROPERTIES_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))
                     || !redisConfigProperties.equals(REDIS_PROPERTIES_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName()))) {
+                final ReactiveRedisTemplate previousRedisTemplate = REDIS_CACHED_HANDLE.get()
+                        .obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
                 ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
                         ShenyuRedisSerializationContext.stringSerializationContext());
                 REDIS_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), reactiveRedisTemplate);
                 REDIS_PROPERTIES_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), redisConfigProperties);
+                // The client that is replaced must not keep its connection pool and its threads alive.
+                if (Objects.nonNull(previousRedisTemplate)) {
+                    RedisConnectionFactory.destroyQuietly(previousRedisTemplate.getConnectionFactory());
+                }
             }
         }
     }
@@ -88,6 +94,20 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final AiTokenLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, AiTokenLimiterHandle.class);
+            // Fill defaults for null fields to prevent NPE
+            AiTokenLimiterHandle defaultHandle = AiTokenLimiterHandle.newDefaultInstance();
+            if (Objects.isNull(rateLimiterHandle.getTokenLimit())) {
+                rateLimiterHandle.setTokenLimit(defaultHandle.getTokenLimit());
+            }
+            if (Objects.isNull(rateLimiterHandle.getTimeWindowSeconds())) {
+                rateLimiterHandle.setTimeWindowSeconds(defaultHandle.getTimeWindowSeconds());
+            }
+            if (Objects.isNull(rateLimiterHandle.getAiTokenLimitType())) {
+                rateLimiterHandle.setAiTokenLimitType(defaultHandle.getAiTokenLimitType());
+            }
+            if (Objects.isNull(rateLimiterHandle.getKeyName())) {
+                rateLimiterHandle.setKeyName(defaultHandle.getKeyName());
+            }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
         });
     }
