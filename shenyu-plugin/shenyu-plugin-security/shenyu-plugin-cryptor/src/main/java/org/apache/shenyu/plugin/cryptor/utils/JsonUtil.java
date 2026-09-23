@@ -114,6 +114,13 @@ public final class JsonUtil {
         if (CollectionUtils.isEmpty(deepKey)) {
             return jsonElement;
         }
+        return replaceJsonNode(jsonElement, initDeep.get(), value, deepKey);
+    }
+
+    private static JsonElement replaceJsonNode(final JsonElement jsonElement,
+                                               final int depth,
+                                               final String value,
+                                               final List<String> deepKey) {
         if (jsonElement.isJsonPrimitive()) {
             return jsonElement;
         }
@@ -121,7 +128,7 @@ public final class JsonUtil {
             JsonArray jsonArray = jsonElement.getAsJsonArray();
             JsonArray jsonArrayNew = new JsonArray();
             for (JsonElement element : jsonArray) {
-                jsonArrayNew.add(replaceJsonNode(element, initDeep, value, deepKey));
+                jsonArrayNew.add(replaceJsonNode(element, depth, value, deepKey));
             }
             return jsonArrayNew;
         }
@@ -130,17 +137,15 @@ public final class JsonUtil {
             JsonObject object = jsonElement.getAsJsonObject();
             JsonObject objectNew = new JsonObject();
             for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                if (deepKey.get(initDeep.get()).equals(entry.getKey())) {
-                    initDeep.incrementAndGet();
-                }
                 String key = entry.getKey();
-                if (initDeep.get() == deepKey.size()) {
-                    initDeep.set(deepKey.size() - 1);
-                    object.addProperty(key, value);
+                JsonElement child = entry.getValue();
+                if (!deepKey.get(depth).equals(key)) {
+                    objectNew.add(key, child);
+                } else if (depth == deepKey.size() - 1) {
+                    objectNew.addProperty(key, value);
+                } else {
+                    objectNew.add(key, replaceJsonNode(child, depth + 1, value, deepKey));
                 }
-                JsonElement jsonEle = object.get(key);
-                JsonElement jsonElementNew = replaceJsonNode(jsonEle, initDeep, value, deepKey);
-                objectNew.add(key, jsonElementNew);
             }
             return objectNew;
         }
