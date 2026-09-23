@@ -37,12 +37,7 @@ public enum HttpRetryBackoffSpecEnum {
     /**
      * Exponential retry.
      */
-    EXPONENTIAL_BACKOFF("exponential"),
-
-    /**
-     * Custom retry.
-     */
-    CUSTOM_BACKOFF("custom");
+    EXPONENTIAL_BACKOFF("exponential");
 
     private final String name;
 
