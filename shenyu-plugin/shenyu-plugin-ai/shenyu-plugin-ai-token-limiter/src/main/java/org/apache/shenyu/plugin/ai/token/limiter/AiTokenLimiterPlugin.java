@@ -83,7 +83,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        ReactiveRedisTemplate<String, String> reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
 
         // generate redis key - include rule id to scope counters per rule
@@ -128,12 +128,12 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      * @param tokenLimit the token limit for the request
      * @return whether the request is allowed
      */
-    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
+    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
 
         return reactiveRedisTemplate.opsForValue().get(cacheKey)
-                .defaultIfEmpty(0L)
+                .defaultIfEmpty("0")
                 .flatMap(currentTokens -> {
-                    if (Long.parseLong(currentTokens.toString()) >= tokenLimit) {
+                    if (Long.parseLong(currentTokens) >= tokenLimit) {
                         return Mono.just(false);
                     }
                     return Mono.just(true);
@@ -169,11 +169,17 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return StringUtils.isBlank(key) ? "" : key;
     }
 
-    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        // The counter is given its window when it is created: re-issuing the expiration after every increment
-        // would push the window forward, so a sustained traffic would never reset the token budget.
-        final ReactiveValueOperations valueOperations = reactiveRedisTemplate.opsForValue();
-        valueOperations.setIfAbsent(cacheKey, 0L, Duration.ofSeconds(windowSeconds))
+    private void recordTokensUsage(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
+        // The counter is given its window when it is created: re-issuing the expiration after every increment would
+        // push the window forward, so a sustained traffic would never reset the token budget. An existing counter
+        // keeps the window it was created with; only one without any expiration (written by an earlier version or
+        // by another path) is given one, and just once.
+        final Duration window = Duration.ofSeconds(windowSeconds);
+        final ReactiveValueOperations<String, String> valueOperations = reactiveRedisTemplate.opsForValue();
+        valueOperations.setIfAbsent(cacheKey, "0", window)
+                .flatMap(created -> created ? Mono.just(Boolean.TRUE) : reactiveRedisTemplate.getExpire(cacheKey)
+                        .filter(timeToLive -> timeToLive.isNegative() || timeToLive.isZero())
+                        .flatMap(timeToLive -> reactiveRedisTemplate.expire(cacheKey, window)))
                 .then(valueOperations.increment(cacheKey, tokens))
                 .subscribe();
     }
