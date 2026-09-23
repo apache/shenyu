@@ -215,7 +215,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      * @return boolean
      */
     public boolean compareVersion(final String version) {
-        return pluginJar.getVersion().equals(version);
+        return Objects.equals(pluginJar.getVersion(), version);
     }
 
 }
