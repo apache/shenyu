@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -131,8 +132,19 @@ public final class ConsulSyncDataServiceTest {
         final Field consulIndexes = ConsulSyncDataService.class.getDeclaredField("consulIndexes");
         consulIndexes.setAccessible(true);
         final Map<String, Long> consulIndexesSource = (Map<String, Long>) consulIndexes.get(consulSyncDataService);
-        consulIndexesSource.put("/null", null);
+        consulIndexesSource.remove(watchPathRoot);
         when(response.getConsulIndex()).thenReturn(2L);
         Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService, watchPathRoot, updateHandler, deleteHandler));
+    }
+
+    @Test
+    public void testWatcherStateUsesConcurrentMaps() throws NoSuchFieldException, IllegalAccessException {
+        Field consulIndexesField = ConsulSyncDataService.class.getDeclaredField("consulIndexes");
+        consulIndexesField.setAccessible(true);
+        Field cacheDataField = ConsulSyncDataService.class.getDeclaredField("cacheConsulDataKeyMap");
+        cacheDataField.setAccessible(true);
+
+        Assertions.assertTrue(consulIndexesField.get(consulSyncDataService) instanceof ConcurrentMap);
+        Assertions.assertTrue(cacheDataField.get(consulSyncDataService) instanceof ConcurrentMap);
     }
 }
