@@ -19,9 +19,13 @@ package org.apache.shenyu.common.concurrent;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MemorySafeLinkedBlockingQueueTest {
     @Test
@@ -43,5 +47,14 @@ public class MemorySafeLinkedBlockingQueueTest {
         queue.setRejector(new AbortPolicy<>());
         assertThrows(RejectException.class, () -> queue.offer(() -> {
         }));
+    }
+
+    @Test
+    public void testMutableConfigurationIsVolatile() throws NoSuchFieldException {
+        Field maxFreeMemory = MemorySafeLinkedBlockingQueue.class.getDeclaredField("maxFreeMemory");
+        Field rejector = MemorySafeLinkedBlockingQueue.class.getDeclaredField("rejector");
+
+        assertTrue(Modifier.isVolatile(maxFreeMemory.getModifiers()));
+        assertTrue(Modifier.isVolatile(rejector.getModifiers()));
     }
 }
