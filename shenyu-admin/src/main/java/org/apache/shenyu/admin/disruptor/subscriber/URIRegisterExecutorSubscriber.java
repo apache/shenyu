@@ -28,10 +28,8 @@ import org.apache.shenyu.register.common.type.DataType;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -70,42 +68,31 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                     .ifPresent(service -> {
                         final List<URIRegisterDTO> list = entry.getValue();
                         Map<String, List<URIRegisterDTO>> listMap = buildData(list);
-                        listMap.forEach((selectorName, uriList) -> {
-                            final List<URIRegisterDTO> register = new LinkedList<>();
-                            final List<URIRegisterDTO> heartbeat = new LinkedList<>();
-                            final List<URIRegisterDTO> offline = new LinkedList<>();
-                            for (URIRegisterDTO d : uriList) {
-                                final EventType eventType = d.getEventType();
-                                if (Objects.isNull(eventType) || EventType.REGISTER.equals(eventType)) {
-                                    // eventType is null, should be old versions
-                                    register.add(d);
-                                } else if (EventType.OFFLINE.equals(eventType)) {
-                                    offline.add(d);
-                                } else if (EventType.HEARTBEAT.equals(eventType)) {
-                                    heartbeat.add(d);
-                                }
-                            }
-                            if (CollectionUtils.isNotEmpty(register)) {
-                                register.stream().map(URIRegisterDTO::getNamespaceId)
-                                        .filter(StringUtils::isNotBlank)
-                                        .findFirst()
-                                        .ifPresent(namespaceId -> service.registerURI(selectorName, register, namespaceId));
-                            }
-                            if (CollectionUtils.isNotEmpty(heartbeat)) {
-                                heartbeat.stream().map(URIRegisterDTO::getNamespaceId)
-                                        .filter(StringUtils::isNotBlank)
-                                        .findFirst()
-                                        .ifPresent(namespaceId -> service.heartbeat(selectorName, heartbeat, namespaceId));
-                            }
-                            if (CollectionUtils.isNotEmpty(offline)) {
-                                offline.stream().map(URIRegisterDTO::getNamespaceId)
-                                        .filter(StringUtils::isNotBlank)
-                                        .findFirst()
-                                        .ifPresent(namespaceId -> service.offline(selectorName, offline, namespaceId));
-                            }
-                        });
+                        listMap.forEach((selectorName, uriList) -> dispatchByNamespace(service, selectorName, uriList));
                     });
         }
+    }
+
+    private void dispatchByNamespace(final ShenyuClientRegisterService service, final String selectorName, final List<URIRegisterDTO> uriList) {
+        Map<String, List<URIRegisterDTO>> groupByNamespace = uriList.stream()
+                .filter(dto -> StringUtils.isNotBlank(dto.getNamespaceId()))
+                .collect(Collectors.groupingBy(URIRegisterDTO::getNamespaceId));
+        groupByNamespace.forEach((namespaceId, namespacedUris) -> {
+            Map<EventType, List<URIRegisterDTO>> groupByEventType = namespacedUris.stream()
+                    .collect(Collectors.groupingBy(dto -> Optional.ofNullable(dto.getEventType()).orElse(EventType.REGISTER)));
+            List<URIRegisterDTO> register = groupByEventType.get(EventType.REGISTER);
+            if (CollectionUtils.isNotEmpty(register)) {
+                service.registerURI(selectorName, register, namespaceId);
+            }
+            List<URIRegisterDTO> heartbeat = groupByEventType.get(EventType.HEARTBEAT);
+            if (CollectionUtils.isNotEmpty(heartbeat)) {
+                service.heartbeat(selectorName, heartbeat, namespaceId);
+            }
+            List<URIRegisterDTO> offline = groupByEventType.get(EventType.OFFLINE);
+            if (CollectionUtils.isNotEmpty(offline)) {
+                service.offline(selectorName, offline, namespaceId);
+            }
+        });
     }
     
     private Map<String, List<URIRegisterDTO>> buildData(final Collection<URIRegisterDTO> dataList) {
