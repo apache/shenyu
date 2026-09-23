@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -25,13 +26,14 @@ import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
-import java.lang.reflect.Field;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For KafkaLogCollectClient.
@@ -58,14 +60,23 @@ public class KafkaLogCollectClientTest {
     }
 
     @Test
-    @Disabled
-    public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
+    public void testInitClientDoesNotSendRecord() {
         try (MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class)) {
-            kafkaLogCollectClient.initClient(globalLogConfig);
-            Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
-            field.setAccessible(true);
-            Assertions.assertEquals(field.get(kafkaLogCollectClient), "shenyu-access-logging");
-            kafkaLogCollectClient.close();
+            Assertions.assertTrue(kafkaLogCollectClient.initClient0(globalLogConfig));
+            Assertions.assertEquals(1, construction.constructed().size());
+            verify(construction.constructed().get(0)).partitionsFor("shenyu-access-logging");
+            verify(construction.constructed().get(0), never()).send(any());
+        }
+        kafkaLogCollectClient.close0();
+    }
+
+    @Test
+    public void testInitClientFailsWhenTopicMetadataIsUnavailable() {
+        try (MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class,
+                (mock, context) -> when(mock.partitionsFor("shenyu-access-logging")).thenThrow(new TimeoutException("metadata unavailable")))) {
+            Assertions.assertFalse(kafkaLogCollectClient.initClient0(globalLogConfig));
+            verify(construction.constructed().get(0)).close();
+            verify(construction.constructed().get(0), never()).send(any());
         }
     }
 }
