@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveSetOperations;
 import org.springframework.http.MediaType;
@@ -40,6 +41,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,7 +92,7 @@ public final class SensitiveWordPluginTest {
         SpringBeanUtils.getInstance().setApplicationContext(null);
         SensitiveWordPluginDataHandler.CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
         SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get().removeHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
-        SensitiveWordPluginDataHandler.DICTIONARIES.get().removeHandle(REDIS_KEY);
+        SensitiveWordPluginDataHandler.DICTIONARIES.get().getAllCache().clear();
     }
 
     @Test
@@ -187,6 +191,92 @@ public final class SensitiveWordPluginTest {
         verify(chain).execute(any(ServerWebExchange.class));
     }
 
+    @Test
+    public void testTheWordsOfTheRuleAreEnforced() {
+        // the redis set is empty, the rule carries its own words
+        mockRedisDictionary();
+        cacheHandle(handle(customized -> customized.setWords("forbidden, banned")));
+        MockServerWebExchange exchange = exchange("this request is banned");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .expectNextMatches(body -> body.contains("sensitive content detected") && !body.contains("banned"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void testTheWordsOfTheRuleAreSeparatedByNewLines() {
+        mockRedisDictionary();
+        cacheHandle(handle(customized -> customized.setWords("forbidden\nbanned")));
+        StepVerifier.create(plugin.doExecute(exchange("this request is banned"), chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testTheWordsOfTheRuleAndTheRedisSetAreBothEnforced() {
+        mockRedisDictionary("forbidden");
+        cacheHandle(handle(customized -> customized.setWords("banned")));
+        // the word of the redis set is still enforced
+        StepVerifier.create(plugin.doExecute(exchange("this request is forbidden"), chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        // and so is the word configured on the rule
+        StepVerifier.create(plugin.doExecute(exchange("this request is banned"), chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testTheWordsOfTheRuleAreEnforcedWhenRedisFails() {
+        cacheHandle(handle(customized -> customized.setWords("banned")));
+        ReactiveRedisTemplate<String, String> redisTemplate = mock(ReactiveRedisTemplate.class);
+        ReactiveSetOperations<String, String> setOperations = mock(ReactiveSetOperations.class);
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(REDIS_KEY)).thenReturn(Flux.error(new IllegalStateException("redis is down")));
+        cacheRedisTemplate(redisTemplate);
+
+        // the words of the rule do not depend on redis, they must still be enforced
+        StepVerifier.create(plugin.doExecute(exchange("this request is banned"), chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheOversizedRequestWhenFailClosed() {
+        mockRedisDictionary("forbidden");
+        cacheHandle(handle(customized -> {
+            customized.setMaxBodySize(10L);
+            customized.setFailClosed(true);
+        }));
+        MockServerWebExchange exchange = exchange("this request is not scanned");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .expectNextMatches(body -> body.contains("sensitive content detected"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void testPassThroughTheOversizedRequestWhenFailOpen() {
+        mockRedisDictionary("banned");
+        cacheHandle(handle(customized -> customized.setMaxBodySize(10L)));
+        // the body is above the bound, so it is not scanned even though it contains a sensitive word
+        StepVerifier.create(plugin.doExecute(exchange("this request is banned"), chain, null, ruleData)).verifyComplete();
+        verify(chain).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheOversizedBodyWhoseSizeIsNotDeclared() {
+        mockRedisDictionary("forbidden");
+        cacheHandle(handle(customized -> {
+            customized.setMaxBodySize(10L);
+            customized.setFailClosed(true);
+        }));
+        // no content length: the size is only known once the body has been read
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/ai/chat")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(Flux.just(new DefaultDataBufferFactory().wrap("this request is not scanned".getBytes(StandardCharsets.UTF_8)))));
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
     @SuppressWarnings("unchecked")
     private void mockRedisDictionary(final String... words) {
         ReactiveRedisTemplate<String, String> redisTemplate = mock(ReactiveRedisTemplate.class);
@@ -208,6 +298,18 @@ public final class SensitiveWordPluginTest {
         handle.setRefreshIntervalSeconds(0L);
         handle.setFailClosed(true);
         return handle;
+    }
+
+    private SensitiveWordHandle handle(final Consumer<SensitiveWordHandle> customizer) {
+        SensitiveWordHandle handle = SensitiveWordHandle.newDefaultInstance();
+        handle.setRedisKey(REDIS_KEY);
+        customizer.accept(handle);
+        return handle;
+    }
+
+    private void cacheHandle(final SensitiveWordHandle handle) {
+        SensitiveWordPluginDataHandler.CACHED_HANDLE.get()
+                .cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
     }
 
     private MockServerWebExchange exchange(final String body) {
