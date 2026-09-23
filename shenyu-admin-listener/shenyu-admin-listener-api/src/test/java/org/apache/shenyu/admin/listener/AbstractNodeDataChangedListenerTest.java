@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.common.constant.DefaultNodeConstants;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -67,6 +68,30 @@ public final class AbstractNodeDataChangedListenerTest {
         assertNull(listener.config(selectorDataKey(SECOND_PLUGIN, STALE_ID)));
         assertTrue(listener.wasDeleted(selectorDataKey(FIRST_PLUGIN, STALE_ID)));
         assertTrue(listener.wasDeleted(selectorDataKey(SECOND_PLUGIN, STALE_ID)));
+    }
+
+    @Test
+    public void testOnPluginChangedRefreshWithEqualCardinalityRemovesStaleEntries() {
+        TestNodeDataChangedListener listener = new TestNodeDataChangedListener();
+        final String configKeyPrefix = NAMESPACE_ID + DefaultNodeConstants.JOIN_POINT + "plugin" + DefaultNodeConstants.JOIN_POINT;
+        listener.putConfig(configKeyPrefix + DefaultNodeConstants.LIST_STR, Arrays.asList("A", "B", "C", "D"));
+        listener.putConfig(configKeyPrefix + "A", pluginData("A"));
+        listener.putConfig(configKeyPrefix + "B", pluginData("B"));
+
+        listener.onPluginChanged(Arrays.asList(
+                pluginData("C"), pluginData("D"), pluginData("E"), pluginData("F")), DataEventTypeEnum.REFRESH);
+
+        assertNull(listener.config(configKeyPrefix + "A"));
+        assertNull(listener.config(configKeyPrefix + "B"));
+        assertTrue(listener.wasDeleted(configKeyPrefix + "A"));
+        assertTrue(listener.wasDeleted(configKeyPrefix + "B"));
+    }
+
+    private static PluginData pluginData(final String name) {
+        return PluginData.builder()
+                .namespaceId(NAMESPACE_ID)
+                .name(name)
+                .build();
     }
 
     private static SelectorData selectorData(final String pluginName, final String selectorId) {

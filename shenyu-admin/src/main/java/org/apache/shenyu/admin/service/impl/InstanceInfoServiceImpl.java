@@ -109,9 +109,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
         instanceInfoVO.setInstanceInfo(instanceInfoDO.getInstanceInfo());
+        instanceInfoVO.setInstanceState(instanceInfoDO.getInstanceState());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());
         instanceInfoVO.setDateUpdated(instanceInfoDO.getDateUpdated());
+        instanceInfoVO.setLastHeartBeatTime(instanceInfoDO.getLastHeartBeatTime());
         return instanceInfoVO;
     }
 }
