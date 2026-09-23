@@ -17,26 +17,46 @@
 
 package org.apache.shenyu.sdk.spring.proxy;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentMap;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.spring.ShenyuClientFactoryBean;
+import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
+import org.springframework.context.ApplicationContext;
 
 /**
  * {@link ShenyuClientProxyFactory} test.
  */
-public class ShenyuClientProxyFactoryTest extends AbstractProxyTest {
+public class ShenyuClientProxyFactoryTest {
 
     @Test
-    @SuppressWarnings("unchecked")
-    @DisabledForJreRange(min = JRE.JAVA_16)
-    public void factoryTest() throws IllegalAccessException, IOException {
-        init();
+    public void testCreateContextSpecificProxy() {
+        ApplicationContext firstContext = mock(ApplicationContext.class);
+        ApplicationContext secondContext = mock(ApplicationContext.class);
+        prepareContext(firstContext);
+        prepareContext(secondContext);
 
-        final ConcurrentMap<Class<?>, Object> proxyMap = (ConcurrentMap<Class<?>, Object>) PROXY_CACHE.get(null);
-        assertNotNull(proxyMap);
+        Object firstProxy = ShenyuClientProxyFactory.createProxy(TestClient.class, firstContext, new ShenyuClientFactoryBean());
+        Object secondProxy = ShenyuClientProxyFactory.createProxy(TestClient.class, secondContext, new ShenyuClientFactoryBean());
+
+        assertNotSame(firstProxy, secondProxy);
+    }
+
+    private void prepareContext(final ApplicationContext context) {
+        Contract contract = mock(Contract.class);
+        when(contract.parseAndValidateRequestTemplate(eq(TestClient.class), any(ShenyuClientFactoryBean.class))).thenReturn(Collections.emptyList());
+        when(context.getBean(Contract.class)).thenReturn(contract);
+        when(context.getBean(ShenyuSdkClient.class)).thenReturn(mock(ShenyuSdkClient.class));
+        when(context.getBeansOfType(org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor.class)).thenReturn(Collections.emptyMap());
+    }
+
+    private interface TestClient {
     }
 
 }
