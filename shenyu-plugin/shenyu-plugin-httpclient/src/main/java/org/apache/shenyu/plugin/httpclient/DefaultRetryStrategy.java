@@ -75,7 +75,9 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                         throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
                     });
+            Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(20));
             return clientResponse.retryWhen(retryBackoffSpec)
+                    .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
