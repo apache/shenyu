@@ -939,6 +939,16 @@ INSERT INTO `permission` VALUES ('1697146861569542757', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO `permission` VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 INSERT INTO `permission` VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
+INSERT INTO `permission` VALUES ('1942847622591684630', '1346358560427216896', '1942847622591684620', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684631', '1346358560427216896', '1942847622591684621', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684632', '1346358560427216896', '1942847622591684622', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684633', '1346358560427216896', '1942847622591684623', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684634', '1346358560427216896', '1942847622591684624', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684635', '1346358560427216896', '1942847622591684625', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684636', '1346358560427216896', '1942847622591684626', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684637', '1346358560427216896', '1942847622591684627', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684638', '1346358560427216896', '1942847622591684628', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `permission` VALUES ('1942847622591684639', '1346358560427216896', '1942847622591684629', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 
 INSERT INTO `permission` VALUES ('1697146860569743000', '1346358560427216896', '1844026099075565000', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO `permission` VALUES ('1697146860569743001', '1346358560427216896', '1844026099075565001', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
@@ -1018,6 +1028,7 @@ INSERT INTO `plugin` VALUES ('52', 'aiPrompt', null, 'Ai', 170, 0, '2023-12-20 1
 INSERT INTO `plugin` VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 INSERT INTO `plugin` VALUES ('61', 'mcpServer', null, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+INSERT INTO `plugin` VALUES ('67', 'agentGateway', null, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', null);
 INSERT INTO `plugin` VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 
 -- ----------------------------
@@ -1472,6 +1483,8 @@ INSERT INTO `plugin_handle` VALUES ('1722804548510507248', '53', 'model', 'model
 INSERT INTO `plugin_handle` VALUES ('1722804548510507249', '53', 'content', 'content', 2, 2, 4, '{"required":"0","rule":""}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
 INSERT INTO `plugin_handle` VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
+INSERT INTO `plugin_handle` VALUES ('1942847622591684610', '67', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `plugin_handle` VALUES ('1942847622591684611', '67', 'responseRequestId', 'responseRequestId', 3, 2, 1, '{"required":"0","defaultValue":"false","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 
 INSERT INTO `plugin_handle` VALUES ('1722804548510507350', '66', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507351', '66', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
@@ -2070,6 +2083,17 @@ INSERT INTO `resource` VALUES ('1844026199075534867', '1844026199075534860', 'SH
 INSERT INTO `resource` VALUES ('1844026199075534868', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServerRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026199075534869', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServer:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 
+INSERT INTO `resource` VALUES ('1942847622591684620', '1346775491550474240', 'agentGateway', 'agentGateway', '/plug/agentGateway', 'agentGateway', 1, 0, 'pic-center', 0, 0, '', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684621', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:add', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684622', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:query', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684623', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:edit', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684624', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:delete', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684625', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:add', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684626', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:query', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684627', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:edit', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684628', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:delete', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+INSERT INTO `resource` VALUES ('1942847622591684629', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGateway:modify', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
+
 INSERT INTO `resource` VALUES ('1844026099075565000', '1346775491550474240', 'aiResponseTransformer', 'aiResponseTransformer', '/plug/aiResponseTransformer', 'aiResponseTransformer', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026099075565001', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1844026099075565002', '1844026099075565000', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:aiResponseTransformerSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -2644,6 +2668,7 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882832189','649330b6-c2d7-4edc-be8e-8a54df9eb385','61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882832190','649330b6-c2d7-4edc-be8e-8a54df9eb385','67', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822300','649330b6-c2d7-4edc-be8e-8a54df9eb385','66', NULL, 66, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
