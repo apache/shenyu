@@ -75,12 +75,11 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         ServerHttpRequest request = exchange.getRequest();
-        final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
-        this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
         HttpMethod method = HttpMethod.valueOf(httpMethod);
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri)
                 .headers(headers -> {
                     headers.addAll(exchange.getRequest().getHeaders());
+                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
                     headers.remove(HttpHeaders.HOST);
                     Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
                     if (preserveHost) {
@@ -110,10 +109,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.addAll(fluxResponseEntity.getHeaders());
+                    HttpHeaders headers = exchange.getResponse().getHeaders();
+                    headers.putAll(fluxResponseEntity.getHeaders());
                     this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
-                    exchange.getResponse().getHeaders().putAll(headers);
                     exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);
