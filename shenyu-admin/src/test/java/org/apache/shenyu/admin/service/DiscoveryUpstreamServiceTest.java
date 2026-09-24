@@ -59,6 +59,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -145,6 +147,45 @@ public final class DiscoveryUpstreamServiceTest {
         when(proxySelectorMapper.selectById(any())).thenReturn(buildProxySelectorDO());
         List<DiscoverySyncData> dataList = discoveryUpstreamService.listAll();
         assertEquals(dataList.size(), list.size());
+    }
+
+    @Test
+    public void testListAllSkipsOrphansAndKeepsValidBindings() {
+        DiscoveryHandlerDO noRelation = buildDiscoveryHandlerDO();
+        noRelation.setId("no-relation");
+        DiscoveryHandlerDO missingSelector = buildDiscoveryHandlerDO();
+        missingSelector.setId("missing-selector");
+        DiscoveryHandlerDO missingProxy = buildDiscoveryHandlerDO();
+        missingProxy.setId("missing-proxy");
+        DiscoveryHandlerDO validSelector = buildDiscoveryHandlerDO();
+        validSelector.setId("valid-selector");
+        DiscoveryHandlerDO validProxy = buildDiscoveryHandlerDO();
+        validProxy.setId("valid-proxy");
+        when(discoveryHandlerMapper.selectAll()).thenReturn(List.of(noRelation, missingSelector, validSelector, missingProxy, validProxy));
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("no-relation")).thenReturn(null);
+        DiscoveryRelDO staleSelectorRel = buildDiscoveryRelDO();
+        staleSelectorRel.setSelectorId("deleted-selector");
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("missing-selector")).thenReturn(staleSelectorRel);
+        DiscoveryRelDO staleProxyRel = buildDiscoveryRelDO();
+        staleProxyRel.setProxySelectorId("deleted-proxy");
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("missing-proxy")).thenReturn(staleProxyRel);
+        DiscoveryRelDO selectorRel = buildDiscoveryRelDO();
+        selectorRel.setSelectorId("selector_1");
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("valid-selector")).thenReturn(selectorRel);
+        when(selectorMapper.selectById("selector_1")).thenReturn(buildSelectorDO());
+        when(selectorMapper.selectById("deleted-selector")).thenReturn(null);
+        DiscoveryRelDO proxyRel = buildDiscoveryRelDO();
+        proxyRel.setProxySelectorId("proxy_1");
+        when(discoveryRelMapper.selectByDiscoveryHandlerId("valid-proxy")).thenReturn(proxyRel);
+        when(proxySelectorMapper.selectById("proxy_1")).thenReturn(buildProxySelectorDO());
+        when(proxySelectorMapper.selectById("deleted-proxy")).thenReturn(null);
+        List<DiscoverySyncData> result = discoveryUpstreamService.listAll();
+        assertEquals(2, result.size());
+        assertEquals("selector_1", result.get(0).getSelectorId());
+        assertEquals("proxy_1", result.get(1).getSelectorId());
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("no-relation");
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("missing-selector");
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("missing-proxy");
     }
 
     @Test
