@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -219,6 +220,31 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
+    }
+
+    @Test
+    @Transactional
+    public void testCountMatchesFilteredList() {
+        SelectorDO first = buildSelectorDO();
+        first.setSelectorName("permission-keyword-first");
+        SelectorDO second = buildSelectorDO();
+        second.setSelectorName("permission-keyword-second");
+        SelectorDO otherNamespace = buildSelectorDO();
+        otherNamespace.setSelectorName("permission-keyword-other");
+        otherNamespace.setNamespaceId("other-namespace");
+        SelectorDO otherPlugin = buildSelectorDO();
+        otherPlugin.setSelectorName("permission-keyword-plugin");
+        otherPlugin.setPluginId("other-plugin");
+        List<SelectorDO> selectors = List.of(first, second, otherNamespace, otherPlugin);
+        selectors.forEach(selectorMapper::insert);
+        SelectorQuery query = new SelectorQuery(List.of(first.getPluginId()), "keyword", new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
+        query.setFilterIds(selectors.stream().map(SelectorDO::getId).collect(Collectors.toList()));
+        assertEquals(2, selectorMapper.countByQuery(query));
+        assertEquals(selectorMapper.selectByQuery(query).size(), selectorMapper.countByQuery(query));
+        query.setName(first.getSelectorName());
+        assertEquals(1, selectorMapper.countByQuery(query));
+        query.setName("missing-keyword");
+        assertEquals(0, selectorMapper.countByQuery(query));
     }
 
     private SelectorDO buildSelectorDO() {

@@ -168,11 +168,19 @@
         SELECT COUNT(1)
           FROM selector
         <where>
+            namespace_id = #{namespaceId, jdbcType=VARCHAR}
             <if test="pluginId != null">
-                plugin_id = #{pluginId, jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+            </if>
+            <if test="pluginIds != null and pluginIds.size > 0">
+                AND plugin_id IN
+                <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+                    #{pluginId, jdbcType=VARCHAR}
+                </foreach>
             </if>
             <if test="name != null and name != ''">
-                AND selector_name = #{name, jdbcType=VARCHAR}
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND selector_name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 AND id IN
