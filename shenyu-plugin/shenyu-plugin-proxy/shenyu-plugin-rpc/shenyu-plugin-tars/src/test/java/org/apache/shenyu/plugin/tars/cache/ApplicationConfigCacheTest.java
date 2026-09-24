@@ -18,10 +18,13 @@
 package org.apache.shenyu.plugin.tars.cache;
 
 import com.qq.tars.protocol.annotation.Servant;
+import com.qq.tars.client.Communicator;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
+import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
 import org.assertj.core.util.Lists;
@@ -29,10 +32,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +49,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * Test case for {@link ApplicationConfigCache}.
@@ -170,5 +182,44 @@ public final class ApplicationConfigCacheTest {
     public void testGetInstance() {
         final ApplicationConfigCache result = ApplicationConfigCache.getInstance();
         assertNotNull(result);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRefreshPublishesCompleteSnapshot() throws Exception {
+        final String path = "snapshot-refresh";
+        final Map<String, Class<?>> classes = (Map<String, Class<?>>) ReflectionTestUtils.getField(applicationConfigCacheUnderTest, "prxClassCache");
+        final Communicator original = (Communicator) ReflectionTestUtils.getField(applicationConfigCacheUnderTest, "communicator");
+        final Communicator communicator = mock(Communicator.class);
+        final TarsInvokePrxList previous = applicationConfigCacheUnderTest.get(path);
+        previous.setMethod(Object.class.getMethod("toString"));
+        previous.addTarsInvokePrxList(Collections.singletonList(new TarsInvokePrx(new Object(), "old")));
+        final MetaData metadata = new MetaData();
+        metadata.setPath(path);
+        metadata.setServiceName("service");
+        final TarsUpstream upstream = TarsUpstream.builder().upstreamUrl("127.0.0.1:8080").build();
+        classes.put(path, Object.class);
+        ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", communicator);
+        try {
+            when(communicator.stringToProxy(eq(Object.class), anyString())).thenAnswer(invocation -> {
+                assertSame(previous, applicationConfigCacheUnderTest.get(path));
+                assertEquals(1, previous.getTarsInvokePrxList().size());
+                return new Object();
+            });
+            ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest, "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream));
+            assertNotSame(previous, applicationConfigCacheUnderTest.get(path));
+            assertEquals(1, previous.getTarsInvokePrxList().size());
+            assertEquals("old", previous.getTarsInvokePrxList().get(0).getHost());
+            assertEquals("127.0.0.1:8080", applicationConfigCacheUnderTest.get(path).getTarsInvokePrxList().get(0).getHost());
+            final TarsInvokePrxList current = applicationConfigCacheUnderTest.get(path);
+            org.mockito.Mockito.doThrow(new IllegalStateException("proxy unavailable")).when(communicator).stringToProxy(eq(Object.class), anyString());
+            assertThrows(IllegalStateException.class, () -> ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest,
+                    "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream)));
+            assertSame(current, applicationConfigCacheUnderTest.get(path));
+            assertEquals(1, current.getTarsInvokePrxList().size());
+        } finally {
+            classes.remove(path);
+            ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", original);
+        }
     }
 }

@@ -318,8 +318,8 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(prxClass)) {
             return;
         }
-        TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
-        tarsInvokePrxList.getTarsInvokePrxList().clear();
+        TarsInvokePrxList previous = cache.get(metaData.getPath());
+        TarsInvokePrxList tarsInvokePrxList = new TarsInvokePrxList(previous.getMethod(), previous.getParamTypes(), previous.getParamNames());
         if (Objects.isNull(tarsInvokePrxList.getMethod())) {
             TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
             Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
@@ -333,6 +333,7 @@ public final class ApplicationConfigCache {
             Object strProxy = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
             return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl());
         }).collect(Collectors.toList()));
+        cache.put(metaData.getPath(), tarsInvokePrxList);
     }
     
     /**
