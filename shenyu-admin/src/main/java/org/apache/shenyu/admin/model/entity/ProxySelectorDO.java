@@ -119,6 +119,7 @@ public class ProxySelectorDO extends BaseDO {
                     .forwardPort(item.getForwardPort())
                     .type(item.getType())
                     .props(JsonUtils.toJson(item.getProps()))
+                    .namespaceId(item.getNamespaceId())
                     .dateUpdated(currentTime).build();
             if (StringUtils.hasLength(item.getId())) {
                 proxySelectorDO.setId(item.getId());

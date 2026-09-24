@@ -56,10 +56,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -468,6 +471,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<ProxySelectorData> proxySelectorList) {
         if (CollectionUtils.isEmpty(proxySelectorList)) {
             return ConfigImportResult.success();
@@ -507,12 +511,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<ProxySelectorData> proxySelectorList,
                                          final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(proxySelectorList)) {
             return ConfigImportResult.success();
         }
-        Map<String, String> proxySelectorIdMapping = context.getProxySelectorIdMapping();
+        Map<String, String> proxySelectorIdMapping = new HashMap<>();
         Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
                 .selectByNamespaceId(namespace)
                 .stream()
@@ -536,13 +541,23 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             }
             String oldProxySelectorId = selectorData.getId();
             String newProxySelectorId = UUIDUtils.getInstance().generateShortUuid();
-            selectorData.setId(newProxySelectorId);
-            selectorData.setNamespaceId(namespace);
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
+            proxySelectorDO.setId(newProxySelectorId);
+            proxySelectorDO.setNamespaceId(namespace);
             if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
                 proxySelectorIdMapping.put(oldProxySelectorId, newProxySelectorId);
                 successCount++;
             }
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    context.getProxySelectorIdMapping().putAll(proxySelectorIdMapping);
+                }
+            });
+        } else {
+            context.getProxySelectorIdMapping().putAll(proxySelectorIdMapping);
         }
         if (StringUtils.hasLength(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
