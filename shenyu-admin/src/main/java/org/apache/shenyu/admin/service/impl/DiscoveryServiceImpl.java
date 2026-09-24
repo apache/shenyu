@@ -55,6 +55,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -84,13 +89,16 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final TransactionTemplate discoveryActivation;
+
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
                                 final ProxySelectorMapper proxySelectorMapper,
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
                                 final SelectorService selectorService,
                                 final SelectorMapper selectorMapper,
-                                final DiscoveryProcessorHolder discoveryProcessorHolder) {
+                                final DiscoveryProcessorHolder discoveryProcessorHolder,
+                                final PlatformTransactionManager transactionManager) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
@@ -98,6 +106,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
+        this.discoveryActivation = new TransactionTemplate(transactionManager);
+        this.discoveryActivation.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
     @Override
@@ -183,8 +193,23 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
         }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryConfigRegisterDTO.getDiscoveryType());
-        discoveryProcessor.createDiscovery(discoveryDO);
-        discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+        final DiscoveryDO registeredDiscovery = discoveryDO;
+        final DiscoveryHandlerDO registeredHandler = discoveryHandlerDO;
+        Runnable activate = () -> {
+            discoveryProcessor.createDiscovery(registeredDiscovery);
+            discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(registeredHandler), proxySelectorDTO);
+        };
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            activate.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // Watchers may synchronously persist upstreams; suspend the already committed transaction resources.
+                discoveryActivation.executeWithoutResult(status -> activate.run());
+            }
+        });
     }
 
     @Override
