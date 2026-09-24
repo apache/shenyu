@@ -126,6 +126,15 @@
         WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
     </update>
 
+    <select id="selectByDiscoveryHandlerIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE discovery_handler_id IN
+        <foreach collection="handlerIds" item="handlerId" open="(" separator="," close=")">
+            #{handlerId}
+        </foreach>
+    </select>
+
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
