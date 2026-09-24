@@ -416,8 +416,12 @@ public class AppAuthServiceImpl implements AppAuthService {
             appAuthCount = appAuthMapper.updateSelective(appAuthDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
+        if (appAuthCount == 0) {
+            return 0;
+        }
         // publish AppAuthData's event
         AppAuthData data = AppAuthData.builder()
+                .namespaceId(appAuthDO.getNamespaceId())
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())

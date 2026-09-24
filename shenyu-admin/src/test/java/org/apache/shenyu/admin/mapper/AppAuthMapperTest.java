@@ -126,6 +126,20 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void testUpdateSelectiveRequiresMatchingNamespace() {
+        AppAuthDO update = AppAuthDO.builder().id(appAuthDO.getId()).phone("updated").namespaceId("other-namespace").build();
+        assertEquals(0, appAuthMapper.updateSelective(update));
+        assertEquals(appAuthDO.getPhone(), appAuthMapper.selectById(appAuthDO.getId()).getPhone());
+        update.setNamespaceId(null);
+        assertEquals(0, appAuthMapper.updateSelective(update));
+        update.setNamespaceId(appAuthDO.getNamespaceId());
+        assertEquals(1, appAuthMapper.updateSelective(update));
+        AppAuthDO persisted = appAuthMapper.selectById(appAuthDO.getId());
+        assertEquals("updated", persisted.getPhone());
+        assertEquals(appAuthDO.getAppSecret(), persisted.getAppSecret());
+    }
+
+    @Test
     public void testUpdateSelective() {
         int count = appAuthMapper.updateSelective(appAuthDO);
         assertEquals(1, count);
