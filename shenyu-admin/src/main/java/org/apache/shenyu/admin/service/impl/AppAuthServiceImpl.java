@@ -573,7 +573,15 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthData> listAll() {
-        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
+        return buildSyncData(appAuthMapper.selectAll());
+    }
+
+    @Override
+    public List<AppAuthData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(appAuthMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    private List<AppAuthData> buildSyncData(final List<AppAuthDO> appAuthDOList) {
         if (CollectionUtils.isEmpty(appAuthDOList)) {
             return new ArrayList<>();
         }
