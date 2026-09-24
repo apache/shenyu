@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -40,6 +41,8 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,11 +58,13 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -155,6 +160,37 @@ class ProxySelectorServiceTest {
 
         assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
         verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"configuration", "relation", "handler", "discovery"})
+    void validatesAllBindingsBeforeUpdatingAnyRecord(final String missing) {
+        ProxySelectorAddDTO dto = new ProxySelectorAddDTO();
+        dto.setId("proxy");
+        dto.setName("proxy");
+        dto.setPluginName("tcp");
+        dto.setForwardPort(8080);
+        dto.setHandler("new-handler");
+        if (!"configuration".equals(missing)) {
+            dto.setDiscovery(new ProxySelectorAddDTO.Discovery());
+        }
+        DiscoveryRelDO relation = new DiscoveryRelDO();
+        relation.setDiscoveryHandlerId("handler");
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler");
+        handler.setDiscoveryId("discovery");
+        handler.setHandler("original");
+        given(discoveryRelMapper.selectByProxySelectorId("proxy")).willReturn("relation".equals(missing) ? null : relation);
+        given(discoveryHandlerMapper.selectById("handler")).willReturn("handler".equals(missing) ? null : handler);
+        given(discoveryMapper.selectById("discovery")).willReturn("discovery".equals(missing) ? null : new DiscoveryDO());
+
+        assertThrows(ValidFailException.class, () -> proxySelectorService.update(dto));
+
+        verify(proxySelectorMapper, never()).update(any());
+        verify(discoveryHandlerMapper, never()).updateSelective(any());
+        verify(discoveryMapper, never()).updateSelective(any());
+        verifyNoInteractions(discoveryUpstreamMapper, discoveryProcessorHolder);
+        assertEquals("original", handler.getHandler());
     }
 
     @Test
