@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
@@ -41,6 +42,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -334,19 +336,24 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     private void fetchAll(final String discoveryHandlerId) {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         ProxySelectorDTO proxySelectorDTO;
         if (Objects.isNull(proxySelectorDO)) {
             SelectorDO selectorDO = selectorMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            Assert.notNull(selectorDO, "Selector binding does not exist for discovery handler: " + discoveryHandlerId);
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            Assert.notNull(pluginDO, "Plugin does not exist for selector: " + selectorDO.getId());
             proxySelectorDTO = new ProxySelectorDTO();
             proxySelectorDTO.setId(selectorDO.getId());
-            proxySelectorDTO.setPluginName(pluginMapper.selectById(selectorDO.getPluginId()).getName());
+            proxySelectorDTO.setPluginName(pluginDO.getName());
             proxySelectorDTO.setName(selectorDO.getSelectorName());
             proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         } else {
             proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
         List<DiscoveryUpstreamDTO> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
