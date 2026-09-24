@@ -208,7 +208,6 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testListByPage() {
-        given(this.appAuthMapper.countByQuery(any())).willReturn(1);
         given(this.appAuthMapper.selectByQuery(any())).willReturn(Collections.singletonList(appAuthDO));
         AppAuthQuery appAuthQuery = new AppAuthQuery();
         appAuthQuery.setPageParameter(new PageParameter());
