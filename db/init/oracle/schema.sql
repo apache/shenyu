@@ -3747,9 +3747,9 @@ VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"require
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
 VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
-VALUES ('67', 'agentGateway', NULL, 'Ai', 198, 0, sysdate, sysdate);
+VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled)
-VALUES ('1801816010882822301','649330b6-c2d7-4edc-be8e-8a54df9eb385','67', NULL, 198, 0);
+VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated)
 VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, sysdate, sysdate);
@@ -3757,9 +3757,9 @@ VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NUL
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
 VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1942847622591684610', '67', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', sysdate, sysdate);
+VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated)
-VALUES ('1942847622591684611', '67', 'responseRequestId', 'responseRequestId', 3, 2, 1, '{"required":"0","defaultValue":"false","rule":""}', sysdate, sysdate);
+VALUES ('1960000000000001001', '68', 'responseRequestId', 'responseRequestId', 3, 2, 1, '{"required":"0","defaultValue":"false","rule":""}', sysdate, sysdate);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026199075534860', '1346775491550474240', 'mcpServer', 'mcpServer', '/plug/mcpServer', 'mcpServer', 1, 0, 'pic-left', 0, 0, '', 1, sysdate, sysdate);
@@ -3782,25 +3782,25 @@ VALUES ('1844026199075534868', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.RULE
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
 VALUES ('1844026199075534869', '1844026199075534860', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:mcpServer:modify', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684620', '1346775491550474240', 'agentGateway', 'agentGateway', '/plug/agentGateway', 'agentGateway', 1, 0, 'pic-center', 0, 0, '', 1, sysdate, sysdate);
+VALUES ('1960000000000001010', '1346775491550474240', 'agentGateway', 'agentGateway', '/plug/agentGateway', 'agentGateway', 1, 0, 'pic-center', 0, 0, '', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684621', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:add', 1, sysdate, sysdate);
+VALUES ('1960000000000001011', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:add', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684622', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:query', 1, sysdate, sysdate);
+VALUES ('1960000000000001012', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:query', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684623', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:edit', 1, sysdate, sysdate);
+VALUES ('1960000000000001013', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:edit', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684624', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:delete', 1, sysdate, sysdate);
+VALUES ('1960000000000001014', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewaySelector:delete', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684625', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:add', 1, sysdate, sysdate);
+VALUES ('1960000000000001015', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:add', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684626', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:query', 1, sysdate, sysdate);
+VALUES ('1960000000000001016', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:query', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684627', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:edit', 1, sysdate, sysdate);
+VALUES ('1960000000000001017', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:edit', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684628', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:delete', 1, sysdate, sysdate);
+VALUES ('1960000000000001018', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGatewayRule:delete', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated)
-VALUES ('1942847622591684629', '1942847622591684620', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGateway:modify', 1, sysdate, sysdate);
+VALUES ('1960000000000001019', '1960000000000001010', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:agentGateway:modify', 1, sysdate, sysdate);
 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542751', '1346358560427216896', '1844026199075534860', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542752', '1346358560427216896', '1844026199075534861', sysdate, sysdate);
@@ -3812,16 +3812,16 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542758', '1346358560427216896', '1844026199075534867', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542759', '1346358560427216896', '1844026199075534868', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1697146861569542760', '1346358560427216896', '1844026199075534869', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684630', '1346358560427216896', '1942847622591684620', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684631', '1346358560427216896', '1942847622591684621', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684632', '1346358560427216896', '1942847622591684622', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684633', '1346358560427216896', '1942847622591684623', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684634', '1346358560427216896', '1942847622591684624', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684635', '1346358560427216896', '1942847622591684625', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684636', '1346358560427216896', '1942847622591684626', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684637', '1346358560427216896', '1942847622591684627', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684638', '1346358560427216896', '1942847622591684628', sysdate, sysdate);
-INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1942847622591684639', '1346358560427216896', '1942847622591684629', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001020', '1346358560427216896', '1960000000000001010', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001021', '1346358560427216896', '1960000000000001011', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001022', '1346358560427216896', '1960000000000001012', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001023', '1346358560427216896', '1960000000000001013', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001024', '1346358560427216896', '1960000000000001014', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001025', '1346358560427216896', '1960000000000001015', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001026', '1346358560427216896', '1960000000000001016', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001027', '1346358560427216896', '1960000000000001017', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001028', '1346358560427216896', '1960000000000001018', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001029', '1346358560427216896', '1960000000000001019', sysdate, sysdate);
 
 CREATE TABLE registry_config  (
     id            varchar2(128) NOT NULL,

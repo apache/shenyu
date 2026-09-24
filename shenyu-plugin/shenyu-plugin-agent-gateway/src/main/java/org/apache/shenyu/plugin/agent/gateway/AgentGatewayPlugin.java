@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Establishes an isolated request context for agent traffic and continues to
@@ -49,17 +48,13 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         if (Boolean.FALSE.equals(selector.getContinued())) {
-            return reject(exchange, "selector continued=false is not supported");
+            return chain.execute(exchange);
         }
         final AgentGatewayRuleHandle handle = resolveHandle(rule);
         if (!handle.isValid()) {
             return reject(exchange, handle.getErrorMessage());
         }
-        final AtomicBoolean subscribed = new AtomicBoolean();
         return Mono.defer(() -> {
-            if (!subscribed.compareAndSet(false, true)) {
-                return Mono.error(new IllegalStateException("agent gateway execution cannot be subscribed twice"));
-            }
             final AgentTrafficContext context = new AgentTrafficContext(
                     UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
             final Object previousContext = exchange.getAttributes()
@@ -92,7 +87,9 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if (Objects.nonNull(cached) && Objects.equals(cached.getRawHandle(), rule.getHandle())) {
             return cached;
         }
-        return parser.parse(rule.getHandle());
+        final AgentGatewayRuleHandle parsed = parser.parse(rule.getHandle());
+        AgentGatewayPluginDataHandler.CACHED_HANDLE.get().cachedHandle(key, parsed);
+        return parsed;
     }
 
     private void registerResponseRequestId(final ServerWebExchange exchange, final String requestId) {
@@ -104,8 +101,8 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason) {
-        exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
-        final Object error = ShenyuResultWrap.error(exchange, HttpStatus.SERVICE_UNAVAILABLE.value(),
+        exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
         return WebFluxResultUtils.result(exchange, error);
     }

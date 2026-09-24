@@ -61,11 +61,11 @@ class AgentGatewayRuleHandleParserTest {
     }
 
     @Test
-    void shouldRejectUnknownField() {
+    void shouldIgnoreUnknownField() {
         AgentGatewayRuleHandle handle = parser.parse("{\"trafficType\":\"LLM\",\"target\":\"x\"}");
 
-        assertFalse(handle.isValid());
-        assertTrue(handle.getErrorMessage().contains("unknown field"));
+        assertTrue(handle.isValid());
+        assertEquals("LLM", handle.getTrafficType());
     }
 
     @Test

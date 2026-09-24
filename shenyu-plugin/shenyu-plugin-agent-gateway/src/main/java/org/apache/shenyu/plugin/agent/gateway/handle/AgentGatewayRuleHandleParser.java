@@ -22,6 +22,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -30,6 +32,8 @@ import java.util.Set;
  */
 public final class AgentGatewayRuleHandleParser {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AgentGatewayRuleHandleParser.class);
+
     private static final String TRAFFIC_TYPE = "trafficType";
 
     private static final String RESPONSE_REQUEST_ID = "responseRequestId";
@@ -37,7 +41,7 @@ public final class AgentGatewayRuleHandleParser {
     private static final Set<String> SUPPORTED_FIELDS = Set.of(TRAFFIC_TYPE, RESPONSE_REQUEST_ID);
 
     /**
-     * Parse one rule handle without silently accepting unknown fields.
+     * Parse one rule handle. Unknown fields are ignored for forward compatibility.
      *
      * @param rawHandle raw rule handle
      * @return parsed handle or an invalid handle with a stable reason
@@ -54,7 +58,7 @@ public final class AgentGatewayRuleHandleParser {
             final JsonObject object = element.getAsJsonObject();
             for (String field : object.keySet()) {
                 if (!SUPPORTED_FIELDS.contains(field)) {
-                    return invalid(rawHandle, "unknown field: " + field);
+                    LOG.warn("Ignoring unknown agent gateway rule handle field: {}", field);
                 }
             }
             if (!object.has(TRAFFIC_TYPE) || !object.get(TRAFFIC_TYPE).isJsonPrimitive()

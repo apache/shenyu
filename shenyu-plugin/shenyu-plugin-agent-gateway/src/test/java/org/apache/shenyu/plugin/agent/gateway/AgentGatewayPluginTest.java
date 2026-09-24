@@ -219,22 +219,44 @@ class AgentGatewayPluginTest {
         }, selector(), invalidRule)).verifyComplete();
 
         assertEquals(0, calls.get());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+        assertNotNull(AgentGatewayPluginDataHandler.CACHED_HANDLE.get().obtainHandle("selector-1_rule-1"));
+        assertTrue(!AgentGatewayPluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle("selector-1_rule-1").isValid());
     }
 
     @Test
-    void shouldRejectRepeatedSubscriptionBeforeCallingDownstream() {
+    void shouldIgnoreUnknownRuleHandleFieldOnRequestPath() {
+        ServerWebExchange exchange = newExchange();
+        AtomicBoolean called = new AtomicBoolean();
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> {
+            called.set(true);
+            return Mono.empty();
+        }, selector(), rule("{\"trafficType\":\"LLM\",\"futureOption\":true}")))
+                .verifyComplete();
+
+        assertTrue(called.get());
+    }
+
+    @Test
+    void shouldCreateFreshContextForEachSubscription() {
         ServerWebExchange exchange = newExchange();
         AtomicReference<Integer> calls = new AtomicReference<>(0);
+        Set<String> requestIds = new HashSet<>();
         Mono<Void> execution = plugin.doExecute(exchange, next -> {
             calls.set(calls.get() + 1);
+            requestIds.add(next.<AgentTrafficContext>getAttribute(
+                    AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE).getRequestId());
             return Mono.empty();
         }, selector(), rule("rule-1"));
 
         StepVerifier.create(execution).verifyComplete();
-        StepVerifier.create(execution).expectError(IllegalStateException.class).verify();
+        StepVerifier.create(execution).verifyComplete();
 
-        assertEquals(1, calls.get());
+        assertEquals(2, calls.get());
+        assertEquals(2, requestIds.size());
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
     }
 
     @Test
@@ -252,14 +274,20 @@ class AgentGatewayPluginTest {
     }
 
     @Test
-    void shouldRejectContinuedFalseSelector() {
+    void shouldPassThroughContinuedFalseSelector() {
         ServerWebExchange exchange = newExchange();
         SelectorData selector = SelectorData.builder().id("selector-1").continued(false).build();
+        AtomicBoolean called = new AtomicBoolean();
 
-        StepVerifier.create(plugin.doExecute(exchange, next -> Mono.empty(), selector, rule("rule-1")))
+        StepVerifier.create(plugin.doExecute(exchange, next -> {
+            called.set(true);
+            assertTrue(Objects.isNull(next.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+            return Mono.empty();
+        }, selector, rule("rule-1")))
                 .verifyComplete();
 
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+        assertTrue(called.get());
+        assertTrue(Objects.isNull(exchange.getResponse().getStatusCode()));
     }
 
     private ServerWebExchange newExchange() {

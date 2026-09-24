@@ -58,4 +58,10 @@ public final class AgentTrafficContext {
     public String getRuleId() {
         return ruleId;
     }
+
+    @Override
+    public String toString() {
+        return "AgentTrafficContext{requestId='" + requestId + "', trafficType='" + trafficType
+                + "', selectorId='" + selectorId + "', ruleId='" + ruleId + "'}";
+    }
 }

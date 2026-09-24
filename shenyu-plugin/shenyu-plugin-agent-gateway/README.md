@@ -52,7 +52,7 @@ creation while leaving the existing AI Proxy and MCP plugins unchanged.
 
 ## Rule handle
 
-The first version accepts only this rule handle shape:
+The first version uses these rule handle fields:
 
 ```json
 {
@@ -61,6 +61,8 @@ The first version accepts only this rule handle shape:
 }
 ```
 
+PR1 supports only `LLM` traffic. The existing MCP plugin remains independently
+configurable; this Agent Gateway rule cannot yet be used for MCP traffic.
 `trafficType` is required and must be exactly `LLM`. `responseRequestId` is an
 optional boolean and defaults to `false`. Admin rejects unknown fields,
 malformed JSON, missing required fields, invalid field types, and unsupported
@@ -85,7 +87,8 @@ downstream execution it is available from the dedicated Reactor context key
 
 The context is not stored in a global map or thread-local. It does not contain
 the request body, credentials, response content, or mutable plugin-chain state.
-The plugin does not support subscribing to the same execution publisher twice.
+Each subscription gets its own context. The same exchange should not be
+subscribed concurrently, because exchange attributes are shared by that request.
 
 ## Scope
 
