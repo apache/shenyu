@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +34,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
@@ -133,7 +136,14 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     public CommonPager<NamespacePluginVO> listByPage(final NamespacePluginQuery namespacePluginQuery) {
-        return PageResultUtils.result(namespacePluginQuery.getPageParameter(), () -> namespacePluginRelMapper.selectByQuery(namespacePluginQuery));
+        PageParameter parameter = namespacePluginQuery.getPageParameter();
+        PageHelper.startPage(parameter.getCurrentPage(), parameter.getPageSize());
+        try {
+            PageInfo<NamespacePluginVO> page = new PageInfo<>(namespacePluginRelMapper.selectByQuery(namespacePluginQuery));
+            return new CommonPager<>(new PageParameter(page.getPageNum(), page.getPageSize(), (int) page.getTotal()), page.getList());
+        } finally {
+            PageHelper.clearPage();
+        }
     }
     
     @Override
