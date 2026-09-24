@@ -28,6 +28,8 @@ import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuCookie;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuRequestHeader;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle.ShenyuRequestParameter;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
@@ -118,6 +120,33 @@ public class RequestPluginTest {
         requestHandle.setCookie(cookie);
 
         RequestPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(this.ruleData), requestHandle);
+    }
+
+    @Test
+    public void testResponseDedupDoesNotRequireRequestStrategy() {
+        RequestHandle handle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        handle.setRequestHeaderUniqueStrategy(null);
+        handle.setRespHeaderUniqueStrategy(HeaderUniqueStrategyEnum.RETAIN_FIRST);
+        handle.setRespUniqueHeaders("X-Response");
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        assertEquals(HeaderUniqueStrategyEnum.RETAIN_FIRST, exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy()));
+        assertEquals("X-Response", exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName()));
+    }
+
+    @Test
+    public void testNullResponseDedupStrategyIsIgnored() {
+        RequestHandle handle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        handle.setRespHeaderUniqueStrategy(null);
+        handle.setRespUniqueHeaders("X-Response");
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        assertFalse(exchange.getAttributes().containsKey(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy()));
+        assertFalse(exchange.getAttributes().containsKey(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName()));
     }
 
     @Test
