@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -33,12 +34,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -60,13 +65,33 @@ public class AbstractLogCollectorTest {
 
                 @Override
                 protected GenericGlobalConfig getLogCollectConfig() {
-                    return null;
+                    return new GenericGlobalConfig();
                 }
 
                 @Override
                 protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
                 }
             };
+
+    @Test
+    public void testRepeatedStartAndRestartDoNotLeakConsumers() throws Exception {
+        try {
+            collector.start();
+            ThreadPoolExecutor first = (ThreadPoolExecutor) ReflectionTestUtils.getField(collector, "executor");
+            Object queue = ReflectionTestUtils.getField(collector, "bufferQueue");
+            collector.start();
+            assertSame(first, ReflectionTestUtils.getField(collector, "executor"));
+            assertSame(queue, ReflectionTestUtils.getField(collector, "bufferQueue"));
+            collector.close();
+            collector.start();
+            assertNotSame(first, ReflectionTestUtils.getField(collector, "executor"));
+            assertTrue(first.awaitTermination(2, TimeUnit.SECONDS));
+        } finally {
+            collector.close();
+        }
+        ThreadPoolExecutor last = (ThreadPoolExecutor) ReflectionTestUtils.getField(collector, "executor");
+        assertTrue(last.awaitTermination(2, TimeUnit.SECONDS));
+    }
 
     @Test
     public void testCollectAddsLogWhenBufferQueueHasCapacity() throws Exception {
