@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -92,7 +93,10 @@ public final class MatchDataCache {
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
         }
-        pathSelectorCache.entrySet().removeIf(entry -> Objects.isNull(entry.getValue().getId()));
+        // must stay in sync with the sentinel predicate used by AbstractShenyuPlugin when it caches
+        // a miss and when it short-circuits on it, otherwise a blank-id entry is served as a miss
+        // forever and never evicted when the selector data changes.
+        pathSelectorCache.entrySet().removeIf(entry -> StringUtils.isBlank(entry.getValue().getId()));
     }
 
     /**
@@ -187,7 +191,10 @@ public final class MatchDataCache {
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
-        pathRuleDataCache.entrySet().removeIf(entry -> Objects.isNull(entry.getValue().getId()));
+        // must stay in sync with the sentinel predicate used by AbstractShenyuPlugin when it caches
+        // a miss and when it short-circuits on it, otherwise a blank-id entry is served as a miss
+        // forever and never evicted when the rule data changes.
+        pathRuleDataCache.entrySet().removeIf(entry -> StringUtils.isBlank(entry.getValue().getId()));
     }
     
     /**

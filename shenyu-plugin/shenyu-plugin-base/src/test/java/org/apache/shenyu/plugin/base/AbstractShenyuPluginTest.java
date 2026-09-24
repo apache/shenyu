@@ -254,6 +254,112 @@ public final class AbstractShenyuPluginTest {
         MatchDataCache.getInstance().cleanRuleDataData();
     }
 
+    /**
+     * Test L1 cache hit for selector: return the cached selector directly without L2 matching.
+     */
+    @Test
+    public void executeSelectorL1CacheHitTest() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        // warm up L1 with a selector that is deliberately DIFFERENT from the one L2 matching would
+        // return (same id so the rule lookup still resolves, different name so equals() tells them
+        // apart). If the L1 lookup is ever bypassed, matching falls through to L2 and this assertion
+        // fails on the name mismatch instead of passing silently.
+        SelectorData cachedSelectorData = SelectorData.builder()
+                .id("1")
+                .name("cached-selector")
+                .pluginName("SHENYU")
+                .enabled(true)
+                .logged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionList(conditionDataList)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .build();
+        MatchDataCache.getInstance().cacheSelectorData("/http/SHENYU/SHENYU", cachedSelectorData, 100, 100);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, cachedSelectorData, ruleData);
+    }
+
+    /**
+     * Test L1 cache hit for selector with empty-id sentinel: short-circuit to handleSelectorIfNull.
+     */
+    @Test
+    public void executeSelectorL1CacheHitEmptySentinelTest() {
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        // warm up L1: cache empty selector sentinel (previous miss)
+        SelectorData emptySelectorData = SelectorData.builder().pluginName("SHENYU").build();
+        MatchDataCache.getInstance().cacheSelectorData("/http/SHENYU/SHENYU", emptySelectorData, 100, 100);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
+    /**
+     * Test L1 cache hit for rule: return the cached rule directly without L2 matching.
+     */
+    @Test
+    public void executeRuleL1CacheHitTest() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        // warm up L1 with a rule that is deliberately DIFFERENT from the one L2 matching would
+        // return (same id, different name). If the L1 lookup is ever bypassed, matching falls
+        // through to L2 and this assertion fails on the name mismatch instead of passing silently.
+        RuleData cachedRuleData = RuleData.builder()
+                .id("1")
+                .name("cached-rule")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionDataList(conditionDataList)
+                .sort(1)
+                .build();
+        MatchDataCache.getInstance().cacheRuleData("/http/SHENYU/SHENYU", cachedRuleData, 100, 100);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, cachedRuleData);
+    }
+
+    /**
+     * Test L1 cache hit for rule with null-id sentinel: short-circuit to handleRuleIfNull.
+     */
+    @Test
+    public void executeRuleL1CacheHitEmptySentinelTest() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        // warm up L1: cache empty rule sentinel (previous miss)
+        RuleData emptyRuleData = RuleData.builder().pluginName("SHENYU").build();
+        MatchDataCache.getInstance().cacheRuleData("/http/SHENYU/SHENYU", emptyRuleData, 100, 100);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+    }
+
     private void clearCache() {
         BaseDataCache.getInstance().cleanPluginData();
         BaseDataCache.getInstance().cleanSelectorData();
