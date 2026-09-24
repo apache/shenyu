@@ -17,20 +17,38 @@
 
 package org.apache.shenyu.register.client.api;
 
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,9 +60,75 @@ public final class FailbackRegistryRepositoryTest {
 
     private TestFailbackRegistryRepository repository;
 
+    private MockedStatic<WheelTimerFactory> timerFactory;
+
+    private Timer timer;
+
     @BeforeEach
     public void setUp() {
+        timer = mock(Timer.class);
+        timerFactory = mockStatic(WheelTimerFactory.class);
+        timerFactory.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
         repository = spy(new TestFailbackRegistryRepository());
+    }
+
+    @AfterEach
+    void closeTimerMock() {
+        timerFactory.close();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void preservesNewFailureDuringRetry(final boolean retryFails) throws Exception {
+        URIRegisterDTO original = createURIRegisterDTO();
+        doThrow(new IllegalStateException("offline")).when(repository).doPersistURI(same(original));
+        repository.persistURI(original);
+        String key = getFirstKeyFromFailureMap();
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            entered.countDown();
+            assertTrue(release.await(5, TimeUnit.SECONDS));
+            if (retryFails) {
+                throw new IllegalStateException("still offline");
+            }
+            return null;
+        }).when(repository).doPersistURI(same(original));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            final Future<?> retry = executor.submit(() -> repository.retry(key));
+            assertTrue(entered.await(5, TimeUnit.SECONDS));
+            URIRegisterDTO newer = createURIRegisterDTO();
+            newer.setAppName("newer");
+            doThrow(new IllegalStateException("new failure")).when(repository).doPersistURI(same(newer));
+            repository.persistURI(newer);
+            release.countDown();
+            retry.get(5, TimeUnit.SECONDS);
+            assertEquals(1, getFailureMapSize());
+            verify(timer, times(2)).add(any());
+            doNothing().when(repository).doPersistURI(same(newer));
+            repository.retry(key);
+            verify(repository, times(2)).doPersistURI(same(newer));
+            assertEquals(0, getFailureMapSize());
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void restoresFailedRetryWhenNoNewFailureExists() {
+        URIRegisterDTO original = createURIRegisterDTO();
+        doThrow(new IllegalStateException("offline")).when(repository).doPersistURI(original);
+        repository.persistURI(original);
+        String key = getFirstKeyFromFailureMap();
+        assertThrows(IllegalStateException.class, () -> repository.retry(key));
+        assertEquals(1, getFailureMapSize());
+        doNothing().when(repository).doPersistURI(original);
+        repository.retry(key);
+        assertEquals(0, getFailureMapSize());
+        repository.retry(key);
+        verify(repository, times(3)).doPersistURI(original);
     }
 
     @Test
