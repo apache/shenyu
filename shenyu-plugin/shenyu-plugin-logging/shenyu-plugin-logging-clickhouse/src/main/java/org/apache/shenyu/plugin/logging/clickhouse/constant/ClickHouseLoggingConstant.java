@@ -72,4 +72,9 @@ public class ClickHouseLoggingConstant {
             + "(:timeLocal, :clientIp,:method, :requestHeader, :responseHeader, :queryParams,"
             + " :requestBody, :requestUri, :responseBody, :responseContentLength, :rpcType, :status, :upstreamIp, :upstreamResponseTime, :userAgent, :host, :module, :traceId, :path);";
 
+    /**
+     * Insert logs directly into a standalone server's local table.
+     */
+    public static final String LOCAL_PRE_INSERT_SQL = PRE_INSERT_SQL.replace("request_log_distributed", "request_log");
+
 }
