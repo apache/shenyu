@@ -260,9 +260,15 @@
   </update>
 
   <select id="existed" resultType="java.lang.Boolean">
-    select true
+    SELECT 1
     from api
     where id = #{id} limit 1
+  </select>
+
+  <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+    SELECT 1
+    from api
+    where id = #{id} AND ROWNUM = 1
   </select>
 
   <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ApiQuery"

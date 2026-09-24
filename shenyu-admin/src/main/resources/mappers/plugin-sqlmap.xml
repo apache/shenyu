@@ -134,19 +134,31 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM plugin
          WHERE id = #{id} LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM plugin
+         WHERE id = #{id} AND ROWNUM = 1
+    </select>
+
     <select id="nameExisted" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM plugin
          WHERE name = #{name} LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="nameExisted" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM plugin
+         WHERE name = #{name} AND ROWNUM = 1
+    </select>
+
     <select id="nameExistedExclude" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM plugin
          WHERE name = #{name}
            AND id NOT IN
@@ -155,6 +167,18 @@
             #{id}
         </foreach>
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="nameExistedExclude" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM plugin
+         WHERE name = #{name}
+           AND id NOT IN
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+         AND ROWNUM = 1
     </select>
 
     <select id="activePluginSnapshot" resultType="org.apache.shenyu.admin.model.vo.PluginSnapshotVO">

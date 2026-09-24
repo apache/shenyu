@@ -126,7 +126,11 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
     <select id="existed" resultType="java.lang.Boolean">
-        select true from alert_receiver where id = #{id} limit 1
+        SELECT 1 from alert_receiver where id = #{id} limit 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1 from alert_receiver where id = #{id} AND ROWNUM = 1
     </select>
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM alert_receiver WHERE id IN
