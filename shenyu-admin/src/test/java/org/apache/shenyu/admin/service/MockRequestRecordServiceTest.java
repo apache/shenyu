@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
@@ -37,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -96,6 +99,14 @@ public class MockRequestRecordServiceTest {
         given(this.mockRequestRecordMapper.batchDelete(any())).willReturn(1);
         int cnt = this.mockRequestRecordService.batchDelete(Lists.newArrayList("1"));
         assertEquals(1, cnt);
+    }
+
+    @Test
+    public void testListByPageIsPageable() throws NoSuchMethodException {
+        // without @Pageable the whole mock_request_record table (every TEXT body included) is read
+        // into memory and shipped to the client, so the annotation is what keeps the query paged
+        Method listByPage = MockRequestRecordServiceImpl.class.getDeclaredMethod("listByPage", MockRequestRecordQuery.class);
+        assertTrue(listByPage.isAnnotationPresent(Pageable.class));
     }
 
     private MockRequestRecordDTO buildMockRequestRecordDTO() {
