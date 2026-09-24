@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
@@ -199,5 +200,33 @@ public final class CrossFilterTest {
         Assertions.assertTrue(Pattern.matches(regex, "http://console.abc.com"));
         Assertions.assertTrue(Pattern.matches(regex, "http://abc.com"));
         Assertions.assertFalse(Pattern.matches(regex, "http://aabc.com"));
+    }
+
+    @Test
+    void reusesCompiledPatternAndObservesConfigurationChanges() {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.getAllowedOrigin().setOriginRegex("  https://allowed[.]example  ");
+        CrossFilter filter = new CrossFilter(config);
+        Object pattern = ReflectionTestUtils.getField(filter, "originPattern");
+        Assertions.assertNotNull(pattern);
+        for (int i = 0; i < 3; i++) {
+            assertOrigin(filter, "https://allowed.example", true);
+            assertOrigin(filter, "https://other.example", false);
+            Assertions.assertSame(pattern, ReflectionTestUtils.getField(filter, "originPattern"));
+        }
+        config.getAllowedOrigin().setOriginRegex("https://other[.]example");
+        assertOrigin(filter, "https://other.example", true);
+        assertOrigin(filter, "https://allowed.example", false);
+        Assertions.assertNotSame(pattern, ReflectionTestUtils.getField(filter, "originPattern"));
+        config.getAllowedOrigin().setOriginRegex(" ");
+        assertOrigin(filter, "https://other.example", false);
+        config.setAllowedOrigin(null);
+        assertOrigin(filter, "https://other.example", false);
+    }
+
+    private void assertOrigin(final CrossFilter filter, final String origin, final boolean allowed) {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost").header(HttpHeaders.ORIGIN, origin));
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+        Assertions.assertEquals(allowed ? origin : null, exchange.getResponse().getHeaders().getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     }
 }
