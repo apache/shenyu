@@ -52,10 +52,12 @@ import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -152,6 +154,7 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.nonNull(ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName()))) {
             return "";
         }
+        validateRuleHandle(ruleDTO);
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
@@ -176,6 +179,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int create(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO);
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -187,6 +191,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int update(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
@@ -318,6 +323,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
+            validateRuleHandle(ruleDTO);
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -370,6 +376,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
+            validateRuleHandle(newSelectorId, ruleDTO.getHandle());
             ruleDTO.setNamespaceId(namespace);
             ruleDTO.setSelectorId(newSelectorId);
             String ruleId = UUIDUtils.getInstance().generateShortUuid();
@@ -392,6 +399,21 @@ public class RuleServiceImpl implements RuleService {
                     .fail(successCount, "import fail rule: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
+    }
+
+    private void validateRuleHandle(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+    }
+
+    private void validateRuleHandle(final String selectorId, final String handle) {
+        final SelectorDO selector = selectorMapper.selectById(selectorId);
+        if (Objects.isNull(selector)) {
+            return;
+        }
+        final PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
+        if (Objects.nonNull(plugin) && PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
+            AgentGatewayRuleHandleValidator.validate(handle);
+        }
     }
     
     @Override

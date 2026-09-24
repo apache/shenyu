@@ -62,9 +62,14 @@ The first version accepts only this rule handle shape:
 ```
 
 `trafficType` is required and must be exactly `LLM`. `responseRequestId` is an
-optional boolean and defaults to `false`. Unknown fields, malformed JSON, and
-unsupported traffic types are rejected as server configuration errors before
-the downstream chain is called.
+optional boolean and defaults to `false`. Admin rejects unknown fields,
+malformed JSON, missing required fields, invalid field types, and unsupported
+traffic types before saving or importing an `agentGateway` rule handle. At
+runtime, unknown fields in existing configurations are logged and ignored for
+forward compatibility. Malformed JSON, missing required fields, invalid field
+types, and unsupported traffic types return HTTP 500 because they are server-side
+configuration errors. A selector with `continued=false` has no
+rule handle, so this plugin passes it through without creating a context.
 
 When enabled, the response contains the gateway-generated
 `X-Shenyu-Agent-Request-Id` header. A client-provided value with the same name
