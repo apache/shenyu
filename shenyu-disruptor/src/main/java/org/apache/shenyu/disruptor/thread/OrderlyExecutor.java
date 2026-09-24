@@ -66,7 +66,7 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
     private void orderlyThreadPool(final boolean isOrderly, final int corePoolSize, final ThreadFactory threadFactory) {
         if (isOrderly) {
             IntStream.range(0, corePoolSize).forEach(index -> {
-                SingletonExecutor singletonExecutor = new SingletonExecutor(threadFactory);
+                SingletonExecutor singletonExecutor = new SingletonExecutor(threadFactory, getQueue().remainingCapacity());
                 String hash = singletonExecutor.hashCode() + ":" + index;
                 byte[] bytes = threadSelector.sha(hash);
                 for (int i = 0; i < 4; i++) {
