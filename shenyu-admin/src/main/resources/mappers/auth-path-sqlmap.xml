@@ -82,17 +82,31 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM auth_path
          WHERE id = #{id}
          LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM auth_path
+         WHERE id = #{id}
+         AND ROWNUM = 1
+    </select>
+
     <select id="existedByAuthId" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM auth_path
          WHERE auth_id = #{authId}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existedByAuthId" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM auth_path
+         WHERE auth_id = #{authId}
+         AND ROWNUM = 1
     </select>
 
     <insert id="save" parameterType="org.apache.shenyu.admin.model.entity.AuthParamDO">

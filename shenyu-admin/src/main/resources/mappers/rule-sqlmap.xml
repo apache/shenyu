@@ -154,10 +154,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT TRUE
+        SELECT 1
           FROM rule
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM rule
+         WHERE id = #{id}
+         AND ROWNUM = 1
     </select>
 
     <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.RuleDO" resultMap="BaseResultMap">

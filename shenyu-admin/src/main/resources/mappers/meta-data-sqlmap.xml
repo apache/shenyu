@@ -144,15 +144,23 @@
     </select>
 
     <select id="pathExisted" resultType="java.lang.Boolean">
-        SElECT true
+        SELECT 1
         FROM meta_data
         WHERE path = #{path}
         AND namespace_id = #{namespaceId}
         LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="pathExisted" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM meta_data
+        WHERE path = #{path}
+        AND namespace_id = #{namespaceId}
+        AND ROWNUM = 1
+    </select>
+
     <select id="pathExistedExclude" resultType="java.lang.Boolean">
-        SElECT true
+        SELECT 1
         FROM meta_data
         WHERE path = #{path}
         AND id NOT IN
@@ -162,11 +170,29 @@
         LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="pathExistedExclude" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM meta_data
+        WHERE path = #{path}
+        AND id NOT IN
+        <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND ROWNUM = 1
+    </select>
+
     <select id="existed" resultType="java.lang.Boolean">
-        SElECT true
+        SELECT 1
         FROM meta_data
         WHERE id = #{id}
         LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM meta_data
+        WHERE id = #{id}
+        AND ROWNUM = 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
