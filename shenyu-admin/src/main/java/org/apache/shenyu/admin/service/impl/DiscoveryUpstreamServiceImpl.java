@@ -334,7 +334,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
     
     private void fetchAll(final String discoveryHandlerId) {
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        final List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
