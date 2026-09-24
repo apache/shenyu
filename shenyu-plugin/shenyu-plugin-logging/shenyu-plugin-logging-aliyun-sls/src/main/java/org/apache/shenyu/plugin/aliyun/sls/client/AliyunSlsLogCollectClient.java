@@ -121,9 +121,15 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
 
     @Override
     public void close0() throws Exception {
-        if (Objects.nonNull(client)) {
-            client.shutdown();
-            producer.close();
+        try {
+            if (Objects.nonNull(client)) {
+                client.shutdown();
+                producer.close();
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
+            }
         }
     }
 
