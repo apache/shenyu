@@ -48,6 +48,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -104,6 +105,9 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         dto.setId(entity.getId());
         dto.setProxyApiKey(entity.getProxyApiKey());
         dto.setEnabled(entity.getEnabled());
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        entity.setDateCreated(now);
+        entity.setDateUpdated(now);
         final int rows = mapper.insert(entity);
         publishChange(DataEventTypeEnum.CREATE, entity);
         return rows;
@@ -117,6 +121,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         if (Objects.isNull(entity) || StringUtils.isBlank(entity.getId())) {
             return 0;
         }
+        entity.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         int rows = mapper.updateSelective(entity);
         publishChange(DataEventTypeEnum.UPDATE, entity);
         return rows;
@@ -171,7 +176,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         if (CollectionUtils.isEmpty(ids) || Objects.isNull(enabled)) {
             return ShenyuResultMessage.PARAMETER_ERROR;
         }
-        int rows = mapper.updateEnableBatch(ids, enabled);
+        int rows = mapper.updateEnableBatch(ids, enabled, new Timestamp(System.currentTimeMillis()));
         if (rows > 0) {
             final List<ProxyApiKeyDO> updated = mapper.selectByIds(ids);
             if (Objects.nonNull(updated) && !updated.isEmpty()) {
