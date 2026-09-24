@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Shenyu websocket client event listener.
@@ -68,6 +69,8 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     private final Boolean isFull;
 
     private final String protocol;
+
+    private final AtomicBoolean endpointsRegistered = new AtomicBoolean();
 
     /**
      * Instantiates a new Spring websocket client event listener.
@@ -240,7 +243,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     private void registerEndpointsBeans(final ApplicationContext context, final Map<String, Object> endpointBeans) {
-        if (CollectionUtils.isEmpty(endpointBeans)) {
+        if (CollectionUtils.isEmpty(endpointBeans) || !endpointsRegistered.compareAndSet(false, true)) {
             return;
         }
         ShenyuServerEndpointerExporter exporter = (ShenyuServerEndpointerExporter) registerBean(context, ShenyuServerEndpointerExporter.class, "shenyuServerEndpointerExporter");
