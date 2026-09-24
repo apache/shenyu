@@ -26,13 +26,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -86,5 +91,18 @@ public class ShenyuClientURIExecutorSubscriberTest {
 
         executorSubscriber.executor(uriRegisterDTOList);
         verify(shenyuClientRegisterRepository, times(1)).persistURI(uriRegisterDTO);
+    }
+
+    @Test
+    public void testOfflineFailureStillShutsDownHeartbeatExecutor() throws Exception {
+        URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().host("localhost").port(9527).build();
+        doThrow(new RuntimeException("offline failed")).when(shenyuClientRegisterRepository).offline(any());
+
+        assertThrows(RuntimeException.class, () -> executorSubscriber.offlineAndShutdown(uriRegisterDTO));
+
+        Field executorField = ShenyuClientURIExecutorSubscriber.class.getDeclaredField("executor");
+        executorField.setAccessible(true);
+        ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) executorField.get(executorSubscriber);
+        assertTrue(executor.isShutdown());
     }
 }
