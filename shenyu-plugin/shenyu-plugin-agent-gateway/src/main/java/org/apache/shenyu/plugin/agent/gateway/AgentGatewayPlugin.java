@@ -75,6 +75,9 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
 
     private void restorePreviousContext(final ServerWebExchange exchange, final Object previousContext,
                                         final AgentTrafficContext currentContext) {
+        // DefaultServerWebExchange uses a ConcurrentHashMap for attributes. The conditional
+        // Map.remove/replace operations rely on a mutable map that supports these methods;
+        // they avoid clearing a context installed by another execution on this exchange.
         if (Objects.isNull(previousContext)) {
             exchange.getAttributes().remove(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE, currentContext);
         } else {

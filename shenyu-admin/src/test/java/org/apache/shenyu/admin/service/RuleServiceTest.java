@@ -209,7 +209,8 @@ public final class RuleServiceTest {
         final List<RuleDTO> ruleDTOS = Collections.singletonList(buildRuleDTO("123"));
         given(this.ruleMapper.insertSelective(any())).willReturn(1);
 
-        given(this.pluginMapper.selectById(any())).willReturn(buildPluginDO());
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
 
         ConfigImportResult configImportResult = this.ruleService.importData(ruleDTOS);
 
@@ -276,6 +277,27 @@ public final class RuleServiceTest {
 
         assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
                 SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(ruleDTO), context));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testImportRejectsRuleWhenSelectorIsMissing() {
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
+                Collections.singletonList(buildRuleDTO(""))));
+
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testImportRejectsRuleWhenPluginIsMissing() {
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
+                Collections.singletonList(buildRuleDTO(""))));
+
         verify(ruleMapper, never()).insertSelective(any());
     }
 

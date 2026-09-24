@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -408,10 +409,13 @@ public class RuleServiceImpl implements RuleService {
     private void validateRuleHandle(final String selectorId, final String handle) {
         final SelectorDO selector = selectorMapper.selectById(selectorId);
         if (Objects.isNull(selector)) {
-            return;
+            throw new ShenyuAdminException("rule selector is not found");
         }
         final PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
-        if (Objects.nonNull(plugin) && PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
+        if (Objects.isNull(plugin)) {
+            throw new ShenyuAdminException("rule plugin is not found");
+        }
+        if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
         }
     }
