@@ -185,4 +185,18 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
+    <select id="selectByApiIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tag_relation
+        WHERE
+        <choose>
+            <when test="apiIds != null and apiIds.size() > 0">
+                api_id IN
+                <foreach collection="apiIds" item="apiId" open="(" separator="," close=")">
+                    #{apiId, jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>1 = 0</otherwise>
+        </choose>
+    </select>
 </mapper>
