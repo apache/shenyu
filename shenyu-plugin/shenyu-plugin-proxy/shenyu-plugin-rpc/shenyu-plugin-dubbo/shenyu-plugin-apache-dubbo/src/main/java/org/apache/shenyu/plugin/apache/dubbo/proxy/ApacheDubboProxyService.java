@@ -44,6 +44,7 @@ import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +81,11 @@ public class ApacheDubboProxyService {
      * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) throws ShenyuException {
+        return Mono.defer(() -> invokeOnWorker(body, metaData, selectorData, ruleData, exchange))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private Mono<Object> invokeOnWorker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) {
         ReferenceConfig<GenericService> reference = this.getReferenceConfig(selectorData, ruleData, metaData, exchange);
         GenericService genericService = reference.get();
 
