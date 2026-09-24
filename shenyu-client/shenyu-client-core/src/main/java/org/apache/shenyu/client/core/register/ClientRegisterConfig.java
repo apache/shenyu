@@ -18,8 +18,20 @@
 package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.constant.Constants;
+
+import java.util.Collections;
+import java.util.List;
 
 public interface ClientRegisterConfig {
+
+    /**
+     * Gets the namespaces used for registration.
+     * @return namespace identifiers
+     */
+    default List<String> getNamespace() {
+        return Collections.singletonList(Constants.SYS_DEFAULT_NAMESPACE_ID);
+    }
 
     /**
      * Gets port.
