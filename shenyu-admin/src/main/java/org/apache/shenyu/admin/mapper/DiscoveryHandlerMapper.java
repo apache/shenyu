@@ -105,6 +105,14 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
     List<DiscoveryHandlerDO> selectAll();
 
     /**
+     * Select related rows for one page in a single query.
+     *
+     * @param ids identifiers to match
+     * @return matching rows
+     */
+    List<DiscoveryHandlerDO> selectByIds(@Param("ids") List<String> ids);
+
+    /**
      * selectByDiscoveryId.
      *
      * @param discoveryId discoveryId

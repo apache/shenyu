@@ -206,4 +206,18 @@
         FROM discovery_handler
         WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
+    <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM discovery_handler
+        WHERE
+        <choose>
+            <when test="ids != null and ids.size() > 0">
+                id IN
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </when>
+            <otherwise>1 = 0</otherwise>
+        </choose>
+    </select>
 </mapper>

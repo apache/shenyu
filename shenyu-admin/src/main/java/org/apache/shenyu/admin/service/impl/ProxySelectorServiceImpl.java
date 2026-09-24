@@ -60,6 +60,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -115,6 +116,21 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public CommonPager<ProxySelectorVO> listByPage(final ProxySelectorQuery query) {
         List<ProxySelectorVO> result = Lists.newArrayList();
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
+        if (proxySelectorDOList.isEmpty()) {
+            return PageResultUtils.result(query.getPageParameter(), () -> result);
+        }
+        List<String> selectorIds = proxySelectorDOList.stream().map(ProxySelectorDO::getId).collect(Collectors.toList());
+        Map<String, DiscoveryRelDO> relations = discoveryRelMapper.selectByProxySelectorIds(selectorIds).stream()
+                .collect(Collectors.toMap(DiscoveryRelDO::getProxySelectorId, relation -> relation));
+        List<String> handlerIds = relations.values().stream().map(DiscoveryRelDO::getDiscoveryHandlerId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryHandlerDO> handlers = handlerIds.isEmpty() ? Collections.emptyMap() : discoveryHandlerMapper.selectByIds(handlerIds).stream()
+                .collect(Collectors.toMap(DiscoveryHandlerDO::getId, handler -> handler));
+        List<String> discoveryIds = handlers.values().stream().map(DiscoveryHandlerDO::getDiscoveryId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryDO> discoveries = discoveryIds.isEmpty() ? Collections.emptyMap() : discoveryMapper.selectByIds(discoveryIds).stream()
+                .collect(Collectors.toMap(DiscoveryDO::getId, discovery -> discovery));
+        Map<String, List<DiscoveryUpstreamDO>> upstreams = handlers.isEmpty() ? Collections.emptyMap()
+                : discoveryUpstreamMapper.selectByDiscoveryHandlerIds(Lists.newArrayList(handlers.keySet())).stream()
+                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
@@ -125,17 +141,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
-            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+            DiscoveryRelDO discoveryRelDO = relations.get(proxySelectorDO.getId());
             if (Objects.nonNull(discoveryRelDO)) {
-                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
+                DiscoveryHandlerDO discoveryHandlerDO = handlers.get(discoveryRelDO.getDiscoveryHandlerId());
                 if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
-                    DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                    DiscoveryDO discoveryDO = discoveries.get(discoveryHandlerDO.getDiscoveryId());
                     DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
-                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = upstreams.getOrDefault(discoveryRelDO.getDiscoveryHandlerId(), Collections.emptyList());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
                         List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
                         vo.setDiscoveryUpstreams(upstreamVOS);
