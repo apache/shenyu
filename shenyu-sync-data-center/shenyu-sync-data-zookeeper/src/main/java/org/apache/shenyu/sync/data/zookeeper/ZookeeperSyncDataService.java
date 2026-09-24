@@ -19,6 +19,8 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
@@ -82,37 +84,48 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
 
     private void watcherData0(final String registerPath) {
         String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
-        zkClient.addCuratorCache(registerPath, (type, oldData, data) -> {
-            if (Objects.isNull(data) || Objects.isNull(data.getData())) {
-                return;
-            }
-            String path = data.getPath();
-            if (Strings.isNullOrEmpty(path)) {
-                return;
-            }
-            // if not uri register path, return.
-            if (!path.contains(registerPath)) {
-                return;
-            }
-            if (!StringUtils.containsIgnoreCase(path, configNamespace)) {
-                return;
-            }
+        zkClient.addCuratorCache(registerPath,
+                (type, oldData, data) -> handleEvent(type, oldData, data, registerPath, configNamespace));
+    }
 
-            EventType eventType = EventType.PUT;
-            switch (type) {
-                case NODE_DELETED:
-                    eventType = EventType.DELETE;
-                    break;
-                case NODE_CREATED:
-                case NODE_CHANGED:
-                    eventType = EventType.PUT;
-                    break;
-                default:
-                    break;
-            }
-            final String updateData = new String(data.getData(), StandardCharsets.UTF_8);
-            this.event(configNamespace, path, updateData, registerPath, eventType);
-        });
+    private void handleEvent(final CuratorCacheListener.Type type, final ChildData oldData, final ChildData data,
+                             final String registerPath, final String configNamespace) {
+        final ChildData eventData;
+        final EventType eventType;
+        final String updateData;
+        switch (type) {
+            case NODE_DELETED:
+                eventData = oldData;
+                eventType = EventType.DELETE;
+                updateData = null;
+                break;
+            case NODE_CREATED:
+            case NODE_CHANGED:
+                eventData = data;
+                eventType = EventType.PUT;
+                if (Objects.isNull(eventData) || Objects.isNull(eventData.getData())) {
+                    return;
+                }
+                updateData = new String(eventData.getData(), StandardCharsets.UTF_8);
+                break;
+            default:
+                return;
+        }
+        if (Objects.isNull(eventData)) {
+            return;
+        }
+        String path = eventData.getPath();
+        if (Strings.isNullOrEmpty(path)) {
+            return;
+        }
+        // if not uri register path, return.
+        if (!path.contains(registerPath)) {
+            return;
+        }
+        if (!StringUtils.containsIgnoreCase(path, configNamespace)) {
+            return;
+        }
+        this.event(configNamespace, path, updateData, registerPath, eventType);
     }
 
     @Override
