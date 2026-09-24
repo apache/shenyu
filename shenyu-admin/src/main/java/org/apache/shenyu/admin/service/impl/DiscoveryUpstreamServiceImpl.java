@@ -46,6 +46,8 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
@@ -115,7 +117,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
-        this.fetchAll(discoveryHandlerId);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    fetchAll(discoveryHandlerId);
+                }
+            });
+        } else {
+            this.fetchAll(discoveryHandlerId);
+        }
         return 0;
     }
 
