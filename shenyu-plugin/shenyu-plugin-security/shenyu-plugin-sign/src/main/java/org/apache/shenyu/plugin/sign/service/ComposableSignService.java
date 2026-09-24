@@ -43,6 +43,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,6 +78,13 @@ import java.util.function.BiFunction;
 public class ComposableSignService implements SignService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComposableSignService.class);
+
+    /**
+     * Plugins whose module attribute is built as {@code pluginName + "-" + rpcType};
+     * for these the app name is taken from the request context path instead of the module.
+     */
+    private static final List<String> SKIP_SIGN_PLUGIN_NAMES = Collections.unmodifiableList(Arrays.asList(
+            PluginEnum.SPRING_CLOUD.getName(), PluginEnum.DIVIDE.getName(), PluginEnum.WEB_SOCKET.getName()));
 
     @Value("${shenyu.sign.delay:5}")
     private int delay;
@@ -231,8 +240,13 @@ public class ComposableSignService implements SignService {
     }
 
     private boolean skipSignExchange(final ShenyuContext context) {
-        return StringUtils.equals(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.DIVIDE.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), context.getRpcType()), context.getModule());
+        final String module = context.getModule();
+        final String rpcType = context.getRpcType();
+        if (StringUtils.isAnyBlank(module, rpcType)) {
+            return false;
+        }
+        final String rpcTypeSuffix = "-" + rpcType;
+        return module.endsWith(rpcTypeSuffix)
+                && SKIP_SIGN_PLUGIN_NAMES.contains(module.substring(0, module.length() - rpcTypeSuffix.length()));
     }
 }
