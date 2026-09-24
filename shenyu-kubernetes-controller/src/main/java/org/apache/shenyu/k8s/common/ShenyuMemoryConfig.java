@@ -33,6 +33,19 @@ public class ShenyuMemoryConfig {
 
     private List<SslCrtAndKeyStream> tlsConfigList;
 
+    /** Whether every backendRef resolved to at least one ready upstream; drives ResolvedRefs. */
+    private boolean allBackendsResolved = true;
+
+    /** Reason for ResolvedRefs=False (BackendNotFound, RefNotPermitted or InvalidKind). */
+    private String unresolvedReason;
+
+    /**
+     * Whether any rule carried filters. Filters are not implemented; per the Gateway API
+     * spec an unsupported filter must surface as Accepted=False with reason UnsupportedValue
+     * and the affected rule must not be programmed.
+     */
+    private boolean hasUnsupportedFilters;
+
     /**
      * ShenyuMemoryConfig Constructor.
      */
@@ -91,5 +104,29 @@ public class ShenyuMemoryConfig {
      */
     public void setTlsConfigList(final List<SslCrtAndKeyStream> tlsConfigList) {
         this.tlsConfigList = tlsConfigList;
+    }
+
+    public boolean isAllBackendsResolved() {
+        return allBackendsResolved;
+    }
+
+    public void setAllBackendsResolved(final boolean allBackendsResolved) {
+        this.allBackendsResolved = allBackendsResolved;
+    }
+
+    public String getUnresolvedReason() {
+        return unresolvedReason;
+    }
+
+    public void setUnresolvedReason(final String unresolvedReason) {
+        this.unresolvedReason = unresolvedReason;
+    }
+
+    public boolean isHasUnsupportedFilters() {
+        return hasUnsupportedFilters;
+    }
+
+    public void setHasUnsupportedFilters(final boolean hasUnsupportedFilters) {
+        this.hasUnsupportedFilters = hasUnsupportedFilters;
     }
 }

@@ -47,6 +47,7 @@
         <module>shenyu-integrated-test-k8s-ingress-websocket</module>
         <module>shenyu-integrated-test-k8s-ingress-grpc</module>
         <module>shenyu-integrated-test-k8s-ingress-sofa</module>
+        <module>shenyu-integrated-test-k8s-gateway-api-http</module>
     </modules>
 
     <properties>
