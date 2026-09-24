@@ -20,6 +20,7 @@ package org.apache.shenyu.client.mcp.generator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool;
 import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
@@ -46,9 +47,14 @@ public class McpOpenApiGenerator {
         root.add(OpenApiConstants.OPEN_API_INFO_KEY, info);
 
         // Servers
-        JsonObject server = new JsonObject();
-        root.add(OpenApiConstants.OPEN_API_SERVER_KEY, server);
-        server.addProperty(OpenApiConstants.OPEN_API_SERVER_URL_KEY, definition.servers()[0].url());
+        // The servers array of @OpenAPIDefinition defaults to empty, which is the common case for a bare
+        // @ShenyuMcpTool; the server block is optional in OpenAPI 3.0, so it is only emitted when configured.
+        Server[] servers = definition.servers();
+        if (servers.length > 0) {
+            JsonObject server = new JsonObject();
+            root.add(OpenApiConstants.OPEN_API_SERVER_KEY, server);
+            server.addProperty(OpenApiConstants.OPEN_API_SERVER_URL_KEY, servers[0].url());
+        }
 
         // Paths
         JsonObject paths = new JsonObject();
@@ -70,9 +76,11 @@ public class McpOpenApiGenerator {
         JsonArray parameters = new JsonArray();
         methodMap.add(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY, parameters);
 
-        List<io.swagger.v3.oas.models.parameters.Parameter> parameterList = shenyuMcpTool.getOperation().getParameters();
+        List<Parameter> parameterList = shenyuMcpTool.getOperation().getParameters();
 
-        if (!parameterList.isEmpty()) {
+        // The parameters of @Operation also default to unset, so the list can be null for a tool whose method
+        // declares no parameters.
+        if (Objects.nonNull(parameterList) && !parameterList.isEmpty()) {
 
             for (Parameter parameter : parameterList) {
                 JsonObject parameterObj = new JsonObject();
