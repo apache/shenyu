@@ -24,6 +24,7 @@ import org.apache.shenyu.common.constant.Constants;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1664,9 +1665,10 @@ public class ShenyuConfig {
         private Integer corePoolSize = 200;
 
         /**
-         * the maximum number of threads to allow in the thread pool.
+         * The maximum number of threads to allow in the thread pool.
+         * Defaults to corePoolSize so the eager queue cannot create unbounded workers.
          */
-        private Integer maximumPoolSize = Integer.MAX_VALUE;
+        private Integer maximumPoolSize;
 
         /**
          * when the number of threads is greater than the core,
@@ -1753,7 +1755,7 @@ public class ShenyuConfig {
          * @return the shared thread pool name prefix
          */
         public Integer getMaximumPoolSize() {
-            return maximumPoolSize;
+            return Objects.isNull(maximumPoolSize) ? corePoolSize : maximumPoolSize;
         }
     
         /**
