@@ -119,6 +119,14 @@ public final class PredicateJudgeFactoryTest {
     }
 
     @Test
+    public void testTimerAfterJudgeWithEmptyParamName() {
+        conditionData.setOperator(OperatorEnum.TIME_AFTER.getAlias());
+        conditionData.setParamName("");
+        conditionData.setParamValue(FIRST_TIME);
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/"));
+    }
+
+    @Test
     public void testExcludeJudge() {
         conditionData.setOperator(OperatorEnum.EXCLUDE.getAlias());
         conditionData.setParamValue("/http/test");
