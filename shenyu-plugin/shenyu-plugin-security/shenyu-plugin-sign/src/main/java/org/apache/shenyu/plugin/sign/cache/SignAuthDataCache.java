@@ -63,6 +63,13 @@ public final class SignAuthDataCache {
     public void removeAuthData(final AppAuthData data) {
         AUTH_MAP.remove(data.getAppKey());
     }
+
+    /**
+     * Clean all auth data.
+     */
+    public void cleanAuthData() {
+        AUTH_MAP.clear();
+    }
     
     /**
      * Obtain auth data app auth data.

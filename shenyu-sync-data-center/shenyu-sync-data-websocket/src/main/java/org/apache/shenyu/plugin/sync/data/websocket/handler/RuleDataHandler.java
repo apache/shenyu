@@ -40,7 +40,7 @@ public class RuleDataHandler extends AbstractDataHandler<RuleData> {
 
     @Override
     protected void doRefresh(final List<RuleData> dataList) {
-        pluginDataSubscriber.refreshRuleDataSelf(dataList);
+        pluginDataSubscriber.refreshRuleDataAll();
         dataList.forEach(pluginDataSubscriber::onRuleSubscribe);
     }
 

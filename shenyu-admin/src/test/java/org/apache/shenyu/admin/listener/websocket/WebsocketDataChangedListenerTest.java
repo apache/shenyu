@@ -197,6 +197,29 @@ public final class WebsocketDataChangedListenerTest {
     }
 
     /**
+     * test empty namespace snapshots.
+     */
+    @Test
+    public void testEmptyNamespaceSnapshots() {
+        String namespaceId = "namespace-id";
+        try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
+            websocketDataChangedListener.onPluginChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onSelectorChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onRuleChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onAppAuthChanged(
+                    Collections.emptyList(), DataEventTypeEnum.REFRESH, namespaceId);
+
+            verifyEmptySnapshot(mockedStatic, namespaceId, "PLUGIN", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "SELECTOR", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "RULE", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "APP_AUTH", DataEventTypeEnum.REFRESH);
+        }
+    }
+
+    /**
      * test MetaData.
      */
     @Test
@@ -364,6 +387,14 @@ public final class WebsocketDataChangedListenerTest {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void verifyEmptySnapshot(final MockedStatic<WebsocketCollector> mockedStatic, final String namespaceId,
+                                     final String groupType, final DataEventTypeEnum eventType) {
+        String message = String.format(
+                "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[]}", groupType, eventType.name());
+        mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(namespaceId), argThat(actualMsg -> jsonEquals(message, actualMsg)), eq(eventType)));
     }
 
     private void initMetaDataList() {
