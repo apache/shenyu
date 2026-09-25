@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -48,6 +49,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,6 +62,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -112,6 +116,60 @@ class ProxySelectorServiceTest {
         list.add(proxySelectorDO);
         given(this.proxySelectorMapper.selectByQuery(proxySelectorQuery)).willReturn(list);
         assertEquals(proxySelectorService.listByPage(proxySelectorQuery).getDataList().size(), list.size());
+    }
+
+    @Test
+    void testListByPageBatchesSharedRelations() {
+        final ProxySelectorQuery query = new ProxySelectorQuery("test", new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
+        ProxySelectorDO first = new ProxySelectorDO();
+        first.setId("first");
+        ProxySelectorDO second = new ProxySelectorDO();
+        second.setId("second");
+        ProxySelectorDO missing = new ProxySelectorDO();
+        missing.setId("missing");
+        given(proxySelectorMapper.selectByQuery(query)).willReturn(Arrays.asList(first, second, missing));
+        DiscoveryRelDO firstRel = new DiscoveryRelDO();
+        firstRel.setProxySelectorId("first");
+        firstRel.setDiscoveryHandlerId("handler");
+        DiscoveryRelDO secondRel = new DiscoveryRelDO();
+        secondRel.setProxySelectorId("second");
+        secondRel.setDiscoveryHandlerId("handler");
+        given(discoveryRelMapper.selectByProxySelectorIds(Arrays.asList("first", "second", "missing"))).willReturn(Arrays.asList(firstRel, secondRel));
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler");
+        handler.setDiscoveryId("discovery");
+        given(discoveryHandlerMapper.selectByIds(Collections.singletonList("handler"))).willReturn(Collections.singletonList(handler));
+        DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setId("discovery");
+        given(discoveryMapper.selectByIds(Collections.singletonList("discovery"))).willReturn(Collections.singletonList(discovery));
+        DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream");
+        upstream.setDateCreated(new Timestamp(0));
+        upstream.setDateUpdated(new Timestamp(0));
+        upstream.setDiscoveryHandlerId("handler");
+        given(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(Collections.singletonList("handler"))).willReturn(Collections.singletonList(upstream));
+
+        List<ProxySelectorVO> result = proxySelectorService.listByPage(query).getDataList();
+
+        assertEquals(3, result.size());
+        for (int index = 0; index < 2; index++) {
+            assertEquals("handler", result.get(index).getDiscoveryHandlerId());
+            assertEquals("discovery", result.get(index).getDiscovery().getId());
+            assertEquals("upstream", result.get(index).getDiscoveryUpstreams().get(0).getId());
+        }
+        verify(discoveryRelMapper).selectByProxySelectorIds(Arrays.asList("first", "second", "missing"));
+        verify(discoveryHandlerMapper).selectByIds(Collections.singletonList("handler"));
+        verify(discoveryMapper).selectByIds(Collections.singletonList("discovery"));
+        verify(discoveryUpstreamMapper).selectByDiscoveryHandlerIds(Collections.singletonList("handler"));
+        verifyNoMoreInteractions(discoveryRelMapper, discoveryHandlerMapper, discoveryMapper, discoveryUpstreamMapper);
+    }
+
+    @Test
+    void testEmptyPageSkipsRelations() {
+        ProxySelectorQuery query = new ProxySelectorQuery("test", new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
+        given(proxySelectorMapper.selectByQuery(query)).willReturn(Collections.emptyList());
+        assertEquals(0, proxySelectorService.listByPage(query).getDataList().size());
+        verifyNoInteractions(discoveryRelMapper, discoveryHandlerMapper, discoveryMapper, discoveryUpstreamMapper);
     }
 
     @Test
