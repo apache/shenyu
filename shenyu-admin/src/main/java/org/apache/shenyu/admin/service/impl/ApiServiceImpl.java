@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
@@ -59,6 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -265,18 +268,23 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    @Pageable
     public CommonPager<ApiVO> listByPage(final ApiQuery apiQuery) {
-        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery)
-                .stream().map(item -> {
-                    List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
-                    List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
-                    List<TagVO> tagVOS = Lists.newArrayList();
-                    if (CollectionUtils.isNotEmpty(tagIds)) {
-                        List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                        tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
-                    }
-                    return ApiVO.buildApiVO(item, tagVOS);
-                }).collect(Collectors.toList()));
+        List<ApiDO> apis = apiMapper.selectByQuery(apiQuery);
+        if (apis.isEmpty()) {
+            return PageResultUtils.result(apiQuery.getPageParameter(), Collections::emptyList);
+        }
+        List<String> apiIds = apis.stream().map(ApiDO::getId).collect(Collectors.toList());
+        List<TagRelationDO> relations = tagRelationMapper.selectByApiIds(apiIds);
+        List<String> tagIds = relations.stream().map(TagRelationDO::getTagId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, TagVO> tags = tagIds.isEmpty() ? Collections.emptyMap() : tagMapper.selectByIds(tagIds).stream()
+                .collect(Collectors.toMap(TagDO::getId, TagVO::buildTagVO));
+        Map<String, List<TagRelationDO>> relationsByApi = relations.stream().collect(Collectors.groupingBy(TagRelationDO::getApiId));
+        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apis.stream().map(api -> {
+            List<TagVO> apiTags = relationsByApi.getOrDefault(api.getId(), Collections.emptyList()).stream()
+                    .map(TagRelationDO::getTagId).distinct().map(tags::get).filter(Objects::nonNull).collect(Collectors.toList());
+            return ApiVO.buildApiVO(api, apiTags);
+        }).collect(Collectors.toList()));
     }
 
     @Override

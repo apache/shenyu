@@ -89,6 +89,14 @@ public interface TagRelationMapper extends ExistProvider {
     List<TagRelationDO> selectByQuery(TagRelationQuery tagRelationQuery);
 
     /**
+     * Select tag relations for one API page.
+     *
+     * @param apiIds API identifiers
+     * @return matching relations
+     */
+    List<TagRelationDO> selectByApiIds(@Param("apiIds") List<String> apiIds);
+
+    /**
      * update record.
      *
      * @param record record
@@ -125,4 +133,3 @@ public interface TagRelationMapper extends ExistProvider {
      */
     int deleteByApiIds(@Param(value = "apiIds") List<String> apiIds);
 }
-
