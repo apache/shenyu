@@ -16,17 +16,18 @@
 # limitations under the License.
 #
 
-# init kubernetes for h2
+set -euo pipefail
+
+# Initialize the postgres Compose deployment.
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_postgres.sh
 curPath=$(readlink -f "$(dirname "$0")")
-PRGDIR=$(dirname "$curPath")
+HEALTHCHECK_SCRIPT="${curPath}/../../k8s/script/healthcheck.sh"
 docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-postgres.yml up -d --quiet-pull
 sleep 30s
 
 # execute healthcheck.sh
-chmod +x "${curPath}"/healthcheck.sh
-sh "${curPath}"/healthcheck.sh h2 http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+bash "$HEALTHCHECK_SCRIPT" postgres http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 ## run e2e-test
 sleep 60s
 

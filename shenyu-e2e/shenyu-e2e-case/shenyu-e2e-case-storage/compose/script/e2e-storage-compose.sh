@@ -16,10 +16,12 @@
 # limitations under the License.
 #
 
-# init kubernetes for h2
+set -euo pipefail
+
+# Initialize each storage Compose deployment.
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 curPath=$(readlink -f "$(dirname "$0")")
-PRGDIR=$(dirname "$curPath")
+HEALTHCHECK_SCRIPT="${curPath}/../../k8s/script/healthcheck.sh"
 
 docker network create -d bridge shenyu
 
@@ -33,8 +35,7 @@ for storage in "${STORAGE_ARRAY[@]}"; do
   sleep 30s
   
   # execute healthcheck.sh
-  chmod +x "${curPath}"/healthcheck.sh
-  sh "${curPath}"/healthcheck.sh "${storage}" http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+  bash "$HEALTHCHECK_SCRIPT" "${storage}" http://localhost:31095/actuator/health http://localhost:31195/actuator/health
   ## run e2e-test
   sleep 60s
   
