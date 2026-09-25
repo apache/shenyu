@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -24,6 +25,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
+import java.util.Objects;
 
 /**
  * mqtt transport handler.
@@ -42,8 +46,19 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
-        Singleton.INST.get(ChannelRepository.class).remove(ctx.channel());
-        ctx.fireChannelInactive();
+        final Channel channel = ctx.channel();
+        Singleton.INST.get(ChannelRepository.class).remove(channel);
+
+        final WillRepository willRepository = Singleton.INST.get(WillRepository.class);
+        final WillRepository.WillEntry will = willRepository.get(channel);
+        if (Objects.nonNull(will)) {
+            // a will is published at most once, and the repository keeps a strong reference
+            // to the channel, so it must be removed even if publishing fails.
+            willRepository.remove(channel);
+            Publish.publishWill(will);
+        }
+        // local state is consistent now, notify the rest of the pipeline exactly once.
+        super.channelInactive(ctx);
     }
 
     @Override

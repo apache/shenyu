@@ -65,8 +65,10 @@ public class MqttFactory {
             case PINGREQ:
                 messageType.pingReq(ctx);
                 break;
-            case PUBACK:
             case DISCONNECT:
+                messageType.disconnect(ctx);
+                break;
+            case PUBACK:
             default:
                 break;
         }

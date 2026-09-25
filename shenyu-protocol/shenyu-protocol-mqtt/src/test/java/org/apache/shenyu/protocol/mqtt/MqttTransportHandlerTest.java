@@ -25,13 +25,28 @@ import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * Test cases for {@link MqttTransportHandler}.
  */
+@ExtendWith(MockitoExtension.class)
 public final class MqttTransportHandlerTest {
 
     private static final String CLIENT_ID = "test-client";
@@ -50,8 +66,21 @@ public final class MqttTransportHandlerTest {
 
     private static ChannelRepository channelRepository;
 
+    @Mock
+    private ChannelHandlerContext ctx;
+
+    @Mock
+    private Channel channel;
+
+    @Mock
+    private SubscribeRepository subscribeRepository;
+
+    private MqttTransportHandler handler;
+
+    private WillRepository willRepository;
+
     @BeforeAll
-    static void setUp() {
+    static void setUpAll() {
         channelRepository = new ChannelRepository();
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         new MqttContext().setUserName(USER_NAME);
@@ -59,7 +88,7 @@ public final class MqttTransportHandlerTest {
     }
 
     @AfterAll
-    static void tearDown() {
+    static void tearDownAll() {
         new MqttContext().setUserName(null);
         new MqttContext().setPassword(null);
     }
@@ -94,6 +123,24 @@ public final class MqttTransportHandlerTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test
+    public void channelInactiveIsPropagatedOnlyOnce() {
+        AtomicInteger fired = new AtomicInteger();
+        EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler(), new ChannelInboundHandlerAdapter() {
+            @Override
+            public void channelInactive(final ChannelHandlerContext context) throws Exception {
+                fired.incrementAndGet();
+                super.channelInactive(context);
+            }
+        });
+
+        channel.close();
+        channel.runPendingTasks();
+
+        assertEquals(1, fired.get());
+        channel.finishAndReleaseAll();
+    }
+
     private MqttConnectMessage connectMessage() {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
@@ -104,4 +151,54 @@ public final class MqttTransportHandlerTest {
         return new MqttConnectMessage(fixedHeader, variableHeader, payload);
     }
 
+    @BeforeEach
+    public void setUp() {
+        handler = new MqttTransportHandler();
+        willRepository = new WillRepository();
+        Singleton.INST.single(WillRepository.class, willRepository);
+        Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
+        // shared stub: only the tests driving the handler with a mock context use it
+        lenient().when(ctx.channel()).thenReturn(channel);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Singleton.INST.single(WillRepository.class, new WillRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+    }
+
+    @Test
+    public void testChannelInactiveFiresWillAndRemovesIt() throws Exception {
+        byte[] willMessage = "sudden disconnect".getBytes();
+        WillRepository.WillEntry will = new WillRepository.WillEntry("status/offline", willMessage, 1, true);
+        willRepository.add(channel, will);
+
+        // publishWill uses subscribeRepository to get target channels
+        when(subscribeRepository.getChannelsByTopic("status/offline")).thenReturn(java.util.Collections.emptyList());
+
+        handler.channelInactive(ctx);
+
+        // will should be removed after firing
+        assertThat(willRepository.get(channel), nullValue());
+    }
+
+    @Test
+    public void testChannelInactiveDoesNothingWhenNoWill() throws Exception {
+        handler.channelInactive(ctx);
+
+        assertThat(willRepository.get(channel), nullValue());
+    }
+
+    @Test
+    public void testChannelInactiveAfterDisconnectClearsWill() throws Exception {
+        byte[] willMessage = "graceful close".getBytes();
+        WillRepository.WillEntry will = new WillRepository.WillEntry("status/clean", willMessage, 0, false);
+        willRepository.add(channel, will);
+
+        // simulate graceful disconnect: remove will first, then channelInactive
+        willRepository.remove(channel);
+        handler.channelInactive(ctx);
+
+        assertThat(willRepository.get(channel), nullValue());
+    }
 }

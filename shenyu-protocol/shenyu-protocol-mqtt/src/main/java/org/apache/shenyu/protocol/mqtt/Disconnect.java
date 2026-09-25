@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 
 /**
  * The DISCONNECT message is sent from the client to the server to indicate
@@ -36,8 +37,7 @@ public class Disconnect extends MessageType {
 
     @Override
     public void disconnect(final ChannelHandlerContext ctx) {
-        //// todo Last words
-        //// todo Clean session
+        Singleton.INST.get(WillRepository.class).remove(ctx.channel());
         cleanChannel(ctx.channel());
         ctx.close();
     }
