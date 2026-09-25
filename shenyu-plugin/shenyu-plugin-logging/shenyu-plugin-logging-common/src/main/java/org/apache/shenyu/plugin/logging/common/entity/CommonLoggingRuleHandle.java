@@ -71,7 +71,7 @@ public class CommonLoggingRuleHandle implements RuleHandle {
      * @param desensitizeType desensitize type
      */
     public void setMaskType(final String desensitizeType) {
-        this.maskType = maskType;
+        this.maskType = desensitizeType;
     }
 
     /**
