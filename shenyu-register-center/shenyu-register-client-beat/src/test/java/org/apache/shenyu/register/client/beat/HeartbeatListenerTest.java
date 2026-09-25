@@ -29,13 +29,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -183,12 +186,9 @@ class HeartbeatListenerTest {
             org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO beatInfo = 
                     new org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO();
 
-            // Should throw RuntimeException due to login failure
-            try {
-                sendHeartbeatMethod.invoke(heartbeatListener, beatInfo);
-            } catch (Exception e) {
-                assertTrue(e.getCause() instanceof RuntimeException);
-            }
+            InvocationTargetException exception = assertThrows(InvocationTargetException.class,
+                    () -> sendHeartbeatMethod.invoke(heartbeatListener, beatInfo));
+            assertInstanceOf(RuntimeException.class, exception.getCause());
         }
     }
 
