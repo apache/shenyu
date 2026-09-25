@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.junit.jupiter.api.Assertions;
@@ -45,7 +46,10 @@ public class ShenyuClientRegisterEventPublisherTest {
     public void testStart() {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(shenyuClientRegisterRepository);
-        Assertions.assertNotNull(publisher.getProviderManage());
+        DisruptorProviderManage<DataTypeParent> providerManage = publisher.getProviderManage();
+        Assertions.assertNotNull(providerManage);
+        publisher.start(shenyuClientRegisterRepository);
+        assertSame(providerManage, publisher.getProviderManage());
         assertDoesNotThrow(() -> publisher.getProviderManage().startup());
     }
 
