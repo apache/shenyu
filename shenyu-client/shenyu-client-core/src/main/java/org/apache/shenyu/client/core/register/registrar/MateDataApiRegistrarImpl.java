@@ -47,7 +47,12 @@ public class MateDataApiRegistrarImpl extends BaseApiRegistrarImpl {
     
     @Override
     protected void doRegisterApi(final ApiBean.ApiDefinition api) {
+        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerApi(api, namespaceId));
+    }
+
+    private void registerApi(final ApiBean.ApiDefinition api, final String namespaceId) {
         final MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(clientRegisterConfig.getAddPrefixed())
                 .appName(clientRegisterConfig.getAppName())
@@ -69,7 +74,12 @@ public class MateDataApiRegistrarImpl extends BaseApiRegistrarImpl {
     
     @Override
     protected void doRegisterBean(final ApiBean apiBean) {
+        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerBean(apiBean, namespaceId));
+    }
+
+    private void registerBean(final ApiBean apiBean, final String namespaceId) {
         final MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(clientRegisterConfig.getAddPrefixed())
                 .appName(clientRegisterConfig.getAppName())
