@@ -21,7 +21,12 @@ import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,6 +57,8 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, Set<String>> MAPPING = Maps.newConcurrentMap();
 
+    private volatile Map<String, List<MetaData>> pathIndex = Collections.emptyMap();
+
     private MetaDataCache() {
     }
 
@@ -69,7 +76,7 @@ public final class MetaDataCache {
      *
      * @param data the data
      */
-    public void cache(final MetaData data) {
+    public synchronized void cache(final MetaData data) {
         // clean old path data
         Optional.ofNullable(META_DATA_MAP.get(data.getId())).ifPresent(oldMetaData -> {
             // the update is also need to clean, but there is
@@ -78,6 +85,7 @@ public final class MetaDataCache {
             clean(oldMetaData.getPath());
         });
         META_DATA_MAP.put(data.getId(), data);
+        rebuildPathIndex();
         final String path = data.getPath();
         clean(path);
         if (!path.contains("*")) {
@@ -91,9 +99,44 @@ public final class MetaDataCache {
      *
      * @param data the data
      */
-    public void remove(final MetaData data) {
+    public synchronized void remove(final MetaData data) {
         META_DATA_MAP.remove(data.getId());
+        rebuildPathIndex();
         clean(data.getPath());
+    }
+
+    private void rebuildPathIndex() {
+        Map<String, List<MetaData>> index = new HashMap<>();
+        META_DATA_MAP.values().forEach(data -> index.computeIfAbsent(firstSegment(data.getPath()), key -> new ArrayList<>()).add(data));
+        index.replaceAll((key, value) -> List.copyOf(value));
+        pathIndex = Map.copyOf(index);
+    }
+
+    private String firstSegment(final String path) {
+        // AntPathMatcher ignores repeated separators, so use the same tokenization.
+        String[] segments = StringUtils.tokenizeToStringArray(path, "/", false, true);
+        if (segments.length == 0) {
+            return "";
+        }
+        String segment = segments[0];
+        if (segment.indexOf('*') >= 0 || segment.indexOf('?') >= 0 || segment.indexOf('{') >= 0) {
+            return "";
+        }
+        return (path.startsWith("/") ? "/" : "") + segment;
+    }
+
+    private MetaData matchIndexedPath(final String path) {
+        Map<String, List<MetaData>> index = pathIndex;
+        String segment = firstSegment(path);
+        MetaData match = matchCandidates(index.getOrDefault(segment, Collections.emptyList()), path);
+        return Objects.nonNull(match) || segment.isEmpty() ? match : matchCandidates(index.getOrDefault("", Collections.emptyList()), path);
+    }
+
+    private MetaData matchCandidates(final List<MetaData> candidates, final String path) {
+        return candidates.stream()
+                .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
+                .findFirst()
+                .orElse(null);
     }
 
     private void clean(final String key) {
@@ -122,11 +165,7 @@ public final class MetaDataCache {
     public MetaData obtain(final String path) {
         final MetaData metaData = Optional.ofNullable(CACHE.get(path))
                 .orElseGet(() -> {
-                    final MetaData value = META_DATA_MAP.values()
-                            .stream()
-                            .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
-                            .findFirst()
-                            .orElse(null);
+                    final MetaData value = matchIndexedPath(path);
                     final String metaPath = Optional.ofNullable(value)
                             .map(MetaData::getPath)
                             .orElse(DIVIDE_CACHE_KEY);
