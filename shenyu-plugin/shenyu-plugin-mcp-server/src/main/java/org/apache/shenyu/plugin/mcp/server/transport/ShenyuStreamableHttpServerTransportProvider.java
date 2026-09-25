@@ -1074,6 +1074,16 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
 
         /**
+         * Creates a new session transport with the specified session ID.
+         *
+         * @param sessionId the session identifier, or null to auto-generate
+         */
+        StreamableHttpSessionTransport(final String sessionId) {
+            this.sessionId = Objects.nonNull(sessionId) ? sessionId : java.util.UUID.randomUUID().toString();
+            LOGGER.debug("Created StreamableHttpSessionTransport with sessionId: {}", this.sessionId);
+        }
+
+        /**
          * Sets the session ID to match the MCP server session's ID.
          * This ensures the transport's sessionId is consistent with the key used
          * to store the session in {@code sessions} and {@code sessionTransports},
@@ -1084,16 +1094,6 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
          */
         public void setSessionId(final String sessionId) {
             this.sessionId = sessionId;
-        }
-
-        /**
-         * Creates a new session transport with the specified session ID.
-         *
-         * @param sessionId the session identifier, or null to auto-generate
-         */
-        StreamableHttpSessionTransport(final String sessionId) {
-            this.sessionId = Objects.nonNull(sessionId) ? sessionId : java.util.UUID.randomUUID().toString();
-            LOGGER.debug("Created StreamableHttpSessionTransport with sessionId: {}", this.sessionId);
         }
 
         /**
