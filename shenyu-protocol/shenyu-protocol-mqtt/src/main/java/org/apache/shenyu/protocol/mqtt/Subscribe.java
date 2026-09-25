@@ -61,36 +61,40 @@ public class Subscribe extends MessageType {
         int packetId = msg.variableHeader().messageId();
 
         //// todo Regular match
-        List<String> ackTopics = mqttTopicSubscriptions
+        List<MqttTopicSubscription> validSubscriptions = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
-                .map(MqttTopicSubscription::topicName)
+                .filter(topicSub -> TopicMatcher.isValidFilter(topicSub.topicName()))
                 .collect(Collectors.toList());
 
-        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
+        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), validSubscriptions);
 
-        for (String ackTopic : ackTopics) {
-            String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
+        for (MqttTopicSubscription subscription : validSubscriptions) {
+            String message = Singleton.INST.get(TopicRepository.class).get(subscription.topicName());
             if (StringUtils.isNotEmpty(message)) {
-                sendSubMessage(ackTopic, message, packetId, channel);
+                sendSubMessage(subscription.topicName(), message, packetId, channel);
             }
         }
 
-        sendSubAckMessage(packetId, ackTopics, channel);
+        sendSubAckMessage(packetId, mqttTopicSubscriptions, channel);
     }
 
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param ackTopics ackTopics
+     * @param subscriptions subscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<String> ackTopics, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> subscriptions, final Channel channel) {
 
         List<Integer> qos = new ArrayList<>();
-        for (int i = 0; i < ackTopics.size(); i++) {
-            // default qos 0
-            qos.add(MqttQoS.AT_MOST_ONCE.value());
+        for (MqttTopicSubscription subscription : subscriptions) {
+            // invalid topic filters are rejected with 0x80, otherwise default qos 0
+            if (TopicMatcher.isValidFilter(subscription.topicName())) {
+                qos.add(MqttQoS.AT_MOST_ONCE.value());
+            } else {
+                qos.add(MqttQoS.FAILURE.value());
+            }
         }
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,
