@@ -151,6 +151,13 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (Objects.isNull(appAuthDO)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR);
         }
+        appAuthDO.setUserId(authApplyDTO.getUserId());
+        appAuthDO.setPhone(authApplyDTO.getPhone());
+        appAuthDO.setExtInfo(authApplyDTO.getExtInfo());
+        if (Objects.nonNull(authApplyDTO.getOpen())) {
+            appAuthDO.setOpen(authApplyDTO.getOpen());
+        }
+        appAuthMapper.updateSelective(appAuthDO);
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (Objects.isNull(authParamDO)) {
@@ -158,7 +165,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             authParamMapper.save(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
 
-        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
+        if (Boolean.TRUE.equals(authApplyDTO.getOpen())) {
             List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
             if (CollectionUtils.isNotEmpty(existList)) {
                 authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
