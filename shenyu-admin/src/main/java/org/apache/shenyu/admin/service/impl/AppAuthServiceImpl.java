@@ -181,7 +181,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
-        appAuthMapper.update(appAuthDO);
+        appAuthMapper.updateSelective(appAuthDO);
         List<AuthParamDTO> authParamDTOList = appAuthDTO.getAuthParamList();
         if (CollectionUtils.isNotEmpty(authParamDTOList)) {
             authParamMapper.deleteByAuthId(appAuthDTO.getId());
