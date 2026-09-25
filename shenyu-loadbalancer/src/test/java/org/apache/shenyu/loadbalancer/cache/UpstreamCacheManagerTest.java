@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -358,6 +360,58 @@ public class UpstreamCacheManagerTest {
         Assertions.assertFalse(finalResult.isEmpty());
 
         upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
+    @Test
+    public void testSnapshotRemovesMissingHealthyAndUnhealthyUpstreams() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_REMOVAL_TEST";
+        Upstream kept = Upstream.builder().protocol("http://").url("kept:8080").status(true).build();
+        Upstream deletedHealthy = Upstream.builder().protocol("http://").url("deleted:8080").status(true).build();
+        Upstream deletedUnhealthy = Upstream.builder().protocol("http://").url("offline:8080").status(false).build();
+        UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            task.withLock(() -> {
+                manager.submit(selectorId, Arrays.asList(kept, deletedHealthy, deletedUnhealthy));
+                kept.setLastHealthTimestamp(123L);
+                Upstream updated = Upstream.builder().protocol("http://").url("kept:8080").status(true).weight(50).build();
+                manager.submit(selectorId, Collections.singletonList(updated));
+
+                Assertions.assertEquals(Collections.singletonList(kept), manager.findUpstreamListBySelectorId(selectorId));
+                Assertions.assertSame(kept, manager.findUpstreamListBySelectorId(selectorId).get(0));
+                Assertions.assertEquals(123L, kept.getLastHealthTimestamp());
+                Assertions.assertEquals(50, kept.getWeight());
+                Assertions.assertTrue(task.getUnhealthyUpstream().get(selectorId).isEmpty());
+            });
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    public void testSnapshotPreservesRemainingUnhealthyUpstream() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_UNHEALTHY_TEST";
+        Upstream unhealthy = Upstream.builder().protocol("http://").url("kept:8080").status(false).build();
+        Upstream deleted = Upstream.builder().protocol("http://").url("deleted:8080").status(true).build();
+        UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            task.withLock(() -> {
+                manager.submit(selectorId, Arrays.asList(unhealthy, deleted));
+                unhealthy.setHealthy(false);
+                unhealthy.setLastUnhealthyTimestamp(123L);
+                manager.submit(selectorId, Collections.singletonList(
+                        Upstream.builder().protocol("http://").url("kept:8080").status(true).build()));
+
+                Assertions.assertTrue(manager.findUpstreamListBySelectorId(selectorId).isEmpty());
+                Assertions.assertSame(unhealthy, task.getUnhealthyUpstream().get(selectorId).get(0));
+                Assertions.assertEquals(123L, unhealthy.getLastUnhealthyTimestamp());
+            });
+        } finally {
+            manager.removeByKey(selectorId);
+        }
     }
 
     /**
