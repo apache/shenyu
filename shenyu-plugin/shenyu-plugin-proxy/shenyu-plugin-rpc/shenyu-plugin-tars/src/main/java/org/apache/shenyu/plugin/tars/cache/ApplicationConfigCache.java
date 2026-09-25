@@ -331,7 +331,7 @@ public final class ApplicationConfigCache {
         }
         tarsInvokePrxList.getTarsInvokePrxList().addAll(upstreamList.stream().map(upstream -> {
             Object strProxy = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
-            return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl());
+            return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl(), metaData.getAppName());
         }).collect(Collectors.toList()));
     }
     
