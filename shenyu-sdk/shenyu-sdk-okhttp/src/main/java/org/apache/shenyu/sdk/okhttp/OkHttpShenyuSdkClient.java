@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * shenyu okhttp.
  */
-@Join
+@Join(isSingleton = false)
 public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     
     private OkHttpClient okHttpClient;
