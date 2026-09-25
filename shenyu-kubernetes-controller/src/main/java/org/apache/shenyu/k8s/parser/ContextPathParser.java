@@ -23,7 +23,10 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -41,6 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,6 +57,11 @@ import java.util.Objects;
 public class ContextPathParser implements K8sResourceParser<V1Ingress> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathParser.class);
+
+    private static final List<String> CONTEXT_PATH_ANNOTATION_KEYS = Arrays.asList(
+            IngressConstants.PLUGIN_CONTEXT_PATH_PATH,
+            IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIX,
+            IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIXED);
 
     private final Lister<V1Service> serviceLister;
 
@@ -82,9 +93,10 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
             // if rules is null, context path Plugin will not execute the
             List<V1IngressRule> rules = ingress.getSpec().getRules();
             if (Objects.nonNull(rules)) {
+                Map<String, String> annotations = resolveContextPathAnnotations(ingress);
                 List<IngressConfiguration> routeList = new ArrayList<>(rules.size());
                 for (V1IngressRule ingressRule : rules) {
-                    List<IngressConfiguration> routes = parseIngressRule(ingressRule, ingress.getMetadata().getAnnotations());
+                    List<IngressConfiguration> routes = parseIngressRule(ingressRule, annotations);
                     routeList.addAll(routes);
                 }
                 res.setRouteConfigList(routeList);
@@ -104,6 +116,10 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(pathPath)) {
                         continue;
                     }
+                    if (StringUtils.isBlank(annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH))) {
+                        LOG.info("Cannot find context path annotation for {}, skip it", pathPath);
+                        continue;
+                    }
                     OperatorEnum operator = getOperator(path.getPathType());
                     ConditionData pathCondition = createPathCondition(pathPath, operator);
                     List<ConditionData> conditionList = new ArrayList<>(2);
@@ -118,6 +134,54 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     RuleData ruleData = createRuleData(annotations, contextMappingRuleHandle, ruleConditionList);
                     ruleDataList.add(ruleData);
                     res.add(new IngressConfiguration(selectorData, ruleDataList, null));
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Resolve the context path annotations used to build the context mapping rule. An RPC ingress
+     * declares them on the metadata service that is referenced by the ingress labels, the same
+     * resource the RPC parsers read their annotations from, so the service annotations are used
+     * when the ingress does not declare them itself.
+     *
+     * @param ingress ingress resource
+     * @return the resolved context path annotations, empty if neither the ingress nor the
+     *         referenced services declare them
+     */
+    private Map<String, String> resolveContextPathAnnotations(final V1Ingress ingress) {
+        if (Objects.isNull(ingress.getMetadata())) {
+            return Collections.emptyMap();
+        }
+        V1ObjectMeta metadata = ingress.getMetadata();
+        Map<String, String> serviceAnnotations = getReferencedServiceAnnotations(metadata.getNamespace(), metadata.getLabels());
+        Map<String, String> ingressAnnotations = MapUtils.emptyIfNull(metadata.getAnnotations());
+        Map<String, String> res = new HashMap<>(CONTEXT_PATH_ANNOTATION_KEYS.size());
+        for (String key : CONTEXT_PATH_ANNOTATION_KEYS) {
+            String value = StringUtils.isNotBlank(ingressAnnotations.get(key)) ? ingressAnnotations.get(key) : serviceAnnotations.get(key);
+            if (Objects.nonNull(value)) {
+                res.put(key, value);
+            }
+        }
+        return res;
+    }
+
+    private Map<String, String> getReferencedServiceAnnotations(final String namespace, final Map<String, String> labels) {
+        if (MapUtils.isEmpty(labels)) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> res = new HashMap<>(labels.size());
+        for (String serviceName : labels.values()) {
+            V1Service service = serviceLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(service) || Objects.isNull(service.getMetadata())) {
+                continue;
+            }
+            Map<String, String> annotations = MapUtils.emptyIfNull(service.getMetadata().getAnnotations());
+            for (String key : CONTEXT_PATH_ANNOTATION_KEYS) {
+                String value = annotations.get(key);
+                if (Objects.nonNull(value)) {
+                    res.putIfAbsent(key, value);
                 }
             }
         }
