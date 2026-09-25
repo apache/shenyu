@@ -18,21 +18,22 @@
 package org.apache.shenyu.k8s.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * The cache for mapping service name to ingress name.
+ * The cache for mapping service name to the ingress relations that reference the service.
  */
 public final class ServiceIngressCache {
 
     private static final ServiceIngressCache INSTANCE = new ServiceIngressCache();
 
-    private static final Map<String, List<Pair<String, String>>> INGRESS_MAP = Maps.newConcurrentMap();
+    private static final Map<String, List<ServiceIngressRelation>> INGRESS_MAP = Maps.newConcurrentMap();
 
     private ServiceIngressCache() {
     }
@@ -47,42 +48,47 @@ public final class ServiceIngressCache {
     }
 
     /**
-     * Get ingress namespace and name by service namespace and namespace.
-     *
-     * @param namespace namespace
-     * @param serviceName service name
-     * @return ingress namespace and name
-     */
-    public List<Pair<String, String>> getIngressName(final String namespace, final String serviceName) {
-        return INGRESS_MAP.get(getKey(namespace, serviceName));
-    }
-
-    /**
-     * Put ingress by service namespace and name.
+     * Get the ingress relations of the service, each relation keeps the service port selected by the ingress.
      *
      * @param namespace service namespace
      * @param serviceName service name
-     * @param ingressNamespace ingress namespace
-     * @param ingressName ingress name
+     * @return the ingress relations of the service, empty if the service is not referenced
      */
-    public void putIngressName(final String namespace, final String serviceName, final String ingressNamespace, final String ingressName) {
-        List<Pair<String, String>> list = INGRESS_MAP.computeIfAbsent(getKey(namespace, serviceName), k -> new ArrayList<>());
-        list.add(Pair.of(ingressNamespace, ingressName));
+    public List<ServiceIngressRelation> getIngressName(final String namespace, final String serviceName) {
+        List<ServiceIngressRelation> res = INGRESS_MAP.get(getKey(namespace, serviceName));
+        return Objects.isNull(res) ? Collections.emptyList() : res;
     }
 
     /**
-     * Remove all ingress by service namespace and name.
+     * Put the ingress that references the service, the previous relation of the same ingress is
+     * replaced so that a changed backend service port does not leave a stale relation behind.
      *
      * @param namespace service namespace
      * @param serviceName service name
-     * @return the ingress list removed
+     * @param relation ingress relation of the service
      */
-    public List<Pair<String, String>> removeAllIngressName(final String namespace, final String serviceName) {
+    public void putIngressName(final String namespace, final String serviceName, final ServiceIngressRelation relation) {
+        INGRESS_MAP.compute(getKey(namespace, serviceName), (key, relations) -> {
+            List<ServiceIngressRelation> res = Objects.isNull(relations) ? new ArrayList<>() : relations;
+            res.removeIf(item -> item.isSameIngress(relation.getIngressNamespace(), relation.getIngressName()));
+            res.add(relation);
+            return res;
+        });
+    }
+
+    /**
+     * Remove all ingress relations by service namespace and name.
+     *
+     * @param namespace service namespace
+     * @param serviceName service name
+     * @return the ingress relation list removed
+     */
+    public List<ServiceIngressRelation> removeAllIngressName(final String namespace, final String serviceName) {
         return INGRESS_MAP.remove(getKey(namespace, serviceName));
     }
 
     /**
-     * Remove specified ingress by service and ingress.
+     * Remove specified ingress relation by service and ingress.
      *
      * @param namespace service namespace
      * @param serviceName service name
@@ -90,9 +96,9 @@ public final class ServiceIngressCache {
      * @param ingressName ingress name
      */
     public void removeSpecifiedIngressName(final String namespace, final String serviceName, final String ingressNamespace, final String ingressName) {
-        List<Pair<String, String>> list = INGRESS_MAP.get(getKey(namespace, serviceName));
+        List<ServiceIngressRelation> list = INGRESS_MAP.get(getKey(namespace, serviceName));
         if (Objects.nonNull(list)) {
-            list.removeIf(item -> item.getLeft().equals(ingressNamespace) && item.getRight().equals(ingressName));
+            list.removeIf(item -> item.isSameIngress(ingressNamespace, ingressName));
         }
     }
 

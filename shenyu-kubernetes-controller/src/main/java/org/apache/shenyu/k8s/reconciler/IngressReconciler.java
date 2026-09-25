@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -52,8 +53,10 @@ import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSecretCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressBackendPort;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
+import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -62,6 +65,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -185,10 +189,12 @@ public class IngressReconciler implements Reconciler {
             }
         }
         IngressCache.getInstance().put(request.getNamespace(), request.getName(), v1Ingress);
-        List<Pair<String, String>> serviceList = parseServiceFromIngress(v1Ingress);
-        Objects.requireNonNull(serviceList).forEach(pair -> {
-            ServiceIngressCache.getInstance().putIngressName(pair.getLeft(), pair.getRight(), request.getNamespace(), request.getName());
-            LOG.info("Add service cache {} for ingress {}", pair.getLeft() + "/" + pair.getRight(), request.getNamespace() + "/" + request.getName());
+        final String serviceNamespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
+        parseServiceFromIngress(v1Ingress).forEach((serviceName, port) -> {
+            ServiceIngressCache.getInstance().putIngressName(serviceNamespace, serviceName,
+                    new ServiceIngressRelation(request.getNamespace(), request.getName(), port));
+            LOG.info("Add service cache {} for ingress {}, the backend port is {}", serviceNamespace + "/" + serviceName,
+                    request.getNamespace() + "/" + request.getName(), port);
         });
 
         // Ensure upstream handles are populated from endpoints
@@ -241,10 +247,10 @@ public class IngressReconciler implements Reconciler {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
         }
-        List<Pair<String, String>> serviceList = parseServiceFromIngress(oldIngress);
-        Objects.requireNonNull(serviceList).forEach(pair -> {
-            ServiceIngressCache.getInstance().removeSpecifiedIngressName(pair.getLeft(), pair.getRight(), request.getNamespace(), request.getName());
-            LOG.info("Delete service cache {} for ingress {}", pair.getLeft() + "/" + pair.getRight(), request.getNamespace() + "/" + request.getName());
+        final String serviceNamespace = Objects.requireNonNull(oldIngress.getMetadata()).getNamespace();
+        parseServiceFromIngress(oldIngress).forEach((serviceName, port) -> {
+            ServiceIngressCache.getInstance().removeSpecifiedIngressName(serviceNamespace, serviceName, request.getNamespace(), request.getName());
+            LOG.info("Delete service cache {} for ingress {}", serviceNamespace + "/" + serviceName, request.getNamespace() + "/" + request.getName());
         });
         deleteGlobalDefaultBackend(request.getNamespace(), request.getName());
     }
@@ -379,29 +385,35 @@ public class IngressReconciler implements Reconciler {
         return selectorList;
     }
 
-    private List<Pair<String, String>> parseServiceFromIngress(final V1Ingress ingress) {
-        List<Pair<String, String>> res = new ArrayList<>();
+    /**
+     * Parse the backend services referenced by the ingress, mapped to the service port selected by the ingress.
+     *
+     * @param ingress ingress resource
+     * @return the backend service names mapped to the service port selected by the ingress
+     */
+    private Map<String, IngressBackendPort> parseServiceFromIngress(final V1Ingress ingress) {
+        Map<String, IngressBackendPort> res = new HashMap<>(4);
         if (Objects.isNull(ingress) || Objects.isNull(ingress.getSpec())) {
             return res;
         }
         String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
         String name = ingress.getMetadata().getName();
         String namespacedName = namespace + "/" + name;
-        String defaultService = null;
+        V1IngressServiceBackend defaultBackendService = null;
         if (Objects.nonNull(ingress.getSpec().getDefaultBackend()) && Objects.nonNull(ingress.getSpec().getDefaultBackend().getService())) {
-            defaultService = ingress.getSpec().getDefaultBackend().getService().getName();
+            defaultBackendService = ingress.getSpec().getDefaultBackend().getService();
+            String defaultService = defaultBackendService.getName();
             if (Objects.isNull(ingress.getSpec().getRules())) {
                 if (Objects.nonNull(globalDefaultBackend)) {
                     if (globalDefaultBackend.getLeft().getLeft().equals(namespacedName)) {
-                        res.add(Pair.of(namespace, defaultService));
+                        res.put(defaultService, IngressBackendPort.from(defaultBackendService.getPort()));
                     }
                 } else {
-                    res.add(Pair.of(namespace, defaultService));
+                    res.put(defaultService, IngressBackendPort.from(defaultBackendService.getPort()));
                 }
                 return res;
             }
         }
-        Set<String> deduplicateSet = new HashSet<>();
         if (Objects.isNull(ingress.getSpec().getRules())) {
             return res;
         }
@@ -409,15 +421,10 @@ public class IngressReconciler implements Reconciler {
             if (Objects.nonNull(rule.getHttp()) && Objects.nonNull(rule.getHttp().getPaths())) {
                 for (V1HTTPIngressPath path : rule.getHttp().getPaths()) {
                     if (Objects.nonNull(path.getBackend()) && Objects.nonNull(path.getBackend().getService())) {
-                        if (!deduplicateSet.contains(path.getBackend().getService().getName())) {
-                            res.add(Pair.of(namespace, path.getBackend().getService().getName()));
-                            deduplicateSet.add(path.getBackend().getService().getName());
-                        }
-                    } else {
-                        if (Objects.nonNull(defaultService) && !deduplicateSet.contains(defaultService)) {
-                            res.add(Pair.of(namespace, defaultService));
-                            deduplicateSet.add(defaultService);
-                        }
+                        V1IngressServiceBackend backendService = path.getBackend().getService();
+                        res.putIfAbsent(backendService.getName(), IngressBackendPort.from(backendService.getPort()));
+                    } else if (Objects.nonNull(defaultBackendService)) {
+                        res.putIfAbsent(defaultBackendService.getName(), IngressBackendPort.from(defaultBackendService.getPort()));
                     }
                 }
             }
@@ -569,22 +576,21 @@ public class IngressReconciler implements Reconciler {
         if (!PluginEnum.DIVIDE.getName().equals(pluginName) && !PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
             return;
         }
-        List<Pair<String, String>> serviceList = parseServiceFromIngress(v1Ingress);
-        if (CollectionUtils.isEmpty(serviceList)) {
+        Map<String, IngressBackendPort> serviceList = parseServiceFromIngress(v1Ingress);
+        if (serviceList.isEmpty()) {
             return;
         }
         String namespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
         String ingressName = v1Ingress.getMetadata().getName();
         Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
-        for (Pair<String, String> service : serviceList) {
-            String serviceNamespace = service.getLeft();
-            String serviceName = service.getRight();
-            V1Endpoints v1Endpoints = endpointsLister.namespace(serviceNamespace).get(serviceName);
+        for (Map.Entry<String, IngressBackendPort> service : serviceList.entrySet()) {
+            String serviceName = service.getKey();
+            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             if (Objects.isNull(v1Endpoints)) {
-                LOG.info("Cannot find endpoints for service {}/{} when updating upstream", serviceNamespace, serviceName);
+                LOG.info("Cannot find endpoints for service {}/{} when updating upstream", namespace, serviceName);
                 continue;
             }
-            List<Pair<V1EndpointAddress, String>> addresses = endpointAddresses(v1Endpoints);
+            List<Pair<V1EndpointAddress, String>> addresses = endpointAddresses(v1Endpoints, service.getValue());
             if (CollectionUtils.isEmpty(addresses)) {
                 continue;
             }
@@ -620,7 +626,7 @@ public class IngressReconciler implements Reconciler {
                             .matchRestful(selectorData.getMatchRestful()).build();
                     shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
                     LOG.info("Updated upstream handle for selector {} of plugin {} from endpoints {}/{}",
-                            selectorData.getId(), pluginName, serviceNamespace, serviceName);
+                            selectorData.getId(), pluginName, namespace, serviceName);
                 }
             }
         }
@@ -654,7 +660,7 @@ public class IngressReconciler implements Reconciler {
         return GsonUtils.getInstance().toJson(res);
     }
 
-    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints) {
+    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints, final IngressBackendPort backendPort) {
         List<Pair<V1EndpointAddress, String>> res = new ArrayList<>();
         List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
         if (CollectionUtils.isNotEmpty(subsets)) {
@@ -664,10 +670,7 @@ public class IngressReconciler implements Reconciler {
                 if (CollectionUtils.isEmpty(ports) || CollectionUtils.isEmpty(addresses)) {
                     continue;
                 }
-                CoreV1EndpointPort endpointPort = ports.stream()
-                        .filter(coreV1EndpointPort -> "TCP".equals(coreV1EndpointPort.getProtocol()))
-                        .findFirst()
-                        .orElse(null);
+                CoreV1EndpointPort endpointPort = IngressBackendPort.selectEndpointPort(ports, backendPort);
                 if (Objects.isNull(endpointPort)) {
                     continue;
                 }
