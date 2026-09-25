@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
+
 import com.google.common.collect.Lists;
 import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.CollectionUtils;
@@ -286,9 +288,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
-            () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
             () -> ListUtil.map(dashboardUserMapper.selectByQuery(dashboardUserQuery), DashboardUserVO::buildDashboardUserVO));
     }
 
