@@ -75,12 +75,13 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         ServerHttpRequest request = exchange.getRequest();
-        final HttpHeaders httpHeaders = new HttpHeaders(request.getHeaders());
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.addAll(request.getHeaders());
         this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
         HttpMethod method = HttpMethod.valueOf(httpMethod);
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri)
                 .headers(headers -> {
-                    headers.addAll(exchange.getRequest().getHeaders());
+                    headers.putAll(httpHeaders);
                     headers.remove(HttpHeaders.HOST);
                     Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
                     if (preserveHost) {
