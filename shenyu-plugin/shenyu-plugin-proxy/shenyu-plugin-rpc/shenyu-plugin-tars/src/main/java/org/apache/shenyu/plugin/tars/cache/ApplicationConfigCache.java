@@ -341,8 +341,16 @@ public final class ApplicationConfigCache {
      * @param contextPath context path
      */
     public void invalidate(final String contextPath) {
-        List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
-        metaDataList.forEach(metaData -> cache.invalidate(metaData.getPath()));
+        List<MetaData> metaDataList = ctxPathCache.remove(contextPath);
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            metaDataList.forEach(metaData -> {
+                cache.invalidate(metaData.getPath());
+                prxClassCache.remove(metaData.getPath());
+                String paramKeyPrefix = PrxInfoUtil.getPrxName(metaData) + "_";
+                prxParamCache.keySet().removeIf(key -> key.startsWith(paramKeyPrefix));
+            });
+        }
+        refreshUpstreamCache.remove(contextPath);
     }
     
     /**
