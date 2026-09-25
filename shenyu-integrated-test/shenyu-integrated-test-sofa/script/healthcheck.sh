@@ -17,19 +17,25 @@
 #
 
 PRGDIR=`dirname "$0"`
-for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+for service in `grep -v -E "^$|^#" "${PRGDIR}/services.list"`
 do
-    for loop in `seq 1 30`
+    ready=0
+    for loop in $(seq 1 "${MAX_RETRIES:-30}")
     do
-        status=`curl -o /dev/null -s -w %{http_code} $service`
+        status=$(curl --connect-timeout 5 --max-time 10 -o /dev/null -s -w "%{http_code}" "$service") || status=000
         echo -e "curl $service response $status"
 
-        if [ $status -eq 200  ]; then
+        if [ "$status" = "200" ]; then
+            ready=1
             break
         fi
 
         sleep 2
     done
+    if [ "$ready" -ne 1 ]; then
+        echo "Service $service failed healthcheck after ${MAX_RETRIES:-30} attempts" >&2
+        exit 1
+    fi
 done
 #sleep 30
 #docker compose -f ./shenyu-integrated-test/shenyu-integrated-test-sofa/docker-compose.yml logs shenyu-zk

@@ -19,30 +19,43 @@
 PRGDIR=`dirname "$0"`
 # Waiting for service registration
 sleep 60s
-for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+for service in `grep -v -E "^$|^#" "${PRGDIR}/services.list"`
 do
-    for loop in `seq 1 30`
+    ready=0
+    for loop in $(seq 1 "${MAX_RETRIES:-30}")
     do
-        status=`curl -o /dev/null -s -w %{http_code} $service`
+        status=$(curl --connect-timeout 5 --max-time 10 -o /dev/null -s -w "%{http_code}" "$service") || status=000
         echo -e "curl $service response $status"
-        if [ $status -eq 200  ]; then
+        if [ "$status" = "200" ]; then
+            ready=1
             break
         fi
 
         sleep 2
     done
+    if [ "$ready" -ne 1 ]; then
+        echo "Service $service failed healthcheck after ${MAX_RETRIES:-30} attempts" >&2
+        exit 1
+    fi
 done
 sleep 30s
 
-for loop in `seq 1 30`
+registered=0
+for loop in $(seq 1 "${MAX_RETRIES:-30}")
 do
-  app_count=$(wget -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
+  app_count=$(wget --timeout=10 --tries=1 -q -O- http://shenyu-examples-eureka:8761/eureka/apps | grep "<application>" | wc -l | xargs)
   echo "app count ${app_count}"
   if [ $app_count -gt 1  ]; then
+      registered=1
       break
   fi
   sleep 2
 done
+
+if [ "$registered" -ne 1 ]; then
+    echo "Eureka applications did not register before the retry limit" >&2
+    exit 1
+fi
 
 curl -s -XGET http://shenyu-examples-eureka:8761/eureka/apps > eureka.log
 cat eureka.log
