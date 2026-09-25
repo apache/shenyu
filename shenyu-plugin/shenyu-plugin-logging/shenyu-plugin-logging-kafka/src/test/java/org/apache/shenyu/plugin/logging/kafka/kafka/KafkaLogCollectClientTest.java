@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -29,9 +30,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +63,7 @@ public class KafkaLogCollectClientTest {
         globalLogConfig.setCompressAlg("LZ4");
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
+        shenyuRequestLog.setSelectorId("test-selector-id");
     }
 
     @Test
@@ -78,5 +85,28 @@ public class KafkaLogCollectClientTest {
             verify(construction.constructed().get(0)).close();
             verify(construction.constructed().get(0), never()).send(any());
         }
+    }
+
+    @Test
+    public void testConsume0FlushesOncePerBatch() throws NoSuchFieldException, IllegalAccessException {
+        KafkaProducer<String, String> producer = mock(KafkaProducer.class);
+        setProducer(producer);
+        kafkaLogCollectClient.consume0(Collections.singletonList(shenyuRequestLog));
+        verify(producer).flush();
+    }
+
+    @Test
+    public void testConsume0HandlesFlushFailure() throws NoSuchFieldException, IllegalAccessException {
+        KafkaProducer<String, String> producer = mock(KafkaProducer.class);
+        doThrow(new KafkaException("flush error")).when(producer).flush();
+        setProducer(producer);
+        Assertions.assertDoesNotThrow(() -> kafkaLogCollectClient.consume0(Collections.singletonList(shenyuRequestLog)));
+        verify(producer).flush();
+    }
+
+    private void setProducer(final KafkaProducer<String, String> producer) throws NoSuchFieldException, IllegalAccessException {
+        Field field = KafkaLogCollectClient.class.getDeclaredField("producer");
+        field.setAccessible(true);
+        field.set(kafkaLogCollectClient, producer);
     }
 }
