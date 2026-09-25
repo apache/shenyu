@@ -117,12 +117,17 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
     @Override
     public void close0() throws Exception {
-        if (Objects.nonNull(producer)) {
-            try {
-                producer.close();
-
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+        try {
+            if (Objects.nonNull(producer)) {
+                try {
+                    producer.close();
+                } catch (InterruptedException | ProducerException e) {
+                    LOG.error("Close producer error.");
+                }
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
             }
         }
     }

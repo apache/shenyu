@@ -32,6 +32,8 @@ import org.mockito.Mockito;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class HuaweiLtsLogCollectClientTest {
     private HuaweiLtsLogCollectClient huaweiLtsLogCollectClient;
@@ -106,5 +108,24 @@ public class HuaweiLtsLogCollectClientTest {
         Assertions.assertEquals(huaweiLtsLogConfig,
                 HuaweiLogCollectConfig.INSTANCE.getHuaweiLogCollectConfig());
         huaweiLtsLogCollectClient.close();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorAfterPartialInitialization() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(huaweiLtsLogCollectClient, "threadExecutor", executor);
+        huaweiLtsLogCollectClient.close0();
+        org.mockito.Mockito.verify(executor).shutdown();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorWhenProducerFails() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(huaweiLtsLogCollectClient, "threadExecutor", executor);
+        com.huaweicloud.lts.producer.Producer producer = org.mockito.Mockito.mock(com.huaweicloud.lts.producer.Producer.class);
+        ReflectionTestUtils.setField(huaweiLtsLogCollectClient, "producer", producer);
+        org.mockito.Mockito.doThrow(new IllegalStateException("close failed")).when(producer).close();
+        Assertions.assertThrows(IllegalStateException.class, huaweiLtsLogCollectClient::close0);
+        org.mockito.Mockito.verify(executor).shutdown();
     }
 }

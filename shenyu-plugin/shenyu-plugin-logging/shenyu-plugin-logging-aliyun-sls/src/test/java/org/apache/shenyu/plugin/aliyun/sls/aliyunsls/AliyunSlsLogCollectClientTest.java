@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * test cases for AliyunSlsLogCollectClient.
@@ -82,5 +84,25 @@ public class AliyunSlsLogCollectClientTest {
         }
         Assertions.assertEquals(msg, "");
         aliyunSlsLogCollectClient.close();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorAfterPartialInitialization() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(aliyunSlsLogCollectClient, "threadExecutor", executor);
+        aliyunSlsLogCollectClient.close0();
+        org.mockito.Mockito.verify(executor).shutdown();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorWhenProducerFails() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(aliyunSlsLogCollectClient, "threadExecutor", executor);
+        com.aliyun.openservices.aliyun.log.producer.Producer producer = org.mockito.Mockito.mock(com.aliyun.openservices.aliyun.log.producer.Producer.class);
+        ReflectionTestUtils.setField(aliyunSlsLogCollectClient, "producer", producer);
+        ReflectionTestUtils.setField(aliyunSlsLogCollectClient, "client", org.mockito.Mockito.mock(com.aliyun.openservices.log.Client.class));
+        org.mockito.Mockito.doThrow(new IllegalStateException("close failed")).when(producer).close();
+        Assertions.assertThrows(IllegalStateException.class, aliyunSlsLogCollectClient::close0);
+        org.mockito.Mockito.verify(executor).shutdown();
     }
 }
