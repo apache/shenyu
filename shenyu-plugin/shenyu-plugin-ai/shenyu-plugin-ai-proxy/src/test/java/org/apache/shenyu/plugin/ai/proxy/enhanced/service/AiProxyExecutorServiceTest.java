@@ -33,6 +33,8 @@ import reactor.test.StepVerifier;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -72,8 +74,13 @@ public class AiProxyExecutorServiceTest {
         final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
         when(mainApi.chatCompletionStream(request)).thenAnswer(inv -> Flux.error(new RuntimeException("upstream error")));
 
+        // Without a fallback context the upstream error is propagated as-is, so the
+        // original RuntimeException must reach the subscriber unchanged.
         StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.empty(), request, REQUEST_BODY, true))
-                .expectError(NonTransientAiException.class)
+                .expectErrorSatisfies(e -> {
+                    assertTrue(e instanceof RuntimeException);
+                    assertEquals("upstream error", e.getMessage());
+                })
                 .verify();
     }
 
