@@ -83,18 +83,34 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
      * @param logInfo access log
      * @param logCollector LogCollector instance
      * @param desensitized desensitize flag
-     * @param keyWordSet user keyWord set
+     * @param keyWordSet user keyword set
      * @param dataDesensitizeAlg desensitize function
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
                                      final LogCollector<L> logCollector, final boolean desensitized,
                                      final Set<String> keyWordSet, final String dataDesensitizeAlg) {
+        this(delegate, logInfo, logCollector, desensitized, new KeyWordMatch(keyWordSet), dataDesensitizeAlg);
+    }
+
+    /**
+     * Constructor LoggingServerHttpResponse.
+     *
+     * @param delegate delegate ServerHttpResponse
+     * @param logInfo access log
+     * @param logCollector LogCollector instance
+     * @param desensitized desensitize flag
+     * @param keyWordMatch compiled keyword matcher
+     * @param dataDesensitizeAlg desensitize function
+     */
+    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
+                                     final LogCollector<L> logCollector, final boolean desensitized,
+                                     final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
         this.desensitized = desensitized;
         this.dataDesensitizeAlg = dataDesensitizeAlg;
-        this.keyWordMatch = new KeyWordMatch(keyWordSet);
+        this.keyWordMatch = keyWordMatch;
     }
 
     /**
