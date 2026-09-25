@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -102,6 +103,9 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                 .responseConnection((res, connection) -> {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("NettyHttpClient response: status={}", res.status().code());
+                    }
+                    if (shouldFailover(exchange, res.status().code())) {
+                        return connection.inbound().receive().then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
                     }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
