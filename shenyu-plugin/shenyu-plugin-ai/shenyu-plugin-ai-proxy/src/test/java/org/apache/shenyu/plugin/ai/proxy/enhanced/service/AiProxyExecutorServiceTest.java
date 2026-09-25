@@ -35,6 +35,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,6 +96,28 @@ public class AiProxyExecutorServiceTest {
                 .verifyComplete();
 
         verify(fallbackApi, times(1)).chatCompletionStream(any(ChatCompletionRequest.class));
+    }
+
+    @Test
+    void testExecuteDirectStreamDoesNotRetryOrFallbackAfterEmission() {
+        final OpenAiApi mainApi = mock(OpenAiApi.class);
+        final OpenAiApi fallbackApi = mock(OpenAiApi.class);
+        final ChatCompletionRequest request = mock(ChatCompletionRequest.class);
+        final ChatCompletionChunk firstChunk = mock(ChatCompletionChunk.class);
+        when(mainApi.chatCompletionStream(request)).thenReturn(
+                Flux.concat(Flux.just(firstChunk), Flux.error(new RuntimeException("mid-stream error"))));
+
+        final AiCommonConfig fallbackConfig = new AiCommonConfig();
+        fallbackConfig.setModel("fallback-model");
+        final AiProxyExecutorService.FallbackContext ctx = new AiProxyExecutorService.FallbackContext(fallbackApi, fallbackConfig);
+
+        StepVerifier.create(executorService.executeDirectStream(mainApi, Optional.of(ctx), request, REQUEST_BODY, true))
+                .expectNext(firstChunk)
+                .expectErrorMessage("mid-stream error")
+                .verify();
+
+        verify(mainApi, times(1)).chatCompletionStream(request);
+        verify(fallbackApi, never()).chatCompletionStream(any(ChatCompletionRequest.class));
     }
 
     @Test
