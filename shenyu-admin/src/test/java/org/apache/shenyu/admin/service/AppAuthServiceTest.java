@@ -65,6 +65,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -113,8 +114,16 @@ public final class AppAuthServiceTest {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamList(authParamDTOList);
+        AuthPathDTO firstPath = buildAuthPathDTO();
+        AuthPathDTO secondPath = buildAuthPathDTO();
+        secondPath.setAppName("secondAppName");
+        secondPath.setPath("/second");
+        appAuthDTO.setAuthPathList(List.of(firstPath, secondPath));
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 2
+                && "testAppName".equals(paths.get(0).getAppName())
+                && "secondAppName".equals(paths.get(1).getAppName())));
     }
 
     @Test
