@@ -347,6 +347,23 @@ public final class HttpLongPollingDataChangedListenerTest {
         getCache().remove(cacheKey);
     }
 
+    @Test
+    public void testClientNewerRefreshesOnlyItsNamespace() throws Exception {
+        RecordingHttpLongPollingDataChangedListener recordingListener =
+                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties);
+        String namespaceId = "namespace-one";
+        String group = ConfigGroupEnum.PLUGIN.name();
+        String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
+        ConfigDataCache serverCache = new ConfigDataCache(group, "{}", "serverMd5", 1000L, namespaceId);
+        getCache().put(cacheKey, serverCache);
+
+        boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache, "clientMd5", 2000L);
+
+        assertEquals(true, result);
+        assertEquals(namespaceId, recordingListener.refreshedNamespace);
+        getCache().remove(cacheKey);
+    }
+
     /**
      * test doLongPolling with changed groups.
      */
@@ -753,10 +770,16 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     private boolean invokeCheckCacheDelayAndUpdate(final ConfigDataCache serverCache,
                                                    final String clientMd5, final long clientModifyTime) throws Exception {
+        return invokeCheckCacheDelayAndUpdate(listener, serverCache, clientMd5, clientModifyTime);
+    }
+
+    private boolean invokeCheckCacheDelayAndUpdate(final HttpLongPollingDataChangedListener target,
+                                                   final ConfigDataCache serverCache,
+                                                   final String clientMd5, final long clientModifyTime) throws Exception {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod(
                 "checkCacheDelayAndUpdate", ConfigDataCache.class, String.class, long.class);
         method.setAccessible(true);
-        return (boolean) method.invoke(listener, serverCache, clientMd5, clientModifyTime);
+        return (boolean) method.invoke(target, serverCache, clientMd5, clientModifyTime);
     }
 
     @SuppressWarnings("unchecked")
@@ -785,5 +808,21 @@ public final class HttpLongPollingDataChangedListenerTest {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod("getNamespaceId", HttpServletRequest.class);
         method.setAccessible(true);
         return (String) method.invoke(null, request);
+    }
+
+    private static final class RecordingHttpLongPollingDataChangedListener extends HttpLongPollingDataChangedListener {
+
+        private String refreshedNamespace;
+
+        private RecordingHttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
+            super(httpSyncProperties);
+        }
+
+        @Override
+        protected void refreshLocalCache(final String namespaceId) {
+            refreshedNamespace = namespaceId;
+            String cacheKey = buildCacheKey(namespaceId, ConfigGroupEnum.PLUGIN.name());
+            CACHE.put(cacheKey, new ConfigDataCache(ConfigGroupEnum.PLUGIN.name(), "{}", "refreshedMd5", 3000L, namespaceId));
+        }
     }
 }
