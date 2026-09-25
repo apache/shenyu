@@ -18,6 +18,8 @@
 package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Strings;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
@@ -83,10 +85,12 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
     private void watcherData0(final String registerPath) {
         String configNamespace = Constants.PATH_SEPARATOR + shenyuConfig.getNamespace();
         zkClient.addCuratorCache(registerPath, (type, oldData, data) -> {
-            if (Objects.isNull(data) || Objects.isNull(data.getData())) {
+            final boolean deleted = type == CuratorCacheListener.Type.NODE_DELETED;
+            final ChildData eventData = deleted ? oldData : data;
+            if (Objects.isNull(eventData) || (!deleted && Objects.isNull(eventData.getData()))) {
                 return;
             }
-            String path = data.getPath();
+            String path = eventData.getPath();
             if (Strings.isNullOrEmpty(path)) {
                 return;
             }
@@ -110,7 +114,7 @@ public class ZookeeperSyncDataService extends AbstractPathDataSyncService {
                 default:
                     break;
             }
-            final String updateData = new String(data.getData(), StandardCharsets.UTF_8);
+            final String updateData = deleted ? null : new String(eventData.getData(), StandardCharsets.UTF_8);
             this.event(configNamespace, path, updateData, registerPath, eventType);
         });
     }

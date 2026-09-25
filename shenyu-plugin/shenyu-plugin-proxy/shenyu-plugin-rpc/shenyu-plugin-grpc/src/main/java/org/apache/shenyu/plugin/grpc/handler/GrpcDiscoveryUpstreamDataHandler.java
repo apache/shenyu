@@ -26,6 +26,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
@@ -60,6 +61,14 @@ public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHa
             ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), upstreams);
         }
         GrpcClientCache.initGrpcClient(selectorId);
+    }
+
+    @Override
+    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
+            return;
+        }
+        ApplicationConfigCache.getInstance().invalidate(key.selectorId());
     }
 
     private List<GrpcUpstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {

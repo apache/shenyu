@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.tcp.handler;
 
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
+import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -103,6 +105,7 @@ public final class TcpBootstrapFactoryTest {
             configuration = configuration(FIRST_SELECTOR, occupiedPort.getLocalPort());
             assertThrows(RuntimeException.class, () -> factory.createBootstrapServerIfAbsent(configuration));
             assertNull(factory.getCache(FIRST_SELECTOR));
+            assertFalse(UpstreamProvider.getSingleton().inCache(FIRST_SELECTOR));
         }
 
         configuration.setPort(getFreePort());

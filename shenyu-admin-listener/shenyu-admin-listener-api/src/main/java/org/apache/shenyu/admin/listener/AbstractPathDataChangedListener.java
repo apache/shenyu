@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -97,6 +98,10 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         for (DiscoverySyncData data : changed) {
+            if (StringUtils.isBlank(data.getPluginName())) {
+                LOG.warn("[DataChangedListener] ignore discoveryUpstream change with empty pluginName, selectorId={}", data.getSelectorId());
+                continue;
+            }
             String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getNamespaceId(), data.getPluginName(), data.getSelectorId());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {

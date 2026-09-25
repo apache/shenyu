@@ -31,10 +31,13 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +49,8 @@ import java.util.Optional;
  * Abstract method to monitor child node changes.
  */
 public abstract class AbstractPathDataSyncService implements SyncDataService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractPathDataSyncService.class);
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -132,12 +137,16 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     private void discoveryUpstreamHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
         String[] pathInfoArray2 = updatePath.split("/");
         if (pathInfoArray2.length != 5) {
+            LOG.warn("Ignore invalid discovery upstream path: {}", updatePath);
             return;
         }
-        if (!EventType.DELETE.equals(eventType)) {
-            Optional.ofNullable(updateData)
-                    .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
+        if (EventType.DELETE.equals(eventType)) {
+            unCacheDiscoveryUpstreamData(new DiscoveryUpstreamKey(pathInfoArray2[pathInfoArray2.length - 2],
+                    pathInfoArray2[pathInfoArray2.length - 1], null));
+            return;
         }
+        Optional.ofNullable(updateData)
+                .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
     }
 
     private void ruleHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -278,6 +287,11 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     protected void cacheDiscoveryUpstreamData(final DiscoverySyncData upstreamDataList) {
         Optional.ofNullable(discoveryUpstreamDataSubscribers)
                 .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
+    }
+
+    protected void unCacheDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        Optional.ofNullable(discoveryUpstreamDataSubscribers)
+                .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(key)));
     }
 
     protected void unCacheMetaData(final MetaData metaData) {

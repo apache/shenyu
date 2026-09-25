@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
@@ -27,6 +28,8 @@ import java.util.Collections;
 
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class DiscoveryUpstreamDataHandlerTest {
 
@@ -35,14 +38,37 @@ public final class DiscoveryUpstreamDataHandlerTest {
         DiscoveryUpstreamDataSubscriber firstSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
         DiscoveryUpstreamDataSubscriber secondSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
         DiscoveryUpstreamDataHandler handler = new DiscoveryUpstreamDataHandler(Arrays.asList(firstSubscriber, secondSubscriber));
-        DiscoverySyncData data = new DiscoverySyncData();
+        DiscoverySyncData firstSelector = new DiscoverySyncData();
+        firstSelector.setSelectorId("first");
+        DiscoverySyncData secondSelector = new DiscoverySyncData();
+        secondSelector.setSelectorId("second");
 
-        handler.doRefresh(Collections.singletonList(data));
+        handler.doRefresh(Collections.singletonList(firstSelector));
+        handler.doRefresh(Collections.singletonList(secondSelector));
 
         InOrder inOrder = inOrder(firstSubscriber, secondSubscriber);
         inOrder.verify(firstSubscriber).refresh();
         inOrder.verify(secondSubscriber).refresh();
-        inOrder.verify(firstSubscriber).onSubscribe(data);
-        inOrder.verify(secondSubscriber).onSubscribe(data);
+        inOrder.verify(firstSubscriber).onSubscribe(firstSelector);
+        inOrder.verify(secondSubscriber).onSubscribe(firstSelector);
+        inOrder.verify(firstSubscriber).refresh();
+        inOrder.verify(secondSubscriber).refresh();
+        inOrder.verify(firstSubscriber).onSubscribe(secondSelector);
+        inOrder.verify(secondSubscriber).onSubscribe(secondSelector);
+        verifyNoMoreInteractions(firstSubscriber, secondSubscriber);
+    }
+
+    @Test
+    public void testDoDeleteUsesSelectorIdentity() {
+        DiscoveryUpstreamDataSubscriber subscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        DiscoverySyncData data = new DiscoverySyncData();
+        data.setPluginName("tcp");
+        data.setSelectorId("selector-id");
+        data.setSelectorName("selector-name");
+        DiscoveryUpstreamDataHandler handler = new DiscoveryUpstreamDataHandler(Collections.singletonList(subscriber));
+
+        handler.doDelete(Collections.singletonList(data));
+
+        verify(subscriber).unSubscribe(new DiscoveryUpstreamKey("tcp", "selector-id", "selector-name"));
     }
 }

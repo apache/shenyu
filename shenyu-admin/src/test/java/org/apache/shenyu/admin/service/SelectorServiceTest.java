@@ -70,6 +70,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,6 +80,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -86,6 +90,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -197,6 +204,69 @@ public final class SelectorServiceTest {
         final List<String> ids = Collections.singletonList(correctId);
         given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(selectorService.deleteByNamespaceId(ids, any()), ids.size());
+    }
+
+    @Test
+    public void testDeleteResolvesDiscoveryPluginNameWhenBatchLookupMisses() {
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+        given(pluginMapper.selectById(selector.getPluginId())).willReturn(buildPluginDO());
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+
+        selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID);
+
+        verify(discoveryProcessor).removeProxySelector(any(), argThat(data -> "test".equals(data.getPluginName())));
+        verify(selectorEventPublisher).onDeleted(any(), argThat(plugins -> "test".equals(plugins.get(0).getName())));
+    }
+
+    @Test
+    public void testDeleteUsesDiscoveryPluginNameWhenPluginRowIsMissing() {
+        DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setId("1");
+        discovery.setDiscoveryType("local");
+        discovery.setPluginName("test");
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+        given(discoveryMapper.selectById("1")).willReturn(discovery);
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+
+        assertEquals(1, selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(discoveryProcessor).removeProxySelector(any(), argThat(data -> "test".equals(data.getPluginName())));
+        verify(selectorEventPublisher).onDeleted(any(), argThat(plugins -> "test".equals(plugins.get(0).getName())));
+    }
+
+    @Test
+    public void testDeleteRejectsDiscoveryWithoutPluginName() {
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID));
+        assertTrue(exception.getMessage().contains("Cannot delete selector batch"));
+        verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
+        verify(discoveryHandlerMapper, never()).delete(any());
+        verify(selectorMapper, never()).deleteByIds(any());
+    }
+
+    @Test
+    public void testDeleteValidatesWholeBatchBeforeUnbindingDiscovery() {
+        SelectorDO first = buildSelectorDO();
+        SelectorDO second = buildSelectorDO();
+        second.setId("other-selector");
+        second.setPluginId("missing-plugin");
+        List<String> ids = Arrays.asList(first.getId(), second.getId());
+        given(selectorMapper.selectByIdSet(new TreeSet<>(ids))).willReturn(Arrays.asList(first, second));
+        given(pluginMapper.selectByIds(Arrays.asList(first.getPluginId(), second.getPluginId()))).willReturn(Collections.singletonList(buildPluginDO()));
+
+        assertThrows(IllegalStateException.class, () -> selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
+        verify(discoveryHandlerMapper, never()).delete(any());
+        verify(selectorMapper, never()).deleteByIds(any());
     }
 
     @Test

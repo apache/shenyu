@@ -25,6 +25,7 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -54,6 +55,14 @@ public class WebSocketUpstreamDataHandler implements DiscoveryUpstreamDataHandle
             UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
         }
         MetaDataCache.getInstance().clean();
+    }
+
+    @Override
+    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
+            return;
+        }
+        UpstreamCacheManager.getInstance().removeByKey(key.selectorId());
     }
 
     private List<Upstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {

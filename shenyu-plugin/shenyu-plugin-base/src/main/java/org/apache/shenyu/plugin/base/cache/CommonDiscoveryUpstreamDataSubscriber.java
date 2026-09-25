@@ -20,9 +20,11 @@ package org.apache.shenyu.plugin.base.cache;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,13 +38,20 @@ public class CommonDiscoveryUpstreamDataSubscriber implements DiscoveryUpstreamD
 
     @Override
     public void onSubscribe(final DiscoverySyncData upstreamDataList) {
+        if (Objects.isNull(upstreamDataList) || Objects.isNull(upstreamDataList.getPluginName())) {
+            return;
+        }
         Optional.ofNullable(handlerMap.get(upstreamDataList.getPluginName()))
                 .ifPresent(handler -> handler.handlerDiscoveryUpstreamData(upstreamDataList));
     }
 
     @Override
-    public void unSubscribe(final DiscoverySyncData upstreamDataList) {
-        //ignore
+    public void unSubscribe(final DiscoveryUpstreamKey key) {
+        if (Objects.isNull(key) || Objects.isNull(key.pluginName())) {
+            return;
+        }
+        Optional.ofNullable(handlerMap.get(key.pluginName()))
+                .ifPresent(handler -> handler.removeDiscoveryUpstreamData(key));
     }
 
 }
