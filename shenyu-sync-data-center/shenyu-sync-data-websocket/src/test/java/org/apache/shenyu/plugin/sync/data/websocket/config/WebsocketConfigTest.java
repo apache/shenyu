@@ -64,13 +64,16 @@ public class WebsocketConfigTest {
         that.setToken(TOKEN);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
+        that.setInitialSyncReadiness(true);
+        assertNotEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
         assertNotEquals(websocketConfig, new Object());
     }
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(), websocketConfig.getToken()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(),
+                websocketConfig.getToken(), websocketConfig.isInitialSyncReadiness()), websocketConfig.hashCode());
     }
 
     @Test

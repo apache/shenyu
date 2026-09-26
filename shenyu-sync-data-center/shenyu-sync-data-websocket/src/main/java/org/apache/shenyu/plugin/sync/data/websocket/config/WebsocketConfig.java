@@ -38,6 +38,24 @@ public class WebsocketConfig {
      */
     private String token;
 
+    private boolean initialSyncReadiness;
+
+    /**
+     * Whether the opt-in initial synchronization protocol is required.
+     * @return enabled
+     */
+    public boolean isInitialSyncReadiness() {
+        return initialSyncReadiness;
+    }
+
+    /**
+     * Enable initial synchronization readiness.
+     * @param initialSyncReadiness enabled
+     */
+    public void setInitialSyncReadiness(final boolean initialSyncReadiness) {
+        this.initialSyncReadiness = initialSyncReadiness;
+    }
+
     /**
      * get urls.
      *
@@ -99,12 +117,13 @@ public class WebsocketConfig {
         WebsocketConfig that = (WebsocketConfig) o;
         return Objects.equals(urls, that.urls)
                 && Objects.equals(allowOrigin, that.allowOrigin)
-                && Objects.equals(token, that.token);
+                && Objects.equals(token, that.token)
+                && initialSyncReadiness == that.initialSyncReadiness;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, token);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness);
     }
 
     @Override
