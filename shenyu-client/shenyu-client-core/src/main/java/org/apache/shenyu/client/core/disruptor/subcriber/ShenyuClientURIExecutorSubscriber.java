@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
@@ -59,13 +60,25 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
     private final ScheduledThreadPoolExecutor executor;
+
+    private final long readinessTimeoutMillis;
     
     /**
      * Instantiates a new Shenyu client uri executor subscriber.
+     * URI readiness is bounded by {@code shenyu.client.uri.readyTimeoutMillis}, defaulting to three minutes.
+     * Unready URIs are logged and skipped so subsequent registration events can be processed.
      *
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
     public ShenyuClientURIExecutorSubscriber(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        this(shenyuClientRegisterRepository, Long.getLong("shenyu.client.uri.readyTimeoutMillis", TimeUnit.MINUTES.toMillis(3)));
+    }
+
+    ShenyuClientURIExecutorSubscriber(final ShenyuClientRegisterRepository shenyuClientRegisterRepository, final long readinessTimeoutMillis) {
+        if (readinessTimeoutMillis <= 0) {
+            throw new IllegalArgumentException("URI readiness timeout must be positive");
+        }
+        this.readinessTimeoutMillis = readinessTimeoutMillis;
         this.shenyuClientRegisterRepository = shenyuClientRegisterRepository;
         // executor for send heartbeat
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
@@ -82,27 +95,11 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     @Override
     public void executor(final Collection<URIRegisterDTO> dataList) {
         for (URIRegisterDTO uriRegisterDTO : dataList) {
-            Stopwatch stopwatch = Stopwatch.createStarted();
-            while (true) {
-                try (Socket ignored = new Socket(uriRegisterDTO.getHost(), uriRegisterDTO.getPort())) {
-                    break;
-                } catch (IOException e) {
-                    long sleepTime = 1000;
-                    // maybe the port is delay exposed
-                    if (stopwatch.elapsed(TimeUnit.SECONDS) > 5) {
-                        LOG.error("host:{}, port:{} connection failed, will retry",
-                                uriRegisterDTO.getHost(), uriRegisterDTO.getPort());
-                        // If the connection fails for a long time, Increase sleep time
-                        if (stopwatch.elapsed(TimeUnit.SECONDS) > 180) {
-                            sleepTime = 10000;
-                        }
-                    }
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(sleepTime);
-                    } catch (InterruptedException ex) {
-                        LOG.error("interrupted when sleep", ex);
-                    }
+            if (!awaitReadiness(uriRegisterDTO)) {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
                 }
+                continue;
             }
             ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
@@ -121,6 +118,34 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
                 }
             }), 2);
         }
+    }
+
+    private boolean awaitReadiness(final URIRegisterDTO uri) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        while (!Thread.currentThread().isInterrupted()) {
+            long remaining = readinessTimeoutMillis - stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            if (remaining <= 0) {
+                LOG.error("Skipping URI registration for {}:{} after waiting {}ms for readiness", uri.getHost(), uri.getPort(), readinessTimeoutMillis);
+                return false;
+            }
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort()), (int) Math.min(1000, remaining));
+                return true;
+            } catch (IOException e) {
+                LOG.debug("URI {}:{} is not ready", uri.getHost(), uri.getPort(), e);
+            }
+            remaining = readinessTimeoutMillis - stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            if (remaining > 0) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(Math.min(1000, remaining));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOG.warn("Interrupted while waiting for URI {}:{} readiness", uri.getHost(), uri.getPort());
+                    return false;
+                }
+            }
+        }
+        return false;
     }
     
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
