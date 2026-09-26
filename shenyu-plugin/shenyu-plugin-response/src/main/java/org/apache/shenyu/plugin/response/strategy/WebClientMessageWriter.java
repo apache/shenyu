@@ -18,8 +18,11 @@
 package org.apache.shenyu.plugin.response.strategy;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -35,6 +38,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,6 +82,7 @@ public class WebClientMessageWriter implements MessageWriter {
             }
 
             this.redrawResponseHeaders(response, fluxResponseEntity);
+            deduplicateResponseHeaders(exchange);
 
             Mono<Void> responseMono;
             if (Objects.nonNull(fluxResponseEntity.getBody())) {
@@ -119,6 +125,34 @@ public class WebClientMessageWriter implements MessageWriter {
             httpHeaders = temp;
         }
         response.getHeaders().putAll(httpHeaders);
+    }
+
+    private void deduplicateResponseHeaders(final ServerWebExchange exchange) {
+        String names = exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName());
+        if (StringUtils.isEmpty(names)) {
+            return;
+        }
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        HeaderUniqueStrategyEnum strategy = exchange.getAttributeOrDefault(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.RETAIN_FIRST);
+        for (String name : StringUtils.split(names, Constants.SEPARATOR_CHARS)) {
+            List<String> values = headers.get(name);
+            if (Objects.isNull(values) || values.size() <= 1) {
+                continue;
+            }
+            switch (strategy) {
+                case RETAIN_FIRST:
+                    headers.set(name, values.get(0));
+                    break;
+                case RETAIN_LAST:
+                    headers.set(name, values.get(values.size() - 1));
+                    break;
+                case RETAIN_UNIQUE:
+                    headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected header strategy: " + strategy);
+            }
+        }
     }
 
     private static <T> Mono<T> releaseIfNotConsumed(final Flux<DataBuffer> dataBufferDody, final Throwable ex) {
