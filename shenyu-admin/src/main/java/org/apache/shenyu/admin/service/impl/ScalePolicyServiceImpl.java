@@ -26,6 +26,9 @@ import org.apache.shenyu.admin.scale.scaler.cache.ScalePolicyCache;
 import org.apache.shenyu.admin.service.ScalePolicyService;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -77,13 +80,27 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
      * @return rows int
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final ScalePolicyDTO scalePolicyDTO) {
         final ScalePolicyDO scalePolicy = ScalePolicyDO.buildScalePolicyDO(scalePolicyDTO);
         int rows = scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
         if (rows > 0) {
-            scalePolicyCache.updatePolicy(scalePolicy);
-            scaleService.executeScaling();
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        applyPolicy(scalePolicy);
+                    }
+                });
+            } else {
+                applyPolicy(scalePolicy);
+            }
         }
         return rows;
+    }
+
+    private void applyPolicy(final ScalePolicyDO scalePolicy) {
+        scalePolicyCache.updatePolicy(scalePolicy);
+        scaleService.executeScaling();
     }
 }
