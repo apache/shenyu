@@ -111,7 +111,7 @@ public class DiscoveryVO implements Serializable {
      * @return name
      */
     public String getDiscoveryName() {
-        return discoveryType;
+        return discoveryName;
     }
 
     /**
@@ -120,7 +120,7 @@ public class DiscoveryVO implements Serializable {
      * @param name name
      */
     public void setDiscoveryName(final String name) {
-        this.discoveryType = name;
+        this.discoveryName = name;
     }
 
     /**
