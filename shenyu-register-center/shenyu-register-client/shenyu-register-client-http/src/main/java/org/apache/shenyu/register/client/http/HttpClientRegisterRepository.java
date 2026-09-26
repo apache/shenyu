@@ -205,9 +205,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     private <T> void doRegister(final T t, final String path, final String type) {
-        int i = 0;
+        RuntimeException failure = null;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(path);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -218,17 +217,21 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
+                if (Objects.isNull(failure)) {
+                    failure = new RuntimeException(e);
+                } else {
+                    failure.addSuppressed(e);
                 }
             }
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
         }
     }
 
     private <T> void doHeartbeat(final T t, final String path) {
-        int i = 0;
+        RuntimeException failure = null;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(path);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -238,10 +241,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(t), concat, Constants.HEARTBEAT, accessToken);
             } catch (Exception e) {
                 LOGGER.error("HeartBeat admin url :{} is fail, will retry.", server, e);
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
+                if (Objects.isNull(failure)) {
+                    failure = new RuntimeException(e);
+                } else {
+                    failure.addSuppressed(e);
                 }
             }
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
         }
     }
     
