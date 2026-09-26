@@ -82,12 +82,11 @@ public class WebsocketCollector {
         String clientIp = getClientIp(session);
         LOG.info("websocket on client[{}] open successful, maxTextMessageBufferSize: {}",
                 clientIp, session.getMaxTextMessageBufferSize());
-        SESSION_SET.add(session);
-        
         String namespaceId = getNamespaceId(session);
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("websocket on client open failed, namespaceId is null");
         }
+        SESSION_SET.add(session);
         LOG.info("websocket on client[{}] open successful, namespaceId: {}", clientIp, namespaceId);
         NAMESPACE_SESSION_MAP.computeIfAbsent(namespaceId, k -> Sets.newConcurrentHashSet()).add(session);
     }
@@ -307,11 +306,14 @@ public class WebsocketCollector {
     private void clearSession(final Session session) {
         SESSION_SET.remove(session);
         removeSessionSendQueue(session);
-        String namespaceId = getNamespaceId(session);
-        if (StringUtils.isNotBlank(namespaceId)) {
-            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
-        }
+        removeSessionFromNamespaceMap(session);
         ThreadLocalUtils.clear();
+    }
+
+    private static void removeSessionFromNamespaceMap(final Session session) {
+        // clearSession runs from onClose/onError, where the session is already closed and
+        // getNamespaceId refuses to read it, so the session is swept out of every namespace set
+        NAMESPACE_SESSION_MAP.values().forEach(sessions -> sessions.remove(session));
     }
     
     private static String maskSensitive(final String json) {

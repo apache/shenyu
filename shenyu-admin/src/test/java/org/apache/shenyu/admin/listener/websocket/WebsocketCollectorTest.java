@@ -148,8 +148,45 @@ public final class WebsocketCollectorTest {
         // no SHENYU_NAMESPACE_ID set → getNamespaceId returns null → throws ShenyuException
         when(session.getUserProperties()).thenReturn(userProperties);
         assertThrows(ShenyuException.class, () -> websocketCollector.onOpen(session));
-        // clean up the session that was added before throw
+        // a handshake that fails validation must not leave partial registration behind
+        assertEquals(0L, getSessionSetSize());
+        assertEquals(0L, getTrackedNamespaceSessionCount());
+    }
+
+    @Test
+    void testOnCloseRemovesClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        assertEquals(1L, getTrackedNamespaceSessionCount());
+        // the container delivers @OnClose after the connection is already closed
+        when(session.isOpen()).thenReturn(false);
         websocketCollector.onClose(session);
+        assertEquals(0L, getTrackedNamespaceSessionCount());
+    }
+
+    @Test
+    void testOnErrorRemovesClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        // the session is commonly already closed when @OnError fires
+        when(session.isOpen()).thenReturn(false);
+        websocketCollector.onError(session, new Throwable());
+        assertEquals(0L, getTrackedNamespaceSessionCount());
+        assertEquals(0L, getSessionSetSize());
+    }
+
+    @Test
+    void testRepeatedReconnectsDoNotGrowNamespaceSessionSet() {
+        for (int i = 0; i < 3; i++) {
+            Session reconnect = mock(Session.class);
+            when(reconnect.isOpen()).thenReturn(true);
+            Map<String, Object> userProperties = new HashMap<>();
+            userProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+            when(reconnect.getUserProperties()).thenReturn(userProperties);
+            websocketCollector.onOpen(reconnect);
+            when(reconnect.isOpen()).thenReturn(false);
+            websocketCollector.onClose(reconnect);
+        }
+        assertEquals(0L, getTrackedNamespaceSessionCount());
+        assertEquals(0L, getSessionSetSize());
     }
 
     @Test
@@ -452,6 +489,15 @@ public final class WebsocketCollectorTest {
     private long getSessionSetSize() {
         Set sessionSet = (Set) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SET");
         return Objects.isNull(sessionSet) ? -1 : sessionSet.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Set<Session>> getNamespaceSessionMap() {
+        return (Map<String, Set<Session>>) ReflectionTestUtils.getField(WebsocketCollector.class, "NAMESPACE_SESSION_MAP");
+    }
+
+    private long getTrackedNamespaceSessionCount() {
+        return getNamespaceSessionMap().values().stream().mapToLong(Set::size).sum();
     }
 
     private Session getSession() {
