@@ -65,7 +65,9 @@ public class WafPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
-            int statusCode = Integer.parseInt(wafHandle.getStatusCode());
+            int statusCode = StringUtils.isBlank(wafHandle.getStatusCode())
+                    ? HttpStatus.FORBIDDEN.value()
+                    : Integer.parseInt(wafHandle.getStatusCode());
             exchange.getResponse().setRawStatusCode(statusCode);
             Object error = ShenyuResultWrap.error(exchange, statusCode, Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
