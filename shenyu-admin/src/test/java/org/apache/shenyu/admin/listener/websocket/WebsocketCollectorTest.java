@@ -53,8 +53,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -131,6 +133,11 @@ public final class WebsocketCollectorTest {
                 (Map<Session, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
         if (Objects.nonNull(sessionSendQueues)) {
             sessionSendQueues.clear();
+        }
+        Map<Session, ?> sessionNamespaces =
+                (Map<Session, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_NAMESPACE_IDS");
+        if (Objects.nonNull(sessionNamespaces)) {
+            sessionNamespaces.clear();
         }
     }
 
@@ -247,6 +254,89 @@ public final class WebsocketCollectorTest {
         websocketCollector.onClose(session);
         assertEquals(0L, getSessionSetSize());
         assertNull(getSession());
+    }
+
+    @Test
+    void testOnCloseRemovesAlreadyClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        assertEquals(1, namespaceSessionCount(Constants.SYS_DEFAULT_NAMESPACE_ID));
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+
+        websocketCollector.onClose(session);
+
+        assertEquals(0L, getSessionSetSize());
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testOnErrorRemovesAlreadyClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).error(anyString(), anyString(), isA(Throwable.class));
+
+        websocketCollector.onError(session, new IllegalStateException("closed"));
+
+        assertEquals(0L, getSessionSetSize());
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+    @Test
+    void testRepeatedCloseOfAlreadyClosedSessionIsIdempotent() {
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+
+        websocketCollector.onClose(session);
+        websocketCollector.onClose(session);
+        websocketCollector.onError(session, new IllegalStateException("closed again"));
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+    }
+
+    @Test
+    void testMissingNamespaceLeavesNoPartialRegistration() {
+        Map<String, Object> userProperties = new HashMap<>();
+        when(session.getUserProperties()).thenReturn(userProperties);
+
+        assertThrows(ShenyuException.class, () -> websocketCollector.onOpen(session));
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testReconnectDoesNotAccumulateClosedSessions() {
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+        for (int i = 0; i < 3; i++) {
+            Session reconnect = mock(Session.class);
+            Map<String, Object> props = new HashMap<>();
+            props.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+            when(reconnect.isOpen()).thenReturn(true);
+            when(reconnect.getUserProperties()).thenReturn(props);
+            websocketCollector.onOpen(reconnect);
+            when(reconnect.isOpen()).thenReturn(false);
+            websocketCollector.onClose(reconnect);
+        }
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+    }
+
+    @Test
+    void testNamespaceBroadcastSkipsClosedSession() {
+        RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stale-msg", DataEventTypeEnum.CREATE);
+
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
@@ -452,6 +542,21 @@ public final class WebsocketCollectorTest {
     private long getSessionSetSize() {
         Set sessionSet = (Set) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SET");
         return Objects.isNull(sessionSet) ? -1 : sessionSet.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Set<Session>> namespaceMap() {
+        return (Map<String, Set<Session>>) ReflectionTestUtils.getField(WebsocketCollector.class, "NAMESPACE_SESSION_MAP");
+    }
+
+    private int namespaceSessionCount(final String namespaceId) {
+        Set<Session> sessions = namespaceMap().get(namespaceId);
+        return Objects.isNull(sessions) ? 0 : sessions.size();
+    }
+
+    private int sendQueueSize() {
+        Map<?, ?> queues = (Map<?, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        return Objects.isNull(queues) ? 0 : queues.size();
     }
 
     private Session getSession() {
