@@ -113,6 +113,10 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+        Duration responseTimeout = properties.getResponseTimeout();
+        if (!responseTimeout.isZero() && !responseTimeout.isNegative()) {
+            httpClient = httpClient.responseTimeout(responseTimeout);
+        }
         if (serverProperties.getHttp2().isEnabled()) {
             httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
         }
