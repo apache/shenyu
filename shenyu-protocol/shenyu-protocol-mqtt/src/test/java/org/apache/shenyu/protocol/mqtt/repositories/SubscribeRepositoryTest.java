@@ -20,12 +20,16 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -38,10 +42,25 @@ import static org.mockito.Mockito.mock;
 public final class SubscribeRepositoryTest {
 
     private static final String EXISTING_TOPIC = "test/existing-topic";
+    private static final String TOPIC = "test/subscribe";
+
+    private static final String MULTI_TOPIC_A = "test/subscribe-a";
 
     private static final String ABSENT_TOPIC = "test/absent-topic";
-
+    private static final String MULTI_TOPIC_B = "test/subscribe-b";
     private static final String KEPT_TOPIC = "test/kept-topic";
+    private static final String CONCURRENT_TOPIC = "test/concurrent-subscribe";
+
+    private static final String CONCURRENT_TOPICS_TOPIC = "test/concurrent-subscribe-topics";
+
+    private static final int SUBSCRIBER_COUNT = 50;
+
+    private SubscribeRepository repository;
+
+    @BeforeEach
+    void setUp() {
+        repository = new SubscribeRepository();
+    }
 
     @Test
     public void removeRemovesChannelFromExistingTopic() {
@@ -68,5 +87,40 @@ public final class SubscribeRepositoryTest {
 
         assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
         assertTrue(repository.get(KEPT_TOPIC).contains(channel));
+    }
+
+    @Test
+    public void addChannelSubscribesChannelToTopic() {
+        Channel channel = mock(Channel.class);
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
+        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(TOPIC).contains(channel));
+    }
+
+    @Test
+    public void addTopicsRegistersChannelsForEachTopic() {
+        Channel channel = mock(Channel.class);
+        repository.add(List.of(MULTI_TOPIC_A, MULTI_TOPIC_B), Collections.singletonList(channel));
+        await().atMost(Duration.ofSeconds(5)).until(() ->
+                repository.get(MULTI_TOPIC_A).contains(channel) && repository.get(MULTI_TOPIC_B).contains(channel));
+    }
+
+    @Test
+    public void concurrentAddsToSameTopicDoNotLoseSubscribers() {
+        List<Channel> channels = IntStream.range(0, SUBSCRIBER_COUNT)
+                .mapToObj(i -> mock(Channel.class))
+                .collect(Collectors.toList());
+        channels.parallelStream().forEach(channel -> repository.add(channel,
+                Collections.singletonList(new MqttTopicSubscription(CONCURRENT_TOPIC, MqttQoS.AT_MOST_ONCE))));
+        await().atMost(Duration.ofSeconds(10)).until(() -> repository.get(CONCURRENT_TOPIC).size() == SUBSCRIBER_COUNT);
+    }
+
+    @Test
+    public void concurrentAddsForTopicsDoNotLoseChannels() {
+        List<Channel> channels = IntStream.range(0, SUBSCRIBER_COUNT)
+                .mapToObj(i -> mock(Channel.class))
+                .collect(Collectors.toList());
+        channels.parallelStream().forEach(channel -> repository.add(
+                Collections.singletonList(CONCURRENT_TOPICS_TOPIC), Collections.singletonList(channel)));
+        await().atMost(Duration.ofSeconds(10)).until(() -> repository.get(CONCURRENT_TOPICS_TOPIC).size() == SUBSCRIBER_COUNT);
     }
 }
