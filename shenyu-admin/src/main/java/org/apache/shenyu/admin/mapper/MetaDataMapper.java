@@ -185,9 +185,11 @@ public interface MetaDataMapper extends ExistProvider {
     /**
      * the path is existed.
      *
-     * @param path    path
-     * @param exclude exclude
+     * @param path        path
+     * @param namespaceId namespaceId
+     * @param exclude     exclude
      * @return existed
      */
-    Boolean pathExistedExclude(@Param("path") Serializable path, @Param("exclude") List<String> exclude);
+    Boolean pathExistedExclude(@Param("path") Serializable path, @Param("namespaceId") String namespaceId,
+                               @Param("exclude") List<String> exclude);
 }

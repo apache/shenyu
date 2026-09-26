@@ -92,7 +92,7 @@ public final class SofaUpstream extends CommonUpstream {
      * @param registry registry
      */
     public void setRegister(final String registry) {
-        this.register = register;
+        this.register = registry;
     }
 
     /**
