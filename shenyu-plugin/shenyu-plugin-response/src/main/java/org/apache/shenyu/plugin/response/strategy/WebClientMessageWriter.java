@@ -67,7 +67,10 @@ public class WebClientMessageWriter implements MessageWriter {
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return chain.execute(exchange).then(Mono.defer(() -> {
+        Mono<Void> chainResult = Mono.defer(() -> chain.execute(exchange))
+                .doOnError(error -> clean(exchange))
+                .doOnCancel(() -> clean(exchange));
+        return chainResult.then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
 
             ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
