@@ -17,14 +17,17 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.Duration;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -42,19 +45,25 @@ public class RetryStrategyTest {
 
         // Create a simulated ServerWebExchange
         ServerWebExchange exchange = mock(ServerWebExchange.class);
-        Duration duration = Duration.ofSeconds(5);
+        Duration duration = Duration.ofSeconds(30);
         int retryTimes = 3;
 
-        // Create a mock response Mono that throws an exception
-        Mono<String> response = Mono.error(new RuntimeException("Test error"));
+        // Create a mock response Mono that throws a network exception
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(new IOException("Test error"));
+        });
 
         // Execute retry policy
         Mono<String> result = strategy.execute(response, exchange, duration, retryTimes);
 
         // Use StepVerifier to verify results
-        StepVerifier.create(result)
-                .expectError(RuntimeException.class)
+        StepVerifier.withVirtualTime(() -> result)
+                .thenAwait(Duration.ofSeconds(30))
+                .expectError(IllegalStateException.class)
                 .verify();
+        assertEquals(retryTimes + 1, attempts.get());
     }
 
     @Test

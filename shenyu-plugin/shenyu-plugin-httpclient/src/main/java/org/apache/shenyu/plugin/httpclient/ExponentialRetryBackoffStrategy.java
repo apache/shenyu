@@ -62,7 +62,6 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
                 .transientErrors(true)
                 // Add 50% random jitter to the delay time of each retry
                 .jitter(0.5d)
-                .filter(t -> t instanceof IllegalStateException)
                 // When the maximum number of retrys is reached, a specified exception is thrown
                 .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                     throw new IllegalStateException("Retry limit exceeded");
