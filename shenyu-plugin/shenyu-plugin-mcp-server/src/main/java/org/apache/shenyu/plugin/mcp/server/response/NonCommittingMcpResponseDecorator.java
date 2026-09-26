@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
@@ -147,9 +148,13 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         final StringBuilder responseBuilder = new StringBuilder();
 
         for (DataBuffer buffer : dataBuffers) {
-            final byte[] bytes = new byte[buffer.readableByteCount()];
-            buffer.read(bytes);
-            responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
+            try {
+                final byte[] bytes = new byte[buffer.readableByteCount()];
+                buffer.read(bytes);
+                responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
+            } finally {
+                DataBufferUtils.release(buffer);
+            }
         }
 
         return responseBuilder.toString();
