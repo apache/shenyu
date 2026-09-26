@@ -246,7 +246,7 @@ public class ApiBean {
         final ApiBean copy = new ApiBean(clientName, beanName, beanInstance, beanPath);
         beanProperties.forEach((k, v) -> copy.addProperties(k.toString(), Objects.toString(v)));
         for (ApiDefinition definition : apiDefinitions) {
-            final ApiDefinition newDefinition = new ApiDefinition(this, definition.apiMethod, definition.methodPath);
+            final ApiDefinition newDefinition = new ApiDefinition(copy, definition.apiMethod, definition.methodPath);
             definition.apiProperties.forEach((k, v) -> newDefinition.addProperties(k.toString(), Objects.toString(v)));
             copy.apiDefinitions.add(newDefinition);
         }
