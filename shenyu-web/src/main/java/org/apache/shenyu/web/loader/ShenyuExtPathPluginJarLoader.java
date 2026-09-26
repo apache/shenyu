@@ -41,10 +41,10 @@ public class ShenyuExtPathPluginJarLoader {
      * @return the list
      * @throws IOException the io exception
      */
-    public static synchronized List<PluginJarParser.PluginJar> loadExtendPlugins(final String path) throws IOException {
+    public static synchronized ExtPluginLoadResult loadExtendPlugins(final String path) throws IOException {
         File[] jarFiles = ShenyuPluginPathBuilder.getPluginFile(path).listFiles(file -> file.getName().endsWith(".jar"));
         if (Objects.isNull(jarFiles)) {
-            return Collections.emptyList();
+            return new ExtPluginLoadResult(Collections.emptyList(), Collections.emptySet());
         }
         List<PluginJarParser.PluginJar> uploadPluginJars = new ArrayList<>();
         Set<String> currentPaths = new HashSet<>();
@@ -60,11 +60,45 @@ public class ShenyuExtPathPluginJarLoader {
             uploadPluginJars.add(uploadPluginJar);
         }
         Sets.SetView<String> removePluginSet = Sets.difference(pluginJarName, currentPaths);
+        Set<String> removedPluginNames = new HashSet<>();
         for (String removePath : removePluginSet) {
-            ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(removePath);
+            removedPluginNames.addAll(ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(removePath));
         }
         pluginJarName = currentPaths;
-        return uploadPluginJars;
+        return new ExtPluginLoadResult(uploadPluginJars, removedPluginNames);
+    }
+
+    /**
+     * Ext plugin load result.
+     */
+    public static final class ExtPluginLoadResult {
+
+        private final List<PluginJarParser.PluginJar> pluginJars;
+
+        private final Set<String> removedPluginNames;
+
+        private ExtPluginLoadResult(final List<PluginJarParser.PluginJar> pluginJars, final Set<String> removedPluginNames) {
+            this.pluginJars = pluginJars;
+            this.removedPluginNames = removedPluginNames;
+        }
+
+        /**
+         * Get plugin jars.
+         *
+         * @return plugin jars
+         */
+        public List<PluginJarParser.PluginJar> getPluginJars() {
+            return pluginJars;
+        }
+
+        /**
+         * Get removed plugin names.
+         *
+         * @return removed plugin names
+         */
+        public Set<String> getRemovedPluginNames() {
+            return removedPluginNames;
+        }
     }
 
 }

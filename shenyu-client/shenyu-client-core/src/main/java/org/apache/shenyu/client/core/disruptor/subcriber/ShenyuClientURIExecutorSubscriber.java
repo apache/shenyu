@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -46,8 +47,14 @@ import java.util.concurrent.TimeUnit;
 public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber<URIRegisterDTO> {
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
-    
-    private static final List<URIRegisterDTO> URIS = new CopyOnWriteArrayList<>();
+
+    /**
+     * URIs registered through this subscriber instance only. Instance-scoped so that
+     * subscriber instances from different client contexts in the same JVM never
+     * heartbeat or offline each other's URIs, and re-registered URIs do not
+     * accumulate duplicates in the heartbeat list.
+     */
+    private final List<URIRegisterDTO> uris = new CopyOnWriteArrayList<>();
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
@@ -64,7 +71,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
         executor = new ScheduledThreadPoolExecutor(1, requestFactory);
         
-        executor.scheduleAtFixedRate(() -> URIS.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> uris.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
     }
     
     @Override
@@ -99,8 +106,8 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             }
             ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
-            
-            URIS.add(uriRegisterDTO);
+
+            addUriIfAbsent(uriRegisterDTO);
             
             ShutdownHookManager.get().addShutdownHook(new Thread(() -> {
                 final URIRegisterDTO offlineDTO = new URIRegisterDTO();
@@ -119,5 +126,16 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
         uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
         shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
+    }
+
+    private void addUriIfAbsent(final URIRegisterDTO uriRegisterDTO) {
+        boolean alreadyRegistered = uris.stream().anyMatch(registered ->
+                Objects.equals(registered.getNamespaceId(), uriRegisterDTO.getNamespaceId())
+                        && Objects.equals(registered.getContextPath(), uriRegisterDTO.getContextPath())
+                        && Objects.equals(registered.getHost(), uriRegisterDTO.getHost())
+                        && Objects.equals(registered.getPort(), uriRegisterDTO.getPort()));
+        if (!alreadyRegistered) {
+            uris.add(uriRegisterDTO);
+        }
     }
 }

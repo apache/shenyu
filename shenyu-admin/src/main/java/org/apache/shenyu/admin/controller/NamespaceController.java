@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
@@ -103,7 +104,7 @@ public class NamespaceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult delete(@RequestBody final List<@NotBlank String> ids) {
+    public ShenyuAdminResult delete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, namespaceService.delete(ids));
     }
 
