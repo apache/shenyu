@@ -149,7 +149,7 @@ public class ResourceController {
     public ShenyuAdminResult updateResource(@PathVariable("id") @Valid
                                             @Existed(provider = ResourceMapper.class,
                                                     message = "resource not existed") final String id,
-                                            @RequestBody final ResourceDTO resourceDTO) {
+                                            @Valid @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.update(resourceDTO));
     }
