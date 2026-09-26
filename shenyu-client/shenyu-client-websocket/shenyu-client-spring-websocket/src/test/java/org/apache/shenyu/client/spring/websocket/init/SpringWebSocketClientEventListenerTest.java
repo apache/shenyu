@@ -31,6 +31,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -191,7 +192,15 @@ public class SpringWebSocketClientEventListenerTest {
             fullModeEventListener.onApplicationEvent(event);
             fullModeEventListener.onApplicationEvent(event);
             verify(mockPublisher, times(1)).start(any());
-            verify(mockPublisher, times(1)).publishEvent(any());
+            ArgumentCaptor<MetaDataRegisterDTO> metadataCaptor = ArgumentCaptor.forClass(MetaDataRegisterDTO.class);
+            verify(mockPublisher).publishEvent(metadataCaptor.capture());
+            verify(mockPublisher).publishEvent(any(URIRegisterDTO.class));
+            assertEquals("/contextPath", metadataCaptor.getValue().getContextPath());
+            assertEquals("appName", metadataCaptor.getValue().getAppName());
+            assertEquals(RpcTypeEnum.WEB_SOCKET.getName(), metadataCaptor.getValue().getRpcType());
+            assertEquals("/contextPath", metadataCaptor.getValue().getPath());
+            assertEquals("/contextPath", metadataCaptor.getValue().getRuleName());
+            assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, metadataCaptor.getValue().getNamespaceId());
         }
     }
 

@@ -107,7 +107,18 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             }
             LOG.info("init spring websocket client success with isFull mode");
             List<String> namespaceIds = super.getNamespace();
-            namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId)));
+            namespaceIds.forEach(namespaceId -> {
+                getPublisher().publishEvent(MetaDataRegisterDTO.builder()
+                        .contextPath(getContextPath())
+                        .appName(getAppName())
+                        .path(getContextPath())
+                        .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
+                        .enabled(true)
+                        .ruleName(getContextPath())
+                        .namespaceId(namespaceId)
+                        .build());
+                getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+            });
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
