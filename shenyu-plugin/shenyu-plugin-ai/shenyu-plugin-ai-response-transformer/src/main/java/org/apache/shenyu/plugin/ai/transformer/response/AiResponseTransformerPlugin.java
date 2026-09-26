@@ -72,6 +72,8 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPlugin.class);
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private final List<HttpMessageReader<?>> messageReaders;
 
     private final AiModelFactoryRegistry aiModelFactoryRegistry;
@@ -220,7 +222,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
             if (body.startsWith("{") && body.endsWith("}") || body.startsWith("[") && body.endsWith("]")) {
                 try {
-                    new ObjectMapper().readTree(body);
+                    MAPPER.readTree(body);
                     return body;
                 } catch (Exception e) {
                     LOG.warn("Body is not valid JSON: {}", body);
@@ -333,15 +335,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
                             String messageWithResponseBody;
                             try {
-                                ObjectMapper objectMapper = new ObjectMapper();
-                                JsonNode messageNode = objectMapper.readTree(message);
+                                JsonNode messageNode = MAPPER.readTree(message);
 
                                 if (messageNode.has("response") && messageNode.get("response").isObject()) {
                                     ObjectNode responseNode = (ObjectNode) messageNode.get("response");
                                     responseNode.put("body", finalResponseBody);
                                 }
                                 
-                                messageWithResponseBody = objectMapper.writeValueAsString(messageNode);
+                                messageWithResponseBody = MAPPER.writeValueAsString(messageNode);
                             } catch (Exception e) {
                                 LOG.error("Failed to update message with response body", e);
                                 messageWithResponseBody = message.replace("\"body\":\"\"", "\"body\":\"" + finalResponseBody.replace("\"", "\\\"") + "\"");
@@ -358,10 +359,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
                                         String newBody = extractBodyFromAiResponse(aiResponse);
 
-                                        this.getHeaders().clear();
-                                        this.getHeaders().putAll(newHeaders);
-
                                         if (Objects.nonNull(newBody) && !newBody.isEmpty()) {
+                                            this.getHeaders().clear();
+                                            this.getHeaders().putAll(newHeaders);
                                             LOG.debug("Returning transformed response body: {}", newBody);
                                             return WebFluxResultUtils.result(this.exchange, newBody.getBytes(StandardCharsets.UTF_8));
                                         } else {

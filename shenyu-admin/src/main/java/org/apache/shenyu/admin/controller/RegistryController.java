@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.mapper.RegistryMapper;
@@ -107,7 +108,7 @@ public class RegistryController {
      */
     @DeleteMapping("/batch")
     @RequiresPermissions("system:registry:delete")
-    public ShenyuAdminResult delete(@RequestBody final List<@NotBlank String> ids) {
+    public ShenyuAdminResult delete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, registryService.delete(ids));
     }
 
