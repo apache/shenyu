@@ -17,6 +17,9 @@
 FROM amazoncorretto:17.0.11-alpine3.19
 
 ENV APP_NAME shenyu-examples-apache-dubbo-service
+LABEL org.opencontainers.image.title="${APP_NAME}" \
+      org.opencontainers.image.source="https://github.com/apache/shenyu" \
+      org.opencontainers.image.licenses="Apache-2.0"
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
@@ -24,6 +27,11 @@ RUN mkdir -p ${LOCAL_PATH}
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
+RUN addgroup -S shenyu && \
+    adduser -S shenyu -G shenyu -h /home/shenyu && \
+    chown -R shenyu:shenyu ${LOCAL_PATH}
+USER shenyu
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "wget -q -O - http://127.0.0.1:8011/actuator/health | grep -q UP"]
 EXPOSE 8011
 EXPOSE 20888
 
