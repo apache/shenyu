@@ -15,151 +15,34 @@
  * limitations under the License.
  */
 
+
 package org.apache.shenyu.register.client.api.retry;
 
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
-import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-/**
- * Test case for {@link FailureRegistryTask}.
- */
-public final class FailureRegistryTaskTest {
-
-    private static final String TEST_KEY = "test-key";
-
-    @Mock
-    private FailbackRegistryRepository mockRepository;
-
-    @Mock
-    private TimerTask mockTimerTask;
-
-    private FailureRegistryTask failureRegistryTask;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        failureRegistryTask = new FailureRegistryTask(TEST_KEY, mockRepository);
-    }
-
+class FailureRegistryTaskTest {
 
     @Test
-    public void testDoRetry() {
-        doNothing().when(mockRepository).accept(anyString());
-        doNothing().when(mockRepository).remove(anyString());
-        
-        failureRegistryTask.doRetry(TEST_KEY, mockTimerTask);
-        
-        verify(mockRepository, times(1)).accept(TEST_KEY);
-        verify(mockRepository, times(1)).remove(TEST_KEY);
+    void delegatesToAtomicRetry() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        new FailureRegistryTask("key", repository).doRetry("key", mock(TimerTask.class));
+        verify(repository).retry("key");
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
-    public void testDoRetryWithException() {
-
-        doNothing().when(mockRepository).accept(anyString());
-        doNothing().when(mockRepository).remove(anyString());
-        
-        // This should not throw an exception
-        failureRegistryTask.doRetry(TEST_KEY, mockTimerTask);
-        
-        verify(mockRepository, times(1)).accept(TEST_KEY);
-        verify(mockRepository, times(1)).remove(TEST_KEY);
-    }
-
-    @Test
-    public void testMultipleRetries() {
-
-        doNothing().when(mockRepository).accept(anyString());
-        doNothing().when(mockRepository).remove(anyString());
-        
-        // Test multiple retry calls
-        for (int i = 0; i < 3; i++) {
-            failureRegistryTask.doRetry(TEST_KEY, mockTimerTask);
-        }
-        
-        verify(mockRepository, times(3)).accept(TEST_KEY);
-        verify(mockRepository, times(3)).remove(TEST_KEY);
-    }
-
-    @Test
-    public void testDifferentKeys() {
-        final String key1 = "key1";
-        final String key2 = "key2";
-        
-        doNothing().when(mockRepository).accept(anyString());
-        doNothing().when(mockRepository).remove(anyString());
-        
-        failureRegistryTask.doRetry(key1, mockTimerTask);
-        failureRegistryTask.doRetry(key2, mockTimerTask);
-        
-        verify(mockRepository, times(1)).accept(key1);
-        verify(mockRepository, times(1)).remove(key1);
-        verify(mockRepository, times(1)).accept(key2);
-        verify(mockRepository, times(1)).remove(key2);
-    }
-
-    @Test
-    public void testTaskWithDifferentRepository() {
-        TestFailbackRegistryRepository testRepository = new TestFailbackRegistryRepository();
-        FailureRegistryTask task = new FailureRegistryTask("test", testRepository);
-        
-        task.doRetry("test", mockTimerTask);
-        
-        assertTrue(testRepository.acceptCalled);
-        assertTrue(testRepository.removeCalled);
-    }
-
-    /**
-     * Test implementation of FailbackRegistryRepository for testing.
-     */
-    private static class TestFailbackRegistryRepository extends FailbackRegistryRepository {
-        
-        private boolean acceptCalled;
-        
-        private boolean removeCalled;
-
-        @Override
-        public void accept(final String key) {
-            acceptCalled = true;
-        }
-
-        @Override
-        public void remove(final String key) {
-            removeCalled = true;
-        }
-
-        @Override
-        protected void doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-            /* Test implementation */
-        }
-
-        @Override
-        protected void doPersistURI(final URIRegisterDTO registerDTO) {
-            /* Test implementation */
-        }
-
-        @Override
-        protected void doPersistInterface(final MetaDataRegisterDTO registerDTO) {
-            /* Test implementation */
-        }
-
-        @Override
-        protected void doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
-            /* Test implementation */
-        }
+    void propagatesFailureForRescheduling() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        doThrow(new IllegalStateException("offline")).when(repository).retry("key");
+        FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        assertThrows(IllegalStateException.class, () -> task.doRetry("key", mock(TimerTask.class)));
     }
 }

@@ -173,12 +173,11 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     private <T> void addToFail(final Holder t) {
-        Holder oldObj = concurrentHashMap.get(t.getKey());
+        Holder oldObj = concurrentHashMap.putIfAbsent(t.getKey(), t);
         if (Objects.nonNull(oldObj)) {
             return;
         }
         FailureRegistryTask registryTask = new FailureRegistryTask(t.getKey(), this);
-        concurrentHashMap.put(t.getKey(), t);
         timer.add(registryTask);
         logger.warn("Add to failback and wait for execution, {}", t.getPath());
     }
@@ -202,6 +201,30 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder)) {
             return;
         }
+        persist(holder);
+    }
+
+    /**
+     * Retry a pending registration without removing failures queued during the attempt.
+     *
+     * @param key the registration key
+     */
+    public void retry(final String key) {
+        Holder holder = concurrentHashMap.remove(key);
+        if (Objects.isNull(holder)) {
+            return;
+        }
+        try {
+            persist(holder);
+        } catch (RuntimeException ex) {
+            // A newer failure has its own timer task; otherwise retain this task's retry.
+            if (Objects.isNull(concurrentHashMap.putIfAbsent(key, holder))) {
+                throw ex;
+            }
+        }
+    }
+
+    private void persist(final Holder holder) {
         String type = holder.getType();
         switch (type) {
             case Constants.URI:
