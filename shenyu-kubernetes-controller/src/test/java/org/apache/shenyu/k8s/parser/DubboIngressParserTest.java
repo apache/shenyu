@@ -25,9 +25,12 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPathBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
@@ -158,6 +161,33 @@ public class DubboIngressParserTest {
         annotations.put(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "");
         List<DubboUpstream> upstreams = assertDoesNotThrow(() -> parseAndGetUpstreams(annotations));
         assertNotNull(upstreams);
+    }
+
+    @Test
+    public void shouldIgnorePathWhenEndpointsAreMissing() {
+        Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
+
+        ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> parser.parse(
+                createIngress(null, Collections.emptyMap(), true), null));
+
+        Assertions.assertEquals("[]", config.getRouteConfigList().get(0).getSelectorData().getHandle());
+    }
+
+    @Test
+    public void shouldIgnoreDefaultBackendWhenEndpointsAreMissing() {
+        Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
+        V1Ingress ingress = new V1IngressBuilder().withNewMetadata().withName("test-ingress").withNamespace(NAMESPACE)
+                .withAnnotations(Collections.emptyMap()).withLabels(Collections.emptyMap()).endMetadata()
+                .withNewSpec().withDefaultBackend(new V1IngressBackend()
+                        .service(new V1IngressServiceBackend().name(SERVICE_NAME)
+                                .port(new V1ServiceBackendPort().number(8080))))
+                .endSpec().build();
+
+        ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> parser.parse(ingress, null));
+
+        Assertions.assertEquals("[]", config.getGlobalDefaultBackend().getRight().getSelectorData().getHandle());
     }
 
     @Test

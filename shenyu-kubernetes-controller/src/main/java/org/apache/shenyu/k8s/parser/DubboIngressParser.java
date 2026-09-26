@@ -159,6 +159,10 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             String serviceName = defaultBackend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for dubbo default backend", serviceName);
+                return dubboUpstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
@@ -336,6 +340,10 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                 && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
             String serviceName = path.getBackend().getService().getName();
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for dubbo backend", serviceName);
+                return upstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocols = null;
             if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)
