@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.WebsocketData;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -118,6 +119,38 @@ public class ShenyuWebsocketClientTest {
         String json = GsonUtils.getInstance().toJson(websocketData);
         shenyuWebsocketClient.onMessage(json);
         verify(pluginDataSubscriber).onSubscribe(any());
+    }
+
+    @Test
+    void testInitialSyncRequiresCompletionAfterCallback() throws ReflectiveOperationException {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        Field field = ShenyuWebsocketClient.class.getDeclaredField("initialSyncState");
+        field.setAccessible(true);
+        field.set(shenyuWebsocketClient, state);
+        String id = state.begin();
+        shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(
+                new WebsocketSyncFrame(id, 0, GsonUtils.getInstance().toJson(websocketData))));
+        verify(pluginDataSubscriber).onSubscribe(any());
+        assertFalse(ready.get());
+        shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(id, 1, null)));
+        assertTrue(ready.get());
+    }
+
+    @Test
+    void testInitialSyncCallbackFailureRejectsCompletion() throws ReflectiveOperationException {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        Field field = ShenyuWebsocketClient.class.getDeclaredField("initialSyncState");
+        field.setAccessible(true);
+        field.set(shenyuWebsocketClient, state);
+        String id = state.begin();
+        doThrow(new IllegalStateException("apply failed")).when(pluginDataSubscriber).onSubscribe(any());
+        shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(
+                new WebsocketSyncFrame(id, 0, GsonUtils.getInstance().toJson(websocketData))));
+        shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(id, 1, null)));
+        assertFalse(ready.get());
+        assertTrue(state.needsReconnect());
     }
 
     @Test

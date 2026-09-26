@@ -32,7 +32,7 @@ import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
  */
 public class WebsocketDataHandler {
 
-    private static final EnumMap<ConfigGroupEnum, DataHandler> ENUM_MAP = new EnumMap<>(ConfigGroupEnum.class);
+    private final EnumMap<ConfigGroupEnum, DataHandler> handlers = new EnumMap<>(ConfigGroupEnum.class);
 
     /**
      * Instantiates a new Websocket data handler.
@@ -47,14 +47,14 @@ public class WebsocketDataHandler {
                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers) {
-        ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataHandler(pluginDataSubscriber));
-        ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataHandler(pluginDataSubscriber));
-        ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
-        ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AuthDataHandler(authDataSubscribers));
-        ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
-        ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
-        ENUM_MAP.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataHandler(discoveryUpstreamDataSubscribers));
-        ENUM_MAP.put(ConfigGroupEnum.AI_PROXY_API_KEY, new AiProxyApiKeyDataHandler(aiProxyApiKeyDataSubscribers));
+        handlers.put(ConfigGroupEnum.PLUGIN, new PluginDataHandler(pluginDataSubscriber));
+        handlers.put(ConfigGroupEnum.SELECTOR, new SelectorDataHandler(pluginDataSubscriber));
+        handlers.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
+        handlers.put(ConfigGroupEnum.APP_AUTH, new AuthDataHandler(authDataSubscribers));
+        handlers.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
+        handlers.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
+        handlers.put(ConfigGroupEnum.DISCOVER_UPSTREAM, new DiscoveryUpstreamDataHandler(discoveryUpstreamDataSubscribers));
+        handlers.put(ConfigGroupEnum.AI_PROXY_API_KEY, new AiProxyApiKeyDataHandler(aiProxyApiKeyDataSubscribers));
     }
 
     /**
@@ -65,7 +65,7 @@ public class WebsocketDataHandler {
      * @param eventType the event type
      */
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
-        ENUM_MAP.get(type).handle(json, eventType);
+        handlers.get(type).handle(json, eventType);
     }
 
 }

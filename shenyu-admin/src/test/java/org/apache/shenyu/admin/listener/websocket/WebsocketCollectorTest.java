@@ -29,8 +29,10 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -140,6 +143,64 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testInitialSyncFramesAndEmptyCompletion() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "configuration", DataEventTypeEnum.MYSELF);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrame data = GsonUtils.getInstance().fromJson(messages.getAllValues().get(0), WebsocketSyncFrame.class);
+        final WebsocketSyncFrame end = GsonUtils.getInstance().fromJson(messages.getAllValues().get(1), WebsocketSyncFrame.class);
+        assertEquals(id, data.getRequestId());
+        assertEquals(0, data.getSequence());
+        assertEquals("configuration", data.getPayload());
+        assertEquals(id, end.getRequestId());
+        assertEquals(1, end.getSequence());
+        assertNull(end.getPayload());
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(async, times(3)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrame empty = GsonUtils.getInstance().fromJson(messages.getValue(), WebsocketSyncFrame.class);
+        assertEquals(0, empty.getSequence());
+        assertNull(empty.getPayload());
+        websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testFailedInitialSyncDoesNotSendCompletion() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenThrow(new IllegalStateException("snapshot unavailable"));
+        assertThrows(IllegalStateException.class,
+                () -> websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session));
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertNull(ThreadLocalUtils.get("sessionKey"));
+    }
+
+    @Test
+    void testFollowerCannotCompleteInitialSync() {
+        ClusterProperties properties = new ClusterProperties();
+        properties.setEnabled(true);
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(properties);
+        ClusterSelectMasterService master = mock(ClusterSelectMasterService.class);
+        when(SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class)).thenReturn(master);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(syncDataService, never()).syncAllByNamespaceId(any(), anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test
