@@ -300,7 +300,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private String update(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), metaDataDTO.getNamespaceId(),
+                Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));

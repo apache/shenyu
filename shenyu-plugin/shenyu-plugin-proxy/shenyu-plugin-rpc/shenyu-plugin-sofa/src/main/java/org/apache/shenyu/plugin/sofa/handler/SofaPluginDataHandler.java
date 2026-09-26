@@ -27,12 +27,23 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 
+import com.google.common.collect.Maps;
+
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * The type sofa plugin data handler.
  */
 public class SofaPluginDataHandler implements PluginDataHandler {
+
+    /**
+     * Last seen sofa upstream config per selector id. The reference cache's
+     * upstream map is keyed by the full reference cache key (selector id,
+     * metadata path, protocol and registry hash), so the last-seen config is
+     * tracked here to detect whether a selector update really changed it.
+     */
+    private static final Map<String, SofaUpstream> SELECTOR_UPSTREAM_MAP = Maps.newConcurrentMap();
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -54,19 +65,26 @@ public class SofaPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         SofaUpstream nCacheUpstreams = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SofaUpstream.class);
-        SofaUpstream oCacheUpstream = ApplicationConfigCache.getInstance().getUpstream(selectorData.getId());
+        SofaUpstream oCacheUpstream = SELECTOR_UPSTREAM_MAP.get(selectorData.getId());
         if (!Objects.equals(nCacheUpstreams, oCacheUpstream)) {
             ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
+            if (Objects.isNull(nCacheUpstreams)) {
+                SELECTOR_UPSTREAM_MAP.remove(selectorData.getId());
+            } else {
+                SELECTOR_UPSTREAM_MAP.put(selectorData.getId(), nCacheUpstreams);
+            }
         }
     }
 
     @Override
     public void removePlugin(final PluginData pluginData) {
+        SELECTOR_UPSTREAM_MAP.clear();
         ApplicationConfigCache.getInstance().invalidateAll();
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        SELECTOR_UPSTREAM_MAP.remove(selectorData.getId());
         ApplicationConfigCache.getInstance().invalidateWithSelectorId(selectorData.getId());
     }
 
