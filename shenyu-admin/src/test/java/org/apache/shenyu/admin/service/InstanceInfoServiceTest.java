@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -31,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -127,6 +130,14 @@ public final class InstanceInfoServiceTest {
         v.setDateCreated(new Timestamp(System.currentTimeMillis()));
         v.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return v;
+    }
+
+    @Test
+    public void testListByPageIsPageable() throws NoSuchMethodException {
+        // instance_info is a TEXT column holding the whole instance metadata JSON, so without
+        // @Pageable one list request loads every row of the namespace into memory
+        Method listByPage = InstanceInfoServiceImpl.class.getDeclaredMethod("listByPage", InstanceQuery.class);
+        assertTrue(listByPage.isAnnotationPresent(Pageable.class));
     }
 
     private InstanceInfoDO buildDO() {
