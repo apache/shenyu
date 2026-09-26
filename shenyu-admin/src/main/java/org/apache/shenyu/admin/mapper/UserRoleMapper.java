@@ -90,4 +90,12 @@ public interface UserRoleMapper {
      * @return the count of deleted
      */
     int deleteByUserIdList(@Param("userIdList") List<String> userIdList);
+
+    /**
+     * Delete user roles by role ids.
+     *
+     * @param roleIdList role ids
+     * @return the count of deleted rows
+     */
+    int deleteByRoleIdList(@Param("roleIdList") List<String> roleIdList);
 }
