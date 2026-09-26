@@ -81,7 +81,8 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
         final ScalePolicyDO scalePolicy = ScalePolicyDO.buildScalePolicyDO(scalePolicyDTO);
         int rows = scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
         if (rows > 0) {
-            scalePolicyCache.updatePolicy(scalePolicy);
+            ScalePolicyDO updatedPolicy = scalePolicyMapper.selectByPrimaryKey(scalePolicy.getId());
+            scalePolicyCache.updatePolicy(updatedPolicy);
             scaleService.executeScaling();
         }
         return rows;
