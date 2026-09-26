@@ -57,6 +57,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.zip.GZIPInputStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -321,5 +323,18 @@ class AiResponseTransformerPluginTest {
         String aiResponse = "```\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n[{\"id\":1,\"name\":\"test\"}]\n```";
         String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
         assertEquals("[{\"id\":1,\"name\":\"test\"}]", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseReusesObjectMapper() {
+        // initialize the plugin class (and its static mapper) before the constructor instrumentation is installed
+        AiResponseTransformerPlugin.extractBodyFromAiResponse("{\"status\":\"success\"}");
+
+        try (MockedConstruction<ObjectMapper> mockedMappers = mockConstruction(ObjectMapper.class)) {
+            String body = AiResponseTransformerPlugin
+                    .extractBodyFromAiResponse("HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}");
+            assertEquals("{\"status\":\"success\"}", body);
+            assertEquals(0, mockedMappers.constructed().size());
+        }
     }
 }
