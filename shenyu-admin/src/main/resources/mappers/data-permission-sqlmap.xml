@@ -156,6 +156,12 @@
         </trim>
     </insert>
 
+    <select id="selectUserIds" resultType="java.lang.String">
+        SELECT user_id FROM data_permission
+        WHERE data_id = #{dataId,jdbcType=VARCHAR}
+        AND data_type = #{dataType,jdbcType=INTEGER}
+    </select>
+
     <insert id="insertBatch">
         INSERT INTO data_permission (id,
                                      user_id,
@@ -170,6 +176,17 @@
                     #{dataPermission.dataType,jdbcType=INTEGER}
                     )
                     </foreach>
+    </insert>
+
+    <insert id="insertBatch" databaseId="oracle">
+        INSERT INTO data_permission (id, user_id, data_id, data_type)
+        <foreach collection="dataPermissionList" item="permission" separator=" UNION ALL ">
+            SELECT CAST(#{permission.id,jdbcType=VARCHAR} AS VARCHAR2(128)),
+                   CAST(#{permission.userId,jdbcType=VARCHAR} AS VARCHAR2(128)),
+                   CAST(#{permission.dataId,jdbcType=VARCHAR} AS VARCHAR2(128)),
+                   CAST(#{permission.dataType,jdbcType=INTEGER} AS NUMBER(10))
+            FROM dual
+        </foreach>
     </insert>
 
 </mapper>
