@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.plugin.metrics.prometheus;
 
+import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public final class PrometheusMetricsRegisterTest {
 
     private final PrometheusMetricsRegister prometheusMetricsRegister = new PrometheusMetricsRegister();
+
+    @BeforeEach
+    @AfterEach
+    void resetRegistry() {
+        prometheusMetricsRegister.clean();
+        CollectorRegistry.defaultRegistry.clear();
+    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -84,6 +94,18 @@ public final class PrometheusMetricsRegisterTest {
         prometheusMetricsRegister.gaugeDecrement(name, labelNames);
         Assertions.assertEquals(gauge.labels(labelNames).get(), 0.0);
         prometheusMetricsRegister.clean();
+    }
+
+    @Test
+    void testFractionalObservationAndExplicitBuckets() {
+        String name = "test_fractional_duration_seconds";
+        prometheusMetricsRegister.registerHistogram(name, new String[]{"rule"}, "fractional duration", new double[]{0.00001, 0.0001, 0.001});
+        prometheusMetricsRegister.observe(name, new String[]{"rule-a"}, 0.00008);
+        Assertions.assertEquals(0.00008, CollectorRegistry.defaultRegistry.getSampleValue(name + "_sum", new String[]{"rule"}, new String[]{"rule-a"}), 0.000000001);
+        Assertions.assertEquals(0.0, CollectorRegistry.defaultRegistry.getSampleValue(name + "_bucket",
+                new String[]{"rule", "le"}, new String[]{"rule-a", "1.0E-5"}));
+        Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(name + "_bucket",
+                new String[]{"rule", "le"}, new String[]{"rule-a", "1.0E-4"}));
     }
 
     @Test

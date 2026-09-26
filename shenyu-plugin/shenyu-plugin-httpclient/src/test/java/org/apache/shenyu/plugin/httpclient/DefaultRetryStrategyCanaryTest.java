@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,6 +78,8 @@ class DefaultRetryStrategyCanaryTest {
     @Test
     void testInitialStableFallbackRemainsStable() {
         ServerWebExchange exchange = exchange("stable", "s1:8080");
+        CanaryContext observation = new CanaryContext("selector", "rule", "canary", "stable", CanaryContext.CANARY_POOL_EMPTY, null, 80_000);
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_CONTEXT, observation);
         AbstractHttpClientPlugin<String> client = mock(AbstractHttpClientPlugin.class);
         when(client.doRequest(eq(exchange), anyString(), eq(URI.create("http://s2:8080/test")), any())).thenReturn(Mono.just("stable response"));
         UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
@@ -87,6 +91,7 @@ class DefaultRetryStrategyCanaryTest {
         }
         verify(client).doRequest(eq(exchange), anyString(), eq(URI.create("http://s2:8080/test")), any());
         assertEquals("stable", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+        assertSame(observation, exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT));
     }
 
     @Test

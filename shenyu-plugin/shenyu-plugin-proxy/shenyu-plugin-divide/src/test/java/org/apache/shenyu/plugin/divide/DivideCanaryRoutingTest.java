@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -55,9 +56,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -116,6 +121,14 @@ class DivideCanaryRoutingTest {
         ShenyuPluginChain chain = current -> {
             assertEquals("canary", current.getAttribute(Constants.SHENYU_CANARY_PARTITION));
             assertEquals("http://canary:8080", current.getAttribute(Constants.HTTP_DOMAIN));
+            CanaryContext observation = current.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+            assertEquals(rule.getId(), observation.getRuleId());
+            assertEquals(selector.getId(), observation.getSelectorId());
+            assertEquals("canary", observation.getIntendedPartition());
+            assertEquals("canary", observation.getActualPartition());
+            assertNull(observation.getFallbackReason());
+            assertNull(observation.getRejectReason());
+            assertTrue(observation.getDecisionDurationNanos() >= 0);
             return Mono.error(new IllegalStateException("backend failed"));
         };
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(wrongRegion, canary))) {
@@ -136,6 +149,11 @@ class DivideCanaryRoutingTest {
         }
         assertEquals("stable", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
         assertEquals(Map.of("release", "stable"), exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertEquals("canary", observation.getIntendedPartition());
+        assertEquals("stable", observation.getActualPartition());
+        assertEquals(CanaryContext.CANARY_POOL_EMPTY, observation.getFallbackReason());
+        assertNull(observation.getRejectReason());
     }
 
     @Test
@@ -175,6 +193,10 @@ class DivideCanaryRoutingTest {
         }
         verifyNoInteractions(chain);
         assertNull(exchange.getResponse().getStatusCode());
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertNull(observation.getActualPartition());
+        assertNull(observation.getFallbackReason());
+        assertEquals(CanaryContext.NO_UPSTREAM_SELECTED, observation.getRejectReason());
     }
 
     @Test
@@ -205,6 +227,9 @@ class DivideCanaryRoutingTest {
             StepVerifier.create(plugin.doExecute(stableRequest, current -> Mono.empty(), selector, rule)).verifyComplete();
             assertEquals("http://stable:8080", stableRequest.getAttribute(Constants.HTTP_DOMAIN));
             assertEquals("stable", stableRequest.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+            CanaryContext observation = stableRequest.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+            assertEquals("stable", observation.getIntendedPartition());
+            assertEquals("stable", observation.getActualPartition());
             config.setEnabled(true);
             config.setPercentage(100);
             ServerWebExchange canaryRequest = exchange(null);
@@ -260,6 +285,51 @@ class DivideCanaryRoutingTest {
         verifyNoInteractions(chain, decisions);
     }
 
+    @Test
+    void testObservationCallbackCannotBreakRouting() {
+        ServerWebExchange exchange = exchange(null);
+        AtomicInteger callbacks = new AtomicInteger();
+        exchange.getAttributes().put(Constants.METRICS_CANARY, (Consumer<CanaryContext>) observation -> {
+            callbacks.incrementAndGet();
+            throw new IllegalStateException("metrics failed");
+        });
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("stable:8080", Map.of("release", "stable"))))) {
+            StepVerifier.create(plugin.doExecute(exchange, current -> Mono.empty(), selector, rule)).verifyComplete();
+        }
+        assertEquals(1, callbacks.get());
+        assertEquals("http://stable:8080", exchange.getAttribute(Constants.HTTP_DOMAIN));
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertEquals(CanaryContext.CANARY_POOL_EMPTY, observation.getFallbackReason());
+    }
+
+    @Test
+    void testFailedStableFallbackKeepsOriginalCanaryIntent() {
+        ServerWebExchange exchange = exchange(null);
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("unlabelled:8080", Map.of())))) {
+            StepVerifier.create(plugin.doExecute(exchange, current -> Mono.empty(), selector, rule)).verifyComplete();
+        }
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertEquals("canary", observation.getMetricPartition());
+        assertNull(observation.getActualPartition());
+        assertNull(observation.getFallbackReason());
+        assertEquals(CanaryContext.STABLE_POOL_EMPTY, observation.getRejectReason());
+    }
+
+    @Test
+    void testLoadBalancerExceptionStillPublishesDecision() {
+        ServerWebExchange exchange = exchange(null);
+        try (MockedStatic<LoadbalancerUtils> balance = mockStatic(LoadbalancerUtils.class);
+                MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("stable:8080", Map.of("release", "stable"))))) {
+            balance.when(() -> LoadbalancerUtils.getForExchange(anyList(), anyString(), any())).thenThrow(new IllegalStateException("balance failed"));
+            assertThrows(IllegalStateException.class, () -> plugin.doExecute(exchange, current -> Mono.empty(), selector, rule));
+        }
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertNotNull(observation);
+        assertNull(observation.getFallbackReason());
+        assertNull(observation.getRejectReason());
+        assertEquals("canary", observation.getIntendedPartition());
+    }
+
     private void assertRejected(final List<Upstream> upstreams) {
         ServerWebExchange exchange = exchange(null);
         ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
@@ -269,14 +339,22 @@ class DivideCanaryRoutingTest {
         verifyNoInteractions(chain);
         assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
         assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
         if (!upstreams.isEmpty()) {
             assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+            assertNotNull(observation);
+            assertNull(observation.getActualPartition());
+            assertNull(observation.getFallbackReason());
+            assertNotNull(observation.getRejectReason());
+        } else {
+            assertNull(observation);
         }
     }
 
     private void assertLegacy(final ServerWebExchange exchange, final String domain) {
         StepVerifier.create(plugin.doExecute(exchange, current -> Mono.empty(), selector, rule)).verifyComplete();
         assertEquals(domain, exchange.getAttribute(Constants.HTTP_DOMAIN));
+        assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT));
         assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
         assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
     }

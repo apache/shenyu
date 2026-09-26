@@ -18,11 +18,13 @@
 package org.apache.shenyu.plugin.metrics.reporter;
 
 import org.apache.shenyu.plugin.metrics.config.Metric;
+import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -42,13 +44,22 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.REQUEST_TOTAL, "shenyu request total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_TYPE_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_THROW_TOTAL, "shenyu request error total count");
-        MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
+        MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, new String[]{"partition"}, "the shenyu executor latency millis",
+                new double[]{1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 30000});
         MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, "shenyu sentinel request restrict total count");
         MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu sentinel circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, "shenyu resilience4j request restrict total count");
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu resilience4j circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu hystrix circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
+        for (CanaryMetric metric : CanaryMetric.values()) {
+            double[] buckets = metric.getBuckets();
+            if (Objects.isNull(buckets)) {
+                MetricsReporter.registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
+            } else {
+                MetricsReporter.registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), buckets);
+            }
+        }
     }
 
     /**
@@ -125,6 +136,18 @@ public final class MetricsReporter {
      */
     public static void registerHistogram(final String name, final String[] labelNames, final String document) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerHistogram(name, labelNames, document));
+    }
+
+    /**
+     * Registers a histogram with explicit bucket boundaries.
+     *
+     * @param name metric name
+     * @param labelNames label names
+     * @param document metric description
+     * @param buckets bucket boundaries in the metric's unit
+     */
+    public static void registerHistogram(final String name, final String[] labelNames, final String document, final double[] buckets) {
+        Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerHistogram(name, labelNames, document, buckets));
     }
 
     /**
@@ -224,6 +247,17 @@ public final class MetricsReporter {
      */
     public static void recordTime(final String name, final long duration) {
         recordTime(name, null, duration);
+    }
+
+    /**
+     * Records a fractional histogram observation without truncation or unit conversion.
+     *
+     * @param name metric name
+     * @param labelValues label values
+     * @param value observation in the metric's unit
+     */
+    public static void observe(final String name, final String[] labelValues, final double value) {
+        Optional.ofNullable(metricsRegister).ifPresent(register -> register.observe(name, labelValues, value));
     }
 
     /**
