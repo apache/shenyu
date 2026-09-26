@@ -152,8 +152,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                 alertReceiverReference.set(dtoList);
             }
             return dtoList.stream().filter(item -> {
-                if (item.isEnable()) {
-                    if (item.isMatchAll()) {
+                if (Boolean.TRUE.equals(item.getEnable())) {
+                    if (Boolean.TRUE.equals(item.getMatchAll())) {
                         return true;
                     }
 
