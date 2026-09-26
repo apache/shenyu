@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +41,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -102,6 +105,18 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.onSubscribe(pluginData);
         assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
+    }
+
+    @Test
+    void testInitialSyncPropagatesHandlerFailureWithoutChangingLegacyBehavior() {
+        PluginDataHandler handler = mock(PluginDataHandler.class);
+        org.mockito.Mockito.when(handler.pluginNamed()).thenReturn(mockName1);
+        PluginData data = PluginData.builder().name(mockName1).build();
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerPlugin(data);
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(handler));
+        assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(() -> commonPluginDataSubscriber.onSubscribe(data)));
+        assertFalse(InitialSyncApplication.isActive());
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.onSubscribe(data));
     }
 
     @Test

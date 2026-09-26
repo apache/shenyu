@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -53,6 +54,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -78,6 +80,8 @@ public class WebsocketCollector {
     private static final Map<Session, String> SESSION_NAMESPACE_IDS = Maps.newConcurrentMap();
     
     private static final String SESSION_KEY = "sessionKey";
+
+    private static final ThreadLocal<InitialSync> INITIAL_SYNC = new ThreadLocal<>();
     
     /**
      * On open.
@@ -155,6 +159,10 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
+        if (message.startsWith(WebsocketSyncFrame.REQUEST_PREFIX)) {
+            initialSync(message.substring(WebsocketSyncFrame.REQUEST_PREFIX.length()), session);
+            return;
+        }
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
                 && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())
                 && !message.contains("bootstrapInstanceInfo")) {
@@ -317,8 +325,38 @@ public class WebsocketCollector {
         
     }
     
+    private void initialSync(final String requestId, final Session session) {
+        UUID.fromString(requestId);
+        ClusterProperties properties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
+        if (properties.isEnabled()
+                && !SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster()) {
+            return;
+        }
+        InitialSync sync = new InitialSync(session, requestId);
+        try {
+            INITIAL_SYNC.set(sync);
+            ThreadLocalUtils.put(SESSION_KEY, session);
+            boolean success = SpringBeanUtils.getInstance().getBean(SyncDataService.class)
+                    .syncAllByNamespaceId(DataEventTypeEnum.MYSELF, getNamespaceId(session));
+            if (success && (!properties.isEnabled()
+                    || SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster())) {
+                SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
+                        .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(requestId, sync.sequence, null)));
+            }
+        } finally {
+            INITIAL_SYNC.remove();
+            ThreadLocalUtils.clear();
+        }
+    }
+
     private static void sendMessageBySession(final Session session, final String message) {
-        SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
+        InitialSync sync = INITIAL_SYNC.get();
+        if (Objects.nonNull(sync) && sync.session == session) {
+            SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
+                    .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(sync.requestId, sync.sequence++, message)));
+        } else {
+            SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
+        }
     }
 
     private static void removeSessionSendQueue(final Session session) {
@@ -366,6 +404,20 @@ public class WebsocketCollector {
             return json;
         } catch (Exception e) {
             return json;
+        }
+    }
+
+    private static final class InitialSync {
+
+        private final Session session;
+
+        private final String requestId;
+
+        private int sequence;
+
+        private InitialSync(final Session session, final String requestId) {
+            this.session = session;
+            this.requestId = requestId;
         }
     }
 
