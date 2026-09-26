@@ -38,6 +38,7 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AI proxy executor service.
@@ -60,18 +61,24 @@ public class AiProxyExecutorService {
     public Flux<ChatCompletionChunk> executeDirectStream(final OpenAiApi mainApi,
             final Optional<FallbackContext> fallbackCtxOpt, final ChatCompletionRequest request,
             final String requestBody, final boolean stream) {
-        return mainApi.chatCompletionStream(request)
-                .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
-                .retryWhen(Retry.max(1)
-                        .filter(AiProxyExecutorService::isRetryable)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            LOG.warn("Direct stream retry exhausted. Triggering fallback.",
-                                    retrySignal.failure());
-                            return new NonTransientAiException(
-                                    "Direct stream failed after 1 retry. Triggering fallback.",
-                                    retrySignal.failure());
-                        }))
-                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream));
+        return Flux.defer(() -> {
+            AtomicBoolean emitted = new AtomicBoolean();
+            return mainApi.chatCompletionStream(request)
+                    .doOnNext(chunk -> emitted.set(true))
+                    .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
+                    .retryWhen(Retry.max(1)
+                            .filter(error -> !emitted.get() && isRetryable(error))
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                LOG.warn("Direct stream retry exhausted. Triggering fallback.",
+                                        retrySignal.failure());
+                                return new NonTransientAiException(
+                                        "Direct stream failed after 1 retry. Triggering fallback.",
+                                        retrySignal.failure());
+                            }))
+                    .onErrorResume(error -> emitted.get()
+                            ? Flux.error(error)
+                            : handleDirectFallbackStream(error, fallbackCtxOpt, requestBody, stream));
+        });
     }
 
     /**
