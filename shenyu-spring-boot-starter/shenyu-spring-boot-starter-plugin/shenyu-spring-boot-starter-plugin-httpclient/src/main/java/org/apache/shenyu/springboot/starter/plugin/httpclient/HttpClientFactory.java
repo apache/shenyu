@@ -137,8 +137,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-        // set to false, fix java.io.IOException: Connection reset by peer
-        // see https://github.com/reactor/reactor-netty/issues/388
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 
