@@ -84,6 +84,30 @@ class NamespacePluginRelMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    void testListByNamespaceIdMapsEnabledAndSort() {
+        String namespaceId = "namespace-result-map";
+        String id = UUIDUtils.getInstance().generateShortUuid();
+        namespacePluginRelMapper.insertSelective(NamespacePluginRelDO.builder()
+                .id(id)
+                .pluginId("plugin")
+                .namespaceId(namespaceId)
+                .config("{}")
+                .sort(37)
+                .enabled(false)
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
+                .build());
+
+        NamespacePluginRelDO result = namespacePluginRelMapper.listByNamespaceId(namespaceId).stream()
+                .filter(item -> id.equals(item.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        Assertions.assertFalse(result.getEnabled());
+        Assertions.assertEquals(37, result.getSort());
+    }
+
+    @Test
     void testNameExistedExcludeUsesPluginName() {
         String pluginId = UUIDUtils.getInstance().generateShortUuid();
         String pluginName = "namespace-plugin-" + pluginId;
