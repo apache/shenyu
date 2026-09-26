@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -41,6 +42,30 @@ public final class SensitiveWordHandleTest {
         assertFalse(handle.isFailClosed());
         handle.setFailClosed(true);
         assertTrue(handle.isFailClosed());
+    }
+
+    @Test
+    public void testWordsAndMaxBodySize() {
+        SensitiveWordHandle handle = new SensitiveWordHandle();
+        assertNull(handle.getWords());
+        assertEquals(0L, handle.getMaxBodySize());
+        handle.setWords("bad, worse");
+        handle.setMaxBodySize(1024L);
+        assertEquals("bad, worse", handle.getWords());
+        assertEquals(1024L, handle.getMaxBodySize());
+    }
+
+    @Test
+    public void testDictionaryKey() {
+        SensitiveWordHandle handle = new SensitiveWordHandle();
+        assertEquals(SensitiveWordHandle.DEFAULT_REDIS_KEY, handle.dictionaryKey());
+        handle.setRedisKey("custom:words");
+        assertEquals("custom:words", handle.dictionaryKey());
+        handle.setWords("bad");
+        assertEquals("custom:words|bad", handle.dictionaryKey());
+        // a blank word list is the same dictionary as the redis set, they must share an automaton
+        handle.setWords("   ");
+        assertEquals("custom:words", handle.dictionaryKey());
     }
 
     @Test

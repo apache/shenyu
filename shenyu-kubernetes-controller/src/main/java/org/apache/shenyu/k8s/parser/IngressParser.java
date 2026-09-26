@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -95,7 +97,8 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
     }
 
     private boolean getBooleanAnnotation(final V1Ingress ingress, final String annotationKey) {
-        String annotationValue = ingress.getMetadata().getAnnotations().get(annotationKey);
+        Map<String, String> annotations = Objects.isNull(ingress.getMetadata()) ? null : ingress.getMetadata().getAnnotations();
+        String annotationValue = MapUtils.emptyIfNull(annotations).get(annotationKey);
         return Objects.nonNull(annotationValue) && Boolean.parseBoolean(annotationValue);
     }
 

@@ -39,10 +39,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Modifier;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -92,6 +94,18 @@ public final class ShenyuWebHandlerTest {
         shenyuWebHandler.putExtPlugins(Collections.emptyList());
         shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin2()));
         shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin3()));
+    }
+
+    @Test
+    public void putExtPluginsIsSynchronized() throws NoSuchMethodException {
+        assertTrue(Modifier.isSynchronized(ShenyuWebHandler.class.getMethod("putExtPlugins", List.class).getModifiers()));
+    }
+
+    @Test
+    public void removeExtPlugins() {
+        shenyuWebHandler.removeExtPlugins(Collections.emptySet());
+        shenyuWebHandler.removeExtPlugins(Set.of(plugin1.named()));
+        assertEquals(Collections.singletonList(plugin2), shenyuWebHandler.getPlugins());
     }
 
     @Test
