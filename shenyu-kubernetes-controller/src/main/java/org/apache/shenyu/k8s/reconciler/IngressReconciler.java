@@ -55,6 +55,7 @@ import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
+import org.apache.shenyu.k8s.common.IngressUtils;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -595,7 +596,7 @@ public class IngressReconciler implements Reconciler {
             if (PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
                 handle = buildWebSocketUpstreamHandle(addresses);
             } else {
-                handle = buildDivideUpstreamHandle(addresses);
+                handle = buildDivideUpstreamHandle(addresses, v1Ingress.getMetadata().getAnnotations());
             }
             List<String> selectorIdList = IngressSelectorCache.getInstance().get(namespace, ingressName, pluginName);
             if (CollectionUtils.isEmpty(selectorIdList)) {
@@ -642,18 +643,19 @@ public class IngressReconciler implements Reconciler {
         return GsonUtils.getInstance().toJson(res);
     }
 
-    private String buildDivideUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses) {
+    private String buildDivideUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses, final Map<String, String> annotations) {
         List<DivideUpstream> res = new ArrayList<>();
-        addresses.forEach(pair -> {
+        for (int i = 0; i < addresses.size(); i++) {
+            Pair<V1EndpointAddress, String> pair = addresses.get(i);
             DivideUpstream upstream = new DivideUpstream();
             upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
             upstream.setWeight(100);
-            upstream.setProtocol("http://");
+            upstream.setProtocol(IngressUtils.getUpstreamProtocol(annotations, i, "http://"));
             upstream.setWarmup(0);
             upstream.setStatus(true);
             upstream.setUpstreamHost("");
             res.add(upstream);
-        });
+        }
         return GsonUtils.getInstance().toJson(res);
     }
 
