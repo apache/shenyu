@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -84,6 +85,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final TagDTO tagDTO) {
         TagDO before = tagMapper.selectByPrimaryKey(tagDTO.getId());
         Assert.notNull(before, "the updated tag is not found");
