@@ -20,6 +20,7 @@ package org.apache.shenyu.client.spring.websocket.init;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -35,6 +36,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
 
@@ -102,6 +105,41 @@ public class SpringWebSocketClientEventListenerTest {
         Map<String, Object> beans = eventListener.getBeans(applicationContext);
         assertNotNull(beans);
         verify(publisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void registersEndpointsOnceAcrossRepeatedRefreshEvents() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.setAllowBeanDefinitionOverriding(false);
+        ShenyuServerEndpointerExporter exporter = mock(ShenyuServerEndpointerExporter.class);
+        when(context.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
+        when(context.getBean(ShenyuServerEndpointerExporter.class)).thenReturn(exporter);
+        when(context.getBeansWithAnnotation(ShenyuServerEndpoint.class)).thenReturn(Collections.singletonMap("endpoint", new MockClass()));
+        ContextRefreshedEvent event = new ContextRefreshedEvent(context);
+
+        eventListener.onApplicationEvent(event);
+        eventListener.onApplicationEvent(event);
+
+        verify(exporter).registerEndpoint(MockClass.class);
+        assertEquals(1, beanFactory.getBeanDefinitionCount());
+    }
+
+    @Test
+    void emptyParentContextDoesNotConsumeEndpointRegistrationGuard() {
+        eventListener.getBeans(applicationContext);
+        ConfigurableApplicationContext child = mock(ConfigurableApplicationContext.class);
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.setAllowBeanDefinitionOverriding(false);
+        ShenyuServerEndpointerExporter exporter = mock(ShenyuServerEndpointerExporter.class);
+        when(child.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
+        when(child.getBean(ShenyuServerEndpointerExporter.class)).thenReturn(exporter);
+        when(child.getBeansWithAnnotation(ShenyuServerEndpoint.class)).thenReturn(Collections.singletonMap("endpoint", new MockClass()));
+
+        eventListener.getBeans(child);
+        eventListener.getBeans(child);
+
+        verify(exporter).registerEndpoint(MockClass.class);
     }
 
     @Test
