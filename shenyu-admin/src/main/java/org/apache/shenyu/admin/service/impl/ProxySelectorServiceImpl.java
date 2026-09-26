@@ -49,6 +49,7 @@ import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
@@ -299,7 +300,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String selectorId = proxySelectorAddDTO.getSelectorId();
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
-        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        final ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         String discoveryId = discovery.getId();
         if (!StringUtils.hasLength(discoveryId)) {
             discoveryId = UUIDUtils.getInstance().generateShortUuid();
@@ -346,13 +347,18 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      */
     @Transactional(rollbackFor = Exception.class)
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
-        // update proxy selector
+        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        Assert.notNull(discovery, "Discovery configuration is required");
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
-        proxySelectorMapper.update(proxySelectorDO);
-        // DiscoveryRelDO
         DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+        Assert.notNull(discoveryRelDO, "Discovery binding does not exist for proxy selector: " + proxySelectorDO.getId());
         String discoveryHandlerId = discoveryRelDO.getDiscoveryHandlerId();
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
+        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        // Validate all related records before performing any update.
+        proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         discoveryHandlerDO.setHandler(proxySelectorAddDTO.getHandler());
@@ -361,8 +367,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         discoveryHandlerDO.setDateUpdated(currentTime);
         discoveryHandlerMapper.updateSelective(discoveryHandlerDO);
         // update discovery
-        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         discoveryDO.setServerList(discovery.getServerList());
         discoveryDO.setDateUpdated(currentTime);
         discoveryDO.setProps(discovery.getProps());
