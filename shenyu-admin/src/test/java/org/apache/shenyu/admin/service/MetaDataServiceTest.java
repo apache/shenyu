@@ -354,7 +354,7 @@ public final class MetaDataServiceTest {
         when(metaDataDTO.getId()).thenReturn("id");
         when(metaDataDTO.getPath()).thenReturn("path");
         when(metaDataDTO.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
-        when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.pathExistedExclude("path", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id"))).thenReturn(null);
         when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
 
