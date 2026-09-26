@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -44,6 +45,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -59,6 +62,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -134,6 +139,24 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"handler", "selector", "plugin", "discovery"})
+    void rejectsMissingDiscoveryBindingsWithDomainErrors(final String missing) {
+        if (!"handler".equals(missing)) {
+            when(discoveryHandlerMapper.selectById("123")).thenReturn(buildDiscoveryHandlerDO());
+        }
+        if ("plugin".equals(missing) || "discovery".equals(missing)) {
+            when(selectorMapper.selectByDiscoveryHandlerId("123")).thenReturn(buildSelectorDO());
+        }
+        if ("discovery".equals(missing)) {
+            when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
+        }
+        ValidFailException error = Assertions.assertThrows(ValidFailException.class,
+                () -> ReflectionTestUtils.invokeMethod(discoveryUpstreamService, "fetchAll", "123"));
+        Assertions.assertTrue(error.getMessage().toLowerCase(java.util.Locale.ROOT).contains(missing));
+        verifyNoInteractions(discoveryProcessorHolder, discoveryProcessor);
     }
 
     @Test
