@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.global;
 
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The Test Case For DefaultShenyuContextBuilder.
@@ -56,5 +58,27 @@ public final class DefaultShenyuContextBuilderTest {
         ShenyuContext shenyuContext = defaultShenyuContextBuilder.build(exchange);
         assertNotNull(shenyuContext);
         assertEquals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType());
+    }
+
+    @Test
+    public void testBuildWithUnknownRpcTypeFallsBackToHttp() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
+                .header("rpc_type", "unknown")
+                .build());
+
+        ShenyuContext shenyuContext = defaultShenyuContextBuilder.build(exchange);
+
+        assertNotNull(shenyuContext);
+        assertEquals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType());
+    }
+
+    @Test
+    public void testBuildWithoutFallbackDecorator() {
+        DefaultShenyuContextBuilder contextBuilder = new DefaultShenyuContextBuilder(new HashMap<>());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
+                .header("rpc_type", "unknown")
+                .build());
+
+        assertThrows(ShenyuException.class, () -> contextBuilder.build(exchange));
     }
 }
