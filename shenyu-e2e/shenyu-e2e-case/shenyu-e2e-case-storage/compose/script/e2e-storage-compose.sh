@@ -16,12 +16,27 @@
 # limitations under the License.
 #
 
+set -euo pipefail
+
 # init kubernetes for h2
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 curPath=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$curPath")
 
-docker network create -d bridge shenyu
+docker network create -d bridge shenyu || true
+
+COMPOSE_FILE=""
+cleanup() {
+  if [ -n "$COMPOSE_FILE" ]; then
+    docker compose -f "$COMPOSE_FILE" down || true
+  fi
+}
+dump_logs() {
+  echo "compose service logs:"
+  echo "------------------"
+  docker compose -f "$COMPOSE_FILE" logs || true
+}
+trap cleanup EXIT
 
 STORAGE_ARRAY=("h2" "mysql" "opengauss" "postgres")
 for storage in "${STORAGE_ARRAY[@]}"; do
@@ -29,21 +44,18 @@ for storage in "${STORAGE_ARRAY[@]}"; do
     bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_"${storage}".sh
   fi
 
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-"${storage}".yml up -d --quiet-pull
-  sleep 30s
-  
-  # execute healthcheck.sh
-  chmod +x "${curPath}"/healthcheck.sh
-  sh "${curPath}"/healthcheck.sh "${storage}" http://localhost:31095/actuator/health http://localhost:31195/actuator/health
+  COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-$storage.yml"
+  if ! docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 300; then
+    dump_logs
+    exit 1
+  fi
   ## run e2e-test
-  sleep 60s
-  
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test
-  
-  echo "shenyu-admin log:"
-  echo "------------------"
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-"${storage}".yml logs shenyu-admin
-  echo "shenyu-bootstrap log:"
-  echo "------------------"
-  docker compose -f "$SHENYU_TESTCASE_DIR"/compose/storage/shenyu-storage-"${storage}".yml logs shenyu-bootstrap
+  if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
+    dump_logs
+    exit 1
+  fi
+
+  dump_logs
+  docker compose -f "$COMPOSE_FILE" down || true
+  COMPOSE_FILE=""
 done
