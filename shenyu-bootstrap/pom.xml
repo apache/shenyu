@@ -287,6 +287,14 @@
         </dependency>
         <!--Ai response transformer Plugin end-->
 
+        <!--Agent gateway Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-agent-gateway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Agent gateway Plugin end-->
+
         <!--Mcp Server Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
