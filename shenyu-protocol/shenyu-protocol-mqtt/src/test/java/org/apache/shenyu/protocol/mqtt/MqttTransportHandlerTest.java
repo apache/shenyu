@@ -21,21 +21,33 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.util.CharsetUtil;
+import io.netty.util.IllegalReferenceCountException;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.junit.jupiter.api.AfterAll;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for {@link MqttTransportHandler}.
@@ -52,6 +64,8 @@ public final class MqttTransportHandlerTest {
 
     @BeforeAll
     static void setUp() {
+        Singleton.INST.single(TopicRepository.class, new TopicRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
         channelRepository = new ChannelRepository();
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         new MqttContext().setUserName(USER_NAME);
@@ -80,6 +94,24 @@ public final class MqttTransportHandlerTest {
     }
 
     @Test
+    public void channelReadReleasesInboundMessage() throws Exception {
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader("test/topic", 1);
+        MqttPublishMessage msg = new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.copiedBuffer("hello", CharsetUtil.UTF_8));
+        new MqttTransportHandler().channelRead(mock(ChannelHandlerContext.class), msg);
+        await().atMost(Duration.ofSeconds(5))
+                .until(() -> {
+                    try {
+                        msg.payload().refCnt();
+                        return false;
+                    } catch (IllegalReferenceCountException e) {
+                        // refCnt() throws once the payload has been fully released.
+                        return true;
+                    }
+                });
+    }
+
+    @Test
     public void abruptChannelCloseCleansUpChannelRepository() {
         EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler());
 
@@ -92,6 +124,13 @@ public final class MqttTransportHandlerTest {
         assertFalse(channel.isActive());
         assertNull(channelRepository.get(channel));
         channel.finishAndReleaseAll();
+    }
+
+    @Test
+    public void channelReadClosesChannelForNonMqttMessage() throws Exception {
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        new MqttTransportHandler().channelRead(ctx, new Object());
+        verify(ctx).close();
     }
 
     private MqttConnectMessage connectMessage() {
