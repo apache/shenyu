@@ -330,6 +330,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             final StreamableHttpSessionTransport transport = new StreamableHttpSessionTransport();
             final McpServerSession session = sessionFactory.create(transport);
             final String newSessionId = session.getId();
+            transport.setSessionId(newSessionId);
             LOGGER.debug("Created new MCP session: {}", newSessionId);
             // Store session and transport for reuse
             sessions.put(newSessionId, session);
@@ -1047,7 +1048,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      */
     private class StreamableHttpSessionTransport implements McpServerTransport {
 
-        private final String sessionId;
+        private String sessionId;
 
         private volatile boolean closed;
 
@@ -1071,6 +1072,19 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         StreamableHttpSessionTransport(final String sessionId) {
             this.sessionId = Objects.nonNull(sessionId) ? sessionId : java.util.UUID.randomUUID().toString();
             LOGGER.debug("Created StreamableHttpSessionTransport with sessionId: {}", this.sessionId);
+        }
+
+        /**
+         * Sets the session ID to match the MCP server session's ID.
+         * This ensures the transport's sessionId is consistent with the key used
+         * to store the session in {@code sessions} and {@code sessionTransports},
+         * so that {@link #close()} and {@link #closeGracefully()} correctly
+         * remove the session.
+         *
+         * @param sessionId the session identifier to use
+         */
+        public void setSessionId(final String sessionId) {
+            this.sessionId = sessionId;
         }
 
         /**
