@@ -155,6 +155,7 @@
         SElECT true
         FROM meta_data
         WHERE path = #{path}
+        AND namespace_id = #{namespaceId}
         AND id NOT IN
         <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
             #{id}
