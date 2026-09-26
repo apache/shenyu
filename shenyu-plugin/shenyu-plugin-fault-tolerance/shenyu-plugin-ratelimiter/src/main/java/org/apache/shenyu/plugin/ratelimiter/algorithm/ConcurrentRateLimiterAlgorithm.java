@@ -21,6 +21,8 @@ import org.apache.shenyu.common.enums.RateLimitEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -35,6 +37,8 @@ import java.util.List;
  */
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentRateLimiterAlgorithm.class);
 
     public ConcurrentRateLimiterAlgorithm() {
         super(RateLimitEnum.CONCURRENT.getScriptName());
@@ -56,6 +60,7 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     @Override
     @SuppressWarnings("unchecked")
     public void callback(final RedisScript<?> script, final List<String> keys, final List<?> scriptArgs) {
-        Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1)).subscribe();
+        Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1))
+                .subscribe(ignored -> { }, error -> LOG.warn("Failed to remove concurrent rate limiter entry", error));
     }
 }

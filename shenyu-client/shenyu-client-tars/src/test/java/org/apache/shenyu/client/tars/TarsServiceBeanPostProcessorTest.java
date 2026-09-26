@@ -67,6 +67,8 @@ public final class TarsServiceBeanPostProcessorTest {
 
     private final TarsDemoService3 tarsDemoService3 = new TarsDemoService3();
 
+    private final TarsInterfaceServiceImpl tarsInterfaceServiceImpl = new TarsInterfaceServiceImpl();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -81,6 +83,7 @@ public final class TarsServiceBeanPostProcessorTest {
         results.put("tarsDemoService", tarsDemoService);
         results.put("tarsDemoService2", tarsDemoService2);
         results.put("tarsDemoService3", tarsDemoService3);
+        results.put("tarsInterfaceService", tarsInterfaceServiceImpl);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         when(applicationContext.getEnvironment()).thenReturn(env);
         when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
@@ -129,6 +132,30 @@ public final class TarsServiceBeanPostProcessorTest {
         clientConfig.setClient(client);
 
         return new TarsServiceBeanEventListener(clientConfig, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+    }
+
+    @Test
+    public void testPostProcessServantAnnotatedOnInterface() {
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
+        TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(true);
+        tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
+        registerUtilsMockedStatic.close();
+    }
+
+    @ShenyuTarsService(serviceName = "ifaceService")
+    interface TarsInterfaceService {
+
+        String hello(String hello);
+    }
+
+    static class TarsInterfaceServiceImpl implements TarsInterfaceService {
+
+        @Override
+        @ShenyuTarsClient("ifaceHello")
+        public String hello(final String hello) {
+            return hello;
+        }
     }
 
     @ShenyuTarsService(serviceName = "testObj")
