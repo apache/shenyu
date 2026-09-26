@@ -44,13 +44,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -76,7 +79,10 @@ public final class ShenyuHttpRegistryControllerTest {
 
     @BeforeEach
     public void setUp() {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
         this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuHttpRegistryController)
+                .setValidator(validator)
                 .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
 
@@ -92,8 +98,10 @@ public final class ShenyuHttpRegistryControllerTest {
         when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
         MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
                 .appName("app")
+                .contextPath("/context")
                 .enabled(true)
                 .rpcType(RpcTypeEnum.DUBBO.getName())
+                .ruleName("register")
                 .host("127.0.0.1")
                 .port(8080)
                 .path("/register")
@@ -117,6 +125,7 @@ public final class ShenyuHttpRegistryControllerTest {
         when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
         URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
                 .appName("app")
+                .contextPath("/context")
                 .host("127.0.0.1")
                 .port(8080)
                 .rpcType(RpcTypeEnum.DUBBO.getName())
@@ -129,6 +138,16 @@ public final class ShenyuHttpRegistryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ShenyuResultMessage.SUCCESS))
                 .andReturn();
+    }
+
+    @Test
+    public void testRegisterMetadataRejectsInvalidBody() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-metadata")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500));
+        verifyNoInteractions(publisher);
     }
 
     private NamespaceDO buildNamespaceDO() {

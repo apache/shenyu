@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.register.common.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
@@ -25,10 +28,13 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
  */
 public class McpToolsRegisterDTO implements DataTypeParent {
 
+    @NotNull
+    @Valid
     private MetaDataRegisterDTO metaDataRegisterDTO;
 
     private String namespaceId;
 
+    @NotBlank
     private String mcpConfig;
 
     public MetaDataRegisterDTO getMetaDataRegisterDTO() {
