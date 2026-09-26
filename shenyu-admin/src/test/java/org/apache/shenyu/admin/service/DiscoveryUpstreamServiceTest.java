@@ -51,7 +51,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -59,6 +63,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -141,10 +148,75 @@ public final class DiscoveryUpstreamServiceTest {
         List<DiscoveryHandlerDO> list = Collections.singletonList(buildDiscoveryHandlerDO());
 
         when(discoveryHandlerMapper.selectAll()).thenReturn(list);
-        when(discoveryRelMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildDiscoveryRelDO());
-        when(proxySelectorMapper.selectById(any())).thenReturn(buildProxySelectorDO());
+        DiscoveryRelDO relation = buildDiscoveryRelDO();
+        relation.setDiscoveryHandlerId("123");
+        relation.setProxySelectorId("selector_1");
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(Collections.singletonList(relation));
+        when(proxySelectorMapper.selectByIds(any())).thenReturn(Collections.singletonList(buildProxySelectorDO()));
         List<DiscoverySyncData> dataList = discoveryUpstreamService.listAll();
         assertEquals(dataList.size(), list.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {20, 501})
+    void batchesQueriesAndPreservesHandlerOrder(final int count) {
+        List<DiscoveryHandlerDO> handlers = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            DiscoveryHandlerDO handler = buildDiscoveryHandlerDO();
+            handler.setId(String.valueOf(i));
+            handlers.add(handler);
+        }
+        when(discoveryHandlerMapper.selectAll()).thenReturn(handlers);
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            Assertions.assertTrue(ids.size() <= 500);
+            return ids.stream().map(id -> {
+                DiscoveryRelDO relation = buildDiscoveryRelDO();
+                relation.setDiscoveryHandlerId(id);
+                if (Integer.parseInt(id) % 2 == 0) {
+                    relation.setSelectorId(id);
+                } else {
+                    relation.setProxySelectorId(id);
+                }
+                return relation;
+            }).collect(Collectors.toList());
+        });
+        when(selectorMapper.selectByIdSet(any())).thenAnswer(invocation -> {
+            java.util.Set<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> {
+                SelectorDO selector = buildSelectorDO();
+                selector.setId(id);
+                return selector;
+            }).collect(Collectors.toList());
+        });
+        when(proxySelectorMapper.selectByIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> {
+                ProxySelectorDO proxy = buildProxySelectorDO();
+                proxy.setId(id);
+                return proxy;
+            }).collect(Collectors.toList());
+        });
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> buildDiscoveryUpstreamDO("u-" + id, id, "localhost:8080")).collect(Collectors.toList());
+        });
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAll();
+        assertEquals(count, data.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(String.valueOf(i), data.get(i).getSelectorId());
+            assertEquals(1, data.get(i).getUpstreamDataList().size());
+        }
+        int batches = (count + 499) / 500;
+        verify(discoveryHandlerMapper).selectAll();
+        verify(discoveryRelMapper, times(batches)).selectByDiscoveryHandlerIds(any());
+        verify(discoveryUpstreamMapper, times(batches)).selectByDiscoveryHandlerIds(any());
+        verify(selectorMapper, times(batches)).selectByIdSet(any());
+        verify(proxySelectorMapper, times(count / 500 + (count % 500 > 1 ? 1 : 0))).selectByIds(any());
+        verify(discoveryRelMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(selectorMapper, never()).selectById(any());
+        verify(proxySelectorMapper, never()).selectById(any());
     }
 
     @Test
