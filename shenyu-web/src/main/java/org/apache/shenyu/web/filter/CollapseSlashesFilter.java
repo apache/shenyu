@@ -21,6 +21,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -35,7 +36,10 @@ public class CollapseSlashesFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String newPath = request.getURI().getRawPath().replaceAll("/{2,}", "/");
         if (!request.getURI().getRawPath().equals(newPath)) {
-            URI newUri = request.getURI().resolve(newPath);
+            URI newUri = UriComponentsBuilder.fromUri(request.getURI())
+                    .replacePath(newPath)
+                    .build(true)
+                    .toUri();
             ServerHttpRequest newRequest = request.mutate().uri(newUri).build();
             return chain.filter(exchange.mutate().request(newRequest).build());
         }
