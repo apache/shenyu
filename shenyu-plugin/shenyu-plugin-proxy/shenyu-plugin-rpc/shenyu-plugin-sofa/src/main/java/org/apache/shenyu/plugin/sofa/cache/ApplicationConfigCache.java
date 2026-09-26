@@ -69,6 +69,13 @@ public final class ApplicationConfigCache {
     
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
+    /**
+     * Separator of the reference cache key segments. Never occurs inside ids, paths,
+     * protocol, registry hash, version or group, so an id can be matched as a whole
+     * segment by wrapping it with this separator during cache invalidation.
+     */
+    private static final String KEY_SEPARATOR = "|";
+
     private static final Map<String, SofaUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
     
     private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-sofa", true);
@@ -230,7 +237,7 @@ public final class ApplicationConfigCache {
      * @return the reference config cache key
      */
     public String generateUpstreamCacheKey(final String selectorId, final String metaDataPath, final SofaUpstream sofaUpstream) {
-        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
+        StringJoiner stringJoiner = new StringJoiner(KEY_SEPARATOR);
         stringJoiner.add(selectorId);
         stringJoiner.add(metaDataPath);
         if (StringUtils.isNotBlank(sofaUpstream.getProtocol())) {
@@ -239,7 +246,8 @@ public final class ApplicationConfigCache {
         // use registry hash to short reference cache key
         String registryHash = DigestUtils.md5Hex(sofaUpstream.getRegister());
         stringJoiner.add(registryHash);
-        return stringJoiner.toString();
+        // wrap with separators so that the first and the last segments are also matched as whole segments
+        return KEY_SEPARATOR + stringJoiner + KEY_SEPARATOR;
     }
 
 
@@ -434,17 +442,7 @@ public final class ApplicationConfigCache {
      * @param metadataPath the metadataPath
      */
     public void invalidateWithMetadataPath(final String metadataPath) {
-        ConcurrentMap<String, ConsumerConfig<GenericService>> map = cache.asMap();
-        if (map.isEmpty()) {
-            return;
-        }
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataPath)).collect(Collectors.toSet());
-        if (needInvalidateKeys.isEmpty()) {
-            return;
-        }
-        needInvalidateKeys.forEach(cache::invalidate);
-        needInvalidateKeys.forEach(UPSTREAM_CACHE_MAP::remove);
+        invalidateByWholeSegment(metadataPath);
     }
 
     /**
@@ -453,12 +451,16 @@ public final class ApplicationConfigCache {
      * @param selectorId the selectorId
      */
     public void invalidateWithSelectorId(final String selectorId) {
+        invalidateByWholeSegment(selectorId);
+    }
+
+    private void invalidateByWholeSegment(final String segment) {
         ConcurrentMap<String, ConsumerConfig<GenericService>> map = cache.asMap();
         if (map.isEmpty()) {
             return;
         }
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
+        final String token = KEY_SEPARATOR + segment + KEY_SEPARATOR;
+        Set<String> needInvalidateKeys = map.keySet().stream().filter(key -> key.contains(token)).collect(Collectors.toSet());
         if (needInvalidateKeys.isEmpty()) {
             return;
         }
