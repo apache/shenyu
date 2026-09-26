@@ -37,6 +37,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -47,8 +48,10 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -162,6 +165,17 @@ public class SpringWebSocketClientEventListenerTest {
     }
 
     @Test
+    public void testBuildMetaDataDTOShouldRespectEnabledAttribute() throws NoSuchMethodException {
+        Method method = MockClass.class.getDeclaredMethod("mockMethod");
+        ShenyuSpringWebSocketClient enabledClient = AnnotatedElementUtils.findMergedAnnotation(MockClass.class, ShenyuSpringWebSocketClient.class);
+        ShenyuSpringWebSocketClient disabledClient = AnnotatedElementUtils.findMergedAnnotation(DisabledMockClass.class, ShenyuSpringWebSocketClient.class);
+        MetaDataRegisterDTO enabledMetaData = eventListener.buildMetaDataDTO(mockClass, enabledClient, SUPER_PATH, MockClass.class, method, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataRegisterDTO disabledMetaData = eventListener.buildMetaDataDTO(mockClass, disabledClient, SUPER_PATH, DisabledMockClass.class, method, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        assertTrue(enabledMetaData.isEnabled());
+        assertFalse(disabledMetaData.isEnabled());
+    }
+
+    @Test
     public void testGetPort() {
         String port = eventListener.getPort();
         assertNotNull(port);
@@ -214,6 +228,15 @@ public class SpringWebSocketClientEventListenerTest {
      */
     @ShenyuSpringWebSocketClient
     private static class MockClass {
+        public void mockMethod() {
+        }
+    }
+
+    /**
+     * class for mock with the enabled attribute set to false.
+     */
+    @ShenyuSpringWebSocketClient(enabled = false)
+    private static class DisabledMockClass {
         public void mockMethod() {
         }
     }
