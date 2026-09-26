@@ -27,7 +27,7 @@ services:
     ports:
       - "30432:5432"
     volumes:
-      - /tmp/shenyu-e2e/postgres/schema/create-table.sql:/docker-entrypoint-initdb.d
+      - /tmp/shenyu-e2e/postgres/schema/create-table.sql:/docker-entrypoint-initdb.d/create-table.sql
     healthcheck:
       test: [ "CMD-SHELL", "psql -U shenyue2e -h127.0.0.1 -p5432 -dshenyu -c \"SELECT 1\"" ]
       interval: 10s
