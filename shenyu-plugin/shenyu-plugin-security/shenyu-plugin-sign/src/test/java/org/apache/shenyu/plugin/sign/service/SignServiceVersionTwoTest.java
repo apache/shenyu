@@ -103,6 +103,7 @@ public final class SignServiceVersionTwoTest {
         authPathData.setPath(path);
         authPathData.setEnabled(true);
         authData.setPathDataList(Lists.newArrayList(authPathData));
+        authData.setParamDataList(Lists.newArrayList(new AuthParamData("/test-api", "tenant=shenyu")));
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
         this.passed = new ShenyuContext();
@@ -129,6 +130,7 @@ public final class SignServiceVersionTwoTest {
 
         VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.success());
+        assertEquals("tenant=shenyu", this.exchange.getAttribute(Constants.APP_PARAM));
     }
 
     @Test
