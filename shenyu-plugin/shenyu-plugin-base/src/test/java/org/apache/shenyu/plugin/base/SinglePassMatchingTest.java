@@ -49,6 +49,32 @@ import static org.mockito.Mockito.mockStatic;
 class SinglePassMatchingTest {
 
     @Test
+    void specificityThenSortThenEncounterOrderDetermineTheWinner() {
+        final AbstractShenyuPlugin plugin = mock(AbstractShenyuPlugin.class, CALLS_REAL_METHODS);
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test"));
+        ConditionData condition = new ConditionData();
+        condition.setParamType("uri");
+        condition.setOperator("=");
+        condition.setParamValue("/test");
+        List<SelectorData> selectors = new ArrayList<>();
+        List<RuleData> rules = new ArrayList<>();
+        // Candidate 1 wins over a less-specific lower sort, a higher sort, and an equally ranked later entry.
+        for (int i = 0; i < 4; i++) {
+            List<ConditionData> conditions = Collections.nCopies(i == 0 ? 1 : 2, condition);
+            int sort = i == 0 ? 0 : i == 2 ? 10 : 5;
+            selectors.add(SelectorData.builder().id(String.valueOf(i)).enabled(true).matchMode(0).sort(sort)
+                    .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).conditionList(conditions).build());
+            rules.add(RuleData.builder().id(String.valueOf(i)).enabled(true).matchMode(0).sort(sort).conditionDataList(conditions).build());
+        }
+        Pair<Boolean, SelectorData> selectorResult = ReflectionTestUtils.invokeMethod(plugin, "matchSelector", exchange, selectors);
+        Pair<Boolean, RuleData> ruleResult = ReflectionTestUtils.invokeMethod(plugin, "matchRule", exchange, rules);
+        assertSame(selectors.get(1), selectorResult.getRight());
+        assertSame(rules.get(1), ruleResult.getRight());
+        assertEquals(Boolean.FALSE, selectorResult.getLeft());
+        assertEquals(Boolean.FALSE, ruleResult.getLeft());
+    }
+
+    @Test
     void preservesSelectionAndCacheEligibilityAcrossCandidateOrderings() {
         AbstractShenyuPlugin plugin = mock(AbstractShenyuPlugin.class, CALLS_REAL_METHODS);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test"));
