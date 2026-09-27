@@ -173,6 +173,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     private <T> void addToFail(final Holder t) {
+        // Preserve the first pending payload; a failure during an in-flight retry owns a new entry.
         Holder oldObj = concurrentHashMap.putIfAbsent(t.getKey(), t);
         if (Objects.nonNull(oldObj)) {
             return;
@@ -183,7 +184,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Remove.
+     * Unconditionally remove a pending registration, retained for compatibility with custom retry tasks.
+     * Do not pair this with {@link #accept(String)}: use {@link #retry(String)} to preserve concurrent failures.
      *
      * @param key the key
      */
@@ -192,7 +194,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Accpet.
+     * Attempt a pending registration without claiming it, retained for compatibility with custom retry tasks.
+     * New retry tasks should use {@link #retry(String)} instead of an accept/remove pair.
      *
      * @param key the key
      */

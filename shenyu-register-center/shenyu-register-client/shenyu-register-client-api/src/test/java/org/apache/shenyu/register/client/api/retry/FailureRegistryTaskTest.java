@@ -25,13 +25,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-class FailureRegistryTaskTest {
+public final class FailureRegistryTaskTest {
 
     @Test
-    void delegatesToAtomicRetry() {
+    public void delegatesToAtomicRetry() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
         new FailureRegistryTask("key", repository).doRetry("key", mock(TimerTask.class));
         verify(repository).retry("key");
@@ -39,10 +40,32 @@ class FailureRegistryTaskTest {
     }
 
     @Test
-    void propagatesFailureForRescheduling() {
+    public void propagatesFailureForRescheduling() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
         doThrow(new IllegalStateException("offline")).when(repository).retry("key");
         FailureRegistryTask task = new FailureRegistryTask("key", repository);
         assertThrows(IllegalStateException.class, () -> task.doRetry("key", mock(TimerTask.class)));
+    }
+
+    @Test
+    public void repeatedAttemptsKeepDelegatingToTheSameKey() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        TimerTask timerTask = mock(TimerTask.class);
+        for (int attempt = 0; attempt < 3; attempt++) {
+            task.doRetry("key", timerTask);
+        }
+        verify(repository, times(3)).retry("key");
+        verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    public void independentTasksUseTheirOwnRegistrationKeys() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        new FailureRegistryTask("first", repository).doRetry("first", mock(TimerTask.class));
+        new FailureRegistryTask("second", repository).doRetry("second", mock(TimerTask.class));
+        verify(repository).retry("first");
+        verify(repository).retry("second");
+        verifyNoMoreInteractions(repository);
     }
 }
