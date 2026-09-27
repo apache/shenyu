@@ -225,6 +225,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             }
         }
         if (Objects.nonNull(failure)) {
+            // Failback replays the registration to every server, so admin registration endpoints must be idempotent.
             throw failure;
         }
     }
