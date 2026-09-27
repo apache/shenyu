@@ -137,6 +137,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
+        // Reuse connections by default. Tune the fixed pool's maxIdleTime below the upstream idle limit;
+        // keepAlive=false remains an escape hatch for stale-connection resets (reactor-netty#388).
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 
