@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -188,6 +189,20 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             }
         }
         plugins = sortPlugins(newPluginList);
+    }
+
+    /**
+     * Remove ext plugins.
+     *
+     * @param pluginNames plugin names
+     */
+    public synchronized void removeExtPlugins(final Set<String> pluginNames) {
+        if (CollectionUtils.isEmpty(pluginNames)) {
+            return;
+        }
+        pluginNames.forEach(pluginName -> LOG.info("shenyu auto remove extends plugin:{}", pluginName));
+        sourcePlugins.removeIf(plugin -> pluginNames.contains(plugin.named()));
+        plugins = plugins.stream().filter(plugin -> !pluginNames.contains(plugin.named())).collect(Collectors.toList());
     }
 
     /**

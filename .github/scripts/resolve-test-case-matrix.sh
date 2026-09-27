@@ -314,7 +314,37 @@ if [[ "${full_required}" == "true" ]]; then
 fi
 
 storage_matrix="$(printf '%s\n' "${storage_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:"shenyu-e2e-case-storage", script:.})}')"
-e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:(if . == "e2e-http-sync-compose" then "shenyu-e2e-case-http" elif . == "e2e-springcloud-sync-compose" then "shenyu-e2e-case-spring-cloud" elif . == "e2e-apache-dubbo-sync-compose" then "shenyu-e2e-case-apache-dubbo" elif . == "e2e-grpc-sync-compose" then "shenyu-e2e-case-grpc" elif . == "e2e-websocket-sync-compose" then "shenyu-e2e-case-websocket" else "shenyu-e2e-case-logging-rocketmq" end), script:.})}')"
+e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
+  def case_config:
+    {
+      "e2e-http-sync-compose": {
+        case: "shenyu-e2e-case-http",
+        example_projects: ":shenyu-examples-http"
+      },
+      "e2e-springcloud-sync-compose": {
+        case: "shenyu-e2e-case-spring-cloud",
+        example_projects: ":shenyu-examples-eureka,:shenyu-examples-springcloud"
+      },
+      "e2e-apache-dubbo-sync-compose": {
+        case: "shenyu-e2e-case-apache-dubbo",
+        example_projects: ":shenyu-examples-apache-dubbo-service"
+      },
+      "e2e-grpc-sync-compose": {
+        case: "shenyu-e2e-case-grpc",
+        example_projects: ":shenyu-examples-grpc"
+      },
+      "e2e-websocket-sync-compose": {
+        case: "shenyu-e2e-case-websocket",
+        example_projects: ":shenyu-example-spring-native-websocket"
+      },
+      "e2e-logging-rocketmq-compose": {
+        case: "shenyu-e2e-case-logging-rocketmq",
+        example_projects: ":shenyu-examples-http"
+      }
+    }[.];
+
+  {include: map(select(length > 0) | ({script: .} + case_config))}
+')"
 integration_matrix="$(printf '%s\n' "${integration_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:.})}')"
 
 run_storage=$([[ "${#storage_cases[@]}" -gt 0 ]] && echo true || echo false)

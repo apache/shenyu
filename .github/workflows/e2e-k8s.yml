@@ -370,12 +370,19 @@ jobs:
 
       - name: Build examples with Maven
         shell: bash
+        env:
+          EXAMPLE_PROJECTS: ${{ matrix.example_projects }}
         run: |
-          echo "Falling back to maven wrapper for examples"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd to build ${EXAMPLE_PROJECTS}"
+            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
           else
-            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            echo "Falling back to maven wrapper to build ${EXAMPLE_PROJECTS}"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+            else
+              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+            fi
           fi
 
       - name: Load ShenYu Docker Images
