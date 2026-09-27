@@ -30,13 +30,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -119,6 +122,30 @@ public final class ApplicationConfigCacheTest {
             assertEquals("promise_method3", applicationConfigCacheUnderTest.get("path3").getMethod().getName());
             assertEquals("promise_method4", applicationConfigCacheUnderTest.get("path4").getMethod().getName());
         });
+    }
+
+    @Test
+    public void testInitPrxWaitsForInitializationLock() throws Exception {
+        final Field lockField = ApplicationConfigCache.class.getDeclaredField("LOCK");
+        lockField.setAccessible(true);
+        final ReentrantLock lock = (ReentrantLock) lockField.get(null);
+        final MetaData metaData = new MetaData("id", "appName", "contextPath", "waitingPath",
+                RpcTypeEnum.TARS.getName(), "serviceName", "methodName", "parameterTypes",
+                null, false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final Thread initThread = new Thread(() -> applicationConfigCacheUnderTest.initPrx(metaData));
+
+        lock.lock();
+        try {
+            initThread.start();
+            for (int i = 0; i < 100 && !lock.hasQueuedThread(initThread); i++) {
+                Thread.sleep(10L);
+            }
+            assertTrue(lock.hasQueuedThread(initThread));
+        } finally {
+            lock.unlock();
+        }
+        initThread.join(1000L);
+        assertFalse(initThread.isAlive());
     }
 
     @Test
