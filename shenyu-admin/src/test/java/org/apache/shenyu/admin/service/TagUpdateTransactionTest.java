@@ -21,9 +21,12 @@ package org.apache.shenyu.admin.service;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -61,6 +64,27 @@ public class TagUpdateTransactionTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void testExistingCycleIsRejectedWithoutCommittingChanges() {
+        jdbcTemplate.update("UPDATE tag SET parent_tag_id = 'update-child' WHERE id = 'update-parent'");
+        TagDTO dto = update("new-name");
+        dto.setParentTagId("update-child");
+        assertThrows(ValidFailException.class, () -> tagService.update(dto));
+        assertEquals("old", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
+        assertEquals("{}", childExt());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"update-parent", "update-child"})
+    public void testSelfReferenceAndDescendantReparentingRollBack(final String parentId) {
+        TagDTO dto = update("new-name");
+        dto.setParentTagId(parentId);
+        assertThrows(ValidFailException.class, () -> tagService.update(dto));
+        assertEquals("old", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
+        assertEquals("0", jdbcTemplate.queryForObject("SELECT parent_tag_id FROM tag WHERE id = 'update-parent'", String.class));
+        assertEquals("{}", childExt());
+    }
+
+    @Test
     public void testSuccessfulUpdateCommitsParentAndDescendants() {
         assertEquals(1, tagService.update(update("new-name")));
         assertEquals("new-name", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
@@ -80,4 +104,3 @@ public class TagUpdateTransactionTest extends AbstractSpringIntegrationTest {
         return dto;
     }
 }
-
