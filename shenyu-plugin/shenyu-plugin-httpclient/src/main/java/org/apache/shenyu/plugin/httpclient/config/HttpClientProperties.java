@@ -57,7 +57,9 @@ public class HttpClientProperties {
     private Integer connectTimeout = 45000;
 
     /**
-     * The response timeout.
+     * Maximum interval in milliseconds between response reads, including body chunks; default 3s.
+     * Non-positive values disable this response deadline, not independently installed read-timeout handlers.
+     * Slow SSE/streaming responses may also require disabling readTimeout and adjusting route/caller deadlines.
      */
     private Long responseTimeout = 3000L;
 
@@ -77,7 +79,8 @@ public class HttpClientProperties {
     private Integer allIdleTime = 3000;
 
     /**
-     * readTimeout, the default is 3s.
+     * Connection read-timeout handler interval in milliseconds, default 3s; zero disables the handler's deadline.
+     * When installed, this handler operates independently of responseTimeout.
      */
     private Integer readTimeout = 3000;
 
