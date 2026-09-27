@@ -34,6 +34,7 @@ local window_time = 1
 local last_requested = 0
 local exists_key = redis.call('exists', tokens_key)
 if (exists_key == 1) then
+    redis.call('zremrangebyscore', tokens_key, 0, now - window_size / window_time)
     last_requested = redis.call('zcard', tokens_key)
 end
 --redis.log(redis.LOG_WARNING, "last_requested " .. last_requested)
@@ -48,8 +49,6 @@ end
 --redis.log(redis.LOG_WARNING, "remain_request " .. remain_request)
 --redis.log(redis.LOG_WARNING, "allowed_num " .. allowed_num)
 
-redis.call('zremrangebyscore', tokens_key, 0, now - window_size / window_time)
 redis.call('expire', tokens_key, math.ceil(window_size))
 
 return { allowed_num, remain_request }
-

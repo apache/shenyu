@@ -54,8 +54,21 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
      * Instantiates a new Netty http client plugin.
      *
      * @param httpClient the http client
+     * @deprecated use {@link #NettyHttpClientPlugin(HttpClient, long)} to specify the replay cache cap
      */
+    @Deprecated
     public NettyHttpClientPlugin(final HttpClient httpClient) {
+        this(httpClient, Constants.BYTES_PER_MB);
+    }
+
+    /**
+     * Instantiates a new Netty http client plugin.
+     *
+     * @param httpClient the http client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
+     */
+    public NettyHttpClientPlugin(final HttpClient httpClient, final long maxInMemorySize) {
+        super(maxInMemorySize);
         this.httpClient = httpClient;
     }
 

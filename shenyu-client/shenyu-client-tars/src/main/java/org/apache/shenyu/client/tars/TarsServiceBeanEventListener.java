@@ -166,7 +166,10 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
                                                 @NonNull final ShenyuTarsClient shenyuTarsClient,
                                                 final String path, final Class<?> clazz,
                                                 final Method method, final String namespaceId) {
-        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
+        // the annotation may be declared on an interface or a superclass - the bean lookup above
+        // finds those, so resolve the annotation the same way instead of using plain reflection
+        ShenyuTarsService shenyuTarsService = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsService.class);
+        String serviceName = Objects.isNull(shenyuTarsService) ? StringUtils.EMPTY : shenyuTarsService.serviceName();
         String ipAndPort = this.ipAndPort;
         String desc = shenyuTarsClient.desc();
         String configRuleName = shenyuTarsClient.ruleName();

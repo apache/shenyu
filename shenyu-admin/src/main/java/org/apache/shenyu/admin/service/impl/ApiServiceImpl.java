@@ -112,18 +112,20 @@ public class ApiServiceImpl implements ApiService {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (updateRows > 0) {
-            if (CollectionUtils.isNotEmpty(apiDTO.getTagIds())) {
+            if (Objects.nonNull(apiDTO.getTagIds())) {
                 List<String> tagIds = apiDTO.getTagIds();
-                Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-                List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
-                    .id(UUIDUtils.getInstance().generateShortUuid())
-                    .apiId(apiDO.getId())
-                    .tagId(tagId)
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime)
-                    .build()).collect(Collectors.toList());
                 tagRelationMapper.deleteByApiId(apiDO.getId());
-                tagRelationMapper.batchInsert(tags);
+                if (CollectionUtils.isNotEmpty(tagIds)) {
+                    Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+                    List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .apiId(apiDO.getId())
+                        .tagId(tagId)
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build()).collect(Collectors.toList());
+                    tagRelationMapper.batchInsert(tags);
+                }
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
