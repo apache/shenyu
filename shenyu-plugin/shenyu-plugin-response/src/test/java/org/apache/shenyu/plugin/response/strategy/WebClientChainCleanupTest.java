@@ -31,12 +31,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class WebClientChainCleanupTest {
 
@@ -73,6 +76,22 @@ class WebClientChainCleanupTest {
 
         assertEquals(1, subscriptions.get());
         assertEquals(0, buffer.getNativeBuffer().refCnt());
+    }
+
+    @Test
+    void cleanupFailureDoesNotDropErrorsOrReplaceChainFailure() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR,
+                ResponseEntity.ok(Flux.<DataBuffer>error(new IllegalStateException("body unavailable"))));
+        AtomicReference<Throwable> dropped = new AtomicReference<>();
+        Hooks.onErrorDropped(dropped::set);
+        try {
+            StepVerifier.create(new WebClientMessageWriter().writeWith(exchange, ignored -> Mono.error(new IllegalStateException("chain failed"))))
+                    .expectErrorMessage("chain failed").verify();
+            assertNull(dropped.get());
+        } finally {
+            Hooks.resetOnErrorDropped();
+        }
     }
 
     @Test
