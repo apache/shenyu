@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.common.dto.convert.selector;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 
 import com.google.common.collect.ImmutableSet;
@@ -75,12 +78,15 @@ public class ZombieUpstreamTest {
 
     @Test
     public void testSelectorIdFollowsJavaBeanContract() throws Exception {
-        java.beans.BeanInfo info = java.beans.Introspector.getBeanInfo(ZombieUpstream.class, Object.class);
-        java.beans.PropertyDescriptor[] descriptors = info.getPropertyDescriptors();
-        java.beans.PropertyDescriptor selectorId = Arrays.stream(descriptors)
+        // the JDK caches Introspector results JVM-wide per class; this is fine under JUnit's
+        // default sequential execution and no flushCaches is needed for this single lookup
+        BeanInfo info = Introspector.getBeanInfo(ZombieUpstream.class, Object.class);
+        PropertyDescriptor[] descriptors = info.getPropertyDescriptors();
+        PropertyDescriptor selectorId = Arrays.stream(descriptors)
                 .filter(d -> "selectorId".equals(d.getName()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("selectorId property not found"));
+        assertNotNull(selectorId.getReadMethod(), "selectorId must have a getter per the JavaBeans contract");
         assertNotNull(selectorId.getWriteMethod(), "selectorId must have a setter per the JavaBeans contract");
         assertTrue(Arrays.stream(descriptors).noneMatch(d -> "selectorName".equals(d.getName())),
                 "there is no selectorName field, so no phantom selectorName property may exist");
