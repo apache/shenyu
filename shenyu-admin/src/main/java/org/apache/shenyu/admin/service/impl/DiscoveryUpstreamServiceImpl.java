@@ -333,6 +333,13 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         return ConfigImportResult.success(successCount);
     }
     
+    /**
+     * Validate the binding before pushing the persisted upstream snapshot to discovery.
+     * This method does not undo preceding database writes. Callers own the transaction boundary:
+     * a validation failure prevents the push, but writes outside a transaction remain persisted.
+     *
+     * @param discoveryHandlerId the handler whose upstreams should be published
+     */
     private void fetchAll(final String discoveryHandlerId) {
         final List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);

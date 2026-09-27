@@ -55,6 +55,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -155,7 +156,7 @@ public final class DiscoveryUpstreamServiceTest {
         }
         ValidFailException error = Assertions.assertThrows(ValidFailException.class,
                 () -> ReflectionTestUtils.invokeMethod(discoveryUpstreamService, "fetchAll", "123"));
-        Assertions.assertTrue(error.getMessage().toLowerCase(java.util.Locale.ROOT).contains(missing));
+        Assertions.assertTrue(error.getMessage().toLowerCase(Locale.ROOT).contains(missing));
         verifyNoInteractions(discoveryProcessorHolder, discoveryProcessor);
     }
 
