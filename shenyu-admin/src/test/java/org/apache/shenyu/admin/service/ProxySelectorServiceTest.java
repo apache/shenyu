@@ -194,6 +194,17 @@ class ProxySelectorServiceTest {
     }
 
     @Test
+    void bindingRejectsMissingConfigurationBeforeLookingUpProcessorOrWriting() {
+        ProxySelectorAddDTO dto = new ProxySelectorAddDTO();
+        dto.setSelectorId("selector-without-discovery");
+
+        ValidFailException failure = assertThrows(ValidFailException.class, () -> proxySelectorService.bindingDiscoveryHandler(dto));
+
+        assertEquals("Discovery configuration is required for selector: selector-without-discovery", failure.getMessage());
+        verifyNoInteractions(discoveryProcessorHolder, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper, discoveryUpstreamMapper);
+    }
+
+    @Test
     void testFetchDataWithProxySelector() {
         DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
         discoveryHandlerDO.setId("handler-1");

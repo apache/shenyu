@@ -299,8 +299,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String selectorId = proxySelectorAddDTO.getSelectorId();
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
         final ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        Assert.notNull(discovery, "Discovery configuration is required for selector: " + selectorId);
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discovery.getDiscoveryType());
         String discoveryId = discovery.getId();
         if (!StringUtils.hasLength(discoveryId)) {
             discoveryId = UUIDUtils.getInstance().generateShortUuid();
