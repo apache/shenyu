@@ -203,6 +203,13 @@ public final class CrossFilterTest {
     }
 
     @Test
+    public void testInvalidInitialOriginPatternFailsDuringConstruction() {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.getAllowedOrigin().setOriginRegex("[");
+        Assertions.assertThrows(java.util.regex.PatternSyntaxException.class, () -> new CrossFilter(config));
+    }
+
+    @Test
     void reusesCompiledPatternAndObservesConfigurationChanges() {
         CrossFilterConfig config = new CrossFilterConfig();
         config.getAllowedOrigin().setOriginRegex("  https://allowed[.]example  ");

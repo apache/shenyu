@@ -1,3 +1,12 @@
+## Unreleased
+
+### Behavior Changes
+
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features
