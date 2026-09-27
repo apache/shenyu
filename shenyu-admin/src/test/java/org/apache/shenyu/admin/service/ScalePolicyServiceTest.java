@@ -55,6 +55,18 @@ public final class ScalePolicyServiceTest {
     private ScaleService scaleService;
 
     @Test
+    public void testConcurrentDeleteDoesNotCacheNullOrSuppressScaling() {
+        ScalePolicyDTO partialPolicy = new ScalePolicyDTO("deleted-policy", 1, 1, null, null, null);
+        when(scalePolicyMapper.updateByPrimaryKeySelective(any(ScalePolicyDO.class))).thenReturn(1);
+        when(scalePolicyMapper.selectByPrimaryKey("deleted-policy")).thenReturn(null);
+
+        assertEquals(1, scalePolicyService.update(partialPolicy));
+
+        org.mockito.Mockito.verifyNoInteractions(scalePolicyCache);
+        verify(scaleService).executeScaling();
+    }
+
+    @Test
     public void testUpdateCachesPersistedPolicy() {
         String policyId = "policy-id";
         ScalePolicyDTO partialPolicy = new ScalePolicyDTO(policyId, 1, 1, null, null, null);

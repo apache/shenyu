@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementation of ScalePolicyService.
@@ -82,7 +83,9 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
         int rows = scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
         if (rows > 0) {
             ScalePolicyDO updatedPolicy = scalePolicyMapper.selectByPrimaryKey(scalePolicy.getId());
-            scalePolicyCache.updatePolicy(updatedPolicy);
+            if (Objects.nonNull(updatedPolicy)) {
+                scalePolicyCache.updatePolicy(updatedPolicy);
+            }
             scaleService.executeScaling();
         }
         return rows;
