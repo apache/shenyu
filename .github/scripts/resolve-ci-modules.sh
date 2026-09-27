@@ -41,9 +41,24 @@ add_module() {
   modules+=("${module}")
 }
 
+is_root_reactor_module() {
+  local module="$1"
+  local candidate="${module}"
+
+  while [[ "${candidate}" == */* ]]; do
+    if grep -Fq "<module>${candidate}</module>" pom.xml; then
+      return 0
+    fi
+    candidate="${candidate%/*}"
+  done
+
+  grep -Fq "<module>${candidate}</module>" pom.xml
+}
+
 find_module() {
   local path="$1"
   local dir
+  local module
 
   if [[ -d "${path}" ]]; then
     dir="${path}"
@@ -53,7 +68,10 @@ find_module() {
 
   while [[ "${dir}" != "." && "${dir}" != "/" ]]; do
     if [[ -f "${dir}/pom.xml" ]]; then
-      printf '%s\n' "${dir#./}"
+      module="${dir#./}"
+      if is_root_reactor_module "${module}"; then
+        printf '%s\n' "${module}"
+      fi
       return
     fi
     dir="$(dirname "${dir}")"
@@ -95,6 +113,8 @@ while IFS= read -r file; do
     module="$(find_module "${file}")"
     if [[ -n "${module:-}" ]]; then
       add_module "${module}"
+    else
+      full_build_required=true
     fi
   fi
 done < <(printf '%s' "${changed_files_json}" | jq -r '.[]')

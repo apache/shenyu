@@ -129,7 +129,8 @@
         INSERT INTO proxy_api_key_mapping (
             id, proxy_api_key, description, enabled, namespace_id, selector_id, date_created, date_updated
         ) VALUES (
-            #{id}, #{proxyApiKey}, #{description}, #{enabled}, #{namespaceId}, #{selectorId}, NOW(3), NOW(3)
+            #{id}, #{proxyApiKey}, #{description}, #{enabled}, #{namespaceId}, #{selectorId},
+            #{dateCreated, jdbcType=TIMESTAMP}, #{dateUpdated, jdbcType=TIMESTAMP}
         )
 </insert>
 
@@ -152,8 +153,8 @@
         <if test="enabled != null">#{enabled},</if>
         <if test="namespaceId != null">#{namespaceId},</if>
         <if test="selectorId != null">#{selectorId},</if>
-            NOW(3),
-            NOW(3)
+            #{dateCreated, jdbcType=TIMESTAMP},
+            #{dateUpdated, jdbcType=TIMESTAMP}
 </trim>
 </insert>
 
@@ -166,7 +167,7 @@
             enabled = #{enabled},
             namespace_id = #{namespaceId},
             selector_id = #{selectorId},
-            date_updated = NOW(3)
+            date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id = #{id}
 </update>
 
@@ -178,14 +179,14 @@
         <if test="enabled != null">enabled = #{enabled},</if>
         <if test="namespaceId != null">namespace_id = #{namespaceId},</if>
         <if test="selectorId != null">selector_id = #{selectorId},</if>
-            date_updated = NOW(3)
+            date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
 </set>
         WHERE id = #{id}
 </update>
 
 <update id="updateEnableBatch">
         UPDATE proxy_api_key_mapping
-        SET enabled = #{enabled}, date_updated = NOW(3)
+        SET enabled = #{enabled}, date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
         WHERE id IN
 <foreach collection="idList" item="id" open="(" separator="," close=")">
             #{id}
