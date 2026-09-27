@@ -238,7 +238,8 @@ public class ApiBean {
     }
     
     /**
-     * deep copy.
+     * Copy API metadata for independent processing by another registrar.
+     * Bean and definition registration states intentionally restart at INIT; the bean instance and Methods are shared.
      *
      * @return ApiBean
      */
@@ -266,6 +267,7 @@ public class ApiBean {
         
         /**
          * The instance of the class in which the function resides.
+         * Assigned later when an initially unbound definition is supplied to the ApiBean list constructor.
          */
         private ApiBean apiBean;
         

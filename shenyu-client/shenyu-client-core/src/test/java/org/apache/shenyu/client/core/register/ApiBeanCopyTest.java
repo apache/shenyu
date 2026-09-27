@@ -36,7 +36,13 @@ public class ApiBeanCopyTest {
         original.addApiDefinition(Object.class.getMethod("toString"), "/first");
         original.addApiDefinition(Object.class.getMethod("hashCode"), "/second");
         original.getApiDefinitions().get(0).addProperties("api-property", "original");
+        original.setStatus(ApiBean.Status.REGISTERED);
+        original.getApiDefinitions().get(0).setStatus(ApiBean.Status.REGISTERED);
         ApiBean copy = original.copy();
+        assertEquals(ApiBean.Status.INIT, copy.getStatus());
+        assertEquals(ApiBean.Status.REGISTERED, original.getStatus());
+        assertEquals(ApiBean.Status.REGISTERED, original.getApiDefinitions().get(0).getStatus());
+        assertNotSame(copy.getApiDefinitions().get(0), copy.getApiDefinitions().get(1));
         copy.setBeanPath("/processed");
         copy.addProperties("bean-property", "copied");
         copy.getApiDefinitions().get(0).addProperties("api-property", "copied");
@@ -47,6 +53,7 @@ public class ApiBeanCopyTest {
             ApiBean.ApiDefinition originalDefinition = original.getApiDefinitions().get(i);
             assertNotSame(originalDefinition, copiedDefinition);
             assertSame(copy, copiedDefinition.getApiBean());
+            assertEquals(ApiBean.Status.INIT, copiedDefinition.getStatus());
             assertSame(original, originalDefinition.getApiBean());
             assertEquals("/processed", copiedDefinition.getBeanPath());
             assertEquals("/original", originalDefinition.getBeanPath());
@@ -58,4 +65,3 @@ public class ApiBeanCopyTest {
         assertEquals("/second", copy.getApiDefinitions().get(1).getMethodPath());
     }
 }
-
