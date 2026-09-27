@@ -47,7 +47,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -81,7 +83,18 @@ public class ApacheDubboProxyService {
      * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) throws ShenyuException {
-        return Mono.defer(() -> invokeOnWorker(body, metaData, selectorData, ruleData, exchange))
+        Map<String, Object> attachments = new HashMap<>(RpcContext.getClientAttachment().getObjectAttachments());
+        return Mono.defer(() -> {
+            Map<String, Object> previous = new HashMap<>(RpcContext.getClientAttachment().getObjectAttachments());
+            try {
+                RpcContext.getClientAttachment().setObjectAttachments(new HashMap<>(attachments));
+                return invokeOnWorker(body, metaData, selectorData, ruleData, exchange);
+            } finally {
+                // Invocation and future lookup are synchronous; do not retain request data on a pooled worker.
+                RpcContext.getClientAttachment().clearAttachments();
+                RpcContext.getClientAttachment().setObjectAttachments(previous);
+            }
+        })
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
