@@ -59,6 +59,10 @@ class DiscoveryNamespaceQueryTest {
             jdbc.update("INSERT INTO discovery_handler (id, discovery_id, handler) VALUES ('h-proxy', 'discovery', '{}')");
             jdbc.update("INSERT INTO discovery_rel (id, plugin_name, discovery_handler_id, proxy_selector_id) VALUES ('r-proxy', 'tcp', 'h-proxy', 'proxy-a')");
             jdbc.update("INSERT INTO discovery_handler (id, discovery_id, handler) VALUES ('orphan', 'discovery', '{}')");
+            // When both ids exist, the selector namespace wins even if the proxy belongs elsewhere.
+            jdbc.update("INSERT INTO discovery_handler (id, discovery_id, handler) VALUES ('h-both', 'discovery', '{}')");
+            jdbc.update("INSERT INTO discovery_rel (id, plugin_name, discovery_handler_id, selector_id, proxy_selector_id) "
+                    + "VALUES ('r-both', 'divide', 'h-both', 's-b', 'proxy-a')");
             Configuration configuration = new Configuration(new Environment("test", new JdbcTransactionFactory(), dataSource));
             try (InputStream input = new ClassPathResource("mappers/discovery-handler-sqlmap.xml").getInputStream()) {
                 new XMLMapperBuilder(input, configuration, "discovery-handler", configuration.getSqlFragments()).parse();
@@ -66,7 +70,7 @@ class DiscoveryNamespaceQueryTest {
             try (SqlSession session = new SqlSessionFactoryBuilder().build(configuration).openSession()) {
                 DiscoveryHandlerMapper mapper = session.getMapper(DiscoveryHandlerMapper.class);
                 assertEquals(Set.of("h-a", "h-proxy"), mapper.selectAllByNamespaceId("a").stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toSet()));
-                assertEquals(Set.of("h-b"), mapper.selectAllByNamespaceId("b").stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toSet()));
+                assertEquals(Set.of("h-b", "h-both"), mapper.selectAllByNamespaceId("b").stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toSet()));
                 assertTrue(mapper.selectAllByNamespaceId("missing").isEmpty());
             }
         } finally {
