@@ -220,6 +220,38 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void duplicateAndMissingBindingsDoNotAbortOtherHandlers() {
+        List<DiscoveryHandlerDO> handlers = new ArrayList<>();
+        for (String id : List.of("valid", "missing-relation", "missing-selector", "missing-proxy")) {
+            DiscoveryHandlerDO handler = buildDiscoveryHandlerDO();
+            handler.setId(id);
+            handlers.add(handler);
+        }
+        DiscoveryRelDO valid = buildDiscoveryRelDO();
+        valid.setDiscoveryHandlerId("valid");
+        valid.setSelectorId("selector_1");
+        DiscoveryRelDO duplicate = buildDiscoveryRelDO();
+        duplicate.setDiscoveryHandlerId("valid");
+        duplicate.setSelectorId("missing");
+        DiscoveryRelDO missingSelector = buildDiscoveryRelDO();
+        missingSelector.setDiscoveryHandlerId("missing-selector");
+        missingSelector.setSelectorId("missing");
+        DiscoveryRelDO missingProxy = buildDiscoveryRelDO();
+        missingProxy.setDiscoveryHandlerId("missing-proxy");
+        missingProxy.setProxySelectorId("missing");
+        when(discoveryHandlerMapper.selectAll()).thenReturn(handlers);
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(List.of(valid, duplicate, missingSelector, missingProxy));
+        when(selectorMapper.selectByIdSet(any())).thenReturn(List.of(buildSelectorDO()));
+        when(proxySelectorMapper.selectByIds(any())).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(any())).thenReturn(Collections.emptyList());
+
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAll();
+
+        assertEquals(1, data.size());
+        assertEquals("selector_1", data.get(0).getSelectorId());
+    }
+
+    @Test
     public void testListAllData() {
         List<DiscoveryUpstreamDO> list = Collections.singletonList(buildDiscoveryUpstreamDO(""));
         when(discoveryUpstreamMapper.selectAll()).thenReturn(list);

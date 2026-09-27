@@ -44,6 +44,8 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -59,6 +61,11 @@ import java.util.function.Function;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryUpstreamServiceImpl.class);
+
+    // Keep IN lists below Oracle's 1000-expression limit and bound query payloads on all databases.
+    private static final int BATCH_SIZE = 500;
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -154,7 +161,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> handlers) {
         List<DiscoverySyncData> result = new ArrayList<>();
-        for (List<DiscoveryHandlerDO> batch : Lists.partition(handlers, 500)) {
+        for (List<DiscoveryHandlerDO> batch : Lists.partition(handlers, BATCH_SIZE)) {
             List<String> handlerIds = batch.stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toList());
             List<DiscoveryRelDO> relations = discoveryRelMapper.selectByDiscoveryHandlerIds(handlerIds);
             Set<String> selectorIds = relations.stream().map(DiscoveryRelDO::getSelectorId).filter(StringUtils::hasLength).collect(Collectors.toSet());
@@ -168,10 +175,15 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                     .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId,
                             Collectors.mapping(DiscoveryTransfer.INSTANCE::mapToData, Collectors.toList())));
             Map<String, DiscoveryRelDO> relationByHandler = relations.stream()
-                    .collect(Collectors.toMap(DiscoveryRelDO::getDiscoveryHandlerId, Function.identity()));
+                    .collect(Collectors.toMap(DiscoveryRelDO::getDiscoveryHandlerId, Function.identity(), (existing, duplicate) -> {
+                        LOG.warn("Duplicate discovery relations for handler {}, retaining relation {} and ignoring {}",
+                                existing.getDiscoveryHandlerId(), existing.getId(), duplicate.getId());
+                        return existing;
+                    }));
             for (DiscoveryHandlerDO handler : batch) {
                 DiscoveryRelDO relation = relationByHandler.get(handler.getId());
                 if (Objects.isNull(relation)) {
+                    LOG.warn("Skipping discovery handler {}: relation is missing", handler.getId());
                     continue;
                 }
                 DiscoverySyncData data = new DiscoverySyncData();
@@ -179,6 +191,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 if (StringUtils.hasLength(relation.getSelectorId())) {
                     SelectorDO selector = selectors.get(relation.getSelectorId());
                     if (Objects.isNull(selector)) {
+                        LOG.warn("Skipping discovery handler {}: selector {} is missing", handler.getId(), relation.getSelectorId());
                         continue;
                     }
                     data.setSelectorId(selector.getId());
@@ -186,6 +199,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 } else {
                     ProxySelectorDO proxy = proxies.get(relation.getProxySelectorId());
                     if (Objects.isNull(proxy)) {
+                        LOG.warn("Skipping discovery handler {}: proxy selector {} is missing", handler.getId(), relation.getProxySelectorId());
                         continue;
                     }
                     data.setSelectorId(proxy.getId());
