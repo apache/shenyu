@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 package org.apache.shenyu.client.core.disruptor.subcriber;
 
 import org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook;
@@ -36,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
 /**
  * Readiness waits must not block subsequent URI registration indefinitely.
  */
-public class UriReadinessTimeoutTest {
+public final class UriReadinessTimeoutTest {
 
     private final ShenyuClientRegisterRepository repository = mock(ShenyuClientRegisterRepository.class);
 
@@ -55,6 +55,28 @@ public class UriReadinessTimeoutTest {
     public void cleanup() {
         if (Objects.nonNull(subscriber)) {
             ((ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(subscriber, "executor")).shutdownNow();
+        }
+    }
+
+    @Test
+    public void testReadinessDefaultAndStartupOverride() {
+        String property = "shenyu.client.uri.readyTimeoutMillis";
+        String previous = System.getProperty(property);
+        try {
+            System.clearProperty(property);
+            subscriber = new ShenyuClientURIExecutorSubscriber(repository);
+            assertEquals(30000L, ReflectionTestUtils.getField(subscriber, "readinessTimeoutMillis"));
+            System.setProperty(property, "5000");
+            assertEquals(30000L, ReflectionTestUtils.getField(subscriber, "readinessTimeoutMillis"));
+            cleanup();
+            subscriber = new ShenyuClientURIExecutorSubscriber(repository);
+            assertEquals(5000L, ReflectionTestUtils.getField(subscriber, "readinessTimeoutMillis"));
+        } finally {
+            if (Objects.isNull(previous)) {
+                System.clearProperty(property);
+            } else {
+                System.setProperty(property, previous);
+            }
         }
     }
 

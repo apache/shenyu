@@ -58,13 +58,14 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     
     /**
      * Instantiates a new Shenyu client uri executor subscriber.
-     * URI readiness is bounded by {@code shenyu.client.uri.readyTimeoutMillis}, defaulting to three minutes.
+     * URI readiness is bounded by {@code shenyu.client.uri.readyTimeoutMillis}, defaulting to thirty seconds.
+     * The system property is read once when this subscriber is constructed.
      * Unready URIs are logged and skipped so subsequent registration events can be processed.
      *
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
     public ShenyuClientURIExecutorSubscriber(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        this(shenyuClientRegisterRepository, Long.getLong("shenyu.client.uri.readyTimeoutMillis", TimeUnit.MINUTES.toMillis(3)));
+        this(shenyuClientRegisterRepository, Long.getLong("shenyu.client.uri.readyTimeoutMillis", TimeUnit.SECONDS.toMillis(30)));
     }
 
     ShenyuClientURIExecutorSubscriber(final ShenyuClientRegisterRepository shenyuClientRegisterRepository, final long readinessTimeoutMillis) {
@@ -118,7 +119,8 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         while (!Thread.currentThread().isInterrupted()) {
             long remaining = readinessTimeoutMillis - stopwatch.elapsed(TimeUnit.MILLISECONDS);
             if (remaining <= 0) {
-                LOG.error("Skipping URI registration for {}:{} after waiting {}ms for readiness", uri.getHost(), uri.getPort(), readinessTimeoutMillis);
+                LOG.warn("Skipping URI registration for {}:{} after waiting {}ms for readiness; configure shenyu.client.uri.readyTimeoutMillis before startup",
+                        uri.getHost(), uri.getPort(), readinessTimeoutMillis);
                 return false;
             }
             try (Socket socket = new Socket()) {
