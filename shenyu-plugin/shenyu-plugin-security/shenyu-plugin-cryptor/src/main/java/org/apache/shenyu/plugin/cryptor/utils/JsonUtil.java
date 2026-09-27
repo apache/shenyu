@@ -102,26 +102,26 @@ public final class JsonUtil {
     /**
      * operate json.
      * @param jsonElement jsonElement
-     * @param initDeep default 0
+     * @param startDepth starting path index, normally 0; retained as AtomicInteger for compatibility and never mutated
      * @param value The value that needs to be modified
      * @param deepKey json link
      * @return JsonElement
      */
     public static JsonElement replaceJsonNode(final JsonElement jsonElement,
-                                              final AtomicInteger initDeep,
+                                              final AtomicInteger startDepth,
                                               final String value,
                                               final List<String> deepKey) {
         if (CollectionUtils.isEmpty(deepKey)) {
             return jsonElement;
         }
-        return replaceJsonNode(jsonElement, initDeep.get(), value, deepKey);
+        return replaceJsonNode(jsonElement, startDepth.get(), value, deepKey);
     }
 
     private static JsonElement replaceJsonNode(final JsonElement jsonElement,
                                                final int depth,
                                                final String value,
                                                final List<String> deepKey) {
-        if (jsonElement.isJsonPrimitive()) {
+        if (depth < 0 || depth >= deepKey.size() || jsonElement.isJsonPrimitive()) {
             return jsonElement;
         }
         if (jsonElement.isJsonArray()) {

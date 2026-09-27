@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class JsonUtilTest {
 
@@ -50,6 +51,19 @@ public class JsonUtilTest {
         assertNull(JsonUtil.parser("{\"data\":{\"nested\":[]}}", "data.nested.name"));
         assertNull(JsonUtil.parser("{\"data\":{\"nested\":{}}}", "data.nested.name"));
         assertNull(JsonUtil.parser("{\"data\":{\"nested\":{\"name\":{}}}}", "data.nested.name"));
+    }
+
+    @Test
+    public void testReplacementStartingDepthIsReadOnlyAndBoundsChecked() {
+        JsonElement source = JsonParser.parseString("{\"b\":1}");
+        AtomicInteger startDepth = new AtomicInteger(1);
+        JsonElement result = JsonUtil.replaceJsonNode(source, startDepth, "encrypted", Arrays.asList("a", "b"));
+        assertEquals("{\"b\":\"encrypted\"}", result.toString());
+        assertEquals(1, startDepth.get());
+        assertEquals("{\"b\":1}", source.toString());
+        for (int invalidDepth : new int[]{-1, 2, 3}) {
+            assertSame(source, JsonUtil.replaceJsonNode(source, new AtomicInteger(invalidDepth), "encrypted", Arrays.asList("a", "b")));
+        }
     }
 
     @Test
