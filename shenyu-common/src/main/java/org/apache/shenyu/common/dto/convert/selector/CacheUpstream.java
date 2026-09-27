@@ -523,6 +523,83 @@ public class CacheUpstream extends CommonUpstream {
             this.database = database;
             return this;
         }
+
+        /**
+         * build password.
+         *
+         * @param password password
+         * @return this
+         */
+        public Builder password(final String password) {
+            this.password = password;
+            return this;
+        }
+
+        /**
+         * build master.
+         *
+         * @param master master
+         * @return this
+         */
+        public Builder master(final String master) {
+            this.master = master;
+            return this;
+        }
+
+        /**
+         * build mode.
+         *
+         * @param mode mode
+         * @return this
+         */
+        public Builder mode(final String mode) {
+            this.mode = mode;
+            return this;
+        }
+
+        /**
+         * build maxIdle.
+         *
+         * @param maxIdle maxIdle
+         * @return this
+         */
+        public Builder maxIdle(final int maxIdle) {
+            this.maxIdle = maxIdle;
+            return this;
+        }
+
+        /**
+         * build minIdle.
+         *
+         * @param minIdle minIdle
+         * @return this
+         */
+        public Builder minIdle(final int minIdle) {
+            this.minIdle = minIdle;
+            return this;
+        }
+
+        /**
+         * build maxActive.
+         *
+         * @param maxActive maxActive
+         * @return this
+         */
+        public Builder maxActive(final int maxActive) {
+            this.maxActive = maxActive;
+            return this;
+        }
+
+        /**
+         * build maxWait.
+         *
+         * @param maxWait maxWait
+         * @return this
+         */
+        public Builder maxWait(final int maxWait) {
+            this.maxWait = maxWait;
+            return this;
+        }
     }
 
 }

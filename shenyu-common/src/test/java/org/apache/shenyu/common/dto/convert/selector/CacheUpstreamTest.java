@@ -37,7 +37,14 @@ public final class CacheUpstreamTest {
                 .timestamp(1650549243L)
                 .cacheType("redis")
                 .url("localhost:6379")
+                .password("secret")
                 .database("0")
+                .master("mymaster")
+                .mode("cluster")
+                .maxIdle(8)
+                .minIdle(2)
+                .maxActive(16)
+                .maxWait(3000)
                 .build();
         assertEquals("host-1", upstream.getUpstreamHost());
         assertEquals("http", upstream.getProtocol());
@@ -46,6 +53,13 @@ public final class CacheUpstreamTest {
         assertEquals(1650549243L, upstream.getTimestamp());
         assertEquals("redis", upstream.getCacheType());
         assertEquals("localhost:6379", upstream.getUrl());
+        assertEquals("secret", upstream.getPassword());
         assertEquals("0", upstream.getDatabase());
+        assertEquals("mymaster", upstream.getMaster());
+        assertEquals("cluster", upstream.getMode());
+        assertEquals(8, upstream.getMaxIdle());
+        assertEquals(2, upstream.getMinIdle());
+        assertEquals(16, upstream.getMaxActive());
+        assertEquals(3000, upstream.getMaxWait());
     }
 }
