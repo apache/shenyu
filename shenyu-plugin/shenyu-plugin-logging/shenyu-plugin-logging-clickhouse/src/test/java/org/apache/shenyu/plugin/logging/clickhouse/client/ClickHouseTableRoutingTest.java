@@ -26,6 +26,7 @@ import com.clickhouse.client.ClickHouseValue;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig.ClickHouseLogConfig;
 import org.apache.shenyu.plugin.logging.clickhouse.constant.ClickHouseLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -35,6 +36,8 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,6 +50,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ClickHouseTableRoutingTest {
+
+    @Test
+    void consumingBeforeInitializationReportsLifecycleError() {
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> new ClickHouseLogCollectClient().consume0(Collections.singletonList(new ShenyuRequestLog())));
+        assertEquals("ClickHouse log client must be initialized successfully before consuming logs", error.getMessage());
+    }
 
     @ParameterizedTest
     @NullAndEmptySource
@@ -68,6 +78,7 @@ class ClickHouseTableRoutingTest {
         boolean distributed = "logs-cluster".equals(cluster);
         String ddl = String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, "logs", "logs", cluster, "logs");
         String insert = String.format(distributed ? ClickHouseLoggingConstant.PRE_INSERT_SQL : ClickHouseLoggingConstant.LOCAL_PRE_INSERT_SQL, "logs");
+        assertTrue(insert.startsWith("INSERT INTO `logs`." + (distributed ? "request_log_distributed" : "request_log") + "("));
         try (MockedStatic<ClickHouseClient> clients = mockStatic(ClickHouseClient.class)) {
             clients.when(ClickHouseClient::builder).thenReturn(builder);
             clients.when(() -> ClickHouseClient.send(any(ClickHouseNode.class), anyString(), any(ClickHouseValue[].class), any(Object[][].class)))
@@ -90,6 +101,7 @@ class ClickHouseTableRoutingTest {
                 collector.close0();
             }
             verify(client).close();
+            assertThrows(IllegalStateException.class, () -> collector.consume0(Collections.singletonList(new ShenyuRequestLog())));
         }
     }
 }
