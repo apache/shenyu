@@ -53,7 +53,7 @@ public class MqttContext {
             return false;
         }
 
-        return MqttContext.userName.equals(userName) && MqttContext.password.equals(password);
+        return Objects.equals(MqttContext.userName, userName) && Objects.equals(MqttContext.password, password);
     }
 
     /**

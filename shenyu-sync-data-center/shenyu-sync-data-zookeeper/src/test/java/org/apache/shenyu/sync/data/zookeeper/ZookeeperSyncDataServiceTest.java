@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.config.ShenyuConfig;
@@ -30,6 +31,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,11 +39,34 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public final class ZookeeperSyncDataServiceTest {
+
+    @Test
+    public void testDeletedNodeUsesOldData() {
+        ZookeeperClient zkClient = mock(ZookeeperClient.class);
+        PluginDataSubscriber pluginDataSubscriber = mock(PluginDataSubscriber.class);
+        ShenyuConfig shenyuConfig = mock(ShenyuConfig.class);
+        when(shenyuConfig.getNamespace()).thenReturn(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        new ZookeeperSyncDataService(shenyuConfig, zkClient, pluginDataSubscriber, Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        ArgumentCaptor<CuratorCacheListener> listenerCaptor = ArgumentCaptor.forClass(CuratorCacheListener.class);
+        verify(zkClient, times(7)).addCuratorCache(anyString(), listenerCaptor.capture());
+
+        String pluginPath = Constants.PATH_SEPARATOR + Constants.SYS_DEFAULT_NAMESPACE_ID + "/shenyu/plugin/divide";
+        ChildData oldData = new ChildData(pluginPath, null, "{}".getBytes());
+        listenerCaptor.getAllValues().forEach(listener ->
+                listener.event(CuratorCacheListener.Type.NODE_DELETED, oldData, null));
+
+        verify(pluginDataSubscriber).unSubscribe(argThat(pluginData -> "divide".equals(pluginData.getName())));
+    }
 
     @Test
     public void testZookeeperInstanceRegisterRepository() throws Exception {
