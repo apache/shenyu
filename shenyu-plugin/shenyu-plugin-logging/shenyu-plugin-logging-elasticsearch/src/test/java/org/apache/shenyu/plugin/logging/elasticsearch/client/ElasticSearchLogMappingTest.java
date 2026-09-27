@@ -51,6 +51,10 @@ class ElasticSearchLogMappingTest {
             assertTrue(request.mappings().properties().get("responseContentLength").isInteger());
             assertTrue(request.mappings().properties().get("status").isInteger());
             assertTrue(request.mappings().properties().get("upstreamResponseTime").isLong());
+            assertEquals(Boolean.TRUE, request.mappings().properties().get("timeLocal").date().ignoreMalformed());
+            assertEquals(Boolean.TRUE, request.mappings().properties().get("responseContentLength").integer().ignoreMalformed());
+            assertEquals(Boolean.TRUE, request.mappings().properties().get("status").integer().ignoreMalformed());
+            assertEquals(Boolean.TRUE, request.mappings().properties().get("upstreamResponseTime").long_().ignoreMalformed());
             return null;
         }).when(indices).create(any(Function.class));
         ElasticSearchLogCollectClient collector = new ElasticSearchLogCollectClient();
