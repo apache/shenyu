@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### API Changes
+
+- `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features

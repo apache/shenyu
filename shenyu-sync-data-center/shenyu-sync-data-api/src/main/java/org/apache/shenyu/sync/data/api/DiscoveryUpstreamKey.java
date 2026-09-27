@@ -19,26 +19,22 @@ package org.apache.shenyu.sync.data.api;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 
-public interface DiscoveryUpstreamDataSubscriber {
+/**
+ * Identity of a discovery upstream selector to remove.
+ *
+ * @param pluginName plugin name
+ * @param selectorId selector id
+ * @param selectorName optional selector name
+ */
+public record DiscoveryUpstreamKey(String pluginName, String selectorId, String selectorName) {
 
     /**
-     * On subscribe.
+     * Extract the deletion identity from a discovery upstream event.
      *
-     * @param upstreamDataList the discoveryUpstream data
+     * @param data discovery upstream event
+     * @return deletion identity
      */
-    void onSubscribe(DiscoverySyncData upstreamDataList);
-
-    /**
-     * Un subscribe.
-     *
-     * @param key the discovery upstream selector to remove
-     */
-    void unSubscribe(DiscoveryUpstreamKey key);
-
-    /**
-     * Refresh.
-     */
-    default void refresh() {
+    public static DiscoveryUpstreamKey from(final DiscoverySyncData data) {
+        return new DiscoveryUpstreamKey(data.getPluginName(), data.getSelectorId(), data.getSelectorName());
     }
-
 }

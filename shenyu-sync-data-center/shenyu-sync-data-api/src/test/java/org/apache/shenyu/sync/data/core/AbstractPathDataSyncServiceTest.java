@@ -21,12 +21,14 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -34,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -83,6 +86,17 @@ public class AbstractPathDataSyncServiceTest {
         pathDataSyncService.unCacheAuthData("/namespace/auths/testApp");
 
         verify(authDataSubscriber).unSubscribe(any());
+    }
+
+    @Test
+    public void testUnCacheDiscoveryUpstreamData() {
+        pathDataSyncService.event("/default", "/default/shenyu/discoveryUpstream/divide/selector-id", null,
+                "/default/shenyu/discoveryUpstream", AbstractPathDataSyncService.EventType.DELETE);
+
+        ArgumentCaptor<DiscoveryUpstreamKey> captor = ArgumentCaptor.forClass(DiscoveryUpstreamKey.class);
+        verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("divide", captor.getValue().pluginName());
+        assertEquals("selector-id", captor.getValue().selectorId());
     }
 
     // Mock implementation
