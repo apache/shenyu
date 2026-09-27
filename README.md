@@ -1,225 +1,154 @@
-![Light Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
-![Dark Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
-
 <p align="center">
-  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
-</p>
-<p align="center">
-  <a href="https://shenyu.apache.org/">https://shenyu.apache.org/</a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo-light.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo.svg">
+    <img alt="Apache ShenYu" src="https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo.svg" width="260">
+  </picture>
 </p>
 
 <p align="center">
-  <a href="https://shenyu.apache.org/docs/">
-    <img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN docs" />
-  </a>
-  <a href="https://shenyu.apache.org/zh/docs/">
-    <img src="https://img.shields.io/badge/文档-简体中文-blue.svg" alt="简体中文文档" />
-  </a>
+  <a href="https://search.maven.org/search?q=g:org.apache.shenyu%20AND%20a:shenyu"><img src="https://img.shields.io/maven-central/v/org.apache.shenyu/shenyu.svg?label=maven%20central" alt="Maven Central release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="Apache 2.0 license" /></a>
+  <a href="https://github.com/apache/shenyu/actions/workflows/ci.yml"><img src="https://github.com/apache/shenyu/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <a href="https://codecov.io/gh/apache/shenyu"><img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" alt="Codecov coverage" /></a>
+  <a href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags"><img src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker pulls" /></a>
+  <a href="https://gitpod.io/#https://github.com/apache/shenyu"><img src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod&amp;color=green" alt="Contribute with Gitpod" /></a>
+  <a href="https://deepwiki.com/apache/shenyu"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache.shenyu%20AND%20a:shenyu">
-        <img src="https://img.shields.io/maven-central/v/org.apache.shenyu/shenyu.svg?label=maven%20central" />
-    </a>
-    <a target="_blank" href="https://github.com/apache/shenyu/blob/master/LICENSE">
-        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
-    </a>
-    <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
-        <img src="https://img.shields.io/badge/JDK-17+-green.svg" />
-    </a>
-    <a target="_blank" href="https://github.com/apache/shenyu/actions">
-        <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
-    </a>
-   <a target="_blank" href='https://github.com/apache/shenyu'>
-        <img src="https://img.shields.io/github/forks/apache/shenyu.svg" alt="github forks"/>
-   </a>
-   <a target="_blank" href='https://github.com/apache/shenyu'>
-        <img src="https://img.shields.io/github/stars/apache/shenyu.svg" alt="github stars"/>
-   </a>
-   <a target="_blank" href='https://github.com/apache/shenyu'>
-        <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
-   </a>
-   <a target="_blank" href="https://codecov.io/gh/apache/shenyu">
-        <img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" />
-   </a>
-  <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
-    <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
-  </a>
-  <a target="_blank" href="https://gitpod.io/#https://github.com/apache/shenyu">
-    <image src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod&color=green"/>
-  </a>
-  <a target="_blank" href="https://deepwiki.com/apache/shenyu">
-    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
-  </a>
+  <a href="https://shenyu.apache.org/"><img src="https://img.shields.io/badge/Official_Website-Explore-13c46a?style=for-the-badge" alt="Official website" /></a>
+  <a href="https://shenyu.apache.org/download/"><img src="https://img.shields.io/badge/QUICK%20DOWNLOAD-393af8?style=for-the-badge" alt="Quick download" /></a>
 </p>
-<br/>
 
----
+<p align="center">
+  <a href="https://trendshift.io/repositories/3415"><img src="https://trendshift.io/api/badge/repositories/3415" alt="apache/shenyu on Trendshift" width="250" height="55" /></a>
+</p>
 
-# Architecture
- 
- ![](https://shenyu.apache.org/img/architecture/shenyu-architecture-3d.png)  
- 
----- 
+## Overview
 
-# Why named Apache ShenYu
+Apache ShenYu is a Java-based gateway for service proxying, protocol conversion, and API governance. An extensible plugin chain processes requests, while ShenYu Admin manages and distributes configuration to gateway replicas.
 
-ShenYu (神禹) is the honorific name of Chinese ancient monarch Xia Yu (also known in later times as Da Yu), 
-who left behind the touching story of the three times he crossed the Yellow River for the benefit of the people and successfully managed the flooding of the river. 
-He is known as one of the three greatest kings of ancient China, along with Yao and Shun.
+## Core Capabilities
 
-   * Firstly, the name ShenYu is to promote the traditional virtues of our Chinese civilisation.
+| Area | What ShenYu provides |
+| --- | --- |
+| Plugin routing and extensions | An ordered plugin chain for HTTP requests, with selector and rule matching where applicable. Spring Boot starters select plugins; [custom Java plugins](https://shenyu.apache.org/docs/developer/custom-plugin/), SPI implementations, and WASM plugin APIs extend the gateway. |
+| Protocols and upstreams | HTTP and Spring Cloud services, WebSocket connections, and Apache Dubbo, gRPC, SOFA, and Tars backends. Optional TCP and MQTT listeners provide additional ingress. |
+| Registration and discovery | Client SDKs register service addresses and API metadata with Admin. Registry integrations support discovery; an optional Kubernetes controller reconciles Ingress and Endpoints resources. |
+| Security and traffic control | WAF, signing, authentication plugins, load balancing, rate limiting, and fault tolerance through Hystrix, Resilience4j, and Sentinel. |
+| Caching and transformation | In-memory or Redis-backed response caching, URL rewriting, redirection, and request/response transformation. |
+| Dynamic configuration | Admin persists plugins, selectors, rules, metadata, and authentication data. WebSocket sync is the default; HTTP long polling, ZooKeeper, Nacos, etcd, Consul, Apollo, and Polaris are available. Gateway replicas apply updates to their local caches. |
+| Observability | Metrics and logging plugins, including Kafka, Pulsar, Elasticsearch, and ClickHouse destinations; email and DingTalk alerts from Admin. |
+| AI and MCP | AI proxy, prompt processing, token limits, sensitive-word filtering, AI request/response transformation, and an MCP server plugin with SSE and Streamable HTTP. |
 
-   * Secondly, the most important thing about the gateway is the governance of the traffic.
+## Architecture
 
-   * Finally, the community will do things in a fair, just, open and meritocratic way, paying tribute to ShenYu while also conforming to the Apache Way.
+![Apache ShenYu architecture](docs/architecture/shenyu-architecture.png)
 
---- 
+## Get Started
 
-# Features
+Start with the [English documentation](https://shenyu.apache.org/docs/), [中文文档](https://shenyu.apache.org/zh/docs/), or the [official downloads](https://shenyu.apache.org/download/).
 
-* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, SOFA, TARS, WebSocket, MQTT
-* Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
-* API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
-* Observability: Tracing, metrics, logging plugin
-* Dashboard: Dynamic traffic control, visual backend for user menu permissions
-* Extensions: Plugin hot-swapping, dynamic loading
-* Cluster: NGINX, Docker, Kubernetes
-* Language: provides .NET, Python, Go, Java client for API register
-   
----  
+### Docker quick start
 
-# Quick Start (docker)
+Use Docker and OpenSSL to start ShenYu Admin, a gateway, and an example HTTP service. Run the commands below in the same shell.
 
-### Create network for Shenyu
+#### Start the services
 
-```
-> docker network create shenyu
-```
+```bash
+docker network create shenyu
 
-### Run Apache ShenYu Admin
+export SHENYU_JWT_SECRETKEY="$(openssl rand -hex 32)"
+export SHENYU_SYNC_WEBSOCKET_TOKEN="$(openssl rand -hex 32)"
+export SHENYU_LOCAL_KEY="$(openssl rand -hex 24)"
+export SHENYU_LOCAL_SHA512KEY="$(printf %s "$SHENYU_LOCAL_KEY" | openssl dgst -sha512 -r | awk '{print $1}')"
 
-```
-> docker pull apache/shenyu-admin
-> docker run -d --name shenyu-admin-quickstart -p 9095:9095 --net shenyu apache/shenyu-admin
-```
+docker run -d --name shenyu-admin --network shenyu -p 127.0.0.1:9095:9095 \
+  -e SHENYU_JWT_SECRETKEY -e SHENYU_SYNC_WEBSOCKET_TOKEN \
+  apache/shenyu-admin:latest
 
-### Run Apache ShenYu Bootstrap
+docker run -d --name shenyu-demo --network shenyu nginx:stable-alpine
 
-```
-> docker pull apache/shenyu-bootstrap
-> docker run -d --name shenyu-quickstart -p 9195:9195 -e "shenyu.local.enabled=true" -e SHENYU_SYNC_WEBSOCKET_URLS=ws://shenyu-admin-quickstart:9095/websocket --net shenyu apache/shenyu-bootstrap
-```                       
-
-### Set router
-
-* Real request  ：http://127.0.0.1:8080/helloworld,
-
-```json
-{
-  "name" : "Shenyu",
-  "data" : "hello world"
-}
+docker run -d --name shenyu-bootstrap --network shenyu -p 127.0.0.1:9195:9195 \
+  -e SHENYU_SYNC_WEBSOCKET_URLS=ws://shenyu-admin:9095/websocket \
+  -e SHENYU_SYNC_WEBSOCKET_TOKEN \
+  -e SHENYU_HEARTBEAT_SERVERLISTS=http://shenyu-admin:9095 \
+  -e SHENYU_LOCAL_ENABLED=true -e SHENYU_LOCAL_SHA512KEY \
+  apache/shenyu-bootstrap:latest
 ```
 
-* Set routing rules (Standalone)
+Admin listens on `http://localhost:9095`; the gateway listens on `http://localhost:9195`. Wait for both services to start, then check their health endpoints:
 
-Add `localKey: 123456` to Headers. If you need to customize the localKey, you can use the sha512 tool to generate the key based on plaintext and update the `shenyu.local.sha512Key` property.
-
+```bash
+curl -fsS http://localhost:9095/actuator/health
+curl -fsS http://localhost:9195/actuator/health
 ```
-curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndRules' \
---header 'Content-Type: application/json' \
---header 'localKey: 123456' \
---data-raw '{
+
+#### Configure a sample route
+
+The following request configures the `divide` plugin on this gateway to forward `/index.html` to the example service:
+
+```bash
+curl -fsS http://localhost:9195/shenyu/plugin/selectorAndRules \
+  -H 'Content-Type: application/json' \
+  -H "localKey: ${SHENYU_LOCAL_KEY}" \
+  -d '{
     "pluginName": "divide",
-    "selectorHandler": "[{\"upstreamUrl\":\"127.0.0.1:8080\"}]",
-    "conditionDataList": [{
-        "paramType": "uri",
-        "operator": "match",
-        "paramValue": "/**"
-    }],
+    "selectorHandler": "[{\"upstreamUrl\":\"shenyu-demo:80\",\"protocol\":\"http\",\"weight\":100}]",
+    "conditionDataList": [
+      {"paramType": "uri", "operator": "match", "paramValue": "/index.html"}
+    ],
     "ruleDataList": [{
-        "ruleHandler": "{\"loadBalance\":\"random\"}",
-        "conditionDataList": [{
-            "paramType": "uri",
-            "operator": "match",
-            "paramValue": "/**"
-        }]
+      "ruleHandler": "{\"loadBalance\":\"random\"}",
+      "conditionDataList": [
+        {"paramType": "uri", "operator": "match", "paramValue": "/index.html"}
+      ]
     }]
-}'
+  }'
 ```
-> If the backend service handling the request is running on your host machine, please set `upstreamUrl` to `host.docker.internal:8080` or specify IP address  if reachable from the container in the above command.
-> 
-> Add `--network host` to docker run command instead of `--net shenyu` also works correctly.
-* Proxy request ：http://localhost:9195/helloworld 
 
-```json
-{
-  "name" : "Shenyu",
-  "data" : "hello world"
-}
+This request updates only this gateway instance; it does not write the route to Admin. For centrally managed, durable routes, configure them in Admin with a persistent database instead of the default in-memory H2 database.
+
+#### Verify the route
+
+```bash
+curl -i http://localhost:9195/index.html
 ```
----
 
-# Plugin
+The response should contain the NGINX welcome page served through ShenYu.
 
- Whenever a request comes in, Apache ShenYu will execute it by all enabled plugins through the chain of responsibility.
- 
- As the heart of Apache ShenYu, plugins are extensible and hot-pluggable.
- 
- Different plugins do different things.
- 
- Of course, users can also customize plugins to meet their own needs.
- 
- If you want to customize, see [custom-plugin](https://shenyu.apache.org/docs/developer/custom-plugin/) .
- 
----  
- 
-# Selector & Rule 
+## Why Apache ShenYu?
 
-  According to your HTTP request headers, selectors and rules are used to route your requests.
-  
-  Selector is your first route, It is coarser grained, for example, at the module level.
-  
-  Rule is your second route and what do you think your request should do. For example a method level in a module.
-  
-  The selector and the rule match only once, and the match is returned. So the coarsest granularity should be sorted last.
- 
----  
-   
-# Data Caching & Data Sync
- 
-  Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
-  
-  Apache ShenYu dynamically updates the cache by listening to the ZooKeeper node (or WebSocket push, HTTP long polling) when the user changes configuration information in the background management.
-  
-  ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
-  
-  ![](https://shenyu.apache.org/img/shenyu/dataSync/config-strategy-processor-en.png)
+ShenYu (神禹) is an honorific name for Xia Yu, an ancient Chinese ruler also known as Da Yu. He is remembered for crossing the Yellow River three times for the benefit of the people and successfully controlling its floods. Alongside Yao and Shun, he is regarded as one of ancient China's three greatest kings.
 
----    
+The name reflects three ideas:
 
-# Prerequisite
- 
-   * JDK 17+
-   
---- 
-        
-# Stargazers over time
+* It promotes the traditional virtues of Chinese civilization.
+* It echoes a gateway's central role in governing traffic.
+* It expresses the community's commitment to being fair, just, open, and meritocratic, in tribute to ShenYu and in keeping with the Apache Way.
 
-[![Stargazers over time](https://starchart.cc/apache/shenyu.svg)](https://starchart.cc/apache/shenyu.svg)
+## Community and Support
 
----  
+* [Contribute to ShenYu](https://shenyu.apache.org/community/contributor-guide)
+* [Join the development mailing list](mailto:dev@shenyu.apache.org)
 
-# Contributor and Support
+## Known Users
 
-* [How to Contribute](https://shenyu.apache.org/community/contributor-guide)
-* [Mailing Lists](mailto:dev@shenyu.apache.org)
+The [Known Users page](https://shenyu.apache.org/community/user-registration) lists registered users in registration order.
 
----  
+Organizations using Apache ShenYu are welcome to [register through GitHub issue #68](https://github.com/apache/shenyu/issues/68). Registration is for open source users only.
 
-# Known Users
+## Star History
 
-In order of registration, More access companies are welcome to register at [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) (For open source users only) .
+<a href="https://www.star-history.com/?repos=apache%2Fshenyu&amp;type=date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=apache/shenyu&amp;type=date&amp;theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=apache/shenyu&amp;type=date" />
+    <img alt="Apache ShenYu star history" src="https://api.star-history.com/chart?repos=apache/shenyu&amp;type=date" />
+  </picture>
+</a>
 
-All Users : [Known Users](https://shenyu.apache.org/community/user-registration)
+## License
+
+Apache ShenYu is licensed under the [Apache License, Version 2.0](LICENSE).
