@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The type Loadbalancer utils.
@@ -68,8 +68,11 @@ public final class LoadbalancerUtils {
     
     private static LoadBalanceData buildLoadBalanceData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
-        String ip = Objects.requireNonNull(request.getRemoteAddress()).getAddress().getHostAddress();
-        String httpMethod = request.getMethod().name();
+        String ip = Optional.ofNullable(request.getRemoteAddress())
+                .map(address -> address.getAddress())
+                .map(address -> address.getHostAddress())
+                .orElse("127.0.0.1");
+        String httpMethod = Optional.ofNullable(request.getMethod()).map(method -> method.name()).orElse("GET");
         URI uri = exchange.getRequest().getURI();
         HttpHeaders headers = request.getHeaders();
         MultiValueMap<String, HttpCookie> cookies = request.getCookies();

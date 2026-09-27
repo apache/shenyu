@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * The Test Case For AbstractLogCollector.
@@ -124,6 +128,55 @@ public class AbstractLogCollectorTest {
     }
 
     @Test
+    public void testMultiClientConsumeContinuesAfterSelectorFailure() throws Exception {
+        AbstractLogConsumeClient<?, ShenyuRequestLog> failingClient = mock(AbstractLogConsumeClient.class);
+        AbstractLogConsumeClient<?, ShenyuRequestLog> succeedingClient = mock(AbstractLogConsumeClient.class);
+        Map<String, AbstractLogConsumeClient<?, ShenyuRequestLog>> clients = new HashMap<>();
+        clients.put("failing", failingClient);
+        clients.put("succeeding", succeedingClient);
+        AbstractLogCollector<AbstractLogConsumeClient<?, ShenyuRequestLog>, ShenyuRequestLog, GenericGlobalConfig> multiClientCollector =
+                new AbstractLogCollector<>() {
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                        return logConsumeClient;
+                    }
+
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient(final String selectorId) {
+                        return clients.get(selectorId);
+                    }
+
+                    @Override
+                    protected boolean getMultiClient() {
+                        return true;
+                    }
+
+                    @Override
+                    protected GenericGlobalConfig getLogCollectConfig() {
+                        return null;
+                    }
+
+                    @Override
+                    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+                    }
+                };
+        BlockingQueue<ShenyuRequestLog> failingQueue = new LinkedBlockingDeque<>(1);
+        BlockingQueue<ShenyuRequestLog> succeedingQueue = new LinkedBlockingDeque<>(1);
+        failingQueue.add(new ShenyuRequestLog());
+        succeedingQueue.add(new ShenyuRequestLog());
+        getBufferQueues(multiClientCollector).put("failing", failingQueue);
+        getBufferQueues(multiClientCollector).put("succeeding", succeedingQueue);
+        getLastPushTimes(multiClientCollector).put("failing", System.currentTimeMillis());
+        getLastPushTimes(multiClientCollector).put("succeeding", System.currentTimeMillis());
+        doThrow(new Exception("backend unavailable")).when(failingClient).consume(anyList());
+
+        multiClientCollector.processMultiClientBufferQueues(1, 100);
+
+        verify(failingClient).consume(anyList());
+        verify(succeedingClient).consume(anyList());
+    }
+
+    @Test
     public void testDesensitizeToleratesNullBoxedNumericFields() {
         // a chunked byte-type response reaches desensitize with responseContentLength,
         // status and upstreamResponseTime unset (LoggingServerHttpResponse passes a null
@@ -163,6 +216,13 @@ public class AbstractLogCollectorTest {
         Field field = AbstractLogCollector.class.getDeclaredField("bufferQueueS");
         field.setAccessible(true);
         return (Map<String, BlockingQueue<ShenyuRequestLog>>) field.get(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Long> getLastPushTimes(final Object target) throws Exception {
+        Field field = AbstractLogCollector.class.getDeclaredField("lastPushTimeS");
+        field.setAccessible(true);
+        return (Map<String, Long>) field.get(target);
     }
 
     private static final class StaleSizeLinkedBlockingDeque extends LinkedBlockingDeque<ShenyuRequestLog> {

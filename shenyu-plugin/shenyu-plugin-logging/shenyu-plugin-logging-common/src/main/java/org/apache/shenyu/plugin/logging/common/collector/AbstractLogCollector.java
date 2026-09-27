@@ -114,15 +114,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 List<L> logs = new ArrayList<>();
                 int batchSize = 100;
                 if (getMultiClient()) {
-                    bufferQueueS.forEach((selectorId, bufferQueue) -> {
-                        List<L> logsS = new ArrayList<>();
-                        Long lastPushTime = lastPushTimeS.get(selectorId);
-                        try {
-                            processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logsS, lastPushTime, selectorId);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    processMultiClientBufferQueues(batchSize, diffTimeMSForPush);
                 } else {
                     processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logs, lastPushTime);
                 }
@@ -131,6 +123,18 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
             }
         }
+    }
+
+    void processMultiClientBufferQueues(final int batchSize, final int diffTimeMSForPush) {
+        bufferQueueS.forEach((selectorId, bufferQueue) -> {
+            List<L> logs = new ArrayList<>();
+            Long lastPushTime = lastPushTimeS.get(selectorId);
+            try {
+                processBufferQueue(bufferQueue, batchSize, diffTimeMSForPush, logs, lastPushTime, selectorId);
+            } catch (Exception e) {
+                LOG.error("Log collector failed to consume logs for selector {}", selectorId, e);
+            }
+        });
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {

@@ -91,15 +91,7 @@ public class AiResponseTransformerPluginHandler implements PluginDataHandler {
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
-        try {
-            AiResponseTransformerHandle aiResponseTransformerHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), AiResponseTransformerHandle.class);
-            if (Objects.nonNull(aiResponseTransformerHandle) && Objects.nonNull(aiResponseTransformerHandle.getProvider())) {
-                ChatClientCache.getInstance().destroyClient(ruleData.getId() + aiResponseTransformerHandle.getProvider());
-            }
-        } catch (Exception e) {
-            LOG.error("AiResponseTransformerPluginHandler remove rule error", e);
-            return;
-        }
+        ChatClientCache.getInstance().destroyClient(ruleData.getId());
     }
 
     @Override
