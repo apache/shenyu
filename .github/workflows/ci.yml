@@ -163,7 +163,7 @@ jobs:
           MODULE_ARGS=""
 
           if [[ "${{ needs.changes.outputs.full_build_required }}" != "true" && -n "${{ needs.changes.outputs.modules }}" ]]; then
-            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am -amd"
+            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am"
           fi
 
           if mvnd --version > /dev/null 2>&1; then
