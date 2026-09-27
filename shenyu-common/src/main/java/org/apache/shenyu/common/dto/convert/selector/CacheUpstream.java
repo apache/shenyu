@@ -80,6 +80,25 @@ public class CacheUpstream extends CommonUpstream {
      * @param builder builder
      */
     public CacheUpstream(final Builder builder) {
+        boolean statusValue = builder.statusValue;
+        if (!builder.statusSet) {
+            statusValue = defaultStatus();
+        }
+        setUpstreamHost(builder.upstreamHost);
+        setProtocol(builder.protocol);
+        setUpstreamUrl(builder.upstreamUrl);
+        setStatus(statusValue);
+        setTimestamp(builder.timestamp);
+        this.cacheType = builder.cacheType;
+        this.url = builder.url;
+        this.password = builder.password;
+        this.database = builder.database;
+        this.master = builder.master;
+        this.mode = builder.mode;
+        this.maxIdle = builder.maxIdle;
+        this.minIdle = builder.minIdle;
+        this.maxActive = builder.maxActive;
+        this.maxWait = builder.maxWait;
     }
 
     /**
