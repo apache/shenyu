@@ -89,19 +89,28 @@ public class SensitiveWordPluginDataHandler implements PluginDataHandler {
             return;
         }
         RedisConfigProperties cachedProperties = REDIS_PROPERTIES.get().obtainHandle(PLUGIN_NAME);
-        if (Objects.isNull(REDIS_TEMPLATES.get().obtainHandle(PLUGIN_NAME)) || !redisConfig.equals(cachedProperties)) {
+        ReactiveRedisTemplate<String, String> cachedTemplate = REDIS_TEMPLATES.get().obtainHandle(PLUGIN_NAME);
+        if (Objects.isNull(cachedTemplate) || !redisConfig.equals(cachedProperties)) {
             RedisConnectionFactory connectionFactory = new RedisConnectionFactory(redisConfig);
             ReactiveRedisTemplate<String, String> redisTemplate = new ShenyuReactiveRedisTemplate<>(
                     connectionFactory.getLettuceConnectionFactory(),
                     ShenyuRedisSerializationContext.stringSerializationContext());
             REDIS_TEMPLATES.get().cachedHandle(PLUGIN_NAME, redisTemplate);
             REDIS_PROPERTIES.get().cachedHandle(PLUGIN_NAME, redisConfig);
+            // the client that is replaced must not keep its connection pool and its threads alive
+            if (Objects.nonNull(cachedTemplate)) {
+                RedisConnectionFactory.destroyQuietly(cachedTemplate.getConnectionFactory());
+            }
             LOG.info("sensitive word plugin: cached the reactive redis template");
         }
     }
 
     @Override
     public void removePlugin(final PluginData pluginData) {
+        ReactiveRedisTemplate<String, String> cachedTemplate = REDIS_TEMPLATES.get().obtainHandle(PLUGIN_NAME);
+        if (Objects.nonNull(cachedTemplate)) {
+            RedisConnectionFactory.destroyQuietly(cachedTemplate.getConnectionFactory());
+        }
         REDIS_TEMPLATES.get().removeHandle(PLUGIN_NAME);
         REDIS_PROPERTIES.get().removeHandle(PLUGIN_NAME);
         LOG.info("sensitive word plugin: released the cached redis template");
@@ -114,9 +123,14 @@ public class SensitiveWordPluginDataHandler implements PluginDataHandler {
             if (Objects.isNull(handle)) {
                 handle = SensitiveWordHandle.newDefaultInstance();
             }
+            SensitiveWordHandle previous = CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
-            // The rule changed, drop the cached dictionary so that it is read from redis again.
-            DICTIONARIES.get().removeHandle(handle.getRedisKey());
+            // The rule changed, drop the cached dictionary of the previous and of the new
+            // configuration, so that both are read from redis again.
+            if (Objects.nonNull(previous)) {
+                DICTIONARIES.get().removeHandle(previous.dictionaryKey());
+            }
+            DICTIONARIES.get().removeHandle(handle.dictionaryKey());
         });
     }
 

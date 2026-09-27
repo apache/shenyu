@@ -34,6 +34,7 @@ import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
@@ -62,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +160,7 @@ public class IngressReconciler implements Reconciler {
             }
             return new Result(false);
         }
-        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
+        Map<String, String> annotations = getAnnotations(v1Ingress);
         enablePluginsBasedOnAnnotations(annotations, request);
 
         if (!checkIngressClass(v1Ingress)) {
@@ -214,28 +216,29 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void doDeleteConfigByIngress(final Request request, final V1Ingress oldIngress) {
+        final Map<String, String> annotations = getAnnotations(oldIngress);
         List<String> selectorList = new ArrayList<>();
-        if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+                    annotations.get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_CONTEXT_PATH));
+                    annotations.get(IngressConstants.PLUGIN_SOFA_CONTEXT_PATH));
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
-            if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
@@ -687,13 +690,27 @@ public class IngressReconciler implements Reconciler {
         return res;
     }
 
+    /**
+     * Get the annotations of the ingress, an absent metadata or annotations is treated as an empty annotation map.
+     *
+     * @param ingress ingress resource
+     * @return annotations of the ingress, never null
+     */
+    private Map<String, String> getAnnotations(final V1Ingress ingress) {
+        if (Objects.isNull(ingress) || Objects.isNull(ingress.getMetadata())) {
+            return Collections.emptyMap();
+        }
+        return MapUtils.emptyIfNull(ingress.getMetadata().getAnnotations());
+    }
+
     private String getPluginName(final V1Ingress ingress) {
+        Map<String, String> annotations = getAnnotations(ingress);
         String pluginName;
-        String pluginDubboEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
-        String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
-        String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
-        String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
-        String pluginSofaEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED);
+        String pluginDubboEnabled = annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED);
+        String pluginWebSocketEnabled = annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
+        String pluginBrpcEnabled = annotations.get(IngressConstants.PLUGIN_BRPC_ENABLED);
+        String pluginGrpcEnabled = annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED);
+        String pluginSofaEnabled = annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED);
         if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {

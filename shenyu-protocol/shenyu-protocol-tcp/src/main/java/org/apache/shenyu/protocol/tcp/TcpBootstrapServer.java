@@ -85,6 +85,11 @@ public class TcpBootstrapServer implements BootstrapServer {
             server = tcpServer.bindNow();
         } catch (RuntimeException startFailure) {
             try {
+                connectionContext.dispose();
+            } catch (RuntimeException cleanupFailure) {
+                startFailure.addSuppressed(cleanupFailure);
+            }
+            try {
                 loopResources.dispose();
             } catch (RuntimeException cleanupFailure) {
                 startFailure.addSuppressed(cleanupFailure);
@@ -147,6 +152,17 @@ public class TcpBootstrapServer implements BootstrapServer {
             }
         } catch (RuntimeException ex) {
             failure = ex;
+        }
+        try {
+            if (Objects.nonNull(connectionContext)) {
+                connectionContext.dispose();
+            }
+        } catch (RuntimeException ex) {
+            if (Objects.isNull(failure)) {
+                failure = ex;
+            } else {
+                failure.addSuppressed(ex);
+            }
         }
         try {
             if (Objects.nonNull(loopResources)) {
