@@ -148,7 +148,7 @@ public class ShenyuToolCallback implements ToolCallback {
             final String configStr = extractRequestConfig(shenyuTool);
 
             // Get pre-stored exchange and plugin chain
-            final ServerWebExchange originExchange = getOriginExchange(sessionId);
+            final ServerWebExchange originExchange = getOriginExchange(mcpExchange, sessionId);
             final ShenyuPluginChain chain = getPluginChain(originExchange);
 
             // Execute the tool call through the plugin chain
@@ -798,13 +798,19 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     /**
-     * Gets the origin ServerWebExchange for the given session ID.
+     * Gets the request-local exchange, falling back to the legacy session holder.
      *
+     * @param mcpExchange the current MCP request exchange
      * @param sessionId the session ID
      * @return the origin ServerWebExchange
      * @throws IllegalStateException if exchange cannot be retrieved
      */
-    private ServerWebExchange getOriginExchange(final String sessionId) {
+    private ServerWebExchange getOriginExchange(final McpSyncServerExchange mcpExchange, final String sessionId) {
+        final Object contextualExchange = Objects.isNull(mcpExchange.transportContext()) ? null
+                : mcpExchange.transportContext().get(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY);
+        if (contextualExchange instanceof ServerWebExchange exchange) {
+            return exchange;
+        }
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         if (Objects.nonNull(exchange)) {
             LOG.debug("Found existing exchange for session: {}", sessionId);
