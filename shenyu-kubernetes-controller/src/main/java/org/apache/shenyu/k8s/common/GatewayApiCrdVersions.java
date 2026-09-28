@@ -35,7 +35,7 @@ public final class GatewayApiCrdVersions {
     private final boolean supported;
 
     public GatewayApiCrdVersions(final List<String> detectedVersions, final boolean supported) {
-        this.detectedVersions = List.copyOf(detectedVersions);
+        this.detectedVersions = detectedVersions.stream().distinct().sorted().toList();
         this.supported = supported;
     }
 

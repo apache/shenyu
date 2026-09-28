@@ -133,7 +133,7 @@ public final class ShenyuCacheRepositoryTest {
 
         repository.deleteSelectorWithRules(PluginEnum.DIVIDE.getName(), selectorId);
 
-        Assertions.assertTrue(BaseDataCache.getInstance().obtainRuleData(selectorId).isEmpty());
+        Assertions.assertNull(BaseDataCache.getInstance().obtainRuleData(selectorId));
     }
 
     /**
