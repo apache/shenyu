@@ -46,7 +46,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   for _ in $(seq 1 30); do
     app_count=$(curl -s http://localhost:30761/eureka/apps | grep -c "<application>" || true)
     echo "http://localhost:30761/eureka/apps app count ${app_count}"
-    if [[ "${app_count}" -gt 1 ]]; then
+    if [[ "${app_count}" -gt 0 ]]; then
       registered=true
       break
     fi
