@@ -60,7 +60,7 @@ public class AiProxyExecutorService {
     public Flux<ChatCompletionChunk> executeDirectStream(final OpenAiApi mainApi,
             final Optional<FallbackContext> fallbackCtxOpt, final ChatCompletionRequest request,
             final String requestBody, final boolean stream) {
-        return mainApi.chatCompletionStream(request)
+        return AiStreamCancellation.propagate(Flux.defer(() -> mainApi.chatCompletionStream(request))
                 .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
                 .retryWhen(Retry.max(1)
                         .filter(AiProxyExecutorService::isRetryable)
@@ -71,7 +71,7 @@ public class AiProxyExecutorService {
                                     "Direct stream failed after 1 retry. Triggering fallback.",
                                     retrySignal.failure());
                         }))
-                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream));
+                .onErrorResume(e -> handleDirectFallbackStream(e, fallbackCtxOpt, requestBody, stream)));
     }
 
     /**
