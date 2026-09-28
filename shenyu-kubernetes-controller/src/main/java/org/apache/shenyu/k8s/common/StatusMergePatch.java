@@ -36,7 +36,14 @@ public final class StatusMergePatch {
     private StatusMergePatch() {
     }
 
-    /** Merge-patch the resource at the given path. */
+    /**
+     * Merge-patch the resource at the given path.
+     *
+     * @param apiClient the Kubernetes API client providing transport and authentication
+     * @param path the /status subresource path
+     * @param body the patch body
+     * @throws ApiException when the API server rejects the patch
+     */
     public static void patch(final ApiClient apiClient, final String path, final JsonObject body) throws ApiException {
         Map<String, String> headerParams = new HashMap<>();
         headerParams.put("Accept", "application/json");

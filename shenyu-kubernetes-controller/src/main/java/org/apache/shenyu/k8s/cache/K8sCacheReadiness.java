@@ -70,7 +70,11 @@ public final class K8sCacheReadiness {
         return informers.stream().filter(informer -> !informer.hasSynced()).count();
     }
 
-    /** Queued items across the controller work queues. */
+    /**
+     * Queued items across the controller work queues.
+     *
+     * @return total number of queued items
+     */
     public long pendingWorkItems() {
         return workQueues.stream().mapToInt(WorkQueue::length).sum();
     }

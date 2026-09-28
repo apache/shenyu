@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.k8s.common;
 
+import java.util.Objects;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.kubernetes.client.openapi.ApiClient;
@@ -88,7 +89,7 @@ public final class GatewayApiCrdVerifierTest {
     /** A CRD object carrying (or missing) the bundle-version annotation. */
     private JsonObject crd(final String bundleVersion) {
         JsonObject metadata = new JsonObject();
-        if (bundleVersion != null) {
+        if (Objects.nonNull(bundleVersion)) {
             JsonObject annotations = new JsonObject();
             annotations.addProperty(GatewayApiCrdVerifier.BUNDLE_VERSION_ANNOTATION, bundleVersion);
             metadata.add("annotations", annotations);

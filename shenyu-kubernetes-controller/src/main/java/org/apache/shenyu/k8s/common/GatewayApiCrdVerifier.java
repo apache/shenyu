@@ -44,6 +44,9 @@ import java.util.TreeSet;
  */
 public final class GatewayApiCrdVerifier {
 
+    /** Annotation stamped on every Gateway API CRD by the official release bundles. */
+    public static final String BUNDLE_VERSION_ANNOTATION = "gateway.networking.k8s.io/bundle-version";
+
     private static final Logger LOG = LoggerFactory.getLogger(GatewayApiCrdVerifier.class);
 
     private static final Set<String> REQUIRED_RESOURCES = Set.of(
@@ -51,13 +54,16 @@ public final class GatewayApiCrdVerifier {
 
     private static final String CRD_API_PATH = "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/";
 
-    /** Annotation stamped on every Gateway API CRD by the official release bundles. */
-    public static final String BUNDLE_VERSION_ANNOTATION = "gateway.networking.k8s.io/bundle-version";
-
     private GatewayApiCrdVerifier() {
     }
 
-    /** Fails fast on missing resources; returns the detected bundle versions. */
+    /**
+     * Fails fast on missing resources; returns the detected bundle versions.
+     *
+     * @param apiClient the Kubernetes API client
+     * @return the detected CRD bundle versions
+     * @throws IllegalStateException when any required resource is missing
+     */
     public static GatewayApiCrdVersions verify(final ApiClient apiClient) {
         String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION;
         final JsonObject resourceList;

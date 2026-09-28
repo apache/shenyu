@@ -62,7 +62,15 @@ public final class GatewayRouteCache {
         return ROUTE_SELECTOR_MAP.remove(routeKey(namespace, routeName, pluginName));
     }
 
-    /** Bind a route to a Gateway on the given listeners, replacing the previous binding. */
+    /**
+     * Bind a route to a Gateway on the given listeners, replacing the previous binding.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @param listenerNames listeners of the Gateway that accepted the route
+     * @param routeNamespace namespace of the route
+     * @param routeName name of the route
+     */
     public void bindRouteToGateway(final String gatewayNamespace, final String gatewayName,
                                    final Set<String> listenerNames,
                                    final String routeNamespace, final String routeName) {
@@ -76,13 +84,26 @@ public final class GatewayRouteCache {
                 });
     }
 
-    /** Route keys attached through any listener, null if none. */
+    /**
+     * Route keys attached through any listener, null if none.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @return route keys ("namespace/name") attached to the Gateway, null if none
+     */
     public Set<String> getRoutesByGateway(final String gatewayNamespace, final String gatewayName) {
         Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
         return Objects.isNull(routes) || routes.isEmpty() ? null : Set.copyOf(routes.keySet());
     }
 
-    /** Route keys attached through one listener; its size is the listener's attachedRoutes. */
+    /**
+     * Route keys attached through one listener; its size is the listener's attachedRoutes.
+     *
+     * @param gatewayNamespace namespace of the Gateway
+     * @param gatewayName name of the Gateway
+     * @param listenerName name of the listener
+     * @return route keys ("namespace/name") attached through that listener, empty if none
+     */
     public Set<String> getRoutesByListener(final String gatewayNamespace, final String gatewayName,
                                            final String listenerName) {
         Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
@@ -98,7 +119,13 @@ public final class GatewayRouteCache {
         return attached;
     }
 
-    /** Gateway keys the route is bound to via multiple parentRefs, null if none. */
+    /**
+     * Gateway keys the route is bound to via multiple parentRefs, null if none.
+     *
+     * @param routeNamespace namespace of the route
+     * @param routeName name of the route
+     * @return gateway keys ("namespace/name") the route is bound to, null if none
+     */
     public Set<String> getGatewaysForRoute(final String routeNamespace, final String routeName) {
         String rKey = routeKey(routeNamespace, routeName);
         Set<String> gateways = new HashSet<>();

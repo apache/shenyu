@@ -37,7 +37,14 @@ public final class ListenerSupport {
     private ListenerSupport() {
     }
 
-    /** Listeners matching the optional sectionName and parentRef port; both selectors must match. */
+    /**
+     * Listeners matching the optional sectionName and parentRef port; both selectors must match.
+     *
+     * @param gatewayRaw raw Gateway json
+     * @param sectionName optional sectionName
+     * @param parentPort optional parentRef port; null skips the port check
+     * @return matching listeners; empty when sectionName matches no listener
+     */
     public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName,
                                                    final Long parentPort) {
         JsonObject spec = JsonFields.getJsonObject(gatewayRaw, "spec");
@@ -60,12 +67,24 @@ public final class ListenerSupport {
         return result;
     }
 
-    /** Listeners selected by sectionName only. */
+    /**
+     * Listeners selected by sectionName only.
+     *
+     * @param gatewayRaw raw Gateway json
+     * @param sectionName optional sectionName
+     * @return matching listeners; empty when sectionName matches no listener
+     */
     public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName) {
         return selectListeners(gatewayRaw, sectionName, null);
     }
 
-    /** True when the listener's port equals the served data-plane port; a portless listener cannot be confirmed served. */
+    /**
+     * True when the listener's port equals the served data-plane port; a portless listener cannot be confirmed served.
+     *
+     * @param listener the listener object
+     * @param servedPort the port the data plane listens on
+     * @return true if the listener's port is served
+     */
     public static boolean servesPort(final JsonObject listener, final long servedPort) {
         Long port = portOf(listener);
         return Objects.nonNull(port) && port == servedPort;
@@ -75,7 +94,12 @@ public final class ListenerSupport {
         return JsonFields.getString(listener, "name");
     }
 
-    /** Listener protocol; defaults to HTTP per the spec. */
+    /**
+     * Listener protocol; defaults to HTTP per the spec.
+     *
+     * @param listener the listener object
+     * @return the protocol, never null
+     */
     public static String protocolOf(final JsonObject listener) {
         String protocol = JsonFields.getString(listener, "protocol");
         return Objects.isNull(protocol) ? GatewayApiConstants.PROTOCOL_HTTP : protocol;
@@ -85,17 +109,34 @@ public final class ListenerSupport {
         return JsonFields.getString(listener, "hostname");
     }
 
-    /** Listener port; null when absent (foreign status is not schema-guaranteed). */
+    /**
+     * Listener port; null when absent (foreign status is not schema-guaranteed).
+     *
+     * @param listener the listener object
+     * @return the port, or null
+     */
     public static Long portOf(final JsonObject listener) {
         return JsonFields.getLong(listener, "port");
     }
 
-    /** Only plain HTTP is supported. */
+    /**
+     * Only plain HTTP is supported.
+     *
+     * @param listener the listener object
+     * @return true if the listener speaks plain HTTP
+     */
     public static boolean isSupportedProtocol(final JsonObject listener) {
         return GatewayApiConstants.PROTOCOL_HTTP.equals(protocolOf(listener));
     }
 
-    /** Spec default is Same, from=All allows all; from=Selector is unimplemented and denies (widening would break isolation). */
+    /**
+     * Spec default is Same, from=All allows all; from=Selector is unimplemented and denies (widening would break isolation).
+     *
+     * @param listener the listener object
+     * @param routeNamespace namespace of the attaching HTTPRoute
+     * @param gatewayNamespace namespace of the Gateway
+     * @return true if the namespace policy permits the attachment
+     */
     public static boolean allowsNamespace(final JsonObject listener, final String routeNamespace, final String gatewayNamespace) {
         String from = fromOf(listener);
         if (Objects.isNull(from) || "Same".equals(from)) {
@@ -104,7 +145,12 @@ public final class ListenerSupport {
         return "All".equals(from);
     }
 
-    /** from=Selector is unsupported; distinguishable so status reports UnsupportedValue, not a permission denial. */
+    /**
+     * from=Selector is unsupported; distinguishable so status reports UnsupportedValue, not a permission denial.
+     *
+     * @param listener the listener json object
+     * @return true when allowedRoutes.from is the unsupported Selector value
+     */
     public static boolean usesUnsupportedFrom(final JsonObject listener) {
         return "Selector".equals(fromOf(listener));
     }
@@ -115,7 +161,12 @@ public final class ListenerSupport {
         return JsonFields.getString(namespaces, "from");
     }
 
-    /** Absent kinds means all protocol-matching kinds, i.e. HTTPRoute for HTTP. */
+    /**
+     * Absent kinds means all protocol-matching kinds, i.e. HTTPRoute for HTTP.
+     *
+     * @param listener the listener object
+     * @return true if HTTPRoute is permitted
+     */
     public static boolean allowsKind(final JsonObject listener) {
         JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
         JsonArray kinds = JsonFields.getJsonArray(allowedRoutes, "kinds");
@@ -136,7 +187,13 @@ public final class ListenerSupport {
         return false;
     }
 
-    /** Route × listener hostname intersection; a null listener hostname imposes no restriction. */
+    /**
+     * Route × listener hostname intersection; a null listener hostname imposes no restriction.
+     *
+     * @param listenerHostname listener hostname, may be null
+     * @param routeHostnames hostnames from the HTTPRoute spec, empty means "any host"
+     * @return effective hostnames, or null when the two sides have no overlap
+     */
     public static List<String> intersectHostnames(final String listenerHostname, final List<String> routeHostnames) {
         if (Objects.isNull(listenerHostname)) {
             return new ArrayList<>(routeHostnames);

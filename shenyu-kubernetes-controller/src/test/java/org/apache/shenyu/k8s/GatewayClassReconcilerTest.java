@@ -129,7 +129,7 @@ public final class GatewayClassReconcilerTest {
     /** A class with a parametersRef is rejected with Accepted=False/InvalidParameters and its never-served Gateways are left alone. */
     @Test
     public void testParametersRefClassIsRejected() throws Exception {
-        DynamicKubernetesObject gatewayClass = gatewayClass("shenyu", SHENYU_CONTROLLER, null);
+        final DynamicKubernetesObject gatewayClass = gatewayClass("shenyu", SHENYU_CONTROLLER, null);
         JsonObject parametersRef = new JsonObject();
         parametersRef.addProperty("group", "gateway.shenyu.apache.org");
         parametersRef.addProperty("kind", "ShenyuClassConfig");

@@ -48,9 +48,7 @@ import java.util.Objects;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * HttpRouteParser Test.
- */
+/** HttpRouteParser Test. */
 public final class HttpRouteParserTest {
 
     private static final String NAMESPACE = "test-ns";
@@ -59,7 +57,12 @@ public final class HttpRouteParserTest {
 
     private static final int SERVICE_PORT = 8189;
 
-    /** Test parse with path prefix match: the spec requires element-boundary matching ({@code /api} matches {@code /api} and {@code /api/x} but not {@code /apix}), so the prefix maps to an anchored regex, not a raw startsWith. */
+    /**
+     * Test parse with path prefix match: the spec requires element-boundary matching
+     * ({@code /api} matches {@code /api} and {@code /api/x} but not {@code /apix}), so the
+     * prefix maps to an anchored regex, not a raw startsWith. Longer prefixes must sort
+     * lower (higher precedence) than shorter ones and any exact path must outrank a prefix.
+     */
     @Test
     public void testParseWithPathPrefix() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -80,8 +83,7 @@ public final class HttpRouteParserTest {
         Assertions.assertEquals(ParamTypeEnum.URI.getName(), pathCondition.getParamType());
         Assertions.assertEquals(OperatorEnum.REGEX.getAlias(), pathCondition.getOperator());
         Assertions.assertEquals("^\\Q/api\\E(/.*)?$", pathCondition.getParamValue());
-        // precedence score = pathScore("/api" prefix) = 2 + 3 = 5, plus the rule-0
-        // tie-break component 15; lower sort wins
+        // precedence score = pathScore("/api" prefix) = 2 + 3 = 5; lower sort wins
         Assertions.assertEquals((1 << 28) - (5 << 13) - 15, selector.getSort());
     }
 
@@ -136,7 +138,20 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", new String[]{"example.com", "api.example.com"}); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("example.com", "api.example.com")); for (IngressConfiguration routeConfig : config.getRouteConfigList()) { Assertions.assertEquals(16, routeConfig.getSelectorData().getConditionList().size(), "selector condition lists must all be padded to the fixed floor"); } } Gateway API precedence: for equal paths, a match carrying an HTTP method outranks a match with more header conditions — the sort must encode this independently of the raw condition count (which the padding equalizes anyway). */
+                "/**", "PathPrefix", new String[]{"example.com", "api.example.com"});
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("example.com", "api.example.com"));
+
+        for (IngressConfiguration routeConfig : config.getRouteConfigList()) {
+            Assertions.assertEquals(16, routeConfig.getSelectorData().getConditionList().size(),
+                    "selector condition lists must all be padded to the fixed floor");
+        }
+    }
+
+    /**
+     * Gateway API precedence: for equal paths, a match carrying an HTTP method outranks a
+     * match with more header conditions — the sort must encode this independently of the
+     * raw condition count (which the padding equalizes anyway).
+     */
     @Test
     public void testMethodPresenceOutranksHeaderCount() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -175,19 +190,16 @@ public final class HttpRouteParserTest {
                 "a method match must outrank a two-header match for equal paths");
     }
 
-    /** Spec tie-break: when two rules of one route tie on every precedence criterion, the first rule in the list wins — its selector must sort below the later rule's. */
     @Test
     public void testFirstRuleWinsFullPrecedenceTie() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
         HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
-
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
                 "/api", "PathPrefix", null, null);
         httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules")
                 .add(httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules")
                         .get(0).getAsJsonObject().deepCopy());
-
         ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
         List<SelectorData> selectors = extractSelectors(config);
         Assertions.assertEquals(2, selectors.size());
@@ -195,12 +207,10 @@ public final class HttpRouteParserTest {
                 "the first rule must win a full precedence tie");
     }
 
-    /** Prefix specificity follows the raw character count without a truncation cap: two prefixes sharing more than twelve leading characters must still order by length. */
     @Test
     public void testLongerPrefixOutranksBeyondTwelveCharacters() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
         HttpRouteParser parser = new HttpRouteParser(endpointsLister, mockServiceLister(), mockReferenceGrantLister());
-
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
                 "/verylongapiprefix", "PathPrefix", null, null);
@@ -209,7 +219,6 @@ public final class HttpRouteParserTest {
         longerRule.getAsJsonArray("matches").get(0).getAsJsonObject()
                 .getAsJsonObject("path").addProperty("value", "/verylongapiprefix/more");
         httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").add(longerRule);
-
         ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
         List<SelectorData> selectors = extractSelectors(config);
         Assertions.assertEquals(2, selectors.size());
@@ -217,7 +226,7 @@ public final class HttpRouteParserTest {
                 "the longer prefix must outrank the shorter one beyond the old 12-char cap");
     }
 
-    /** Test parse with hostname conditions. */
+    /** Test parse with hostname conditions. Each hostname should generate a separate selector+rule (one hostname per selector). */
     @Test
     public void testParseWithHostnames() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -225,7 +234,32 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", new String[]{"example.com", "api.example.com"}); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("example.com", "api.example.com")); List<IngressConfiguration> routeConfigs = config.getRouteConfigList(); Assertions.assertEquals(2, routeConfigs.size()); for (IngressConfiguration routeConfig : routeConfigs) { List<ConditionData> conditions = routeConfig.getSelectorData().getConditionList(); long hostConditions = conditions.stream() .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType())) .count(); Assertions.assertEquals(1, hostConditions); long pathConditions = conditions.stream() .filter(c -> ParamTypeEnum.URI.getName().equals(c.getParamType())) .filter(c -> !isPadding(c)) .count(); Assertions.assertEquals(1, pathConditions); } } Test that exact hostnames use EQ and wildcard hostnames use REGEX with an anchored suffix-match regex: per the Gateway API spec {@code *.example.com} matches {@code test.example.com} and {@code foo.test.example.com} but not {@code example.com}. */
+                "/**", "PathPrefix", new String[]{"example.com", "api.example.com"});
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("example.com", "api.example.com"));
+
+        List<IngressConfiguration> routeConfigs = config.getRouteConfigList();
+        Assertions.assertEquals(2, routeConfigs.size());
+
+        for (IngressConfiguration routeConfig : routeConfigs) {
+            List<ConditionData> conditions = routeConfig.getSelectorData().getConditionList();
+            long hostConditions = conditions.stream()
+                    .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType()))
+                    .count();
+            Assertions.assertEquals(1, hostConditions);
+
+            long pathConditions = conditions.stream()
+                    .filter(c -> ParamTypeEnum.URI.getName().equals(c.getParamType()))
+                    .filter(c -> !isPadding(c))
+                    .count();
+            Assertions.assertEquals(1, pathConditions);
+        }
+    }
+
+    /**
+     * Test that exact hostnames use EQ and wildcard hostnames use REGEX with an anchored
+     * suffix-match regex: per the Gateway API spec {@code *.example.com} matches
+     * {@code test.example.com} and {@code foo.test.example.com} but not {@code example.com}.
+     */
     @Test
     public void testParseWithWildcardHostname() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -233,7 +267,21 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithHostnames(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", new String[]{"*.example.com"}); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("*.example.com")); List<ConditionData> domainConditions = config.getRouteConfigList().stream() .flatMap(rc -> rc.getSelectorData().getConditionList().stream()) .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType())) .toList(); Assertions.assertEquals(1, domainConditions.size()); ConditionData wildcardCondition = domainConditions.get(0); Assertions.assertEquals(OperatorEnum.REGEX.getAlias(), wildcardCondition.getOperator()); Assertions.assertEquals("^([^.]+\\.)+example\\.com$", wildcardCondition.getParamValue()); } Test parse with header match. */
+                "/**", "PathPrefix", new String[]{"*.example.com"});
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of("*.example.com"));
+
+        List<ConditionData> domainConditions = config.getRouteConfigList().stream()
+                .flatMap(rc -> rc.getSelectorData().getConditionList().stream())
+                .filter(c -> ParamTypeEnum.DOMAIN.getName().equals(c.getParamType()))
+                .toList();
+        Assertions.assertEquals(1, domainConditions.size());
+
+        ConditionData wildcardCondition = domainConditions.get(0);
+        Assertions.assertEquals(OperatorEnum.REGEX.getAlias(), wildcardCondition.getOperator());
+        Assertions.assertEquals("^([^.]+\\.)+example\\.com$", wildcardCondition.getParamValue());
+    }
+
+    /** Test parse with header match. */
     @Test
     public void testParseWithHeaderMatch() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -241,7 +289,25 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", "X-Custom-Header", "test-value"); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); List<ConditionData> conditions = config.getRouteConfigList().get(0).getSelectorData().getConditionList(); long headerConditions = conditions.stream() .filter(c -> ParamTypeEnum.HEADER.getName().equals(c.getParamType())) .count(); Assertions.assertEquals(1, headerConditions); ConditionData headerCondition = conditions.stream() .filter(c -> ParamTypeEnum.HEADER.getName().equals(c.getParamType())) .findFirst().orElse(null); Assertions.assertNotNull(headerCondition); Assertions.assertEquals("X-Custom-Header", headerCondition.getParamName()); Assertions.assertEquals("test-value", headerCondition.getParamValue()); Assertions.assertEquals(OperatorEnum.EQ.getAlias(), headerCondition.getOperator()); } A method match must produce a req_method/EQ condition instead of being silently dropped: dropping it would widen the selector to match requests of any method. */
+                "/**", "PathPrefix", "X-Custom-Header", "test-value");
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        List<ConditionData> conditions = config.getRouteConfigList().get(0).getSelectorData().getConditionList();
+        long headerConditions = conditions.stream()
+                .filter(c -> ParamTypeEnum.HEADER.getName().equals(c.getParamType()))
+                .count();
+        Assertions.assertEquals(1, headerConditions);
+
+        ConditionData headerCondition = conditions.stream()
+                .filter(c -> ParamTypeEnum.HEADER.getName().equals(c.getParamType()))
+                .findFirst().orElse(null);
+        Assertions.assertNotNull(headerCondition);
+        Assertions.assertEquals("X-Custom-Header", headerCondition.getParamName());
+        Assertions.assertEquals("test-value", headerCondition.getParamValue());
+        Assertions.assertEquals(OperatorEnum.EQ.getAlias(), headerCondition.getOperator());
+    }
+
+    /** A method match must produce a req_method/EQ condition instead of being silently dropped: dropping it would widen the selector to match requests of any method. */
     @Test
     public void testParseWithMethodMatch() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -249,7 +315,22 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", null, null); httpRoute.getRaw().getAsJsonObject("spec") .getAsJsonArray("rules").get(0).getAsJsonObject() .getAsJsonArray("matches").get(0).getAsJsonObject() .addProperty("method", "GET"); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); ConditionData methodCondition = config.getRouteConfigList().get(0).getSelectorData().getConditionList().stream() .filter(c -> ParamTypeEnum.REQUEST_METHOD.getName().equals(c.getParamType())) .findFirst().orElse(null); Assertions.assertNotNull(methodCondition); Assertions.assertEquals(OperatorEnum.EQ.getAlias(), methodCondition.getOperator()); Assertions.assertEquals("GET", methodCondition.getParamValue()); } Test parse with query param match. */
+                "/**", "PathPrefix", null, null);
+        httpRoute.getRaw().getAsJsonObject("spec")
+                .getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("matches").get(0).getAsJsonObject()
+                .addProperty("method", "GET");
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        ConditionData methodCondition = config.getRouteConfigList().get(0).getSelectorData().getConditionList().stream()
+                .filter(c -> ParamTypeEnum.REQUEST_METHOD.getName().equals(c.getParamType()))
+                .findFirst().orElse(null);
+        Assertions.assertNotNull(methodCondition);
+        Assertions.assertEquals(OperatorEnum.EQ.getAlias(), methodCondition.getOperator());
+        Assertions.assertEquals("GET", methodCondition.getParamValue());
+    }
+
+    /** Test parse with query param match. */
     @Test
     public void testParseWithQueryParam() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -257,12 +338,57 @@ public final class HttpRouteParserTest {
 
         DynamicKubernetesObject httpRoute = buildHTTPRouteWithQueryParams(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", "debug", "true", "Exact"); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); List<ConditionData> conditions = config.getRouteConfigList().get(0).getSelectorData().getConditionList(); long queryConditions = conditions.stream() .filter(c -> ParamTypeEnum.QUERY.getName().equals(c.getParamType())) .count(); Assertions.assertEquals(1, queryConditions); ConditionData queryCondition = conditions.stream() .filter(c -> ParamTypeEnum.QUERY.getName().equals(c.getParamType())) .findFirst().orElse(null); Assertions.assertNotNull(queryCondition); Assertions.assertEquals("debug", queryCondition.getParamName()); Assertions.assertEquals("true", queryCondition.getParamValue()); } A backendRef with an explicit weight mixed with one that omits it must resolve to the spec default 1 (9:1), not to an arbitrary parser default like 100 (9:100). */
+                "/**", "PathPrefix", "debug", "true", "Exact");
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        List<ConditionData> conditions = config.getRouteConfigList().get(0).getSelectorData().getConditionList();
+        long queryConditions = conditions.stream()
+                .filter(c -> ParamTypeEnum.QUERY.getName().equals(c.getParamType()))
+                .count();
+        Assertions.assertEquals(1, queryConditions);
+
+        ConditionData queryCondition = conditions.stream()
+                .filter(c -> ParamTypeEnum.QUERY.getName().equals(c.getParamType()))
+                .findFirst().orElse(null);
+        Assertions.assertNotNull(queryCondition);
+        Assertions.assertEquals("debug", queryCondition.getParamName());
+        Assertions.assertEquals("true", queryCondition.getParamValue());
+    }
+
+    /** A backendRef with an explicit weight mixed with one that omits it must resolve to the spec default 1 (9:1), not to an arbitrary parser default like 100 (9:100). */
     @Test
     public void testMixedExplicitAndDefaultBackendRefWeights() {
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", null, null); JsonArray backendRefs = httpRoute.getRaw().getAsJsonObject("spec") .getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonArray("backendRefs"); backendRefs.get(0).getAsJsonObject().addProperty("weight", 9); JsonObject unweighted = new JsonObject(); unweighted.addProperty("name", SERVICE_NAME); unweighted.addProperty("port", 8080); backendRefs.add(unweighted); HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister()); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); List<SelectorData> selectors = extractSelectors(config); Assertions.assertEquals(1, selectors.size()); List<DivideUpstream> upstreams = GsonUtils.getInstance() .fromList(selectors.get(0).getHandle(), DivideUpstream.class); Each backendRef fans out to the 2 addresses of the mocked Endpoints. */
+                "/**", "PathPrefix", null, null);
+        JsonArray backendRefs = httpRoute.getRaw().getAsJsonObject("spec")
+                .getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonArray("backendRefs");
+        backendRefs.get(0).getAsJsonObject().addProperty("weight", 9);
+        JsonObject unweighted = new JsonObject();
+        unweighted.addProperty("name", SERVICE_NAME);
+        unweighted.addProperty("port", 8080);
+        backendRefs.add(unweighted);
+
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        List<SelectorData> selectors = extractSelectors(config);
+        Assertions.assertEquals(1, selectors.size());
+
+        List<DivideUpstream> upstreams = GsonUtils.getInstance()
+                .fromList(selectors.get(0).getHandle(), DivideUpstream.class);
+        // Each backendRef fans out to the 2 addresses of the mocked Endpoints. The common
+        // scale factor is 2 (lifts the weight-1 backend's per-endpoint share to 1), so the
+        // per-endpoint weights are 9 and 1 and the backend totals keep the declared 9:1
+        // ratio (18:2) regardless of replica counts.
+        Assertions.assertEquals(4, upstreams.size());
+        Assertions.assertEquals(9, upstreams.get(0).getWeight());
+        Assertions.assertEquals(9, upstreams.get(1).getWeight());
+        Assertions.assertEquals(1, upstreams.get(2).getWeight());
+        Assertions.assertEquals(1, upstreams.get(3).getWeight());
+    }
+
+    /** The root prefix {@code /} is the spec's catch-all and must match every absolute path. */
     @Test
     public void testParseWithRootPathPrefixMatchesEveryPath() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -285,17 +411,82 @@ public final class HttpRouteParserTest {
     public void testBackendRefWithForeignGroupIsInvalidKind() {
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", null, null); httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject() .getAsJsonArray("backendRefs").get(0).getAsJsonObject().addProperty("group", "example.com"); HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister()); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); Assertions.assertFalse(config.isAllBackendsResolved()); Assertions.assertEquals("InvalidKind", config.getUnresolvedReason()); } The spec's 500-for-invalid-share rule: a rule mixing one valid and one invalid (default weight 1 each) backendRef keeps the valid upstreams routable and adds a fail-target upstream carrying exactly the invalid share — here 50/50, per the spec's "two equal backends, one invalid, 50 percent must receive a 500" example. */
+                "/**", "PathPrefix", null, null);
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").get(0).getAsJsonObject().addProperty("group", "example.com");
+
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        Assertions.assertEquals("InvalidKind", config.getUnresolvedReason());
+    }
+
+    /**
+     * The spec's 500-for-invalid-share rule: a rule mixing one valid and one invalid
+     * (default weight 1 each) backendRef keeps the valid upstreams routable and adds a
+     * fail-target upstream carrying exactly the invalid share — here 50/50, per the spec's
+     * "two equal backends, one invalid, 50 percent must receive a 500" example.
+     */
     @Test
     public void testInvalidWeightedShareBecomesFailTargetNotFailClosed() {
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", null, null); JsonObject brokenBackend = new JsonObject(); brokenBackend.addProperty("name", "missing-service"); brokenBackend.addProperty("port", 8080); httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject() .getAsJsonArray("backendRefs").add(brokenBackend); first backend resolves to 10.0.0.1/2, second has no endpoints HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister()); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); Assertions.assertFalse(config.isAllBackendsResolved()); List<SelectorData> selectors = extractSelectors(config); Assertions.assertEquals(1, selectors.size(), "mixed rule must still program its selector"); List<DivideUpstream> upstreams = GsonUtils.getInstance() .fromList(selectors.get(0).getHandle(), DivideUpstream.class); Assertions.assertEquals(3, upstreams.size()); List<DivideUpstream> valid = upstreams.stream() .filter(u -> !"127.0.0.1:1".equals(u.getUpstreamUrl())).toList(); List<DivideUpstream> failTargets = upstreams.stream() .filter(u -> "127.0.0.1:1".equals(u.getUpstreamUrl())).toList(); Assertions.assertEquals(2, valid.size(), "valid backends must stay routable"); Assertions.assertEquals(1, failTargets.size(), "the invalid share must map to one fail target"); int validWeight = valid.stream().mapToInt(DivideUpstream::getWeight).sum(); Assertions.assertEquals(validWeight, failTargets.get(0).getWeight(), "equal weights (1:1) must split traffic 50/50 between valid and fail target"); } When every weighted backendRef is invalid the fail target carries the whole traffic: all matching requests receive a 500 (spec: all-invalid rule with no filters MUST return 500) instead of the selector silently matching nothing. */
+                "/**", "PathPrefix", null, null);
+        JsonObject brokenBackend = new JsonObject();
+        brokenBackend.addProperty("name", "missing-service");
+        brokenBackend.addProperty("port", 8080);
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").add(brokenBackend);
+
+        // first backend resolves to 10.0.0.1/2, second has no endpoints
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        List<SelectorData> selectors = extractSelectors(config);
+        Assertions.assertEquals(1, selectors.size(), "mixed rule must still program its selector");
+        List<DivideUpstream> upstreams = GsonUtils.getInstance()
+                .fromList(selectors.get(0).getHandle(), DivideUpstream.class);
+        Assertions.assertEquals(3, upstreams.size());
+
+        List<DivideUpstream> valid = upstreams.stream()
+                .filter(u -> !"127.0.0.1:1".equals(u.getUpstreamUrl())).toList();
+        List<DivideUpstream> failTargets = upstreams.stream()
+                .filter(u -> "127.0.0.1:1".equals(u.getUpstreamUrl())).toList();
+        Assertions.assertEquals(2, valid.size(), "valid backends must stay routable");
+        Assertions.assertEquals(1, failTargets.size(), "the invalid share must map to one fail target");
+
+        int validWeight = valid.stream().mapToInt(DivideUpstream::getWeight).sum();
+        Assertions.assertEquals(validWeight, failTargets.get(0).getWeight(),
+                "equal weights (1:1) must split traffic 50/50 between valid and fail target");
+    }
+
+    /**
+     * When every weighted backendRef is invalid the fail target carries the whole traffic:
+     * all matching requests receive a 500 (spec: all-invalid rule with no filters MUST
+     * return 500) instead of the selector silently matching nothing.
+     */
     @Test
     public void testAllBackendsInvalidRoutesWholeShareToFailTarget() {
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
-                "/** ", "PathPrefix", null, null); httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject() .getAsJsonArray("backendRefs").get(0).getAsJsonObject() .addProperty("name", "missing-service"); HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister()); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); Assertions.assertFalse(config.isAllBackendsResolved()); List<DivideUpstream> upstreams = GsonUtils.getInstance() .fromList(extractSelectors(config).get(0).getHandle(), DivideUpstream.class); Assertions.assertEquals(1, upstreams.size()); Assertions.assertEquals("127.0.0.1:1", upstreams.get(0).getUpstreamUrl()); } A multi-port Service is resolved through its spec: the backendRef port selects spec.ports[], whose numeric targetPort is the pod port. */
+                "/**", "PathPrefix", null, null);
+        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").get(0).getAsJsonObject()
+                .addProperty("name", "missing-service");
+
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        List<DivideUpstream> upstreams = GsonUtils.getInstance()
+                .fromList(extractSelectors(config).get(0).getHandle(), DivideUpstream.class);
+        Assertions.assertEquals(1, upstreams.size());
+        Assertions.assertEquals("127.0.0.1:1", upstreams.get(0).getUpstreamUrl());
+    }
+
+    /** A multi-port Service is resolved through its spec: the backendRef port selects spec.ports[], whose numeric targetPort is the pod port. */
     @Test
     public void testServiceTargetPortMapping() {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -325,7 +516,18 @@ public final class HttpRouteParserTest {
                 new Lister<>(serviceIndexer), mockReferenceGrantLister());
         DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
                 NAMESPACE, "shenyu-gateway", SERVICE_NAME, 80,
-                "/** ", "PathPrefix", null, null); ShenyuMemoryConfig config = parser.parse(httpRoute, List.of()); Assertions.assertTrue(config.isAllBackendsResolved()); List<DivideUpstream> upstreams = GsonUtils.getInstance() .fromList(extractSelectors(config).get(0).getHandle(), DivideUpstream.class); Assertions.assertEquals(1, upstreams.size()); Assertions.assertEquals("10.0.0.1:8080", upstreams.get(0).getUpstreamUrl(), "service port 80 must map to its targetPort 8080"); } Deterministic ID: parsing the same HTTPRoute twice must yield identical selector/rule IDs. */
+                "/**", "PathPrefix", null, null);
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertTrue(config.isAllBackendsResolved());
+        List<DivideUpstream> upstreams = GsonUtils.getInstance()
+                .fromList(extractSelectors(config).get(0).getHandle(), DivideUpstream.class);
+        Assertions.assertEquals(1, upstreams.size());
+        Assertions.assertEquals("10.0.0.1:8080", upstreams.get(0).getUpstreamUrl(),
+                "service port 80 must map to its targetPort 8080");
+    }
+
+    /** Deterministic ID: parsing the same HTTPRoute twice must yield identical selector/rule IDs. */
     @Test
     public void testSelectorAndRuleIdsAreStableAcrossParses() {
         Lister<V1Endpoints> endpointsLister = mockEndpointsLister();
@@ -363,18 +565,12 @@ public final class HttpRouteParserTest {
         return new Lister<>(endpointsIndexer);
     }
 
-    /**
-     * Empty Service lister: the parser falls back to the Endpoints-only port heuristic,
-     * which is what the pre-existing parser tests exercise.
-     */
+    /** Empty Service lister: the parser falls back to the Endpoints-only port heuristic, which is what the pre-existing parser tests exercise. */
     private Lister<V1Service> mockServiceLister() {
         return new Lister<>(mock(Indexer.class));
     }
 
-    /**
-     * Empty ReferenceGrant lister: same-namespace backendRefs never consult grants,
-     * so all existing parser tests are unaffected by grant matching.
-     */
+    /** Empty ReferenceGrant lister: same-namespace backendRefs never consult grants, so all existing parser tests are unaffected by grant matching. */
     private Lister<DynamicKubernetesObject> mockReferenceGrantLister() {
         return new Lister<>(mock(Indexer.class));
     }

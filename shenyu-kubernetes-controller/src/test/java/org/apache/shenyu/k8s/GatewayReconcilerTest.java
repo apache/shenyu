@@ -124,7 +124,10 @@ public final class GatewayReconcilerTest {
         verify(gatewayClassWorkQueue).add(new Request("", "other-class"));
     }
 
-    /** A Gateway whose class carries Accepted=False (ShenYu rejected it) is out of scope: previously served config is cleaned up and the Gateway status is downgraded with the standard Invalid reason. */
+    /**
+     * A Gateway whose class carries Accepted=False (ShenYu rejected it) is out of scope: previously served config is
+     * cleaned up and the Gateway status is downgraded with the standard Invalid reason.
+     */
     @Test
     public void testRejectedGatewayClassMakesGatewayOutOfScope() throws Exception {
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
@@ -141,15 +144,15 @@ public final class GatewayReconcilerTest {
         cache.bindRouteToGateway("mockedNamespace", "shenyu-gateway", Set.of("http"), "mockedNamespace", "test-route");
         cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
 
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
-        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
+        final ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        final RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        final RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mockApiClientWithStatusPatch();
         ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
         when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
                 .thenReturn(mock(okhttp3.Call.class));
 
-        DynamicKubernetesObject rejectedClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
+        final DynamicKubernetesObject rejectedClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
         JsonObject rejected = new JsonObject();
         rejected.addProperty("type", "Accepted");
         rejected.addProperty("status", "False");
@@ -173,7 +176,11 @@ public final class GatewayReconcilerTest {
         Assertions.assertEquals("Invalid", downgraded.get("reason").getAsString());
     }
 
-    /** Test that status update is skipped when the Gateway status already reflects the full desired steady state: Accepted=True and Programmed=True conditions plus a per-listener status entry with the current attachedRoutes count. */
+    /**
+     * Test that status update is skipped when the Gateway status already reflects the full desired steady state:
+     * Accepted=True and Programmed=True conditions plus a per-listener status entry with the current attachedRoutes
+     * count.
+     */
     @Test
     public void testReconcileGatewayAlreadyAccepted() throws Exception {
         JsonObject statusObj = new JsonObject();

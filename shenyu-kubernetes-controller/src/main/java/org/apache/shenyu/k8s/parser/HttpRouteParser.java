@@ -105,6 +105,7 @@ public class HttpRouteParser {
 
     /**
      * Parse the HTTPRoute into a ShenYu config snapshot.
+     * @param httpRoute the route object
      * @param hostnames effective hostnames (route × listener intersection); empty means "any host"
      * @return the parsed config, never null
      */

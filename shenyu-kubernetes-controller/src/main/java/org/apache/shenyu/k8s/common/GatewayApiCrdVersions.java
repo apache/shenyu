@@ -57,7 +57,12 @@ public final class GatewayApiCrdVersions {
         return detectedVersions;
     }
 
-    /** Parse {@code v1.5.1} into (major, minor); null when not numeric. */
+    /**
+     * Parse {@code v1.5.1} into (major, minor); null when not numeric.
+     *
+     * @param version CRD bundle version string, e.g. {@code v1.5.1}
+     * @return {major, minor} pair, or null when not numeric
+     */
     public static int[] majorMinor(final String version) {
         if (Objects.isNull(version)) {
             return null;
@@ -74,7 +79,12 @@ public final class GatewayApiCrdVersions {
         }
     }
 
-    /** Whether the parsed pair is at or above the minimum supported version. */
+    /**
+     * Whether the parsed pair is at or above the minimum supported version.
+     *
+     * @param majorMinor parsed {major, minor} pair
+     * @return true when at or above the minimum supported version
+     */
     public static boolean atLeastMinSupported(final int[] majorMinor) {
         return Objects.nonNull(majorMinor)
                 && (majorMinor[0] > MIN_SUPPORTED[0]

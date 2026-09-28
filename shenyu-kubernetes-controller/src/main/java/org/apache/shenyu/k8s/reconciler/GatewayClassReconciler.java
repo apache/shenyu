@@ -145,7 +145,12 @@ public class GatewayClassReconciler implements Reconciler {
         }
     }
 
-    /** Whether the class's controllerName matches ShenYu's. */
+    /**
+     * Whether the class's controllerName matches ShenYu's.
+     *
+     * @param gatewayClass the GatewayClass dynamic object
+     * @return true if the GatewayClass's controllerName matches ShenYu's controller name
+     */
     public static boolean isShenyuGatewayClass(final DynamicKubernetesObject gatewayClass) {
         if (Objects.isNull(gatewayClass)) {
             return false;
@@ -159,10 +164,14 @@ public class GatewayClassReconciler implements Reconciler {
     }
 
     /**
-     * Whether the Gateway's class is ShenYu-owned and not rejected; shared by the Gateway
-     * and HTTPRoute reconcilers. Accepted=False puts the Gateway out of scope; an absent
-     * Accepted is treated optimistically for the startup race (Gateway reconciled before
-     * the class status patch reaches the cache) and enforced by the periodic resync.
+     * Whether the Gateway's class is ShenYu-owned and not rejected; shared by the Gateway and
+     * HTTPRoute reconcilers. Accepted=False puts the Gateway out of scope; an absent Accepted is
+     * treated optimistically for the startup race (Gateway reconciled before the class status
+     * patch reaches the cache) and enforced by the periodic resync.
+     *
+     * @param gateway the Gateway dynamic object
+     * @param gatewayClassLister lister for GatewayClass (cluster-scoped)
+     * @return true if the Gateway's class is owned by ShenYu
      */
     public static boolean isShenyuGateway(final DynamicKubernetesObject gateway,
                                           final Lister<DynamicKubernetesObject> gatewayClassLister) {
@@ -206,7 +215,12 @@ public class GatewayClassReconciler implements Reconciler {
         }
     }
 
-    /** Re-queue only previously served Gateways on ownership loss; the rest belong to the new controller. */
+    /**
+     * Re-queue only previously served Gateways on ownership loss; the rest belong to the new controller.
+     *
+     * @param gatewayClassName name of the GatewayClass
+     * @return whether any Gateway was re-queued
+     */
     private boolean requeuePreviouslyServedGateways(final String gatewayClassName) {
         boolean anyRequeued = false;
         for (DynamicKubernetesObject gateway : gatewayLister.list()) {

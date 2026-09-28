@@ -40,7 +40,13 @@ public final class JsonFields {
         return obj.get(field).getAsString();
     }
 
-    /** Read an optional numeric field as Long. */
+    /**
+     * Read an optional numeric field as Long.
+     *
+     * @param obj the object to read from
+     * @param field the field name
+     * @return the number, or null when absent or not numeric
+     */
     public static Long getLong(final JsonObject obj, final String field) {
         if (Objects.isNull(obj) || !obj.has(field) || obj.get(field).isJsonNull()
                 || !obj.get(field).isJsonPrimitive()) {

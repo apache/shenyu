@@ -37,7 +37,17 @@ public final class ReferenceGrants {
     private ReferenceGrants() {
     }
 
-    /** Whether a grant in grantNamespace (where referenced resources' grants live) allows the reference; to.name restricts to one resource. */
+    /**
+     * Whether a grant in grantNamespace (where referenced resources' grants live) allows the reference; to.name restricts to one resource.
+     *
+     * @param grantLister lister for ReferenceGrant resources
+     * @param grantNamespace namespace of the referenced resource, where grants live
+     * @param fromNamespace namespace of the referencing HTTPRoute
+     * @param toGroup API group of the referenced resource
+     * @param toKind kind of the referenced resource
+     * @param toName name of the referenced resource, null for unrestricted grants
+     * @return true if a matching grant exists
+     */
     public static boolean isGranted(final Lister<DynamicKubernetesObject> grantLister, final String grantNamespace,
                                     final String fromNamespace, final String toGroup, final String toKind,
                                     final String toName) {
