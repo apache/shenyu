@@ -114,7 +114,7 @@ public final class GatewayApiCrdVerifierTest {
         when(discoveryResponse.getData()).thenReturn(discovery);
         ApiResponse<JsonObject> crdResponse = mock(ApiResponse.class);
         when(crdResponse.getData()).thenReturn(crd);
-        when(apiClient.execute(any(Call.class), eq(JsonObject.class)))
+        when(apiClient.<JsonObject>execute(any(Call.class), eq(JsonObject.class)))
                 .thenReturn(discoveryResponse, crdResponse, crdResponse, crdResponse, crdResponse);
         return apiClient;
     }
