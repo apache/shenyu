@@ -288,6 +288,15 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
+  if [[ "${mode}" == "integration" ]]; then
+    case "${file}" in
+      .github/workflows/integrated-test.yml|.github/scripts/resolve-it-example-projects*.sh)
+        full_required=true
+        continue
+        ;;
+    esac
+  fi
+
   if is_ignored_change "${file}"; then
     continue
   fi
