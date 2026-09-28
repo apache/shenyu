@@ -288,6 +288,15 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
+  if [[ "${mode}" == "k8s-ingress" ]]; then
+    case "${file}" in
+      .github/workflows/integrated-test-k8s-ingress.yml|.github/scripts/resolve-it-k8s-example-project*.sh)
+        run_k8s_ingress=true
+        continue
+        ;;
+    esac
+  fi
+
   if is_ignored_change "${file}"; then
     continue
   fi

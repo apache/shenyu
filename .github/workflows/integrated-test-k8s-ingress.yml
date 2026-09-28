@@ -75,6 +75,8 @@ jobs:
       k8s_ingress: ${{ steps.cases.outputs.run_k8s_ingress }}
     steps:
       - uses: actions/checkout@v3
+      - name: Test IT-K8s example project mapping
+        run: bash .github/scripts/resolve-it-k8s-example-project-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -97,6 +99,8 @@ jobs:
               - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+              - '.github/workflows/integrated-test-k8s-ingress.yml'
+              - '.github/scripts/resolve-it-k8s-example-project*.sh'
       - name: Resolve k8s ingress cases
         id: cases
         if: steps.filter.outputs['k8s-ingress'] == 'true'
@@ -105,8 +109,68 @@ jobs:
           CI_CASE_MODE: k8s-ingress
         run: bash .github/scripts/resolve-test-case-matrix.sh
 
-  build:
+  prepare:
     needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.k8s_ingress == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Clean Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: 17
+          distribution: "temurin"
+          cache: "maven"
+          cache-dependency-path: |
+            **/pom.xml
+
+      - name: Install mvnd
+        shell: bash
+        run: |
+          MVND_VERSION=1.0.6
+          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          unzip -q mvnd.zip
+          mkdir -p $HOME/.local
+          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
+          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
+          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+
+      - name: Build ShenYu with Maven
+        shell: bash
+        run: |
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd for build"
+            mvnd -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          else
+            echo "Falling back to maven wrapper"
+            ./mvnw -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          fi
+
+      - name: Stage ShenYu local Maven repository
+        run: |
+          mkdir -p /tmp/shenyu-m2/org/apache
+          cp -R "${HOME}/.m2/repository/org/apache/shenyu" /tmp/shenyu-m2/org/apache/shenyu
+
+      - name: Upload ShenYu local Maven repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenyu-it-k8s-local-maven-repository
+          path: /tmp/shenyu-m2
+          retention-days: 1
+
+  build:
+    needs:
+      - changes
+      - prepare
     strategy:
       matrix:
         case:
@@ -158,37 +222,35 @@ jobs:
           echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
           echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
-      - name: Build with Maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-it-k8s-local-maven-repository
+          path: /tmp/shenyu-m2
+
+      - name: Restore ShenYu local Maven repository
+        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+
+      - name: Build integrated-test case
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build"
-            mvnd -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            echo "Using mvnd to build ${{ matrix.case }}"
+            mvnd -B -T 1C clean install -Pit -DskipTests -pl ":${{ matrix.case }}" -am -f ./shenyu-integrated-test/pom.xml
           else
-            echo "Falling back to maven wrapper"
-            ./mvnw -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            echo "Falling back to maven wrapper to build ${{ matrix.case }}"
+            ./mvnw -B -T 1C clean install -Pit -DskipTests -pl ":${{ matrix.case }}" -am -f ./shenyu-integrated-test/pom.xml
           fi
 
-      - name: Build integrated tests
+      - name: Build case example
         shell: bash
         run: |
+          EXAMPLE_PROJECT="$(bash .github/scripts/resolve-it-k8s-example-project.sh "${{ matrix.case }}")"
           if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build integrated tests"
-            mvnd -B -T 1C clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
+            echo "Using mvnd to build ${EXAMPLE_PROJECT}"
+            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECT}" -am -f ./shenyu-examples/pom.xml
           else
-            echo "Falling back to maven wrapper for integrated tests"
-            ./mvnw -B -T 1C clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
-          fi
-
-      - name: Build examples
-        shell: bash
-        run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build examples"
-            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-          else
-            echo "Falling back to maven wrapper for examples"
-            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            echo "Falling back to maven wrapper to build ${EXAMPLE_PROJECT}"
+            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECT}" -am -f ./shenyu-examples/pom.xml
           fi
 
       - name: Build k8s Cluster
