@@ -21,9 +21,11 @@ on:
       - master
     paths:
       - '**/*.java'
+      - '.github/workflows/codeql-analysis.yml'
   pull_request:
     paths:
       - '**/*.java'
+      - '.github/workflows/codeql-analysis.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -64,9 +66,23 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          build-mode: manual
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build for CodeQL analysis
+        run: |
+          ./mvnw -B -ntp -T 1C package \
+            -DskipTests \
+            -DskipRemoteResources=true \
+            -Dfindbugs.skip=true \
+            -Dcheckstyle.skip=true \
+            -Dpmd.skip=true \
+            -Dspotbugs.skip=true \
+            -Denforcer.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dlicense.skip=true \
+            -Drat.skip=true \
+            -Dspotless.check.skip=true \
+            -Djacoco.skip=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
