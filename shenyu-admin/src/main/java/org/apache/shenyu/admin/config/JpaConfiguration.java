@@ -15,28 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.provider;
+package org.apache.shenyu.admin.config;
 
-import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
-import org.apache.shenyu.admin.validation.ExistProvider;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import java.io.Serializable;
-
-/**
- * AppKeyProvider.
- */
-@Component
-public class AppKeyProvider implements ExistProvider {
-    
-    private final AppAuthRepository appAuthRepository;
-    
-    public AppKeyProvider(final AppAuthRepository appAuthRepository) {
-        this.appAuthRepository = appAuthRepository;
-    }
-    
-    @Override
-    public Boolean existed(final Serializable key) {
-        return appAuthRepository.existed(key);
-    }
+@Configuration
+@EnableJpaAuditing
+public class JpaConfiguration {
 }

@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.provider;
+package org.apache.shenyu.admin.jpa.converter;
 
-import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
-import org.apache.shenyu.admin.validation.ExistProvider;
-import org.springframework.stereotype.Component;
+import com.google.gson.reflect.TypeToken;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import org.apache.shenyu.common.utils.GsonUtils;
 
-import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
 
-/**
- * AppKeyProvider.
- */
-@Component
-public class AppKeyProvider implements ExistProvider {
-    
-    private final AppAuthRepository appAuthRepository;
-    
-    public AppKeyProvider(final AppAuthRepository appAuthRepository) {
-        this.appAuthRepository = appAuthRepository;
-    }
-    
+
+@Converter
+public class ListByteConverter implements AttributeConverter<List<Byte>, String> {
+
     @Override
-    public Boolean existed(final Serializable key) {
-        return appAuthRepository.existed(key);
+    public String convertToDatabaseColumn(final List<Byte> attribute) {
+        return Objects.isNull(attribute) ? null : GsonUtils.getGson().toJson(attribute);
+    }
+
+    @Override
+    public List<Byte> convertToEntityAttribute(final String dbData) {
+        return Objects.isNull(dbData) ? null : GsonUtils.getGson().fromJson(dbData, new TypeToken<List<Byte>>() {
+        }.getType());
     }
 }

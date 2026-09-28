@@ -15,28 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.provider;
+package org.apache.shenyu.admin.jpa.converter;
 
-import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
-import org.apache.shenyu.admin.validation.ExistProvider;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
-import java.io.Serializable;
+import java.util.Objects;
 
-/**
- * AppKeyProvider.
- */
-@Component
-public class AppKeyProvider implements ExistProvider {
-    
-    private final AppAuthRepository appAuthRepository;
-    
-    public AppKeyProvider(final AppAuthRepository appAuthRepository) {
-        this.appAuthRepository = appAuthRepository;
-    }
-    
+@Converter(autoApply = true)
+public class BooleanConverter implements AttributeConverter<Boolean, Integer> {
+
     @Override
-    public Boolean existed(final Serializable key) {
-        return appAuthRepository.existed(key);
+    public Integer convertToDatabaseColumn(final Boolean attribute) {
+        if (Objects.isNull(attribute)) {
+            return null;
+        }
+        return attribute ? 1 : 0;
+    }
+
+    @Override
+    public Boolean convertToEntityAttribute(final Integer dbData) {
+        if (Objects.isNull(dbData)) {
+            return null;
+        }
+        return dbData.equals(1);
     }
 }

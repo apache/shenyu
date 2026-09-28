@@ -21,8 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
@@ -72,15 +71,13 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     private final RuleMapper ruleMapper;
 
-    private final AuthPathMapper authPathMapper;
-
     private final MetaDataMapper metaDataMapper;
 
     private final DiscoveryMapper discoveryMapper;
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
-    private final AppAuthMapper appAuthMapper;
+    private final AppAuthRepository appAuthRepository;
 
 
     public NamespaceServiceImpl(final NamespaceMapper namespaceMapper,
@@ -89,20 +86,18 @@ public class NamespaceServiceImpl implements NamespaceService {
                                 final NamespacePluginRelMapper namespacePluginRelMapper,
                                 final SelectorMapper selectorMapper,
                                 final RuleMapper ruleMapper,
-                                final AuthPathMapper authPathMapper,
                                 final MetaDataMapper metaDataMapper,
                                 final DiscoveryMapper discoveryMapper,
-                                final AppAuthMapper appAuthMapper) {
+                                final AppAuthRepository appAuthRepository) {
         this.namespaceMapper = namespaceMapper;
         this.namespaceUserService = namespaceUserService;
         this.namespaceEventPublisher = namespaceEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
         this.selectorMapper = selectorMapper;
         this.ruleMapper = ruleMapper;
-        this.authPathMapper = authPathMapper;
         this.metaDataMapper = metaDataMapper;
         this.discoveryMapper = discoveryMapper;
-        this.appAuthMapper = appAuthMapper;
+        this.appAuthRepository = appAuthRepository;
     }
 
     @Override
@@ -156,7 +151,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isNotEmpty(metaDataDOList)) {
             throw new ShenyuAdminException("metaData exist under those namespace!");
         }
-        List<AppAuthDO> appPathDOList = appAuthMapper.findByNamespaceIds(namespaceIdList);
+        List<AppAuthDO> appPathDOList = appAuthRepository.findByNamespaceIdIn(namespaceIdList);
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
         }

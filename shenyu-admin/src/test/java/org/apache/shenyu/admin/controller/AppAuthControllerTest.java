@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
@@ -62,6 +60,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
@@ -88,10 +87,7 @@ public final class AppAuthControllerTest {
     private AppAuthService appAuthService;
 
     @Mock
-    private AuthPathMapper authPathMapper;
-
-    @Mock
-    private AppAuthMapper appAuthMapper;
+    private AppAuthRepository appAuthRepository;
 
     @Mock
     private NamespaceMapper namespaceMapper;
@@ -104,8 +100,7 @@ public final class AppAuthControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController)
-                .setControllerAdvice(appAuthMapper)
-                .setControllerAdvice(authPathMapper)
+                .setControllerAdvice(appAuthRepository)
                 .build();
     }
 
@@ -245,8 +240,8 @@ public final class AppAuthControllerTest {
                 ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(SpringBeanUtils.getInstance().getBean(AppAuthMapper.class)).thenReturn(appAuthMapper);
-        when(appAuthMapper.existed(appAuthDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(AppAuthRepository.class)).thenReturn(appAuthRepository);
+        when(appAuthRepository.existed(appAuthDTO.getId())).thenReturn(true);
         when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
         when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetail")
@@ -286,8 +281,8 @@ public final class AppAuthControllerTest {
         authPathWarpDTO.setAuthPathDTOList(authPathDTOS);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(SpringBeanUtils.getInstance().getBean(AppAuthMapper.class)).thenReturn(appAuthMapper);
-        when(appAuthMapper.existed(authPathWarpDTO.getId())).thenReturn(true);
+        when(SpringBeanUtils.getInstance().getBean(AppAuthRepository.class)).thenReturn(appAuthRepository);
+        when(appAuthRepository.existed(authPathWarpDTO.getId())).thenReturn(true);
         given(this.appAuthService.updateDetailPath(authPathWarpDTO)).willReturn(ShenyuAdminResult.success());
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetailPath")
                 .contentType(MediaType.APPLICATION_JSON)

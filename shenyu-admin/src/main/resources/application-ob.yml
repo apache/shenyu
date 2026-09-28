@@ -19,6 +19,8 @@ shenyu:
     init_enable: true
 
 spring:
+  jpa:
+    database: MYSQL
   datasource:
     url: jdbc:oceanbase://localhost:2881/shenyu
     username: root

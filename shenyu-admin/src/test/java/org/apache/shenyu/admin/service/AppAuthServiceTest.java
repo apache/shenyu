@@ -19,10 +19,10 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
+import org.apache.shenyu.admin.jpa.repository.AuthParamRepository;
+import org.apache.shenyu.admin.jpa.repository.AuthPathRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthParamMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -55,12 +55,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageImpl;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -72,7 +74,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,16 +90,16 @@ public final class AppAuthServiceTest {
     private AppAuthServiceImpl appAuthService;
 
     @Mock
-    private AppAuthMapper appAuthMapper;
+    private AppAuthRepository appAuthRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private AuthParamMapper authParamMapper;
+    private AuthParamRepository authParamRepository;
 
     @Mock
-    private AuthPathMapper authPathMapper;
+    private AuthPathRepository authPathRepository;
 
     private final AppAuthDO appAuthDO = buildAppAuthDO();
 
@@ -119,9 +120,9 @@ public final class AppAuthServiceTest {
     public void testCreateOrUpdatePropagatesNamespace() {
         AppAuthDTO dto = buildAppAuthDTO("auth-id");
         dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        given(appAuthMapper.updateSelective(any())).willReturn(1);
+        given(appAuthRepository.findByIdAndNamespaceId(dto.getId(), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Optional.of(appAuthDO));
         assertEquals(1, appAuthService.createOrUpdate(dto));
-        verify(appAuthMapper).updateSelective(argThat(auth -> SYS_DEFAULT_NAMESPACE_ID.equals(auth.getNamespaceId())));
+        verify(appAuthRepository).findByIdAndNamespaceId(dto.getId(), SYS_DEFAULT_NAMESPACE_ID);
         verify(eventPublisher).publishEvent(any());
     }
 
@@ -129,7 +130,7 @@ public final class AppAuthServiceTest {
     public void testRejectedNamespaceUpdateDoesNotPublish() {
         AppAuthDTO dto = buildAppAuthDTO("auth-id");
         dto.setNamespaceId("other-namespace");
-        given(appAuthMapper.updateSelective(any())).willReturn(0);
+        given(appAuthRepository.findByIdAndNamespaceId(dto.getId(), "other-namespace")).willReturn(Optional.empty());
         assertEquals(0, appAuthService.createOrUpdate(dto));
         verifyNoInteractions(eventPublisher);
     }
@@ -140,16 +141,16 @@ public final class AppAuthServiceTest {
         authApplyDTO.setOpen(null);
         authApplyDTO.setPathList(null);
         appAuthDO.setOpen(true);
-        given(appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
-        given(authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName()))
-                .willReturn(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
-        given(authPathMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
-        given(authParamMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+        given(appAuthRepository.findByAppKey(appAuthDO.getAppKey())).willReturn(Optional.of(appAuthDO));
+        given(authParamRepository.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName()))
+                .willReturn(Optional.of(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam())));
+        given(authPathRepository.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+        given(authParamRepository.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
 
         ShenyuAdminResult result = appAuthService.applyUpdate(authApplyDTO);
 
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, result.getMessage());
-        verify(appAuthMapper).updateSelective(argThat(updated -> Boolean.TRUE.equals(updated.getOpen())));
+        verify(appAuthRepository).save(argThat(updated -> Boolean.TRUE.equals(updated.getOpen())));
         ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);
@@ -161,10 +162,11 @@ public final class AppAuthServiceTest {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamList(authParamDTOList);
+        given(this.appAuthRepository.findByIdAndNamespaceId(eq(appAuthDTO.getId()), any())).willReturn(Optional.of(appAuthDO));
+        given(this.appAuthRepository.save(any(AppAuthDO.class))).willAnswer(invocation -> invocation.getArgument(0));
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
-        verify(appAuthMapper).updateSelective(any(AppAuthDO.class));
-        verify(appAuthMapper, never()).update(any(AppAuthDO.class));
+        verify(appAuthRepository).save(any(AppAuthDO.class));
     }
 
     @Test
@@ -176,7 +178,7 @@ public final class AppAuthServiceTest {
         ShenyuAdminResult idNotExistResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
         assertEquals(AdminConstants.ID_NOT_EXIST, idNotExistResult.getMessage());
 
-        given(appAuthMapper.selectById(eq(authPathWarpDTO.getId()))).willReturn(appAuthDO);
+        given(appAuthRepository.findById(eq(authPathWarpDTO.getId()))).willReturn(Optional.of(appAuthDO));
         ShenyuAdminResult successResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
     }
@@ -184,11 +186,10 @@ public final class AppAuthServiceTest {
     @Test
     public void testCreateOrUpdate() {
         AppAuthDTO insertAppAuthDTO = buildAppAuthDTO();
-        given(this.appAuthMapper.insertSelective(any())).willReturn(1);
         assertThat(this.appAuthService.createOrUpdate(insertAppAuthDTO), greaterThan(0));
 
         AppAuthDTO updateAppAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
-        given(this.appAuthMapper.updateSelective(any())).willReturn(1);
+        given(this.appAuthRepository.findById(any(String.class))).willReturn(Optional.of(appAuthDO));
         assertThat(this.appAuthService.createOrUpdate(updateAppAuthDTO), greaterThan(0));
     }
 
@@ -205,8 +206,8 @@ public final class AppAuthServiceTest {
         batchCommonDTO.setIds(Collections.singletonList(appAuthDO.getId()));
         assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
 
-        given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
-        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
+        given(this.appAuthRepository.findById(appAuthDO.getId())).willReturn(Optional.of(appAuthDO));
+        given(this.appAuthRepository.findAllById(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
         assertEquals(StringUtils.EMPTY, this.appAuthService.opened(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertEquals(Boolean.TRUE, appAuthVO.getOpen());
@@ -219,8 +220,8 @@ public final class AppAuthServiceTest {
         batchCommonDTO.setIds(Collections.singletonList(appAuthDO.getId()));
         assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
 
-        given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
-        given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
+        given(this.appAuthRepository.findById(appAuthDO.getId())).willReturn(Optional.of(appAuthDO));
+        given(this.appAuthRepository.findAllById(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));
         assertEquals(StringUtils.EMPTY, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertEquals(Boolean.TRUE, appAuthVO.getEnabled());
@@ -233,8 +234,8 @@ public final class AppAuthServiceTest {
         String appParam = "{\"type\": \"test\"}";
         AuthParamDO authParamDO = AuthParamDO.create(authId, appName, appParam);
         List<AuthParamDO> authParamDOList = Collections.singletonList(authParamDO);
-        given(this.authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
-        given(this.appAuthMapper.selectById(eq(appAuthDO.getId()))).willReturn(appAuthDO);
+        given(this.authParamRepository.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
+        given(this.appAuthRepository.findById(eq(appAuthDO.getId()))).willReturn(Optional.of(appAuthDO));
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertNotNull(appAuthVO);
         assertEquals(appAuthDO.getId(), appAuthVO.getId());
@@ -250,7 +251,7 @@ public final class AppAuthServiceTest {
         assertEquals(0, authPathVOListEmpty.size());
         authPathDO.setId(authPathDoId);
         authPathDO.setAuthId(authPathDOAuthId);
-        given(this.authPathMapper.findByAuthId(eq(authPathDOAuthId))).willReturn(Collections.singletonList(authPathDO));
+        given(this.authPathRepository.findByAuthId(eq(authPathDOAuthId))).willReturn(Collections.singletonList(authPathDO));
         List<AuthPathVO> authPathVOList = this.appAuthService.detailPath(authPathDOAuthId);
         assertEquals(1, authPathVOList.size());
         assertEquals(authPathDoId, authPathVOList.get(0).getId());
@@ -258,8 +259,8 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testListByPage() {
-        given(this.appAuthMapper.countByQuery(any())).willReturn(1);
-        given(this.appAuthMapper.selectByQuery(any())).willReturn(Collections.singletonList(appAuthDO));
+        PageImpl<AppAuthDO> page = new PageImpl<>(Collections.singletonList(appAuthDO));
+        given(this.appAuthRepository.selectByQuery(any(), any())).willReturn(page);
         AppAuthQuery appAuthQuery = new AppAuthQuery();
         appAuthQuery.setPageParameter(new PageParameter());
         CommonPager<AppAuthVO> appAuthVOCommonPager = this.appAuthService.listByPage(appAuthQuery);
@@ -270,14 +271,14 @@ public final class AppAuthServiceTest {
     public void testUpdateAppSecretByAppKey() {
         String newAppSecret = SignUtils.generateKey();
         appAuthDO.setAppSecret(newAppSecret);
-        given(this.appAuthMapper.updateAppSecretByAppKey(appAuthDO.getAppKey(), appAuthDO.getAppSecret())).willReturn(1);
+        given(this.appAuthRepository.updateAppSecretByAppKey(appAuthDO.getAppKey(), appAuthDO.getAppSecret())).willReturn(1);
         ShenyuAdminResult result = this.appAuthService.updateAppSecretByAppKey(appAuthDO.getAppKey(), appAuthDO.getAppSecret());
         assertThat((int) result.getData(), greaterThan(0));
     }
 
     @Test
     public void testListAll() {
-        given(this.appAuthMapper.selectAll()).willReturn(Collections.singletonList(appAuthDO));
+        given(this.appAuthRepository.findAll()).willReturn(Collections.singletonList(appAuthDO));
         List<AppAuthData> appAuthDataList = this.appAuthService.listAll();
         assertEquals(1, appAuthDataList.size());
         assertEquals(appAuthDO.getAppKey(), appAuthDataList.get(0).getAppKey());
@@ -285,7 +286,7 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testListAllData() {
-        given(this.appAuthMapper.selectAll()).willReturn(Collections.singletonList(appAuthDO));
+        given(this.appAuthRepository.findAll()).willReturn(Collections.singletonList(appAuthDO));
         List<AppAuthVO> appAuthDataList = this.appAuthService.listAllData();
         assertEquals(1, appAuthDataList.size());
         assertEquals(appAuthDO.getAppKey(), appAuthDataList.get(0).getAppKey());
@@ -294,11 +295,10 @@ public final class AppAuthServiceTest {
     @Test
     public void testImportData() {
         List<AppAuthDO> list = Lists.newArrayList(new AppAuthDO());
-        when(appAuthMapper.selectAll()).thenReturn(list);
+        when(appAuthRepository.findAll()).thenReturn(list);
 
         AppAuthDTO appAuthDTO = buildAppAuthDTO();
         final List<AppAuthDTO> appAuthDTOList = Collections.singletonList(appAuthDTO);
-        given(this.appAuthMapper.insertSelective(any())).willReturn(1);
 
         ConfigImportResult configImportResult = this.appAuthService.importData(appAuthDTOList);
 
@@ -311,7 +311,7 @@ public final class AppAuthServiceTest {
         AppAuthDO authDO = new AppAuthDO();
         authDO.setNamespaceId("test");
         ArrayList<AppAuthDO> all = Lists.newArrayList(authDO);
-        when(appAuthMapper.selectAll())
+        when(appAuthRepository.findAll())
                 .thenReturn(null)
                 .thenReturn(Lists.newArrayList())
                 .thenReturn(all);
@@ -325,7 +325,7 @@ public final class AppAuthServiceTest {
     @Test
     public void testSyncEmptyDataByNamespaceId() {
         String namespaceId = "namespace-id";
-        when(appAuthMapper.selectAllByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
+        when(appAuthRepository.findByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
 
         appAuthService.syncDataByNamespaceId(namespaceId);
 
@@ -360,8 +360,7 @@ public final class AppAuthServiceTest {
 
     private void testApplyCreateSuccess() {
         AuthApplyDTO newAuthApplyDTO = buildAuthApplyDTO();
-        given(this.appAuthMapper.insert(any())).willReturn(1);
-        given(this.authParamMapper.save(any())).willReturn(1);
+        given(this.authParamRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0));
         ShenyuAdminResult successResult = this.appAuthService.applyCreate(newAuthApplyDTO);
         assertEquals(ShenyuResultMessage.CREATE_SUCCESS, successResult.getMessage());
     }
@@ -404,18 +403,18 @@ public final class AppAuthServiceTest {
         String appParam = "{\"type\": \"test\"}";
         AuthParamDO authParamDO = AuthParamDO.create(appAuthDO.getId(), appName, appParam);
         List<AuthParamDO> authParamDOList = Collections.singletonList(authParamDO);
-        given(this.authPathMapper.findByAuthIdAndAppName(
+        given(this.authPathRepository.findByAuthIdAndAppName(
                 eq(appAuthDO.getId()), eq(authApplyDTO.getAppName()))).willReturn(Collections.singletonList(authPathDO));
-        given(this.appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
-        given(authPathMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
-        given(authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
+        given(this.appAuthRepository.findByAppKey(appAuthDO.getAppKey())).willReturn(Optional.of(appAuthDO));
+        given(authPathRepository.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
+        given(authParamRepository.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
         ShenyuAdminResult successResult = this.appAuthService.applyUpdate(authApplyDTO);
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, successResult.getMessage());
-        verify(appAuthMapper).updateSelective(argThat(updated -> authApplyDTO.getUserId().equals(updated.getUserId())
+        verify(appAuthRepository).save(argThat(updated -> authApplyDTO.getUserId().equals(updated.getUserId())
                 && authApplyDTO.getPhone().equals(updated.getPhone())
                 && authApplyDTO.getExtInfo().equals(updated.getExtInfo())
                 && Boolean.TRUE.equals(updated.getOpen())));
-        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 1
+        verify(authPathRepository).saveAll(argThat(paths -> paths.size() == 1
                 && authApplyDTO.getPathList().get(0).equals(paths.get(0).getPath())));
         ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());

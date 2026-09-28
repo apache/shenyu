@@ -216,3 +216,25 @@ The following components are provided under the Apache License. See project link
 The text of each license is the standard Apache 2.0 license.
 
     Maven Wrapper(mvnw, mvnw.cmd files in root path), https://github.com/apache/maven-wrapper  Apache 2.0
+
+========================================================================
+GNU Lesser General Public License 2.1
+========================================================================
+
+The following components are binary dependencies provided under the
+GNU Lesser General Public License 2.1 (LGPL 2.1). The source and binary
+forms of these libraries are redistributed unmodified.
+
+    Hibernate ORM (org.hibernate.orm:hibernate-core), https://github.com/hibernate/hibernate-orm  LGPL 2.1
+    Hibernate Commons Annotations (org.hibernate.common:hibernate-commons-annotations), https://github.com/hibernate/hibernate-commons-annotations  LGPL 2.1
+
+========================================================================
+Eclipse Public License 2.0
+========================================================================
+
+The following component is a binary dependency provided under the
+Eclipse Public License 2.0 (EPL 2.0), or alternatively under the GNU
+General Public License version 2 with the Classpath Exception. The
+source and binary forms of this library are redistributed unmodified.
+
+    Jakarta Persistence (jakarta.persistence:jakarta.persistence-api), https://github.com/jakartaee/persistence  EPL 2.0 / GPL2 w/ CPE

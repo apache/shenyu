@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
-import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.jpa.repository.AppAuthRepository;
+import org.apache.shenyu.admin.jpa.repository.AuthPathRepository;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
@@ -123,7 +123,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detail(@RequestParam("id")
                                     @Existed(message = "app key not existed",
-                                            provider = AppAuthMapper.class) final String id) {
+                                            provider = AppAuthRepository.class) final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
@@ -149,8 +149,8 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id")
                                             @Existed(message = "auth path not existed",
-                                                    providerMethodName = "existedByAuthId",
-                                                    provider = AuthPathMapper.class)
+                                                    providerMethodName = "existsByAuthId",
+                                                    provider = AuthPathRepository.class)
                                         @NotBlank final String authId) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
     }
