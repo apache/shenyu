@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.tars;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -79,6 +80,13 @@ public class TarsPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
+        // the cache loader returns an empty proxy list when the path was never initialized
+        if (CollectionUtils.isEmpty(tarsInvokePrxList.getTarsInvokePrxList())) {
+            LOG.error("tars upstream configuration error: {}", metaData.getPath());
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
+            return WebFluxResultUtils.result(exchange, error);
+        }
         int index = ThreadLocalRandom.current().nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
         Object prx = tarsInvokePrxList.getTarsInvokePrxList().get(index).getInvokePrx();
         Method method = tarsInvokePrxList.getMethod();
