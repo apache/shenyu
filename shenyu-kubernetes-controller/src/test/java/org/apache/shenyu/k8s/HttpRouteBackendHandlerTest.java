@@ -65,10 +65,7 @@ public final class HttpRouteBackendHandlerTest {
         return informer;
     }
 
-    /**
-     * A Service update must enqueue the routes whose backendRefs target the Service,
-     * resolved through the backend-service index.
-     */
+    /** A Service update must enqueue the routes whose backendRefs target the Service, resolved through the backend-service index. */
     @Test
     public void testServiceUpdateEnqueuesReferencingRoutes() {
         Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);
@@ -131,10 +128,7 @@ public final class HttpRouteBackendHandlerTest {
         verify(queue, never()).add(any(Request.class));
     }
 
-    /**
-     * Cross-namespace resolution: a route referencing Service {@code other-ns/svc} by
-     * explicit namespace is found when that Service changes.
-     */
+    /** Cross-namespace resolution: a route referencing Service {@code other-ns/svc} by explicit namespace is found when that Service changes. */
     @Test
     public void testCrossNamespaceBackendServiceResolved() {
         Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);

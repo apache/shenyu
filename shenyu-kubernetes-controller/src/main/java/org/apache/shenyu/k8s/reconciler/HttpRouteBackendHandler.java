@@ -34,16 +34,10 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Shared machinery of the backend event handlers (Endpoints, Service): both resolve the
- * HTTPRoutes affected by a backend change through the same informer index and enqueue them
- * for reconciliation, so backend changes re-resolve upstreams immediately instead of
- * waiting for the periodic informer resync.
- *
- * <p>An Endpoints object and the Service it backs share their name and namespace. The
- * HTTPRoute informer is indexed by referenced Service ("namespace/name"), so a backend
- * event resolves the affected routes via the index instead of scanning the whole cache.
- * The queue deduplicates, and the reconciler re-checks ShenYu gateway binding, so
- * enqueuing extra routes is harmless.
+ * Shared machinery of the backend event handlers (Endpoints, Service): both resolve
+ * affected HTTPRoutes through the informer index on referenced Service ("namespace/name",
+ * shared with the Endpoints object) instead of scanning the cache. The queue deduplicates
+ * and the reconciler re-checks binding, so extra enqueues are harmless.
  */
 abstract class HttpRouteBackendHandler {
 

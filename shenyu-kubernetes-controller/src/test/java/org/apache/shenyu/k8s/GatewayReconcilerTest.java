@@ -56,9 +56,7 @@ public final class GatewayReconcilerTest {
         GatewayRouteCache.getInstance().clear();
     }
 
-    /**
-     * Test ShenYu Gateway creation.
-     */
+    /** Test ShenYu Gateway creation. */
     @Test
     public void testReconcileShenYuGatewayCreation() throws Exception {
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
@@ -77,21 +75,22 @@ public final class GatewayReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mockApiClientWithStatusPatch();
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
-                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient, 9195);
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
         verify(httpRouteWorkQueue).add(new Request("mockedNamespace", "test-route"));
+        // the accept transition re-queues the class so its finalizer is added immediately
+        verify(gatewayClassWorkQueue).add(new Request("", "shenyu"));
         verify(apiClient).execute(any(okhttp3.Call.class));
     }
 
-    /**
-     * Test Gateway deletion: should cascade delete ShenYu config for associated routes.
-     */
+    /** Test Gateway deletion: should cascade delete ShenYu config for associated routes. */
     @Test
     public void testReconcileGatewayDeletion() {
         // gateway not found in indexer → treated as deletion
@@ -111,21 +110,70 @@ public final class GatewayReconcilerTest {
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
 
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
-                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient, 9195);
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
         verify(shenyuCacheRepository).deleteSelectorWithRules("divide", "sel-1");
+        // deletion re-queues every class: the one losing its last Gateway must drop its finalizer
+        verify(gatewayClassWorkQueue).add(new Request("", "shenyu"));
+        verify(gatewayClassWorkQueue).add(new Request("", "other-class"));
     }
 
-    /**
-     * Test that status update is skipped when the Gateway status already reflects the full
-     * desired steady state: Accepted=True and Programmed=True conditions plus a per-listener
-     * status entry with the current attachedRoutes count.
-     */
+    /** A Gateway whose class carries Accepted=False (ShenYu rejected it) is out of scope: previously served config is cleaned up and the Gateway status is downgraded with the standard Invalid reason. */
+    @Test
+    public void testRejectedGatewayClassMakesGatewayOutOfScope() throws Exception {
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        GatewayRouteCache cache = GatewayRouteCache.getInstance();
+        cache.bindRouteToGateway("mockedNamespace", "shenyu-gateway", Set.of("http"), "mockedNamespace", "test-route");
+        cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
+        ApiClient apiClient = mockApiClientWithStatusPatch();
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
+                .thenReturn(mock(okhttp3.Call.class));
+
+        DynamicKubernetesObject rejectedClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
+        JsonObject rejected = new JsonObject();
+        rejected.addProperty("type", "Accepted");
+        rejected.addProperty("status", "False");
+        rejected.addProperty("reason", "InvalidParameters");
+        JsonObject status = new JsonObject();
+        status.add("conditions", new JsonArray());
+        status.getAsJsonArray("conditions").add(rejected);
+        rejectedClass.getRaw().add("status", status);
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(rejectedClass);
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
+
+        Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository).deleteSelectorWithRules("divide", "sel-1");
+
+        JsonObject body = (JsonObject) bodyCaptor.getValue();
+        JsonObject downgraded = body.getAsJsonObject("status").getAsJsonArray("conditions").get(0).getAsJsonObject();
+        Assertions.assertEquals("False", downgraded.get("status").getAsString());
+        Assertions.assertEquals("Invalid", downgraded.get("reason").getAsString());
+    }
+
+    /** Test that status update is skipped when the Gateway status already reflects the full desired steady state: Accepted=True and Programmed=True conditions plus a per-listener status entry with the current attachedRoutes count. */
     @Test
     public void testReconcileGatewayAlreadyAccepted() throws Exception {
         JsonObject statusObj = new JsonObject();
@@ -152,21 +200,19 @@ public final class GatewayReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
-                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient, 9195);
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
         verify(apiClient, never()).execute(any(okhttp3.Call.class));
     }
 
-    /**
-     * attachedRoutes is defined per listener: a route bound through only one listener of a
-     * two-listener Gateway must be counted on that listener alone, not on both.
-     */
+    /** attachedRoutes is defined per listener: a route bound through only one listener of a two-listener Gateway must be counted on that listener alone, not on both. */
     @Test
     public void testAttachedRoutesAreCountedPerListener() throws Exception {
         final DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
@@ -190,6 +236,7 @@ public final class GatewayReconcilerTest {
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
         ApiClient apiClient = mock(ApiClient.class);
         when(apiClient.getAuthentications()).thenReturn(Map.of());
         ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
@@ -198,7 +245,7 @@ public final class GatewayReconcilerTest {
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
         GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
-                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, apiClient, 9195);
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
 
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
@@ -290,12 +337,22 @@ public final class GatewayReconcilerTest {
      * stubbed via getByKey. "shenyu" is ShenYu-owned; "other-class" is non-ShenYu.
      */
     private SharedIndexInformer<DynamicKubernetesObject> mockGatewayClassInformer() {
+        return mockGatewayClassInformer(buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller"));
+    }
+
+    /**
+     * Same as {@link #mockGatewayClassInformer()} but with a caller-provided "shenyu"
+     * class, e.g. one already carrying a rejection status.
+     */
+    private SharedIndexInformer<DynamicKubernetesObject> mockGatewayClassInformer(
+            final DynamicKubernetesObject shenyuClass) {
         SharedIndexInformer<DynamicKubernetesObject> informer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> indexer = mock(Indexer.class);
-        DynamicKubernetesObject shenyuClass = buildGatewayClass("shenyu", "gateway.shenyu.apache.org/shenyu-controller");
-        when(indexer.getByKey("shenyu")).thenReturn(shenyuClass);
         DynamicKubernetesObject otherClass = buildGatewayClass("other-class", "example.com/other-controller");
+        when(indexer.getByKey("shenyu")).thenReturn(shenyuClass);
         when(indexer.getByKey("other-class")).thenReturn(otherClass);
+        // requeueAllGatewayClasses iterates every class after a Gateway deletion
+        when(indexer.list()).thenReturn(List.of(shenyuClass, otherClass));
         when(informer.getIndexer()).thenReturn(indexer);
         return informer;
     }

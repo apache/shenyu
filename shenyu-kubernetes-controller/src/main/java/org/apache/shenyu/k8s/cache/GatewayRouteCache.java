@@ -27,14 +27,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * In-memory bindings between ShenYu-managed Gateways, their listeners and the HTTPRoutes
- * attached to them, maintained by the HTTPRoute reconciler and read by the Gateway
- * reconciler (listener-level attachedRoutes) and the deletion paths (cascade cleanup).
- *
- * <p>Bindings are tracked per listener ({@code attachedRoutes} is defined per listener in
- * the Gateway API spec): a gateway entry maps each attached route to the set of listener
- * names that accepted it, so a route targeting only {@code sectionName: http} is counted
- * on that listener alone.
+ * In-memory route↔gateway/listener bindings written by the HTTPRoute reconciler, read for
+ * attachedRoutes counts and cascade cleanup. Tracked per listener because the spec defines
+ * attachedRoutes per listener.
  */
 public final class GatewayRouteCache {
 
@@ -67,16 +62,7 @@ public final class GatewayRouteCache {
         return ROUTE_SELECTOR_MAP.remove(routeKey(namespace, routeName, pluginName));
     }
 
-    /**
-     * Bind a route to a Gateway on the given listener names, replacing the route's previous
-     * binding to that Gateway.
-     *
-     * @param gatewayNamespace namespace of the Gateway
-     * @param gatewayName name of the Gateway
-     * @param listenerNames listeners of the Gateway that accepted the route
-     * @param routeNamespace namespace of the route
-     * @param routeName name of the route
-     */
+    /** Bind a route to a Gateway on the given listeners, replacing the previous binding. */
     public void bindRouteToGateway(final String gatewayNamespace, final String gatewayName,
                                    final Set<String> listenerNames,
                                    final String routeNamespace, final String routeName) {
@@ -90,27 +76,13 @@ public final class GatewayRouteCache {
                 });
     }
 
-    /**
-     * Routes attached to a Gateway through any of its listeners.
-     *
-     * @param gatewayNamespace namespace of the Gateway
-     * @param gatewayName name of the Gateway
-     * @return route keys ("namespace/name") attached to the Gateway, null if none
-     */
+    /** Route keys attached through any listener, null if none. */
     public Set<String> getRoutesByGateway(final String gatewayNamespace, final String gatewayName) {
         Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
         return Objects.isNull(routes) || routes.isEmpty() ? null : Set.copyOf(routes.keySet());
     }
 
-    /**
-     * Routes attached to one specific listener of a Gateway; the count of this set is the
-     * listener's {@code attachedRoutes} status value.
-     *
-     * @param gatewayNamespace namespace of the Gateway
-     * @param gatewayName name of the Gateway
-     * @param listenerName name of the listener
-     * @return route keys ("namespace/name") attached through that listener, empty if none
-     */
+    /** Route keys attached through one listener; its size is the listener's attachedRoutes. */
     public Set<String> getRoutesByListener(final String gatewayNamespace, final String gatewayName,
                                            final String listenerName) {
         Map<String, Set<String>> routes = GATEWAY_ROUTE_MAP.get(gatewayKey(gatewayNamespace, gatewayName));
@@ -126,14 +98,7 @@ public final class GatewayRouteCache {
         return attached;
     }
 
-    /**
-     * ShenYu Gateways a route is currently bound to; a route may attach to several
-     * ShenYu Gateways via multiple parentRefs.
-     *
-     * @param routeNamespace namespace of the route
-     * @param routeName name of the route
-     * @return gateway keys ("namespace/name") the route is bound to, null if none
-     */
+    /** Gateway keys the route is bound to via multiple parentRefs, null if none. */
     public Set<String> getGatewaysForRoute(final String routeNamespace, final String routeName) {
         String rKey = routeKey(routeNamespace, routeName);
         Set<String> gateways = new HashSet<>();

@@ -24,11 +24,7 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 
-/**
- * Bridges Endpoints events to HTTPRoute reconciliation, so backend address changes
- * re-resolve upstreams immediately instead of waiting for the periodic informer resync.
- * See {@link HttpRouteBackendHandler} for the index shared with the Service handler.
- */
+/** Bridges Endpoints events to HTTPRoute reconciliation; see {@link HttpRouteBackendHandler}. */
 public final class HttpRouteEndpointsHandler extends HttpRouteBackendHandler implements ResourceEventHandler<V1Endpoints> {
 
     public HttpRouteEndpointsHandler(final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,

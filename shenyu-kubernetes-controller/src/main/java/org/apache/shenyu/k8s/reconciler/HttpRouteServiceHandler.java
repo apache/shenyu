@@ -25,11 +25,8 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 
 /**
- * Bridges Service events to HTTPRoute reconciliation. A Service port or targetPort change
- * does not touch the Endpoints object, so without this handler routes would keep routing
- * to the stale pod port until the periodic HTTPRoute resync; an initial reconcile could
- * likewise fall back to the Endpoints-only port heuristic before the Service cache filled.
- * See {@link HttpRouteBackendHandler} for the index shared with the Endpoints handler.
+ * Bridges Service events to route reconciliation: port/targetPort edits never touch
+ * Endpoints, so without this trigger routes keep the stale pod port until the resync.
  */
 public final class HttpRouteServiceHandler extends HttpRouteBackendHandler implements ResourceEventHandler<V1Service> {
 

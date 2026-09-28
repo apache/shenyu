@@ -39,11 +39,7 @@ public class ShenyuMemoryConfig {
     /** Reason for ResolvedRefs=False (BackendNotFound, RefNotPermitted or InvalidKind). */
     private String unresolvedReason;
 
-    /**
-     * Whether any rule carried filters. Filters are not implemented; per the Gateway API
-     * spec an unsupported filter must surface as Accepted=False with reason UnsupportedValue
-     * and the affected rule must not be programmed.
-     */
+    /** Unsupported filters must surface as Accepted=False/UnsupportedValue with the rule unprogrammed. */
     private boolean hasUnsupportedFilters;
 
     /**

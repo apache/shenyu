@@ -61,9 +61,7 @@ public final class HTTPRouteReconcilerTest {
         GatewayRouteCache.getInstance().clear();
     }
 
-    /**
-     * Test HTTPRoute bound to a ShenYu Gateway: should create selector and rule.
-     */
+    /** Test HTTPRoute bound to a ShenYu Gateway: should create selector and rule. */
     @Test
     public void testReconcileBoundHTTPRoute() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -84,30 +82,7 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
-                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
-
-        ApiClient apiClient = mockApiClientWithStatusPatch();
-
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-        Assertions.assertEquals(new Result(false), result);
-        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
-        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
-        verify(apiClient).execute(any(okhttp3.Call.class));
-    }
-
-    /**
-     * Regression: when the route status already carries Accepted=True and ResolvedRefs=True
-     * (capitalized, per K8s condition convention), the reconciler must skip the status patch.
-     * Otherwise every reconcile patches, each patch bumps resourceVersion, the watch
-     * re-enqueues the route, and the controller enters an infinite reconcile/patch loop.
-     */
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mockApiClientWithStatusPatch(); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository).saveOrUpdateSelectorData(any()); verify(shenyuCacheRepository).saveOrUpdateRuleData(any()); verify(apiClient).execute(any(okhttp3.Call.class)); } Regression: when the route status already carries Accepted=True and ResolvedRefs=True (capitalized, per K8s condition convention), the reconciler must skip the status patch. */
     @Test
     public void testReconcileSkipsStatusPatchWhenAlreadySet() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -128,51 +103,7 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
-                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        JsonObject accepted = new JsonObject();
-        accepted.addProperty("type", "Accepted");
-        accepted.addProperty("status", "True");
-        JsonObject resolvedRefs = new JsonObject();
-        resolvedRefs.addProperty("type", "ResolvedRefs");
-        resolvedRefs.addProperty("status", "True");
-        JsonArray conditions = new JsonArray();
-        conditions.add(accepted);
-        conditions.add(resolvedRefs);
-        JsonObject parentRef = new JsonObject();
-        parentRef.addProperty("group", "gateway.networking.k8s.io");
-        parentRef.addProperty("kind", "Gateway");
-        parentRef.addProperty("namespace", "mockedNamespace");
-        parentRef.addProperty("name", "shenyu-gateway");
-        JsonObject parent = new JsonObject();
-        parent.add("parentRef", parentRef);
-        parent.addProperty("controllerName", "gateway.shenyu.apache.org/shenyu-controller");
-        parent.add("conditions", conditions);
-        JsonArray parents = new JsonArray();
-        parents.add(parent);
-        JsonObject status = new JsonObject();
-        status.add("parents", parents);
-        httpRoute.getRaw().add("status", status);
-        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
-
-        ApiClient apiClient = mock(ApiClient.class);
-
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-        Assertions.assertEquals(new Result(false), result);
-        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
-        verify(apiClient, never()).execute(any(okhttp3.Call.class));
-    }
-
-    /**
-     * A parentRef carrying a port must only attach through listeners on that port: with the
-     * sectionName selecting a listener whose port differs from the parentRef port, the
-     * attachment is rejected instead of silently going through the named listener.
-     */
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); JsonObject accepted = new JsonObject(); accepted.addProperty("type", "Accepted"); accepted.addProperty("status", "True"); JsonObject resolvedRefs = new JsonObject(); resolvedRefs.addProperty("type", "ResolvedRefs"); resolvedRefs.addProperty("status", "True"); JsonArray conditions = new JsonArray(); conditions.add(accepted); conditions.add(resolvedRefs); JsonObject parentRef = new JsonObject(); parentRef.addProperty("group", "gateway.networking.k8s.io"); parentRef.addProperty("kind", "Gateway"); parentRef.addProperty("namespace", "mockedNamespace"); parentRef.addProperty("name", "shenyu-gateway"); JsonObject parent = new JsonObject(); parent.add("parentRef", parentRef); parent.addProperty("controllerName", "gateway.shenyu.apache.org/shenyu-controller"); parent.add("conditions", conditions); JsonArray parents = new JsonArray(); parents.add(parent); JsonObject status = new JsonObject(); status.add("parents", parents); httpRoute.getRaw().add("status", status); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mock(ApiClient.class); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository).saveOrUpdateSelectorData(any()); verify(apiClient, never()).execute(any(okhttp3.Call.class)); } A parentRef carrying a port must only attach through listeners on that port: with the sectionName selecting a listener whose port differs from the parentRef port, the attachment is rejected instead of silently going through the named listener. */
     @Test
     public void testParentRefPortMustMatchSelectedListener() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -194,28 +125,7 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
-                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        // parentRef selects the listener by name but demands port 443; the listener serves 9195
-        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("parentRefs")
-                .get(0).getAsJsonObject().addProperty("port", 443);
-        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
-
-        ApiClient apiClient = mockApiClientWithStatusPatch();
-
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-        Assertions.assertEquals(new Result(false), result);
-        verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any());
-    }
-
-    /**
-     * Test HTTPRoute deletion: should clean up selector and rule data.
-     */
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); parentRef selects the listener by name but demands port 443; the listener serves 9195 httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("parentRefs") .get(0).getAsJsonObject().addProperty("port", 443); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mockApiClientWithStatusPatch(); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any()); } Test HTTPRoute deletion: should clean up selector and rule data. */
     @Test
     public void testReconcileHTTPRouteDeletion() {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -243,11 +153,7 @@ public final class HTTPRouteReconcilerTest {
         // No exception should be thrown; deleteConfig handles empty cache gracefully
     }
 
-    /**
-     * Idempotent reconcile: re-reconciling an unchanged HTTPRoute must NOT delete any selector,
-     * because the deterministic IDs are stable across parses. This guards against the data-plane
-     * churn window that occurred when every resync deleted and recreated selectors.
-     */
+    /** Idempotent reconcile: re-reconciling an unchanged HTTPRoute must NOT delete any selector, because the deterministic IDs are stable across parses. */
     @Test
     public void testReconcileIsIdempotentOnResync() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -268,30 +174,7 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
-                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
-
-        ApiClient apiClient = mockApiClientWithStatusPatch();
-
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-        httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-
-        // The reconciler deletes through deleteSelectorWithRules only, so that is the
-        // call an unwanted delete-then-recreate would go through
-        verify(shenyuCacheRepository, never()).deleteSelectorWithRules(any(), any());
-    }
-
-    /**
-     * Cross-namespace parentRef authorized by the listener's allowedRoutes alone: per the
-     * Gateway API spec a ReferenceGrant does not apply to a Route's parentRef, so the
-     * attachment must be accepted without any grant existing in the Gateway's namespace.
-     */
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mockApiClientWithStatusPatch(); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); The reconciler deletes through deleteSelectorWithRules only, so that is the call an unwanted delete-then-recreate would go through verify(shenyuCacheRepository, never()).deleteSelectorWithRules(any(), any()); } Cross-namespace parentRef authorized by the listener's allowedRoutes alone: per the Gateway API spec a ReferenceGrant does not apply to a Route's parentRef, so the attachment must be accepted without any grant existing in the Gateway's namespace. */
     @Test
     public void testReconcileCrossNamespaceHTTPRouteAcceptedByAllowedRoutes() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -312,27 +195,29 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("route-ns", "test-route",
-                "gw-ns", "shenyu-gateway", "testService", 8189, "/**");
-        when(httpRouteIndexer.getByKey("route-ns/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+                "gw-ns", "shenyu-gateway", "testService", 8189, "/** "); when(httpRouteIndexer.getByKey("route-ns/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mockApiClientWithStatusPatch(); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("route-ns", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository).saveOrUpdateSelectorData(any()); } A listener with allowedRoutes from=Selector is an unsupported value, not a permission denial: the route must be rejected with Accepted=False/UnsupportedValue (never RefNotPermitted, which would suggest a ReferenceGrant could fix it) and nothing may be programmed. */
+    @Test
+    public void testSelectorAllowedRoutesReportsUnsupportedValue() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
 
-        ApiClient apiClient = mockApiClientWithStatusPatch();
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        JsonObject namespaces = new JsonObject();
+        namespaces.addProperty("from", "Selector");
+        JsonObject allowedRoutes = new JsonObject();
+        allowedRoutes.add("namespaces", namespaces);
+        gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners")
+                .get(0).getAsJsonObject().add("allowedRoutes", allowedRoutes);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
 
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        Result result = httpRouteReconciler.reconcile(new Request("route-ns", "test-route"));
-        Assertions.assertEquals(new Result(false), result);
-        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
-    }
-
-    /**
-     * A rule with filters (unsupported) must reject the whole route: nothing is programmed,
-     * config from a previous valid spec of this route is dropped, and the status patch
-     * reports Accepted=False with the spec-defined reason UnsupportedValue.
-     */
+        final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); ApiClient apiClient = mock(ApiClient.class); when(apiClient.getAuthentications()).thenReturn(Map.of()); ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class); when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any())) .thenReturn(mock(okhttp3.Call.class)); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any()); JsonArray parents = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status").getAsJsonArray("parents"); JsonArray conditions = parents.get(0).getAsJsonObject().getAsJsonArray("conditions"); boolean rejectedWithUnsupportedValue = false; for (JsonElement element : conditions) { JsonObject condition = element.getAsJsonObject(); if ("Accepted".equals(condition.get("type").getAsString()) && "False".equals(condition.get("status").getAsString()) && "UnsupportedValue".equals(condition.get("reason").getAsString())) { rejectedWithUnsupportedValue = true; } } Assertions.assertTrue(rejectedWithUnsupportedValue, "Accepted=False/UnsupportedValue not reported"); } A rule with filters (unsupported) must reject the whole route: nothing is programmed, config from a previous valid spec of this route is dropped, and the status patch reports Accepted=False with the spec-defined reason UnsupportedValue. */
     @Test
     public void testReconcileUnsupportedFiltersProgramsNothing() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -353,55 +238,7 @@ public final class HTTPRouteReconcilerTest {
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
-                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        JsonObject filter = new JsonObject();
-        filter.addProperty("type", "RequestHeaderModifier");
-        JsonArray filters = new JsonArray();
-        filters.add(filter);
-        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules")
-                .get(0).getAsJsonObject().add("filters", filters);
-        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
-        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
-
-        // config programmed by a previous, valid spec of this route
-        GatewayRouteCache cache = GatewayRouteCache.getInstance();
-        cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
-
-        ApiClient apiClient = mock(ApiClient.class);
-        when(apiClient.getAuthentications()).thenReturn(Map.of());
-        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
-        when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
-                .thenReturn(mock(okhttp3.Call.class));
-
-        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
-        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
-        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
-                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
-
-        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
-        Assertions.assertEquals(new Result(false), result);
-        verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any());
-        verify(shenyuCacheRepository).deleteSelectorWithRules("divide", "sel-1");
-
-        JsonArray parents = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status").getAsJsonArray("parents");
-        JsonArray conditions = parents.get(0).getAsJsonObject().getAsJsonArray("conditions");
-        boolean rejectedWithUnsupportedValue = false;
-        for (JsonElement element : conditions) {
-            JsonObject condition = element.getAsJsonObject();
-            if ("Accepted".equals(condition.get("type").getAsString())
-                    && "False".equals(condition.get("status").getAsString())
-                    && "UnsupportedValue".equals(condition.get("reason").getAsString())) {
-                rejectedWithUnsupportedValue = true;
-            }
-        }
-        Assertions.assertTrue(rejectedWithUnsupportedValue, "Accepted=False/UnsupportedValue not reported");
-    }
-
-    /**
-     * Status entries owned by other controllers must survive ShenYu's status patch: the
-     * patch body carries them over, because the merge patch replaces the parents array
-     * wholesale.
-     */
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/** "); JsonObject filter = new JsonObject(); filter.addProperty("type", "RequestHeaderModifier"); JsonArray filters = new JsonArray(); filters.add(filter); httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules") .get(0).getAsJsonObject().add("filters", filters); when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute); when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer); config programmed by a previous, valid spec of this route GatewayRouteCache cache = GatewayRouteCache.getInstance(); cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1")); ApiClient apiClient = mock(ApiClient.class); when(apiClient.getAuthentications()).thenReturn(Map.of()); ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class); when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any())) .thenReturn(mock(okhttp3.Call.class)); ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class); SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer(); HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195); Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route")); Assertions.assertEquals(new Result(false), result); verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any()); verify(shenyuCacheRepository).deleteSelectorWithRules("divide", "sel-1"); JsonArray parents = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status").getAsJsonArray("parents"); JsonArray conditions = parents.get(0).getAsJsonObject().getAsJsonArray("conditions"); boolean rejectedWithUnsupportedValue = false; for (JsonElement element : conditions) { JsonObject condition = element.getAsJsonObject(); if ("Accepted".equals(condition.get("type").getAsString()) && "False".equals(condition.get("status").getAsString()) && "UnsupportedValue".equals(condition.get("reason").getAsString())) { rejectedWithUnsupportedValue = true; } } Assertions.assertTrue(rejectedWithUnsupportedValue, "Accepted=False/UnsupportedValue not reported"); } Status entries owned by other controllers must survive ShenYu's status patch: the patch body carries them over, because the merge patch replaces the parents array wholesale. */
     @Test
     public void testStatusPatchPreservesForeignControllerEntries() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
@@ -484,12 +321,7 @@ public final class HTTPRouteReconcilerTest {
         return apiClient;
     }
 
-    /**
-     * A previously bound HTTPRoute that is no longer bound to any ShenYu Gateway (grant
-     * removed, GatewayClass re-pointed, listener removed) must have its programmed
-     * selectors deleted and its ShenYu status entries dropped, instead of being skipped
-     * with stale config left behind.
-     */
+    /** A previously bound HTTPRoute that is no longer bound to any ShenYu Gateway (grant removed, GatewayClass re-pointed, listener removed) must have its programmed selectors deleted and its ShenYu status entries dropped, instead of being skipped with stale config left behind. */
     @Test
     public void testReconcileUnboundHTTPRouteCleansUpPreviouslyAppliedConfig() throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);

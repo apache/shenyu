@@ -62,58 +62,31 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Parses an HTTPRoute into ShenYu divide selectors/rules. The parser is pure: it neither
- * touches GatewayRouteCache nor the data plane, so a reconcile can compute status from a
- * parse result without side effects.
- *
- * <p>Match precedence follows the Gateway API spec: hostname specificity, then path
- * specificity (exact beats longer prefix beats shorter prefix beats regex beats no path),
- * then HTTP method presence, then header match count, then query param match count. ShenYu's
- * data plane first groups matching selectors by their number of AND conditions and only then
- * compares the selector sort ({@code AbstractShenyuPlugin#manyMatchSelector}), which would
- * let a raw two-header match outrank a method match regardless of the sort. The parser
- * therefore pads every selector's condition list to one fixed length with always-true
- * duplicate conditions, turning the count grouping into a tie so the sort — which encodes
- * the full precedence above — decides. A single match declaring more header/query matches
- * than the floor accommodates exceeds it and falls back to count-dominant precedence.
- *
- * <p>The spec requires the traffic share of an invalid weighted backendRef to receive an
- * HTTP 500 while the valid shares stay routable. The invalid share is represented as a
- * dedicated fail-target upstream entry: the connection to it is refused immediately and —
- * under the default {@code current} retry strategy, which retries timeout-class errors only
- * — the request fails fast with a 500 through the global error handler instead of silently
- * re-flowing onto the healthy backends.
+ * Parses an HTTPRoute into ShenYu divide selectors/rules; pure, no cache or data-plane
+ * side effects. Match precedence follows the spec (hostname, path, method presence, header
+ * count, query count, first rule) and is encoded in the selector sort; because the data
+ * plane groups matches by condition count BEFORE comparing sort
+ * ({@code AbstractShenyuPlugin#manyMatchSelector}), every selector's condition list is
+ * padded to a fixed length with always-true duplicates so the sort alone decides. The
+ * traffic share of invalid weighted backendRefs goes to a loopback fail-target upstream:
+ * the connection is refused instantly, so the request fails with a 500 instead of
+ * re-flowing onto healthy backends.
  */
 public class HttpRouteParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpRouteParser.class);
 
-    /** Prefix isolating Gateway API IDs from the numeric ID space of the Ingress reconciler. */
     private static final String ID_PREFIX = "gwapi-";
 
-    /** Stable hostname slot for rules without a hostname, keeping deterministic IDs well-defined. */
     private static final String NO_HOSTNAME_PLACEHOLDER = "_";
 
-    /**
-     * Base of the packed precedence sort; lower sort wins on the ShenYu data plane, so a
-     * higher precedence score subtracts to a lower sort. High enough to stay positive and
-     * above the magnitude of hand-configured sorts.
-     */
-    private static final int SORT_PRECEDENCE_BASE = 1 << 20;
+    /** Base of the packed precedence sort (hostname 3b, path 11b, method 1b, headers 4b, query 4b, rule index 4b); lower sort wins. */
+    private static final int SORT_PRECEDENCE_BASE = 1 << 28;
 
-    /**
-     * Fixed condition-list length every generated selector is padded to, neutralizing the
-     * data plane's condition-count-first selector tie-breaking (see class javadoc). Chosen
-     * to cover the natural condition count of any realistic match (hostname + path +
-     * method + a dozen header/query matches).
-     */
+    /** Condition-list length selectors are padded to, defeating the data plane's count-first tie-breaking. */
     private static final int CONDITION_COUNT_FLOOR = 16;
 
-    /**
-     * Stand-in upstream for the traffic share of invalid weighted backendRefs: loopback
-     * port 1 has no listener in the gateway pod, so the connection is refused instantly
-     * and the request fails with a 500 (see class javadoc) instead of re-flowing.
-     */
+    /** Loopback port 1 has no listener in the pod: connections are refused instantly, failing the invalid share with a 500. */
     private static final String FAIL_TARGET_URL = "127.0.0.1:1";
 
     private final Lister<V1Endpoints> endpointsLister;
@@ -132,10 +105,7 @@ public class HttpRouteParser {
 
     /**
      * Parse the HTTPRoute into a ShenYu config snapshot.
-     *
-     * @param httpRoute the route object
-     * @param hostnames effective hostnames (route hostnames intersected with the listener
-     *                  hostnames of every accepting Gateway); empty means "any host"
+     * @param hostnames effective hostnames (route × listener intersection); empty means "any host"
      * @return the parsed config, never null
      */
     public ShenyuMemoryConfig parse(final DynamicKubernetesObject httpRoute, final List<String> hostnames) {
@@ -166,8 +136,7 @@ public class HttpRouteParser {
                              final String routeName, final int ruleIndex,
                              final List<IngressConfiguration> routeConfigList,
                              final ResolveState resolveState) {
-        // Filters are not implemented. Per the spec an unsupported filter MUST surface as
-        // Accepted=False/UnsupportedValue and the rule MUST NOT be applied partially.
+        // Unsupported filters must surface as Accepted=False/UnsupportedValue, never apply partially.
         JsonArray filters = JsonFields.getJsonArray(rule, "filters");
         if (Objects.nonNull(filters) && !filters.isEmpty()) {
             resolveState.unsupportedFilters = true;
@@ -176,8 +145,7 @@ public class HttpRouteParser {
             return;
         }
 
-        // A rule without backendRefs has no ShenYu equivalent; skipping it leaves matching
-        // requests unmatched instead of programming an empty upstream list.
+        // Without backendRefs there is no ShenYu equivalent; leave requests unmatched.
         JsonArray backendRefs = JsonFields.getJsonArray(rule, "backendRefs");
         if (Objects.isNull(backendRefs) || backendRefs.isEmpty()) {
             return;
@@ -193,8 +161,7 @@ public class HttpRouteParser {
                     namespace, routeName, ruleIndex, result.unresolvedCount);
         }
 
-        // Empty means neither a valid weighted backend nor an invalid weighted share to
-        // fail: all backends are valid with weight 0 (spec: removed from rotation).
+        // All backends valid with weight 0: removed from rotation, nothing to program.
         if (result.upstreams.isEmpty()) {
             return;
         }
@@ -209,8 +176,7 @@ public class HttpRouteParser {
                                    final String routeName, final int ruleIndex,
                                    final List<IngressConfiguration> routeConfigList,
                                    final List<DivideUpstream> upstreamList) {
-        // One selector+rule per hostname: a request matches at most one hostname, and the
-        // selector's AND semantics cannot express "any of these hostnames".
+        // One selector per hostname: AND semantics cannot express "any of these hostnames".
         JsonArray matches = JsonFields.getJsonArray(rule, "matches");
         if (Objects.nonNull(matches) && !matches.isEmpty()) {
             for (int matchIndex = 0; matchIndex < matches.size(); matchIndex++) {
@@ -222,11 +188,11 @@ public class HttpRouteParser {
                 appendMatchConditions(matchConditions, match);
                 if (hostnames.isEmpty()) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                            matchIndex, selectorSort(null, match), matchConditions, upstreamList);
+                            matchIndex, selectorSort(null, match, ruleIndex), matchConditions, upstreamList);
                 } else {
                     for (String hostname : hostnames) {
                         addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
-                                hostname, matchIndex, selectorSort(hostname, match),
+                                hostname, matchIndex, selectorSort(hostname, match, ruleIndex),
                                 composeConditions(hostname, matchConditions), upstreamList);
                     }
                 }
@@ -236,11 +202,11 @@ public class HttpRouteParser {
             JsonObject noMatch = new JsonObject();
             if (hostnames.isEmpty()) {
                 addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                        0, selectorSort(null, noMatch), new ArrayList<>(), upstreamList);
+                        0, selectorSort(null, noMatch, ruleIndex), new ArrayList<>(), upstreamList);
             } else {
                 for (String hostname : hostnames) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
-                            hostname, 0, selectorSort(hostname, noMatch),
+                            hostname, 0, selectorSort(hostname, noMatch, ruleIndex),
                             composeConditions(hostname, new ArrayList<>()), upstreamList);
                 }
             }
@@ -251,9 +217,7 @@ public class HttpRouteParser {
                                  final String namespace, final String routeName, final int ruleIndex,
                                  final String hostname, final int matchIndex, final int sort,
                                  final List<ConditionData> conditions, final List<DivideUpstream> upstreamList) {
-        // A CUSTOM_FLOW selector with an empty condition list never matches in ShenYu, so a
-        // rule without matches (spec: matches everything, like PathPrefix /) needs an
-        // explicit match-all condition.
+        // A CUSTOM_FLOW selector with no conditions never matches; match-all fills the gap.
         if (conditions.isEmpty()) {
             conditions.add(matchAllCondition());
         }
@@ -261,22 +225,14 @@ public class HttpRouteParser {
         String ruleId = deterministicRuleId(selectorId, matchIndex);
         String hostComponent = Objects.isNull(hostname) ? "" : "-" + hostname;
         String selectorName = routeName + "-rule-" + ruleIndex + hostComponent + "-m" + matchIndex;
-        // Only the selector is padded: the rule's own conditions feed the data plane's
-        // trie cache, which duplicate conditions would only bloat.
+        // Only the selector is padded; the rule's trie cache would just bloat with duplicates.
         SelectorData selectorData = buildSelectorData(selectorId, selectorName, sort,
                 padToConditionFloor(conditions), upstreamList);
         RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
         routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
     }
 
-    /**
-     * ShenYu's selector match first groups matching selectors by their number of AND
-     * conditions and only then compares the sort ({@code AbstractShenyuPlugin#manyMatchSelector}),
-     * so a raw two-header match would outrank a method match regardless of the encoded
-     * precedence. Padding every generated selector to one fixed condition count with
-     * always-true duplicates turns the grouping into a tie so the precedence-encoded sort
-     * decides. Returns the list as-is when it already reached the floor (never shrinks).
-     */
+    /** Pad to the fixed condition count so the precedence-encoded sort alone decides (see class javadoc). */
     private List<ConditionData> padToConditionFloor(final List<ConditionData> conditions) {
         if (conditions.size() >= CONDITION_COUNT_FLOOR) {
             return conditions;
@@ -305,10 +261,7 @@ public class HttpRouteParser {
         return conditions;
     }
 
-    /**
-     * Deterministic selector ID derived from the route coordinates, so the same spec always
-     * yields the same ID and a resync upserts instead of delete-then-create on the data plane.
-     */
+    /** Deterministic ID: a resync upserts instead of delete-then-create on the data plane. */
     private String deterministicSelectorId(final String namespace, final String routeName, final int ruleIndex,
                                            final String hostname, final int matchIndex) {
         String hostComponent = Objects.isNull(hostname) ? NO_HOSTNAME_PLACEHOLDER : hostname;
@@ -321,11 +274,7 @@ public class HttpRouteParser {
         return selectorId + "/rule-m" + matchIndex;
     }
 
-    /**
-     * Exact hostnames use EQ. A wildcard ({@code *.example.com}) is a suffix match per the
-     * Gateway API spec: it matches {@code test.example.com} and {@code foo.test.example.com}
-     * but not {@code example.com} — impossible to express with EQ's exact comparison, hence REGEX.
-     */
+    /** Exact hostnames use EQ; a wildcard is a multi-label suffix match, expressible only as REGEX. */
     private ConditionData buildHostnameCondition(final String hostname) {
         ConditionData condition = new ConditionData();
         condition.setParamType(ParamTypeEnum.DOMAIN.getName());
@@ -379,13 +328,7 @@ public class HttpRouteParser {
                 .build();
     }
 
-    /**
-     * Resolve the rule's backendRefs into upstream addresses. Service is the only supported
-     * kind (the default when absent); anything else is unresolved with reason InvalidKind.
-     * A cross-namespace Service requires a ReferenceGrant in that namespace; a Service whose
-     * Endpoints are missing or have no ready addresses is unresolved with reason
-     * BackendNotFound. Both drive ResolvedRefs=False.
-     */
+    /** Resolve backendRefs to upstream addresses; non-Service kinds, unauthorized cross-namespace refs and missing Endpoints stay unresolved (ResolvedRefs=False). */
     private BackendResolveResult parseBackendRefs(final JsonArray backendRefs, final String namespace,
                                                   final String routeName) {
         List<ResolvedBackend> backends = new ArrayList<>();
@@ -407,24 +350,14 @@ public class HttpRouteParser {
             }
             backends.add(new ResolvedBackend(outcome.declaredWeight, outcome.urls));
         }
-        // Spec: the proportion of requests destined for invalid backends MUST receive a 500
-        // while the valid shares stay routable. One fail-target entry carrying exactly the
-        // invalid share keeps the weighted split proportional — see buildUpstreams.
+        // One fail-target entry with exactly the invalid share keeps the split proportional.
         if (invalidWeightedShare > 0) {
             backends.add(new ResolvedBackend(invalidWeightedShare, List.of(FAIL_TARGET_URL)));
         }
-        return new BackendResolveResult(buildUpstreams(backends), unresolvedCount,
-                invalidWeightedShare, unresolvedReason);
+        return new BackendResolveResult(buildUpstreams(backends), unresolvedCount, unresolvedReason);
     }
 
-    /**
-     * Spread the declared backend weights over the endpoints so each backend's aggregate
-     * weight stays proportional to its declared weight regardless of replica counts.
-     * Dividing each backend independently lets flooring distort the ratios (weight 9 and 1
-     * over two endpoints each yield totals 8:2, and a weight-1 backend with many replicas
-     * can outweigh a weight-9 one), so every backend is scaled by one common factor: the
-     * smallest factor that lifts each backend's per-endpoint share to at least 1.
-     */
+    /** Spread declared weights over endpoints with one common scale factor, so aggregate weights stay proportional regardless of replica counts. */
     private List<DivideUpstream> buildUpstreams(final List<ResolvedBackend> backends) {
         long scale = 1;
         for (ResolvedBackend backend : backends) {
@@ -447,8 +380,7 @@ public class HttpRouteParser {
                 upstream.setWarmup(0);
                 upstream.setStatus(true);
                 upstream.setUpstreamHost("");
-                // Constant timestamp: the handle json must be byte-identical across resyncs,
-                // otherwise the unchanged-check in ShenyuCacheRepository never triggers.
+                // Constant timestamp keeps the handle json byte-identical for the unchanged-check.
                 upstream.setTimestamp(0L);
                 upstreams.add(upstream);
             }
@@ -460,17 +392,14 @@ public class HttpRouteParser {
         return (dividend + divisor - 1) / divisor;
     }
 
-    /**
-     * Resolve one backendRef into upstream URLs, or into the Gateway API reason of its
-     * failure (InvalidKind / RefNotPermitted / BackendNotFound).
-     */
+    /** Resolve one backendRef into upstream URLs or the Gateway API reason of its failure. */
     private BackendRefOutcome resolveBackendRef(final JsonObject backendRef, final String namespace,
                                                 final String routeName) {
         String serviceName = JsonFields.getString(backendRef, "name");
         if (Objects.isNull(serviceName)) {
             return BackendRefOutcome.ok(List.of(), 0);
         }
-        // Gateway API spec: an omitted weight defaults to 1, so it mixes 1:1 with an explicit one
+        // An omitted weight defaults to 1
         int weight = backendRef.has("weight") && backendRef.get("weight").isJsonPrimitive()
                 ? backendRef.get("weight").getAsInt() : 1;
         String backendNamespace = JsonFields.getString(backendRef, "namespace");
@@ -540,15 +469,9 @@ public class HttpRouteParser {
     }
 
     /**
-     * Map the backendRef (Service) port to the port the pods actually listen on, using the
-     * Service spec the way the Ingress path does: the backendRef port selects
-     * {@code spec.ports[]}, whose targetPort is either the pod port directly or a name
-     * resolved against the Endpoints subsets' named ports; a Service port without
-     * targetPort forwards to itself. When the Service is not in the informer cache, fall
-     * back to the Endpoints-only heuristic: a single distinct endpoint port wins; a
-     * servicePort matching one of the endpoint ports is used as-is; no port information at
-     * all falls back to the servicePort (legacy behavior); anything else is ambiguous and
-     * reported BackendNotFound instead of being silently misrouted.
+     * Map the backendRef port to the pod port via the Service spec (targetPort numeric or
+     * named, resolved against Endpoints); without a cached Service, fall back to a
+     * single-endpoint-port heuristic and report ambiguity as BackendNotFound.
      */
     private Long resolveTargetPort(final V1Service service, final Set<Long> endpointPorts,
                                    final Map<String, Long> endpointPortsByName, final Long servicePort,
@@ -611,9 +534,7 @@ public class HttpRouteParser {
             pathCondition.setParamType(ParamTypeEnum.URI.getName());
             String pathType = JsonFields.getString(path, "type");
             if (Objects.isNull(pathType) || "PathPrefix".equals(pathType)) {
-                // Spec: a path prefix matches on element boundaries — /foo matches /foo and
-                // /foo/bar but NOT /foobar — and a trailing '/' in the prefix is ignored.
-                // ShenYu's raw startsWith cannot express this, hence an anchored regex.
+                // Prefixes match on element boundaries (/foo ≠ /foobar); raw startsWith cannot, hence regex.
                 pathCondition.setOperator(OperatorEnum.REGEX.getAlias());
                 pathCondition.setParamValue(prefixRegex(pathValue));
             } else {
@@ -665,13 +586,7 @@ public class HttpRouteParser {
         }
     }
 
-    /**
-     * Anchored full-match regex for a path prefix (the REGEX judge is a full match):
-     * {@code /foo} → {@code ^\Q/foo\E(/.*)?$}, matching {@code /foo} and everything under it.
-     * The root prefix {@code /} is the spec's catch-all and matches every absolute path, so
-     * it must not go through the element-boundary form (which would only match {@code /} and
-     * paths starting with {@code //}).
-     */
+    /** Anchored full-match regex for a prefix: {@code /foo} → {@code ^\Q/foo\E(/.*)?$}; root {@code /} is the catch-all. */
     private String prefixRegex(final String prefix) {
         String stripped = prefix.length() > 1 && prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
         if ("/".equals(stripped)) {
@@ -680,27 +595,18 @@ public class HttpRouteParser {
         return "^" + Pattern.quote(stripped) + "(/.*)?$";
     }
 
-    /**
-     * Sort encoding the full Gateway API match precedence (lower sort wins on the data
-     * plane, hence the inversion of the precedence score): hostname specificity beats path
-     * specificity beats HTTP method presence beats header match count beats query param
-     * match count — so for equal paths a match with a method outranks a match with two
-     * headers, independently of the raw condition count (see padToConditionFloor).
-     */
-    private int selectorSort(final String hostname, final JsonObject match) {
-        int score = hostnameScore(hostname) << 13
-                | pathScore(match) << 9
-                | (Objects.isNull(JsonFields.getString(match, "method")) ? 0 : 1) << 8
-                | matchCount(match, "headers") << 4
-                | matchCount(match, "queryParams");
+    /** Full spec precedence packed into the sort, rule index as the final tie-break; lower sort wins. */
+    private int selectorSort(final String hostname, final JsonObject match, final int ruleIndex) {
+        int score = hostnameScore(hostname) << 24
+                | pathScore(match) << 13
+                | (Objects.isNull(JsonFields.getString(match, "method")) ? 0 : 1) << 12
+                | matchCount(match, "headers") << 8
+                | matchCount(match, "queryParams") << 4
+                | 15 - Math.min(ruleIndex, 15);
         return SORT_PRECEDENCE_BASE - score;
     }
 
-    /**
-     * Hostname specificity (3 bits): an exact hostname beats any wildcard, a wildcard with
-     * more suffix labels beats one with fewer; a selector without a hostname condition
-     * matches any host and sorts below both.
-     */
+    /** Exact beats wildcard, more wildcard suffix labels beat fewer; no hostname sorts below both. */
     private int hostnameScore(final String hostname) {
         if (Objects.isNull(hostname)) {
             return 0;
@@ -711,12 +617,7 @@ public class HttpRouteParser {
         return 7;
     }
 
-    /**
-     * Path specificity (4 bits): exact beats any prefix, a longer prefix beats a shorter
-     * one (prefixes above twelve characters tie), regex beats no path at all. Two exact or
-     * two method-distinct matches can never match the same request, so their scores never
-     * need to differ.
-     */
+    /** Exact beats prefix, longer prefix beats shorter; the 11-bit field covers the CRD's 1024-char path maximum. */
     private int pathScore(final JsonObject match) {
         JsonObject path = JsonFields.getJsonObject(match, "path");
         String pathValue = JsonFields.getString(path, "value");
@@ -725,12 +626,12 @@ public class HttpRouteParser {
         }
         String pathType = JsonFields.getString(path, "type");
         if ("Exact".equals(pathType)) {
-            return 15;
+            return 2047;
         }
         if ("RegularExpression".equals(pathType)) {
             return 1;
         }
-        return 2 + Math.min(pathValue.length() - 1, 11);
+        return 2 + Math.min(pathValue.length() - 1, 2044);
     }
 
     /** Number of header/query matches (4 bits each, capped), higher is more specific. */
@@ -749,22 +650,12 @@ public class HttpRouteParser {
         return OperatorEnum.STARTS_WITH.getAlias();
     }
 
-    /**
-     * Header and query match types are Exact or RegularExpression; the spec defaults an
-     * absent type to Exact. Regex must map to the REGEX operator: the MATCH judge compares
-     * by substring containment (Ant path patterns for URI), which never implements regex
-     * semantics.
-     */
+    /** Regex must map to REGEX: the MATCH judge compares by substring containment, not regex semantics. */
     private String exactOrRegex(final String matchType) {
         return "RegularExpression".equals(matchType) ? OperatorEnum.REGEX.getAlias() : OperatorEnum.EQ.getAlias();
     }
 
-    /**
-     * Outcome of resolving one backendRef: either its upstream URLs with the declared
-     * weight (possibly an empty URL list for a weight-0 backend) or the Gateway API reason
-     * of the failure together with the declared weight (0 when the weight could not be
-     * read at all).
-     */
+    /** One backendRef outcome: URLs with declared weight, or the failure reason. */
     private static final class BackendRefOutcome {
 
         private final List<String> urls;
@@ -801,29 +692,19 @@ public class HttpRouteParser {
         }
     }
 
-    /**
-     * Result of resolving a rule's backendRefs: the reachable upstreams — including the
-     * fail-target entry standing in for the invalid weighted share — how many backendRefs
-     * failed, the summed declared weight of the failed backends holding a traffic share,
-     * and the Gateway API reason (BackendNotFound, RefNotPermitted or InvalidKind) of the
-     * first failure. A non-zero {@code unresolvedCount} means the reconciler should report
-     * ResolvedRefs=False.
-     */
+    /** Rule-level result; non-zero unresolvedCount means the reconciler reports ResolvedRefs=False. */
     private static final class BackendResolveResult {
 
         private final List<DivideUpstream> upstreams;
 
         private final int unresolvedCount;
 
-        private final int invalidWeightedShare;
-
         private final String unresolvedReason;
 
         BackendResolveResult(final List<DivideUpstream> upstreams, final int unresolvedCount,
-                             final int invalidWeightedShare, final String unresolvedReason) {
+                             final String unresolvedReason) {
             this.upstreams = upstreams;
             this.unresolvedCount = unresolvedCount;
-            this.invalidWeightedShare = invalidWeightedShare;
             this.unresolvedReason = unresolvedReason;
         }
     }

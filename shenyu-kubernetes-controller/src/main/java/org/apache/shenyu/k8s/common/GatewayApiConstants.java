@@ -78,6 +78,9 @@ public final class GatewayApiConstants {
     /** Gateway Programmed=False reason: no listener with a supported protocol and port. */
     public static final String REASON_LISTENERS_NOT_VALID = "ListenersNotValid";
 
+    /** Gateway Accepted=False reason: the Gateway is semantically invalid for this controller. */
+    public static final String REASON_INVALID = "Invalid";
+
     /** The only listener protocol this controller serves. */
     public static final String PROTOCOL_HTTP = "HTTP";
 
@@ -85,6 +88,24 @@ public final class GatewayApiConstants {
 
     /** Wording shared by every Accepted=True message this controller writes; used to recognize ShenYu's own status payload on resources whose conditions carry no controllerName. */
     public static final String ACCEPTED_BY_SHENYU_MESSAGE = "accepted by the ShenYu controller";
+
+    /** Spec-defined finalizer holding a GatewayClass alive while Gateways still use it. */
+    public static final String GATEWAY_CLASS_FINALIZER = "gateway-exists-finalizer.gateway.networking.k8s.io";
+
+    /** Condition type SupportedVersion: whether the installed CRD bundle version is supported. */
+    public static final String CONDITION_SUPPORTED_VERSION = "SupportedVersion";
+
+    /** SupportedVersion=True reason. */
+    public static final String REASON_SUPPORTED_VERSION = "SupportedVersion";
+
+    /** SupportedVersion=False reason. */
+    public static final String REASON_UNSUPPORTED_VERSION = "UnsupportedVersion";
+
+    /** GatewayClass Accepted=False reason: spec.parametersRef is set but not supported. */
+    public static final String REASON_INVALID_PARAMETERS = "InvalidParameters";
+
+    /** GatewayClass Accepted=False reason: the class is not managed by this controller. */
+    public static final String REASON_UNSUPPORTED = "Unsupported";
 
     private GatewayApiConstants() {
     }

@@ -25,24 +25,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Aggregates the initial-sync state of all informers and the controller work queues into a
- * single readiness signal, used to gate Kubernetes readiness so a cold pod (empty
- * {@code BaseDataCache}) receives no traffic until its local cache holds the full cluster
- * state.
- *
- * <p>{@code hasSynced()} only means each informer finished its initial LIST; the controller
- * work queues may still hold those objects waiting to be reconciled into
- * {@code BaseDataCache}. On a large cluster that gap can span minutes, so readiness
- * additionally requires the work queues to drain. {@link WorkQueue#length()} does not count
- * an item a worker already popped but has not finished reconciling, so the queue must be
- * observed empty on {@link #REQUIRED_DRAINED_OBSERVATIONS} consecutive polls before the
- * drained state is trusted; polls are seconds apart (kubelet probe period), far longer than
- * that race window.
- *
- * <p>Readiness latches: once every informer completed its initial LIST and the initial
- * reconciliation backlog drained, it reports ready forever. During a transient API server
- * outage the local cache still serves the last known state, so flapping back to not-ready
- * would only cause needless endpoint churn.
+ * Readiness over informer initial-sync AND drained work queues: hasSynced() only means the
+ * LIST finished, while objects may still wait in the queues to reach {@code BaseDataCache}
+ * (minutes on large clusters). WorkQueue#length() misses items a worker already popped, so
+ * emptiness must hold on consecutive polls. Readiness latches: the local cache keeps serving
+ * the last known state during API outages, so flapping would only churn endpoints.
  */
 public final class K8sCacheReadiness {
 
@@ -83,12 +70,7 @@ public final class K8sCacheReadiness {
         return informers.stream().filter(informer -> !informer.hasSynced()).count();
     }
 
-    /**
-     * Pending items across the controller work queues: the initial reconciliation backlog
-     * each not-yet-ready pod must still process before serving traffic.
-     *
-     * @return total number of queued items
-     */
+    /** Queued items across the controller work queues. */
     public long pendingWorkItems() {
         return workQueues.stream().mapToInt(WorkQueue::length).sum();
     }

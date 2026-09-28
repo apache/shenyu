@@ -37,18 +37,7 @@ public final class ListenerSupport {
     private ListenerSupport() {
     }
 
-    /**
-     * Listeners selected by a parentRef: the one named by sectionName, or all listeners
-     * when sectionName is absent; when the parentRef carries a port, only listeners on
-     * that port are selected — the two optional selectors must both match, otherwise a
-     * parentRef selecting port 443 could attach through an unrelated listener chosen by
-     * sectionName alone.
-     *
-     * @param gatewayRaw raw Gateway json
-     * @param sectionName optional sectionName of the parentRef
-     * @param parentPort optional port of the parentRef, null when absent
-     * @return matching listeners; empty when neither selector matches any listener
-     */
+    /** Listeners matching the optional sectionName and parentRef port; both selectors must match. */
     public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName,
                                                    final Long parentPort) {
         JsonObject spec = JsonFields.getJsonObject(gatewayRaw, "spec");
@@ -71,26 +60,12 @@ public final class ListenerSupport {
         return result;
     }
 
-    /**
-     * Listeners selected by sectionName only.
-     *
-     * @param gatewayRaw raw Gateway json
-     * @param sectionName optional sectionName
-     * @return matching listeners; empty when sectionName matches no listener
-     */
+    /** Listeners selected by sectionName only. */
     public static List<JsonObject> selectListeners(final JsonObject gatewayRaw, final String sectionName) {
         return selectListeners(gatewayRaw, sectionName, null);
     }
 
-    /**
-     * Whether this gateway actually serves the listener's port: usable listeners must speak
-     * HTTP on {@code servedPort} ({@code server.port} of the embedded data plane). A
-     * listener without a port cannot be confirmed served.
-     *
-     * @param listener the listener object
-     * @param servedPort the port the data plane listens on
-     * @return true if the listener's port is served
-     */
+    /** True when the listener's port equals the served data-plane port; a portless listener cannot be confirmed served. */
     public static boolean servesPort(final JsonObject listener, final long servedPort) {
         Long port = portOf(listener);
         return Objects.nonNull(port) && port == servedPort;
@@ -100,12 +75,7 @@ public final class ListenerSupport {
         return JsonFields.getString(listener, "name");
     }
 
-    /**
-     * Listener protocol; defaults to HTTP per the Gateway API spec.
-     *
-     * @param listener the listener object
-     * @return the protocol, never null
-     */
+    /** Listener protocol; defaults to HTTP per the spec. */
     public static String protocolOf(final JsonObject listener) {
         String protocol = JsonFields.getString(listener, "protocol");
         return Objects.isNull(protocol) ? GatewayApiConstants.PROTOCOL_HTTP : protocol;
@@ -115,55 +85,37 @@ public final class ListenerSupport {
         return JsonFields.getString(listener, "hostname");
     }
 
-    /**
-     * Listener port; null when absent (the field is required by the CRD, but status written
-     * by other controllers is not schema-guaranteed).
-     *
-     * @param listener the listener object
-     * @return the port, or null
-     */
+    /** Listener port; null when absent (foreign status is not schema-guaranteed). */
     public static Long portOf(final JsonObject listener) {
         return JsonFields.getLong(listener, "port");
     }
 
-    /**
-     * Whether the listener's protocol can be served: only HTTP is supported.
-     *
-     * @param listener the listener object
-     * @return true if the listener speaks plain HTTP
-     */
+    /** Only plain HTTP is supported. */
     public static boolean isSupportedProtocol(final JsonObject listener) {
         return GatewayApiConstants.PROTOCOL_HTTP.equals(protocolOf(listener));
     }
 
-    /**
-     * Whether the listener's {@code allowedRoutes.namespaces} policy permits a route from
-     * {@code routeNamespace} to attach to a Gateway in {@code gatewayNamespace}. The spec
-     * default is Same. Selector-based policies are not implemented and deny the attachment:
-     * silently widening a label-restricted policy would punch a hole in namespace isolation.
-     *
-     * @param listener the listener object
-     * @param routeNamespace namespace of the attaching HTTPRoute
-     * @param gatewayNamespace namespace of the Gateway
-     * @return true if the namespace policy permits the attachment
-     */
+    /** Spec default is Same, from=All allows all; from=Selector is unimplemented and denies (widening would break isolation). */
     public static boolean allowsNamespace(final JsonObject listener, final String routeNamespace, final String gatewayNamespace) {
-        JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
-        JsonObject namespaces = JsonFields.getJsonObject(allowedRoutes, "namespaces");
-        String from = JsonFields.getString(namespaces, "from");
+        String from = fromOf(listener);
         if (Objects.isNull(from) || "Same".equals(from)) {
             return Objects.equals(routeNamespace, gatewayNamespace);
         }
         return "All".equals(from);
     }
 
-    /**
-     * Whether the listener's {@code allowedRoutes.kinds} policy permits HTTPRoute. Absent
-     * kinds means "all kinds matching the protocol", which is HTTPRoute for HTTP.
-     *
-     * @param listener the listener object
-     * @return true if HTTPRoute is permitted
-     */
+    /** from=Selector is unsupported; distinguishable so status reports UnsupportedValue, not a permission denial. */
+    public static boolean usesUnsupportedFrom(final JsonObject listener) {
+        return "Selector".equals(fromOf(listener));
+    }
+
+    private static String fromOf(final JsonObject listener) {
+        JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
+        JsonObject namespaces = JsonFields.getJsonObject(allowedRoutes, "namespaces");
+        return JsonFields.getString(namespaces, "from");
+    }
+
+    /** Absent kinds means all protocol-matching kinds, i.e. HTTPRoute for HTTP. */
     public static boolean allowsKind(final JsonObject listener) {
         JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
         JsonArray kinds = JsonFields.getJsonArray(allowedRoutes, "kinds");
@@ -184,15 +136,7 @@ public final class ListenerSupport {
         return false;
     }
 
-    /**
-     * Intersect the route hostnames with a listener hostname per the spec: a listener
-     * hostname restricts the route's effective hostnames to their overlap. A null listener
-     * hostname imposes no restriction.
-     *
-     * @param listenerHostname listener hostname, may be null
-     * @param routeHostnames hostnames from the HTTPRoute spec, empty means "any host"
-     * @return effective hostnames, or null when the two sides have no overlap
-     */
+    /** Route × listener hostname intersection; a null listener hostname imposes no restriction. */
     public static List<String> intersectHostnames(final String listenerHostname, final List<String> routeHostnames) {
         if (Objects.isNull(listenerHostname)) {
             return new ArrayList<>(routeHostnames);
@@ -210,11 +154,7 @@ public final class ListenerSupport {
         return overlaps.isEmpty() ? null : new ArrayList<>(overlaps);
     }
 
-    /**
-     * The more specific of two hostnames when they overlap, null when they do not.
-     * Wildcard semantics per spec: {@code *.example.com} matches one or more labels
-     * followed by {@code .example.com}, but not {@code example.com} itself.
-     */
+    /** The more specific of two overlapping hostnames; {@code *.example.com} matches one or more labels, never the bare domain. */
     private static String overlap(final String routeHostname, final String listenerHostname) {
         if (routeHostname.equals(listenerHostname)) {
             return routeHostname;

@@ -23,11 +23,9 @@ import com.google.gson.JsonObject;
 import java.util.Objects;
 
 /**
- * Null-safe field accessors for reading optional fields out of the gson {@link JsonObject}
- * trees of dynamic Gateway API objects, where any field may be absent, JSON null, or of an
- * unexpected type (status sections are written by other controllers and are not covered by
- * CRD schema validation). Accessors return null instead of throwing on type mismatch, so a
- * malformed object degrades to a reconcile no-op instead of an infinite retry loop.
+ * Null-safe field accessors for dynamic Gateway API json, where fields may be absent,
+ * null or mistyped (foreign status is not schema-validated); null returns degrade a
+ * reconcile to a no-op instead of an infinite retry loop.
  */
 public final class JsonFields {
 
@@ -42,13 +40,7 @@ public final class JsonFields {
         return obj.get(field).getAsString();
     }
 
-    /**
-     * Read an optional numeric field as Long.
-     *
-     * @param obj the object to read from
-     * @param field the field name
-     * @return the number, or null when absent or not numeric
-     */
+    /** Read an optional numeric field as Long. */
     public static Long getLong(final JsonObject obj, final String field) {
         if (Objects.isNull(obj) || !obj.has(field) || obj.get(field).isJsonNull()
                 || !obj.get(field).isJsonPrimitive()) {

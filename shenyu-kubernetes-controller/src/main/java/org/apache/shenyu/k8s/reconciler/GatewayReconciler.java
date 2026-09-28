@@ -46,14 +46,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Reconciler for Gateway resources (Gateway API v1).
- *
- * <p>Besides the Accepted condition, the reconciler reports Programmed and per-listener
- * status (supportedKinds, attachedRoutes, per-listener Accepted/Programmed). A listener is
- * usable only when it speaks plain HTTP on the port this gateway actually serves
- * ({@code server.port}); anything else is reported with the spec-defined reason instead of
- * being silently ignored. attachedRoutes is per listener and reflects the in-memory
- * listener-level bindings, converging on gateway resyncs.
+ * Reconciler for Gateway resources. Reports Accepted/Programmed plus per-listener status
+ * (supportedKinds, attachedRoutes, Accepted/Programmed); a listener is usable only for
+ * plain HTTP on the served port ({@code server.port}), everything else gets the
+ * spec-defined rejection reason.
  */
 public class GatewayReconciler implements Reconciler {
 
@@ -69,6 +65,8 @@ public class GatewayReconciler implements Reconciler {
 
     private final RateLimitingQueue<Request> httpRouteWorkQueue;
 
+    private final RateLimitingQueue<Request> gatewayClassWorkQueue;
+
     private final ApiClient apiClient;
 
     /** The port the embedded ShenYu data plane actually listens on ({@code server.port}). */
@@ -79,6 +77,7 @@ public class GatewayReconciler implements Reconciler {
                              final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                              final ShenyuCacheRepository shenyuCacheRepository,
                              final RateLimitingQueue<Request> httpRouteWorkQueue,
+                             final RateLimitingQueue<Request> gatewayClassWorkQueue,
                              final ApiClient apiClient,
                              final int servedPort) {
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
@@ -86,6 +85,7 @@ public class GatewayReconciler implements Reconciler {
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.httpRouteWorkQueue = httpRouteWorkQueue;
+        this.gatewayClassWorkQueue = gatewayClassWorkQueue;
         this.apiClient = apiClient;
         this.servedPort = servedPort;
     }
@@ -99,6 +99,8 @@ public class GatewayReconciler implements Reconciler {
             if (Objects.isNull(gateway)) {
                 LOG.info("Gateway {} deleted, cleaning associated routes", request);
                 deleteAssociatedRoutes(request.getNamespace(), request.getName());
+                // The class name is unrecoverable after deletion; re-queue all so the drained one drops its finalizer.
+                requeueAllGatewayClasses();
                 return new Result(false);
             }
 
@@ -109,9 +111,9 @@ public class GatewayReconciler implements Reconciler {
                 }
                 LOG.info("Gateway {} is no longer managed by ShenYu, cleaning associated routes", request);
                 deleteAssociatedRoutes(request.getNamespace(), request.getName());
-                // Accepted must not stay True; the transition also makes a later class
-                // restore requeue routes for immediate recovery.
+                // Accepted must not stay True; the flip also re-triggers recovery on class restore.
                 updateGatewayNotAcceptedStatus(gateway);
+                requeueAllGatewayClasses();
                 return new Result(false);
             }
 
@@ -126,6 +128,8 @@ public class GatewayReconciler implements Reconciler {
             }
             if (!wasAccepted || !generationObserved) {
                 requeueAffectedHTTPRoutes(request.getNamespace(), request.getName());
+                // Re-queue the class so its finalizer is added without waiting for its resync.
+                enqueueGatewayClass(gateway);
             }
 
             LOG.debug("Gateway {} reconciled successfully", request);
@@ -136,16 +140,26 @@ public class GatewayReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Re-queue HTTPRoutes whose parentRefs reference this Gateway: covers routes created
-     * before the Gateway was accepted, including cross-namespace ones not yet in
-     * GatewayRouteCache, and re-applies listener policy (hostname, allowedRoutes, port)
-     * after a spec change. Invoked on the Accepted transition and on unobserved spec
-     * generations, not on every resync.
-     */
+    /** Re-queue bound routes on the Accepted transition and unobserved generations; covers routes created before acceptance. */
     private void requeueAffectedHTTPRoutes(final String gatewayNamespace, final String gatewayName) {
         for (DynamicKubernetesObject route : httpRouteLister.list()) {
             enqueueIfBound(route, gatewayNamespace, gatewayName);
+        }
+    }
+
+    /** Re-queue the Gateway's own class so usage-driven finalizer updates are immediate. */
+    private void enqueueGatewayClass(final DynamicKubernetesObject gateway) {
+        JsonObject spec = JsonFields.getJsonObject(gateway.getRaw(), "spec");
+        String className = JsonFields.getString(spec, "gatewayClassName");
+        if (Objects.nonNull(className)) {
+            gatewayClassWorkQueue.add(new Request("", className));
+        }
+    }
+
+    /** Re-queue every class on Gateway deletion/ownership change, where the affected class is unknowable. */
+    private void requeueAllGatewayClasses() {
+        for (DynamicKubernetesObject gatewayClass : gatewayClassLister.list()) {
+            gatewayClassWorkQueue.add(new Request("", Objects.requireNonNull(gatewayClass.getMetadata()).getName()));
         }
     }
 
@@ -179,11 +193,7 @@ public class GatewayReconciler implements Reconciler {
         return false;
     }
 
-    /**
-     * When a Gateway is deleted or no longer ShenYu-managed, clean up ShenYu config for its
-     * bound routes. A route still attached to another ShenYu Gateway keeps its config and is
-     * re-queued so the next reconcile refreshes its status.
-     */
+    /** Clean up config of bound routes; routes still attached to another ShenYu Gateway keep theirs. */
     private void deleteAssociatedRoutes(final String gatewayNamespace, final String gatewayName) {
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
         Set<String> routeKeys = cache.getRoutesByGateway(gatewayNamespace, gatewayName);
@@ -220,12 +230,7 @@ public class GatewayReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Whether a Gateway not (or no longer) owned by a ShenYu GatewayClass was previously
-     * served by this controller: either it still has live route bindings, or its status
-     * carries the Accepted=True payload this controller writes (the signal for Gateways
-     * that legitimately have zero attached routes).
-     */
+    /** Previously served = live route bindings or our own Accepted=True payload (zero-route Gateways). */
     private boolean previouslyServedByShenyu(final DynamicKubernetesObject gateway, final String namespace, final String name) {
         return CollectionUtils.isNotEmpty(GatewayRouteCache.getInstance().getRoutesByGateway(namespace, name))
                 || GatewayApiConstants.isConditionAcceptedByShenyu(gateway, GatewayApiConstants.CONDITION_ACCEPTED);
@@ -239,11 +244,7 @@ public class GatewayReconciler implements Reconciler {
                 && generation.equals(JsonFields.getLong(existingCondition, "observedGeneration"));
     }
 
-    /**
-     * Carry over the lastTransitionTime of every gateway- and listener-level condition whose
-     * (type, status) is unchanged: the spec requires the timestamp to advance only on an
-     * actual status transition, not on an attachedRoutes count update or a generation bump.
-     */
+    /** Keep lastTransitionTime of unchanged conditions, per spec. */
     private void preserveTransitionTimes(final DynamicKubernetesObject gateway, final JsonObject desiredStatus) {
         JsonObject existingStatus = JsonFields.getJsonObject(gateway.getRaw(), "status");
         JsonArray existingConditions = JsonFields.getJsonArray(existingStatus, "conditions");
@@ -292,8 +293,8 @@ public class GatewayReconciler implements Reconciler {
         JsonObject condition = new JsonObject();
         condition.addProperty("type", GatewayApiConstants.CONDITION_ACCEPTED);
         condition.addProperty("status", "False");
-        condition.addProperty("reason", "NoGatewayClassController");
-        condition.addProperty("message", "GatewayClass is missing or not managed by the ShenYu controller");
+        condition.addProperty("reason", GatewayApiConstants.REASON_INVALID);
+        condition.addProperty("message", "GatewayClass is missing, rejected, or not managed by the ShenYu controller");
         Long generation = generationOf(gateway);
         if (Objects.nonNull(generation)) {
             condition.addProperty("observedGeneration", generation);
@@ -326,11 +327,7 @@ public class GatewayReconciler implements Reconciler {
         return false;
     }
 
-    /**
-     * Build the desired status of an accepted Gateway: Accepted + Programmed conditions and
-     * the per-listener status entries. {@code attachedRoutes} is defined per listener, so
-     * each entry counts only the routes bound to that listener.
-     */
+    /** Desired status of an accepted Gateway; attachedRoutes counts only routes bound to that listener. */
     private JsonObject buildAcceptedStatus(final DynamicKubernetesObject gateway) {
         Long generation = generationOf(gateway);
         String namespace = gateway.getMetadata().getNamespace();
@@ -396,13 +393,7 @@ public class GatewayReconciler implements Reconciler {
         return status;
     }
 
-    /**
-     * Whether the current Gateway status already carries our conditions with matching
-     * type/status/reason/observedGeneration and per-listener entries with matching
-     * attachedRoutes. Timestamps are deliberately ignored to keep the steady state
-     * patch-free; observedGeneration is compared so a spec change always produces the
-     * patch that acknowledges it.
-     */
+    /** Whether the existing status matches desired (ignoring timestamps); keeps the steady state patch-free. */
     private boolean gatewayStatusMatches(final DynamicKubernetesObject gateway, final JsonObject desiredStatus) {
         JsonObject existingStatus = JsonFields.getJsonObject(gateway.getRaw(), "status");
         if (Objects.isNull(existingStatus)) {
@@ -444,10 +435,7 @@ public class GatewayReconciler implements Reconciler {
         return null;
     }
 
-    /**
-     * Compare by (type, status), plus reason for False conditions and the
-     * observedGeneration so a spec change is always acknowledged; ignores timestamps.
-     */
+    /** Compare by (type, status, observedGeneration) and reason for False; ignore timestamps. */
     private boolean conditionsMatch(final JsonArray existing, final JsonArray desired) {
         if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() < desired.size()) {
             return false;

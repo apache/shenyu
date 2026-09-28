@@ -49,14 +49,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Reconciler for HTTPRoute resources (Gateway API v1).
- *
- * <p>Every parentRef is evaluated individually and reported in status.parents — including
- * rejections (listener policy, hostname mismatch, missing parent) with the spec-defined
- * reason — except parentRefs resolved to Gateways owned by another controller, whose
- * status entries belong to that controller. Cross-namespace attachment is authorized by
- * the listener's allowedRoutes only; ReferenceGrant governs cross-namespace backendRefs,
- * which the {@link HttpRouteParser} validates.
+ * Reconciler for HTTPRoute resources. Every parentRef is evaluated and reported in
+ * status.parents with spec-defined rejection reasons, except parentRefs of foreign
+ * controllers. Cross-namespace attachment is authorized by allowedRoutes only;
+ * ReferenceGrant governs cross-namespace backendRefs (validated by {@link HttpRouteParser}).
  */
 public class HTTPRouteReconciler implements Reconciler {
 
@@ -107,8 +103,7 @@ public class HTTPRouteReconciler implements Reconciler {
 
         List<ParentDecision> decisions = evaluateParents(httpRoute);
         if (decisions.isEmpty()) {
-            // Not attached to any ShenYu-managed Gateway; drop previously programmed config
-            // and our status entries, then leave the route to other controllers.
+            // Not attached to any ShenYu Gateway: drop config and our status entries.
             deleteConfig(namespace, routeName);
             removeShenyuParentStatus(httpRoute, namespace, routeName);
             return new Result(false);
@@ -154,12 +149,7 @@ public class HTTPRouteReconciler implements Reconciler {
         return ids;
     }
 
-    /**
-     * Effective hostnames for the data plane: the union of the per-parent intersections of
-     * route hostnames with listener hostnames. Empty means "any host" — and one accepting
-     * parent with an empty hostname list makes the route host-agnostic overall, so the
-     * union with other parents' hostnames must not narrow it back down.
-     */
+    /** Union of per-parent hostname intersections; one accepting parent with no hostnames makes the route host-agnostic overall. */
     private List<String> effectiveHostnames(final List<ParentDecision> accepted) {
         Set<String> union = new LinkedHashSet<>();
         for (ParentDecision decision : accepted) {
@@ -171,12 +161,7 @@ public class HTTPRouteReconciler implements Reconciler {
         return new ArrayList<>(union);
     }
 
-    /**
-     * Rebuild the route→gateway bindings from the currently accepted parents at listener
-     * granularity, dropping stale bindings of parentRefs that were removed or became
-     * ineligible. The per-listener bindings drive the Gateway listeners'
-     * attachedRoutes counts.
-     */
+    /** Rebuild route→gateway listener bindings from accepted parents; they drive attachedRoutes counts. */
     private void rebindGateways(final GatewayRouteCache cache, final String namespace, final String routeName,
                                 final List<ParentDecision> accepted) {
         cache.removeRouteGatewayBinding(namespace, routeName);
@@ -186,11 +171,7 @@ public class HTTPRouteReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Evaluate every parentRef of the route. Only verdicts this controller is responsible
-     * for are returned: parentRefs of a foreign kind or group, and parentRefs resolving to
-     * a Gateway owned by another controller, are skipped silently.
-     */
+    /** Evaluate every parentRef; foreign kinds/groups and other controllers' Gateways are skipped silently. */
     private List<ParentDecision> evaluateParents(final DynamicKubernetesObject httpRoute) {
         String routeNamespace = Objects.requireNonNull(httpRoute.getMetadata()).getNamespace();
         JsonObject spec = JsonFields.getJsonObject(httpRoute.getRaw(), "spec");
@@ -229,9 +210,7 @@ public class HTTPRouteReconciler implements Reconciler {
             if (!isShenyuGateway(gateway)) {
                 continue;
             }
-            // Cross-namespace attachment is authorized by the listener's allowedRoutes
-            // policy inside evaluateListeners; per the Gateway API spec a ReferenceGrant
-            // does not apply to a Route's parentRef, so no grant check happens here.
+            // allowedRoutes authorizes cross-ns parentRefs; ReferenceGrant never applies to parentRefs per spec.
             String sectionName = JsonFields.getString(parentRef, "sectionName");
             Long parentPort = JsonFields.getLong(parentRef, "port");
             decisions.add(evaluateListeners(gateway, sectionName, parentPort, routeNamespace, parentNamespace,
@@ -240,13 +219,7 @@ public class HTTPRouteReconciler implements Reconciler {
         return decisions;
     }
 
-    /**
-     * Attachment evaluation against the selected listeners: the listener must be usable for
-     * this gateway (supported protocol on a served port), pass the allowedRoutes
-     * namespace/kind policy, and intersect the route hostnames. The route attaches when at
-     * least one selected listener accepts it, and the accepting listener names are carried
-     * with the decision for the per-listener attachedRoutes binding.
-     */
+    /** Attach when at least one selected listener is usable, allowed and hostname-intersecting. */
     private ParentDecision evaluateListeners(final DynamicKubernetesObject gateway, final String sectionName,
                                              final Long parentPort, final String routeNamespace,
                                              final String parentNamespace, final String parentName,
@@ -270,13 +243,16 @@ public class HTTPRouteReconciler implements Reconciler {
         Set<String> effective = new LinkedHashSet<>();
         Set<String> matchedListeners = new LinkedHashSet<>();
         boolean anyMatched = false;
+        boolean unsupportedFrom = false;
         boolean notPermitted = false;
         boolean hostnameMismatch = false;
         for (JsonObject listener : selected) {
-            // Mirror of the Gateway reconciler's listener usability: a listener on an
-            // unserved port is reported PortUnavailable there, so accepting a route on it
-            // here would let status and data-plane behavior diverge.
+            // Must mirror the Gateway reconciler's listener usability or status and data plane diverge.
             if (!ListenerSupport.isSupportedProtocol(listener) || !ListenerSupport.servesPort(listener, servedPort)) {
+                continue;
+            }
+            if (ListenerSupport.usesUnsupportedFrom(listener)) {
+                unsupportedFrom = true;
                 continue;
             }
             if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace)
@@ -289,8 +265,7 @@ public class HTTPRouteReconciler implements Reconciler {
                 hostnameMismatch = true;
                 continue;
             }
-            // note an empty intersection is still a match: route without hostnames attaching
-            // to a listener without hostname means "any host"
+            // an empty intersection is still a match: no hostnames on either side means "any host"
             anyMatched = true;
             matchedListeners.add(ListenerSupport.nameOf(listener));
             effective.addAll(intersect);
@@ -298,6 +273,11 @@ public class HTTPRouteReconciler implements Reconciler {
         if (anyMatched) {
             return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective),
                     matchedListeners);
+        }
+        if (unsupportedFrom) {
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                    "allowedRoutes with from=Selector is not supported by the ShenYu controller");
         }
         if (notPermitted) {
             return ParentDecision.rejected(parentRef, parentNamespace, parentName,
@@ -327,17 +307,7 @@ public class HTTPRouteReconciler implements Reconciler {
     }
 
     private boolean isShenyuGateway(final DynamicKubernetesObject gateway) {
-        JsonObject spec = JsonFields.getJsonObject(gateway.getRaw(), "spec");
-        String className = JsonFields.getString(spec, "gatewayClassName");
-        if (Objects.isNull(className)) {
-            return false;
-        }
-        DynamicKubernetesObject gatewayClass = gatewayClassLister.get(className);
-        if (Objects.isNull(gatewayClass)) {
-            return false;
-        }
-        JsonObject classSpec = JsonFields.getJsonObject(gatewayClass.getRaw(), "spec");
-        return GatewayApiConstants.SHENYU_CONTROLLER_NAME.equals(JsonFields.getString(classSpec, "controllerName"));
+        return GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister);
     }
 
     private void applyConfig(final ShenyuMemoryConfig config, final String namespace, final String routeName) {
@@ -350,12 +320,7 @@ public class HTTPRouteReconciler implements Reconciler {
         LOG.debug("HTTPRoute {}/{}: applied {} selector(s)", namespace, routeName, config.getRouteConfigList().size());
     }
 
-    /**
-     * Delete selectors that were programmed by a previous spec of this route but are no
-     * longer part of the current parse. Runs AFTER the new config is applied, so a spec
-     * change that shifts deterministic IDs never leaves a live interval with no matching
-     * selector; the cache's ID snapshot is committed only after this succeeds.
-     */
+    /** Delete selectors gone from the current parse; runs after the new config applies so a live interval never goes unmatched. */
     private void deleteStaleSelectors(final String namespace, final String routeName,
                                       final List<String> oldSelectorIds, final List<String> newSelectorIds) {
         Set<String> stale = new LinkedHashSet<>(oldSelectorIds);
@@ -469,11 +434,7 @@ public class HTTPRouteReconciler implements Reconciler {
         return condition;
     }
 
-    /**
-     * Whether the existing parents already cover every desired parent with matching
-     * conditions; used to skip no-op patches that would otherwise cause an infinite
-     * watch/patch loop (each patch bumps resourceVersion, re-enqueueing the route).
-     */
+    /** No-op patches must be skipped: each bumps resourceVersion and re-enqueues the route forever. */
     private boolean existingStatusMatches(final JsonArray existingParents, final JsonArray desiredParents) {
         if (Objects.isNull(existingParents) || existingParents.size() != desiredParents.size()) {
             return false;
@@ -545,10 +506,7 @@ public class HTTPRouteReconciler implements Reconciler {
         return true;
     }
 
-    /**
-     * Keep the lastTransitionTime of conditions whose (type, status) is unchanged, as the
-     * spec requires the timestamp to advance only on an actual status transition.
-     */
+    /** Keep lastTransitionTime of unchanged conditions; it advances only on real transitions. */
     private void preserveTransitionTimes(final JsonArray existingParents, final JsonArray desiredParents) {
         for (JsonElement desiredElement : desiredParents) {
             JsonObject desired = desiredElement.getAsJsonObject();
@@ -583,11 +541,7 @@ public class HTTPRouteReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Carry over status.parents entries owned by other controllers into the desired
-     * parents: the merge patch replaces the array wholesale, so foreign entries must be
-     * part of the patch body to survive it.
-     */
+    /** Foreign parents must ride in the patch body: merge patch replaces the array wholesale. */
     private void retainForeignParentEntries(final JsonArray existingParents, final JsonArray desiredParents) {
         if (Objects.isNull(existingParents)) {
             return;
@@ -603,10 +557,8 @@ public class HTTPRouteReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Remove ShenYu's status.parents entries (used when the route is no longer attached to
-     * any ShenYu Gateway), preserving entries owned by other controllers.
-     */    private void removeShenyuParentStatus(final DynamicKubernetesObject httpRoute, final String namespace,
+    /** Remove ShenYu's parents entries, preserving other controllers'. */
+    private void removeShenyuParentStatus(final DynamicKubernetesObject httpRoute, final String namespace,
                                           final String routeName) {
         JsonObject status = JsonFields.getJsonObject(httpRoute.getRaw(), "status");
         JsonArray existingParents = JsonFields.getJsonArray(status, "parents");
@@ -655,11 +607,7 @@ public class HTTPRouteReconciler implements Reconciler {
         }
     }
 
-    /**
-     * The verdict for one parentRef: acceptance with the effective hostnames and the
-     * listener names that accepted the route, or rejection with the spec-defined reason
-     * reported in status.
-     */
+    /** One parentRef verdict: acceptance with hostnames/listeners, or rejection with a spec reason. */
     private static final class ParentDecision {
 
         private final JsonObject parentRef;

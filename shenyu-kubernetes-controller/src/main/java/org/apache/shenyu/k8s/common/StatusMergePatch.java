@@ -26,11 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Sends a merge-patch to a /status subresource through the {@link ApiClient}'s own request
- * pipeline ({@code buildCall} applies the configured authentications). A raw okhttp request
- * built on {@code apiClient.getHttpClient()} only authenticates when the auth is bound to the
- * shared client (in-cluster token interceptor, client certificates) and silently misses
- * per-request header auth such as static kubeconfig tokens.
+ * Merge-patch through the {@link ApiClient}'s request pipeline: a raw okhttp call would
+ * miss per-request header auth (static kubeconfig tokens) and only work for client-bound auth.
  */
 public final class StatusMergePatch {
 
@@ -39,14 +36,7 @@ public final class StatusMergePatch {
     private StatusMergePatch() {
     }
 
-    /**
-     * Merge-patch the status subresource at the given path.
-     *
-     * @param apiClient the Kubernetes API client providing transport and authentication
-     * @param path the /status subresource path
-     * @param body the patch body
-     * @throws ApiException when the API server rejects the patch
-     */
+    /** Merge-patch the resource at the given path. */
     public static void patch(final ApiClient apiClient, final String path, final JsonObject body) throws ApiException {
         Map<String, String> headerParams = new HashMap<>();
         headerParams.put("Accept", "application/json");

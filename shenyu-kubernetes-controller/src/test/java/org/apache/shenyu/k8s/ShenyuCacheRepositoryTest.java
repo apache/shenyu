@@ -112,12 +112,7 @@ public final class ShenyuCacheRepositoryTest {
         Assertions.assertEquals("10.0.0.1:8189", after.get(0).getUrl());
     }
 
-    /**
-     * deleteSelectorWithRules must remove every rule and then the selector even though
-     * findRuleDataList exposes BaseDataCache's mutable internal list that each
-     * deleteRuleData call mutates — iterating over a copy is what keeps this from
-     * throwing ConcurrentModificationException halfway through the cleanup.
-     */
+    /** deleteSelectorWithRules must remove every rule and then the selector even though findRuleDataList exposes BaseDataCache's mutable internal list that each deleteRuleData call mutates — iterating over a copy is what keeps this from throwing ConcurrentModificationException halfway through the cleanup. */
     @Test
     public void testDeleteSelectorWithRulesClearsRulesAndSelector() {
         CommonPluginDataSubscriber pluginSubscriber = new CommonPluginDataSubscriber(
@@ -137,12 +132,7 @@ public final class ShenyuCacheRepositoryTest {
         Assertions.assertTrue(BaseDataCache.getInstance().obtainRuleData(selectorId).isEmpty());
     }
 
-    /**
-     * BaseDataCache.obtainRuleData returns null for a selector with no cached rules, and a
-     * first reconcile writes a rule before any rule of that selector is cached, so
-     * saveOrUpdateRuleData must tolerate the empty case instead of throwing NPE — that NPE
-     * aborted the Kubernetes reconciler loops and left the gateway without routing data.
-     */
+    /** BaseDataCache.obtainRuleData returns null for a selector with no cached rules, and a first reconcile writes a rule before any rule of that selector is cached, so saveOrUpdateRuleData must tolerate the empty case instead of throwing NPE — that NPE aborted the Kubernetes reconciler loops and left the gateway without routing data. */
     @Test
     public void testSaveOrUpdateRuleDataWithUncachedSelectorSubscribesRule() {
         CommonPluginDataSubscriber pluginSubscriber = new CommonPluginDataSubscriber(
@@ -160,10 +150,7 @@ public final class ShenyuCacheRepositoryTest {
         BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
     }
 
-    /**
-     * Reconcilers iterate findRuleDataList directly (e.g. IngressReconciler cascading delete),
-     * so it must return an empty list rather than null for an unseen selector id.
-     */
+    /** Reconcilers iterate findRuleDataList directly (e.g. */
     @Test
     public void testFindRuleDataListForUnknownSelectorIsEmpty() {
         List<RuleData> rules = repository().findRuleDataList("gwapi-no-such-selector");

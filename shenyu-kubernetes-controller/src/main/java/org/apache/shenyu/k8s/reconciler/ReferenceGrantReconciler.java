@@ -34,10 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * Reconciler for ReferenceGrant resources (Gateway API v1). A grant change can make a
- * cross-namespace reference valid or invalid immediately, so every HTTPRoute referencing
- * the grant's namespace is re-queued instead of waiting for the periodic route resync —
- * otherwise a revoked grant would keep unauthorized traffic flowing until the resync.
+ * Re-queues every HTTPRoute referencing the grant's namespace, so a revoked grant stops
+ * unauthorized traffic immediately instead of at the next route resync.
  */
 public class ReferenceGrantReconciler implements Reconciler {
 
@@ -78,11 +76,7 @@ public class ReferenceGrantReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Whether the route has a cross-namespace parentRef or backendRef into
-     * {@code targetNamespace}: exactly the references a ReferenceGrant in that namespace
-     * can permit or deny.
-     */
+    /** Cross-namespace parentRef or backendRef into the namespace: exactly what a grant there permits or denies. */
     private boolean referencesNamespace(final DynamicKubernetesObject route, final String targetNamespace) {
         JsonObject spec = JsonFields.getJsonObject(route.getRaw(), "spec");
         if (Objects.isNull(spec)) {

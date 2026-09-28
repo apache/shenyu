@@ -27,23 +27,29 @@ import io.kubernetes.client.extended.workqueue.RateLimitingQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
+import org.apache.shenyu.k8s.common.GatewayApiCrdVersions;
 import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Reconciler for the cluster-scoped GatewayClass resources: accepts classes whose
- * spec.controllerName matches ShenYu's controller name (Accepted=True status), and on
- * deletion or ownership loss (controllerName re-pointed away from ShenYu) re-queues the
- * Gateways previously served through the class for cascade cleanup.
+ * Accepts GatewayClasses whose controllerName matches ShenYu's; reports the
+ * SupportedVersion condition and supportedFeatures, keeps the spec-defined finalizer while
+ * Gateways use the class, rejects parametersRef classes (ShenYu has no class-level
+ * parameters) and re-queues served Gateways on deletion or ownership loss.
  */
 public class GatewayClassReconciler implements Reconciler {
 
@@ -53,6 +59,9 @@ public class GatewayClassReconciler implements Reconciler {
 
     private static final String GATEWAYCLASSES_RESOURCE = "gatewayclasses";
 
+    /** Official conformance FeatureName strings; sorted ascending (spec) and limited to implemented capabilities. */
+    private static final List<String> SUPPORTED_FEATURES = List.of("Gateway", "HTTPRoute", "ReferenceGrant");
+
     private final Lister<DynamicKubernetesObject> gatewayClassLister;
 
     private final Lister<DynamicKubernetesObject> gatewayLister;
@@ -61,14 +70,18 @@ public class GatewayClassReconciler implements Reconciler {
 
     private final ApiClient apiClient;
 
+    private final GatewayApiCrdVersions crdVersions;
+
     public GatewayClassReconciler(final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
                                   final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
                                   final RateLimitingQueue<Request> gatewayWorkQueue,
-                                  final ApiClient apiClient) {
+                                  final ApiClient apiClient,
+                                  final GatewayApiCrdVersions crdVersions) {
         this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
         this.gatewayWorkQueue = gatewayWorkQueue;
         this.apiClient = apiClient;
+        this.crdVersions = crdVersions;
     }
 
     @Override
@@ -83,6 +96,13 @@ public class GatewayClassReconciler implements Reconciler {
                 return new Result(false);
             }
 
+            if (isDeleting(gatewayClass)) {
+                // No status writes on a deleting object; drain Gateways, then release the finalizer.
+                requeueAffectedGateways(request.getName());
+                reconcileFinalizer(gatewayClass, false);
+                return new Result(false);
+            }
+
             if (!isShenyuGatewayClass(gatewayClass)) {
                 boolean wasAcceptedByShenyu = GatewayApiConstants.isConditionAcceptedByShenyu(gatewayClass, "Accepted");
                 boolean anyGatewayRequeued = requeuePreviouslyServedGateways(request.getName());
@@ -90,18 +110,33 @@ public class GatewayClassReconciler implements Reconciler {
                     LOG.info("GatewayClass {} is no longer managed by ShenYu, re-queuing affected Gateways", request.getName());
                 }
                 if (wasAcceptedByShenyu) {
-                    updateGatewayClassNotAcceptedStatus(gatewayClass);
+                    updateGatewayClassRejectedStatus(gatewayClass, GatewayApiConstants.REASON_UNSUPPORTED,
+                            "GatewayClass is not managed by the ShenYu controller");
                 }
+                // Our finalizer must not outlive the last Gateway once another controller owns the class.
+                reconcileFinalizer(gatewayClass, false);
                 return new Result(false);
             }
 
-            // Requeue only on the Accepted transition (first accept or after class restore):
-            // on plain resyncs Gateways are already reconciled and a cluster scan is wasted.
+            if (hasParametersRef(gatewayClass)) {
+                // Reject instead of silently ignoring class-level parameters we cannot honor.
+                boolean wasAcceptedByShenyu = GatewayApiConstants.isConditionAcceptedByShenyu(gatewayClass, "Accepted");
+                updateGatewayClassRejectedStatus(gatewayClass, GatewayApiConstants.REASON_INVALID_PARAMETERS,
+                        "GatewayClass parametersRef is not supported by the ShenYu controller");
+                if (wasAcceptedByShenyu) {
+                    requeueAffectedGateways(request.getName());
+                }
+                reconcileFinalizer(gatewayClass, false);
+                return new Result(false);
+            }
+
+            // Requeue only on the Accepted transition; plain resyncs would waste a cluster scan.
             boolean wasAccepted = GatewayApiConstants.isConditionTrue(gatewayClass, "Accepted");
             updateGatewayClassAcceptedStatus(gatewayClass);
             if (!wasAccepted) {
                 requeueAffectedGateways(request.getName());
             }
+            reconcileFinalizer(gatewayClass, true);
             LOG.debug("GatewayClass {} reconciled successfully", request.getName());
             return new Result(false);
         } catch (Exception e) {
@@ -110,12 +145,7 @@ public class GatewayClassReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Check if the GatewayClass is managed by ShenYu by comparing spec.controllerName.
-     *
-     * @param gatewayClass the GatewayClass dynamic object
-     * @return true if the GatewayClass's controllerName matches ShenYu's controller name
-     */
+    /** Whether the class's controllerName matches ShenYu's. */
     public static boolean isShenyuGatewayClass(final DynamicKubernetesObject gatewayClass) {
         if (Objects.isNull(gatewayClass)) {
             return false;
@@ -129,13 +159,10 @@ public class GatewayClassReconciler implements Reconciler {
     }
 
     /**
-     * Check if a Gateway is ShenYu-managed by resolving its GatewayClass's
-     * {@code spec.controllerName}, so Gateways referencing a ShenYu-owned class under any
-     * name are accepted. Shared by the Gateway and HTTPRoute reconcilers.
-     *
-     * @param gateway the Gateway dynamic object
-     * @param gatewayClassLister lister for GatewayClass (cluster-scoped)
-     * @return true if the Gateway's class is owned by ShenYu
+     * Whether the Gateway's class is ShenYu-owned and not rejected; shared by the Gateway
+     * and HTTPRoute reconcilers. Accepted=False puts the Gateway out of scope; an absent
+     * Accepted is treated optimistically for the startup race (Gateway reconciled before
+     * the class status patch reaches the cache) and enforced by the periodic resync.
      */
     public static boolean isShenyuGateway(final DynamicKubernetesObject gateway,
                                           final Lister<DynamicKubernetesObject> gatewayClassLister) {
@@ -147,13 +174,27 @@ public class GatewayClassReconciler implements Reconciler {
             return false;
         }
         String gatewayClassName = spec.get("gatewayClassName").getAsString();
-        return isShenyuGatewayClass(gatewayClassLister.get(gatewayClassName));
+        DynamicKubernetesObject gatewayClass = gatewayClassLister.get(gatewayClassName);
+        if (!isShenyuGatewayClass(gatewayClass)) {
+            return false;
+        }
+        JsonObject rejected = GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_ACCEPTED);
+        return Objects.isNull(rejected) || !"False".equals(JsonFields.getString(rejected, "status"));
     }
 
-    /**
-     * Re-queue Gateways referencing this class: on the Accepted transition (restores routes
-     * after a class is accepted or recreated) and on deletion (cascade cleanup).
-     */
+    /** Whether the class carries a spec.parametersRef ShenYu cannot honor. */
+    private static boolean hasParametersRef(final DynamicKubernetesObject gatewayClass) {
+        JsonObject spec = JsonFields.getJsonObject(gatewayClass.getRaw(), "spec");
+        JsonObject parametersRef = JsonFields.getJsonObject(spec, "parametersRef");
+        return Objects.nonNull(parametersRef);
+    }
+
+    private static boolean isDeleting(final DynamicKubernetesObject gatewayClass) {
+        JsonObject metadata = JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata");
+        return Objects.nonNull(JsonFields.getString(metadata, "deletionTimestamp"));
+    }
+
+    /** Re-queue Gateways referencing this class (Accepted transition, deletion cascade). */
     private void requeueAffectedGateways(final String gatewayClassName) {
         for (DynamicKubernetesObject gateway : gatewayLister.list()) {
             if (referencesGatewayClass(gateway, gatewayClassName)) {
@@ -165,15 +206,7 @@ public class GatewayClassReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Re-queue only the Gateways referencing this class that ShenYu previously served,
-     * detected by live route bindings or by ShenYu's own Accepted status payload. Used on
-     * the ownership-loss transition: other Gateways of the (now foreign) class belong to
-     * its new controller and must not be touched.
-     *
-     * @param gatewayClassName name of the GatewayClass
-     * @return whether any Gateway was re-queued
-     */
+    /** Re-queue only previously served Gateways on ownership loss; the rest belong to the new controller. */
     private boolean requeuePreviouslyServedGateways(final String gatewayClassName) {
         boolean anyRequeued = false;
         for (DynamicKubernetesObject gateway : gatewayLister.list()) {
@@ -202,75 +235,147 @@ public class GatewayClassReconciler implements Reconciler {
         return gatewayClassName.equals(spec.get("gatewayClassName").getAsString());
     }
 
-    /**
-     * Update GatewayClass status with Accepted=True condition.
-     * GatewayClass is cluster-scoped, so the API path has no namespace segment.
-     *
-     * <p>Skipped only when the existing Accepted=True condition already carries the current
-     * metadata generation: returning on any Accepted=True would leave its
-     * observedGeneration stale after a spec change. lastTransitionTime is preserved for an
-     * unchanged condition, as the spec requires it to advance only on a status transition.
-     */
+    /** Finalizer present while an accepted class has Gateways, removed once none remain (also releases a deleting class). */
+    private void reconcileFinalizer(final DynamicKubernetesObject gatewayClass, final boolean acceptedByShenyu) {
+        final String name = gatewayClass.getMetadata().getName();
+        JsonArray existing = finalizersOf(gatewayClass);
+        boolean hasOurs = containsFinalizer(existing);
+        boolean anyGateway = anyGatewayReferences(name);
+        try {
+            if (anyGateway && !hasOurs && acceptedByShenyu) {
+                JsonArray desired = new JsonArray();
+                for (JsonElement element : existing) {
+                    desired.add(element);
+                }
+                desired.add(GatewayApiConstants.GATEWAY_CLASS_FINALIZER);
+                patchGatewayClassFinalizers(name, desired);
+                LOG.info("Added finalizer to GatewayClass {} in use", name);
+            } else if (!anyGateway && hasOurs) {
+                JsonArray desired = new JsonArray();
+                for (JsonElement element : existing) {
+                    if (!GatewayApiConstants.GATEWAY_CLASS_FINALIZER.equals(getAsStringOrNull(element))) {
+                        desired.add(element);
+                    }
+                }
+                patchGatewayClassFinalizers(name, desired);
+                LOG.info("Removed finalizer from GatewayClass {} no longer in use", name);
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to reconcile GatewayClass {} finalizer, will retry on next resync", name, e);
+        }
+    }
+
+    private static JsonArray finalizersOf(final DynamicKubernetesObject gatewayClass) {
+        JsonObject metadata = JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata");
+        JsonArray finalizers = JsonFields.getJsonArray(metadata, "finalizers");
+        return Objects.isNull(finalizers) ? new JsonArray() : finalizers;
+    }
+
+    private static boolean containsFinalizer(final JsonArray finalizers) {
+        for (JsonElement element : finalizers) {
+            if (GatewayApiConstants.GATEWAY_CLASS_FINALIZER.equals(getAsStringOrNull(element))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getAsStringOrNull(final JsonElement element) {
+        return Objects.nonNull(element) && element.isJsonPrimitive() ? element.getAsString() : null;
+    }
+
+    private boolean anyGatewayReferences(final String gatewayClassName) {
+        for (DynamicKubernetesObject gateway : gatewayLister.list()) {
+            if (referencesGatewayClass(gateway, gatewayClassName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Merge-patch the main resource (not the /status subresource) to set metadata.finalizers. */
+    private void patchGatewayClassFinalizers(final String name, final JsonArray finalizers) throws ApiException {
+        JsonObject body = new JsonObject();
+        body.addProperty("kind", GATEWAY_CLASS_KIND);
+        body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
+
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("name", name);
+        metadata.add("finalizers", finalizers);
+        body.add("metadata", metadata);
+
+        String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION
+                + "/" + GATEWAYCLASSES_RESOURCE + "/" + name;
+
+        StatusMergePatch.patch(apiClient, path, body);
+    }
+
+    /** Patch Accepted=True + SupportedVersion + supportedFeatures; skipped while the existing status already matches at the current generation. */
     private void updateGatewayClassAcceptedStatus(final DynamicKubernetesObject gatewayClass) {
         Long generation = JsonFields.getLong(JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata"), "generation");
-        JsonObject existingAccepted = GatewayApiConstants.findCondition(gatewayClass, "Accepted");
-        if (GatewayApiConstants.isConditionTrue(gatewayClass, "Accepted")
-                && observedGenerationUpToDate(existingAccepted, generation)) {
+        if (acceptedStatusUpToDate(gatewayClass, generation)) {
             return;
         }
         try {
             final String name = gatewayClass.getMetadata().getName();
 
-            JsonObject condition = new JsonObject();
-            condition.addProperty("type", "Accepted");
-            condition.addProperty("status", "True");
-            condition.addProperty("reason", "Accepted");
-            condition.addProperty("message", "GatewayClass has been accepted by the ShenYu controller");
+            JsonObject accepted = new JsonObject();
+            accepted.addProperty("type", GatewayApiConstants.CONDITION_ACCEPTED);
+            accepted.addProperty("status", "True");
+            accepted.addProperty("reason", GatewayApiConstants.CONDITION_ACCEPTED);
+            accepted.addProperty("message", "GatewayClass has been accepted by the ShenYu controller");
             if (Objects.nonNull(generation)) {
-                condition.addProperty("observedGeneration", generation);
+                accepted.addProperty("observedGeneration", generation);
             }
-            condition.addProperty("lastTransitionTime", Instant.now().toString());
-            preserveTransitionTime(existingAccepted, condition);
+            accepted.addProperty("lastTransitionTime", Instant.now().toString());
+            preserveTransitionTime(GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_ACCEPTED), accepted);
 
-            JsonArray conditions = buildGatewayClassStatusConditions(gatewayClass, condition);
+            boolean supported = crdVersions.isSupported();
+            JsonObject supportedVersion = new JsonObject();
+            supportedVersion.addProperty("type", GatewayApiConstants.CONDITION_SUPPORTED_VERSION);
+            supportedVersion.addProperty("status", supported ? "True" : "False");
+            supportedVersion.addProperty("reason", supported
+                    ? GatewayApiConstants.REASON_SUPPORTED_VERSION : GatewayApiConstants.REASON_UNSUPPORTED_VERSION);
+            supportedVersion.addProperty("message", "detected Gateway API CRD bundle version(s): "
+                    + crdVersions.describeDetected() + "; supported: >= v1.5.0");
+            if (Objects.nonNull(generation)) {
+                supportedVersion.addProperty("observedGeneration", generation);
+            }
+            supportedVersion.addProperty("lastTransitionTime", Instant.now().toString());
+            preserveTransitionTime(GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_SUPPORTED_VERSION), supportedVersion);
+
+            JsonArray conditions = buildGatewayClassStatusConditions(gatewayClass, accepted, supportedVersion);
 
             JsonObject statusObj = new JsonObject();
             statusObj.add("conditions", conditions);
+            statusObj.add("supportedFeatures", buildSupportedFeatures());
 
-            JsonObject body = new JsonObject();
-            body.add("status", statusObj);
-            body.addProperty("kind", GATEWAY_CLASS_KIND);
-            body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
-
-            JsonObject metadata = new JsonObject();
-            metadata.addProperty("name", name);
-            body.add("metadata", metadata);
-
-            String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION
-                    + "/" + GATEWAYCLASSES_RESOURCE + "/" + name + "/status";
-
-            StatusMergePatch.patch(apiClient, path, body);
+            patchGatewayClassStatus(name, statusObj);
             LOG.info("Updated GatewayClass {} status to Accepted=True", name);
         } catch (Exception e) {
             LOG.warn("Failed to update GatewayClass status, will retry on next resync", e);
         }
     }
 
-    /**
-     * Clear ShenYu's Accepted entry on a GatewayClass this controller no longer owns, so
-     * the class does not advertise ShenYu acceptance and a later restore re-triggers the
-     * Accepted transition.
-     */
-    private void updateGatewayClassNotAcceptedStatus(final DynamicKubernetesObject gatewayClass) {
+    /** Accepted=False with the given reason; skipped when already saying the same at the current generation. */
+    private void updateGatewayClassRejectedStatus(final DynamicKubernetesObject gatewayClass, final String reason,
+                                                  final String message) {
+        Long generation = JsonFields.getLong(JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata"), "generation");
+        JsonObject existing = GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_ACCEPTED);
+        if (Objects.nonNull(existing)
+                && "False".equals(JsonFields.getString(existing, "status"))
+                && reason.equals(JsonFields.getString(existing, "reason"))
+                && observedGenerationUpToDate(existing, generation)) {
+            return;
+        }
         try {
             final String name = gatewayClass.getMetadata().getName();
 
             JsonObject condition = new JsonObject();
-            condition.addProperty("type", "Accepted");
+            condition.addProperty("type", GatewayApiConstants.CONDITION_ACCEPTED);
             condition.addProperty("status", "False");
-            condition.addProperty("reason", "NoGatewayClassController");
-            condition.addProperty("message", "GatewayClass is not managed by the ShenYu controller");
-            Long generation = JsonFields.getLong(JsonFields.getJsonObject(gatewayClass.getRaw(), "metadata"), "generation");
+            condition.addProperty("reason", reason);
+            condition.addProperty("message", message);
             if (Objects.nonNull(generation)) {
                 condition.addProperty("observedGeneration", generation);
             }
@@ -281,23 +386,75 @@ public class GatewayClassReconciler implements Reconciler {
             JsonObject statusObj = new JsonObject();
             statusObj.add("conditions", conditions);
 
-            JsonObject body = new JsonObject();
-            body.add("status", statusObj);
-            body.addProperty("kind", GATEWAY_CLASS_KIND);
-            body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
-
-            JsonObject metadata = new JsonObject();
-            metadata.addProperty("name", name);
-            body.add("metadata", metadata);
-
-            String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION
-                    + "/" + GATEWAYCLASSES_RESOURCE + "/" + name + "/status";
-
-            StatusMergePatch.patch(apiClient, path, body);
-            LOG.info("Updated GatewayClass {} status to Accepted=False after ownership loss", name);
+            patchGatewayClassStatus(name, statusObj);
+            LOG.info("Updated GatewayClass {} status to Accepted=False ({})", name, reason);
         } catch (Exception e) {
-            LOG.warn("Failed to downgrade GatewayClass status, will retry on next resync", e);
+            LOG.warn("Failed to update GatewayClass status, will retry on next resync", e);
         }
+    }
+
+    private void patchGatewayClassStatus(final String name, final JsonObject statusObj) throws ApiException {
+        JsonObject body = new JsonObject();
+        body.add("status", statusObj);
+        body.addProperty("kind", GATEWAY_CLASS_KIND);
+        body.addProperty("apiVersion", GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION);
+
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("name", name);
+        body.add("metadata", metadata);
+
+        String path = "/apis/" + GatewayApiConstants.GATEWAY_API_GROUP + "/" + GatewayApiConstants.GATEWAY_API_VERSION
+                + "/" + GATEWAYCLASSES_RESOURCE + "/" + name + "/status";
+
+        StatusMergePatch.patch(apiClient, path, body);
+    }
+
+    private boolean acceptedStatusUpToDate(final DynamicKubernetesObject gatewayClass, final Long generation) {
+        JsonObject existingAccepted = GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_ACCEPTED);
+        if (!GatewayApiConstants.isConditionTrue(gatewayClass, GatewayApiConstants.CONDITION_ACCEPTED)
+                || !observedGenerationUpToDate(existingAccepted, generation)) {
+            return false;
+        }
+        JsonObject existingVersion = GatewayApiConstants.findCondition(gatewayClass, GatewayApiConstants.CONDITION_SUPPORTED_VERSION);
+        boolean supported = crdVersions.isSupported();
+        if (Objects.isNull(existingVersion)
+                || !(supported ? "True" : "False").equals(JsonFields.getString(existingVersion, "status"))
+                || !supportedVersionReason(supported).equals(JsonFields.getString(existingVersion, "reason"))) {
+            return false;
+        }
+        return supportedFeaturesMatch(gatewayClass);
+    }
+
+    private String supportedVersionReason(final boolean supported) {
+        return supported ? GatewayApiConstants.REASON_SUPPORTED_VERSION : GatewayApiConstants.REASON_UNSUPPORTED_VERSION;
+    }
+
+    private boolean supportedFeaturesMatch(final DynamicKubernetesObject gatewayClass) {
+        JsonObject status = JsonFields.getJsonObject(gatewayClass.getRaw(), "status");
+        JsonArray existing = JsonFields.getJsonArray(status, "supportedFeatures");
+        if (Objects.isNull(existing) || existing.size() != SUPPORTED_FEATURES.size()) {
+            return false;
+        }
+        List<String> names = new ArrayList<>();
+        for (JsonElement element : existing) {
+            JsonObject feature = element.isJsonObject() ? element.getAsJsonObject() : null;
+            String name = Objects.isNull(feature) ? null : JsonFields.getString(feature, "name");
+            if (Objects.isNull(name)) {
+                return false;
+            }
+            names.add(name);
+        }
+        return names.equals(SUPPORTED_FEATURES);
+    }
+
+    private static JsonArray buildSupportedFeatures() {
+        JsonArray features = new JsonArray();
+        for (String name : SUPPORTED_FEATURES) {
+            JsonObject feature = new JsonObject();
+            feature.addProperty("name", name);
+            features.add(feature);
+        }
+        return features;
     }
 
     private boolean observedGenerationUpToDate(final JsonObject existingCondition, final Long generation) {
@@ -308,15 +465,11 @@ public class GatewayClassReconciler implements Reconciler {
                 && generation.equals(JsonFields.getLong(existingCondition, "observedGeneration"));
     }
 
-    /**
-     * Carry over the lastTransitionTime of an existing Accepted=True condition: a refresh
-     * of observedGeneration alone is not a status transition and must not move the
-     * timestamp.
-     */
+    /** Keep lastTransitionTime when type and status are unchanged; a generation refresh is not a transition. */
     private void preserveTransitionTime(final JsonObject existingCondition, final JsonObject desiredCondition) {
         if (Objects.isNull(existingCondition)
-                || !"True".equals(JsonFields.getString(existingCondition, "status"))
-                || !"True".equals(JsonFields.getString(desiredCondition, "status"))) {
+                || !Objects.equals(JsonFields.getString(existingCondition, "type"), JsonFields.getString(desiredCondition, "type"))
+                || !Objects.equals(JsonFields.getString(existingCondition, "status"), JsonFields.getString(desiredCondition, "status"))) {
             return;
         }
         String existingTime = JsonFields.getString(existingCondition, "lastTransitionTime");
@@ -325,15 +478,15 @@ public class GatewayClassReconciler implements Reconciler {
         }
     }
 
-    /**
-     * Build the patch-body conditions array: the Accepted condition plus all existing
-     * non-Accepted conditions, so merge-patch (which replaces arrays wholesale) does not
-     * clobber conditions owned by other controllers.
-     */
+    /** Own conditions plus foreign ones: merge-patch replaces arrays wholesale. */
     private JsonArray buildGatewayClassStatusConditions(final DynamicKubernetesObject gatewayClass,
-                                                        final JsonObject acceptedCondition) {
+                                                        final JsonObject... ownConditions) {
+        Set<String> ownTypes = new HashSet<>();
         JsonArray conditions = new JsonArray();
-        conditions.add(acceptedCondition);
+        for (JsonObject ownCondition : ownConditions) {
+            conditions.add(ownCondition);
+            ownTypes.add(JsonFields.getString(ownCondition, "type"));
+        }
 
         JsonObject raw = gatewayClass.getRaw();
         if (raw.has("status") && !raw.get("status").isJsonNull()) {
@@ -342,8 +495,8 @@ public class GatewayClassReconciler implements Reconciler {
                 for (JsonElement el : status.getAsJsonArray("conditions")) {
                     JsonObject existing = el.getAsJsonObject();
                     String existingType = existing.has("type") ? existing.get("type").getAsString() : null;
-                    // Drop any stale Accepted entry from other controllers; keep everything else.
-                    if (!"Accepted".equals(existingType)) {
+                    // Drop our stale entries of the same types; keep everything else.
+                    if (!ownTypes.contains(existingType)) {
                         conditions.add(existing);
                     }
                 }

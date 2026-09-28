@@ -43,6 +43,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.k8s.cache.K8sCacheReadiness;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
+import org.apache.shenyu.k8s.common.GatewayApiCrdVersions;
 import org.apache.shenyu.k8s.common.GatewayApiCrdVerifier;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
 import org.apache.shenyu.k8s.reconciler.GatewayClassReconciler;
@@ -55,7 +56,6 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -75,39 +75,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Spring Boot auto-configuration for the Kubernetes Gateway API controller mode.
- *
- * <p>The ShenYu bootstrap embeds the Kubernetes controller and serves as both control plane
- * and data plane in a single JVM: the controller watches Gateway API resources and writes
- * the parsed selector/rule config directly into the in-process {@code BaseDataCache}.
- *
- * <p><b>Multiple replicas supported</b> without leader election: reconciliation is idempotent
- * (selector/rule IDs are derived deterministically from the route coordinates, so every
- * replica converges to the same cache) and status patches are skipped when unchanged.
- * Deployments MUST use a readiness probe gated on the {@code k8sCacheReadiness} health
- * indicator so a cold pod receives no traffic before its informers finish the initial sync.
+ * Spring Boot auto-configuration for the Kubernetes Gateway API controller mode: the
+ * bootstrap embeds the controller and writes parsed selector/rule config directly into the
+ * in-process {@code BaseDataCache}. Multiple replicas need no leader election —
+ * reconciliation is idempotent — but deployments MUST gate readiness on
+ * {@code k8sCacheReadiness} so a cold pod receives no traffic before its informers sync.
  */
 @Configuration
 @ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "gateway-api")
 public class GatewayApiControllerConfiguration {
 
-    /**
-     * Informer resync period. Periodic resync re-drives changes not covered by watches
-     * (e.g. a ReferenceGrant added after a route reported ResolvedRefs=False) and retries
-     * failed status patches. Set here because ControllerWatch's withResyncPeriod is a
-     * no-op in client-java.
-     */
+    /** Resync re-drives watch gaps (e.g. a grant added after ResolvedRefs=False); withResyncPeriod is a no-op in client-java. */
     private static final long RESYNC_PERIOD_MILLIS = Duration.ofMinutes(1).toMillis();
 
-    /** Fallback for server.port; matches the bootstrap default. */
     private static final int DEFAULT_SERVER_PORT = 9195;
 
-    /**
-     * GatewayClass informer factory; separate factories avoid DynamicKubernetesObject class-key collisions.
-     *
-     * @param apiClient the Kubernetes API client
-     * @return the GatewayClass SharedInformerFactory
-     */
+    /** One factory per resource type: DynamicKubernetesObject class keys collide in a shared factory. */
     @Bean("gatewayclass-shared-informer-factory")
     public SharedInformerFactory gatewayClassSharedInformerFactory(final ApiClient apiClient) {
         SharedInformerFactory factory = new SharedInformerFactory(apiClient);
@@ -132,14 +115,7 @@ public class GatewayApiControllerConfiguration {
         return factory;
     }
 
-    /**
-     * HTTPRoute, Service and Endpoints informer factory. Services are watched to map a
-     * backendRef's Service port to its targetPort (including named targetPorts), which the
-     * Endpoints alone cannot express for multi-port Services.
-     *
-     * @param apiClient the Kubernetes API client
-     * @return the HTTPRoute, Service and Endpoints SharedInformerFactory
-     */
+    /** HTTPRoute, Service and Endpoints informers; Services map backendRef ports to named targetPorts. */
     @Bean("httproute-shared-informer-factory")
     public SharedInformerFactory httpRouteSharedInformerFactory(final ApiClient apiClient) {
         SharedInformerFactory factory = new SharedInformerFactory(apiClient);
@@ -160,13 +136,6 @@ public class GatewayApiControllerConfiguration {
         return factory;
     }
 
-    /**
-     * ReferenceGrant informer factory. Grants live in the namespace of the referenced
-     * resource; the informer is consumed read-only for cross-namespace validation.
-     *
-     * @param apiClient the Kubernetes API client
-     * @return the ReferenceGrant SharedInformerFactory
-     */
     @Bean("referencegrant-shared-informer-factory")
     public SharedInformerFactory referenceGrantSharedInformerFactory(final ApiClient apiClient) {
         SharedInformerFactory factory = new SharedInformerFactory(apiClient);
@@ -179,11 +148,6 @@ public class GatewayApiControllerConfiguration {
         return factory;
     }
 
-    /**
-     * Shared executor for all controller managers, with graceful shutdown on context close.
-     *
-     * @return daemon cached thread pool executor
-     */
     @Bean(destroyMethod = "shutdown")
     public ExecutorService controllerExecutorService() {
         return Executors.newCachedThreadPool(r -> {
@@ -215,16 +179,7 @@ public class GatewayApiControllerConfiguration {
         return new ControllerManager(httpRouteFactory, httpRouteController);
     }
 
-    /**
-     * ReferenceGrant controller: re-queues HTTPRoutes referencing the grant's namespace, so
-     * grant changes take effect immediately instead of on the next route resync (a revoked
-     * grant must stop unauthorized traffic right away).
-     *
-     * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
-     * @param httpRouteFactory the HTTPRoute SharedInformerFactory
-     * @param httpRouteWorkQueue the HTTPRoute controller work queue
-     * @return the ReferenceGrant controller
-     */
+    /** Re-queues HTTPRoutes referencing the grant's namespace so a revoked grant stops traffic immediately. */
     @Bean("referencegrant-controller")
     public Controller referenceGrantController(
             @Qualifier("referencegrant-shared-informer-factory") final SharedInformerFactory referenceGrantFactory,
@@ -247,27 +202,12 @@ public class GatewayApiControllerConfiguration {
         return new ControllerManager(referenceGrantFactory, referenceGrantController);
     }
 
-    /**
-     * Fail fast when the cluster does not serve the required Gateway API CRDs at v1,
-     * before any informer starts crash-looping on 404s. Runs after all singletons are
-     * instantiated and before the controller lifecycle starts the informers.
-     *
-     * @param apiClient the Kubernetes API client
-     * @return the startup check
-     */
+    /** Fails fast when required CRDs are missing; the result feeds the SupportedVersion condition. */
     @Bean
-    public SmartInitializingSingleton gatewayApiCrdVerifier(final ApiClient apiClient) {
-        return () -> GatewayApiCrdVerifier.verify(apiClient);
+    public GatewayApiCrdVersions gatewayApiCrdVersions(final ApiClient apiClient) {
+        return GatewayApiCrdVerifier.verify(apiClient);
     }
 
-    /**
-     * Start all controller managers after context refresh (and stop them on close);
-     * see {@link ControllerManagerLifecycle}.
-     *
-     * @param controllerManagers all controller managers of this mode
-     * @param controllerExecutorService the shared controller executor
-     * @return the lifecycle driving the controllers
-     */
     @Bean
     public SmartLifecycle k8sControllerLifecycle(final List<ControllerManager> controllerManagers,
                                                  final ExecutorService controllerExecutorService) {
@@ -277,8 +217,10 @@ public class GatewayApiControllerConfiguration {
     @Bean("gatewayclass-controller")
     public Controller gatewayClassController(
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
+            @Qualifier("gatewayclass-work-queue") final RateLimitingQueue<Request> gatewayClassWorkQueue,
             final GatewayClassReconciler gatewayClassReconciler) {
-        DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(gatewayClassFactory);
+        DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(gatewayClassFactory)
+                .withWorkQueue(gatewayClassWorkQueue);
         builder = builder.watch(q -> ControllerBuilder.controllerWatchBuilder(DynamicKubernetesObject.class, q)
                 .build());
         builder.withWorkerCount(1);
@@ -296,12 +238,12 @@ public class GatewayApiControllerConfiguration {
         return builder.withReconciler(gatewayReconciler).withName("gatewayController").build();
     }
 
-    /**
-     * Shared work queue for the HTTPRoute controller, also fed by the Endpoints handler.
-     *
-     * @param controllerExecutorService the shared controller executor
-     * @return the HTTPRoute controller work queue
-     */
+    /** Also fed by the Gateway reconciler on accept/delete so finalizer updates are immediate. */
+    @Bean("gatewayclass-work-queue")
+    public RateLimitingQueue<Request> gatewayClassWorkQueue(final ExecutorService controllerExecutorService) {
+        return new DefaultRateLimitingQueue<>(controllerExecutorService);
+    }
+
     @Bean("httproute-work-queue")
     public RateLimitingQueue<Request> httpRouteWorkQueue(final ExecutorService controllerExecutorService) {
         return new DefaultRateLimitingQueue<>(controllerExecutorService);
@@ -320,15 +262,7 @@ public class GatewayApiControllerConfiguration {
         return builder.withReconciler(httpRouteReconciler).withName("httpRouteController").build();
     }
 
-    /**
-     * Enqueues HTTPRoutes whose backendRefs target a Service with changed Endpoints
-     * (address/port changes). Declared as a dependency of the HTTPRoute controller manager
-     * so its indexers are registered before the informers start.
-     *
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
-     * @param httpRouteWorkQueue the HTTPRoute controller work queue
-     * @return the registered Endpoints event handler
-     */
+    /** Enqueues routes whose backend Service Endpoints changed; a manager dependency so indexers register first. */
     @Bean
     public HttpRouteEndpointsHandler httpRouteEndpointsHandler(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
@@ -342,16 +276,7 @@ public class GatewayApiControllerConfiguration {
         return handler;
     }
 
-    /**
-     * Enqueues HTTPRoutes whose backendRefs target a changed Service: a Service port or
-     * targetPort edit does not touch Endpoints, so without this handler routes keep the
-     * stale pod port until the periodic HTTPRoute resync. Shares the backend-service index
-     * and the HTTPRoute work queue with the Endpoints handler.
-     *
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
-     * @param httpRouteWorkQueue the HTTPRoute controller work queue
-     * @return the registered Service event handler
-     */
+    /** Service port/targetPort edits do not touch Endpoints, so they need their own trigger. */
     @Bean
     public HttpRouteServiceHandler httpRouteServiceHandler(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
@@ -370,13 +295,14 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
             @Qualifier("gateway-controller") final Controller gatewayController,
-            final ApiClient apiClient) {
+            final ApiClient apiClient,
+            final GatewayApiCrdVersions gatewayApiCrdVersions) {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
                 gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer =
                 gatewayFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         RateLimitingQueue<Request> gatewayWorkQueue = ((DefaultController) gatewayController).getWorkQueue();
-        return new GatewayClassReconciler(gatewayClassInformer, gatewayInformer, gatewayWorkQueue, apiClient);
+        return new GatewayClassReconciler(gatewayClassInformer, gatewayInformer, gatewayWorkQueue, apiClient, gatewayApiCrdVersions);
     }
 
     @Bean
@@ -385,6 +311,7 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController,
+            @Qualifier("gatewayclass-work-queue") final RateLimitingQueue<Request> gatewayClassWorkQueue,
             final ShenyuCacheRepository shenyuCacheRepository,
             final ApiClient apiClient,
             final Environment environment) {
@@ -397,7 +324,7 @@ public class GatewayApiControllerConfiguration {
         RateLimitingQueue<Request> httpRouteWorkQueue = ((DefaultController) httpRouteController).getWorkQueue();
         int servedPort = environment.getProperty("server.port", Integer.class, DEFAULT_SERVER_PORT);
         return new GatewayReconciler(gatewayInformer, gatewayClassInformer, httpRouteInformer,
-                shenyuCacheRepository, httpRouteWorkQueue, apiClient, servedPort);
+                shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, servedPort);
     }
 
     @Bean
@@ -439,35 +366,17 @@ public class GatewayApiControllerConfiguration {
     @Bean
     public ShenyuCacheRepository shenyuCacheRepository(final CommonPluginDataSubscriber pluginDataSubscriber,
                                                        final CommonDiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber,
-                                                       final MetaDataCacheSubscriber metaDataSubscriber,
-                                                       final MetaDataCacheSubscriber metaDataCacheSubscriber) {
-        ShenyuCacheRepository repository = new ShenyuCacheRepository(pluginDataSubscriber, discoveryUpstreamDataSubscriber, metaDataSubscriber, metaDataCacheSubscriber);
+                                                       final MetaDataCacheSubscriber metaDataSubscriber) {
+        ShenyuCacheRepository repository = new ShenyuCacheRepository(pluginDataSubscriber, discoveryUpstreamDataSubscriber,
+                metaDataSubscriber, metaDataSubscriber);
         enablePlugin(repository, PluginEnum.GLOBAL, null);
         enablePlugin(repository, PluginEnum.URI, null);
         enablePlugin(repository, PluginEnum.NETTY_HTTP_CLIENT, null);
         enablePlugin(repository, PluginEnum.DIVIDE, "{multiSelectorHandle: 1, multiRuleHandle:0}");
-        enablePlugin(repository, PluginEnum.GENERAL_CONTEXT, null);
         return repository;
     }
 
-    /**
-     * Readiness aggregator over all registered informers and the controller work queues of
-     * this mode: informer sync alone does not mean the objects were reconciled into the
-     * local cache yet, so the queues' initial backlog must drain too. The ReferenceGrant
-     * controller's queue is included because its reconcile re-queues HTTPRoutes depending
-     * on grants: without it, readiness could latch while routes accepted earlier are still
-     * denied and unprogrammed until the grant controller eventually re-queues them.
-     *
-     * @param gatewayClassFactory the GatewayClass SharedInformerFactory
-     * @param gatewayFactory the Gateway SharedInformerFactory
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
-     * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
-     * @param gatewayClassController the GatewayClass controller (for its work queue)
-     * @param gatewayController the Gateway controller (for its work queue)
-     * @param referenceGrantController the ReferenceGrant controller (for its work queue)
-     * @param httpRouteWorkQueue the HTTPRoute controller work queue
-     * @return readiness aggregator over all registered informers and work queues
-     */
+    /** Readiness needs informer sync AND drained work queues; the grant queue matters because its reconcile re-queues routes. */
     @Bean
     public K8sCacheReadiness k8sCacheReadiness(
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
@@ -509,26 +418,15 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * Isolated nested configuration for the actuator health indicator: the outer class is
-     * CGLIB-proxied and would resolve every {@code @Bean} method signature — a hard failure
-     * when actuator is absent. Must repeat the outer mode condition: a static nested
-     * {@code @Configuration} class is an independent component-scan candidate and
-     * {@code ShenyuConfiguration}'s broad scan would otherwise register it even when the
-     * outer configuration is skipped (e.g. in ingress mode).
+     * Isolated from the CGLIB-proxied outer class (resolving an actuator @Bean without
+     * actuator fails hard); repeats the mode condition because a nested @Configuration is
+     * an independent scan candidate.
      */
     @Configuration
     @ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "gateway-api")
     @ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
     static class HealthIndicatorConfiguration {
 
-        /**
-         * Exposes {@link K8sCacheReadiness} as a health indicator: include
-         * {@code k8sCacheReadiness} in the readiness group and point the probe at
-         * {@code /actuator/health/readiness}.
-         *
-         * @param k8sCacheReadiness the informer/reconciliation readiness aggregator
-         * @return health indicator reflecting informer initial-sync and backlog state
-         */
         @Bean
         public HealthIndicator k8sCacheReadinessHealthIndicator(final K8sCacheReadiness k8sCacheReadiness) {
             return () -> k8sCacheReadiness.isReady()
