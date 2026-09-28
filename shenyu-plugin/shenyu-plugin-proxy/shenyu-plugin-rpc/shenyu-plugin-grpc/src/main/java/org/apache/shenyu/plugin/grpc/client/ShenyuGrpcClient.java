@@ -24,6 +24,8 @@ import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
@@ -37,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -72,7 +75,12 @@ public class ShenyuGrpcClient implements Closeable {
                                                       final CallOptions callOptions,
                                                       final String requestJsons,
                                                       final MethodDescriptor.MethodType methodType) {
-        List<DynamicMessage> jsonRequestList = JsonMessage.buildJsonMessageList(GsonUtils.getInstance().toObjectMap(requestJsons));
+        List<DynamicMessage> jsonRequestList = StringUtils.isBlank(requestJsons)
+                ? Collections.singletonList(JsonMessage.buildJsonMessage())
+                : JsonMessage.buildJsonMessageList(GsonUtils.getInstance().toObjectMap(requestJsons));
+        if (CollectionUtils.isEmpty(jsonRequestList)) {
+            jsonRequestList = Collections.singletonList(JsonMessage.buildJsonMessage());
+        }
         DynamicMessage jsonResponse = JsonMessage.buildJsonMessage();
         
         MethodDescriptor<DynamicMessage, DynamicMessage> jsonMarshallerMethodDescriptor = JsonMessage.createJsonMarshallerMethodDescriptor(metaData.getServiceName(),
