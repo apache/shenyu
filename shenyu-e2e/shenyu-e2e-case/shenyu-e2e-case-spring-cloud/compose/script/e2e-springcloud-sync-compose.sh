@@ -58,6 +58,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
     exit 1
   fi
 
+  sleep 10s
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-spring-cloud -am test
   # shellcheck disable=SC2181
