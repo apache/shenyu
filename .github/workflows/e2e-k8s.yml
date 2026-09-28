@@ -81,6 +81,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Test conditional disk cleanup
+        run: bash .github/scripts/free-disk-space-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -120,15 +122,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+      - name: Free disk space when needed
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Set up JDK 17 for Building ShenYu
         uses: ./actions/setup-java-with-retry
@@ -225,15 +220,9 @@ jobs:
         with:
           submodules: true
 
-      - name: Free disk space
+      - name: Free disk space when needed
         run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+          bash .github/scripts/free-disk-space.sh
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
@@ -301,15 +290,9 @@ jobs:
         with:
           submodules: true
 
-      - name: Free disk space
+      - name: Free disk space when needed
         run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+          bash .github/scripts/free-disk-space.sh
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
