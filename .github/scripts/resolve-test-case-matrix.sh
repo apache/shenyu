@@ -93,7 +93,16 @@ resolve_k8s_change() {
 
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
-      shenyu-integrated-test-k8s-ingress*/*|shenyu-*/*|pom.xml|*/pom.xml|shenyu-examples/*)
+      pom.xml|mvnw|mvnw.cmd|.mvn/*|\
+      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/*|\
+      shenyu-kubernetes-controller/*|\
+      shenyu-common/*|shenyu-web/*|shenyu-bootstrap/*|shenyu-admin/*|\
+      shenyu-admin-listener/*|shenyu-sync-data-center/*|\
+      shenyu-loadbalancer/*|shenyu-protocol/*|shenyu-register-center/*|shenyu-registry/*|\
+      shenyu-plugin/pom.xml|shenyu-plugin/shenyu-plugin-api/*|shenyu-plugin/shenyu-plugin-base/*|\
+      shenyu-spring-boot-starter/pom.xml|\
+      *apache-dubbo*|*shenyu-plugin-dubbo*|*grpc*|*websocket*|*divide*|*springmvc*|\
+      shenyu-examples/shenyu-examples-http*/*)
         run_k8s_ingress=true
         ;;
     esac
@@ -102,7 +111,13 @@ resolve_k8s_change() {
 
   if [[ "${mode}" == "k8s-examples-http" ]]; then
     case "${file}" in
-      shenyu-examples/*|shenyu-*/*|pom.xml|*/pom.xml)
+      pom.xml|mvnw|mvnw.cmd|.mvn/*|\
+      shenyu-examples/shenyu-examples-http*/*|\
+      shenyu-common/*|shenyu-web/*|shenyu-bootstrap/*|shenyu-admin/*|\
+      shenyu-admin-listener/*|shenyu-sync-data-center/*|\
+      shenyu-loadbalancer/*|shenyu-protocol/*|shenyu-register-center/*|shenyu-registry/*|\
+      shenyu-plugin/pom.xml|shenyu-plugin/shenyu-plugin-api/*|shenyu-plugin/shenyu-plugin-base/*|\
+      shenyu-spring-boot-starter/pom.xml|*divide*|*springmvc*|*http*)
         run_k8s_examples=true
         ;;
     esac
