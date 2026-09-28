@@ -1,0 +1,105 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0.
+  You may obtain a copy at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540"
+  style="background-color:#F8FAFC;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0 L0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+  </pattern>
+  <filter id="cs"><feDropShadow dx="2" dy="6" stdDeviation="10" flood-color="#005D7B" flood-opacity="0.08"/></filter>
+  <clipPath id="c1"><rect x="30" y="126" width="185" height="150" rx="10"/></clipPath>
+  <clipPath id="c2"><rect x="245" y="126" width="185" height="150" rx="10"/></clipPath>
+  <clipPath id="c3"><rect x="460" y="126" width="185" height="150" rx="10"/></clipPath>
+  <clipPath id="c4"><rect x="675" y="126" width="185" height="150" rx="10"/></clipPath>
+  <clipPath id="c5"><rect x="120" y="354" width="280" height="86" rx="10"/></clipPath>
+  <clipPath id="c6"><rect x="500" y="354" width="280" height="86" rx="10"/></clipPath>
+</defs>
+<style><![CDATA[
+text,tspan{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+]]></style>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title -->
+<text x="450" y="48" text-anchor="middle" font-size="24" font-weight="bold" fill="#005D7B">ShenYu 配置同步路径</text>
+
+<rect x="20" y="96" width="850" height="204" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="38" y="116" font-size="12" font-weight="bold" fill="#94A3B8">主路径</text>
+<rect x="100" y="334" width="700" height="126" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="118" y="354" font-size="12" font-weight="bold" fill="#94A3B8">补充说明</text>
+
+<rect x="30" y="126" width="185" height="150" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="30" y="126" width="6" height="150" fill="#E99151" clip-path="url(#c1)"/>
+<text x="52" y="154" font-size="16" font-weight="bold" fill="#2D3748">1. 产生变更</text>
+<text x="134" y="154" font-size="11" fill="#94A3B8">Source</text>
+<line x1="52" y1="168" x2="191" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="52" y="198" font-size="12" fill="#64748B">管理后台改 plugin / selector / rule。</text>
+<text x="52" y="222" font-size="12" fill="#64748B">Client 与 K8s Controller 也能写入配置。</text>
+<text x="52" y="246" font-size="12" fill="#64748B">所有变更最终都回到 Admin。</text>
+
+<rect x="245" y="126" width="185" height="150" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="245" y="126" width="6" height="150" fill="#005D7B" clip-path="url(#c2)"/>
+<text x="267" y="154" font-size="16" font-weight="bold" fill="#2D3748">2. Admin 分发</text>
+<text x="355" y="154" font-size="11" fill="#94A3B8">Dispatcher</text>
+<line x1="267" y1="168" x2="406" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="267" y="198" font-size="12" fill="#64748B">DataChangedEventDispatcher 按 groupKey 广播。</text>
+<text x="267" y="222" font-size="12" fill="#64748B">cluster 模式下由 master 负责对外同步。</text>
+<text x="267" y="246" font-size="12" fill="#64748B">监听器和同步策略保持解耦。</text>
+
+<rect x="460" y="126" width="185" height="150" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="460" y="126" width="6" height="150" fill="#7C3AED" clip-path="url(#c3)"/>
+<text x="482" y="154" font-size="16" font-weight="bold" fill="#2D3748">3. 选择通道</text>
+<text x="565" y="154" font-size="11" fill="#94A3B8">Sync Channel</text>
+<line x1="482" y1="168" x2="621" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="482" y="198" font-size="12" fill="#64748B">可以走 WebSocket push、HTTP long polling。</text>
+<text x="482" y="222" font-size="12" fill="#64748B">也可以走 ZK、Nacos、Etcd、Polaris watcher。</text>
+<text x="482" y="246" font-size="12" fill="#64748B">namespace 维度独立维护状态。</text>
+
+<rect x="675" y="126" width="185" height="150" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="675" y="126" width="6" height="150" fill="#4CA497" clip-path="url(#c4)"/>
+<text x="697" y="154" font-size="16" font-weight="bold" fill="#2D3748">4. 网关热更新</text>
+<text x="793" y="154" font-size="11" fill="#94A3B8">Gateway</text>
+<line x1="697" y1="168" x2="836" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="697" y="198" font-size="12" fill="#64748B">Bootstrap 收到事件后刷新本地缓存。</text>
+<text x="697" y="222" font-size="12" fill="#64748B">BaseDataCache 与 MatchDataCache 立即可用。</text>
+<text x="697" y="246" font-size="12" fill="#64748B">后续请求直接命中新配置，无需重启。</text>
+
+<rect x="120" y="354" width="280" height="86" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="120" y="354" width="6" height="86" fill="#0891B2" clip-path="url(#c5)"/>
+<text x="142" y="382" font-size="16" font-weight="bold" fill="#2D3748">长轮询</text>
+<text x="197" y="382" font-size="11" fill="#94A3B8">HTTP</text>
+<text x="142" y="406" font-size="12" fill="#64748B">比较 group md5 与 lastModifyTime；</text>
+<text x="142" y="426" font-size="12" fill="#64748B">没变化就挂起，超时或变更后再返回。</text>
+
+<rect x="500" y="354" width="280" height="86" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="500" y="354" width="6" height="86" fill="#E99151" clip-path="url(#c6)"/>
+<text x="522" y="382" font-size="16" font-weight="bold" fill="#2D3748">Watcher</text>
+<text x="587" y="382" font-size="11" fill="#94A3B8">Registry</text>
+<text x="522" y="406" font-size="12" fill="#64748B">监听 namespace 下的 plugin / selector / rule 路径；</text>
+<text x="522" y="426" font-size="12" fill="#64748B">节点一变化就触发 event()。</text>
+
+<line x1="215" y1="201" x2="245" y2="201" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="245,201 235,196 235,206" fill="#94A3B8"/>
+<text x="214" y="188" font-size="11" font-weight="bold" fill="#E99151">写入事件</text>
+
+<line x1="430" y1="201" x2="460" y2="201" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="460,201 450,196 450,206" fill="#94A3B8"/>
+<text x="435" y="188" font-size="11" font-weight="bold" fill="#005D7B">按组分发</text>
+
+<line x1="645" y1="201" x2="675" y2="201" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="675,201 665,196 665,206" fill="#94A3B8"/>
+<text x="648" y="188" font-size="11" font-weight="bold" fill="#7C3AED">推 / 拉 / Watch</text>
+
+<path d="M553 276 L553 320 L260 320 L260 354" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="260,354 255,344 265,344" fill="#94A3B8"/>
+<text x="408" y="314" font-size="11" font-weight="bold" fill="#0891B2">HTTP 细节</text>
+
+<path d="M553 276 L553 320 L640 320 L640 354" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="640,354 635,344 645,344" fill="#94A3B8"/>
+<text x="565" y="314" font-size="11" font-weight="bold" fill="#E99151">Watcher 细节</text>
+
+</svg>

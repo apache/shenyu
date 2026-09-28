@@ -1,0 +1,78 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0.
+  You may obtain a copy at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540"
+  style="background-color:#F8FAFC;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0 L0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+  </pattern>
+  <filter id="cs"><feDropShadow dx="2" dy="6" stdDeviation="10" flood-color="#005D7B" flood-opacity="0.08"/></filter>
+  <clipPath id="c1"><rect x="35" y="126" width="220" height="164" rx="10"/></clipPath>
+  <clipPath id="c2"><rect x="340" y="126" width="220" height="164" rx="10"/></clipPath>
+  <clipPath id="c3"><rect x="645" y="126" width="220" height="164" rx="10"/></clipPath>
+  <clipPath id="c4"><rect x="170" y="360" width="560" height="92" rx="10"/></clipPath>
+</defs>
+<style><![CDATA[
+text,tspan{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+]]></style>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title -->
+<text x="450" y="48" text-anchor="middle" font-size="24" font-weight="bold" fill="#005D7B">ShenYu 控制平面</text>
+
+<rect x="20" y="96" width="860" height="220" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="38" y="116" font-size="12" font-weight="bold" fill="#94A3B8">配置管理主链</text>
+<rect x="150" y="340" width="600" height="132" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="168" y="360" font-size="12" font-weight="bold" fill="#94A3B8">控制目标</text>
+
+<rect x="35" y="126" width="220" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="35" y="126" width="6" height="164" fill="#005D7B" clip-path="url(#c1)"/>
+<text x="57" y="154" font-size="16" font-weight="bold" fill="#2D3748">管理后台</text>
+<text x="128" y="154" font-size="11" fill="#94A3B8">Admin</text>
+<line x1="57" y1="168" x2="231" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="57" y="198" font-size="12" fill="#64748B">shenyu-admin 维护 plugin、selector、rule、metadata。</text>
+<text x="57" y="222" font-size="12" fill="#64748B">集群模式下由 master 节点负责对外广播。</text>
+<text x="57" y="246" font-size="12" fill="#64748B">所有治理动作都从这里发起。</text>
+
+<rect x="340" y="126" width="220" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="340" y="126" width="6" height="164" fill="#7C3AED" clip-path="url(#c2)"/>
+<text x="362" y="154" font-size="16" font-weight="bold" fill="#2D3748">事件分发</text>
+<text x="435" y="154" font-size="11" fill="#94A3B8">Dispatcher</text>
+<line x1="362" y1="168" x2="536" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="362" y="198" font-size="12" fill="#64748B">DataChangedEventDispatcher 按 groupKey 广播。</text>
+<text x="362" y="222" font-size="12" fill="#64748B">Listener 不关心管理细节，只负责把变更送出去。</text>
+<text x="362" y="246" font-size="12" fill="#64748B">namespace 维度的状态彼此隔离。</text>
+
+<rect x="645" y="126" width="220" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="645" y="126" width="6" height="164" fill="#E99151" clip-path="url(#c3)"/>
+<text x="667" y="154" font-size="16" font-weight="bold" fill="#2D3748">同步策略</text>
+<text x="740" y="154" font-size="11" fill="#94A3B8">Channels</text>
+<line x1="667" y1="168" x2="841" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="667" y="198" font-size="12" fill="#64748B">WebSocket、HTTP long polling、ZK、Nacos、Etcd、Polaris。</text>
+<text x="667" y="222" font-size="12" fill="#64748B">控制平面只切换通道，不改动业务配置模型。</text>
+<text x="667" y="246" font-size="12" fill="#64748B">所有通道最终面向 Bootstrap 实例。</text>
+
+<rect x="170" y="360" width="560" height="92" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="170" y="360" width="6" height="92" fill="#4CA497" clip-path="url(#c4)"/>
+<text x="192" y="388" font-size="16" font-weight="bold" fill="#2D3748">控制平面要解决的问题</text>
+<text x="346" y="388" font-size="11" fill="#94A3B8">Goal</text>
+<text x="192" y="414" font-size="12" fill="#64748B">把同一份治理配置稳定、可热更新地送到所有网关实例，同时保持多 namespace 与多同步策略的灵活性。</text>
+
+<line x1="255" y1="208" x2="340" y2="208" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="340,208 330,203 330,213" fill="#94A3B8"/>
+<text x="273" y="194" font-size="11" font-weight="bold" fill="#005D7B">变更事件</text>
+
+<line x1="560" y1="208" x2="645" y2="208" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="645,208 635,203 635,213" fill="#94A3B8"/>
+<text x="582" y="194" font-size="11" font-weight="bold" fill="#7C3AED">按策略下发</text>
+
+<path d="M755 290 L755 320 L450 320 L450 360" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="450,360 445,350 455,350" fill="#94A3B8"/>
+<text x="575" y="314" font-size="11" font-weight="bold" fill="#E99151">面向所有网关实例</text>
+
+</svg>

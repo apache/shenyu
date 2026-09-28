@@ -1,0 +1,74 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0.
+  You may obtain a copy at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560"
+  style="background-color:#F8FAFC;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0 L0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+  </pattern>
+  <filter id="cs"><feDropShadow dx="2" dy="6" stdDeviation="10" flood-color="#005D7B" flood-opacity="0.08"/></filter>
+  <clipPath id="c1"><rect x="35" y="126" width="370" height="236" rx="10"/></clipPath>
+  <clipPath id="c2"><rect x="495" y="126" width="370" height="236" rx="10"/></clipPath>
+  <clipPath id="c3"><rect x="190" y="400" width="520" height="88" rx="10"/></clipPath>
+</defs>
+<style><![CDATA[
+text,tspan{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+]]></style>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title -->
+<text x="450" y="48" text-anchor="middle" font-size="24" font-weight="bold" fill="#005D7B">ShenYu 插件与交付</text>
+
+<rect x="20" y="96" width="860" height="286" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="38" y="116" font-size="12" font-weight="bold" fill="#94A3B8">能力与交付</text>
+<rect x="170" y="380" width="560" height="128" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="188" y="400" font-size="12" font-weight="bold" fill="#94A3B8">扩展特性</text>
+
+<rect x="35" y="126" width="370" height="236" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="35" y="126" width="6" height="236" fill="#7C3AED" clip-path="url(#c1)"/>
+<text x="57" y="154" font-size="16" font-weight="bold" fill="#2D3748">插件能力地图</text>
+<text x="153" y="154" font-size="11" fill="#94A3B8">Plugin Families</text>
+<line x1="57" y1="168" x2="381" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="57" y="190" width="92" height="24" rx="12" fill="#E0F2F8"/>
+<text x="103" y="206" text-anchor="middle" font-size="10" font-weight="bold" fill="#005D7B">代理类</text>
+<rect x="165" y="190" width="92" height="24" rx="12" fill="#E6F7ED"/>
+<text x="211" y="206" text-anchor="middle" font-size="10" font-weight="bold" fill="#4CA497">安全类</text>
+<rect x="273" y="190" width="92" height="24" rx="12" fill="#FFF3E0"/>
+<text x="319" y="206" text-anchor="middle" font-size="10" font-weight="bold" fill="#E99151">治理类</text>
+<text x="57" y="242" font-size="12" fill="#64748B">代理类：divide、dubbo、grpc、websocket、mqtt、ai-proxy。</text>
+<text x="57" y="270" font-size="12" fill="#64748B">安全类：sign、jwt、oauth2、waf、basic-auth、key-auth。</text>
+<text x="57" y="298" font-size="12" fill="#64748B">治理类：rewrite、rate limiter、cache、redirect、fault tolerance。</text>
+<text x="57" y="326" font-size="12" fill="#64748B">观测与响应类：logging、metrics、modify-response、response-transformer。</text>
+
+<rect x="495" y="126" width="370" height="236" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="495" y="126" width="6" height="236" fill="#0891B2" clip-path="url(#c2)"/>
+<text x="517" y="154" font-size="16" font-weight="bold" fill="#2D3748">交付路径</text>
+<text x="589" y="154" font-size="11" fill="#94A3B8">Delivery Path</text>
+<line x1="517" y1="168" x2="841" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="517" y="204" font-size="12" fill="#64748B">starter：按场景把插件和同步策略装配进应用。</text>
+<text x="517" y="236" font-size="12" fill="#64748B">dist：输出 Docker、Compose 和发布物，便于部署。</text>
+<text x="517" y="268" font-size="12" fill="#64748B">examples：提供业务样例和自定义插件示例。</text>
+<text x="517" y="300" font-size="12" fill="#64748B">integrated-test / e2e：覆盖集成验证与端到端验收。</text>
+<rect x="517" y="322" width="110" height="24" rx="12" fill="#EDE9FE"/>
+<text x="572" y="338" text-anchor="middle" font-size="10" font-weight="bold" fill="#7C3AED">从能力到交付</text>
+
+<rect x="190" y="400" width="520" height="88" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="190" y="400" width="6" height="88" fill="#E99151" clip-path="url(#c3)"/>
+<text x="212" y="428" font-size="16" font-weight="bold" fill="#2D3748">为什么拆成插件</text>
+<text x="318" y="428" font-size="11" fill="#94A3B8">Hot Pluggable</text>
+<text x="212" y="454" font-size="12" fill="#64748B">ShenYu 把代理、治理、安全、观测拆成可热插拔能力，这样既能按需组合，也能通过 pluginJar 扩展自定义插件。</text>
+
+<line x1="405" y1="244" x2="495" y2="244" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="495,244 485,239 485,249" fill="#94A3B8"/>
+<text x="428" y="230" font-size="11" font-weight="bold" fill="#7C3AED">被 starter / dist 带走</text>
+
+<path d="M680 362 L680 382 L450 382 L450 400" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="450,400 445,390 455,390" fill="#94A3B8"/>
+<text x="545" y="376" font-size="11" font-weight="bold" fill="#0891B2">支持热插拔扩展</text>
+
+</svg>
