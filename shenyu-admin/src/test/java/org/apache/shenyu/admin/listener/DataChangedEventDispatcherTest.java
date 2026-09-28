@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -84,9 +85,15 @@ public final class DataChangedEventDispatcherTest {
     
     @Mock
     private ClusterProperties clusterProperties;
-    
+
     @Mock
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
+
+    @Mock
+    private ClusterDataChangedEventForwarder clusterDataChangedEventForwarder;
+
+    @Mock
+    private ObjectProvider<ClusterDataChangedEventForwarder> forwarderProvider;
 
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -99,7 +106,10 @@ public final class DataChangedEventDispatcherTest {
 
         when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(loadServiceDocEntry);
         applicationContext.getBean(LoadServiceDocEntry.class);
-        
+
+        when(applicationContext.getBeanProvider(ClusterDataChangedEventForwarder.class)).thenReturn(forwarderProvider);
+        when(forwarderProvider.getIfAvailable()).thenReturn(clusterDataChangedEventForwarder);
+
         Field shenyuClusterSelectMasterServiceField = DataChangedEventDispatcher.class.getDeclaredField("shenyuClusterSelectMasterService");
         shenyuClusterSelectMasterServiceField.setAccessible(true);
         shenyuClusterSelectMasterServiceField.set(dataChangedEventDispatcher, shenyuClusterSelectMasterService);
@@ -310,5 +320,56 @@ public final class DataChangedEventDispatcherTest {
         verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
         verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
         verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+    }
+
+    /**
+     * When not master, the event is forwarded once and push listeners are skipped,
+     * while AbstractDataChangedListener listeners run regardless of their position
+     * in the listener iteration order.
+     */
+    @Test
+    void onApplicationEventNotMasterForwardsEventAndKeepsAbstractListenersTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(false);
+        when(clusterDataChangedEventForwarder.forward(any(DataChangedEvent.class))).thenReturn(true);
+        List<DataChangedListener> orderedListeners = new ArrayList<>();
+        orderedListeners.add(nacosDataChangedListener);
+        orderedListeners.add(httpLongPollingDataChangedListener);
+        orderedListeners.add(websocketDataChangedListener);
+        ReflectionTestUtils.setField(dataChangedEventDispatcher, "listeners", Collections.unmodifiableList(orderedListeners));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(clusterDataChangedEventForwarder, times(1)).forward(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any());
+        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any());
+    }
+
+    /**
+     * When not master and forwarding to the master fails, local cache listeners still run.
+     */
+    @Test
+    void onApplicationEventNotMasterForwardFailedStillUpdatesLocalCachesTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(false);
+        when(clusterDataChangedEventForwarder.forward(any(DataChangedEvent.class))).thenReturn(false);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(clusterDataChangedEventForwarder, times(1)).forward(dataChangedEvent);
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any());
+    }
+
+    /**
+     * When cluster is disabled, events are never forwarded even if a forwarder is present.
+     */
+    @Test
+    void onApplicationEventStandaloneNeverForwardsTest() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        verify(clusterDataChangedEventForwarder, never()).forward(any(DataChangedEvent.class));
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
     }
 }

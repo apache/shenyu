@@ -57,28 +57,31 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     private final ApplicationContext applicationContext;
     
     private List<DataChangedListener> listeners;
-    
+
+    private ClusterDataChangedEventForwarder eventForwarder;
+
     @Resource
     private ClusterProperties clusterProperties;
-    
+
     @Resource
     @Nullable
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
-    
+
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
+        final boolean master = isMasterOrStandalone();
+        if (!master) {
+            forwardEventToMaster(event);
+        }
         for (DataChangedListener listener : listeners) {
-            if (!(listener instanceof AbstractDataChangedListener)
-                    && clusterProperties.isEnabled()
-                    && Objects.nonNull(shenyuClusterSelectMasterService)
-                    && !shenyuClusterSelectMasterService.isMaster()) {
-                LOG.info("received DataChangedEvent, not master, pass");
-                return;
+            if (!master && !(listener instanceof AbstractDataChangedListener)) {
+                // push listeners run on the master only; the event was handed over above
+                continue;
             }
             final int size = event.getSource() instanceof java.util.Collection ? ((java.util.Collection<?>) event.getSource()).size() : 1;
             LOG.info("received DataChangedEvent, group={}, size={}, type={}", event.getGroupKey(), size, event.getEventType());
@@ -124,5 +127,32 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class)
                 .values();
         this.listeners = Collections.unmodifiableList(new ArrayList<>(listenerBeans));
+        this.eventForwarder = applicationContext.getBeanProvider(ClusterDataChangedEventForwarder.class)
+                .getIfAvailable();
+    }
+
+    private boolean isMasterOrStandalone() {
+        if (!clusterProperties.isEnabled() || Objects.isNull(shenyuClusterSelectMasterService)) {
+            return true;
+        }
+        return shenyuClusterSelectMasterService.isMaster();
+    }
+
+    private void forwardEventToMaster(final DataChangedEvent event) {
+        if (Objects.isNull(eventForwarder)) {
+            LOG.warn("received DataChangedEvent, not master, no forwarder available, group={}, type={},"
+                            + " push listeners will be skipped on this node",
+                    event.getGroupKey(), event.getEventType());
+            return;
+        }
+        final boolean forwarded = eventForwarder.forward(event);
+        if (forwarded) {
+            LOG.info("received DataChangedEvent, not master, forwarded to master, group={}, type={}",
+                    event.getGroupKey(), event.getEventType());
+        } else {
+            LOG.warn("received DataChangedEvent, not master, forward to master failed, group={}, type={},"
+                            + " push listeners will be skipped on this node",
+                    event.getGroupKey(), event.getEventType());
+        }
     }
 }
