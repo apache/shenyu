@@ -82,7 +82,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
     log_compose "$sync"
     exit 1
   fi
-  sleep 10s
   docker ps -a
   ## run e2e-test
   if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test; then
