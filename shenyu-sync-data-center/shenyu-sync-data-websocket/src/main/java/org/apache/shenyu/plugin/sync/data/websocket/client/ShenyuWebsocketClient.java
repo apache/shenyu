@@ -87,6 +87,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private static final long MAX_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(60);
 
+    private static final int MAX_CONSECUTIVE_SYNC_FAILURES = 3;
+
     private volatile boolean alreadySync = Boolean.FALSE;
 
     private final WebsocketDataHandler websocketDataHandler;
@@ -106,6 +108,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private final AtomicBoolean manuallyClosed = new AtomicBoolean(false);
 
     private final AtomicBoolean reconnecting = new AtomicBoolean(false);
+
+    private final AtomicInteger consecutiveSyncFailures = new AtomicInteger(0);
 
     private volatile long lastReconnectAttemptTime;
 
@@ -244,7 +248,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 handleResult(result);
             }
         } catch (RuntimeException ex) {
-            LOG.warn("Failed to handle websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            handleSyncFailure(ex, "UNKNOWN", "UNKNOWN");
         }
     }
     
@@ -360,13 +364,52 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      */
     private void handleResult(final String result) {
         LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
-        WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
-        ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
-        String eventType = websocketData.getEventType();
-        String json = GsonUtils.getInstance().toJson(websocketData.getData());
-        websocketDataHandler.executor(groupEnum, json, eventType);
+        WebsocketData<?> websocketData;
+        ConfigGroupEnum groupEnum;
+        String eventType;
+        String json;
+        try {
+            websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
+            groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
+            eventType = websocketData.getEventType();
+            json = GsonUtils.getInstance().toJson(websocketData.getData());
+        } catch (RuntimeException ex) {
+            handleSyncFailure(ex, "UNKNOWN", "UNKNOWN");
+            return;
+        }
+        try {
+            websocketDataHandler.executor(groupEnum, json, eventType);
+            consecutiveSyncFailures.set(0);
+        } catch (RuntimeException ex) {
+            handleSyncFailure(ex, groupEnum.name(), eventType);
+        }
     }
-    
+
+    /**
+     * Handle a failure to parse or apply a configuration message. A single failure closes
+     * the connection so the reconnect triggers a full resynchronization (MYSELF); after
+     * {@code MAX_CONSECUTIVE_SYNC_FAILURES} consecutive failures (deterministic poison
+     * data) automatic recovery is stopped with a terminal error.
+     *
+     * @param ex the failure
+     * @param groupType the config group being processed, if known
+     * @param eventType the event type being processed, if known
+     */
+    private void handleSyncFailure(final RuntimeException ex, final String groupType, final String eventType) {
+        int failures = consecutiveSyncFailures.incrementAndGet();
+        if (failures >= MAX_CONSECUTIVE_SYNC_FAILURES) {
+            LOG.error("websocket sync from server[{}] failed {} consecutive times, group={}, eventType={};"
+                            + " giving up automatic recovery, restart the gateway or fix the configuration",
+                    this.getURI(), failures, groupType, eventType, ex);
+            nowClose();
+            return;
+        }
+        LOG.warn("websocket sync from server[{}] failed, group={}, eventType={}, consecutiveFailures={};"
+                        + " closing the connection to trigger a full resynchronization",
+                this.getURI(), groupType, eventType, failures, ex);
+        this.close();
+    }
+
     /**
      * Gets the master url.
      *
