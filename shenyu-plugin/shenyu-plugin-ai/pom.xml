@@ -34,6 +34,7 @@
         <module>shenyu-plugin-ai-request-transformer</module>
         <module>shenyu-plugin-ai-proxy</module>
         <module>shenyu-plugin-ai-response-transformer</module>
+        <module>shenyu-plugin-ai-sensitive-word</module>
     </modules>
 
 </project>

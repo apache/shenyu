@@ -28,9 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -66,6 +64,13 @@ import org.slf4j.LoggerFactory;
 public final class ApacheDubboConfigCache extends DubboConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboConfigCache.class);
+
+    /**
+     * Separator of the reference cache key segments. Never occurs inside ids, paths,
+     * protocol, registry hash, version or group, so an id can be matched as a whole
+     * segment by wrapping it with this separator during cache invalidation.
+     */
+    private static final String KEY_SEPARATOR = "|";
 
     private ApplicationConfig applicationConfig;
 
@@ -212,7 +217,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @return the reference config cache key
      */
     public String generateUpstreamCacheKey(final String selectorId, final String ruleId, final String metaDataId, final String namespace, final DubboUpstream dubboUpstream) {
-        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
+        StringJoiner stringJoiner = new StringJoiner(KEY_SEPARATOR);
         if (StringUtils.isNotBlank(namespace)) {
             stringJoiner.add(namespace);
         }
@@ -233,7 +238,8 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         if (StringUtils.isNotBlank(dubboUpstream.getGroup())) {
             stringJoiner.add(dubboUpstream.getGroup());
         }
-        return stringJoiner.toString();
+        // wrap with separators so that the first and the last segments are also matched as whole segments
+        return KEY_SEPARATOR + stringJoiner + KEY_SEPARATOR;
     }
 
     /**
@@ -529,10 +535,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param selectorId the selectorId
      */
     public void invalidateWithSelectorId(final String selectorId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(selectorId);
     }
 
     /**
@@ -541,10 +544,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param ruleId the ruleId
      */
     public void invalidateWithRuleId(final String ruleId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(ruleId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(ruleId);
     }
 
     /**
@@ -553,10 +553,15 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param metadataId the metadataId
      */
     public void invalidateWithMetadataId(final String metadataId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(metadataId);
+    }
+
+    private void invalidateByWholeSegment(final String id) {
+        final String token = KEY_SEPARATOR + id + KEY_SEPARATOR;
+        cache.asMap().keySet().stream()
+                .filter(key -> key.contains(token))
+                .collect(Collectors.toSet())
+                .forEach(cache::invalidate);
     }
 
     /**

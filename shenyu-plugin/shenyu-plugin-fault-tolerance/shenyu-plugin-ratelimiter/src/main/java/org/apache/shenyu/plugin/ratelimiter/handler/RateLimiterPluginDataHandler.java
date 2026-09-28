@@ -55,12 +55,17 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
             if (Objects.isNull(Singleton.INST.get(ReactiveRedisTemplate.class))
                     || Objects.isNull(Singleton.INST.get(RedisConfigProperties.class))
                     || !redisConfigProperties.equals(Singleton.INST.get(RedisConfigProperties.class))) {
+                final ReactiveRedisTemplate previousRedisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
                 final RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(redisConfigProperties);
                 ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(
                         redisConnectionFactory.getLettuceConnectionFactory(),
                         ShenyuRedisSerializationContext.stringSerializationContext());
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RedisConfigProperties.class, redisConfigProperties);
+                // The client that is replaced must not keep its connection pool and its threads alive.
+                if (Objects.nonNull(previousRedisTemplate)) {
+                    RedisConnectionFactory.destroyQuietly(previousRedisTemplate.getConnectionFactory());
+                }
             }
         }
     }

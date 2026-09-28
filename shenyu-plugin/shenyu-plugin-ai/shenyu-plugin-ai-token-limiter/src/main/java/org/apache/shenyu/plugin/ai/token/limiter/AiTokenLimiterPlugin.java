@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -61,8 +61,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 /**
  * Shenyu ai token limiter plugin.
@@ -85,16 +83,16 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        ReactiveRedisTemplate<String, String> reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
 
-        // generate redis key
+        // generate redis key - include rule id to scope counters per rule
         String tokenLimitType = aiTokenLimiterHandle.getAiTokenLimitType();
         String keyName = aiTokenLimiterHandle.getKeyName();
         Long tokenLimit = aiTokenLimiterHandle.getTokenLimit();
         Long timeWindowSeconds = aiTokenLimiterHandle.getTimeWindowSeconds();
 
-        String cacheKey = REDIS_KEY_PREFIX + getCacheKey(exchange, tokenLimitType, keyName);
+        String cacheKey = REDIS_KEY_PREFIX + CacheKeyUtils.INST.getKey(rule) + ":" + getCacheKey(exchange, tokenLimitType, keyName);
 
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(),
                 tokens -> recordTokensUsage(reactiveRedisTemplate,
@@ -130,12 +128,12 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      * @param tokenLimit the token limit for the request
      * @return whether the request is allowed
      */
-    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
+    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
 
         return reactiveRedisTemplate.opsForValue().get(cacheKey)
-                .defaultIfEmpty(0L)
+                .defaultIfEmpty("0")
                 .flatMap(currentTokens -> {
-                    if (Long.parseLong(currentTokens.toString()) >= tokenLimit) {
+                    if (Long.parseLong(currentTokens) >= tokenLimit) {
                         return Mono.just(false);
                     }
                     return Mono.just(true);
@@ -171,11 +169,18 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return StringUtils.isBlank(key) ? "" : key;
     }
 
-    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        // Record token usage with expiration
-        reactiveRedisTemplate.opsForValue()
-                .increment(cacheKey, tokens)
-                .flatMap(currentValue -> reactiveRedisTemplate.expire(cacheKey, Duration.ofSeconds(windowSeconds)))
+    private void recordTokensUsage(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
+        // The counter is given its window when it is created: re-issuing the expiration after every increment would
+        // push the window forward, so a sustained traffic would never reset the token budget. An existing counter
+        // keeps the window it was created with; only one without any expiration (written by an earlier version or
+        // by another path) is given one, and just once.
+        final Duration window = Duration.ofSeconds(windowSeconds);
+        final ReactiveValueOperations<String, String> valueOperations = reactiveRedisTemplate.opsForValue();
+        valueOperations.setIfAbsent(cacheKey, "0", window)
+                .flatMap(created -> created ? Mono.just(Boolean.TRUE) : reactiveRedisTemplate.getExpire(cacheKey)
+                        .filter(timeToLive -> timeToLive.isNegative() || timeToLive.isZero())
+                        .flatMap(timeToLive -> reactiveRedisTemplate.expire(cacheKey, window)))
+                .then(valueOperations.increment(cacheKey, tokens))
                 .subscribe();
     }
 
@@ -229,9 +234,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     && headers.getFirst(Constants.CONTENT_ENCODING)
                     .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
 
-            final Inflater inflater = isGzip ? new Inflater(true) : null;
-            final byte[] outBuf = new byte[4096];
-            final AtomicBoolean headerSkipped = new AtomicBoolean(!isGzip);
+            final GzipStreamDecoder decoder = isGzip ? new GzipStreamDecoder() : null;
 
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
@@ -241,59 +244,18 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes;
-                                if (isGzip) {
-                                    int offset = 0;
-                                    if (headerSkipped.compareAndSet(false, true)) {
-                                        offset = skipGzipHeader(inBytes);
-                                    }
-                                    inflater.setInput(inBytes, offset, inBytes.length - offset);
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    try {
-                                        int cnt;
-                                        while ((cnt = inflater.inflate(outBuf)) > 0) {
-                                            baos.write(outBuf, 0, cnt);
-                                        }
-                                    } catch (DataFormatException ex) {
-                                        LOG.error("Inflater decompression failed", ex);
-                                    }
-                                    processedBytes = baos.toByteArray();
-                                } else {
-                                    processedBytes = inBytes;
+                                byte[] processedBytes = isGzip ? decoder.decode(inBytes) : inBytes;
+                                if (processedBytes.length > 0) {
+                                    processChunk(processedBytes, writer);
                                 }
-                                String chunk = new String(processedBytes, StandardCharsets.UTF_8);
-                                for (String line : chunk.split("\\r?\\n")) {
-                                    if (!line.startsWith("data:")) {
-                                        continue;
-                                    }
-                                    String payload = line.substring("data:".length()).trim();
-                                    if (payload.isEmpty() || "[DONE]".equals(payload)) {
-                                        continue;
-                                    }
-                                    if (!payload.startsWith("{")) {
-                                        continue;
-                                    }
-                                    try {
-                                        JsonNode node = MAPPER.readTree(payload);
-                                        JsonNode usage = node.get(Constants.USAGE);
-                                        if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
-                                            long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
-                                            tokensRecorder.accept(c);
-                                            streamingUsageRecorded.set(true);
-                                        }
-                                    } catch (Exception e) {
-                                        LOG.error("Failed to parse AI response JSON payload", e);
-                                    }
-                                }
-                                writer.write(ByteBuffer.wrap(processedBytes));
                             });
                         } catch (Exception e) {
                             LOG.error("read dataBuffer error", e);
                         }
                     })
                     .doFinally(signal -> {
-                        if (Objects.nonNull(inflater)) {
-                            inflater.end();
+                        if (Objects.nonNull(decoder)) {
+                            decoder.close();
                         }
                         if (!streamingUsageRecorded.get()) {
                             String sse = writer.output();
@@ -303,6 +265,34 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     });
         }
 
+        private void processChunk(final byte[] processedBytes, final BodyWriter writer) {
+            String chunk = new String(processedBytes, StandardCharsets.UTF_8);
+            for (String line : chunk.split("\\r?\\n")) {
+                if (!line.startsWith("data:")) {
+                    continue;
+                }
+                String payload = line.substring("data:".length()).trim();
+                if (payload.isEmpty() || "[DONE]".equals(payload)) {
+                    continue;
+                }
+                if (!payload.startsWith("{")) {
+                    continue;
+                }
+                try {
+                    JsonNode node = MAPPER.readTree(payload);
+                    JsonNode usage = node.get(Constants.USAGE);
+                    if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
+                        long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
+                        tokensRecorder.accept(c);
+                        streamingUsageRecorded.set(true);
+                    }
+                } catch (Exception e) {
+                    LOG.error("Failed to parse AI response JSON payload", e);
+                }
+            }
+            writer.write(ByteBuffer.wrap(processedBytes));
+        }
+
         private long extractUsageTokensFromSse(final String sse) {
             Matcher m = COMPLETION_TOKENS_PATTERN.matcher(sse);
             long last = 0L;
@@ -310,35 +300,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 last = Long.parseLong(m.group(1));
             }
             return last;
-        }
-
-        private int skipGzipHeader(final byte[] b) {
-            int pos = 10;
-            int flg = b[3] & 0xFF;
-
-            if ((flg & 0x04) != 0) {
-                int xlen = (b[pos] & 0xFF) | ((b[pos + 1] & 0xFF) << 8);
-                pos += 2 + xlen;
-            }
-
-            if ((flg & 0x08) != 0) {
-                while (b[pos] != 0) {
-                    pos++;
-                }
-                pos++;
-            }
-
-            if ((flg & 0x10) != 0) {
-                while (b[pos] != 0) {
-                    pos++;
-                }
-                pos++;
-            }
-
-            if ((flg & 0x02) != 0) {
-                pos += 2;
-            }
-            return pos;
         }
 
     }

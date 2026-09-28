@@ -21,6 +21,10 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.shenyu.common.enums.RedisModeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
@@ -38,7 +42,9 @@ import java.util.Objects;
 /**
  * RedisConnectionFactory.
  */
-public class RedisConnectionFactory {
+public class RedisConnectionFactory implements DisposableBean {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RedisConnectionFactory.class);
 
     private final LettuceConnectionFactory lettuceConnectionFactory;
 
@@ -54,6 +60,34 @@ public class RedisConnectionFactory {
      */
     public LettuceConnectionFactory getLettuceConnectionFactory() {
         return this.lettuceConnectionFactory;
+    }
+
+    /**
+     * Destroy the lettuce connection factory and the connection pool it owns. The client this factory
+     * was built for must not be used afterwards.
+     */
+    @Override
+    public void destroy() {
+        lettuceConnectionFactory.destroy();
+    }
+
+    /**
+     * Destroy a connection factory that was created by this class or by {@link #getLettuceConnectionFactory()}.
+     * The handlers of the plugins that rebuild their client on a configuration change keep the reactive
+     * template only, so this is how they release the client they replace. A null factory, or one that has
+     * no lifecycle, is ignored; a failure is logged rather than thrown, because a client that cannot be
+     * released must not break the configuration update that replaces it.
+     *
+     * @param connectionFactory the connection factory to destroy, may be null
+     */
+    public static void destroyQuietly(final ReactiveRedisConnectionFactory connectionFactory) {
+        if (connectionFactory instanceof DisposableBean) {
+            try {
+                ((DisposableBean) connectionFactory).destroy();
+            } catch (Exception e) {
+                LOG.warn("failed to destroy the redis connection factory", e);
+            }
+        }
     }
 
     private LettuceConnectionFactory createLettuceConnectionFactory(final RedisConfigProperties redisConfigProperties) {
