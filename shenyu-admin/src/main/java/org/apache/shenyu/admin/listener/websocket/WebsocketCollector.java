@@ -43,6 +43,7 @@ import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
+import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
@@ -54,6 +55,10 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Websocket data changed listener.
@@ -70,6 +75,25 @@ public class WebsocketCollector {
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
 
     private static final Map<Session, SessionSendQueue> SESSION_SEND_QUEUES = Maps.newConcurrentMap();
+
+    private static final long DEFAULT_SEND_TIMEOUT_MILLIS = 30_000L;
+
+    private static final int DEFAULT_MAX_QUEUED_MESSAGES = 256;
+
+    /**
+     * Watchdog that detects async sends whose container callback never runs,
+     * e.g. on half-open connections, and closes the session so the gateway
+     * reconnects and performs a full synchronization.
+     */
+    private static final ScheduledExecutorService SEND_WATCHDOG = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "shenyu-websocket-send-watchdog");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    private static volatile long sendTimeoutMillis = DEFAULT_SEND_TIMEOUT_MILLIS;
+
+    private static volatile int maxQueuedMessages = DEFAULT_MAX_QUEUED_MESSAGES;
 
     /**
      * Namespace captured at registration. {@code Session#isOpen()} is already false when
@@ -369,11 +393,41 @@ public class WebsocketCollector {
         }
     }
 
+    /**
+     * Adjust the per-message send timeout, intended for tests.
+     *
+     * @param timeoutMillis the send timeout in milliseconds
+     */
+    static void setSendTimeoutMillis(final long timeoutMillis) {
+        sendTimeoutMillis = timeoutMillis;
+    }
+
+    /**
+     * Adjust the per-session queued message limit, intended for tests.
+     *
+     * @param limit the maximum number of queued messages
+     */
+    static void setMaxQueuedMessages(final int limit) {
+        maxQueuedMessages = limit;
+    }
+
+    /**
+     * Reset the send timeout and queue limit to their defaults, intended for tests.
+     */
+    static void resetSendGuards() {
+        sendTimeoutMillis = DEFAULT_SEND_TIMEOUT_MILLIS;
+        maxQueuedMessages = DEFAULT_MAX_QUEUED_MESSAGES;
+    }
+
     private static final class SessionSendQueue {
 
         private final Session session;
 
         private final Queue<String> messages = new ArrayDeque<>();
+
+        private ScheduledFuture<?> timeoutFuture;
+
+        private String inFlightMessage;
 
         private boolean sending;
 
@@ -387,6 +441,14 @@ public class WebsocketCollector {
             boolean startSending = false;
             synchronized (this) {
                 if (closed) {
+                    return;
+                }
+                if (messages.size() >= WebsocketCollector.maxQueuedMessages) {
+                    // silently dropping messages is not acceptable: close the session
+                    // so the gateway reconnects and performs a full synchronization
+                    LOG.error("websocket send queue overflow on session {}, queued {}, closing session for resync",
+                            session.getId(), messages.size());
+                    forceClose("send queue overflow");
                     return;
                 }
                 messages.offer(message);
@@ -413,23 +475,84 @@ public class WebsocketCollector {
                     sending = false;
                     return;
                 }
+                inFlightMessage = message;
             }
+            final ScheduledFuture<?> future = SEND_WATCHDOG.schedule(
+                    () -> onSendTimeout(message), sendTimeoutMillis, TimeUnit.MILLISECONDS);
+            boolean submitted;
             try {
-                session.getAsyncRemote().sendText(message, result -> {
-                    if (!result.isOK()) {
-                        LOG.error("websocket send result is exception: ", result.getException());
-                    }
-                    sendNext();
-                });
+                session.getAsyncRemote().sendText(message, result -> onSendResult(future, result));
+                submitted = true;
             } catch (RuntimeException ex) {
-                LOG.error("websocket send result is exception: ", ex);
-                sendNext();
+                LOG.error("websocket send failed synchronously on session {}", session.getId(), ex);
+                submitted = false;
+            }
+            if (!submitted) {
+                future.cancel(false);
+                forceClose("synchronous send failure");
+            }
+        }
+
+        private void onSendResult(final ScheduledFuture<?> future, final SendResult result) {
+            future.cancel(false);
+            synchronized (this) {
+                if (closed) {
+                    return;
+                }
+                inFlightMessage = null;
+                if (!result.isOK()) {
+                    LOG.error("websocket send result is exception on session {}, closing session for resync",
+                            session.getId(), result.getException());
+                    forceClose("send failure");
+                    return;
+                }
+            }
+            sendNext();
+        }
+
+        private void onSendTimeout(final String scheduledMessage) {
+            synchronized (this) {
+                if (closed || !sending || !Objects.equals(inFlightMessage, scheduledMessage)) {
+                    return;
+                }
+                LOG.error("websocket send callback not observed within {} ms on session {},"
+                                + " treating the connection as broken and closing it for resync",
+                        sendTimeoutMillis, session.getId());
+                forceClose("send timeout");
+            }
+        }
+
+        private void forceClose(final String reason) {
+            synchronized (this) {
+                if (closed) {
+                    return;
+                }
+                closed = true;
+                sending = false;
+                inFlightMessage = null;
+                if (Objects.nonNull(timeoutFuture)) {
+                    timeoutFuture.cancel(false);
+                    timeoutFuture = null;
+                }
+                messages.clear();
+            }
+            LOG.warn("closing websocket session {} to force gateway resync, reason={}", session.getId(), reason);
+            removeSessionIndexes(session);
+            try {
+                session.close();
+            } catch (Exception ex) {
+                LOG.warn("error closing websocket session {}: {}", session.getId(), ex.getMessage());
             }
         }
 
         private void close() {
             synchronized (this) {
                 closed = true;
+                inFlightMessage = null;
+                if (Objects.nonNull(timeoutFuture)) {
+                    timeoutFuture.cancel(false);
+                    timeoutFuture = null;
+                }
                 messages.clear();
             }
         }

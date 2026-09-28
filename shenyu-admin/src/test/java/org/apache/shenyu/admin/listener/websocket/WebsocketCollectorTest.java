@@ -108,6 +108,7 @@ public final class WebsocketCollectorTest {
         websocketCollector = new WebsocketCollector();
         // Clear shared static state between tests
         clearStaticSessionState();
+        WebsocketCollector.resetSendGuards();
         when(session.isOpen()).thenReturn(true);
         Map<String, Object> userProperties = new HashMap<>();
         userProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -471,7 +472,7 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testSendBySessionFailure() {
+    void testSendBySessionFailure() throws Exception {
         final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         when(session.getAsyncRemote()).thenReturn(async);
         when(session.isOpen()).thenReturn(true);
@@ -484,8 +485,66 @@ public final class WebsocketCollectorTest {
         }).when(async).sendText(anyString(), any(SendHandler.class));
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "fail-msg", DataEventTypeEnum.CREATE);
         verify(async, times(1)).sendText(eq("fail-msg"), any(SendHandler.class));
+        // a failed send closes the session so the gateway reconnects and resynchronizes
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testMissingSendCallbackTimesOutAndClosesSession() throws Exception {
+        WebsocketCollector.setSendTimeoutMillis(150);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        // container never invokes the send handler — the stalled-connection case
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stuck-message", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "second-message", DataEventTypeEnum.CREATE);
+        // only the first message reaches sendText; the second stays queued
+        verify(async, times(1)).sendText(eq("stuck-message"), any(SendHandler.class));
+        verify(async, never()).sendText(eq("second-message"), any(SendHandler.class));
+
+        // the watchdog closes the broken session within a bounded time
+        waitUntil(() -> getSessionSetSize() == 0L);
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testSynchronousSendExceptionClosesSession() throws Exception {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        when(session.isOpen()).thenReturn(true);
+        websocketCollector.onOpen(session);
+
+        doAnswer(invocation -> {
+            throw new IllegalStateException("broken pipe");
+        }).when(async).sendText(anyString(), any(SendHandler.class));
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "boom-message", DataEventTypeEnum.CREATE);
+
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testQueueOverflowClosesSession() throws Exception {
+        WebsocketCollector.setMaxQueuedMessages(2);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m1", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m2", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m3", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m4", DataEventTypeEnum.CREATE);
+
+        verify(async, times(1)).sendText(eq("m1"), any(SendHandler.class));
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
     }
 
     @Test
@@ -561,5 +620,12 @@ public final class WebsocketCollectorTest {
 
     private Session getSession() {
         return (Session) ThreadLocalUtils.get("sessionKey");
+    }
+
+    private void waitUntil(final java.util.function.Supplier<Boolean> condition) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 3000L;
+        while (!condition.get() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20L);
+        }
     }
 }
