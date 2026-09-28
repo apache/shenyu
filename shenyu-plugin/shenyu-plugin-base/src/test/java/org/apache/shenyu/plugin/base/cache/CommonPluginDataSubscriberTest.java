@@ -40,6 +40,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -117,6 +119,29 @@ public final class CommonPluginDataSubscriberTest {
         assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(() -> commonPluginDataSubscriber.onSubscribe(data)));
         assertFalse(InitialSyncApplication.isActive());
         assertDoesNotThrow(() -> commonPluginDataSubscriber.onSubscribe(data));
+    }
+
+    @Test
+    void testInitialSyncTracksDeferredRefreshApplication() {
+        PluginData data = PluginData.builder().name("divide").build();
+        CompletableFuture<Void> deferred = new CompletableFuture<>();
+        doAnswer(invocation -> {
+            InitialSyncApplication.register(deferred);
+            return null;
+        }).when(handler).handlerPlugin(data);
+        CompletableFuture<Void> application = InitialSyncApplication.run(() -> commonPluginDataSubscriber.onPluginRefresh(List.of(data)));
+        assertFalse(application.isDone());
+        assertFalse(InitialSyncApplication.isActive());
+        deferred.completeExceptionally(new IllegalStateException("deferred refresh failed"));
+        assertTrue(application.isCompletedExceptionally());
+    }
+
+    @Test
+    void testInitialSyncPropagatesRefreshFailure() {
+        PluginData data = PluginData.builder().name("divide").build();
+        doThrow(new IllegalStateException("refresh failed")).when(handler).handlerPlugin(data);
+        assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(() -> commonPluginDataSubscriber.onPluginRefresh(List.of(data))));
+        assertFalse(InitialSyncApplication.isActive());
     }
 
     @Test

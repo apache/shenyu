@@ -131,7 +131,7 @@ public class ShenyuWebsocketClientTest {
         String id = state.begin();
         shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(
                 new WebsocketSyncFrame(id, 0, GsonUtils.getInstance().toJson(websocketData))));
-        verify(pluginDataSubscriber).onSubscribe(any());
+        verify(pluginDataSubscriber).onPluginRefresh(any());
         assertFalse(ready.get());
         shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(id, 1, null)));
         assertTrue(ready.get());
@@ -145,7 +145,7 @@ public class ShenyuWebsocketClientTest {
         field.setAccessible(true);
         field.set(shenyuWebsocketClient, state);
         String id = state.begin();
-        doThrow(new IllegalStateException("apply failed")).when(pluginDataSubscriber).onSubscribe(any());
+        doThrow(new IllegalStateException("apply failed")).when(pluginDataSubscriber).onPluginRefresh(any());
         shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(
                 new WebsocketSyncFrame(id, 0, GsonUtils.getInstance().toJson(websocketData))));
         shenyuWebsocketClient.onMessage(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(id, 1, null)));

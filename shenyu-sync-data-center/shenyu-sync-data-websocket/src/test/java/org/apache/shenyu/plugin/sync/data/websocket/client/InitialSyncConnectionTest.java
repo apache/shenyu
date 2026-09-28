@@ -63,7 +63,7 @@ class InitialSyncConnectionTest {
         doAnswer(invocation -> {
             InitialSyncApplication.register(application);
             return null;
-        }).when(subscriber).onSubscribe(any());
+        }).when(subscriber).onPluginRefresh(any());
         ShenyuWebsocketClient client = null;
         try {
             client = new ShenyuWebsocketClient(URI.create("ws://127.0.0.1:" + server.getPort()), Collections.emptyMap(), subscriber,
