@@ -75,6 +75,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Test conditional disk cleanup
+        run: bash .github/scripts/free-disk-space-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -103,16 +105,9 @@ jobs:
           CHANGED_FILES_JSON: ${{ steps.filter.outputs['k8s-examples_files'] }}
           CI_CASE_MODE: k8s-examples-http
         run: bash .github/scripts/resolve-test-case-matrix.sh
-      - name: Free disk space
+      - name: Free disk space when needed
         if: steps.cases.outputs.run_k8s_examples == 'true'
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+        run: bash .github/scripts/free-disk-space.sh
       - name: Install k8s
         if: steps.cases.outputs.run_k8s_examples == 'true'
         run: |
