@@ -78,6 +78,8 @@ jobs:
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
+      - name: Test CI case resolver
+        run: bash .github/scripts/resolve-test-case-matrix-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -114,6 +116,8 @@ jobs:
         env:
           CHANGED_FILES_JSON: ${{ steps.filter.outputs.code_files }}
         run: bash .github/scripts/resolve-ci-modules.sh
+      - name: Test GHCR publish routing
+        run: bash .github/scripts/resolve-ghcr-publish-test.sh
 
   pr_build:
     needs: changes
