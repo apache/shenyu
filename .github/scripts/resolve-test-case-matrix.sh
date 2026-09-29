@@ -354,7 +354,7 @@ while IFS= read -r file; do
     case "${file}" in
       .github/workflows/integrated-test-k8s-ingress.yml|\
       .github/scripts/resolve-test-case-matrix.sh|\
-      .github/scripts/resolve-k8s-ingress-matrix-test.sh)
+      .github/scripts/resolve-test-case-matrix-test.sh)
         add_k8s_ingress_all
         continue
         ;;

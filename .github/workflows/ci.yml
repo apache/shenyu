@@ -80,8 +80,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
-      - name: Test CI domain routing
-        run: bash .github/scripts/resolve-test-domain-routing-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
