@@ -76,6 +76,25 @@ add_integration_all() {
   add_unique integration_cases "shenyu-integrated-test-sdk-http"
 }
 
+add_admin_register_e2e_cases() {
+  add_unique e2e_cases "e2e-http-sync-compose"
+  add_unique e2e_cases "e2e-springcloud-sync-compose"
+  add_unique e2e_cases "e2e-apache-dubbo-sync-compose"
+  add_unique e2e_cases "e2e-grpc-sync-compose"
+  add_unique e2e_cases "e2e-websocket-sync-compose"
+}
+
+add_admin_register_integration_cases() {
+  add_unique integration_cases "shenyu-integrated-test-apache-dubbo"
+  add_unique integration_cases "shenyu-integrated-test-grpc"
+  add_unique integration_cases "shenyu-integrated-test-http"
+  add_unique integration_cases "shenyu-integrated-test-https"
+  add_unique integration_cases "shenyu-integrated-test-spring-cloud"
+  add_unique integration_cases "shenyu-integrated-test-websocket"
+  add_unique integration_cases "shenyu-integrated-test-sdk-apache-dubbo"
+  add_unique integration_cases "shenyu-integrated-test-sdk-http"
+}
+
 add_k8s_ingress_all() {
   add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-http"
   add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-apache-dubbo"
@@ -170,6 +189,26 @@ resolve_k8s_change() {
     esac
     return 0
   fi
+
+  return 1
+}
+
+map_admin_register_path() {
+  local file="$1"
+
+  case "${file}" in
+    shenyu-admin/src/main/java/org/apache/shenyu/admin/service/register/*|\
+    shenyu-admin/src/test/java/org/apache/shenyu/admin/service/register/*)
+      if [[ "${mode}" == "e2e" ]]; then
+        add_admin_register_e2e_cases
+      elif [[ "${mode}" == "integration" ]]; then
+        add_admin_register_integration_cases
+      else
+        return 1
+      fi
+      return 0
+      ;;
+  esac
 
   return 1
 }
@@ -370,6 +409,10 @@ while IFS= read -r file; do
   fi
 
   if resolve_k8s_change "${file}"; then
+    continue
+  fi
+
+  if map_admin_register_path "${file}"; then
     continue
   fi
 

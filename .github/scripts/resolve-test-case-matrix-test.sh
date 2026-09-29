@@ -114,7 +114,11 @@ readonly E2E_GRPC="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-grpc/compose/scrip
 readonly IT_GRPC="shenyu-integrated-test/shenyu-integrated-test-grpc/src/test/java/GrpcPluginTest.java"
 readonly IT_K8S_GRPC="shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-grpc/script/healthcheck.sh"
 readonly PROD_GRPC="shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/pom.xml"
+readonly ADMIN_REGISTER="shenyu-admin/src/main/java/org/apache/shenyu/admin/service/register/AbstractShenyuClientRegisterServiceImpl.java"
+readonly ADMIN_SERVICE="shenyu-admin/src/main/java/org/apache/shenyu/admin/service/impl/PluginServiceImpl.java"
 readonly ALL_K8S_INGRESS_MATRIX='{"include":[{"case":"shenyu-integrated-test-k8s-ingress-http"},{"case":"shenyu-integrated-test-k8s-ingress-apache-dubbo"},{"case":"shenyu-integrated-test-k8s-ingress-websocket"},{"case":"shenyu-integrated-test-k8s-ingress-grpc"}]}'
+readonly ADMIN_REGISTER_E2E_MATRIX='{"include":[{"script":"e2e-http-sync-compose","case":"shenyu-e2e-case-http","example_projects":":shenyu-examples-http"},{"script":"e2e-springcloud-sync-compose","case":"shenyu-e2e-case-spring-cloud","example_projects":":shenyu-examples-eureka,:shenyu-examples-springcloud"},{"script":"e2e-apache-dubbo-sync-compose","case":"shenyu-e2e-case-apache-dubbo","example_projects":":shenyu-examples-apache-dubbo-service"},{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"},{"script":"e2e-websocket-sync-compose","case":"shenyu-e2e-case-websocket","example_projects":":shenyu-example-spring-native-websocket"}]}'
+readonly ADMIN_REGISTER_IT_MATRIX='{"include":[{"case":"shenyu-integrated-test-apache-dubbo"},{"case":"shenyu-integrated-test-grpc"},{"case":"shenyu-integrated-test-http"},{"case":"shenyu-integrated-test-https"},{"case":"shenyu-integrated-test-spring-cloud"},{"case":"shenyu-integrated-test-websocket"},{"case":"shenyu-integrated-test-sdk-apache-dubbo"},{"case":"shenyu-integrated-test-sdk-http"}]}'
 
 assert_ci_ignored "${E2E_GRPC}"
 assert_file_output "e2e" "${E2E_GRPC}" "e2e_matrix" \
@@ -164,5 +168,15 @@ assert_file_output "k8s-ingress" ".github/workflows/integrated-test-k8s-ingress.
   "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
 assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix-test.sh" \
   "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+
+assert_file_output "e2e" "${ADMIN_REGISTER}" "full_required" "false"
+assert_file_output "e2e" "${ADMIN_REGISTER}" "run_storage" "false"
+assert_file_output "e2e" "${ADMIN_REGISTER}" "e2e_matrix" "${ADMIN_REGISTER_E2E_MATRIX}"
+assert_file_output "integration" "${ADMIN_REGISTER}" "full_required" "false"
+assert_file_output "integration" "${ADMIN_REGISTER}" "integration_matrix" "${ADMIN_REGISTER_IT_MATRIX}"
+assert_file_output "k8s-ingress" "${ADMIN_REGISTER}" "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+assert_file_output "k8s-examples-http" "${ADMIN_REGISTER}" "run_k8s_examples" "true"
+assert_file_output "e2e" "${ADMIN_SERVICE}" "full_required" "true"
+assert_file_output "integration" "${ADMIN_SERVICE}" "full_required" "true"
 
 echo "CI test routing tests passed"
